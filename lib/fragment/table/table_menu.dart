@@ -57,7 +57,7 @@ class _TableMenuState extends State<TableMenu> {
   double scrollContainerHeight = 130;
   double priceSST = 0.0;
   double priceServeTax = 0.0;
-  int tapCount = 0;
+  int tapCount = 0, loadCount = 0;
   bool isLoaded = false;
   bool showAdvanced = false;
   bool productDetailLoaded = false;
@@ -131,296 +131,31 @@ class _TableMenuState extends State<TableMenu> {
       return Consumer<CartModel>(builder: (context, CartModel cart, child) {
         return Consumer<TableModel>(builder: (context, TableModel tableModel, child) {
           return Consumer<NotificationModel>(builder: (context, NotificationModel notificationModel, child) {
-            if (tableModel.isChange) {
-              readAllTable(model: tableModel);
-            }
-            if(notificationModel.contentLoad == true) {
-              isLoaded = false;
-            }
             if(notificationModel.contentLoaded == true){
               notificationModel.resetContentLoaded();
               notificationModel.resetContentLoad();
               Future.delayed(const Duration(seconds: 1), () {
                 readAllTable(notification: true);
               });
+            } else {
+              if (tableModel.isChange && cart.cartNotifierItem.isEmpty) {
+                readAllTable(model: tableModel);
+              }
             }
             if (screenSize.width > 900 && screenSize.height > 500){
               return Scaffold(
-                body: isLoaded ? Container(
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(11, 15, 11, 4),
-                        child: Row(
-                          children: [
-                            Text(
-                              showAdvanced && editingMode ? AppLocalizations.of(context)!.translate('edit') : AppLocalizations.of(context)!.translate('table'),
-                              style: TextStyle(fontSize: 25),
-                            ),
-                            // Padding(
-                            //   padding:
-                            //       const EdgeInsets.fromLTRB(18, 0, 0, 0),
-                            //   child: ElevatedButton.icon(
-                            //       style: ElevatedButton.styleFrom(
-                            //           backgroundColor: color.backgroundColor),
-                            //       onPressed: () async  {
-                            //         bool hasInternetAccess = await Domain().isHostReachable();
-                            //         if(hasInternetAccess){
-                            //           openAddTableDialog(PosTable());
-                            //         } else {
-                            //           Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('internet_access_required'));
-                            //         }
-                            //       },
-                            //       icon: Icon(Icons.add),
-                            //       label: Text(AppLocalizations.of(context)!.translate('table'))),
-                            // ),
-
-                            Expanded(
-                              flex: MediaQuery.of(context).size.height > 500 ? 23 : 3,
-                              child: Row(
-                                mainAxisAlignment: MediaQuery.of(context).size.height > 500 ? MainAxisAlignment.center: MainAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    AppLocalizations.of(context)!.translate('advanced'),
-                                    style: TextStyle(fontSize: MediaQuery.of(context).size.height > 500 ? 18 : 12),
-                                  ),
-                                  Switch(
-                                    value: showAdvanced,
-                                    onChanged: (value) async {
-                                      if(MediaQuery.of(context).size.height > 500) {
-                                        if (isUpdated()) {
-                                          scrollContainerHeight = 130;
-                                          showSaveDialog(context);
-                                        } else {
-                                          editingMode = false;
-                                          setState(() {
-                                            showAdvanced = !showAdvanced;
-                                          });
-
-                                        }
-                                        prefs.setBool('show_advanced', showAdvanced);
-                                      } else {
-                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('feature_not_supported_on_phone'));
-                                      }
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // SizedBox(width: MediaQuery.of(context).size.height > 450 ? 450 : 50),
-                            // Spacer(),
-                            Expanded(
-                              flex: MediaQuery.of(context).size.height > 500 ? 47 : 2,
-                              child: Visibility(
-                                visible: showAdvanced ? true : false,
-                                child: Row(
-                                  mainAxisAlignment: MediaQuery.of(context).size.height > 500 ? MainAxisAlignment.end : MainAxisAlignment.center,
-                                  children: [
-                                    Visibility(
-                                      visible: editingMode ? true : false,
-                                      child: IconButton(
-                                        icon: const Icon(
-                                          Icons.save,
-                                        ),
-                                        color: color.backgroundColor,
-                                        onPressed: () {
-                                          if (isUpdated()) {
-                                            scrollContainerHeight = 130;
-                                            showSaveDialog(context);
-                                          } else {
-                                            editingMode = !editingMode;
-                                          }
-                                        },
-                                      ),
-                                      replacement: IconButton(
-                                        icon: const Icon(
-                                          Icons.edit,
-                                        ),
-                                        color: color.backgroundColor,
-                                        onPressed: () async {
-                                          bool _hasInternetAccess = await Domain().isHostReachable();
-                                          if (_hasInternetAccess) {
-                                            editingMode = !editingMode;
-                                            if (editingMode) {
-                                              for (int j = 0; j < tableList.length; j++) {
-                                                if (tableList[j].status == 1) {
-                                                  tableList[j].isSelected = false;
-                                                  cart.removeAllCartItem();
-                                                  cart.removePromotion();
-                                                  cart.removeSpecificTable(tableList[j]);
-                                                }
-                                              }
-                                            }
-                                            setState(() {});
-                                          } else {
-                                            Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_internet_access'));
-                                          }
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-
-                            SizedBox(width: MediaQuery.of(context).size.height > 500 ? 15 : 2),
-
-                            Expanded(
-                              flex: MediaQuery.of(context).size.height > 500 ? 30 : 3,
-                              child: TextField(
-                                onChanged: (value) {
-                                  searchTable(value);
-                                },
-                                decoration: InputDecoration(
-                                  isDense: true,
-                                  border: InputBorder.none,
-                                  labelText: AppLocalizations.of(context)!.translate('search'),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide: const BorderSide(color: Colors.grey, width: 2.0),
-                                    borderRadius: BorderRadius.circular(25.0),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      !showAdvanced ?
-                      Expanded(
-                        child: GridView.count(
-                          shrinkWrap: true,
-                          crossAxisCount: MediaQuery.of(context).size.height > 500 ? 5 : 3,
-                          children: List.generate(
-                            //this is the total number of cards
-                              tableList.length, (index) {
-                            // tableList[index].seats == 2;
-                            return Card(
-                              color: tableList[index].status != 0 && MediaQuery.of(context).size.height < 500 ? toColor(tableList[index].card_color!) : Colors.white,
-                              shape: tableList[index].isSelected
-                                  ? new RoundedRectangleBorder(side: new BorderSide(color: color.backgroundColor, width: 3.0), borderRadius: BorderRadius.circular(4.0))
-                                  : new RoundedRectangleBorder(side: new BorderSide(color: Colors.white, width: 3.0), borderRadius: BorderRadius.circular(4.0)),
-                              elevation: 5,
-                              child: InkWell(
-                                splashColor: Colors.blue.withAlpha(30),
-                                onDoubleTap: () {
-                                  if (tableList[index].status != 1) {
-                                    //openAddTableDialog(tableList[index]);
-                                  } else {
-                                    openChangeTableDialog(tableList[index], cart);
-                                  }
-                                },
-                                onTap: onTapDisable ? null : () {
-                                  tapCount++;
-                                  setState(() {
-                                    onTapDisable = true;
-                                  });
-                                  if(tapCount == 1){
-                                    asyncQ.addJob((_) async => await onSelect(index, cart));
-                                    // onSelect(index, cart);
-                                  }
-                                },
-                                child: Container(
-                                  margin: MediaQuery.of(context).size.height > 500 ? EdgeInsets.all(2) : EdgeInsets.all(0),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      // tableList[index].group != null && MediaQuery.of(context).size.height > 500
-                                      //     ? Expanded(
-                                      //         child: Text(
-                                      //         "Group: ${tableList[index].group}",
-                                      //         style:
-                                      //             TextStyle(fontSize: 18),
-                                      //       ))
-                                      //     : MediaQuery.of(context).size.height > 500
-                                      //         ? Expanded(child: Text(''))
-                                      //         : Container(height: 10),
-                                      Container(
-                                        margin: MediaQuery.of(context).size.height > 500 ? EdgeInsets.fromLTRB(0, 5, 0, 5) : null,
-                                        height: MediaQuery.of(context).size.height < 500
-                                            ? 100
-                                            : MediaQuery.of(context).size.height < 700
-                                            ? MediaQuery.of(context).size.height / 6.5
-                                            : calculateHeight(context),
-                                        child: Stack(
-                                          children: [
-                                            Visibility(
-                                              visible: tableList[index].group != null && MediaQuery.of(context).size.height > 500 ? true : false,
-                                              child: Container(
-                                                  alignment: Alignment.topCenter,
-                                                  child: Container(
-                                                    padding: EdgeInsets.only(right: 5.0, left: 5.0),
-                                                    decoration: BoxDecoration(
-                                                        color: tableList[index].group != null && MediaQuery.of(context).size.height > 500
-                                                            ? toColor(tableList[index].card_color!)
-                                                            : Colors.white,
-                                                        borderRadius: BorderRadius.circular(5.0)),
-                                                    child: Text(
-                                                      AppLocalizations.of(context)!.translate('group') + ": ${tableList[index].group}",
-                                                      style: TextStyle(fontSize: 18, color: fontColor(posTable: tableList[index])),
-                                                    ),
-                                                  )),
-                                            ),
-                                            tableList[index].seats == '2'
-                                                ? Container(alignment: Alignment.center, child: Image.asset("drawable/two-seat.jpg"))
-                                                : tableList[index].seats == '4'
-                                                ? Container(alignment: Alignment.center, child: Image.asset("drawable/four-seat.jpg"))
-                                                : tableList[index].seats == '6'
-                                                ? Container(alignment: Alignment.center, child: Image.asset("drawable/six-seat.jpg"))
-                                                : Container(),
-                                            // Ink.image(
-                                            //   image: tableList[index].seats == '2'
-                                            //       ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/two-seat.jpg'))
-                                            //   // NetworkImage(
-                                            //   //         "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
-                                            //       : tableList[index].seats == '4'
-                                            //           ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/four-seat.jpg'))
-                                            //   // NetworkImage(
-                                            //   //             "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
-                                            //           : tableList[index].seats == '6'
-                                            //               ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/six-seat.jpg'))
-                                            //   // NetworkImage(
-                                            //   //                 "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
-                                            //               : FileImage(File('data/user/0/com.example.pos_system/files/assets/img/duitNow.jpg')),
-                                            //   // NetworkImage(
-                                            //   //                 "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
-                                            //   fit: BoxFit.cover,
-                                            // ),
-                                            Container(alignment: Alignment.center, child: Text(tableList[index].number!)),
-                                            Visibility(
-                                              visible: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? true : false,
-                                              child: Container(
-                                                  alignment: Alignment.bottomCenter,
-                                                  child: Text("RM ${tableList[index].total_amount ?? '0.00'}", style: TextStyle(fontSize: 18))),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? Container(height: 10) : Container(),
-                                      // tableList[index].status == 1 ?
-                                      // Expanded(
-                                      //     child: Text(
-                                      //       "RM ${tableList[index].total_Amount.toStringAsFixed(2)}",
-                                      //       style: TextStyle(fontSize: 18)),
-                                      // ) :
-                                      //     Expanded
-                                      //       (child: Text(''))
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          }),
-                        ),
-                      )
-                          : AdvancedTableMap(cart, editingMode),
-                      //         : LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints){
-                      //   print('Max Width: ' + constraints.maxWidth.toString() + ', Max Height: ' + constraints.maxHeight.toString());
-                      //
-                      //   return AdvancedTableMap(cart, editingMode);
-                      // }
-                    ],
-                  ),
+                body: isLoaded ?
+                Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(11, 15, 11, 4),
+                      child: TableMenuAppBar(context, color, cart),
+                    ),
+                    SizedBox(height: 20),
+                    !showAdvanced ?
+                    NormalTableMap(context, color, cart) :
+                    AdvancedTableMap(cart, editingMode),
+                  ],
                 )
                     : Container(child: CustomProgressBar()),
 
@@ -506,10 +241,11 @@ class _TableMenuState extends State<TableMenu> {
                                     }
                                   },
                                   onTap: onTapDisable ? null : () {
-                                    tapCount++;
                                     setState(() {
+                                      tapCount++;
                                       onTapDisable = true;
                                     });
+                                    openLoadingDialogBox();
                                     if(tapCount == 1){
                                       asyncQ.addJob((_) async => await onSelect(index, cart));
                                     }
@@ -584,14 +320,277 @@ class _TableMenuState extends State<TableMenu> {
     });
   }
 
+  Widget NormalTableMap(BuildContext context, ThemeColor color, CartModel cart) {
+    return Expanded(
+      child: GridView.count(
+        shrinkWrap: true,
+        crossAxisCount: MediaQuery.of(context).size.height > 500 ? 5 : 3,
+        children: List.generate(
+          //this is the total number of cards
+            tableList.length, (index) {
+          // tableList[index].seats == 2;
+          return Card(
+            color: tableList[index].status != 0 && MediaQuery.of(context).size.height < 500 ? toColor(tableList[index].card_color!) : Colors.white,
+            shape: tableList[index].isSelected
+                ? new RoundedRectangleBorder(side: new BorderSide(color: color.backgroundColor, width: 3.0), borderRadius: BorderRadius.circular(4.0))
+                : new RoundedRectangleBorder(side: new BorderSide(color: Colors.white, width: 3.0), borderRadius: BorderRadius.circular(4.0)),
+            elevation: 5,
+            child: InkWell(
+              splashColor: Colors.blue.withAlpha(30),
+              onDoubleTap: () {
+                if (tableList[index].status != 1) {
+                  //openAddTableDialog(tableList[index]);
+                } else {
+                  openChangeTableDialog(tableList[index], cart);
+                }
+              },
+              onTap: onTapDisable ? null : () {
+                setState(() {
+                  tapCount++;
+                  onTapDisable = true;
+                });
+                openLoadingDialogBox();
+                if(tapCount == 1){
+                  asyncQ.addJob((_) async => await onSelect(index, cart));
+                }
+              },
+              child: Container(
+                margin: MediaQuery.of(context).size.height > 500 ? EdgeInsets.all(2) : EdgeInsets.all(0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // tableList[index].group != null && MediaQuery.of(context).size.height > 500
+                    //     ? Expanded(
+                    //         child: Text(
+                    //         "Group: ${tableList[index].group}",
+                    //         style:
+                    //             TextStyle(fontSize: 18),
+                    //       ))
+                    //     : MediaQuery.of(context).size.height > 500
+                    //         ? Expanded(child: Text(''))
+                    //         : Container(height: 10),
+                    Container(
+                      margin: MediaQuery.of(context).size.height > 500 ? EdgeInsets.fromLTRB(0, 5, 0, 5) : null,
+                      height: MediaQuery.of(context).size.height < 500
+                          ? 100
+                          : MediaQuery.of(context).size.height < 700
+                          ? MediaQuery.of(context).size.height / 6.5
+                          : calculateHeight(context),
+                      child: Stack(
+                        children: [
+                          Visibility(
+                            visible: tableList[index].group != null && MediaQuery.of(context).size.height > 500 ? true : false,
+                            child: Container(
+                                alignment: Alignment.topCenter,
+                                child: Container(
+                                  padding: EdgeInsets.only(right: 5.0, left: 5.0),
+                                  decoration: BoxDecoration(
+                                      color: tableList[index].group != null && MediaQuery.of(context).size.height > 500
+                                          ? toColor(tableList[index].card_color!)
+                                          : Colors.white,
+                                      borderRadius: BorderRadius.circular(5.0)),
+                                  child: Text(
+                                    AppLocalizations.of(context)!.translate('group') + ": ${tableList[index].group}",
+                                    style: TextStyle(fontSize: 18, color: fontColor(posTable: tableList[index])),
+                                  ),
+                                )),
+                          ),
+                          tableList[index].seats == '2'
+                              ? Container(alignment: Alignment.center, child: Image.asset("drawable/two-seat.jpg"))
+                              : tableList[index].seats == '4'
+                              ? Container(alignment: Alignment.center, child: Image.asset("drawable/four-seat.jpg"))
+                              : tableList[index].seats == '6'
+                              ? Container(alignment: Alignment.center, child: Image.asset("drawable/six-seat.jpg"))
+                              : Container(),
+                          // Ink.image(
+                          //   image: tableList[index].seats == '2'
+                          //       ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/two-seat.jpg'))
+                          //   // NetworkImage(
+                          //   //         "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
+                          //       : tableList[index].seats == '4'
+                          //           ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/four-seat.jpg'))
+                          //   // NetworkImage(
+                          //   //             "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
+                          //           : tableList[index].seats == '6'
+                          //               ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/six-seat.jpg'))
+                          //   // NetworkImage(
+                          //   //                 "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
+                          //               : FileImage(File('data/user/0/com.example.pos_system/files/assets/img/duitNow.jpg')),
+                          //   // NetworkImage(
+                          //   //                 "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
+                          //   fit: BoxFit.cover,
+                          // ),
+                          Container(alignment: Alignment.center, child: Text(tableList[index].number!)),
+                          Visibility(
+                            visible: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? true : false,
+                            child: Container(
+                                alignment: Alignment.bottomCenter,
+                                child: Text("RM ${tableList[index].total_amount ?? '0.00'}", style: TextStyle(fontSize: 18))),
+                          ),
+                        ],
+                      ),
+                    ),
+                    MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? Container(height: 10) : Container(),
+                    // tableList[index].status == 1 ?
+                    // Expanded(
+                    //     child: Text(
+                    //       "RM ${tableList[index].total_Amount.toStringAsFixed(2)}",
+                    //       style: TextStyle(fontSize: 18)),
+                    // ) :
+                    //     Expanded
+                    //       (child: Text(''))
+                  ],
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget TableMenuAppBar(BuildContext context, ThemeColor color, CartModel cart) {
+    return Row(
+      children: [
+        Text(
+          showAdvanced && editingMode ? AppLocalizations.of(context)!.translate('edit') : AppLocalizations.of(context)!.translate('table'),
+          style: TextStyle(fontSize: 25),
+        ),
+        // Padding(
+        //   padding:
+        //       const EdgeInsets.fromLTRB(18, 0, 0, 0),
+        //   child: ElevatedButton.icon(
+        //       style: ElevatedButton.styleFrom(
+        //           backgroundColor: color.backgroundColor),
+        //       onPressed: () async  {
+        //         bool hasInternetAccess = await Domain().isHostReachable();
+        //         if(hasInternetAccess){
+        //           openAddTableDialog(PosTable());
+        //         } else {
+        //           Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('internet_access_required'));
+        //         }
+        //       },
+        //       icon: Icon(Icons.add),
+        //       label: Text(AppLocalizations.of(context)!.translate('table'))),
+        // ),
+        Expanded(
+          flex: MediaQuery.of(context).size.height > 500 ? 23 : 3,
+          child: Row(
+            mainAxisAlignment: MediaQuery.of(context).size.height > 500 ? MainAxisAlignment.center: MainAxisAlignment.end,
+            children: [
+              Text(
+                AppLocalizations.of(context)!.translate('advanced'),
+                style: TextStyle(fontSize: MediaQuery.of(context).size.height > 500 ? 18 : 12),
+              ),
+              Switch(
+                value: showAdvanced,
+                onChanged: (value) async {
+                  if(MediaQuery.of(context).size.height > 500) {
+                    if (isUpdated()) {
+                      scrollContainerHeight = 130;
+                      showSaveDialog(context);
+                    } else {
+                      editingMode = false;
+                      setState(() {
+                        showAdvanced = !showAdvanced;
+                      });
+
+                    }
+                    prefs.setBool('show_advanced', showAdvanced);
+                  } else {
+                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('feature_not_supported_on_phone'));
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+        // SizedBox(width: MediaQuery.of(context).size.height > 450 ? 450 : 50),
+        // Spacer(),
+        Expanded(
+          flex: MediaQuery.of(context).size.height > 500 ? 47 : 2,
+          child: Visibility(
+            visible: showAdvanced ? true : false,
+            child: Row(
+              mainAxisAlignment: MediaQuery.of(context).size.height > 500 ? MainAxisAlignment.end : MainAxisAlignment.center,
+              children: [
+                Visibility(
+                  visible: editingMode ? true : false,
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.save,
+                    ),
+                    color: color.backgroundColor,
+                    onPressed: () {
+                      if (isUpdated()) {
+                        scrollContainerHeight = 130;
+                        showSaveDialog(context);
+                      } else {
+                        editingMode = !editingMode;
+                      }
+                    },
+                  ),
+                  replacement: IconButton(
+                    icon: const Icon(
+                      Icons.edit,
+                    ),
+                    color: color.backgroundColor,
+                    onPressed: () async {
+                      bool _hasInternetAccess = await Domain().isHostReachable();
+                      if (_hasInternetAccess) {
+                        editingMode = !editingMode;
+                        if (editingMode) {
+                          for (int j = 0; j < tableList.length; j++) {
+                            if (tableList[j].status == 1) {
+                              tableList[j].isSelected = false;
+                              cart.removeAllCartItem();
+                              cart.removePromotion();
+                              cart.removeSpecificTable(tableList[j]);
+                            }
+                          }
+                        }
+                        setState(() {});
+                      } else {
+                        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_internet_access'));
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        SizedBox(width: MediaQuery.of(context).size.height > 500 ? 15 : 2),
+
+        Expanded(
+          flex: MediaQuery.of(context).size.height > 500 ? 30 : 3,
+          child: TextField(
+            onChanged: (value) {
+              searchTable(value);
+            },
+            decoration: InputDecoration(
+              isDense: true,
+              border: InputBorder.none,
+              labelText: AppLocalizations.of(context)!.translate('search'),
+              focusedBorder: OutlineInputBorder(
+                borderSide: const BorderSide(color: Colors.grey, width: 2.0),
+                borderRadius: BorderRadius.circular(25.0),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   onSelect(index, cart) async {
     try{
-      openLoadingDialogBox();
       timer = Timer(Duration(milliseconds: 500), () async {
         try{
           await readSpecificTableDetail(tableList[index]);
           if (!editingMode) {
-            if (this.productDetailLoaded) {
+            if (productDetailLoaded) {
               if (tableList[index].status == 1) {
                 // table in use (colored)
                 for (int i = 0; i < tableList.length; i++) {
@@ -782,25 +781,29 @@ class _TableMenuState extends State<TableMenu> {
   }
 
   readAllTable({model, notification}) async {
-    if(notification == null){
-      isLoaded = false;
-    }
-    if (model != null) {
-      model.changeContent2(false);
-    }
+    if(loadCount == 0){
+      loadCount++;
+      if(notification != null){
+        isLoaded = false;
+      }
+      if (model != null) {
+        model.changeContent2(false);
+      }
 
-    tableList = await PosDatabase.instance.readAllTable();
-    //for compare purpose
-    initialTableList = await PosDatabase.instance.readAllTable();
+      tableList = await PosDatabase.instance.readAllTable();
+      //for compare purpose
+      initialTableList = await PosDatabase.instance.readAllTable();
 
-    //table number sorting
-    sortTable();
+      //table number sorting
+      sortTable();
 
-    await readAllTableGroup();
-    if (mounted) {
-      setState(() {
-        isLoaded = true;
-      });
+      await readAllTableGroup();
+      if (mounted) {
+        setState(() {
+          loadCount = 0;
+          isLoaded = true;
+        });
+      }
     }
   }
 
@@ -872,34 +875,26 @@ class _TableMenuState extends State<TableMenu> {
   readSpecificTableDetail(PosTable posTable) async {
     orderDetailList.clear();
     orderCacheList.clear();
-
     //Get specific table use detail
     List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificInUsedTableUseDetail(posTable.table_sqlite_id!);
     if (tableUseDetailData.isNotEmpty) {
       //Get all order table cache
       List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
-
       //loop all table order cache
       for (int i = 0; i < data.length; i++) {
         if (!orderCacheList.contains(data)) {
           orderCacheList = List.from(data);
         }
         //Get all order detail based on order cache id
-        //print('order cache key: ${data[i].order_cache_key!}');
         List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(data[i].order_cache_key!);
-        //print('order detail length 2 : ${detailData.length}');
         //add all order detail from db
         if (!orderDetailList.contains(detailData)) {
           orderDetailList..addAll(detailData);
         }
       }
     }
-
     //loop all order detail
     for (int k = 0; k < orderDetailList.length; k++) {
-      //Get data from branch link product
-      //List<BranchLinkProduct> result = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
-
       //Get product category
       if(orderDetailList[k].category_sqlite_id! == '0'){
         orderDetailList[k].product_category_id = '0';
@@ -907,64 +902,10 @@ class _TableMenuState extends State<TableMenu> {
         Categories category = await PosDatabase.instance.readSpecificCategoryByLocalId(orderDetailList[k].category_sqlite_id!);
         orderDetailList[k].product_category_id = category.category_id.toString();
       }
-      // List<Product> productResult = await PosDatabase.instance.readSpecificProductCategory(result[0].product_id!);
-      // orderDetailList[k].product_category_id = productResult[0].category_id;
-
-      // if (result[0].has_variant == '1') {
-      //   //Get product variant
-      //   List<BranchLinkProduct> variant = await PosDatabase.instance.readBranchLinkProductVariant(orderDetailList[k].branch_link_product_sqlite_id!);
-      //   orderDetailList[k].productVariant = ProductVariant(
-      //       product_variant_id: int.parse(variant[0].product_variant_id!),
-      //       variant_name: variant[0].variant_name);
-      //
-      //   //Get product variant detail
-      //   List<ProductVariantDetail> productVariantDetail = await PosDatabase.instance.readProductVariantDetail(variant[0].product_variant_id!);
-      //   orderDetailList[k].variantItem.clear();
-      //   for (int v = 0; v < productVariantDetail.length; v++) {
-      //     //Get product variant item
-      //     List<VariantItem> variantItemDetail = await PosDatabase.instance.readProductVariantItemByVariantID(productVariantDetail[v].variant_item_id!);
-      //     orderDetailList[k].variantItem.add(VariantItem(
-      //         variant_item_id: int.parse(productVariantDetail[v].variant_item_id!),
-      //         variant_group_id: variantItemDetail[0].variant_group_id,
-      //         name: variant[0].variant_name,
-      //         isSelected: true));
-      //     productVariantDetail.clear();
-      //   }
-      // }
-
       //check product modifier
       await getOrderModifierDetail(orderDetailList[k]);
-      // List<ModifierLinkProduct> productMod = await PosDatabase.instance.readProductModifier(result[0].product_sqlite_id!);
-      // if (productMod.isNotEmpty) {
-      //   orderDetailList[k].hasModifier = true;
-      //   await getOrderModifierDetail(orderDetailList[k]);
-      // }
-
-      // if (orderDetailList[k].hasModifier == true) {
-      //   //Get order modifier detail
-      //   gerOrderModifierDetail(orderDetailList[k]);
-      //   // List<OrderModifierDetail> modDetail = await PosDatabase.instance.readOrderModifierDetail(orderDetailList[k].order_detail_sqlite_id.toString());
-      //   // if (modDetail.length > 0) {
-      //   //   orderDetailList[k].modifierItem.clear();
-      //   //   for (int m = 0; m < modDetail.length; m++) {
-      //   //     // print('mod detail length: ${modDetail.length}');
-      //   //     if (!orderDetailList[k].modifierItem.contains(modDetail[m].mod_group_id!)) {
-      //   //       orderDetailList[k].modifierItem.add(ModifierItem(
-      //   //           mod_group_id: modDetail[m].mod_group_id!,
-      //   //           mod_item_id: int.parse(modDetail[m].mod_item_id!),
-      //   //           name: modDetail[m].modifier_name!));
-      //   //       orderDetailList[k].mod_group_id.add(modDetail[m].mod_group_id!);
-      //   //       orderDetailList[k].mod_item_id = modDetail[m].mod_item_id;
-      //   //     }
-      //   //   }
-      //   // }
-      // }
     }
-    if(mounted){
-      setState(() {
-        productDetailLoaded = true;
-      });
-    }
+    productDetailLoaded = true;
   }
 
   getOrderModifierDetail(OrderDetail orderDetail) async {
@@ -1045,8 +986,8 @@ class _TableMenuState extends State<TableMenu> {
   addToCart(CartModel cart, PosTable posTable) async {
     var value;
     List<TableUseDetail> tableUseDetailList = [];
+    List<cartProductItem> cartItemList = [];
     var detailLength = orderDetailList.length;
-    //print('tb order detail length: ${detailLength}');
     for (int i = 0; i < detailLength; i++) {
       value = cartProductItem(
         branch_link_product_sqlite_id: orderDetailList[i].branch_link_product_sqlite_id!,
@@ -1054,10 +995,7 @@ class _TableMenuState extends State<TableMenu> {
         category_id: orderDetailList[i].product_category_id!,
         price: orderDetailList[i].price!,
         quantity: int.tryParse(orderDetailList[i].quantity!) != null ? int.parse(orderDetailList[i].quantity!) : double.parse(orderDetailList[i].quantity!),
-        // checkedModifierItem: [],
         orderModifierDetail: orderDetailList[i].orderModifierDetail,
-        //modifier: getModifierGroupItem(orderDetailList[i]),
-        //variant: getVariantGroupItem(orderDetailList[i]),
         productVariantName: orderDetailList[i].product_variant_name,
         remark: orderDetailList[i].remark!,
         unit: orderDetailList[i].unit,
@@ -1070,13 +1008,12 @@ class _TableMenuState extends State<TableMenu> {
         base_price: orderDetailList[i].original_price,
         refColor: Colors.black,
       );
-      cart.addItem(value);
+      cartItemList.add(value);
     }
     var cacheLength = orderCacheList.length;
     for (int j = 0; j < cacheLength; j++) {
       //Get specific table use detail
-      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance
-          .readAllTableUseDetail(orderCacheList[j].table_use_sqlite_id!);
+      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readAllTableUseDetail(orderCacheList[j].table_use_sqlite_id!);
       tableUseDetailList = List.from(tableUseDetailData);
     }
     var length = tableUseDetailList.length;
@@ -1085,7 +1022,7 @@ class _TableMenuState extends State<TableMenu> {
       tableData[0].isInPaymentCart = true;
       cart.addTable(tableData[0]);
     }
-    //cart.addAllItem(cartItemList: itemList);
+    cart.addAllItem(cartItemList: cartItemList);
   }
 
   removeFromCart(CartModel cart, PosTable posTable) async {
@@ -1112,7 +1049,6 @@ class _TableMenuState extends State<TableMenu> {
       for (int k = 0; k < length; k++) {
         List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableUseDetailList[k].table_sqlite_id!);
         cart.removeSpecificTable(tableData[0]);
-        //cart.addTable(tableData[0]);
       }
     }
   }

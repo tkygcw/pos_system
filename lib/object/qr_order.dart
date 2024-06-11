@@ -2,11 +2,15 @@ import 'dart:convert';
 
 import 'package:another_flushbar/flushbar.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/fragment/custom_snackbar.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/qr_order_auto_accept.dart';
+import 'package:pos_system/object/table.dart';
+import 'package:pos_system/page/loading.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,8 +22,23 @@ import 'order_cache.dart';
 import 'order_detail.dart';
 import 'order_modifier_detail.dart';
 
-class QrOrder {
+class QrOrder extends ChangeNotifier {
+  static final QrOrder instance = QrOrder.init();
   int count = 0;
+  List<OrderCache> qrOrderCacheList = [];
+
+  QrOrder.init();
+
+  getAllNotAcceptedQrOrder() async {
+    List<OrderCache> data = await PosDatabase.instance.readNotAcceptedQROrderCache();
+    qrOrderCacheList = data;
+    notifyListeners();
+  }
+
+  void removeSpecificQrOrder(int order_cache_sqlite_id){
+    qrOrderCacheList.removeWhere((e) => e.order_cache_sqlite_id == order_cache_sqlite_id);
+    notifyListeners();
+  }
 
   getQrOrder(context) async {
     String categoryLocalId;
@@ -71,6 +90,8 @@ class QrOrder {
         );
 
         OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(orderCache);
+
+        await updateQrOrderTableLocalId(data.order_cache_sqlite_id!, data.qr_order_table_id!);
 
         for(int j = 0; j < response['data'][i]['order_detail'].length; j++){
           BranchLinkProduct? branchLinkProductData =
@@ -137,30 +158,55 @@ class QrOrder {
           }
         }
       }
-      playSound();
-      Flushbar(
-        icon: Icon(Icons.notifications, size: 32, color: Colors.white),
-        shouldIconPulse: false,
-        title: "${AppLocalizations.of(context)?.translate('qr_order')}",
-        message: "${AppLocalizations.of(context)?.translate('new_qr_order_received')}",
-        duration: Duration(seconds: 4),
-        backgroundColor: Colors.green,
-        messageColor: Colors.white,
-        flushbarPosition: FlushbarPosition.TOP,
-        maxWidth: 350,
-        margin: EdgeInsets.all(8),
-        borderRadius: BorderRadius.circular(8),
-        padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-        onTap: (flushbar) {
-          flushbar.dismiss(true);
-        },
-      )..show(context);
-    } else {
-      return 1;
+      List<OrderCache> data = await PosDatabase.instance.readNotAcceptedQROrderCache();
+      qrOrderCacheList = data;
+      // playSound();
+      CustomSnackBar.instance.showSnackBar(
+          title: "${AppLocalizations.of(context)?.translate('qr_order')}",
+          description: "${AppLocalizations.of(context)?.translate('new_qr_order_received')}",
+          contentType: ContentType.success,
+          playSound: true,
+          playtime: 2
+      );
+      if(localSetting!.qr_order_auto_accept == 1){
+        QrOrderAutoAccept().load();
+        // asyncQ.addJob((_) async => QrOrderAutoAccept().load());
+        return;
+      }
+      // Flushbar(
+      //   icon: Icon(Icons.notifications, size: 32, color: Colors.white),
+      //   shouldIconPulse: false,
+      //   title: "${AppLocalizations.of(context)?.translate('qr_order')}",
+      //   message: "${AppLocalizations.of(context)?.translate('new_qr_order_received')}",
+      //   duration: Duration(seconds: 4),
+      //   backgroundColor: Colors.green,
+      //   messageColor: Colors.white,
+      //   flushbarPosition: FlushbarPosition.TOP,
+      //   maxWidth: 350,
+      //   margin: EdgeInsets.all(8),
+      //   borderRadius: BorderRadius.circular(8),
+      //   padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+      //   onTap: (flushbar) {
+      //     flushbar.dismiss(true);
+      //   },
+      // )..show(context);
     }
-    if(localSetting!.qr_order_auto_accept == 1){
-      asyncQ.addJob((_) async => QrOrderAutoAccept(context).load());
+    notifyListeners();
+  }
+
+  Future<OrderCache?> updateQrOrderTableLocalId(int orderCacheId, String tableCloudId) async {
+    OrderCache? updatedOrderCache;
+    if(tableCloudId != ''){
+      PosTable tableData = await PosDatabase.instance.readTableByCloudId(tableCloudId);
+      OrderCache orderCache = OrderCache(
+          order_cache_sqlite_id: orderCacheId,
+          qr_order_table_sqlite_id: tableData.table_sqlite_id.toString());
+      int res = await PosDatabase.instance.updateOrderCacheTableLocalId(orderCache);
+      if(res == 1){
+        updatedOrderCache = await PosDatabase.instance.readSpecificOrderCacheByLocalId2(orderCacheId);
+      }
     }
+    return updatedOrderCache;
   }
 
   playSound() {

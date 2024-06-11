@@ -2064,7 +2064,7 @@ getAllOrderPromotionDetail() async {
           OrderPromotionDetail data = await PosDatabase.instance.insertOrderPromotionDetail(OrderPromotionDetail(
             order_promotion_detail_id: responseJson[i]['order_promotion_detail_id'],
             order_promotion_detail_key: responseJson[i]['order_promotion_detail_key'],
-            order_sqlite_id: orderData != null ? orderData.order_sqlite_id.toString() : '',
+            order_sqlite_id:  orderData != null ? orderData.order_sqlite_id.toString() : '',
             order_id: orderData != null ? orderData.order_id.toString() : '',
             order_key: responseJson[i]['order_key'],
             promotion_name: responseJson[i]['promotion_name'],
@@ -2115,7 +2115,7 @@ getAllOrderTaxDetail() async {
           OrderTaxDetail data = await PosDatabase.instance.insertOrderTaxDetail(OrderTaxDetail(
             order_tax_detail_id: responseJson[i]['order_tax_detail_id'],
             order_tax_detail_key: responseJson[i]['order_tax_detail_key'],
-            order_sqlite_id: orderData != null ? orderData.order_sqlite_id.toString() : '',
+            order_sqlite_id:  orderData != null ? orderData.order_sqlite_id.toString() : '',
             order_id: orderData != null ? orderData.order_id.toString() : '',
             order_key: responseJson[i]['order_key'],
             tax_name: responseJson[i]['tax_name'],
@@ -2176,7 +2176,7 @@ getAllOrderCache() async {
         if (cloudData.order_key != '' && cloudData.order_key != null) {
           // print("order key in order cache sync: ${cloudData.order_key}");
           Order? orderData = await PosDatabase.instance.readOrderSqliteID(cloudData.order_key!);
-          orderLocalId = orderData != null ? orderData.order_sqlite_id.toString() : '';
+          orderLocalId =  orderData != null ? orderData.order_sqlite_id.toString() : '';
         } else {
           orderLocalId = '';
         }

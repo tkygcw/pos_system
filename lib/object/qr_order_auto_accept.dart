@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:another_flushbar/flushbar.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -22,6 +23,7 @@ import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/print_receipt.dart';
 import 'package:pos_system/object/printer.dart';
+import 'package:pos_system/object/qr_order.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/object/table_use_detail.dart';
@@ -29,9 +31,11 @@ import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../fragment/custom_snackbar.dart';
+import '../notifier/cart_notifier.dart';
+
 class QrOrderAutoAccept {
-  BuildContext context;
-  QrOrderAutoAccept(this.context);
+  BuildContext context = MyApp.navigatorKey.currentContext!;
   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
   List<Printer> printerList = [];
   List<OrderCache> qrOrderCacheList = [];
@@ -48,10 +52,8 @@ class QrOrderAutoAccept {
   // late FailPrintModel _failPrintModel;
 
   load() async {
-    final tableModel = Provider.of<TableModel>(context, listen: false);
     await readAllPrinters();
     await getAllNotAcceptedQrOrder();
-    // tableModel.changeContent(true);
     await failedPrintAlert();
   }
 
@@ -105,37 +107,41 @@ class QrOrderAutoAccept {
     String flushbarStatus = '';
     final _failPrintModel = Provider.of<FailPrintModel>(context, listen: false);
     if(_failPrintModel.failedPrintOrderDetail.length >= 1) {
-      playSound();
-      Flushbar(
-        icon: Icon(Icons.error, size: 32, color: Colors.white),
-        shouldIconPulse: false,
-        title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
-        message: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
-        duration: Duration(seconds: 5),
-        backgroundColor: Colors.red,
-        messageColor: Colors.white,
-        flushbarPosition: FlushbarPosition.TOP,
-        maxWidth: 350,
-        margin: EdgeInsets.all(8),
-        borderRadius: BorderRadius.circular(8),
-        padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-        onTap: (flushbar) {
-          flushbar.dismiss(true);
-        },
-        onStatusChanged: (status) {
-          flushbarStatus = status.toString();
-        },
-      )..show(context);
-      Future.delayed(Duration(seconds: 3), () {
-        if(flushbarStatus != "FlushbarStatus.IS_HIDING" && flushbarStatus != "FlushbarStatus.DISMISSED")
-          playSound();
-      });
+      CustomSnackBar.instance.showSnackBar(
+          title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
+          description: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
+          contentType: ContentType.failure,
+          playSound: true,
+          playtime: 2);
+      // playSound();
+      // Flushbar(
+      //   icon: Icon(Icons.error, size: 32, color: Colors.white),
+      //   shouldIconPulse: false,
+      //   title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
+      //   message: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
+      //   duration: Duration(seconds: 5),
+      //   backgroundColor: Colors.red,
+      //   messageColor: Colors.white,
+      //   flushbarPosition: FlushbarPosition.TOP,
+      //   maxWidth: 350,
+      //   margin: EdgeInsets.all(8),
+      //   borderRadius: BorderRadius.circular(8),
+      //   padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+      //   onTap: (flushbar) {
+      //     flushbar.dismiss(true);
+      //   },
+      //   onStatusChanged: (status) {
+      //     flushbarStatus = status.toString();
+      //   },
+      // )..show(context);
+      // Future.delayed(Duration(seconds: 3), () {
+      //   playSound();
+      // });
     }
   }
 
   callPrinter(int orderCacheLocalId) async {
     try {
-      print("callPrinter called");
       final _failPrintModel = Provider.of<FailPrintModel>(context, listen: false);
       List<OrderDetail> returnData = await PrintReceipt().printQrKitchenList(printerList, orderCacheLocalId, orderDetailList: orderDetailList);
       if(returnData.isNotEmpty){
@@ -143,18 +149,24 @@ class QrOrderAutoAccept {
       }
     } catch(e) {
       print("callPrinter error: ${e}");
+      FLog.error(
+        className: "printer",
+        text: "print qr kitchen list error",
+        exception: e,
+      );
     }
   }
 
   getAllNotAcceptedQrOrder() async {
-    List<OrderCache> data = await PosDatabase.instance.readNotAcceptedQROrderCache();
-    qrOrderCacheList = data;
+    qrOrderCacheList.addAll(QrOrder.instance.qrOrderCacheList);
     if (qrOrderCacheList.isNotEmpty) {
       for (int i = 0; i < qrOrderCacheList.length; i++) {
         if (qrOrderCacheList[i].qr_order_table_id != '') {
-          PosTable tableData = await PosDatabase.instance.readTableByCloudId(qrOrderCacheList[i].qr_order_table_id!);
-          await updateQrOrderTableLocalId(qrOrderCacheList[i].order_cache_sqlite_id!, tableData.table_sqlite_id.toString());
-          qrOrderCacheList[i].qr_order_table_sqlite_id = tableData.table_sqlite_id.toString();
+          if(qrOrderCacheList[i].qr_order_table_sqlite_id == ''){
+            PosTable tableData = await PosDatabase.instance.readTableByCloudId(qrOrderCacheList[i].qr_order_table_id!);
+            await updateQrOrderTableLocalId(qrOrderCacheList[i].order_cache_sqlite_id!, tableData.table_sqlite_id.toString());
+            qrOrderCacheList[i].qr_order_table_sqlite_id = tableData.table_sqlite_id.toString();
+          }
         } else {
           qrOrderCacheList[i].table_number = '';
         }
@@ -162,10 +174,6 @@ class QrOrderAutoAccept {
         await autoAcceptQrOrder(qrOrderCacheList[i], orderDetailList, i);
       }
     }
-    // _isLoaded = true;
-    // if (!controller.isClosed) {
-    //   controller.sink.add('refresh');
-    // }
   }
 
   updateQrOrderTableLocalId(int orderCacheId, String tableLocalId) async {
@@ -216,9 +224,14 @@ class QrOrderAutoAccept {
         if (qrOrderCacheList.qr_order_table_sqlite_id != '') {
           await checkTable(qrOrderCacheList.qr_order_table_sqlite_id!);
           if (tableInUsed == true) {
-            await updateOrderDetail();
-            await updateOrderCache(qrOrderCacheList.batch_id!, qrOrderCacheList.order_cache_sqlite_id!);
-            await updateProductStock();
+            if(checkIsTableSelectedInPaymentCart(qrOrderCacheList.qr_order_table_sqlite_id!) == true){
+              QrOrder.instance.getAllNotAcceptedQrOrder();
+              return;
+            } else {
+              await updateOrderDetail();
+              await updateOrderCache(qrOrderCacheList.batch_id!, qrOrderCacheList.order_cache_sqlite_id!);
+              await updateProductStock();
+            }
           } else {
             await callNewOrder(qrOrderCacheList);
             await updateProductStock();
@@ -226,6 +239,7 @@ class QrOrderAutoAccept {
         } else {
           await callOtherOrder(qrOrderCacheList);
         }
+        QrOrder.instance.removeSpecificQrOrder(qrOrderCacheList.order_cache_sqlite_id!);
         final prefs = await SharedPreferences.getInstance();
         final int? branch_id = prefs.getInt('branch_id');
         AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
@@ -234,8 +248,7 @@ class QrOrderAutoAccept {
         }
         // syncToCloudFunction();
         await callPrinter(qrOrderCacheList.order_cache_sqlite_id!);
-        notificationModel.setContentLoaded();
-        notificationModel.setCartContentLoaded();
+        TableModel.instance.changeContent(true);
       }
     } catch(e) {
       print("auto accept qr order error: ${e}");
@@ -248,7 +261,6 @@ class QrOrderAutoAccept {
   }
 
   checkOrderDetailStock() async {
-    print('detail length: ${orderDetailList.length}');
     noStockOrderDetailList = [];
     hasNoStockProduct = false;
     hasNotAvailableProduct = false;
@@ -305,10 +317,18 @@ class QrOrderAutoAccept {
     this.delete_order_detail_value = value.toString();
   }
 
+  checkIsTableSelectedInPaymentCart(String qr_table_sqlite_id){
+    bool isTableSelected = false;
+    List<PosTable> inCartTableList = Provider.of<CartModel>(context, listen: false).selectedTable.where((e) => e.isInPaymentCart == true).toList();
+    if(inCartTableList.isNotEmpty){
+      isTableSelected = inCartTableList.any((e) => e.table_sqlite_id.toString() == qr_table_sqlite_id);
+    }
+    return isTableSelected;
+  }
+
   checkTable(String tableLocalId) async {
     tableInUsed = false;
     if (tableLocalId != '') {
-      print('widget table local id: ${tableLocalId}');
       List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableLocalId);
       if (tableData[0].status == 1) {
         TableUse tableUse = await PosDatabase.instance.readSpecificTableUseByKey(tableData[0].table_use_key!);

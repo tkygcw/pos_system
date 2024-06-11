@@ -210,19 +210,15 @@ class _SettlementPageState extends State<SettlementPage> {
                                   ElevatedButton(
                                     child: Text(AppLocalizations.of(context)!.translate('transfer_ownership')),
                                     onPressed: () async {
-                                      if(cashRecordList.isNotEmpty){
-                                        if (await confirm(
-                                          context,
-                                          title: Text('${AppLocalizations.of(context)?.translate('confirm_pos_pin')}'),
-                                          content: Text('${AppLocalizations.of(context)?.translate('to_pos_pin')}'),
-                                          textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                                          textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
-                                        )) {
-                                          // return openPosPinDialog();
-                                          return toPosPinPage();
-                                        }
-                                      } else {
-                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('close_counter_warn')}");
+                                      if (await confirm(
+                                        context,
+                                        title: Text('${AppLocalizations.of(context)?.translate('confirm_pos_pin')}'),
+                                        content: Text('${AppLocalizations.of(context)?.translate('to_pos_pin')}'),
+                                        textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                                        textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                                      )) {
+                                        // return openPosPinDialog();
+                                        return toPosPinPage();
                                       }
                                     },
                                     style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
@@ -772,6 +768,30 @@ class _SettlementPageState extends State<SettlementPage> {
                 callBack: () => toPosPinPage(),
               ),
             ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
+  Future<Future<Object?>> openCashInDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+                opacity: a1.value,
+                child: PosPinDialog(
+                  transfer_ownership: false,
+                  callBack: () => openCashDialog(true, false),
+                )),
           );
         },
         transitionDuration: Duration(milliseconds: 200),

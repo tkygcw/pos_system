@@ -544,6 +544,15 @@ class _MakePaymentState extends State<MakePayment> {
                                                       spacing: 10,
                                                       children: [
                                                     ChoiceChip(
+                                                      label: Text('RM $finalAmount'),
+                                                      selected: chipSelected,
+                                                      elevation: 5,
+                                                      onSelected: (chipSelected) {
+                                                        inputController.text = finalAmount;
+                                                        calcChange(inputController.text);
+                                                      },
+                                                    ),
+                                                    ChoiceChip(
                                                       label: Text('RM 10.00'),
                                                       selected: chipSelected,
                                                       elevation: 5,

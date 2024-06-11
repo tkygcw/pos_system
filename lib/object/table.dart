@@ -79,8 +79,8 @@ class PosTable{
         this.group,
         this.card_color,
         this.qrOrderUrl,
-        this.total_amount,
-        this.isInPaymentCart
+        this.isInPaymentCart,
+        this.total_amount
       });
 
   PosTable copy({
