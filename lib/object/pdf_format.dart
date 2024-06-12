@@ -71,14 +71,6 @@ class ReportFormat {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Center(
-                child: pw.SizedBox(
-                  height: 100,
-                  width: 100,
-                  child: pw.Image(image)
-                ),
-
-              ),
               pw.Divider(
                 height: 5,
                 thickness: 0.10,
@@ -231,6 +223,9 @@ class ReportFormat {
     List paymentHeader = reportModel.headerValue;
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
     final font = await PdfGoogleFonts.nunitoExtraLight();
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
     final imageByteData = await rootBundle.load('drawable/logo.png');
     // Convert ByteData to Uint8List
     final imageUint8List = imageByteData.buffer.asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
@@ -241,12 +236,9 @@ class ReportFormat {
           orientation: pw.PageOrientation.landscape,
           build: (pw.Context context) => [
             pw.Center(
-              child: pw.SizedBox(
-                  height: 100,
-                  width: 100,
-                  child: pw.Image(image)
-              ),
+                child: pw.Text('${branchObject['name']}', style: pw.TextStyle(font: getFontFormat(branchObject['name']), fontSize: 18))
             ),
+            pw.SizedBox(height: 10),
             pw.Table(
                 border: pw.TableBorder(
                   left: pw.BorderSide(width: 0),
@@ -402,6 +394,9 @@ class ReportFormat {
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
     final font = await PdfGoogleFonts.nunitoExtraLight();
     final globalFont = await PdfGoogleFonts.arimoRegular();
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
     final imageByteData = await rootBundle.load('drawable/logo.png');
     // Convert ByteData to Uint8List
     final imageUint8List = imageByteData.buffer.asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
@@ -452,12 +447,9 @@ class ReportFormat {
         orientation: pw.PageOrientation.landscape,
         build: (pw.Context context) => [
           pw.Center(
-            child: pw.SizedBox(
-                height: 100,
-                width: 100,
-                child: pw.Image(image)
-            ),
+              child: pw.Text('${branchObject['name']}', style: pw.TextStyle(font: getFontFormat(branchObject['name']), fontSize: 18))
           ),
+          pw.SizedBox(height: 10),
           pw.Table(
               border: pw.TableBorder(
                 left: pw.BorderSide(width: 0),
@@ -543,6 +535,9 @@ class ReportFormat {
     List valueList = reportModel.reportValue2;
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
     final font = await PdfGoogleFonts.nunitoExtraLight();
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
     final imageByteData = await rootBundle.load('drawable/logo.png');
     // Convert ByteData to Uint8List
     final imageUint8List = imageByteData.buffer.asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
@@ -554,12 +549,9 @@ class ReportFormat {
           orientation: pw.PageOrientation.portrait,
           build: (pw.Context context) => [
             pw.Center(
-              child: pw.SizedBox(
-                  height: 100,
-                  width: 100,
-                  child: pw.Image(image)
-              ),
+                child: pw.Text('${branchObject['name']}', style: pw.TextStyle(font: getFontFormat(branchObject['name']), fontSize: 18))
             ),
+            pw.SizedBox(height: 10),
             pw.Table(
                 border: pw.TableBorder(
                   left: pw.BorderSide(width: 0),
@@ -633,6 +625,9 @@ class ReportFormat {
     List valueList = reportModel.reportValue2;
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
     final font = await PdfGoogleFonts.nunitoExtraLight();
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
     final imageByteData = await rootBundle.load('drawable/logo.png');
     // Convert ByteData to Uint8List
     final imageUint8List = imageByteData.buffer.asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
@@ -644,12 +639,9 @@ class ReportFormat {
           orientation: pw.PageOrientation.portrait,
           build: (pw.Context context) => [
             pw.Center(
-              child: pw.SizedBox(
-                  height: 100,
-                  width: 100,
-                  child: pw.Image(image)
-              ),
+                child: pw.Text('${branchObject['name']}', style: pw.TextStyle(font: getFontFormat(branchObject['name']), fontSize: 18))
             ),
+            pw.SizedBox(height: 10),
             pw.Table(
                 border: pw.TableBorder(
                   left: pw.BorderSide(width: 0),
@@ -711,6 +703,9 @@ class ReportFormat {
   Future<Uint8List> generatePriceEditReportPdf(PdfPageFormat format, String title, ReportModel reportModel) async {
     List valueList = reportModel.reportValue2;
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
     final imageByteData = await rootBundle.load('drawable/logo.png');
     // Convert ByteData to Uint8List
     final imageUint8List = imageByteData.buffer.asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
@@ -735,12 +730,9 @@ class ReportFormat {
           orientation: pw.PageOrientation.landscape,
           build: (pw.Context context) => [
             pw.Center(
-              child: pw.SizedBox(
-                  height: 100,
-                  width: 100,
-                  child: pw.Image(image)
-              ),
+                child: pw.Text('${branchObject['name']}', style: pw.TextStyle(font: getFontFormat(branchObject['name']), fontSize: 18))
             ),
+            pw.SizedBox(height: 10),
             pw.Table(
                 border: pw.TableBorder(
                   left: pw.BorderSide(width: 0),
@@ -831,6 +823,9 @@ class ReportFormat {
   Future<Uint8List> generateCancelProductReportPdf(PdfPageFormat format, String title, ReportModel reportModel) async {
     List valueList = reportModel.reportValue2;
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
     final imageByteData = await rootBundle.load('drawable/logo.png');
     // Convert ByteData to Uint8List
     final imageUint8List = imageByteData.buffer.asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
@@ -855,12 +850,9 @@ class ReportFormat {
           orientation: pw.PageOrientation.landscape,
           build: (pw.Context context) => [
             pw.Center(
-              child: pw.SizedBox(
-                  height: 100,
-                  width: 100,
-                  child: pw.Image(image)
-              ),
+                child: pw.Text('${branchObject['name']}', style: pw.TextStyle(font: getFontFormat(branchObject['name']), fontSize: 18))
             ),
+            pw.SizedBox(height: 10),
             pw.Table(
                 border: pw.TableBorder(
                   left: pw.BorderSide(width: 0),
@@ -954,6 +946,9 @@ class ReportFormat {
     List valueList = reportModel.reportValue2;
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
     final font = await PdfGoogleFonts.nunitoExtraLight();
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
     final imageByteData = await rootBundle.load('drawable/logo.png');
     // Convert ByteData to Uint8List
     final imageUint8List = imageByteData.buffer.asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
@@ -965,12 +960,9 @@ class ReportFormat {
           orientation: pw.PageOrientation.portrait,
           build: (pw.Context context) => [
             pw.Center(
-              child: pw.SizedBox(
-                  height: 100,
-                  width: 100,
-                  child: pw.Image(image)
-              ),
+                child: pw.Text('${branchObject['name']}', style: pw.TextStyle(font: getFontFormat(branchObject['name']), fontSize: 18))
             ),
+            pw.SizedBox(height: 10),
             pw.Table(
                 border: pw.TableBorder(
                   left: pw.BorderSide(width: 0),
@@ -1032,6 +1024,9 @@ class ReportFormat {
   Future<Uint8List> generateDiningReport(PdfPageFormat format, String title, ReportModel reportModel) async {
     List valueList = reportModel.reportValue2;
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
     final imageByteData = await rootBundle.load('drawable/logo.png');
     // Convert ByteData to Uint8List
     final imageUint8List = imageByteData.buffer.asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
@@ -1042,12 +1037,9 @@ class ReportFormat {
           orientation: pw.PageOrientation.portrait,
           build: (pw.Context context) => [
             pw.Center(
-              child: pw.SizedBox(
-                  height: 100,
-                  width: 100,
-                  child: pw.Image(image)
-              ),
+                child: pw.Text('${branchObject['name']}', style: pw.TextStyle(font: getFontFormat(branchObject['name']), fontSize: 18))
             ),
+            pw.SizedBox(height: 10),
             pw.Table(
                 border: pw.TableBorder(
                   left: pw.BorderSide(width: 0),
@@ -1114,6 +1106,9 @@ class ReportFormat {
   Future<Uint8List> generatePaymentReport(PdfPageFormat format, String title, ReportModel reportModel) async {
     List valueList = reportModel.reportValue2;
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
     final imageByteData = await rootBundle.load('drawable/logo.png');
     // Convert ByteData to Uint8List
     final imageUint8List = imageByteData.buffer.asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
@@ -1124,12 +1119,9 @@ class ReportFormat {
           orientation: pw.PageOrientation.portrait,
           build: (pw.Context context) => [
             pw.Center(
-              child: pw.SizedBox(
-                  height: 100,
-                  width: 100,
-                  child: pw.Image(image)
-              ),
+                child: pw.Text('${branchObject['name']}', style: pw.TextStyle(font: getFontFormat(branchObject['name']), fontSize: 18))
             ),
+            pw.SizedBox(height: 10),
             pw.Table(
                 border: pw.TableBorder(
                   left: pw.BorderSide(width: 0),
@@ -1197,6 +1189,9 @@ class ReportFormat {
     List valueList = reportModel.reportValue2;
     List headerList = reportModel.headerValue;
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
     final imageByteData = await rootBundle.load('drawable/logo.png');
     // Convert ByteData to Uint8List
     final imageUint8List = imageByteData.buffer.asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
@@ -1207,12 +1202,9 @@ class ReportFormat {
           orientation: pw.PageOrientation.landscape,
           build: (pw.Context context) => [
             pw.Center(
-              child: pw.SizedBox(
-                  height: 100,
-                  width: 100,
-                  child: pw.Image(image)
-              ),
+                child: pw.Text('${branchObject['name']}', style: pw.TextStyle(font: getFontFormat(branchObject['name']), fontSize: 18))
             ),
+            pw.SizedBox(height: 10),
             pw.Table(
                 border: pw.TableBorder(
                   left: pw.BorderSide(width: 0),
@@ -1379,6 +1371,9 @@ class ReportFormat {
   Future<Uint8List> generateCashRecordReport(PdfPageFormat format, String title, ReportModel reportModel) async {
     List valueList = reportModel.reportValue2;
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
     final imageByteData = await rootBundle.load('drawable/logo.png');
     // Convert ByteData to Uint8List
     final imageUint8List = imageByteData.buffer.asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
@@ -1389,12 +1384,9 @@ class ReportFormat {
           orientation: pw.PageOrientation.portrait,
           build: (pw.Context context) => [
             pw.Center(
-              child: pw.SizedBox(
-                  height: 100,
-                  width: 100,
-                  child: pw.Image(image)
-              ),
+                child: pw.Text('${branchObject['name']}', style: pw.TextStyle(font: getFontFormat(branchObject['name']), fontSize: 18))
             ),
+            pw.SizedBox(height: 10),
             pw.Table(
                 border: pw.TableBorder(
                   left: pw.BorderSide(width: 0),
@@ -1469,6 +1461,9 @@ class ReportFormat {
   Future<Uint8List> generateReportPdf(PdfPageFormat format, String title) async {
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
     final font = await PdfGoogleFonts.nunitoExtraLight();
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
     final imageByteData = await rootBundle.load('drawable/logo.png');
     // Convert ByteData to Uint8List
     final imageUint8List = imageByteData.buffer.asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
@@ -1480,13 +1475,9 @@ class ReportFormat {
           return pw.Column(
             children: [
               pw.Center(
-                child: pw.SizedBox(
-                    height: 100,
-                    width: 100,
-                    child: pw.Image(image)
-                ),
-
+                  child: pw.Text('${branchObject['name']}', style: pw.TextStyle(font: getFontFormat(branchObject['name']), fontSize: 18))
               ),
+              pw.SizedBox(height: 10),
             ],
           );
         },
