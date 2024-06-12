@@ -370,10 +370,8 @@ class _HomePageState extends State<HomePage> {
         if (message.data['type'] == '0') {
           if (qrOrder.count == 0) {
             qrOrder.count = 1;
-            asyncQ.addJob((_) async {
-              await QrOrder.instance.getQrOrder(MyApp.navigatorKey.currentContext!);
-              manageNotificationTimer();
-            });
+            await QrOrder.instance.getQrOrder(MyApp.navigatorKey.currentContext!);
+            manageNotificationTimer();
             qrOrder.count = 0;
           }
         }

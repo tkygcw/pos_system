@@ -29,6 +29,7 @@ import '../notifier/theme_color.dart';
 import '../object/cash_record.dart';
 import '../object/print_receipt.dart';
 import '../object/printer.dart';
+import '../object/qr_order.dart';
 import '../object/user.dart';
 import '../second_device/server.dart';
 
@@ -54,7 +55,6 @@ class _PosPinPageState extends State<PosPinPage> {
   @override
   void initState() {
     super.initState();
-    //readAllPrinters();
     preload();
     bindSocket();
     checkVersion();
@@ -251,27 +251,22 @@ class _PosPinPageState extends State<PosPinPage> {
     notificationModel.setSyncCountAsStarted();
     notificationModel.resetTimer();
     Timer.periodic(Duration(seconds: 30), (timer) async {
-      // print('sync record count: ${syncRecord.count}');
       bool _status = notificationModel.notificationStatus;
       bool stopTimer = notificationModel.stopTimer;
       if (stopTimer == true) {
-        // print('timer cancelled called');
         timer.cancel();
         return;
       }
       if (_status == true) {
-        // print('timer reset');
         timerCount = 0;
         notificationModel.resetNotification();
         return;
       }
-      // print("sync to cloud count in 30 sec: ${mainSyncToCloud.count}");
-      // print('timer count: ${timerCount}');
       //sync qr order
       if(qrOrder.count == 0){
         // print('qr order sync');
         qrOrder.count = 1;
-        asyncQ.addJob((_) async =>  await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!));
+        await QrOrder.instance.getQrOrder(MyApp.navigatorKey.currentContext!);
         qrOrder.count = 0;
       }
 

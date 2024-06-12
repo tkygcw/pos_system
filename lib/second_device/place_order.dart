@@ -6,7 +6,7 @@ import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:pos_system/object/app_setting.dart';
+import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,7 +36,6 @@ import '../translation/AppLocalizations.dart';
 
 abstract class PlaceOrder {
   BuildContext context = MyApp.navigatorKey.currentContext!;
-  AppSetting? appSetting;
   PrintReceipt printReceipt = PrintReceipt();
   List<Printer> printerList = [];
   List<BranchLinkProduct> branchLinkProductList = [];
@@ -45,7 +44,6 @@ abstract class PlaceOrder {
 
 
   initData() async {
-    appSetting = await PosDatabase.instance.readAppSetting();
     printerList = await printReceipt.readAllPrinters();
   }
 
@@ -252,8 +250,8 @@ abstract class PlaceOrder {
   }
 
   printCheckList(String order_by) async {
-    if(appSetting?.print_checklist == 1){
-      int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheSqliteId), order_by: order_by);
+    if(AppSettingModel.instance.autoPrintChecklist == true){
+      await printReceipt.printCheckList(printerList, int.parse(this.orderCacheSqliteId), order_by: order_by);
     }
   }
 
@@ -658,7 +656,7 @@ class PlaceNewDineInOrder extends PlaceOrder {
       await createOrderDetail(cart);
       await updatePosTable(cart);
       //print check list
-      printCheckList(orderBy);
+      await printCheckList(orderBy);
       // if (_appSettingModel.autoPrintChecklist == true) {
       //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
       //   if (printStatus == 1) {
@@ -669,7 +667,7 @@ class PlaceNewDineInOrder extends PlaceOrder {
       //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
       //   }
       // }
-      printKitchenList(address);
+      asyncQ.addJob((_) => printKitchenList(address));
       objectData = {
         'tb_branch_link_product': branchLinkProductList,
       };
@@ -896,7 +894,7 @@ class PlaceAddOrder extends PlaceOrder {
       if(checkIsTableSelectedInPaymentCart(cart) == false) {
         await createOrderCache(cart);
         await createOrderDetail(cart);
-        printCheckList(orderBy);
+        await printCheckList(orderBy);
         // if (_appSettingModel.autoPrintChecklist == true) {
         //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
         //   if (printStatus == 1) {
@@ -907,7 +905,7 @@ class PlaceAddOrder extends PlaceOrder {
         //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
         //   }
         // }
-        printKitchenList(address);
+        asyncQ.addJob((_) => printKitchenList(address));
         Map<String, dynamic>? objectData = {'tb_branch_link_product': branchLinkProductList};
         TableModel.instance.changeContent(true);
         return {'status': '1', 'data': objectData};

@@ -3,6 +3,7 @@ import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/app_setting.dart';
 
 class AppSettingModel extends ChangeNotifier {
+  static final AppSettingModel instance = AppSettingModel();
   bool? directPaymentStatus;
   bool? autoPrintChecklist;
   bool? autoPrintReceipt;

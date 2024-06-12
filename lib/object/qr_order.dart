@@ -152,7 +152,7 @@ class QrOrder extends ChangeNotifier {
                     updated_at: '',
                     soft_delete: ''
                 );
-                OrderModifierDetail orderModifierDetailData = await PosDatabase.instance.insertSqliteOrderModifierDetail(modifierDetail);
+                await PosDatabase.instance.insertSqliteOrderModifierDetail(modifierDetail);
               }
             }
           }
@@ -169,27 +169,10 @@ class QrOrder extends ChangeNotifier {
           playtime: 2
       );
       if(localSetting!.qr_order_auto_accept == 1){
-        QrOrderAutoAccept().load();
-        // asyncQ.addJob((_) async => QrOrderAutoAccept().load());
+        print("auto accept load called!!!");
+        asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
         return;
       }
-      // Flushbar(
-      //   icon: Icon(Icons.notifications, size: 32, color: Colors.white),
-      //   shouldIconPulse: false,
-      //   title: "${AppLocalizations.of(context)?.translate('qr_order')}",
-      //   message: "${AppLocalizations.of(context)?.translate('new_qr_order_received')}",
-      //   duration: Duration(seconds: 4),
-      //   backgroundColor: Colors.green,
-      //   messageColor: Colors.white,
-      //   flushbarPosition: FlushbarPosition.TOP,
-      //   maxWidth: 350,
-      //   margin: EdgeInsets.all(8),
-      //   borderRadius: BorderRadius.circular(8),
-      //   padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-      //   onTap: (flushbar) {
-      //     flushbar.dismiss(true);
-      //   },
-      // )..show(context);
     }
     notifyListeners();
   }

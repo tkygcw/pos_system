@@ -149,9 +149,8 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) {
-            AppSettingModel appSettingModel = AppSettingModel();
-            appSettingModel.initialLoad();
-            return appSettingModel;
+            AppSettingModel.instance.initialLoad();
+            return AppSettingModel.instance;
           },
         ),
         ChangeNotifierProvider(
