@@ -2378,7 +2378,7 @@ class CartPageState extends State<CartPage> {
       Navigator.of(context).pop();
       checkDirectPayment(appSettingModel, cart);
 
-      syncAllToCloud();
+      // syncAllToCloud();
       // if (this.isLogOut == true) {
       //   openLogOutDialog();
       //   return;

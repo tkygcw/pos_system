@@ -18,6 +18,7 @@ import 'package:pos_system/fragment/report/product_edited_report.dart';
 import 'package:pos_system/fragment/report/product_report.dart';
 import 'package:pos_system/fragment/report/refund_report.dart';
 import 'package:pos_system/fragment/report/report_overview.dart';
+import 'package:pos_system/fragment/report/report_receipt/print_report_receipt.dart';
 import 'package:pos_system/notifier/report_notifier.dart';
 import 'package:pos_system/object/user.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
@@ -38,6 +39,7 @@ class ReportPage extends StatefulWidget {
 }
 
 class _ReportPageState extends State<ReportPage> {
+  PrintReportReceipt receipt = PrintReportReceipt();
   late TextEditingController _controller;
   DateRangePickerController _dateRangePickerController = DateRangePickerController();
   DateFormat dateFormat = DateFormat("dd/MM/yyyy");
@@ -71,6 +73,7 @@ class _ReportPageState extends State<ReportPage> {
     currentPage = 0;
     getPrefData();
     preload();
+    receipt.readCashierPrinter();
   }
 
   readAdminData(String pin) async {
@@ -201,6 +204,16 @@ class _ReportPageState extends State<ReportPage> {
                             ),
                           ),
                         ),
+                      Visibility(
+                        visible: this.currentPage != 12 ? true : false,
+                        child: Container(
+                          child: IconButton(
+                            icon: Icon(Icons.receipt),
+                            color: color.backgroundColor,
+                            onPressed: receiptOnPressed,
+                          ),
+                        ),
+                      ),
                         SizedBox(width: 25),
                         Visibility(
                           visible: this.currentPage != 1 ? true : false,
@@ -812,6 +825,17 @@ class _ReportPageState extends State<ReportPage> {
         }
       );
     });
+  }
+
+  receiptOnPressed() async {
+    switch(currentPage){
+      case 2: {
+        await receipt.printProductReceipt();
+      }break;
+      case 3: {
+        await receipt.printCategoryReceipt();
+      }break;
+    }
   }
 
   getPrefData() async {
