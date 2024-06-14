@@ -16,6 +16,7 @@ import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import '../database/pos_database.dart';
 import '../fragment/custom_snackbar.dart';
 import '../main.dart';
+import '../notifier/app_setting_notifier.dart';
 import '../notifier/cart_notifier.dart';
 import '../notifier/fail_print_notifier.dart';
 import '../notifier/table_notifier.dart';
@@ -36,7 +37,6 @@ import '../translation/AppLocalizations.dart';
 
 abstract class PlaceOrder {
   BuildContext context = MyApp.navigatorKey.currentContext!;
-  AppSetting? appSetting;
   PrintReceipt printReceipt = PrintReceipt();
   List<Printer> printerList = [];
   List<BranchLinkProduct> branchLinkProductList = [];
@@ -45,7 +45,6 @@ abstract class PlaceOrder {
 
 
   initData() async {
-    appSetting = await PosDatabase.instance.readAppSetting();
     printerList = await printReceipt.readAllPrinters();
   }
 
@@ -252,7 +251,7 @@ abstract class PlaceOrder {
   }
 
   printCheckList(String order_by) async {
-    if(appSetting?.print_checklist == 1){
+    if(AppSettingModel.instance.autoPrintChecklist == true){
       int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheSqliteId), order_by: order_by);
     }
   }
@@ -658,7 +657,7 @@ class PlaceNewDineInOrder extends PlaceOrder {
       await createOrderDetail(cart);
       await updatePosTable(cart);
       //print check list
-      printCheckList(orderBy);
+      await printCheckList(orderBy);
       // if (_appSettingModel.autoPrintChecklist == true) {
       //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
       //   if (printStatus == 1) {
@@ -669,7 +668,7 @@ class PlaceNewDineInOrder extends PlaceOrder {
       //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
       //   }
       // }
-      printKitchenList(address);
+      asyncQ.addJob((_) => printKitchenList(address));
       objectData = {
         'tb_branch_link_product': branchLinkProductList,
       };
@@ -786,7 +785,7 @@ class PlaceNotDineInOrder extends PlaceOrder {
     await initData();
     await createOrderCache(cart);
     await createOrderDetail(cart);
-    printCheckList(orderBy);
+    await printCheckList(orderBy);
     // if (_appSettingModel.autoPrintChecklist == true) {
     //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
     //   if (printStatus == 1) {
@@ -802,7 +801,7 @@ class PlaceNotDineInOrder extends PlaceOrder {
     //   return;
     // }
 
-    printKitchenList(address);
+    asyncQ.addJob((_) => printKitchenList(address));
     objectData = {
       'tb_branch_link_product': branchLinkProductList,
     };
@@ -896,7 +895,7 @@ class PlaceAddOrder extends PlaceOrder {
       if(checkIsTableSelectedInPaymentCart(cart) == false) {
         await createOrderCache(cart);
         await createOrderDetail(cart);
-        printCheckList(orderBy);
+        await printCheckList(orderBy);
         // if (_appSettingModel.autoPrintChecklist == true) {
         //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
         //   if (printStatus == 1) {
@@ -907,7 +906,7 @@ class PlaceAddOrder extends PlaceOrder {
         //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
         //   }
         // }
-        printKitchenList(address);
+        asyncQ.addJob((_) => printKitchenList(address));
         Map<String, dynamic>? objectData = {'tb_branch_link_product': branchLinkProductList};
         TableModel.instance.changeContent(true);
         return {'status': '1', 'data': objectData};

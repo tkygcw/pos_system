@@ -55,7 +55,6 @@ class QrOrder extends ChangeNotifier {
       print('get qr order length: ${response['data'].length}');
       for(int i = 0; i < response['data'].length; i++){
         print('response table id: ${response['data'][i]['table_id']}');
-        //PosTable tableData = await PosDatabase.instance.readTableByCloudId(response['data'][i]['table_id']);
         OrderCache? checkOrderCacheData = await PosDatabase.instance.readSpecificOrderCacheByKey(response['data'][i]['order_cache_key']);
         if(checkOrderCacheData != null){
           break;
@@ -152,7 +151,7 @@ class QrOrder extends ChangeNotifier {
                     updated_at: '',
                     soft_delete: ''
                 );
-                OrderModifierDetail orderModifierDetailData = await PosDatabase.instance.insertSqliteOrderModifierDetail(modifierDetail);
+                await PosDatabase.instance.insertSqliteOrderModifierDetail(modifierDetail);
               }
             }
           }
@@ -160,7 +159,6 @@ class QrOrder extends ChangeNotifier {
       }
       List<OrderCache> data = await PosDatabase.instance.readNotAcceptedQROrderCache();
       qrOrderCacheList = data;
-      // playSound();
       CustomSnackBar.instance.showSnackBar(
           title: "${AppLocalizations.of(context)?.translate('qr_order')}",
           description: "${AppLocalizations.of(context)?.translate('new_qr_order_received')}",

@@ -40,7 +40,7 @@ class Server extends ChangeNotifier {
     return _serverIp;
   }
 
-  bindAllSocket() async {
+  Future<void> bindAllSocket() async {
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
     Map branchObject = json.decode(branch!);
@@ -64,20 +64,32 @@ class Server extends ChangeNotifier {
   }
 
   void addClient(Socket clientSocket) {
-    if (clientList.any((e) => e.remoteAddress.address == clientSocket.remoteAddress.address)) {
-      return;
-    } else {
+    if(clientList.isEmpty){
       clientList.add(clientSocket);
+    } else {
+      removeClient(clientSocket, notNotify: true);
+      clientList.add(clientSocket);
+    }
+    notifyListeners();
+  }
+
+  void removeClient(Socket clientSocket, {bool? notNotify}) {
+    for(int i = 0; i < clientList.length; i++){
+      try{
+        if(clientList[i].remoteAddress.address == clientSocket.remoteAddress.address) {
+          clientList.remove(clientList[i]);
+        }
+      }catch(e){
+        print("remove client error: $e");
+        clientList.remove(clientList[i]);
+      }
+    }
+    if(notNotify == null){
       notifyListeners();
     }
   }
 
-  void removeClient(Socket clientSocket) {
-    clientList.remove(clientSocket);
-    notifyListeners();
-  }
-
-  bindServer() async {
+  Future<void> bindServer() async {
     final ips = await instance.getDeviceIp();
     if (ips != null) {
       try {
@@ -102,7 +114,6 @@ class Server extends ChangeNotifier {
   }
 
   Future<void> handleClient(Socket clientSocket) async {
-    // clientList.add(clientSocket);
     StringBuffer buffer = StringBuffer();
     Map<String, dynamic>? response;
 
@@ -139,15 +150,12 @@ class Server extends ChangeNotifier {
         print("after process buffer: ${buffer.toString()}");
       },
       onDone: () {
-        //print('Client disconnected: ${clientSocket.remoteAddress}:${clientSocket.remotePort}');
         removeClient(clientSocket);
         clientSocket.close();
-        //clientList.remove(clientSocket);
         print("on done client list: ${clientList.length}");
       },
       onError: (error) {
         print("server handle client error: ${error}");
-        removeClient(clientSocket);
         clientSocket.destroy();
       },
     );
@@ -159,7 +167,7 @@ class Server extends ChangeNotifier {
     }
   }
 
-  bindRequestServer() async {
+  Future<void> bindRequestServer() async {
     List<Socket> client2 = [];
     final ips = await instance.serverIp;
     if (ips != null && ips != '-') {
@@ -184,61 +192,50 @@ class Server extends ChangeNotifier {
     StringBuffer buffer = StringBuffer();
     Map<String, dynamic>? response;
     String receivedData = '';
-    StreamSubscription streamSubscription = clientSocket.listen(
-        (List<int> data) async {
-          asyncQ.addJob((_) async {
-            try {
-              print("socket2 called");
-              // receivedData += utf8.decode(data);
-              receivedData = utf8.decode(data);
-              print("received data: ${receivedData}");
-              buffer.write(receivedData);
+    clientSocket.listen((List<int> data) async {
+      asyncQ.addJob((_) async {
+        try {
+          print("socket2 called");
+          receivedData = utf8.decode(data);
+          print("received data: ${receivedData}");
+          buffer.write(receivedData);
 
-              if (buffer.toString().endsWith(messageDelimiter)) {
-                final message = buffer.toString().trim();
-                var msg = jsonDecode(jsonEncode(jsonDecode(message)));
-                if (msg['param'] != '') {
-                  response = await ServerAction().checkAction(
-                      action: msg['action'],
-                      param: msg['param'],
-                      address: clientSocket.remoteAddress.address);
-                } else {
-                  response = await ServerAction().checkAction(
-                      action: msg['action'], address: clientSocket.remoteAddress.address);
-                }
-                print("server response 2: ${response}");
-
-                clientSocket.write("${jsonEncode(response)}$messageDelimiter");
-                buffer.clear();
-              }
-            } catch (e) {
-              FLog.error(
-                className: "handleClient2",
-                text: "Handle client request 2 error",
-                exception: "$e",
-              );
+          if (buffer.toString().endsWith(messageDelimiter)) {
+            final message = buffer.toString().trim();
+            var msg = jsonDecode(jsonEncode(jsonDecode(message)));
+            if (msg['param'] != '') {
+              response = await ServerAction().checkAction(
+                  action: msg['action'],
+                  param: msg['param'],
+                  address: clientSocket.remoteAddress.address);
+            } else {
+              response = await ServerAction().checkAction(
+                  action: msg['action'], address: clientSocket.remoteAddress.address);
             }
-            print("handle client queue done!!!");
-          });
-        },
+            print("server response 2: ${response}");
+
+            clientSocket.write("${jsonEncode(response)}$messageDelimiter");
+            buffer.clear();
+          }
+        } catch (e) {
+          FLog.error(
+            className: "handleClient2",
+            text: "Handle client request 2 error",
+            exception: "$e",
+          );
+        }
+        print("handle client queue done!!!");
+      });
+      },
         cancelOnError: true,
         onDone: () {
-          //print('Client disconnected 2: ${clientSocket.remoteAddress}:${clientSocket.remotePort}');
-          // clientSocket.flush();
           print("client done called!!!");
-          clientSocket.close();
           clients.remove(clientSocket);
+          clientSocket.close();
         },
         onError: (error) {
           print("handle client 2 error: ${error}");
           clientSocket.close();
-          clients.remove(clientSocket);
         });
-    // try{
-    //
-    //   // await streamSubscription.asFuture();
-    // } catch(e){
-    //   print("handle client 2 error: ${e}");
-    // }
   }
 }
