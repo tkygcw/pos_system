@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:confirm_dialog/confirm_dialog.dart';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -43,9 +44,12 @@ class _SettlementPageState extends State<SettlementPage> {
   PrintReceipt printReceipt = PrintReceipt();
   List<Printer> printerList = [];
   List<OrderCache> unpaidOrderCacheList = [];
+  List<CashRecord> initCashRecordList = [];
   List<CashRecord> cashRecordList = [];
   List<String> paymentNameList = [];
   String selectedPayment = 'All/Cash Drawer';
+  PaymentLinkCompany? paymentMethod;
+  List<PaymentLinkCompany> companyPaymentList = [];
   bool isLoad = false, isLogOut = false;
 
   @override
@@ -53,7 +57,6 @@ class _SettlementPageState extends State<SettlementPage> {
     super.initState();
     //checkUnpaidOrderCache();
     readAllPrinters();
-    readPaymentLinkCompany();
     readCashRecord();
   }
 
@@ -66,7 +69,8 @@ class _SettlementPageState extends State<SettlementPage> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return LayoutBuilder(builder: (context, constraints) {
         if (constraints.maxWidth > 900 && constraints.maxHeight > 500) {
-          return Scaffold(
+          return isLoad ?
+          Scaffold(
             appBar: AppBar(
               automaticallyImplyLeading: false,
               elevation: 0,
@@ -78,16 +82,15 @@ class _SettlementPageState extends State<SettlementPage> {
                 Container(
                   margin: EdgeInsets.only(right: 10),
                   width: MediaQuery.of(context).size.height / 3,
-                  child: DropdownButton<String>(
-                    onChanged: (String? value) {
+                  child: DropdownButton<PaymentLinkCompany>(
+                    onChanged: (value) {
                       setState(() {
-                        selectedPayment = value!;
-                        readCashRecord();
+                        paymentMethod = value!;
+                        readSpecificPaymentCashRecord(paymentMethod!.payment_type_id!);
                       });
-                      //getCashRecord();
                     },
                     menuMaxHeight: 300,
-                    value: selectedPayment,
+                    value: paymentMethod,
                     // Hide the default underline
                     underline: Container(),
                     icon: Icon(
@@ -96,300 +99,296 @@ class _SettlementPageState extends State<SettlementPage> {
                     ),
                     isExpanded: true,
                     // The list of options
-                    items: paymentNameList
-                        .map((e) => DropdownMenuItem(
+                    items: companyPaymentList.map((e) => DropdownMenuItem<PaymentLinkCompany>(
                       value: e,
                       child: Container(
                         alignment: Alignment.centerLeft,
-                        child: Text(
-                          AppLocalizations.of(context)!.translate(getPaymentOption(e)) == 'Unknown' ? (e) : AppLocalizations.of(context)!.translate(getPaymentOption(e)),
-                          style: TextStyle(fontSize: 18),
-                        ),
+                        child: Text(e.name!,style: TextStyle(fontSize: 18)),
                       ),
                     ))
                         .toList(),
                     // Customize the selected item
-                    selectedItemBuilder: (BuildContext context) => paymentNameList.map((e) => Center(
-                      child: Text(AppLocalizations.of(context)!.translate(getPaymentOption(e)) == 'Unknown' ? (e) : AppLocalizations.of(context)!.translate(getPaymentOption(e)),),
+                    selectedItemBuilder: (BuildContext context) => companyPaymentList.map((e) => Center(
+                      child: Text(e.name!),
                     )).toList(),
                   ),
                 ),
               ],
             ),
-            body: isLoad ? Padding(
+            body: Padding(
               padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
               child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          Divider(
-                            height: 10,
-                            color: Colors.grey,
-                          ),
-                          Container(
-                            alignment: Alignment.topLeft,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: [
-                                  ElevatedButton(
-                                      child: Text(AppLocalizations.of(context)!.translate('cash_in')),
-                                      onPressed: () async {
-                                        final prefs = await SharedPreferences.getInstance();
-                                        final String? pos_user = prefs.getString('pos_pin_user');
-                                        Map<String, dynamic> userMap = json.decode(pos_user!);
-                                        User userData = User.fromJson(userMap);
+                child: Column(
+                  children: [
+                    Divider(
+                      height: 10,
+                      color: Colors.grey,
+                    ),
+                    Container(
+                      alignment: Alignment.topLeft,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            ElevatedButton(
+                                child: Text(AppLocalizations.of(context)!.translate('cash_in')),
+                                onPressed: () async {
+                                  final prefs = await SharedPreferences.getInstance();
+                                  final String? pos_user = prefs.getString('pos_pin_user');
+                                  Map<String, dynamic> userMap = json.decode(pos_user!);
+                                  User userData = User.fromJson(userMap);
 
-                                        if (userData.cash_drawer_permission != 1) {
-                                          openCashInDialog();
-                                        } else {
-                                          await openCashDialog(true, false);
-                                        }
-                                      },
-                                      style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor)),
-                                  Container(
-                                    height: 30,
-                                    child: VerticalDivider(color: Colors.grey, thickness: 1),
-                                  ),
-                                  ElevatedButton(
-                                    child: Text(AppLocalizations.of(context)!.translate('cash_out')),
-                                    onPressed: () async {
-                                      final prefs = await SharedPreferences.getInstance();
-                                      final String? pos_user = prefs.getString('pos_pin_user');
-                                      Map<String, dynamic> userMap = json.decode(pos_user!);
-                                      User userData = User.fromJson(userMap);
+                                  if (userData.cash_drawer_permission != 1) {
+                                    openCashInDialog();
+                                  } else {
+                                    await openCashDialog(true, false);
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor)),
+                            Container(
+                              height: 30,
+                              child: VerticalDivider(color: Colors.grey, thickness: 1),
+                            ),
+                            ElevatedButton(
+                              child: Text(AppLocalizations.of(context)!.translate('cash_out')),
+                              onPressed: () async {
+                                final prefs = await SharedPreferences.getInstance();
+                                final String? pos_user = prefs.getString('pos_pin_user');
+                                Map<String, dynamic> userMap = json.decode(pos_user!);
+                                User userData = User.fromJson(userMap);
 
-                                      if (userData.cash_drawer_permission != 1) {
-                                        openCashOutDialog();
-                                      } else {
-                                        await openCashDialog(false, true);
-                                      }
-                                    },
-                                    style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
+                                if (userData.cash_drawer_permission != 1) {
+                                  openCashOutDialog();
+                                } else {
+                                  await openCashDialog(false, true);
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
+                            ),
+                            Container(
+                              height: 30,
+                              child: VerticalDivider(color: Colors.grey, thickness: 1),
+                            ),
+                            ElevatedButton(
+                              child: Text(AppLocalizations.of(context)!.translate('settlement')),
+                              onPressed: () {
+                                if (cashRecordList.isNotEmpty) {
+                                  openSettlementDialog(cashRecordList);
+                                } else {
+                                  Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                            ),
+                            Container(
+                              height: 30,
+                              child: VerticalDivider(color: Colors.grey, thickness: 1),
+                            ),
+                            ElevatedButton(
+                              child: Text(AppLocalizations.of(context)!.translate('reprint_latest_settlement')),
+                              onPressed: () async  {
+                                await reprintLatestSettlement();
+                              },
+                              style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
+                            ),
+                            Container(
+                              height: 30,
+                              child: VerticalDivider(color: Colors.grey, thickness: 1),
+                            ),
+                            // ElevatedButton(
+                            //   child: Text(AppLocalizations.of(context)!.translate('cash_record_history')),
+                            //   onPressed: () {
+                            //     openSettlementHistoryDialog();
+                            //   },
+                            //   style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                            // ),
+                            // Container(
+                            //   height: 30,
+                            //   child: VerticalDivider(color: Colors.grey, thickness: 1),
+                            // ),
+                            ElevatedButton(
+                              child: Text(AppLocalizations.of(context)!.translate('transfer_ownership')),
+                              onPressed: () async {
+                                if (await confirm(
+                                  context,
+                                  title: Text('${AppLocalizations.of(context)?.translate('confirm_pos_pin')}'),
+                                  content: Text('${AppLocalizations.of(context)?.translate('to_pos_pin')}'),
+                                  textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                                  textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                                )) {
+                                  // return openPosPinDialog();
+                                  return toPosPinPage();
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                            ),
+                            Container(
+                              height: 30,
+                              child: VerticalDivider(color: Colors.grey, thickness: 1),
+                            ),
+                            ElevatedButton(
+                              child: Text(AppLocalizations.of(context)!.translate('open_cash_drawer')),
+                              onPressed: () async {
+                                // openCashBoxDialog();
+                                final prefs = await SharedPreferences.getInstance();
+                                final String? pos_user = prefs.getString('pos_pin_user');
+                                Map<String, dynamic> userMap = json.decode(pos_user!);
+                                User userData = User.fromJson(userMap);
+
+                                if (userData.cash_drawer_permission != 1) {
+                                  openCashBoxDialog();
+                                } else {
+                                  await callOpenCashDrawer();
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
+                            ),
+                            Container(
+                              height: 30,
+                              child: VerticalDivider(color: Colors.grey, thickness: 1),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Divider(
+                      height: 10,
+                      color: Colors.grey,
+                    ),
+                    cashRecordList.isNotEmpty ?
+                    Container(
+                        height: MediaQuery.of(context).size.height / 1.7,
+                        child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
+                          return ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: cashRecordList.length,
+                              itemBuilder: (context, index) {
+                                return ListTile(
+                                  contentPadding: EdgeInsets.all(10),
+                                  leading: cashRecordList[index].payment_type_id == '1' || cashRecordList[index].payment_type_id == ''
+                                      ? CircleAvatar(
+                                      backgroundColor: Colors.grey.shade200,
+                                      child: Icon(
+                                        Icons.payments,
+                                        color: Colors.grey,
+                                      ))
+                                      : cashRecordList[index].payment_type_id == '2'
+                                      ? CircleAvatar(
+                                      backgroundColor: Colors.grey.shade200,
+                                      child: Icon(
+                                        Icons.qr_code_rounded,
+                                        color: Colors.grey,
+                                      ))
+                                      : CircleAvatar(
+                                      backgroundColor: Colors.grey.shade200,
+                                      child: Icon(
+                                        Icons.wifi,
+                                        color: Colors.grey,
+                                      )),
+                                  title: Text(
+                                    '${cashRecordList[index].remark}',
+                                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
                                   ),
-                                  Container(
-                                    height: 30,
-                                    child: VerticalDivider(color: Colors.grey, thickness: 1),
+                                  subtitle: cashRecordList[index].type == 1 || cashRecordList[index].type == 0
+                                      ? RichText(
+                                    text: TextSpan(
+                                      style: TextStyle(color: Colors.black, fontSize: 16),
+                                      children: <TextSpan>[
+                                        TextSpan(
+                                            text: '${Utils.formatDate(cashRecordList[index].created_at)}',
+                                            style: TextStyle(color: Colors.black87, fontSize: 14)),
+                                        TextSpan(text: '\n'),
+                                        TextSpan(
+                                          text: AppLocalizations.of(context)!.translate('cash_in_by')+': ${cashRecordList[index].userName}',
+                                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                      : cashRecordList[index].type == 3
+                                      ? RichText(
+                                    text: TextSpan(
+                                      style: TextStyle(color: Colors.black, fontSize: 16),
+                                      children: <TextSpan>[
+                                        TextSpan(
+                                            text: '${Utils.formatDate(cashRecordList[index].created_at)}',
+                                            style: TextStyle(color: Colors.black87, fontSize: 14)),
+                                        TextSpan(text: '\n'),
+                                        TextSpan(
+                                          text: AppLocalizations.of(context)!.translate('close_by')+': ${cashRecordList[index].userName}',
+                                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                      : RichText(
+                                    text: TextSpan(
+                                      style: TextStyle(color: Colors.black, fontSize: 16),
+                                      children: <TextSpan>[
+                                        TextSpan(
+                                            text: '${Utils.formatDate(cashRecordList[index].created_at)}',
+                                            style: TextStyle(color: Colors.black87, fontSize: 14)),
+                                        TextSpan(text: '\n'),
+                                        TextSpan(
+                                          text: AppLocalizations.of(context)!.translate('cash_out')+': ${cashRecordList[index].userName}',
+                                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  ElevatedButton(
-                                    child: Text(AppLocalizations.of(context)!.translate('settlement')),
-                                    onPressed: () {
-                                      if (cashRecordList.isNotEmpty) {
-                                        openSettlementDialog(cashRecordList);
-                                      } else {
-                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
-                                      }
-                                    },
-                                    style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                                  ),
-                                  Container(
-                                    height: 30,
-                                    child: VerticalDivider(color: Colors.grey, thickness: 1),
-                                  ),
-                                  ElevatedButton(
-                                    child: Text(AppLocalizations.of(context)!.translate('reprint_latest_settlement')),
-                                    onPressed: () async  {
-                                      await reprintLatestSettlement();
-                                    },
-                                    style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
-                                  ),
-                                  Container(
-                                    height: 30,
-                                    child: VerticalDivider(color: Colors.grey, thickness: 1),
-                                  ),
-                                  // ElevatedButton(
-                                  //   child: Text(AppLocalizations.of(context)!.translate('cash_record_history')),
-                                  //   onPressed: () {
-                                  //     openSettlementHistoryDialog();
-                                  //   },
-                                  //   style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                                  // ),
-                                  // Container(
-                                  //   height: 30,
-                                  //   child: VerticalDivider(color: Colors.grey, thickness: 1),
-                                  // ),
-                                  ElevatedButton(
-                                    child: Text(AppLocalizations.of(context)!.translate('transfer_ownership')),
-                                    onPressed: () async {
+                                  trailing: cashRecordList[index].type == 2 || cashRecordList[index].type == 4
+                                      ? Text('-${Utils.convertTo2Dec(cashRecordList[index].amount!)}',
+                                      style: TextStyle(fontSize: 16, color: Colors.red))
+                                      : Text('+${Utils.convertTo2Dec(cashRecordList[index].amount!)}',
+                                      style: TextStyle(fontSize: 16, color: Colors.green)),
+                                  onLongPress: () async {
+                                    if (cashRecordList[index].type != 0 && cashRecordList[index].type != 3 && cashRecordList[index].type != 4) {
                                       if (await confirm(
                                         context,
-                                        title: Text('${AppLocalizations.of(context)?.translate('confirm_pos_pin')}'),
-                                        content: Text('${AppLocalizations.of(context)?.translate('to_pos_pin')}'),
+                                        title: Text('${AppLocalizations.of(context)?.translate('remove_cash_record')}'),
+                                        content: Text('${AppLocalizations.of(context)?.translate('would_you_like_to_remove')}'),
                                         textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
                                         textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
                                       )) {
-                                        // return openPosPinDialog();
-                                        return toPosPinPage();
+                                        return await removeCashRecord(cashRecordList[index], connectivity);
                                       }
-                                    },
-                                    style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                                  ),
-                                  Container(
-                                    height: 30,
-                                    child: VerticalDivider(color: Colors.grey, thickness: 1),
-                                  ),
-                                  ElevatedButton(
-                                    child: Text(AppLocalizations.of(context)!.translate('open_cash_drawer')),
-                                    onPressed: () async {
-                                      // openCashBoxDialog();
-                                      final prefs = await SharedPreferences.getInstance();
-                                      final String? pos_user = prefs.getString('pos_pin_user');
-                                      Map<String, dynamic> userMap = json.decode(pos_user!);
-                                      User userData = User.fromJson(userMap);
-
-                                      if (userData.cash_drawer_permission != 1) {
-                                        openCashBoxDialog();
-                                      } else {
-                                        await callOpenCashDrawer();
-                                      }
-                                    },
-                                    style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
-                                  ),
-                                  Container(
-                                    height: 30,
-                                    child: VerticalDivider(color: Colors.grey, thickness: 1),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          Divider(
-                            height: 10,
-                            color: Colors.grey,
-                          ),
-                          cashRecordList.length > 0
-                              ? Container(
-                                  height: MediaQuery.of(context).size.height / 1.7,
-                                  child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
-                                    return ListView.builder(
-                                        shrinkWrap: true,
-                                        itemCount: cashRecordList.length,
-                                        itemBuilder: (context, index) {
-                                          return ListTile(
-                                            contentPadding: EdgeInsets.all(10),
-                                            leading: cashRecordList[index].payment_type_id == '1' || cashRecordList[index].payment_type_id == ''
-                                                ? CircleAvatar(
-                                                    backgroundColor: Colors.grey.shade200,
-                                                    child: Icon(
-                                                      Icons.payments,
-                                                      color: Colors.grey,
-                                                    ))
-                                                : cashRecordList[index].payment_type_id == '2'
-                                                    ? CircleAvatar(
-                                                        backgroundColor: Colors.grey.shade200,
-                                                        child: Icon(
-                                                          Icons.qr_code_rounded,
-                                                          color: Colors.grey,
-                                                        ))
-                                                    : CircleAvatar(
-                                                        backgroundColor: Colors.grey.shade200,
-                                                        child: Icon(
-                                                          Icons.wifi,
-                                                          color: Colors.grey,
-                                                        )),
-                                            title: Text(
-                                              '${cashRecordList[index].remark}',
-                                              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
-                                            ),
-                                            subtitle: cashRecordList[index].type == 1 || cashRecordList[index].type == 0
-                                                ? RichText(
-                                                    text: TextSpan(
-                                                      style: TextStyle(color: Colors.black, fontSize: 16),
-                                                      children: <TextSpan>[
-                                                        TextSpan(
-                                                            text: '${Utils.formatDate(cashRecordList[index].created_at)}',
-                                                            style: TextStyle(color: Colors.black87, fontSize: 14)),
-                                                        TextSpan(text: '\n'),
-                                                        TextSpan(
-                                                          text: AppLocalizations.of(context)!.translate('cash_in_by')+': ${cashRecordList[index].userName}',
-                                                          style: TextStyle(color: Colors.grey, fontSize: 12),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  )
-                                                : cashRecordList[index].type == 3
-                                                    ? RichText(
-                                                        text: TextSpan(
-                                                          style: TextStyle(color: Colors.black, fontSize: 16),
-                                                          children: <TextSpan>[
-                                                            TextSpan(
-                                                                text: '${Utils.formatDate(cashRecordList[index].created_at)}',
-                                                                style: TextStyle(color: Colors.black87, fontSize: 14)),
-                                                            TextSpan(text: '\n'),
-                                                            TextSpan(
-                                                              text: AppLocalizations.of(context)!.translate('close_by')+': ${cashRecordList[index].userName}',
-                                                              style: TextStyle(color: Colors.grey, fontSize: 12),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      )
-                                                    : RichText(
-                                                        text: TextSpan(
-                                                          style: TextStyle(color: Colors.black, fontSize: 16),
-                                                          children: <TextSpan>[
-                                                            TextSpan(
-                                                                text: '${Utils.formatDate(cashRecordList[index].created_at)}',
-                                                                style: TextStyle(color: Colors.black87, fontSize: 14)),
-                                                            TextSpan(text: '\n'),
-                                                            TextSpan(
-                                                              text: AppLocalizations.of(context)!.translate('cash_out')+': ${cashRecordList[index].userName}',
-                                                              style: TextStyle(color: Colors.grey, fontSize: 12),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                            trailing: cashRecordList[index].type == 2 || cashRecordList[index].type == 4
-                                                ? Text('-${Utils.convertTo2Dec(cashRecordList[index].amount!)}',
-                                                    style: TextStyle(fontSize: 16, color: Colors.red))
-                                                : Text('+${Utils.convertTo2Dec(cashRecordList[index].amount!)}',
-                                                    style: TextStyle(fontSize: 16, color: Colors.green)),
-                                            onLongPress: () async {
-                                              if (cashRecordList[index].type != 0 && cashRecordList[index].type != 3) {
-                                                if (await confirm(
-                                                  context,
-                                                  title: Text('${AppLocalizations.of(context)?.translate('remove_cash_record')}'),
-                                                  content: Text('${AppLocalizations.of(context)?.translate('would_you_like_to_remove')}'),
-                                                  textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                                                  textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
-                                                )) {
-                                                  return await removeCashRecord(cashRecordList[index], connectivity);
-                                                }
-                                              }
-                                            },
-                                          );
-                                        });
-                                  }))
-                              : Container(
-                                  alignment: Alignment.center,
-                                  height: MediaQuery.of(context).size.height / 1.7,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.menu),
-                                      Text(AppLocalizations.of(context)!.translate('no_record')),
-                                    ],
-                                  ),
-                                ),
-                          Divider(
-                            height: 10,
-                            color: Colors.grey,
-                          ),
-                          Container(
-                              margin: EdgeInsets.all(15),
-                              padding: EdgeInsets.only(right: 10),
-                              alignment: Alignment.bottomRight,
-                              child: Text(
-                                '${getTotalAmount()}',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
-                              )),
-                          Divider(
-                            height: 10,
-                            color: Colors.grey,
-                          ),
+                                    }
+                                  },
+                                );
+                              });
+                        }))
+                        : Container(
+                      alignment: Alignment.center,
+                      height: MediaQuery.of(context).size.height / 1.7,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.menu),
+                          Text(AppLocalizations.of(context)!.translate('no_record')),
                         ],
                       ),
                     ),
-            ) : CustomProgressBar(),
-          );
+                    Divider(
+                      height: 10,
+                      color: Colors.grey,
+                    ),
+                    Container(
+                        margin: EdgeInsets.all(15),
+                        padding: EdgeInsets.only(right: 10),
+                        alignment: Alignment.bottomRight,
+                        child: Text(
+                          '${getTotalAmount()}',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+                        )),
+                    Divider(
+                      height: 10,
+                      color: Colors.grey,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ) : CustomProgressBar();
         } else {
           ///mobile layout
           return Scaffold(
@@ -414,16 +413,15 @@ class _SettlementPageState extends State<SettlementPage> {
                                     Container(
                                       margin: EdgeInsets.only(right: 10),
                                       width: MediaQuery.of(context).size.width / 4,
-                                      child: DropdownButton<String>(
-                                        onChanged: (String? value) {
+                                      child: DropdownButton<PaymentLinkCompany>(
+                                        onChanged: (value) {
                                           setState(() {
-                                            selectedPayment = value!;
-                                            readCashRecord();
+                                            paymentMethod = value!;
+                                            readSpecificPaymentCashRecord(paymentMethod!.payment_type_id!);
                                           });
-                                          //getCashRecord();
                                         },
-                                        menuMaxHeight: 300,
-                                        value: selectedPayment,
+                                        menuMaxHeight: 200,
+                                        value: paymentMethod,
                                         // Hide the default underline
                                         underline: Container(),
                                         icon: Icon(
@@ -432,24 +430,17 @@ class _SettlementPageState extends State<SettlementPage> {
                                         ),
                                         isExpanded: true,
                                         // The list of options
-                                        items: paymentNameList
+                                        items: companyPaymentList
                                             .map((e) => DropdownMenuItem(
                                                   value: e,
                                                   child: Container(
                                                     alignment: Alignment.centerLeft,
-                                                    child: Text(
-                                                      e,
-                                                      style: TextStyle(fontSize: 18),
-                                                    ),
+                                                    child: Text(e.name!,style: TextStyle(fontSize: 18))
                                                   ),
                                                 ))
                                             .toList(),
                                         // Customize the selected item
-                                        selectedItemBuilder: (BuildContext context) => paymentNameList
-                                            .map((e) => Center(
-                                                  child: Text(e),
-                                                ))
-                                            .toList(),
+                                        selectedItemBuilder: (BuildContext context) => companyPaymentList.map((e) => Center(child: Text(e.name!))).toList(),
                                       ),
                                     ),
                                   ],
@@ -594,7 +585,7 @@ class _SettlementPageState extends State<SettlementPage> {
                               height: 10,
                               color: Colors.grey,
                             ),
-                            cashRecordList.length > 0
+                            cashRecordList.isNotEmpty
                                 ? Container(
                                     margin: EdgeInsets.fromLTRB(25, 0, 25, 0),
                                     height: MediaQuery.of(context).size.height / 1.7,
@@ -689,7 +680,7 @@ class _SettlementPageState extends State<SettlementPage> {
                                                   : Text('+${Utils.convertTo2Dec(cashRecordList[index].amount!)}',
                                                       style: TextStyle(fontSize: 16, color: Colors.green)),
                                               onLongPress: () async {
-                                                if (cashRecordList[index].type != 0 && cashRecordList[index].type != 3) {
+                                                if (cashRecordList[index].type != 0 && cashRecordList[index].type != 3 && cashRecordList[index].type != 4) {
                                                   if (await confirm(
                                                     context,
                                                     title: Text('${AppLocalizations.of(context)?.translate('remove_cash_record')}'),
@@ -928,18 +919,17 @@ class _SettlementPageState extends State<SettlementPage> {
   ----------------DB Query part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
-
   readPaymentLinkCompany() async {
-    paymentNameList.add('All/Cash Drawer');
+    companyPaymentList.add(PaymentLinkCompany(
+      name: 'All/Cash Drawer',
+      payment_type_id: '0'
+    ));
+    paymentMethod = companyPaymentList.first;
     final prefs = await SharedPreferences.getInstance();
     final String? user = prefs.getString('user');
     Map userObject = json.decode(user!);
     List<PaymentLinkCompany> data = await PosDatabase.instance.readAllPaymentLinkCompany(userObject['company_id']);
-    for (int i = 0; i < data.length; i++) {
-      if (!paymentNameList.contains(data)) {
-        paymentNameList.add(data[i].name!);
-      }
-    }
+    companyPaymentList.addAll(data);
   }
 
   checkUnpaidOrderCache() async {
@@ -948,43 +938,21 @@ class _SettlementPageState extends State<SettlementPage> {
     print('unpaid Order Cache List: ${unpaidOrderCacheList.length}');
   }
 
+  readSpecificPaymentCashRecord(String paymentTypeId){
+    print("payment type id: ${paymentTypeId}");
+    if(paymentTypeId != '0'){
+      return cashRecordList = initCashRecordList.where((e) => e.payment_type_id == paymentTypeId).toList();
+    } else {
+      return cashRecordList = initCashRecordList;
+    }
+  }
+
   readCashRecord() async {
     isLoad = false;
-    cashRecordList = [];
+    await readPaymentLinkCompany();
     List<CashRecord> data = await PosDatabase.instance.readBranchCashRecord();
-    if (selectedPayment == 'All/Cash Drawer') {
-      cashRecordList = data;
-    } else if (selectedPayment == 'Cash') {
-      for (int i = 0; i < data.length; i++) {
-        if (data[i].payment_type_id == '1') {
-          cashRecordList.add(data[i]);
-        }
-      }
-    } else if (selectedPayment == 'Card') {
-      for (int i = 0; i < data.length; i++) {
-        if (data[i].payment_type_id == '2') {
-          cashRecordList.add(data[i]);
-        }
-      }
-    } else if (selectedPayment == 'Grab') {
-      for (int i = 0; i < data.length; i++) {
-        if (data[i].payment_type_id == '5') {
-          cashRecordList.add(data[i]);
-        }
-      }
-    } else if (selectedPayment == 'ipay tng scanner') {
-      for (int i = 0; i < data.length; i++) {
-        if (data[i].payment_type_id == '6') {
-          cashRecordList.add(data[i]);
-        }
-      }
-    } else if (selectedPayment == 'E-Wallet') {
-      for (int i = 0; i < data.length; i++) {
-        if (data[i].payment_type_id == '3') {
-          cashRecordList.add(data[i]);
-        }
-      }
-    }
+    initCashRecordList = data;
+    cashRecordList = initCashRecordList;
     if(!mounted) return;
     setState(() {
       isLoad = true;
@@ -1057,12 +1025,6 @@ class _SettlementPageState extends State<SettlementPage> {
     }catch(e){
       mainSyncToCloud.resetCount();
     }
-
-    // bool _hasInternetAccess = await Domain().isHostReachable();
-    // if (_hasInternetAccess) {
-    //   print('value: ${login_value.toString()}');
-    //
-    // }
   }
 
   Future<Future<Object?>> openLogOutDialog() async {
@@ -1156,92 +1118,76 @@ class _SettlementPageState extends State<SettlementPage> {
     else return paymentOption;
   }
 
-  getTotalAmount() {
-    String total = '';
-    switch (selectedPayment) {
-      case 'All/Cash Drawer':
-        {
-          total = AppLocalizations.of(context)!.translate('cash_drawer_inc_cash_bill')+': ' + calcCashDrawer().toString();
-        }
-        break;
-      case 'Cash':
-        {
-          total = 'Cash: ' + calcTotalAmount('1');
-        }
-        break;
-      case 'Card':
-        {
-          total = 'Card: ' + calcTotalAmount('2');
-        }
-        break;
-      case 'Grab':
-        {
-          total = 'GrabPay: ' + calcTotalAmount('5');
-        }
-        break;
-      case 'ipay tng scanner':
-        {
-          total = 'ipay tng scanner: ' + calcTotalAmount('6');
-        }
-        break;
-      case 'E-Wallet':
-        {
-          total = 'E-Wallet: ' + calcTotalAmount('3');
-        }
-        break;
-      default:
-        {
-          total = 'N/A';
-        }
-        break;
+  String getTotalAmount() {
+    String total = 'Amount: ';
+    if(paymentMethod!.payment_type_id == '0'){
+      total += calcTotalAmount();
+      total += ' / ${calcCashDrawer()}';
+    } else {
+      total += calcTotalAmount();
     }
     return total;
   }
 
-  calcTotalAmount(String type_id) {
+  String calcTotalAmount() {
     try {
       double total = 0.0;
-      double _totalRefund = 0.0;
+      double totalRefund = 0.0;
       double subtotal = 0.0;
-      for (int i = 0; i < cashRecordList.length; i++) {
-        if (cashRecordList[i].payment_type_id == type_id && cashRecordList[i].type == 3) {
-          total += double.parse(cashRecordList[i].amount!);
-        } else if (cashRecordList[i].payment_type_id == type_id && cashRecordList[i].type == 4) {
-          _totalRefund += double.parse(cashRecordList[i].amount!);
+      if(paymentMethod!.payment_type_id == '0'){
+        final list = cashRecordList.where((e) =>  e.type == 0 || e.type == 1 || e.type == 3).toList().map((e) => double.parse(e.amount!)).toList();
+        if(list.isNotEmpty){
+          total = list.reduce((a, b) => a + b);
+        }
+        final refundList = cashRecordList.where((e) => e.type == 2 || e.type == 4).map((e) => double.parse(e.amount!)).toList();
+        if(refundList.isNotEmpty){
+          totalRefund = refundList.reduce((a, b) => a + b);
+        }
+      } else {
+        for (int i = 0; i < cashRecordList.length; i++) {
+          if (cashRecordList[i].payment_type_id == paymentMethod!.payment_type_id && cashRecordList[i].type == 3) {
+            total += double.parse(cashRecordList[i].amount!);
+          } else if (cashRecordList[i].payment_type_id == paymentMethod!.payment_type_id && cashRecordList[i].type == 4) {
+            totalRefund += double.parse(cashRecordList[i].amount!);
+          }
         }
       }
-      subtotal = total - _totalRefund;
+      subtotal = total - totalRefund;
       return subtotal.toStringAsFixed(2);
     } catch (e) {
+      FLog.error(
+        className: "settlement page",
+        text: "Calc total amount error",
+        exception: "$e",
+      );
       Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('calculate_cash_error')+" ${e}");
-      return 0.0;
+      return '0.00';
     }
   }
 
-  calcCashDrawer() {
+  String calcCashDrawer() {
     try {
       double totalCashIn = 0.0;
-      double totalCashOut = 0.0;
       double totalCashDrawer = 0.0;
-      double totalCashRefund = 0.0;
-      for (int i = 0; i < cashRecordList.length; i++) {
-        if (cashRecordList[i].type == 0) {
-          totalCashIn += double.parse(cashRecordList[i].amount!);
-        } else if (cashRecordList[i].type == 1) {
-          totalCashIn += double.parse(cashRecordList[i].amount!);
-        } else if (cashRecordList[i].type == 3 && cashRecordList[i].payment_type_id == '1') {
-          totalCashIn += double.parse(cashRecordList[i].amount!);
-        } else if (cashRecordList[i].type == 2 && cashRecordList[i].payment_type_id == '') {
-          totalCashOut += double.parse(cashRecordList[i].amount!);
-        } else if (cashRecordList[i].type == 4 && cashRecordList[i].payment_type_id == '1') {
-          totalCashRefund += double.parse(cashRecordList[i].amount!);
-        }
+      double totalCashRefundAndOut = 0.0;
+      final list = cashRecordList.where((e) => (e.payment_type_id == '1' || e.payment_type_id == '') && (e.type == 0 || e.type == 1 || e.type == 3)).toList().map((e) => double.parse(e.amount!)).toList();
+      if(list.isNotEmpty){
+        totalCashIn = list.reduce((a, b) => a + b);
       }
-      totalCashDrawer = totalCashIn - (totalCashOut + totalCashRefund);
+      final refundList = cashRecordList.where((e) => (e.payment_type_id == '1' || e.payment_type_id == '') && (e.type == 2 || e.type == 4)).map((e) => double.parse(e.amount!)).toList();
+      if(refundList.isNotEmpty){
+        totalCashRefundAndOut = refundList.reduce((a, b) => a + b);
+      }
+      totalCashDrawer = totalCashIn - totalCashRefundAndOut;
       return totalCashDrawer.toStringAsFixed(2);
     } catch (e) {
+      FLog.error(
+        className: "settlement page",
+        text: "Calc cash drawer error",
+        exception: "$e",
+      );
       Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('calculate_cash_drawer_error')+" ${e}");
-      return 0.0;
+      return '0.00';
     }
   }
 
