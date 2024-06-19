@@ -245,7 +245,6 @@ class _TableMenuState extends State<TableMenu> {
                                       tapCount++;
                                       onTapDisable = true;
                                     });
-                                    openLoadingDialogBox();
                                     if(tapCount == 1){
                                       asyncQ.addJob((_) async => await onSelect(index, cart));
                                     }
@@ -349,7 +348,6 @@ class _TableMenuState extends State<TableMenu> {
                   tapCount++;
                   onTapDisable = true;
                 });
-                openLoadingDialogBox();
                 if(tapCount == 1){
                   asyncQ.addJob((_) async => await onSelect(index, cart));
                 }
@@ -586,6 +584,7 @@ class _TableMenuState extends State<TableMenu> {
 
   onSelect(index, cart) async {
     try{
+      openLoadingDialogBox();
       timer = Timer(Duration(milliseconds: 500), () async {
         try{
           await readSpecificTableDetail(tableList[index]);

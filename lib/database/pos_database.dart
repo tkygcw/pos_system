@@ -380,8 +380,15 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableUser ADD ${UserFields.cash_drawer_permission} INTEGER NOT NULL DEFAULT 1");
           //branch table
           await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.qr_order_status} $textType DEFAULT '0'");
-          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.sub_pos_status} INTEGER NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.attendance_status} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.sub_pos_status} INTEGER NOT NULL DEFAULT 1");
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.attendance_status} INTEGER NOT NULL DEFAULT 1");
+
+          await db.execute("UPDATE $tableUser SET ${UserFields.edit_price_without_pin} = 1 WHERE role = 0 AND soft_delete = ''");
+        }break;
+        case 15: {
+          await db.execute("UPDATE $tableUser SET ${UserFields.edit_price_without_pin} = 1 WHERE role = 0 AND soft_delete = ''");
+          await db.execute("UPDATE $tableBranch SET ${BranchFields.sub_pos_status} = 1");
+          await db.execute("UPDATE $tableBranch SET ${BranchFields.attendance_status} = 1");
         }break;
         case 15: {
           await db.execute('''CREATE TABLE $tableAttendance(
@@ -7019,6 +7026,14 @@ class PosDatabase {
   Future clearAllTableUseDetail() async {
     final db = await instance.database;
     return await db.rawDelete('DELETE FROM $tableTableUseDetail');
+  }
+
+/*
+  Delete All Transfer Owner
+*/
+  Future clearAllTransferOwner() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableTransferOwner');
   }
 
 /*

@@ -1,3 +1,4 @@
+import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
@@ -5,10 +6,15 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/setting/sync_dialog.dart';
 import 'package:pos_system/fragment/setting/system_log_dialog.dart';
+import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/subscription.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/page/loading.dart';
+import 'package:pos_system/page/pos_pin.dart';
+import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/page/select_table_dialog.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../main.dart';
 import '../../object/table_use.dart';
@@ -25,6 +31,11 @@ class DataProcessingSetting extends StatefulWidget {
 class _DataProcessingSettingState extends State<DataProcessingSetting> {
   String subscriptionEndDate = '', appVersion = '';
   int daysLeft = 0;
+  final adminPosPinController = TextEditingController();
+  bool inProgress = false;
+  bool isButtonDisabled = false;
+  bool _submitted = false;
+
   @override
   void initState() {
     super.initState();
@@ -34,86 +45,96 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Card(
-              child: ListTile(
-                contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                title: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Optimy Pos License v$appVersion',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold
+    return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
+      return Scaffold(
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              Card(
+                child: ListTile(
+                  contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                  title: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Optimy Pos License v$appVersion',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      '${AppLocalizations.of(context)!.translate('active_until')} $subscriptionEndDate',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
+                      SizedBox(height: 8),
+                      Text(
+                        '${AppLocalizations.of(context)!.translate('active_until')} $subscriptionEndDate',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  trailing: Text('$daysLeft ${AppLocalizations.of(context)!.translate('days')}',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20
+                      )
+                  ),
                 ),
-                trailing: Text('$daysLeft ${AppLocalizations.of(context)!.translate('days')}',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20
-                    )
-                ),
+                color: daysLeft < 7 ? Colors.red : Colors.green,
               ),
-              color: daysLeft < 7 ? Colors.red : Colors.green,
-            ),
-            ListTile(
-              title: Text(AppLocalizations.of(context)!.translate('system_log')),
-              trailing: Icon(Icons.history),
-              onTap: () async {
-                openSystemLog();
-              },
-            ),
-            ListTile(
-              title: Text(AppLocalizations.of(context)!.translate('sync')),
-              trailing: Icon(Icons.sync),
-              onTap: () async {
-                openSyncDialog();
-              },
-            ),
-            ListTile(
-              title: Text(AppLocalizations.of(context)!.translate('sync_reset')),
-              trailing: Icon(Icons.refresh),
-              onTap: () async {
-                syncRecord.count = 0;
-                qrOrder.count = 0;
-                Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('sync_reset_success'));
-              },
-            ),
-            Divider(
-              color: Colors.grey,
-              height: 1,
-              thickness: 1,
-              indent: 20,
-              endIndent: 20,
-            ),
-            ListTile(
-                title: Text(AppLocalizations.of(context)!.translate('reset_table_data')),
-                subtitle: Text(AppLocalizations.of(context)!.translate('reset_table_desc')),
-                onTap: (){
-                  openSelectTableDialog();
+              ListTile(
+                title: Text(AppLocalizations.of(context)!.translate('system_log')),
+                trailing: Icon(Icons.history),
+                onTap: () async {
+                  openSystemLog();
                 },
-                trailing: Icon(Icons.navigate_next)
-            ),
-          ],
+              ),
+              ListTile(
+                title: Text(AppLocalizations.of(context)!.translate('sync')),
+                trailing: Icon(Icons.sync),
+                onTap: () async {
+                  openSyncDialog();
+                },
+              ),
+              ListTile(
+                title: Text(AppLocalizations.of(context)!.translate('sync_reset')),
+                trailing: Icon(Icons.refresh),
+                onTap: () async {
+                  syncRecord.count = 0;
+                  qrOrder.count = 0;
+                  Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('sync_reset_success'));
+                },
+              ),
+              Divider(
+                color: Colors.grey,
+                height: 1,
+                thickness: 1,
+                indent: 20,
+                endIndent: 20,
+              ),
+              ListTile(
+                  title: Text(AppLocalizations.of(context)!.translate('reset_table_data')),
+                  subtitle: Text(AppLocalizations.of(context)!.translate('reset_table_desc')),
+                  onTap: (){
+                    openSelectTableDialog();
+                  },
+                  trailing: Icon(Icons.navigate_next)
+              ),
+              ListTile(
+                  title: Text(AppLocalizations.of(context)!.translate('clear_pos_data')),
+                  subtitle: Text(AppLocalizations.of(context)!.translate('clear_pos_data_desc')),
+                  onTap: () async {
+                    await showSecondDialog(context, color);
+                  },
+                  trailing: Icon(Icons.navigate_next)
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   Future<void> openSelectTableDialog () {
@@ -132,6 +153,277 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
         }
       }
     });
+  }
+
+  Future showSecondDialog(BuildContext context, ThemeColor color) {
+    return showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) {
+          return StatefulBuilder(builder: (context, StateSetter setState) {
+            return Center(
+              child: SingleChildScrollView(
+                child: AlertDialog(
+                  title: Text(AppLocalizations.of(context)!.translate('enter_debug_pin')),
+                  content: !inProgress ? SizedBox(
+                    height: 75.0,
+                    width: 350.0,
+                    child: ValueListenableBuilder(
+                        valueListenable: adminPosPinController,
+                        builder: (context, TextEditingValue value, __) {
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TextField(
+                              autofocus: true,
+                              onSubmitted: (input) {
+                                setState(() {
+                                  isButtonDisabled = true;
+                                });
+                                _submit(context);
+                                if(mounted){
+                                  setState(() {
+                                    isButtonDisabled = false;
+                                    inProgress = false;
+                                  });
+                                }
+                              },
+                              obscureText: true,
+                              controller: adminPosPinController,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                errorText: _submitted
+                                    ? errorPassword == null
+                                    ? errorPassword
+                                    : AppLocalizations.of(context)?.translate(errorPassword!)
+                                    : null,
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide(color: color.backgroundColor),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: color.backgroundColor),
+                                ),
+                                labelText: "PIN",
+                              ),
+                            ),
+                          );
+                        }),
+                  )
+                      : Container(
+                      height: 100,
+                      child: CustomProgressBar()
+                  ),
+                  actions: <Widget>[
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: color.backgroundColor,
+                        ),
+                        child: Text(
+                          AppLocalizations.of(context)!.translate('close'),
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onPressed: isButtonDisabled
+                            ? null
+                            : () {
+                          setState(() {
+                            isButtonDisabled = true;
+                          });
+                          Navigator.of(context).pop();
+                          if(mounted){
+                            setState(() {
+                              isButtonDisabled = false;
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: color.buttonColor,
+                        ),
+                        child: Text(
+                          AppLocalizations.of(context)!.translate('yes'),
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onPressed: isButtonDisabled
+                            ? null
+                            : () async {
+                          setState(() {
+                            isButtonDisabled = true;
+                          });
+                          _submit(context);
+                          if(mounted){
+                            setState(() {
+                              isButtonDisabled = false;
+                              inProgress = false;
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          });
+        });
+  }
+
+  String? get errorPassword {
+    final text = adminPosPinController.value.text;
+    if (text.isEmpty) {
+      return 'password_required';
+    }
+    return null;
+  }
+
+  void _submit(BuildContext context) async {
+    setState(() => _submitted = true);
+    if (errorPassword == null) {
+      await readAdminData(adminPosPinController.text);
+    } else {
+      setState(() {
+        isButtonDisabled = false;
+        inProgress = false;
+      });
+    }
+  }
+
+  readAdminData(String pin) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? branch_id = prefs.getInt('branch_id').toString();
+
+      if(branch_id != null){
+        if(pin == branch_id.padLeft(6, '0')) {
+          Navigator.of(context).pop();
+          await openClearDataDialog();
+        } else {
+          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('wrong_pin_please_insert_valid_pin')}");
+        }
+      } else {
+        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('something_went_wrong_please_try_again_later')}");
+      }
+
+    } catch (e) {
+      print('delete error ${e}');
+    }
+  }
+
+  Future openClearDataDialog() {
+    return showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) {
+          return StatefulBuilder(builder: (context, StateSetter setState){
+            return Center(
+                child: AlertDialog(
+                  content: SizedBox(
+                    width: 360,
+                    child: ListView(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        children: [
+                          Card(
+                              elevation: 5,
+                              child: ListTile(
+                                leading: CircleAvatar(
+                                    backgroundColor: Colors.grey.shade200,
+                                    child: Icon(
+                                      Icons.refresh,
+                                      color: Colors.grey,
+                                    )),
+                                title: Text(AppLocalizations.of(context)!.translate('clear_all_pos_data')),
+                                onTap: () async {
+                                  if (await confirm(
+                                    context,
+                                    title: Text('${AppLocalizations.of(context)?.translate('clear_all_pos_data')}'),
+                                    content: Text('${AppLocalizations.of(context)?.translate('to_pos_pin')}'),
+                                    textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                                    textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                                  )) {
+                                    Navigator.of(context).pushAndRemoveUntil(
+                                      MaterialPageRoute(
+                                        builder: (BuildContext context) => PosPinPage(),
+                                      ),
+                                          (Route route) => false,
+                                    );
+                                    clearAllPosData();
+                                  }
+                                },
+                                trailing: Icon(Icons.navigate_next),
+                              )
+                          ),
+                          // Card(
+                          //     elevation: 5,
+                          //     child: ListTile(
+                          //       leading: CircleAvatar(
+                          //           backgroundColor: Colors.grey.shade200,
+                          //           child: Icon(
+                          //             Icons.edit,
+                          //             color: Colors.grey,
+                          //           )),
+                          //       title: Text(AppLocalizations.of(context)!.translate('clear_specific_data')),
+                          //       onTap: () async {
+                          //         if (await confirm(
+                          //           context,
+                          //           title: Text('${AppLocalizations.of(context)?.translate('clear_specific_data')}'),
+                          //           content: Text('${AppLocalizations.of(context)?.translate('to_pos_pin')}'),
+                          //           textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                          //           textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                          //         )) {
+                          //           Navigator.of(context).pushAndRemoveUntil(
+                          //             MaterialPageRoute(
+                          //               builder: (BuildContext context) => PosPinPage(),
+                          //             ),
+                          //                 (Route route) => false,
+                          //           );
+                          //           clearAllPosData();
+                          //         }
+                          //       },
+                          //       trailing: Icon(Icons.navigate_next),
+                          //     )
+                          // ),
+                        ]
+                    ),
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    )
+                  ],
+                )
+            );
+          });
+        }
+    );
+  }
+
+  clearAllPosData() {
+    PosDatabase.instance.clearAllOrderCache();
+    PosDatabase.instance.clearAllOrderDetail();
+    PosDatabase.instance.clearAllOrder();
+    PosDatabase.instance.clearAllOrderDetailCancel();
+    PosDatabase.instance.clearAllOrderModifierDetail();
+    PosDatabase.instance.clearAllOrderTax();
+    PosDatabase.instance.clearAllOrderPromotion();
+    PosDatabase.instance.clearAllTableUse();
+    PosDatabase.instance.clearAllTableUseDetail();
+    resetAllInUsedTableStatus();
+    PosDatabase.instance.clearAllCashRecord();
+    PosDatabase.instance.clearAllRefund();
+    PosDatabase.instance.clearAllSettlement();
+    PosDatabase.instance.clearAllSettlementLinkPayment();
+    PosDatabase.instance.clearAllTransferOwner();
+    PosDatabase.instance.clearAllCustomer();
   }
 
   resetAllInUsedTableStatus() async {
