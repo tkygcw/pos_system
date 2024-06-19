@@ -73,7 +73,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 16, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 17, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -390,7 +390,7 @@ class PosDatabase {
           await db.execute("UPDATE $tableBranch SET ${BranchFields.sub_pos_status} = 1");
           await db.execute("UPDATE $tableBranch SET ${BranchFields.attendance_status} = 1");
         }break;
-        case 15: {
+        case 16: {
           await db.execute('''CREATE TABLE $tableAttendance(
           ${AttendanceFields.attendance_sqlite_id} $idType,
           ${AttendanceFields.attendance_key} $textType,
