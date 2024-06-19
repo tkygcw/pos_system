@@ -43,27 +43,37 @@ class ProductReceiptLayout {
       bytes += generator.hr();
       bytes += generator.reset();
       for(final category in model.reportValue2){
+        bytes += generator.reset();
         bytes += generator.row([
-          PosColumn(text: getCategoryName(category), width: 6, styles: PosStyles(bold: true, align: PosAlign.left)),
+          PosColumn(text: getCategoryName(category), width: 5, containsChinese: true, styles: PosStyles(bold: true, fontType: PosFontType.fontA)),
           PosColumn(text: 'Variant', width: 3, styles: PosStyles(bold: true)),
-          PosColumn(text: 'Qty', width: 1, styles: PosStyles(bold: true)),
-          PosColumn(text: 'Amount', width: 2, styles: PosStyles(bold: true, align: PosAlign.right)),
+          PosColumn(text: 'Qty', width: 2, styles: PosStyles(bold: true)),
+          PosColumn(text: 'Total', width: 2, styles: PosStyles(bold: true, align: PosAlign.right)),
         ]);
         bytes += generator.reset();
         for(final orderDetail in category.categoryOrderDetailList){
           bytes += generator.row([
-            PosColumn(text: orderDetail.productName, width: 6, containsChinese: true, styles: PosStyles(bold: true, align: PosAlign.left)),
-            PosColumn(text: getProductVariant(orderDetail), width: 3, styles: PosStyles(bold: true)),
-            PosColumn(text: getProductQty(orderDetail), width: 1, styles: PosStyles(bold: true)),
-            PosColumn(text: Utils.to2Decimal(orderDetail.gross_price!), width: 2, styles: PosStyles(bold: true, align: PosAlign.right)),
+            PosColumn(text: orderDetail.productName, width: 5, containsChinese: true, styles: PosStyles()),
+            PosColumn(text: getProductVariant(orderDetail), width: 3, containsChinese: true, styles: PosStyles(fontType: PosFontType.fontB)),
+            PosColumn(text: getProductQty(orderDetail), width: 2, styles: PosStyles(fontType: PosFontType.fontB)),
+            PosColumn(text: Utils.to2Decimal(orderDetail.gross_price!), width: 2, styles: PosStyles(align: PosAlign.right, fontType: PosFontType.fontA)),
           ]);
         }
         bytes += generator.hr();
+        bytes += generator.row([
+          PosColumn(text: 'Subtotal', width: 5, styles: PosStyles(bold: true)),
+          PosColumn(text: ' ', width: 3, styles: PosStyles(bold: true)),
+          PosColumn(text: category.category_item_sum.toString(), width: 2, styles: PosStyles(bold: true)),
+          PosColumn(text: Utils.to2Decimal(category.category_net_sales), width: 2, styles: PosStyles(align: PosAlign.right, bold: true)),
+        ]);
+        bytes += generator.hr();
       }
+      bytes += generator.reset();
       bytes += generator.row([
         PosColumn(text: 'Grand total', width: 5, styles: PosStyles(bold: true)),
-        PosColumn(text: getTotalQty(), width: 3, styles: PosStyles(bold: true)),
-        PosColumn(text: getTotalAmount(), width: 4, styles: PosStyles(bold: true, align: PosAlign.right)),
+        PosColumn(text: ' ', width: 3, styles: PosStyles(bold: true)),
+        PosColumn(text: getTotalQty(), width: 2, styles: PosStyles(bold: true)),
+        PosColumn(text: getTotalAmount(), width: 2, styles: PosStyles(bold: true, align: PosAlign.right)),
       ]);
       bytes += generator.hr();
       bytes += generator.cut(mode: PosCutMode.partial);
@@ -103,29 +113,44 @@ class ProductReceiptLayout {
         bytes += generator.text('${branchObject['address']}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
       }
       bytes += generator.hr();
-      bytes += generator.text('Category Sales', containsChinese: true, styles: PosStyles(align: PosAlign.center, bold: true));
+      bytes += generator.text('Product Sales', containsChinese: true, styles: PosStyles(align: PosAlign.center, bold: true));
       bytes += generator.text('${model.startDateTime2} - ${model.endDateTime2}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
       bytes += generator.text('Generated At', containsChinese: true, styles: PosStyles(align: PosAlign.center, bold: true));
       bytes += generator.text(Utils.formatReportDate(DateTime.now().toString()), containsChinese: true, styles: PosStyles(align: PosAlign.center));
       bytes += generator.hr();
-      bytes += generator.row([
-        PosColumn(text: 'Category ', width: 5, styles: PosStyles(bold: true)),
-        PosColumn(text: 'Qty', width: 3, styles: PosStyles(bold: true)),
-        PosColumn(text: 'Amount', width: 4, styles: PosStyles(bold: true)),
-      ]);
       bytes += generator.reset();
-      for(final detail in model.reportValue2){
+      for(final category in model.reportValue2){
+        bytes += generator.reset();
         bytes += generator.row([
-          PosColumn(text: getCategoryName(detail), width: 5),
-          PosColumn(text: detail.category_item_sum.toString(), width: 3),
-          PosColumn(text: Utils.to2Decimal(detail.category_gross_sales!), width: 4),
+          PosColumn(text: getCategoryName(category), width: 5, containsChinese: true, styles: PosStyles(bold: true, fontType: PosFontType.fontB)),
+          PosColumn(text: 'Variant', width: 3, styles: PosStyles(bold: true)),
+          PosColumn(text: 'Qty', width: 2, styles: PosStyles(bold: true)),
+          PosColumn(text: 'Total', width: 2, styles: PosStyles(bold: true)),
         ]);
+        bytes += generator.reset();
+        for(final orderDetail in category.categoryOrderDetailList){
+          bytes += generator.row([
+            PosColumn(text: orderDetail.productName, width: 5, containsChinese: true, styles: PosStyles(fontType: PosFontType.fontB)),
+            PosColumn(text: getProductVariant(orderDetail), width: 3, containsChinese: true, styles: PosStyles(fontType: PosFontType.fontB)),
+            PosColumn(text: getProductQty(orderDetail), width: 2, styles: PosStyles(fontType: PosFontType.fontB)),
+            PosColumn(text: Utils.to2Decimal(orderDetail.gross_price!), width: 2, styles: PosStyles(fontType: PosFontType.fontB)),
+          ]);
+        }
+        bytes += generator.hr();
+        bytes += generator.row([
+          PosColumn(text: 'Subtotal', width: 5, styles: PosStyles(bold: true)),
+          PosColumn(text: ' ', width: 3, styles: PosStyles(bold: true)),
+          PosColumn(text: category.category_item_sum.toString(), width: 2, styles: PosStyles(bold: true)),
+          PosColumn(text: Utils.to2Decimal(category.category_net_sales), width: 2, styles: PosStyles(bold: true)),
+        ]);
+        bytes += generator.hr();
       }
-      bytes += generator.hr();
+      bytes += generator.reset();
       bytes += generator.row([
         PosColumn(text: 'Grand total', width: 5, styles: PosStyles(bold: true)),
-        PosColumn(text: getTotalQty(), width: 3, styles: PosStyles(bold: true)),
-        PosColumn(text: getTotalAmount(), width: 4, styles: PosStyles(bold: true)),
+        PosColumn(text: ' ', width: 3, styles: PosStyles(bold: true)),
+        PosColumn(text: getTotalQty(), width: 2, styles: PosStyles(bold: true, fontType: PosFontType.fontB)),
+        PosColumn(text: getTotalAmount(), width: 2, styles: PosStyles(bold: true, fontType: PosFontType.fontB)),
       ]);
       bytes += generator.hr();
       bytes += generator.cut(mode: PosCutMode.partial);

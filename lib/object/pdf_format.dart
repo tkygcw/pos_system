@@ -1450,6 +1450,71 @@ class ReportFormat {
     return pdf.save();
   }
 
+  Future<Uint8List> generateStaffSalesReport(PdfPageFormat format, String title, ReportModel reportModel) async {
+    List valueList = reportModel.reportValue2;
+    final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
+    final imageByteData = await rootBundle.load('drawable/logo.png');
+    // Convert ByteData to Uint8List
+    final imageUint8List = imageByteData.buffer.asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
+    final image = pw.MemoryImage(imageUint8List);
+    pdf.addPage(
+      pw.MultiPage(
+          pageFormat: format,
+          orientation: pw.PageOrientation.portrait,
+          build: (pw.Context context) => [
+            pw.Center(
+                child: pw.Text('${branchObject['name']}', style: pw.TextStyle(font: getFontFormat(branchObject['name']), fontSize: 18))
+            ),
+            pw.SizedBox(height: 10),
+            pw.Table(
+                border: pw.TableBorder(
+                  left: pw.BorderSide(width: 0),
+                  top: pw.BorderSide(width: 0),
+                  right: pw.BorderSide(width: 0),
+                  bottom: pw.BorderSide(width: 0),
+                  horizontalInside: pw.BorderSide(width: 0),
+                  verticalInside: pw.BorderSide.none,
+                ),
+                children: [
+                  pw.TableRow(
+                      decoration: pw.BoxDecoration(
+                        color: PdfColors.black,
+                      ),
+                      children: [
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('User', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('User'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Amount', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Amount'))),
+                        ),
+                      ]
+                  ),
+                  for(int j = 0; j < valueList.length; j++)
+                    pw.TableRow(
+                        children: [
+                          pw.Padding(
+                            padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                            child: pw.Text('${valueList[j].close_by}', style: pw.TextStyle(font: getFontFormat(valueList[j].close_by))),
+                          ),
+                          pw.Padding(
+                            padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                            child: pw.Text('${Utils.to2Decimal(valueList[j].gross_sales)}', style: pw.TextStyle(font: getFontFormat(Utils.to2Decimal(valueList[j].gross_sales)))),
+                          ),
+                        ]
+                    ),
+                ]
+            ),
+          ]
+      ),
+    );
+    return pdf.save();
+  }
+
   String formatAmount({required CashRecord cashRecord}){
     String newAmount = Utils.to2Decimal(double.parse(cashRecord.amount!));
     if(cashRecord.type == 2 || cashRecord.type == 4){

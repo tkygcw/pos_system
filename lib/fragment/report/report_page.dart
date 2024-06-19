@@ -18,7 +18,14 @@ import 'package:pos_system/fragment/report/product_edited_report.dart';
 import 'package:pos_system/fragment/report/product_report.dart';
 import 'package:pos_system/fragment/report/refund_report.dart';
 import 'package:pos_system/fragment/report/report_overview.dart';
+import 'package:pos_system/fragment/report/report_receipt/layout/category_layout.dart';
+import 'package:pos_system/fragment/report/report_receipt/layout/dining_layout.dart';
+import 'package:pos_system/fragment/report/report_receipt/layout/modifier_layout.dart';
+import 'package:pos_system/fragment/report/report_receipt/layout/payment_layout.dart';
+import 'package:pos_system/fragment/report/report_receipt/layout/product_layout.dart';
+import 'package:pos_system/fragment/report/report_receipt/layout/staff_layout.dart';
 import 'package:pos_system/fragment/report/report_receipt/print_report_receipt.dart';
+import 'package:pos_system/fragment/report/staff_sales_report.dart';
 import 'package:pos_system/notifier/report_notifier.dart';
 import 'package:pos_system/object/user.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
@@ -77,7 +84,6 @@ class _ReportPageState extends State<ReportPage> {
   }
 
   readAdminData(String pin) async {
-    List<String> _posTableValue = [];
     try {
       final prefs = await SharedPreferences.getInstance();
       final String? pos_user = prefs.getString('pos_pin_user');
@@ -187,7 +193,7 @@ class _ReportPageState extends State<ReportPage> {
                       ),
                       SizedBox(width: 25),
                       Visibility(
-                        visible: this.currentPage != 12 ? true : false,
+                        visible: this.currentPage != 13 ? true : false,
                         child: Container(
                           child: IconButton(
                               icon: Icon(Icons.print),
@@ -205,7 +211,7 @@ class _ReportPageState extends State<ReportPage> {
                           ),
                         ),
                       Visibility(
-                        visible: this.currentPage != 12 ? true : false,
+                        visible: this.currentPage != 13 ? true : false,
                         child: Container(
                           child: IconButton(
                             icon: Icon(Icons.receipt),
@@ -259,7 +265,7 @@ class _ReportPageState extends State<ReportPage> {
                                                   new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
                                                   setState(() {
                                                     reportModel.setDateTime(this.currentStDate, this.currentEdDate);
-                                                    reportModel.resetLoad();
+                                                    // reportModel.resetLoad();
                                                   });
                                                   Navigator.of(context).pop();
                                                 },
@@ -364,14 +370,18 @@ class _ReportPageState extends State<ReportPage> {
                               label: AppLocalizations.of(context)!.translate('cash_record_report'),
                             ),
                             SideNavigationBarItem(
+                              icon: Icons.person,
+                              label: 'Staff Sales Report',
+                            ),
+                            SideNavigationBarItem(
                               icon: Icons.compare_arrows,
                               label: AppLocalizations.of(context)!.translate('transfer_report'),
                             ),
                           ],
                           onTap: (index) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              reportModel.resetLoad();
-                            });
+                            // WidgetsBinding.instance.addPostFrameCallback((_) {
+                            //   reportModel.resetLoad();
+                            // });
                             setState(() {
                               this.currentPage = index;
                               selectedIndex = index;
@@ -533,7 +543,7 @@ class _ReportPageState extends State<ReportPage> {
                         ),
                         SizedBox(width: 10),
                         Visibility(
-                          visible: this.currentPage != 11 ? true : false,
+                          visible: this.currentPage != 13 ? true : false,
                           child: IconButton(
                             icon: Icon(Icons.print),
                             color: color.backgroundColor,
@@ -562,7 +572,7 @@ class _ReportPageState extends State<ReportPage> {
                                         _dateRangePickerController.selectedRange = PickerDateRange(DateTime.now(), DateTime.now());
                                         setState(() {
                                           reportModel.setDateTime(this.currentStDate, this.currentEdDate);
-                                          reportModel.resetLoad();
+                                          // reportModel.resetLoad();
                                         });
                                         return true;
                                       },
@@ -691,14 +701,18 @@ class _ReportPageState extends State<ReportPage> {
                               label: AppLocalizations.of(context)!.translate('cash_record_report'),
                             ),
                             SideNavigationBarItem(
+                              icon: Icons.person,
+                              label: 'Staff Sales Report',
+                            ),
+                            SideNavigationBarItem(
                               icon: Icons.compare_arrows,
                               label: AppLocalizations.of(context)!.translate('transfer_report'),
                             ),
                           ],
                           onTap: (index) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              reportModel.resetLoad();
-                            });
+                            // WidgetsBinding.instance.addPostFrameCallback((_) {
+                            //   reportModel.resetLoad();
+                            // });
                             setState(() {
                               this.currentPage = index;
                               selectedIndex = index;
@@ -830,10 +844,22 @@ class _ReportPageState extends State<ReportPage> {
   receiptOnPressed() async {
     switch(currentPage){
       case 2: {
-        await receipt.printProductReceipt();
+        await receipt.printReceipt(layout: ProductReceiptLayout());
       }break;
       case 3: {
-        await receipt.printCategoryReceipt();
+        await receipt.printReceipt(layout: CategoryReceiptLayout());
+      }break;
+      case 4: {
+        await receipt.printReceipt(layout: ModifierReceiptLayout());
+      }break;
+      case 8: {
+        await receipt.printReceipt(layout: DiningReceiptLayout());
+      }break;
+      case 9: {
+        await receipt.printReceipt(layout: PaymentReceiptLayout());
+      }break;
+      case 12: {
+        await receipt.printReceipt(layout: StaffReceiptLayout());
       }break;
     }
   }
@@ -890,6 +916,9 @@ class _ReportPageState extends State<ReportPage> {
       ),
       Container(
         child: CashRecordReport(),
+      ),
+      Container(
+        child: StaffSalesReport(),
       ),
       Container(
         child: TransferRecord(),

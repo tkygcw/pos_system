@@ -1119,10 +1119,10 @@ class _SettlementPageState extends State<SettlementPage> {
   }
 
   String getTotalAmount() {
-    String total = 'Amount: ';
+    String total = "${AppLocalizations.of(context)!.translate('amount')}: ";
     if(paymentMethod!.payment_type_id == '0'){
       total += calcTotalAmount();
-      total += ' / ${calcCashDrawer()}';
+      total += ' / ${AppLocalizations.of(context)!.translate('cash_drawer_amount')}: ${calcCashDrawer()}';
     } else {
       total += calcTotalAmount();
     }

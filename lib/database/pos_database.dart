@@ -4184,6 +4184,18 @@ class PosDatabase {
 */
 
 /*
+  read all order group by user
+*/
+  Future<List<Order>> readStaffSales(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT *, SUM (final_amount) AS gross_sales, COUNT(order_sqlite_id) AS item_sum FROM $tableOrder '
+            'WHERE soft_delete = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ? GROUP BY close_by',
+        ['', date1, date2]);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
   read all cash record
 */
   Future<List<CashRecord>> readAllTodayCashRecord(String date1, String date2) async {

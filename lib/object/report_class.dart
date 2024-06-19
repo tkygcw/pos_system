@@ -70,6 +70,25 @@ class ReportObject{
       this.dateOrderDetailCancelList,
       this.dateTransferList});
 
+  Future<List<Order>> getAllUserSales({currentStDate, currentEdDate}) async {
+    await getPrefData();
+    DateTime _startDate = DateTime.parse(currentStDate);
+    DateTime _endDate = DateTime.parse(currentEdDate);
+    //convert time to string
+    DateTime addEndDate = addDays(date: _endDate);
+    String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
+    String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
+    List<Order> orderData = [];
+
+    if(_isChecked) {
+      orderData = await PosDatabase.instance.readStaffSales(stringStDate, stringEdDate);
+    } else {
+      orderData = await PosDatabase.instance.readStaffSales(stringStDate, stringEdDate);
+    }
+
+    return orderData;
+  }
+
   Future<List<CashRecord>> getAllCashRecord({currentStDate, currentEdDate}) async {
     await getPrefData();
     DateTime _startDate = DateTime.parse(currentStDate);

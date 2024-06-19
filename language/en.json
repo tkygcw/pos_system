@@ -54,7 +54,7 @@
   "cannot_replace_same_order": "Cannot replace same order",
   "card": "Card",
   "cash": "Cash",
-  "cash_drawer_inc_cash_bill": "Cash Drawer Balance",
+  "cash_drawer_amount": "Cash Drawer Amount",
   "cash_in": "Cash-in",
   "cash_in_by": "Cash-in by",
   "cash_out": "Cash-out",

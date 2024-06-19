@@ -54,7 +54,7 @@
   "cannot_replace_same_order": "无法替换相同的订单",
   "card": "刷卡",
   "cash": "现金",
-  "cash_drawer_inc_cash_bill": "钱箱总额",
+  "cash_drawer_amount": "钱箱总额",
   "cash_in": "现金收入",
   "cash_in_by": "现金收入者",
   "cash_out": "现金支出",

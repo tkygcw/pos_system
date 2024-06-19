@@ -100,6 +100,9 @@ class _PrintReportPageState extends State<PrintReportPage> {
                   case 11:
                   //generate cash record report
                     return reportFormat.generateCashRecordReport(format, 'Cash Record Report', reportModel);
+                  case 12:
+                  //generate user sales report
+                    return reportFormat.generateStaffSalesReport(format, 'Staff Sales Report', reportModel);
                   default:
                     // generate transfer report
                     return reportFormat.generateReportPdf(format, 'Report');
