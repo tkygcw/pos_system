@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
@@ -152,7 +151,7 @@ class _ReportPageState extends State<ReportPage> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<ReportModel>(builder: (context, ReportModel reportModel, child){
           return LayoutBuilder(builder: (context, constraints) {
-            if(constraints.maxWidth > 800){
+            if(constraints.maxWidth > 900 && constraints.maxHeight > 500){
               if(reportPermission) {
               return Scaffold(
                 resizeToAvoidBottomInset: false,
@@ -234,7 +233,7 @@ class _ReportPageState extends State<ReportPage> {
                                       _dateRangePickerController.selectedRange = PickerDateRange(DateTime.now(), DateTime.now());
                                       setState(() {
                                         reportModel.setDateTime(this.currentStDate, this.currentEdDate);
-                                        reportModel.resetLoad();
+                                        // reportModel.resetLoad();
                                       });
                                       return true;
                                     },
@@ -613,7 +612,7 @@ class _ReportPageState extends State<ReportPage> {
                                           TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
                                           setState(() {
                                             reportModel.setDateTime(this.currentStDate, this.currentEdDate);
-                                            reportModel.resetLoad();
+                                            // reportModel.resetLoad();
                                           });
                                           Navigator.of(context).pop();
                                         },

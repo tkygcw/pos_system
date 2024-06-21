@@ -445,7 +445,7 @@
   "report": "Report",
   "report_calculate_based_on_opening_balance": "The report will calculate based on the opening balance",
   "reprint": "Reprint",
-  "reprint_latest_settlement": "Reprint latest settlement",
+  "reprint_settlement": "Reprint settlement",
   "reset_all_table": "Reset all table",
   "reset_pos": "Reset Pos",
   "reset_screen": "Reset Screen",

@@ -12,6 +12,7 @@ import 'package:pos_system/fragment/settlement/cash_box_dialog.dart';
 import 'package:pos_system/fragment/settlement/cash_dialog.dart';
 import 'package:pos_system/fragment/settlement/history_dialog.dart';
 import 'package:pos_system/fragment/settlement/pos_pin_dialog.dart';
+import 'package:pos_system/fragment/settlement/reprint_settlement_dialog.dart';
 import 'package:pos_system/fragment/settlement/settlement_dialog.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/payment_link_company.dart';
@@ -185,9 +186,9 @@ class _SettlementPageState extends State<SettlementPage> {
                               child: VerticalDivider(color: Colors.grey, thickness: 1),
                             ),
                             ElevatedButton(
-                              child: Text(AppLocalizations.of(context)!.translate('reprint_latest_settlement')),
-                              onPressed: () async  {
-                                await reprintLatestSettlement();
+                              child: Text(AppLocalizations.of(context)!.translate('reprint_settlement')),
+                              onPressed: () {
+                                openReprintSettlementDialog();
                               },
                               style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
                             ),
@@ -515,20 +516,9 @@ class _SettlementPageState extends State<SettlementPage> {
                                       child: VerticalDivider(color: Colors.grey, thickness: 1),
                                     ),
                                     ElevatedButton(
-                                      child: Text(AppLocalizations.of(context)!.translate('reprint_latest_settlement')),
-                                      onPressed: () async  {
-                                        await reprintLatestSettlement();
-                                      },
-                                      style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
-                                    ),
-                                    Container(
-                                      height: 30,
-                                      child: VerticalDivider(color: Colors.grey, thickness: 1),
-                                    ),
-                                    ElevatedButton(
-                                      child: Text(AppLocalizations.of(context)!.translate('settlement_history')),
+                                      child: Text(AppLocalizations.of(context)!.translate('reprint_settlement')),
                                       onPressed: () {
-                                        openSettlementHistoryDialog();
+                                        openReprintSettlementDialog();
                                       },
                                       style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
                                     ),
@@ -869,6 +859,14 @@ class _SettlementPageState extends State<SettlementPage> {
           // ignore: null_check_always_fails
           return null!;
         });
+  }
+
+  Future<Future<Object?>> openReprintSettlementDialog() async {
+    return showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (_) => ReprintSettlementDialog(),
+    );;
   }
 
   Future<Future<Object?>> openSettlementHistoryDialog() async {

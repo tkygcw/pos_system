@@ -445,7 +445,7 @@
   "report": "Laporan",
   "report_calculate_based_on_opening_balance": "Laporan akan mengira berdasarkan baki pembukaan",
   "reprint": "Cetak semula",
-  "reprint_latest_settlement": "Cetak semula penyelesaian terkini",
+  "reprint_settlement": "Cetak semula penyelesaian",
   "reset_all_table": "Tetapkan semula semua meja",
   "reset_pos": "Tetap semula POS",
   "reset_screen": "Tetapkan Semula Skrin",
