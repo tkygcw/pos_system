@@ -170,8 +170,8 @@ class QrOrder extends ChangeNotifier {
         asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
         return;
       }
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   Future<OrderCache?> updateQrOrderTableLocalId(int orderCacheId, String tableCloudId) async {
