@@ -384,11 +384,39 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.attendance_status} INTEGER NOT NULL DEFAULT 1");
 
           await db.execute("UPDATE $tableUser SET ${UserFields.edit_price_without_pin} = 1 WHERE role = 0 AND soft_delete = ''");
+
+          await db.execute('''CREATE TABLE $tableAttendance(
+          ${AttendanceFields.attendance_sqlite_id} $idType,
+          ${AttendanceFields.attendance_key} $textType,
+          ${AttendanceFields.branch_id} $textType,
+          ${AttendanceFields.user_id} $textType,
+          ${AttendanceFields.role} $integerType,
+          ${AttendanceFields.clock_in_at} $textType,
+          ${AttendanceFields.clock_out_at} $textType,
+          ${AttendanceFields.duration} $integerType,
+          ${AttendanceFields.sync_status} $integerType,
+          ${AttendanceFields.created_at} $textType,
+          ${AttendanceFields.updated_at} $textType,
+          ${AttendanceFields.soft_delete} $textType)''');
         }break;
         case 15: {
           await db.execute("UPDATE $tableUser SET ${UserFields.edit_price_without_pin} = 1 WHERE role = 0 AND soft_delete = ''");
           await db.execute("UPDATE $tableBranch SET ${BranchFields.sub_pos_status} = 1");
           await db.execute("UPDATE $tableBranch SET ${BranchFields.attendance_status} = 1");
+
+          await db.execute('''CREATE TABLE $tableAttendance(
+          ${AttendanceFields.attendance_sqlite_id} $idType,
+          ${AttendanceFields.attendance_key} $textType,
+          ${AttendanceFields.branch_id} $textType,
+          ${AttendanceFields.user_id} $textType,
+          ${AttendanceFields.role} $integerType,
+          ${AttendanceFields.clock_in_at} $textType,
+          ${AttendanceFields.clock_out_at} $textType,
+          ${AttendanceFields.duration} $integerType,
+          ${AttendanceFields.sync_status} $integerType,
+          ${AttendanceFields.created_at} $textType,
+          ${AttendanceFields.updated_at} $textType,
+          ${AttendanceFields.soft_delete} $textType)''');
         }break;
         case 16: {
           await db.execute('''CREATE TABLE $tableAttendance(
