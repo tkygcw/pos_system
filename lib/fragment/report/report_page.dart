@@ -355,6 +355,10 @@ class _ReportPageState extends State<ReportPage> {
                               icon: Icons.compare_arrows,
                               label: AppLocalizations.of(context)!.translate('transfer_report'),
                             ),
+                            SideNavigationBarItem(
+                              icon: Icons.person,
+                              label: AppLocalizations.of(context)!.translate('attendance_report'),
+                            ),
                           ],
                           onTap: (index) {
                             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -681,6 +685,10 @@ class _ReportPageState extends State<ReportPage> {
                             SideNavigationBarItem(
                               icon: Icons.compare_arrows,
                               label: AppLocalizations.of(context)!.translate('transfer_report'),
+                            ),
+                            SideNavigationBarItem(
+                              icon: Icons.person,
+                              label: AppLocalizations.of(context)!.translate('attendance_report'),
                             ),
                           ],
                           onTap: (index) {
