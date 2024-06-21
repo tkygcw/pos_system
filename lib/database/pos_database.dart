@@ -4184,6 +4184,19 @@ class PosDatabase {
 */
 
 /*
+  read all order group by user wiht OB
+*/
+  Future<List<Order>> readStaffSalesWithOB(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT *, SUM (final_amount) AS gross_sales, COUNT(order_sqlite_id) AS item_sum FROM $tableOrder '
+            'WHERE soft_delete = ? AND settlement_key IN (SELECT settlement_key FROM $tableCashRecord WHERE remark = ? AND '
+            'soft_delete = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ?) GROUP BY close_by',
+        ['', 'Opening Balance', '', date1, date2]);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
   read all order group by user
 */
   Future<List<Order>> readStaffSales(String date1, String date2) async {
@@ -4970,6 +4983,15 @@ class PosDatabase {
 /*
   --------------------Settlement part----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  read latest 7 rows settlement
+*/
+  Future<List<Settlement>> readLatest7Settlement() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableSettlement WHERE soft_delete = ? ORDER BY settlement_sqlite_id DESC LIMIT 7', ['']);
+    return result.map((json) => Settlement.fromJson(json)).toList();
+  }
 
 /*
   read latest settlement

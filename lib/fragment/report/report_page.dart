@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
@@ -18,9 +18,12 @@ import 'package:pos_system/fragment/report/product_edited_report.dart';
 import 'package:pos_system/fragment/report/product_report.dart';
 import 'package:pos_system/fragment/report/refund_report.dart';
 import 'package:pos_system/fragment/report/report_overview.dart';
+import 'package:pos_system/fragment/report/report_receipt/layout/cancellation_layout.dart';
+import 'package:pos_system/fragment/report/report_receipt/layout/cancelled_mod_layout.dart';
 import 'package:pos_system/fragment/report/report_receipt/layout/category_layout.dart';
 import 'package:pos_system/fragment/report/report_receipt/layout/dining_layout.dart';
 import 'package:pos_system/fragment/report/report_receipt/layout/modifier_layout.dart';
+import 'package:pos_system/fragment/report/report_receipt/layout/overview_layout.dart';
 import 'package:pos_system/fragment/report/report_receipt/layout/payment_layout.dart';
 import 'package:pos_system/fragment/report/report_receipt/layout/product_layout.dart';
 import 'package:pos_system/fragment/report/report_receipt/layout/staff_layout.dart';
@@ -70,10 +73,6 @@ class _ReportPageState extends State<ReportPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.report.initDateTime();
-      //widget.report.resetLoad();
-    });
     dateTimeNow = dateFormat.format(DateTime.now());
     _controller = new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
     _dateRangePickerController.selectedRange = PickerDateRange(DateTime.now(), DateTime.now());
@@ -164,32 +163,35 @@ class _ReportPageState extends State<ReportPage> {
                     children: [
                       Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 25, color: Colors.black)),
                       Spacer(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Checkbox(
-                            value: _isChecked,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                _isChecked = !_isChecked;
-                                prefs.setBool('reportBasedOnOB', _isChecked);
-                                reportModel.refresh();
-                              });
-                            },
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('report_calculate_based_on_opening_balance'));
-                            },
-                            child: Row(
-                              children: <Widget>[
-                                Text(AppLocalizations.of(context)!.translate('advanced')),
-                                SizedBox(width: 4),
-                                Icon(Icons.info, color: color.backgroundColor, size: 22,),
-                              ],
+                      Visibility(
+                        visible: currentPage != 13 ? true : false,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Checkbox(
+                              value: _isChecked,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  _isChecked = !_isChecked;
+                                  prefs.setBool('reportBasedOnOB', _isChecked);
+                                  reportModel.refresh();
+                                });
+                              },
                             ),
-                          ),
-                        ],
+                            GestureDetector(
+                              onTap: () {
+                                Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('report_calculate_based_on_opening_balance'));
+                              },
+                              child: Row(
+                                children: <Widget>[
+                                  Text(AppLocalizations.of(context)!.translate('advanced')),
+                                  SizedBox(width: 4),
+                                  Icon(Icons.info, color: color.backgroundColor, size: 22,),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       SizedBox(width: 25),
                       Visibility(
@@ -211,7 +213,7 @@ class _ReportPageState extends State<ReportPage> {
                           ),
                         ),
                       Visibility(
-                        visible: this.currentPage != 13 ? true : false,
+                        visible: currentPage != 1 && currentPage != 5 && currentPage != 10 && currentPage != 13  ? true : false,
                         child: Container(
                           child: IconButton(
                             icon: Icon(Icons.receipt),
@@ -220,84 +222,77 @@ class _ReportPageState extends State<ReportPage> {
                           ),
                         ),
                       ),
-                        SizedBox(width: 25),
-                        Visibility(
-                          visible: this.currentPage != 1 ? true : false,
-                          child: Container(
-                              margin: EdgeInsets.only(right: 10),
-                              child: IconButton(
-                                onPressed: () {
-                                  showDialog(barrierDismissible: false, context: context, builder: (BuildContext context) {
-                                    return WillPopScope(
-                                      onWillPop: ()  async  {
-                                        dateTimeNow = dateFormat.format(DateTime.now());
-                                        _controller = new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
-                                        _dateRangePickerController.selectedRange = PickerDateRange(DateTime.now(), DateTime.now());
-                                        setState(() {
-                                          reportModel.setDateTime(this.currentStDate, this.currentEdDate);
-                                          reportModel.resetLoad();
-                                        });
-                                        return true;
-                                      },
-                                      child: AlertDialog(
-                                        title: Text(AppLocalizations.of(context)!.translate('select_a_date_range')),
-                                        content: Container(
-                                          height: 400,
-                                          width: 450,
-                                          child: Container(
-                                            child: Card(
-                                              elevation: 10,
-                                              child: SfDateRangePicker(
-                                                view: DateRangePickerView.month,
-                                                controller: _dateRangePickerController,
-                                                selectionMode: DateRangePickerSelectionMode.range,
-                                                allowViewNavigation: true,
-                                                showActionButtons: true,
-                                                showTodayButton: true,
-                                                onSelectionChanged: _onSelectionChanged,
-                                                maxDate: DateTime.now(),
-                                                confirmText: AppLocalizations.of(context)!.translate('ok'),
-                                                cancelText: AppLocalizations.of(context)!.translate('cancel'),
-                                                onSubmit: (object) {
-                                                  _controller = _range != '' ?
-                                                  new TextEditingController(text: '${_range}')
-                                                      :
-                                                  new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
-                                                  setState(() {
-                                                    reportModel.setDateTime(this.currentStDate, this.currentEdDate);
-                                                    // reportModel.resetLoad();
-                                                  });
-                                                  Navigator.of(context).pop();
-                                                },
-                                                onCancel: (){
-                                                  Navigator.of(context).pop();
-                                                },
+                        Container(
+                            margin: EdgeInsets.only(right: 10),
+                            child: IconButton(
+                              onPressed: () {
+                                showDialog(barrierDismissible: false, context: context, builder: (BuildContext context) {
+                                  return WillPopScope(
+                                    onWillPop: ()  async  {
+                                      dateTimeNow = dateFormat.format(DateTime.now());
+                                      _controller = new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
+                                      _dateRangePickerController.selectedRange = PickerDateRange(DateTime.now(), DateTime.now());
+                                      setState(() {
+                                        reportModel.setDateTime(this.currentStDate, this.currentEdDate);
+                                        reportModel.resetLoad();
+                                      });
+                                      return true;
+                                    },
+                                    child: AlertDialog(
+                                      title: Text(AppLocalizations.of(context)!.translate('select_a_date_range')),
+                                      content: Container(
+                                        height: 400,
+                                        width: 450,
+                                        child: Container(
+                                          child: Card(
+                                            elevation: 10,
+                                            child: SfDateRangePicker(
+                                              view: DateRangePickerView.month,
+                                              controller: _dateRangePickerController,
+                                              selectionMode: DateRangePickerSelectionMode.range,
+                                              allowViewNavigation: true,
+                                              showActionButtons: true,
+                                              showTodayButton: true,
+                                              onSelectionChanged: _onSelectionChanged,
+                                              maxDate: DateTime.now(),
+                                              confirmText: AppLocalizations.of(context)!.translate('ok'),
+                                              cancelText: AppLocalizations.of(context)!.translate('cancel'),
+                                              onSubmit: (object) {
+                                                _controller = _range != '' ?
+                                                new TextEditingController(text: '${_range}')
+                                                    :
+                                                new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
+                                                setState(() {
+                                                  reportModel.setDateTime(this.currentStDate, this.currentEdDate);
+                                                  // reportModel.resetLoad();
+                                                });
+                                                Navigator.of(context).pop();
+                                              },
+                                              onCancel: (){
+                                                Navigator.of(context).pop();
+                                              },
 
-                                              ),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    );
-                                  });
-                                },
-                                icon: Icon(Icons.calendar_month),
-                                color: color.backgroundColor,
-                              )),
-                        ),
-                        Visibility(
-                          visible: this.currentPage != 1 ? true : false,
-                          child: Container(
-                            width: 300,
-                            height: 55,
-                            child: TextField(
-                              controller: _controller,
-                              decoration: InputDecoration(
-                                  border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(5.0)))
-                              ),
-                              style: TextStyle(color: Colors.black),
-                              enabled: false,
+                                    ),
+                                  );
+                                });
+                              },
+                              icon: Icon(Icons.calendar_month),
+                              color: color.backgroundColor,
+                            )),
+                        Container(
+                          width: 300,
+                          height: 55,
+                          child: TextField(
+                            controller: _controller,
+                            decoration: InputDecoration(
+                                border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(5.0)))
                             ),
+                            style: TextStyle(color: Colors.black),
+                            enabled: false,
                           ),
                         ),
                       ],
@@ -514,32 +509,35 @@ class _ReportPageState extends State<ReportPage> {
                       children: [
                         Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 25, color: Colors.black)),
                         Spacer(),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Checkbox(
-                              value: _isChecked,
-                              onChanged: (bool? value) {
-                                setState(() {
-                                  _isChecked = !_isChecked;
-                                  prefs.setBool('reportBasedOnOB', _isChecked);
-                                  reportModel.refresh();
-                                });
-                              },
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('report_calculate_based_on_opening_balance'));
-                              },
-                              child: Row(
-                                children: <Widget>[
-                                  Text(AppLocalizations.of(context)!.translate('advanced')),
-                                  SizedBox(width: 4),
-                                  Icon(Icons.info, color: color.backgroundColor, size: 22,),
-                                ],
+                        Visibility(
+                          visible: currentPage != 13 ? true : false,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Checkbox(
+                                value: _isChecked,
+                                onChanged: (bool? value) {
+                                  setState(() {
+                                    _isChecked = !_isChecked;
+                                    prefs.setBool('reportBasedOnOB', _isChecked);
+                                    reportModel.refresh();
+                                  });
+                                },
                               ),
-                            ),
-                          ],
+                              GestureDetector(
+                                onTap: () {
+                                  Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('report_calculate_based_on_opening_balance'));
+                                },
+                                child: Row(
+                                  children: <Widget>[
+                                    Text(AppLocalizations.of(context)!.translate('advanced')),
+                                    SizedBox(width: 4),
+                                    Icon(Icons.info, color: color.backgroundColor, size: 22,),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         SizedBox(width: 10),
                         Visibility(
@@ -559,75 +557,76 @@ class _ReportPageState extends State<ReportPage> {
                           ),
                         ),
                         Visibility(
-                          visible: this.currentPage != 1 ? true : false,
+                          visible: currentPage != 1 && currentPage != 5 && currentPage != 10 && currentPage != 11 && currentPage != 13  ? true : false,
                           child: Container(
-                              margin: EdgeInsets.only(right: 10),
-                              child: IconButton(
-                                onPressed: () {
-                                  showDialog(context: context, builder: (BuildContext context) {
-                                    return WillPopScope(
-                                      onWillPop: ()  async  {
-                                        dateTimeNow = dateFormat.format(DateTime.now());
-                                        _controller = new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
-                                        _dateRangePickerController.selectedRange = PickerDateRange(DateTime.now(), DateTime.now());
-                                        setState(() {
-                                          reportModel.setDateTime(this.currentStDate, this.currentEdDate);
-                                          // reportModel.resetLoad();
-                                        });
-                                        return true;
-                                      },
-                                      child: AlertDialog(
-                                        contentPadding: EdgeInsets.zero,
-                                        content: Container(
-                                          height: MediaQuery.of(context).size.height,
-                                          width: MediaQuery.of(context).size.width,
-                                          child: SfDateRangePicker(
-                                            controller: _dateRangePickerController,
-                                            selectionMode: DateRangePickerSelectionMode.range,
-                                            allowViewNavigation: true,
-                                            showActionButtons: true,
-                                            showTodayButton: true,
-                                            onSelectionChanged: _onSelectionChanged,
-                                            maxDate: DateTime.now(),
-                                            onSubmit: (object) {
-                                              _controller = _range != '' ?
-                                              new TextEditingController(text: '${_range}')
-                                                  :
-                                              new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
-                                              setState(() {
-                                                reportModel.setDateTime(this.currentStDate, this.currentEdDate);
-                                                reportModel.resetLoad();
-                                              });
-                                              Navigator.of(context).pop();
-                                            },
-                                            onCancel: (){
-                                              Navigator.of(context).pop();
-                                            },
-
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  });
-                                },
-                                icon: Icon(Icons.calendar_month),
-                                color: color.backgroundColor,
-                              )),
-                        ),
-                        Visibility(
-                          visible: this.currentPage != 1 ? true : false,
-                          child: Container(
-                            width: 230,
-                            height: 55,
-                            child: TextField(
-                              controller: _controller,
-                              decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.all(Radius.circular(5.0)))
-                              ),
-                              style: TextStyle(color: Colors.black),
-                              enabled: false,
+                            child: IconButton(
+                              icon: Icon(Icons.receipt),
+                              color: color.backgroundColor,
+                              onPressed: receiptOnPressed,
                             ),
+                          ),
+                        ),
+                        Container(
+                          width: 230,
+                          height: 55,
+                          child: TextField(
+                            controller: _controller,
+                            decoration: InputDecoration(
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(Radius.circular(4)),
+                                  borderSide: BorderSide(width: 1,color: color.backgroundColor),
+                                ),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(Radius.circular(5.0)))
+                            ),
+                            style: TextStyle(color: Colors.black),
+                            readOnly: true,
+                            onTap: (){
+                              showDialog(context: context, builder: (BuildContext context) {
+                                return WillPopScope(
+                                  onWillPop: () async {
+                                    dateTimeNow = dateFormat.format(DateTime.now());
+                                    _controller = new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
+                                    _dateRangePickerController.selectedRange = PickerDateRange(DateTime.now(), DateTime.now());
+                                    setState(() {
+                                      reportModel.setDateTime(this.currentStDate, this.currentEdDate);
+                                      // reportModel.resetLoad();
+                                    });
+                                    return true;
+                                  },
+                                  child: AlertDialog(
+                                    contentPadding: EdgeInsets.zero,
+                                    content: Container(
+                                      height: MediaQuery.of(context).size.height,
+                                      width: MediaQuery.of(context).size.width,
+                                      child: SfDateRangePicker(
+                                        controller: _dateRangePickerController,
+                                        selectionMode: DateRangePickerSelectionMode.range,
+                                        allowViewNavigation: true,
+                                        showActionButtons: true,
+                                        showTodayButton: true,
+                                        onSelectionChanged: _onSelectionChanged,
+                                        maxDate: DateTime.now(),
+                                        onSubmit: (object) {
+                                          _controller = _range != '' ?
+                                          TextEditingController(text: '${_range}') :
+                                          TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
+                                          setState(() {
+                                            reportModel.setDateTime(this.currentStDate, this.currentEdDate);
+                                            reportModel.resetLoad();
+                                          });
+                                          Navigator.of(context).pop();
+                                        },
+                                        onCancel: (){
+                                          Navigator.of(context).pop();
+                                        },
+
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              });
+                            },
                           ),
                         ),
                       ],
@@ -843,6 +842,9 @@ class _ReportPageState extends State<ReportPage> {
 
   receiptOnPressed() async {
     switch(currentPage){
+      case 0: {
+        await receipt.printReceipt(layout: OverviewReceiptLayout());
+      }break;
       case 2: {
         await receipt.printReceipt(layout: ProductReceiptLayout());
       }break;
@@ -851,6 +853,12 @@ class _ReportPageState extends State<ReportPage> {
       }break;
       case 4: {
         await receipt.printReceipt(layout: ModifierReceiptLayout());
+      }break;
+      case 6: {
+        await receipt.printReceipt(layout: CancellationReceiptLayout());
+      }break;
+      case 7: {
+        await receipt.printReceipt(layout: CancelledModReceiptLayout());
       }break;
       case 8: {
         await receipt.printReceipt(layout: DiningReceiptLayout());

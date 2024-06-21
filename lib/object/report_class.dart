@@ -81,7 +81,7 @@ class ReportObject{
     List<Order> orderData = [];
 
     if(_isChecked) {
-      orderData = await PosDatabase.instance.readStaffSales(stringStDate, stringEdDate);
+      orderData = await PosDatabase.instance.readStaffSalesWithOB(stringStDate, stringEdDate);
     } else {
       orderData = await PosDatabase.instance.readStaffSales(stringStDate, stringEdDate);
     }
