@@ -13,6 +13,7 @@ import 'package:pos_system/object/checklist.dart';
 import 'package:pos_system/object/kitchen_list.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
+import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/receipt.dart';
 import 'package:pos_system/object/report_class.dart';
@@ -52,6 +53,7 @@ class ReceiptLayout{
   double totalCashOut = 0.0;
   double totalOpeningCash = 0.0;
   bool _isLoad = false;
+  List<OrderPaymentSplit> paymentSplitList = [];
 
 /*
   open cash drawer function
@@ -1288,6 +1290,20 @@ class ReceiptLayout{
 
   }
 
+  getAllPaymentSplit(String orderKey) async {
+    try {
+      paymentSplitList = [];
+      if(orderKey != '') {
+        List<OrderPaymentSplit> orderSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(orderKey);
+        for(int k = 0; k < orderSplit.length; k++){
+          paymentSplitList.add(orderSplit[k]);
+        }
+      }
+    } catch(e) {
+      print("Total payment split: $e");
+    }
+  }
+
 /*
   Receipt layout 80mm
 */
@@ -1305,6 +1321,9 @@ class ReceiptLayout{
       await callOrderTaxPromoDetail();
       await callPaidOrderDetail(orderId);
     }
+
+    await getAllPaymentSplit(paidOrder!.order_key!);
+
     // final ByteData data = await rootBundle.load('drawable/logo2.png');
     // final Uint8List bytes = data.buffer.asUint8List();
     // final decodedImage = img.decodeImage(bytes);
@@ -1515,16 +1534,27 @@ class ReceiptLayout{
               styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2, bold: true)),
         ]);
         bytes += generator.hr();
-        //payment method
-        bytes += generator.row([
-          PosColumn(text: 'Payment method', width: 8, styles: PosStyles(align: PosAlign.right)),
-          PosColumn(text: '${this.paidOrder!.payment_name}', width: 4, styles: PosStyles(align: PosAlign.right)),
-        ]);
-        //payment received
-        bytes += generator.row([
-          PosColumn(text: 'Payment received', width: 8, styles: PosStyles(align: PosAlign.right)),
-          PosColumn(text: '${this.paidOrder!.payment_received}', width: 4, styles: PosStyles(align: PosAlign.right)),
-        ]);
+        if(paymentSplitList.isNotEmpty) {
+          for(int i = 0; i < paymentSplitList.length; i++) {
+            //payment method
+            bytes += generator.row([
+              PosColumn(text: '${paymentSplitList[i].payment_name}', width: 8, styles: PosStyles(align: PosAlign.right)),
+              PosColumn(text: '${paymentSplitList[i].payment_received}', width: 4, styles: PosStyles(align: PosAlign.right)),
+            ]);
+          }
+        } else {
+          //payment method
+          bytes += generator.row([
+            PosColumn(text: 'Payment method', width: 8, styles: PosStyles(align: PosAlign.right)),
+            PosColumn(text: '${this.paidOrder!.payment_name}', width: 4, styles: PosStyles(align: PosAlign.right)),
+          ]);
+          //payment received
+          bytes += generator.row([
+            PosColumn(text: 'Payment received', width: 8, styles: PosStyles(align: PosAlign.right)),
+            PosColumn(text: '${this.paidOrder!.payment_received}', width: 4, styles: PosStyles(align: PosAlign.right)),
+          ]);
+        }
+
         //payment change
         bytes += generator.row([
           PosColumn(text: 'Change', width: 8, styles: PosStyles(align: PosAlign.right)),

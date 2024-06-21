@@ -10,6 +10,7 @@ import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
@@ -344,7 +345,6 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
 
   dataSync(String zipFilePath, String timestamp, int isDebug) async {
     try {
-      String url = 'https://pos.optimy.com.my/mobile-api/local_data_export/index.php';
       String fileName;
       if(isDebug == 1) {
         fileName = "optimy_debug_$timestamp.zip";
@@ -356,7 +356,7 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
 
-      var request = http.MultipartRequest('POST', Uri.parse(url))
+      var request = http.MultipartRequest('POST', Domain.local_data_export)
         ..fields['local_data_export'] = '1'
         ..fields['debug'] = isDebug.toString()
         ..fields['branch_id'] = branch_id.toString()

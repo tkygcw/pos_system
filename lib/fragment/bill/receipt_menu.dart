@@ -802,4 +802,15 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
       });
     }
   }
+
+  String getPaymentSplitStatus(int paymentStatus, int paymentSplit) {
+    String splitStatus = '';
+    if(paymentStatus == 1 && paymentSplit == 1) {
+      splitStatus = ' (Split Payment)';
+    } else if(paymentStatus == 2 && paymentSplit == 1) {
+      splitStatus = ' (Split Payment)';
+    }
+
+    return splitStatus;
+  }
 }

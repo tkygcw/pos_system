@@ -22,6 +22,7 @@ class OrderFields {
     final_amount,
     close_by,
     payment_status,
+    payment_split,
     payment_received,
     payment_change,
     order_key,
@@ -53,6 +54,7 @@ class OrderFields {
   static String final_amount = 'final_amount';
   static String close_by = 'close_by';
   static String payment_status = 'payment_status';
+  static String payment_split = 'payment_split';
   static String payment_received = 'payment_received';
   static String payment_change = 'payment_change';
   static String order_key = 'order_key';
@@ -85,6 +87,7 @@ class Order {
   String? final_amount;
   String? close_by;
   int? payment_status;
+  int? payment_split;
   String? payment_received;
   String? payment_change;
   String? order_key;
@@ -110,6 +113,7 @@ class Order {
   String? tax_id;
   List<OrderTaxDetail> taxDetailList = [];
   String? counterOpenDate;
+  String? amountSplit;
 
   generateOrderNumber(){
     String orderNum = '';
@@ -136,6 +140,7 @@ class Order {
         this.final_amount,
         this.close_by,
         this.payment_status,
+        this.payment_split,
         this.payment_received,
         this.payment_change,
         this.order_key,
@@ -158,7 +163,9 @@ class Order {
         this.promo_amount,
         this.total_tax_amount,
         this.tax_id,
-        this.counterOpenDate});
+        this.counterOpenDate,
+        this.amountSplit
+      });
 
   Order copy({
     int? order_sqlite_id,
@@ -179,6 +186,7 @@ class Order {
     String? final_amount,
     String? close_by,
     int? payment_status,
+    int? payment_split,
     String? payment_received,
     String? payment_change,
     String? order_key,
@@ -210,6 +218,7 @@ class Order {
           final_amount: final_amount ?? this.final_amount,
           close_by: close_by ?? this.close_by,
           payment_status: payment_status ?? this.payment_status,
+          payment_split: payment_split ?? this.payment_split,
           payment_received: payment_received ?? this.payment_received,
           payment_change: payment_change ?? this.payment_change,
           order_key: order_key ?? this.order_key,
@@ -243,6 +252,7 @@ class Order {
       final_amount: json[OrderFields.final_amount] as String?,
       close_by: json[OrderFields.close_by] as String?,
       payment_status: json[OrderFields.payment_status] as int?,
+      payment_split: json[OrderFields.payment_split] as int?,
       payment_received: json[OrderFields.payment_received] as String?,
       payment_change: json[OrderFields.payment_change] as String?,
       order_key: json[OrderFields.order_key] as String?,
@@ -266,6 +276,7 @@ class Order {
       total_tax_amount: json['total_tax_amount'] as double?,
       tax_id: json['tax_id'] as String?,
       counterOpenDate: json['counterOpenDate'] as String?,
+      amountSplit: json['amountSplit'] as String?,
   );
 
   Map<String, Object?> toJson() => {
@@ -287,6 +298,7 @@ class Order {
     OrderFields.final_amount: final_amount,
     OrderFields.close_by: close_by,
     OrderFields.payment_status: payment_status,
+    OrderFields.payment_split: payment_split,
     OrderFields.payment_received: payment_received,
     OrderFields.payment_change: payment_change,
     OrderFields.order_key: order_key,

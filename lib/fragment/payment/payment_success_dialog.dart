@@ -38,6 +38,7 @@ class PaymentSuccessDialog extends StatefulWidget {
   final String dining_id;
   final String dining_name;
   final String? change;
+  final bool? split_payment;
 
   const PaymentSuccessDialog(
       {Key? key,
@@ -49,7 +50,8 @@ class PaymentSuccessDialog extends StatefulWidget {
       required this.orderKey,
       this.change,
       required this.isCashMethod,
-      required this.dining_name})
+      required this.dining_name,
+      required this.split_payment})
       : super(key: key);
 
   @override
@@ -427,9 +429,12 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     String dateTime = dateFormat.format(DateTime.now());
     await updateOrder(dateTime: dateTime);
     if (widget.dining_name == 'Dine in' && widget.selectedTableList.isNotEmpty) {
-      await deleteCurrentTableUseDetail(dateTime: dateTime);
-      await deleteCurrentTableUseId(dateTime: dateTime);
-      await updatePosTableStatus(dateTime: dateTime);
+      Order? orderData = await PosDatabase.instance.readOrderSqliteID(widget.orderKey);
+      if(orderData!.payment_status == 1 && ((orderData!.payment_split == 1 && !widget.split_payment!) || orderData!.payment_split == 0)) {
+        await deleteCurrentTableUseDetail(dateTime: dateTime);
+        await deleteCurrentTableUseId(dateTime: dateTime);
+        await updatePosTableStatus(dateTime: dateTime);
+      }
     }
     await updateOrderCache(dateTime: dateTime);
     await createCashRecord(dateTime: dateTime);
@@ -744,31 +749,56 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
       final String? login_user = prefs.getString('user');
       Map userObject = json.decode(pos_user!);
       Map logInUser = json.decode(login_user!);
-
+      // normal payment
       List<Order> orderData = await PosDatabase.instance.readSpecificPaidOrder(widget.orderId);
-      print("orderData length: ${orderData.length}");
       if (orderData.length == 1) {
-        CashRecord cashRecordObject = CashRecord(
-            cash_record_id: 0,
-            cash_record_key: '',
-            company_id: logInUser['company_id'].toString(),
-            branch_id: branch_id.toString(),
-            remark: orderData[0].generateOrderNumber(),
-            amount: orderData[0].final_amount,
-            payment_name: '',
-            payment_type_id: orderData[0].payment_type,
-            type: 3,
-            user_id: userObject['user_id'].toString(),
-            settlement_key: '',
-            settlement_date: '',
-            sync_status: 0,
-            created_at: dateTime,
-            updated_at: '',
-            soft_delete: '');
-        CashRecord data = await PosDatabase.instance.insertSqliteCashRecord(cashRecordObject);
-        CashRecord updatedData = await insertCashRecordKey(data, dateTime);
-        _value.add(jsonEncode(updatedData));
-        cash_record_value = _value.toString();
+        if(orderData[0].payment_link_company_id != '0') {
+          CashRecord cashRecordObject = CashRecord(
+              cash_record_id: 0,
+              cash_record_key: '',
+              company_id: logInUser['company_id'].toString(),
+              branch_id: branch_id.toString(),
+              remark: orderData[0].generateOrderNumber(),
+              amount: orderData[0].final_amount,
+              payment_name: '',
+              payment_type_id: orderData[0].payment_type,
+              type: 3,
+              user_id: userObject['user_id'].toString(),
+              settlement_key: '',
+              settlement_date: '',
+              sync_status: 0,
+              created_at: dateTime,
+              updated_at: '',
+              soft_delete: '');
+          CashRecord data = await PosDatabase.instance.insertSqliteCashRecord(cashRecordObject);
+          CashRecord updatedData = await insertCashRecordKey(data, dateTime);
+          _value.add(jsonEncode(updatedData));
+          cash_record_value = _value.toString();
+        } else {
+          List<Order> splitOrderData = await PosDatabase.instance.readSpecificPaidSplitPaymentOrder(widget.orderId);
+          CashRecord cashRecordObject = CashRecord(
+              cash_record_id: 0,
+              cash_record_key: '',
+              company_id: logInUser['company_id'].toString(),
+              branch_id: branch_id.toString(),
+              remark: splitOrderData[0].generateOrderNumber(),
+              amount: splitOrderData[0].amountSplit,
+              payment_name: '',
+              payment_type_id: splitOrderData[0].payment_type,
+              type: 3,
+              user_id: userObject['user_id'].toString(),
+              settlement_key: '',
+              settlement_date: '',
+              sync_status: 0,
+              created_at: dateTime,
+              updated_at: '',
+              soft_delete: '');
+          CashRecord data = await PosDatabase.instance.insertSqliteCashRecord(cashRecordObject);
+          CashRecord updatedData = await insertCashRecordKey(data, dateTime);
+          _value.add(jsonEncode(updatedData));
+          cash_record_value = _value.toString();
+        }
+
         //sync to cloud
         //syncCashRecordToCloud(updatedData);
       }

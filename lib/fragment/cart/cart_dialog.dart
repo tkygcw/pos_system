@@ -210,7 +210,11 @@ class CartDialogState extends State<CartDialog> {
                               children: tableList.asMap().map((index, posTable) => MapEntry(index, tableItem(cart, color, index))).values.toList(),
                               onReorder: (int oldIndex, int newIndex) {
                                 if (oldIndex != newIndex) {
-                                  showSecondDialog(context, color, oldIndex, newIndex, cart);
+                                  if (tableList[oldIndex].order_key == '') {
+                                    showSecondDialog(context, color, oldIndex, newIndex, cart);
+                                  } else {
+                                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
+                                  }
                                 }
                               },
                             ))
@@ -350,17 +354,22 @@ class CartDialogState extends State<CartDialog> {
       key: Key(index.toString()),
       child: Card(
         elevation: 5,
-        shape: tableList[index].isSelected
+        shape: tableList[index].status == 1 && tableList[index].order_key != '' ? new RoundedRectangleBorder(side: new BorderSide(color: Color(0xFFFE8080), width: 3.0), borderRadius: BorderRadius.circular(4.0))
+        : tableList[index].isSelected
             ? new RoundedRectangleBorder(side: new BorderSide(color: color.backgroundColor, width: 3.0), borderRadius: BorderRadius.circular(4.0))
             : new RoundedRectangleBorder(side: new BorderSide(color: Colors.white, width: 3.0), borderRadius: BorderRadius.circular(4.0)),
-        color: Colors.white,
+        color: tableList[index].status == 1 && tableList[index].order_key != '' ? Color(0xFFFE8080) : Colors.white,
         child: InkWell(
           splashColor: Colors.blue.withAlpha(30),
           onDoubleTap: () {
             if (tableList[index].status == 1) {
-              openChangeTableDialog(tableList[index], printerList: printerList);
-              cart.removeAllTable();
-              cart.removeAllCartItem();
+              if(tableList[index].order_key == '') {
+                openChangeTableDialog(tableList[index], printerList: printerList);
+                cart.removeAllTable();
+                cart.removeAllCartItem();
+              } else {
+                Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
+              }
             } else {
               Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('table_not_in_use'));
             }
@@ -373,9 +382,13 @@ class CartDialogState extends State<CartDialog> {
                 //check all group
                 if (tableList[index].group == tableList[i].group) {
                   if (tableList[i].isSelected == false) {
-                    setState(() {
-                      tableList[i].isSelected = true;
-                    });
+                    if(tableList[i].order_key == '') {
+                      setState(() {
+                        tableList[i].isSelected = true;
+                      });
+                    } else {
+                      Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
+                    }
                   } else {
                     setState(() {
                       tableList[i].isSelected = false;
@@ -603,6 +616,11 @@ class CartDialogState extends State<CartDialog> {
 
           tableList[i].group = data[0].table_use_sqlite_id;
           tableList[i].card_color = data[0].card_color;
+          if(data[0].order_key != null && data[0].order_key != ''){
+            tableList[i].order_key = data[0].order_key!;
+          } else {
+            tableList[i].order_key = '';
+          }
 
           for (int j = 0; j < data.length; j++) {
             tableAmount += double.parse(data[j].total_amount!);
@@ -1058,7 +1076,13 @@ class CartDialogState extends State<CartDialog> {
         setState(() {
           if (tableList[index].group == tableList[i].group) {
             if (tableList[i].isSelected == false) {
-              tableList[i].isSelected = true;
+              if(tableList[i].order_key == '') {
+                setState(() {
+                  tableList[i].isSelected = true;
+                });
+              } else {
+                Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
+              }
             } else {
               tableList[i].isSelected = false;
             }

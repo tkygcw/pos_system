@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:f_logs/model/flog/flog.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -15,10 +17,12 @@ import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
 import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
+import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/printer.dart';
+import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
@@ -66,6 +70,8 @@ class _MakePaymentState extends State<MakePayment> {
   final ScrollController _controller = ScrollController();
   late StreamController streamController;
   late AppSettingModel _appSettingModel;
+  late int _type;
+  late int _payment_link_company_id;
 
   // var type ="0";
   var userInput = '0.00';
@@ -73,7 +79,9 @@ class _MakePaymentState extends State<MakePayment> {
   Barcode? result;
   QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  final splitAmountController = TextEditingController();
   List<String> branchLinkDiningIdList = [];
+  List<PaymentLinkCompany> PaymentLists = [];
   List<Promotion> autoApplyPromotionList = [];
   List<Promotion> appliedPromotionList = [];
   List<String> orderCacheIdList = [];
@@ -110,7 +118,8 @@ class _MakePaymentState extends State<MakePayment> {
   String orderCacheId = '';
   String ipay_code = '';
   String? allPromo = '';
-  String finalAmount = '';
+  late String finalAmount = '';
+  late String statisFinalAmount = '';
   String change = '0.00';
   String? orderId, orderKey;
   String? order_value, order_tax_value, order_promotion_value;
@@ -119,6 +128,10 @@ class _MakePaymentState extends State<MakePayment> {
   bool isButtonDisable = false, willPop = true;
   String tableNo = 'N/A';
   String orderCacheSqliteId = '';
+  bool isload = false;
+  late bool split_payment = false;
+  bool isButtonDisabled = false;
+  bool paymentSplitDialog = false;
 
   // Array of button
   final List<String> buttons = [
@@ -151,12 +164,15 @@ class _MakePaymentState extends State<MakePayment> {
   @override
   void initState() {
     super.initState();
+    _type = widget.type;
+    _payment_link_company_id = widget.payment_link_company_id;
     streamController = StreamController();
     readAllPrinters();
     readAllBranchLinkDiningOption();
     readBranchPref();
     readSpecificPaymentMethod();
     readAllOrder();
+    readPaymentMethod();
   }
 
   @override
@@ -262,6 +278,145 @@ class _MakePaymentState extends State<MakePayment> {
                         title: Row(
                           children: [
                             Text(AppLocalizations.of(context)!.translate('payment_detail')),
+                            SizedBox(
+                              width: 20,
+                            ),
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width / 10,
+                              height: MediaQuery.of(context).size.height / 20,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  backgroundColor: Color(0xff0d5060),
+                                ),
+                                child: Text(!split_payment ? AppLocalizations.of(context)!.translate('split_payment')
+                                  : AppLocalizations.of(context)!.translate('split_payment_cancel'),
+                                  style: TextStyle(color: Colors.white,),
+                                ),
+                                onPressed: () async {
+                                  split_payment = !split_payment;
+                                  paymentSplitDialog = true;
+                                  splitAmountController.clear();
+                                  if(!split_payment) {
+                                    paymentSplitDialog = false;
+                                  }
+
+                                  splitAmountController.text.isEmpty && paymentSplitDialog? await showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text(AppLocalizations.of(context)!.translate('split_payment_amount')),
+                                        content: SizedBox(
+                                          height: 75.0,
+                                          width: 350.0,
+                                          child: ValueListenableBuilder(
+                                            valueListenable: splitAmountController,
+                                            builder: (context, TextEditingValue value, __) {
+                                              return Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: TextField(
+                                                  autofocus: true,
+                                                  onSubmitted: (input) {
+                                                    if(double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                      finalAmount = splitAmountController.text;
+                                                      setState(() {
+                                                        isButtonDisabled = true;
+                                                        willPop = false;
+                                                        Navigator.of(context).pop();
+                                                        split_payment = !split_payment;
+                                                      });
+                                                    } else {
+                                                      Fluttertoast.showToast(
+                                                          backgroundColor: Color(0xFFFF0000),
+                                                          msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                      splitAmountController.clear();
+                                                    }
+                                                  },
+                                                  controller: splitAmountController,
+                                                  keyboardType: TextInputType.number,
+                                                  decoration: InputDecoration(
+                                                    border: OutlineInputBorder(
+                                                      borderSide: BorderSide(color: color.backgroundColor),
+                                                    ),
+                                                    focusedBorder: OutlineInputBorder(
+                                                      borderSide: BorderSide(color: color.backgroundColor),
+                                                    ),
+                                                    labelText: AppLocalizations.of(context)!.translate('amount'),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                        actions: <Widget>[
+                                          SizedBox(
+                                            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                            child: ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: color.backgroundColor,
+                                              ),
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('close'),
+                                                style: TextStyle(color: Colors.white),
+                                              ),
+                                              onPressed: isButtonDisabled
+                                                  ? null
+                                                  : () {
+                                                setState(() {
+                                                  isButtonDisabled = true;
+                                                  splitAmountController.clear();
+                                                  split_payment = !split_payment;
+                                                });
+                                                Navigator.of(context).pop();
+                                                if (mounted) {
+                                                  setState(() {
+                                                    isButtonDisabled = false;
+                                                  });
+                                                }
+                                              },
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                            child: ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: color.buttonColor,
+                                              ),
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('yes'),
+                                                style: TextStyle(color: Colors.white),
+                                              ),
+                                              onPressed: isButtonDisabled
+                                                  ? null
+                                                  : () async {
+                                                if(double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                  finalAmount = splitAmountController.text;
+                                                  setState(() {
+                                                    isButtonDisabled = true;
+                                                    willPop = false;
+                                                    Navigator.of(context).pop();
+                                                  });
+                                                } else {
+                                                  Fluttertoast.showToast(
+                                                      backgroundColor: Color(0xFFFF0000),
+                                                      msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                  splitAmountController.clear();
+                                                }
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ) : null;
+                                  setState(() {
+                                    isButtonDisabled = false;
+                                  });
+                                },
+                              ),
+                            ),
                             Spacer(),
                             IconButton(
                               onPressed: isButtonDisable
@@ -482,264 +637,416 @@ class _MakePaymentState extends State<MakePayment> {
                                       color: Colors.grey, thickness: 1),
                                 ),
                                 Expanded(
-                                  child: widget.type == 0
-                                      ? Container(
-                                          margin: EdgeInsets.fromLTRB(30, 0, 25, 0),
-                                          //height: MediaQuery.of(context).size.height / 1,
-                                          child: Column(
-                                            //mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Container(
-                                                child: Text('RM${finalAmount}',
-                                                    style: TextStyle(
-                                                        fontSize: 24,
-                                                        fontWeight:
-                                                            FontWeight.bold)),
-                                              ),
-                                              Container(
-                                                margin:
-                                                    EdgeInsets.only(bottom: 10),
-                                                alignment: Alignment.centerLeft,
-                                                child:
-                                                    Text('Change: ${change}'),
-                                              ),
-                                              Container(
-                                                margin: EdgeInsets.only(bottom: 10),
-                                                child: ValueListenableBuilder(
-                                                    valueListenable: inputController,
-                                                    builder: (context, TextEditingValue value, __) {
-                                                      return Container(
-                                                        child: TextField(
-                                                          onSubmitted: (value) {
-                                                            makePayment();
-                                                          },
-                                                          onChanged: (value) {
-                                                            calcChange(value);
-                                                          },
-                                                          inputFormatters: [
-                                                            FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
-                                                          ],
-                                                          keyboardType: TextInputType.numberWithOptions(decimal: true),
-                                                          textAlign: TextAlign.right,
-                                                          maxLines: 1,
-                                                          controller: inputController,
-                                                          decoration: InputDecoration(
-                                                            border: OutlineInputBorder(
-                                                                borderSide: BorderSide(
-                                                                    color: color.backgroundColor)),
-                                                            focusedBorder: OutlineInputBorder(
-                                                              borderSide: BorderSide(color: color.backgroundColor),
-                                                            ),
-                                                          ),
-                                                          style: TextStyle(
-                                                              fontSize: 40),
-                                                        ),
-                                                      );
-                                                    }),
-                                              ),
-                                              //cash chips
-                                              Container(
-                                                  child: Wrap(
-                                                      runSpacing: 5,
-                                                      spacing: 10,
-                                                      children: [
-                                                    ChoiceChip(
-                                                      label: Text('RM $finalAmount'),
-                                                      selected: chipSelected,
-                                                      elevation: 5,
-                                                      onSelected: (chipSelected) {
-                                                        inputController.text = finalAmount;
-                                                        calcChange(inputController.text);
-                                                      },
-                                                    ),
-                                                    ChoiceChip(
-                                                      label: Text('RM 10.00'),
-                                                      selected: chipSelected,
-                                                      elevation: 5,
-                                                      onSelected: (chipSelected) {
-                                                        inputController.text = '10.00';
-                                                        calcChange(inputController.text);
-                                                      },
-                                                    ),
-                                                    ChoiceChip(
-                                                      label: Text('RM 20.00'),
-                                                      selected: chipSelected,
-                                                      elevation: 5,
-                                                      onSelected: (chipSelected) {
-                                                        inputController.text = '20.00';
-                                                        calcChange(inputController.text);
-                                                      },
-                                                    ),
-                                                    ChoiceChip(
-                                                      label: Text('RM 50.00'),
-                                                      selected: chipSelected,
-                                                      elevation: 5,
-                                                      onSelected: (chipSelected) {
-                                                        inputController.text = '50.00';
-                                                        calcChange(inputController.text);
-                                                      },
-                                                    ),
-                                                    ChoiceChip(
-                                                      label: Text('RM 100.00'),
-                                                      selected: chipSelected,
-                                                      elevation: 5,
-                                                      onSelected: (chipSelected) {
-                                                        inputController.text = '100.00';
-                                                        calcChange(inputController.text);
-                                                      },
-                                                    ),
-                                                  ])),
-                                              Container(
-                                                margin: EdgeInsets.only(top: 10),
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    Container(child: SizedBox(
-                                                      height: 70,
-                                                      width: 150,
-                                                      child:
-                                                          ElevatedButton.icon(
-                                                              onPressed: isButtonDisable || itemList.isEmpty ? null : () async => makePayment(),
-                                                              style: ElevatedButton.styleFrom(
-                                                                backgroundColor: color.backgroundColor,
-                                                                elevation: 5,
-                                                              ),
-                                                              icon: Icon(Icons.payments, size: 24),
-                                                              label: Text(
-                                                                AppLocalizations.of(context)!.translate('make_payment'),
-                                                                style: TextStyle(fontSize: 20),
-                                                              )),
-                                                    )),
-                                                    SizedBox(
-                                                      width: 10,
-                                                    ),
-                                                    SizedBox(
-                                                      height: 70,
-                                                      width: 150,
-                                                      child: ElevatedButton.icon(
-                                                        onPressed: () async {
-                                                          inputController.clear();
-                                                          change = '0.00';
-                                                        },
-                                                        style: ElevatedButton.styleFrom(
-                                                          elevation: 5,
-                                                          backgroundColor: color.buttonColor,
-                                                        ),
-                                                        icon: Icon(Icons.backspace),
-                                                        label: Text(AppLocalizations.of(context)!.translate('clear'),
-                                                            style: TextStyle(fontSize: 20)),
-                                                      ),
-                                                    ),
-                                                  ],
+                                  child: _type == 0
+                                        ? Container(
+                                            margin: EdgeInsets.fromLTRB(30, 0, 25, 0),
+                                            //height: MediaQuery.of(context).size.height / 1,
+                                            child: Column(
+                                              //mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Container(
+                                                  child: Text('RM${finalAmount}',
+                                                      style: TextStyle(
+                                                          fontSize: 24,
+                                                          fontWeight:
+                                                              FontWeight.bold)),
                                                 ),
-                                              ),
-                                            ],
-                                          ), // GridView.builder
-                                        )
-                                      : widget.type == 1 ?
-                                          ///card payment
-                                          Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Container(
-                                                child: ClipRRect(
-                                                  borderRadius: BorderRadius.circular(16.0),
+                                                Container(
+                                                  margin:
+                                                      EdgeInsets.only(bottom: 10),
+                                                  alignment: Alignment.centerLeft,
                                                   child:
-                                                      ///***If you have exported images you must have to copy those images in assets/images directory.
-                                                      Image(image: AssetImage("drawable/duitNow.jpg")),
+                                                      Text('Change: ${change}'),
                                                 ),
-                                              ),
-                                              Container(
-                                                margin: EdgeInsets.all(20),
-                                                child: Text('RM${finalAmount}',
-                                                  style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                                                Container(
+                                                  margin: EdgeInsets.only(bottom: 10),
+                                                  child: ValueListenableBuilder(
+                                                      valueListenable: inputController,
+                                                      builder: (context, TextEditingValue value, __) {
+                                                        return Container(
+                                                          child: TextField(
+                                                            onSubmitted: (value) {
+                                                              makePayment();
+                                                            },
+                                                            onChanged: (value) {
+                                                              calcChange(value);
+                                                            },
+                                                            inputFormatters: [
+                                                              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
+                                                            ],
+                                                            keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                                            textAlign: TextAlign.right,
+                                                            maxLines: 1,
+                                                            controller: inputController,
+                                                            decoration: InputDecoration(
+                                                              border: OutlineInputBorder(
+                                                                  borderSide: BorderSide(
+                                                                      color: color.backgroundColor)),
+                                                              focusedBorder: OutlineInputBorder(
+                                                                borderSide: BorderSide(color: color.backgroundColor),
+                                                              ),
+                                                            ),
+                                                            style: TextStyle(
+                                                                fontSize: 40),
+                                                          ),
+                                                        );
+                                                      }),
                                                 ),
-                                              ),
-                                              Container(
-                                                child: ElevatedButton.icon(
-                                                  style: ButtonStyle(
-                                                      backgroundColor: MaterialStateProperty.all(Colors.green),
-                                                      padding: MaterialStateProperty.all(EdgeInsets.all(20))),
-                                                  onPressed: isButtonDisable || itemList.isEmpty ? null : () async {
-                                                    setState(() {
-                                                      willPop = false;
-                                                      isButtonDisable = true;
-                                                    });
-                                                    await callCreateOrder(finalAmount);
-                                                    if (this.isLogOut == true) {
-                                                      openLogOutDialog();
-                                                      return;
-                                                    }
-                                                    openPaymentSuccessDialog(widget.dining_id, isCashMethod: false, diningName: widget.dining_name);
-                                                  },
-                                                  icon: Icon(Icons.call_received),
-                                                  label: Text(
-                                                      AppLocalizations.of(context)!.translate('payment_received'),
-                                                      style: TextStyle(fontSize: 20)),
-                                                ),
-                                              ),
-                                            ],
-                                          )
-                                          : widget.type == 2
-                                              ? Column(
-                                                children: [
-                                                  Container(
-                                                    margin: EdgeInsets.all(25),
-                                                    child: scanning == false ?
-                                                    ClipRRect(
-                                                      borderRadius: BorderRadius.circular(0.0),
-                                                      child: Image(
-                                                        image: AssetImage("drawable/TNG.jpg"),
-                                                        // FileImage(File(
-                                                        //     'data/user/0/com.example.pos_system/files/assets/img/TNG.jpg')),
-                                                        height: 250,
-                                                        width: 250,
+                                                //cash chips
+                                                Container(
+                                                    child: Wrap(
+                                                        runSpacing: 5,
+                                                        spacing: 10,
+                                                        children: [
+                                                      ChoiceChip(
+                                                        label: Text('RM $finalAmount'),
+                                                        selected: chipSelected,
+                                                        elevation: 5,
+                                                        onSelected: (chipSelected) {
+                                                          inputController.text = finalAmount;
+                                                          calcChange(inputController.text);
+                                                        },
                                                       ),
-                                                    ) :
+                                                      ChoiceChip(
+                                                        label: Text('RM 10.00'),
+                                                        selected: chipSelected,
+                                                        elevation: 5,
+                                                        onSelected: (chipSelected) {
+                                                          inputController.text = '10.00';
+                                                          calcChange(inputController.text);
+                                                        },
+                                                      ),
+                                                      ChoiceChip(
+                                                        label: Text('RM 20.00'),
+                                                        selected: chipSelected,
+                                                        elevation: 5,
+                                                        onSelected: (chipSelected) {
+                                                          inputController.text = '20.00';
+                                                          calcChange(inputController.text);
+                                                        },
+                                                      ),
+                                                      ChoiceChip(
+                                                        label: Text('RM 50.00'),
+                                                        selected: chipSelected,
+                                                        elevation: 5,
+                                                        onSelected: (chipSelected) {
+                                                          inputController.text = '50.00';
+                                                          calcChange(inputController.text);
+                                                        },
+                                                      ),
+                                                      ChoiceChip(
+                                                        label: Text('RM 100.00'),
+                                                        selected: chipSelected,
+                                                        elevation: 5,
+                                                        onSelected: (chipSelected) {
+                                                          inputController.text = '100.00';
+                                                          calcChange(inputController.text);
+                                                        },
+                                                      ),
+                                                    ])),
+                                                Container(
+                                                  margin: EdgeInsets.only(top: 10),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.center,
+                                                    children: [
+                                                      Container(child: SizedBox(
+                                                        height: 70,
+                                                        width: 150,
+                                                        child:
+                                                            ElevatedButton.icon(
+                                                                onPressed: isButtonDisable || itemList.isEmpty ? null : () async => makePayment(),
+                                                                style: ElevatedButton.styleFrom(
+                                                                  backgroundColor: color.backgroundColor,
+                                                                  elevation: 5,
+                                                                ),
+                                                                icon: Icon(Icons.payments, size: 24),
+                                                                label: Text(
+                                                                  AppLocalizations.of(context)!.translate('make_payment'),
+                                                                  style: TextStyle(fontSize: 20),
+                                                                )),
+                                                      )),
+                                                      SizedBox(
+                                                        width: 10,
+                                                      ),
+                                                      SizedBox(
+                                                        height: 70,
+                                                        width: 150,
+                                                        child: ElevatedButton.icon(
+                                                          onPressed: () async {
+                                                            inputController.clear();
+                                                            change = '0.00';
+                                                          },
+                                                          style: ElevatedButton.styleFrom(
+                                                            elevation: 5,
+                                                            backgroundColor: color.buttonColor,
+                                                          ),
+                                                          icon: Icon(Icons.backspace),
+                                                          label: Text(AppLocalizations.of(context)!.translate('clear'),
+                                                              style: TextStyle(fontSize: 20)),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                Visibility(
+                                                  visible: split_payment,
+                                                  child: isload ? Container(
+                                                    padding: EdgeInsets.only(top: 20),
+                                                    height: 100,
+                                                    child: Center(
+                                                      child: ListView(
+                                                          shrinkWrap: true,
+                                                          // crossAxisCount: 5,
+                                                          scrollDirection: Axis.horizontal,
+                                                          children: List.generate(PaymentLists.length, (index) {
+                                                            return GestureDetector(
+                                                              onTap: () async {
+                                                                setState(() {
+                                                                  _type = PaymentLists[index].type!;
+                                                                });
+                                                              },
+                                                              child: Card(
+                                                                elevation: 5,
+                                                                color: Colors.white,
+                                                                shape: RoundedRectangleBorder(
+                                                                  borderRadius: BorderRadius.circular(16.0),
+                                                                ),
+                                                                child: Container(
+                                                                  height: MediaQuery.of(context).size.height / 4,
+                                                                  width: 100,
+                                                                  child: Stack(
+                                                                    alignment: Alignment.center,
+                                                                    children: [
+                                                                      Text(
+                                                                        '${PaymentLists[index].name}',
+                                                                        textAlign: TextAlign.center,
+                                                                        overflow: TextOverflow.clip,
+                                                                        style: TextStyle(
+                                                                          fontWeight: FontWeight.w700,
+                                                                          fontStyle: FontStyle.normal,
+                                                                          fontSize: 15,
+                                                                          color: Colors.blueGrey,
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            );
+                                                          })
+                                                      ),
+                                                    ),
+                                                  )
+                                                      : CustomProgressBar(),
+                                                )
+                                              ],
+                                            ), // GridView.builder
+                                          )
+                                        : _type == 1 ?
+                                            ///card payment
+                                            Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Container(
+                                                  child: ClipRRect(
+                                                    borderRadius: BorderRadius.circular(16.0),
+                                                    child:
+                                                        ///***If you have exported images you must have to copy those images in assets/images directory.
+                                                        Image(image: AssetImage("drawable/duitNow.jpg")),
+                                                  ),
+                                                ),
+                                                Container(
+                                                  margin: EdgeInsets.all(20),
+                                                  child: Text('RM${finalAmount}',
+                                                    style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                                                  ),
+                                                ),
+                                                Container(
+                                                  child: ElevatedButton.icon(
+                                                    style: ButtonStyle(
+                                                        backgroundColor: MaterialStateProperty.all(Colors.green),
+                                                        padding: MaterialStateProperty.all(EdgeInsets.all(20))),
+                                                    onPressed: isButtonDisable || itemList.isEmpty ? null : () async {
+                                                      setState(() {
+                                                        willPop = false;
+                                                        isButtonDisable = true;
+                                                      });
+                                                      await callCreateOrder(finalAmount);
+                                                      if (this.isLogOut == true) {
+                                                        openLogOutDialog();
+                                                        return;
+                                                      }
+                                                      openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
+                                                    },
+                                                    icon: Icon(Icons.call_received),
+                                                    label: Text(
+                                                        AppLocalizations.of(context)!.translate('payment_received'),
+                                                        style: TextStyle(fontSize: 20)),
+                                                  ),
+                                                ),
+                                                Visibility(
+                                                  visible: split_payment,
+                                                  child: isload ? Container(
+                                                    padding: EdgeInsets.only(top: 20),
+                                                    height: 100,
+                                                    child: Center(
+                                                      child: ListView(
+                                                          shrinkWrap: true,
+                                                          // crossAxisCount: 5,
+                                                          scrollDirection: Axis.horizontal,
+                                                          children: List.generate(PaymentLists.length, (index) {
+                                                            return GestureDetector(
+                                                              onTap: () async {
+                                                                setState(() {
+                                                                  _type = PaymentLists[index].type!;
+                                                                });
+                                                              },
+                                                              child: Card(
+                                                                elevation: 5,
+                                                                color: Colors.white,
+                                                                shape: RoundedRectangleBorder(
+                                                                  borderRadius: BorderRadius.circular(16.0),
+                                                                ),
+                                                                child: Container(
+                                                                  height: MediaQuery.of(context).size.height / 4,
+                                                                  width: 100,
+                                                                  child: Stack(
+                                                                    alignment: Alignment.center,
+                                                                    children: [
+                                                                      Text(
+                                                                        '${PaymentLists[index].name}',
+                                                                        textAlign: TextAlign.center,
+                                                                        overflow: TextOverflow.clip,
+                                                                        style: TextStyle(
+                                                                          fontWeight: FontWeight.w700,
+                                                                          fontStyle: FontStyle.normal,
+                                                                          fontSize: 15,
+                                                                          color: Colors.blueGrey,
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            );
+                                                          })
+                                                      ),
+                                                    ),
+                                                  )
+                                                  : CustomProgressBar(),
+                                                )
+                                              ],
+                                            )
+                                            : _type == 2
+                                                ? Column(
+                                                  children: [
                                                     Container(
-                                                      height: 300,
-                                                      width: 300,
-                                                      // margin: EdgeInsets.all(25),
-                                                      child: _buildQrView(context),
+                                                      margin: EdgeInsets.all(25),
+                                                      child: scanning == false ?
+                                                      ClipRRect(
+                                                        borderRadius: BorderRadius.circular(0.0),
+                                                        child: Image(
+                                                          image: AssetImage("drawable/TNG.jpg"),
+                                                          // FileImage(File(
+                                                          //     'data/user/0/com.example.pos_system/files/assets/img/TNG.jpg')),
+                                                          height: 250,
+                                                          width: 250,
+                                                        ),
+                                                      ) :
+                                                      Container(
+                                                        height: 300,
+                                                        width: 300,
+                                                        // margin: EdgeInsets.all(25),
+                                                        child: _buildQrView(context),
+                                                      ),
                                                     ),
-                                                  ),
-                                                  Container(
-                                                    alignment: Alignment.center,
-                                                    child: Text(
-                                                        'RM${finalAmount}',
-                                                        style: TextStyle(
-                                                            fontSize: 40,
-                                                            fontWeight: FontWeight.bold)),
-                                                  ),
-                                                  Container(
-                                                    margin: EdgeInsets.all(20),
-                                                    alignment: Alignment.center,
-                                                    child: ElevatedButton(
-                                                      style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor, padding: EdgeInsets.fromLTRB(20, 14, 20, 14)),
-                                                      onPressed: () async {
-                                                        setState(() {
-                                                          willPop = false;
-                                                          scanning = true;
-                                                        });
-                                                        //await controller?.resumeCamera();
-                                                        await controller?.scannedDataStream;
-                                                        await callCreateOrder(finalAmount);
-                                                        if (this.isLogOut == true) {
-                                                          openLogOutDialog();
-                                                          return;
-                                                        }
-                                                      },
+                                                    Container(
+                                                      alignment: Alignment.center,
                                                       child: Text(
-                                                          scanning == false ?
-                                                          AppLocalizations.of(context)!.translate('scan_qr') :
-                                                          AppLocalizations.of(context)!.translate('scanning'),
-                                                          style: TextStyle(fontSize: 24)),
+                                                          'RM${finalAmount}',
+                                                          style: TextStyle(
+                                                              fontSize: 40,
+                                                              fontWeight: FontWeight.bold)),
                                                     ),
-                                                  ),
-                                                ],
-                                              )
-                                              : Container(),
+                                                    Container(
+                                                      margin: EdgeInsets.all(20),
+                                                      alignment: Alignment.center,
+                                                      child: ElevatedButton(
+                                                        style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor, padding: EdgeInsets.fromLTRB(20, 14, 20, 14)),
+                                                        onPressed: () async {
+                                                          setState(() {
+                                                            willPop = false;
+                                                            scanning = true;
+                                                          });
+                                                          //await controller?.resumeCamera();
+                                                          await controller?.scannedDataStream;
+                                                          await callCreateOrder(finalAmount);
+                                                          if (this.isLogOut == true) {
+                                                            openLogOutDialog();
+                                                            return;
+                                                          }
+                                                        },
+                                                        child: Text(
+                                                            scanning == false ?
+                                                            AppLocalizations.of(context)!.translate('scan_qr') :
+                                                            AppLocalizations.of(context)!.translate('scanning'),
+                                                            style: TextStyle(fontSize: 24)),
+                                                      ),
+                                                    ),
+                                                    Visibility(
+                                                      visible: split_payment,
+                                                      child: isload ? Container(
+                                                        height: 100,
+                                                        child: Center(
+                                                          child: ListView(
+                                                              shrinkWrap: true,
+                                                              // crossAxisCount: 5,
+                                                              scrollDirection: Axis.horizontal,
+                                                              children: List.generate(PaymentLists.length, (index) {
+                                                                return GestureDetector(
+                                                                  onTap: () async {
+                                                                    setState(() {
+                                                                      _type = PaymentLists[index].type!;
+                                                                    });
+                                                                  },
+                                                                  child: Card(
+                                                                    elevation: 5,
+                                                                    color: Colors.white,
+                                                                    shape: RoundedRectangleBorder(
+                                                                      borderRadius: BorderRadius.circular(16.0),
+                                                                    ),
+                                                                    child: Container(
+                                                                      height: MediaQuery.of(context).size.height / 4,
+                                                                      width: 100,
+                                                                      child: Stack(
+                                                                        alignment: Alignment.center,
+                                                                        children: [
+                                                                          Text(
+                                                                            '${PaymentLists[index].name}',
+                                                                            textAlign: TextAlign.center,
+                                                                            overflow: TextOverflow.clip,
+                                                                            style: TextStyle(
+                                                                              fontWeight: FontWeight.w700,
+                                                                              fontStyle: FontStyle.normal,
+                                                                              fontSize: 15,
+                                                                              color: Colors.blueGrey,
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              })
+                                                          ),
+                                                        ),
+                                                      )
+                                                          : CustomProgressBar(),
+                                                    )
+                                                  ],
+                                                )
+                                                : Container(),
                                 )
                               ],
                             )),
@@ -972,7 +1279,7 @@ class _MakePaymentState extends State<MakePayment> {
                                   color: Colors.grey, thickness: 1),
                             ),
                             Expanded(
-                              child: widget.type == 0
+                              child: _type == 0
                                   ? Container(
                                       child: Column(
                                         children: [
@@ -1034,7 +1341,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                 openLogOutDialog();
                                                                 return;
                                                               }
-                                                              openPaymentSuccessDialog(widget.dining_id, isCashMethod: true, diningName: widget.dining_name);
+                                                              openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: true, diningName: widget.dining_name);
                                                             } else {
                                                               Fluttertoast.showToast(
                                                                   backgroundColor: Color(0xFFFF0000),
@@ -1064,7 +1371,7 @@ class _MakePaymentState extends State<MakePayment> {
                                         ],
                                       ), // GridView.builder
                                     )
-                                  : widget.type == 1
+                                  : _type == 1
                                       ? Container(
                                           child: Column(
                                             children: [
@@ -1103,6 +1410,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                     }
                                                     openPaymentSuccessDialog(
                                                         widget.dining_id,
+                                                        split_payment,
                                                         isCashMethod: false,
                                                         diningName: widget.dining_name);
                                                   },
@@ -1115,7 +1423,7 @@ class _MakePaymentState extends State<MakePayment> {
                                             ],
                                           ),
                                         )
-                                      : widget.type == 2
+                                      : _type == 2
                                           ? Container(
                                               child: Column(
                                                 children: [
@@ -1132,7 +1440,6 @@ class _MakePaymentState extends State<MakePayment> {
                                                   Expanded(
                                                     child: Container(
                                                       height: scanning == false ? 150 : 240,
-                                                      margin: EdgeInsets.only(bottom: 10),
                                                       child: scanning == false ?
                                                       ClipRRect(
                                                         child: Image(
@@ -1255,7 +1562,7 @@ class _MakePaymentState extends State<MakePayment> {
       }
       var api = await paymentApi();
       if (api == 0) {
-        openPaymentSuccessDialog(widget.dining_id,
+        openPaymentSuccessDialog(widget.dining_id, split_payment,
             isCashMethod: false, diningName: widget.dining_name);
       } else {
         Fluttertoast.showToast(
@@ -1276,7 +1583,7 @@ class _MakePaymentState extends State<MakePayment> {
 //     double eval = exp.evaluate(EvaluationType.REAL, cm);
 //     answer = eval.toString();
 //   }
-  Future<Future<Object?>> openPaymentSuccessDialog(String dining_id, {required isCashMethod, required String diningName}) async {
+  Future<Future<Object?>> openPaymentSuccessDialog(String dining_id, bool splitPayment, {required isCashMethod, required String diningName}) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -1295,6 +1602,7 @@ class _MakePaymentState extends State<MakePayment> {
                 orderKey: orderKey!,
                 change: change,
                 dining_name: diningName,
+                split_payment: splitPayment,
               ),
             ),
           );
@@ -1481,8 +1789,9 @@ class _MakePaymentState extends State<MakePayment> {
       this.total = cart.cartNotifierPayment[i].subtotal;
       this.totalAmount = cart.cartNotifierPayment[i].amount;
       this.rounding = cart.cartNotifierPayment[i].rounding;
-      this.finalAmount = cart.cartNotifierPayment[i].finalAmount;
+      this.finalAmount = splitAmountController.text.isNotEmpty ? (double.parse(splitAmountController.text)).toStringAsFixed(2) : cart.cartNotifierPayment[i].finalAmount;
       this.diningName = widget.dining_name;
+      statisFinalAmount = cart.cartNotifierPayment[i].finalAmount;
       if(taxList.isEmpty && cart.cartNotifierPayment[i].taxList!.isNotEmpty){
         this.taxList.addAll(cart.cartNotifierPayment[i].taxList!);
       }
@@ -1551,10 +1860,66 @@ class _MakePaymentState extends State<MakePayment> {
   }
 
   callCreateOrder(String? paymentReceived, {orderChange}) async {
-    await createOrder(double.parse(paymentReceived!), orderChange);
-    await crateOrderTaxDetail();
-    await createOrderPromotionDetail();
-    //await syncAllToCloud();
+    OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(int.parse(orderCacheSqliteId));
+    if(orderCacheData.order_key == null || orderCacheData.order_key == '') {
+      await createOrder(double.parse(paymentReceived!), orderChange);
+      await crateOrderTaxDetail();
+      await createOrderPromotionDetail();
+      //await syncAllToCloud();
+    }
+
+    List<Order> orderData = [];
+    // first split
+    if(orderKey != null){
+      orderData = await PosDatabase.instance.readSpecificOrderByOrderKey(orderKey!);
+      this.orderId = orderData[0].order_sqlite_id.toString();
+    } else if(orderCacheData.order_key != null) {
+      // second split
+      orderData = await PosDatabase.instance.readSpecificOrderByOrderKey(orderCacheData.order_key!);
+      this.orderId = orderData[0].order_sqlite_id.toString();
+      this.orderKey = orderCacheData.order_key;
+    }
+
+    if(orderData.isNotEmpty) {
+      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+      String dateTime = dateFormat.format(DateTime.now());
+      if(orderData.first.payment_split == 2){
+        await createOrderPaymentSplit(double.parse(paymentReceived!), orderChange, orderData[0].order_key!);
+        List<OrderPaymentSplit> orderSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(orderKey!);
+        double newOrderAmount = 0.0;
+        for(int k = 0; k < orderSplit.length; k++){
+          newOrderAmount += double.parse(orderSplit[k].amount!);
+        }
+        // update order payment received and change
+        try {
+          double initPaymentReceived = orderData[0].payment_received != '' && orderData[0].payment_received != null ? double.parse(orderData[0].payment_received!) : 0.0;
+          double initPaymentChange = orderData[0].payment_change != '' && orderData[0].payment_change != null ? double.parse(orderData[0].payment_change!) : 0.0;
+          double newPaymentReceived = paymentReceived != '' && paymentReceived != null ? double.parse(paymentReceived) : 0.0;
+          double newPaymentChange = orderChange != '' && orderChange != null ? double.parse(orderChange) : 0.0;
+
+          print("split_payment_status: ${split_payment ? orderData[0].payment_split : 1}");
+
+          await PosDatabase.instance.updateOrderPaymentSplit(Order(
+            payment_received: (initPaymentReceived + newPaymentReceived).toStringAsFixed(2),
+            payment_change: (initPaymentChange + newPaymentChange).toStringAsFixed(2),
+            payment_split: split_payment ? orderData[0].payment_split : 1,
+            sync_status: orderData[0].sync_status == 0 ? 0 : 2,
+            updated_at: dateTime,
+            soft_delete: '',
+            order_sqlite_id: orderData[0].order_sqlite_id
+          ));
+        } catch(e) {
+          print("updateOrderPaymentSplit error: $e");
+          FLog.error(
+            className: "make_payment_dialog",
+            text: "Update new payment split payment received and change in Order",
+            exception: e,
+          );
+        }
+
+      } else {
+      }
+    }
   }
 
   readBranchPref() async {
@@ -1623,16 +1988,17 @@ class _MakePaymentState extends State<MakePayment> {
             dining_id: widget.dining_id,
             dining_name: this.diningName,
             branch_link_promotion_id: '',
-            payment_link_company_id: widget.payment_link_company_id.toString(),
+            payment_link_company_id: split_payment ? '0' : widget.payment_link_company_id.toString(),
             branch_link_tax_id: '',
             subtotal: total.toStringAsFixed(2),
             amount: totalAmount.toStringAsFixed(2),
             rounding: rounding.toStringAsFixed(2),
-            final_amount: finalAmount,
+            final_amount: statisFinalAmount,
             close_by: userObject['name'].toString(),
-            payment_received: paymentReceived == null ? '' : paymentReceived.toStringAsFixed(2),
-            payment_change: orderChange == null ? '0.00' : orderChange,
+            payment_received: split_payment || paymentReceived == null ? '' : paymentReceived.toStringAsFixed(2),
+            payment_change: split_payment || orderChange == null ? '0.00' : orderChange,
             payment_status: 0,
+            payment_split: split_payment ? 2 : 0,
             order_key: '',
             refund_sqlite_id: '',
             refund_key: '',
@@ -1651,6 +2017,52 @@ class _MakePaymentState extends State<MakePayment> {
       }
     } catch (e) {
       print('create order error: ${e}');
+      Fluttertoast.showToast(
+          backgroundColor: Color(0xFFFF0000),
+          msg: AppLocalizations.of(context)!.translate('create_order_error') +
+              " ${e}");
+      FLog.error(
+        className: "make_payment_dialog",
+        text: "Create order failed",
+        exception: "$e\norderNum: $orderNum",
+      );
+    }
+  }
+
+  createOrderPaymentSplit(double? paymentReceived, String? orderChange, String tempOrderKey) async {
+    print('create order payment split called');
+    List<String> _value = [];
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    final prefs = await SharedPreferences.getInstance();
+    final String? login_user = prefs.getString('user');
+    final int? branch_id = prefs.getInt('branch_id');
+    final String? pos_user = prefs.getString('pos_pin_user');
+    AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
+    Map logInUser = json.decode(login_user!);
+    Map userObject = json.decode(pos_user!);
+    int orderNum = generateOrderNumber();
+    int orderQueue = localSetting!.enable_numbering == 1 ? await readQueueFromOrderCache() : 0;
+    try {
+      if (orderNum != 0) {
+        OrderPaymentSplit orderObject = OrderPaymentSplit(
+            order_split_payment_id: 0,
+            payment_link_company_id: widget.payment_link_company_id.toString(),
+            amount: finalAmount,
+            payment_received: paymentReceived == null ? '' : paymentReceived.toStringAsFixed(2),
+            payment_change: orderChange == null ? '0.00' : orderChange,
+            order_key: tempOrderKey,
+            sync_status: 0,
+            created_at: dateTime,
+            updated_at: '',
+            soft_delete: '');
+        OrderPaymentSplit data = await PosDatabase.instance.insertSqliteOrderPaymentSplit(orderObject);
+        // this.orderId = data.order_split_payment_id.toString();
+        // order_value = _value.toString();
+        //await syncOrderToCloud(updatedOrder);
+      }
+    } catch (e) {
+      print('create order payment split error: ${e}');
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: AppLocalizations.of(context)!.translate('create_order_error') +
@@ -1831,7 +2243,7 @@ class _MakePaymentState extends State<MakePayment> {
 
   readSpecificPaymentMethod() async {
     List<PaymentLinkCompany> data = await PosDatabase.instance
-        .readPaymentMethodByType(widget.type.toString());
+        .readPaymentMethodByType(_type.toString());
     if (data.length > 0) {
       ipay_code = data[0].ipay_code!;
     }
@@ -2012,7 +2424,7 @@ class _MakePaymentState extends State<MakePayment> {
         openLogOutDialog();
         return;
       }
-      openPaymentSuccessDialog(widget.dining_id, isCashMethod: true, diningName: widget.dining_name);
+      openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: true, diningName: widget.dining_name);
     } else if (inputController.text.isEmpty) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
@@ -2028,5 +2440,14 @@ class _MakePaymentState extends State<MakePayment> {
         inputController.clear();
       });
     }
+  }
+
+  readPaymentMethod() async {
+    //read available payment method
+    List<PaymentLinkCompany> data = await PosDatabase.instance.readPaymentMethods();
+    PaymentLists = List.from(data);
+    setState(() {
+      isload = true;
+    });
   }
 }

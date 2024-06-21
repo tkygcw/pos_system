@@ -63,6 +63,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   bool hasNoStockProduct = false, hasNotAvailableProduct = false, tableInUsed = false;
   bool isButtonDisabled = false, isCancelButtonDisabled = false,  isLogOut = false;
   bool willPop = true;
+  bool paymentNotComplete = false;
   late AppSettingModel _appSettingModel;
 
   late FailPrintModel _failPrintModel;
@@ -344,22 +345,26 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                         child: Text(AppLocalizations.of(context)!.translate('add'),
                           style: TextStyle(color: Colors.white),
                         ),
-                        onPressed: isButtonDisabled ? null :
-                        widget.orderDetailList.isNotEmpty ? () async {
+                        onPressed: isButtonDisabled
+                            ? null
+                            : widget.orderDetailList.isNotEmpty
+                            ? () async {
                           // Disable the button after it has been pressed
                           setState(() {
                             isButtonDisabled = true;
                             willPop = false;
                           });
                           asyncQ.addJob((_) async {
+                            await checkTablePaymentSplit();
                             await checkOrderDetailStock();
                             print('available check: ${hasNotAvailableProduct}');
-                            if (hasNoStockProduct) {
+                            if (paymentNotComplete) {
+                              Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
+                            } else if (hasNoStockProduct) {
                               Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
                             } else if(hasNotAvailableProduct){
                               Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
                             } else {
-
                               if (removeDetailList.isNotEmpty) {
                                 await removeOrderDetail();
                               }
@@ -384,6 +389,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                               Navigator.of(context).pop();
                               await callPrinter();
                             }
+                            Navigator.of(context).pop();
                           });
                         }
                             : null,
@@ -1216,6 +1222,19 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       print('has no available product status: ${hasNotAvailableProduct}');
       //orderDetailList[i].isRemove = false;
       //noStockOrderDetailList.add(orderDetailList[i]);
+    }
+  }
+
+  checkTablePaymentSplit() async {
+    List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(widget.tableLocalId.toString());
+    List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificInUsedTableUseDetail(int.parse(widget.tableLocalId));
+    if (tableUseDetailData.isNotEmpty){
+      List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
+      if(data.isNotEmpty){
+        if(data[0].order_key != ''){
+          paymentNotComplete = true;
+        }
+      }
     }
   }
 

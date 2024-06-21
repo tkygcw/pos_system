@@ -18,6 +18,7 @@ import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:pos_system/object/order_detail_link_tax.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
+import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/printer_link_category.dart';
@@ -389,6 +390,21 @@ class PosDatabase {
           await db.execute("UPDATE $tableBranch SET ${BranchFields.sub_pos_status} = 1");
           await db.execute("UPDATE $tableBranch SET ${BranchFields.attendance_status} = 1");
         }break;
+        case 16: {
+          await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
+          ${OrderPaymentSplitFields.order_split_payment_sqlite_id} $idType,
+          ${OrderPaymentSplitFields.order_split_payment_id} $integerType,
+          ${OrderPaymentSplitFields.payment_link_company_id} $textType,
+          ${OrderPaymentSplitFields.amount} $textType,
+          ${OrderPaymentSplitFields.payment_received} $textType,
+          ${OrderPaymentSplitFields.payment_change} $textType,
+          ${OrderPaymentSplitFields.order_key} $textType,
+          ${OrderPaymentSplitFields.sync_status} $integerType,
+          ${OrderPaymentSplitFields.created_at} $textType,
+          ${OrderPaymentSplitFields.updated_at} $textType,
+          ${OrderPaymentSplitFields.soft_delete} $textType)''');
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_status} INTEGER NOT NULL DEFAULT 0");
+        }break;
       }
     }
   }
@@ -487,6 +503,7 @@ class PosDatabase {
            ${OrderFields.final_amount} $textType,
            ${OrderFields.close_by} $textType, 
            ${OrderFields.payment_status} $integerType, 
+           ${OrderFields.payment_split} $integerType, 
            ${OrderFields.payment_received} $textType,
            ${OrderFields.payment_change} $textType,
            ${OrderFields.order_key} $textType,
@@ -1120,6 +1137,22 @@ class PosDatabase {
           ${KitchenListFields.created_at} $textType,
           ${KitchenListFields.updated_at} $textType,
           ${KitchenListFields.soft_delete} $textType)''');
+
+/*
+    create order payment split table
+*/
+    await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
+          ${OrderPaymentSplitFields.order_split_payment_sqlite_id} $idType,
+          ${OrderPaymentSplitFields.order_split_payment_id} $integerType,
+          ${OrderPaymentSplitFields.payment_link_company_id} $textType,
+          ${OrderPaymentSplitFields.amount} $textType,
+          ${OrderPaymentSplitFields.payment_received} $textType,
+          ${OrderPaymentSplitFields.payment_change} $textType,
+          ${OrderPaymentSplitFields.order_key} $textType,
+          ${OrderPaymentSplitFields.sync_status} $integerType,
+          ${OrderPaymentSplitFields.created_at} $textType,
+          ${OrderPaymentSplitFields.updated_at} $textType,
+          ${OrderPaymentSplitFields.soft_delete} $textType)''');
   }
 
 
@@ -1610,9 +1643,9 @@ class PosDatabase {
       final id = db.rawInsert(
           'INSERT INTO $tableOrder(order_id, order_number, order_queue, company_id, customer_id, dining_id, dining_name, '
               'branch_link_promotion_id, payment_link_company_id, branch_id, branch_link_tax_id, '
-              'subtotal, amount, rounding, final_amount, close_by, payment_status, payment_received, payment_change, order_key, '
+              'subtotal, amount, rounding, final_amount, close_by, payment_status, paymment_split, payment_received, payment_change, order_key, '
               'refund_sqlite_id, refund_key, settlement_sqlite_id, settlement_key, sync_status, created_at, updated_at, soft_delete) '
-              'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+              'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
           [
             data.order_id,
             data.order_number,
@@ -1631,6 +1664,7 @@ class PosDatabase {
             data.final_amount,
             data.close_by,
             data.payment_status,
+            0,
             data.payment_received,
             data.payment_change,
             data.order_key,
@@ -2142,6 +2176,15 @@ class PosDatabase {
     final db = await instance.database;
     final id = await db.insert(tableOrder!, data.toJson());
     return data.copy(order_sqlite_id: id);
+  }
+
+/*
+  crate order payment split into local(from local)
+*/
+  Future<OrderPaymentSplit> insertSqliteOrderPaymentSplit(OrderPaymentSplit data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableOrderPaymentSplit!, data.toJson());
+    return data.copy(order_split_payment_sqlite_id: id);
   }
 
 /*
@@ -4003,14 +4046,61 @@ class PosDatabase {
 */
 
 /*
+  read specific order
+*/
+  Future<List<Order>> readSpecificOrderByOrderKey(String orderKey) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableOrder WHERE soft_delete = ? AND order_key = ?', ['', orderKey]);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  read specific order
+*/
+  Future<List<OrderPaymentSplit>> readSpecificOrderSplitByOrderKey(String orderKey) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT a.*, b.name AS payment_name, b.payment_type_id AS payment_type_id FROM $tableOrderPaymentSplit as a '
+        'JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id WHERE a.soft_delete = ? AND '
+        'a.order_key = ?', ['', orderKey]);
+    return result.map((json) => OrderPaymentSplit.fromJson(json)).toList();
+  }
+
+/*
   read specific paid order
 */
   Future<List<Order>> readSpecificPaidOrder(String order_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.name, b.payment_type_id FROM $tableOrder AS a '
-        'JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
+        'LEFT JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
         'WHERE a.payment_status = ? AND a.soft_delete = ? AND a.order_sqlite_id = ?',
+        [1, '', order_sqlite_id]);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  read specific refunded order
+*/
+  Future<List<Order>> readSpecificRefundedOrder(String order_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.name, b.payment_type_id FROM $tableOrder AS a '
+            'LEFT JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
+            'WHERE a.payment_status = ? AND a.soft_delete = ? AND a.order_sqlite_id = ?',
+        [2, '', order_sqlite_id]);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  read specific paid order
+*/
+  Future<List<Order>> readSpecificPaidSplitPaymentOrder(String order_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, c.name, c.payment_type_id, b.amount AS amountSplit FROM $tableOrder AS a '
+            'JOIN $tableOrderPaymentSplit AS b ON a.order_key = b.order_key '
+            'JOIN $tablePaymentLinkCompany AS c ON b.payment_link_company_id = c.payment_link_company_id '
+            'WHERE a.payment_status = ? AND a.soft_delete = ? AND a.order_sqlite_id = ? ORDER BY b.created_at DESC',
         [1, '', order_sqlite_id]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
@@ -4022,9 +4112,9 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.payment_type_id FROM $tableOrder AS a '
-        'JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
-        'WHERE a.payment_status = ? AND a.settlement_key = ? AND a.soft_delete = ? ORDER BY a.created_at DESC',
-        [1, '', '']);
+        'LEFT JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
+        'WHERE a.payment_status = ? AND a.payment_split != ? AND a.settlement_key = ? AND a.soft_delete = ? ORDER BY a.created_at DESC',
+        [1, 2, '', '']);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
@@ -4083,6 +4173,16 @@ class PosDatabase {
   Future<List<OrderPromotionDetail>> readSpecificOrderPromotionDetail(String order_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery('SELECT * FROM $tableOrderPromotionDetail WHERE soft_delete = ? AND order_sqlite_id = ?', ['', order_sqlite_id]);
+
+    return result.map((json) => OrderPromotionDetail.fromJson(json)).toList();
+  }
+
+/*
+  read specific order promotion detail by order key
+*/
+  Future<List<OrderPromotionDetail>> readSpecificOrderPromotionDetailByOrderKey(String order_key) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableOrderPromotionDetail WHERE soft_delete = ? AND order_key = ?', ['', order_key]);
 
     return result.map((json) => OrderPromotionDetail.fromJson(json)).toList();
   }
@@ -4765,10 +4865,10 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.payment_type_id, c.refund_by AS refund_name, c.created_at AS refund_at FROM $tableOrder AS a '
-        'JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
+        'LEFT JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id AND b.soft_delete = ? '
         'JOIN $tableRefund AS c ON a.refund_key = c.refund_key '
-        'WHERE a.payment_status = ? AND a.refund_key != ? AND a.settlement_key = ? AND a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? ORDER BY a.created_at DESC',
-        [2, '', '', '', '', '']);
+        'WHERE a.payment_status = ? AND a.refund_key != ? AND a.settlement_key = ? AND a.soft_delete = ? AND c.soft_delete = ? ORDER BY a.created_at DESC',
+        ['', 2, '', '', '', '']);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
@@ -4941,8 +5041,11 @@ class PosDatabase {
   Future<List<Order>> readSpecificRefundOrder(String order_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.name, b.payment_type_id, c.refund_by AS refund_name, c.created_at AS refund_at FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id JOIN $tableRefund AS c ON a.refund_key = c.refund_key WHERE a.payment_status = ? AND a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND a.order_sqlite_id = ?',
-        [2, '', '', '', order_sqlite_id]);
+        'SELECT a.*, b.name, b.payment_type_id, c.refund_by AS refund_name, c.created_at AS refund_at FROM $tableOrder AS a '
+            'LEFT JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id AND b.soft_delete = ? '
+            'JOIN $tableRefund AS c ON a.refund_key = c.refund_key '
+            'WHERE a.payment_status = ? AND a.soft_delete = ? AND c.soft_delete = ? AND a.order_sqlite_id = ?',
+        ['', 2, '', '', order_sqlite_id]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
@@ -5966,7 +6069,7 @@ class PosDatabase {
   Future<int> updatePosTableStatus(PosTable data) async {
     final db = await instance.database;
     return await db
-        .rawUpdate('UPDATE $tablePosTable SET sync_status = ?, status = ?, updated_at = ? WHERE table_sqlite_id = ?', [2, data.status, data.updated_at, data.table_sqlite_id]);
+        .rawUpdate('UPDATE $tablePosTable SET sync_status = ?, status = ?, updated_at = ? WHER\E table_sqlite_id = ?', [2, data.status, data.updated_at, data.table_sqlite_id]);
   }
 
 /*
@@ -6031,6 +6134,15 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableCashRecord SET settlement_date = ?, settlement_key = ?, sync_status = ?, updated_at = ? WHERE cash_record_sqlite_id = ?',
         [data.settlement_date, data.settlement_key, data.sync_status, data.updated_at, data.cash_record_sqlite_id]);
+  }
+
+/*
+  update order payment split
+*/
+  Future<int> updateOrderPaymentSplit(Order data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableOrder SET payment_received = ?, payment_change = ?, payment_split = ?, sync_status = ?,  updated_at = ?, soft_delete = ? WHERE order_sqlite_id = ?',
+        [data.payment_received, data.payment_change, data.payment_split, data.sync_status, data.updated_at, data.soft_delete, data.order_sqlite_id]);
   }
 
 /*
