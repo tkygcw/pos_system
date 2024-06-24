@@ -34,6 +34,7 @@ class _LoginPageState extends State<LoginPage> {
     // TODO: implement initState
     super.initState();
     loginCheck();
+    bindSocket();
     //setScreenLayout();
   }
 
@@ -186,6 +187,14 @@ class _LoginPageState extends State<LoginPage> {
         });
       }
     });
+  }
+
+/*
+  bind server socket
+*/
+  bindSocket() async {
+    await Server.instance.bindServer();
+    await Server.instance.bindRequestServer();
   }
 
   Future<Future<Object?>> openLogOutDialog() async {

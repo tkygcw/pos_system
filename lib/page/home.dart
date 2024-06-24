@@ -164,7 +164,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    var size = MediaQuery.of(context).size;
     return isLoad
         ? Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
             return Consumer<AppSettingModel>(builder: (context, AppSettingModel appSettingModel, child) {
@@ -206,7 +205,7 @@ class _HomePageState extends State<HomePage> {
                               children: [
                                 Expanded(
                                   flex: 3,
-                                  child: _body(size, context),
+                                  child: _body(),
                                 ),
                                 //cart page
                                 Visibility(
@@ -283,7 +282,7 @@ class _HomePageState extends State<HomePage> {
     ];
   }
 
-  Widget _body(Size size, BuildContext context) {
+  Widget _body() {
     print(currentPage);
     switch (currentPage) {
       case 'menu':

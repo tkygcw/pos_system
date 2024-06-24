@@ -60,8 +60,11 @@ class PaymentLinkCompany{
         this.soft_delete,
         this.gross_sales,
         this.net_sales,
-        this.item_sum
-      });
+        this.item_sum,
+        double? totalAmount
+      }){
+    this.totalAmount = totalAmount ?? this.totalAmount;
+  }
 
   PaymentLinkCompany copy({
     int? payment_link_company_id,
@@ -103,7 +106,8 @@ class PaymentLinkCompany{
     soft_delete: json[PaymentLinkCompanyFields.soft_delete] as String?,
     gross_sales: json['gross_sales'] as double?,
     net_sales: json['net_sales'] as double?,
-    item_sum: json['item_sum'] as int?
+    item_sum: json['item_sum'] as int?,
+    totalAmount: json['total_amount'] as double?
   );
 
   Map<String, Object?> toJson() => {
@@ -128,6 +132,6 @@ class PaymentLinkCompany{
     PaymentLinkCompanyFields.type: type,
     PaymentLinkCompanyFields.ipay_code: ipay_code,
     'total_bill': total_bill.toString(),
-    'total_amount': totalAmount.toStringAsFixed(2)
+    'total_amount': totalAmount
   };
 }

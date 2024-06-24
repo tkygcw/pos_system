@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:pos_system/object/app_setting.dart';
+import 'package:pos_system/object/attendance.dart';
 import 'package:pos_system/object/bill.dart';
 import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/branch_link_user.dart';
@@ -73,7 +74,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 16, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 17, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -384,11 +385,54 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.attendance_status} INTEGER NOT NULL DEFAULT 1");
 
           await db.execute("UPDATE $tableUser SET ${UserFields.edit_price_without_pin} = 1 WHERE role = 0 AND soft_delete = ''");
+
+          await db.execute('''CREATE TABLE $tableAttendance(
+          ${AttendanceFields.attendance_sqlite_id} $idType,
+          ${AttendanceFields.attendance_key} $textType,
+          ${AttendanceFields.branch_id} $textType,
+          ${AttendanceFields.user_id} $textType,
+          ${AttendanceFields.role} $integerType,
+          ${AttendanceFields.clock_in_at} $textType,
+          ${AttendanceFields.clock_out_at} $textType,
+          ${AttendanceFields.duration} $integerType,
+          ${AttendanceFields.sync_status} $integerType,
+          ${AttendanceFields.created_at} $textType,
+          ${AttendanceFields.updated_at} $textType,
+          ${AttendanceFields.soft_delete} $textType)''');
         }break;
         case 15: {
           await db.execute("UPDATE $tableUser SET ${UserFields.edit_price_without_pin} = 1 WHERE role = 0 AND soft_delete = ''");
           await db.execute("UPDATE $tableBranch SET ${BranchFields.sub_pos_status} = 1");
           await db.execute("UPDATE $tableBranch SET ${BranchFields.attendance_status} = 1");
+
+          await db.execute('''CREATE TABLE $tableAttendance(
+          ${AttendanceFields.attendance_sqlite_id} $idType,
+          ${AttendanceFields.attendance_key} $textType,
+          ${AttendanceFields.branch_id} $textType,
+          ${AttendanceFields.user_id} $textType,
+          ${AttendanceFields.role} $integerType,
+          ${AttendanceFields.clock_in_at} $textType,
+          ${AttendanceFields.clock_out_at} $textType,
+          ${AttendanceFields.duration} $integerType,
+          ${AttendanceFields.sync_status} $integerType,
+          ${AttendanceFields.created_at} $textType,
+          ${AttendanceFields.updated_at} $textType,
+          ${AttendanceFields.soft_delete} $textType)''');
+        }break;
+        case 16: {
+          await db.execute('''CREATE TABLE $tableAttendance(
+          ${AttendanceFields.attendance_sqlite_id} $idType,
+          ${AttendanceFields.attendance_key} $textType,
+          ${AttendanceFields.branch_id} $textType,
+          ${AttendanceFields.user_id} $textType,
+          ${AttendanceFields.role} $integerType,
+          ${AttendanceFields.clock_in_at} $textType,
+          ${AttendanceFields.clock_out_at} $textType,
+          ${AttendanceFields.duration} $integerType,
+          ${AttendanceFields.sync_status} $integerType,
+          ${AttendanceFields.created_at} $textType,
+          ${AttendanceFields.updated_at} $textType,
+          ${AttendanceFields.soft_delete} $textType)''');
         }break;
         case 16: {
           await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
@@ -429,6 +473,13 @@ class PosDatabase {
            ${SubscriptionFields.subscription_plan_id} $textType, ${SubscriptionFields.subscribe_package} $textType, ${SubscriptionFields.subscribe_fee} $textType, ${SubscriptionFields.duration} $textType, 
            ${SubscriptionFields.branch_amount} $integerType, ${SubscriptionFields.start_date} $textType, ${SubscriptionFields.end_date} $textType, ${SubscriptionFields.created_at} $textType, 
            ${SubscriptionFields.soft_delete} $textType)''');
+
+/*
+    create attendance table
+*/
+    await db.execute('''CREATE TABLE $tableAttendance ( ${AttendanceFields.attendance_sqlite_id} $idType, ${AttendanceFields.attendance_key} $textType, ${AttendanceFields.branch_id} $textType, 
+           ${AttendanceFields.user_id} $textType, ${AttendanceFields.role} $integerType, ${AttendanceFields.clock_in_at} $textType, ${AttendanceFields.clock_out_at} $textType, ${AttendanceFields.duration} $integerType, 
+           ${AttendanceFields.sync_status} $integerType, ${AttendanceFields.created_at} $textType, ${AttendanceFields.updated_at} $textType, ${AttendanceFields.soft_delete} $textType)''');
 /*
     create category table
 */
@@ -1168,6 +1219,15 @@ class PosDatabase {
     final db = await instance.database;
     final id = await db.insert(tableUser!, user.toJson());
     return user.copy(user_id: id);
+  }
+
+/*
+  add attendance to sqlite
+*/
+  Future<Attendance> insertAttendance(Attendance data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableAttendance!, data.toJson());
+    return data.copy(attendance_sqlite_id: id);
   }
 
   /*
@@ -2002,6 +2062,15 @@ class PosDatabase {
     final db = await instance.database;
     final id = await db.insert(tableAppSetting!, data.toJson());
     return data.copy(app_setting_sqlite_id: id);
+  }
+
+/*
+  add attendance to local db
+*/
+  Future<Attendance> insertSqliteAttendance(Attendance data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableAttendance!, data.toJson());
+    return data.copy(attendance_sqlite_id: id);
   }
 
 /*
@@ -3671,6 +3740,19 @@ class PosDatabase {
   }
 
   /*
+  read attendance
+*/
+  Future<Attendance?> readAttendance(int user_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableAttendance WHERE user_id = ? AND soft_delete = ? AND clock_out_at = ?', [user_id, '', '']);
+    if (result.isNotEmpty) {
+      return Attendance.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+  /*
   read all the dining option for company
 */
   Future<List<DiningOption>> readAllDiningOption() async {
@@ -4284,6 +4366,31 @@ class PosDatabase {
 */
 
 /*
+  read all order group by user wiht OB
+*/
+  Future<List<Order>> readStaffSalesWithOB(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT *, SUM (final_amount) AS gross_sales, COUNT(order_sqlite_id) AS item_sum FROM $tableOrder '
+            'WHERE soft_delete = ? AND settlement_key IN (SELECT settlement_key FROM $tableCashRecord WHERE remark = ? AND '
+            'soft_delete = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ?) GROUP BY close_by',
+        ['', 'Opening Balance', '', date1, date2]);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  read all order group by user
+*/
+  Future<List<Order>> readStaffSales(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT *, SUM (final_amount) AS gross_sales, COUNT(order_sqlite_id) AS item_sum FROM $tableOrder '
+            'WHERE soft_delete = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ? GROUP BY close_by',
+        ['', date1, date2]);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
   read all cash record
 */
   Future<List<CashRecord>> readAllTodayCashRecord(String date1, String date2) async {
@@ -4677,6 +4784,26 @@ class PosDatabase {
   }
 
 /*
+  read all attendance
+*/
+  Future<List<Attendance>> readAllAttendance(String userId, String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableAttendance WHERE user_id = ? AND soft_delete = ? AND SUBSTR(clock_in_at, 1, 10) >= ? AND '
+        'SUBSTR(clock_in_at, 1, 10) < ? ORDER BY clock_in_at ASC', [userId, '', date1, date2]);
+    return result.map((json) => Attendance.fromJson(json)).toList();
+  }
+
+/*
+  read all attendance user group
+*/
+  Future<List<Attendance>> readAllAttendanceGroup(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT a.*, b.name, SUM(a.duration) AS totalDuration FROM $tableAttendance AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND SUBSTR(a.clock_in_at, 1, 10) >= ? AND '
+        'SUBSTR(a.clock_in_at, 1, 10) < ? GROUP BY a.user_id', ['', date1, date2]);
+    return result.map((json) => Attendance.fromJson(json)).toList();
+  }
+
+/*
   read all paid modifier
 */
   Future<List<OrderModifierDetail>> readAllPaidModifier(String mod_group_id, String date1, String date2) async {
@@ -5061,6 +5188,15 @@ class PosDatabase {
 /*
   --------------------Settlement part----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  read latest 7 rows settlement
+*/
+  Future<List<Settlement>> readLatest7Settlement() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableSettlement WHERE soft_delete = ? ORDER BY settlement_sqlite_id DESC LIMIT 7', ['']);
+    return result.map((json) => Settlement.fromJson(json)).toList();
+  }
 
 /*
   read latest settlement
@@ -6395,6 +6531,28 @@ class PosDatabase {
   }
 
 /*
+  update attendance unique key
+*/
+  Future<int> updateAttendanceUniqueKey(Attendance data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAttendance SET attendance_key = ?, sync_status = ?, updated_at = ? WHERE attendance_sqlite_id = ?', [
+      data.attendance_key,
+      data.sync_status,
+      data.updated_at,
+      data.attendance_sqlite_id,
+    ]);
+  }
+
+/*
+  update attendance layout
+*/
+  Future<int> updateAttendance(Attendance data) async {
+    final db = await instance.database;
+    return await db.rawUpdate("UPDATE $tableAttendance SET updated_at = ?, sync_status = ?, clock_out_at = ?, duration = ? WHERE user_id = ? AND clock_out_at = ?",
+        [data.updated_at, data.sync_status, data.clock_out_at, data.duration, data.user_id, '']);
+  }
+
+/*
   update kitchen list unique key
 */
   Future<int> updateKitchenListUniqueKey(KitchenList data) async {
@@ -7293,6 +7451,14 @@ class PosDatabase {
   }
 
 /*
+  Delete All attendance
+*/
+  Future clearAllAttendance() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableAttendance');
+  }
+
+/*
   ----------------------Sync from cloud--------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
@@ -7480,6 +7646,14 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableKitchenList SET sync_status = ? WHERE kitchen_list_key = ?', [1, kitchen_list_key]);
   }
+
+/*
+  update attendance sync status (from cloud)
+*/
+  Future<int> updateAttendanceSyncStatusFromCloud(String attendance_key) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAttendance SET sync_status = ? WHERE attendance_key = ?', [1, attendance_key]);
+  }
 /*
   ----------------------Sync to cloud(update)--------------------------------------------------------------------------------------------------------------------------------------------------
 */
@@ -7615,6 +7789,16 @@ class PosDatabase {
     final result = await db.rawQuery('SELECT * FROM $tableKitchenList WHERE sync_status != ? LIMIT 10 ', [1]);
 
     return result.map((json) => KitchenList.fromJson(json)).toList();
+  }
+
+/*
+  read all not yet sync attendance
+*/
+  Future<List<Attendance>> readAllNotSyncAttendance() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableAttendance WHERE sync_status != ? LIMIT 10 ', [1]);
+
+    return result.map((json) => Attendance.fromJson(json)).toList();
   }
 
 /*

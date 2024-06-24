@@ -248,6 +248,8 @@ class _logout_dialogState extends State<logout_dialog> {
     PosDatabase.instance.clearAllSecondScreen();
     //clear subscription
     PosDatabase.instance.clearAllSubscription();
+    //clear logout
+    PosDatabase.instance.clearAllAttendance();
   }
 
   Future<String> get _localPath async {
