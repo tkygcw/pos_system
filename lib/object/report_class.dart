@@ -1,5 +1,8 @@
 import 'package:http/http.dart';
+import 'dart:convert';
+
 import 'package:intl/intl.dart';
+import 'package:pos_system/object/attendance.dart';
 import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
@@ -49,6 +52,8 @@ class ReportObject{
   List<TransferOwner>? dateTransferList = [];
   bool _isChecked = false;
   late SharedPreferences prefs;
+  List<Attendance>? dateAttendance = [];
+  List<Attendance> attendanceData = [];
 
   ReportObject(
       {this.totalSales,
@@ -68,7 +73,8 @@ class ReportObject{
       this.dateSettlementList,
       this.dateSettlementPaymentList,
       this.dateOrderDetailCancelList,
-      this.dateTransferList});
+      this.dateTransferList,
+      this.dateAttendance});
 
   Future<List<Order>> getAllUserSales({currentStDate, currentEdDate}) async {
     await getPrefData();
@@ -758,6 +764,44 @@ class ReportObject{
       }
     }
     ReportObject value = ReportObject(dateOrderDetail: dateOrderDetail);
+    return value;
+  }
+
+  getAllAttendanceGroup({currentStDate, currentEdDate}) async {
+    dateAttendance = [];
+    DateTime _startDate = DateTime.parse(currentStDate);
+    DateTime _endDate = DateTime.parse(currentEdDate);
+    //convert time to string
+    DateTime addEndDate = addDays(date: _endDate);
+    String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
+    String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
+    List<Attendance> attendance = await PosDatabase.instance.readAllAttendanceGroup(stringStDate, stringEdDate);
+    this.attendanceData = attendance;
+    if (attendanceData.isNotEmpty) {
+      for (int i = 0; i < attendanceData.length; i++) {
+        dateAttendance!.add(attendanceData![i]);
+      }
+    }
+    ReportObject value = ReportObject(dateAttendance: dateAttendance);
+    return value;
+  }
+
+  getAllAttendance({userId, currentStDate, currentEdDate}) async {
+    dateAttendance = [];
+    DateTime _startDate = DateTime.parse(currentStDate);
+    DateTime _endDate = DateTime.parse(currentEdDate);
+    //convert time to string
+    DateTime addEndDate = addDays(date: _endDate);
+    String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
+    String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
+    List<Attendance> attendance = await PosDatabase.instance.readAllAttendance(userId, stringStDate, stringEdDate);
+    this.attendanceData = attendance;
+    if (attendanceData.isNotEmpty) {
+      for (int i = 0; i < attendanceData.length; i++) {
+        dateAttendance!.add(attendanceData![i]);
+      }
+    }
+    ReportObject value = ReportObject(dateAttendance: dateAttendance);
     return value;
   }
 
