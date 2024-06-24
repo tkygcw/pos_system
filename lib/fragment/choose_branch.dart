@@ -146,14 +146,18 @@ class _ChooseBranchState extends State<ChooseBranch> {
     final prefs = await SharedPreferences.getInstance();
     final String? user = prefs.getString('user');
     Map userObject = json.decode(user!);
+    print("user data: ${jsonEncode(userObject)}");
     Map data = await Domain().getCompanyBranch(userObject['company_id']);
+    print("branch data: ${jsonEncode(data)}");
     if (data['status'] == '1') {
-      setState(() {
-        List responseJson = data['branch'];
-        list.addAll(responseJson
-            .map((jsonObject) => Branch.fromJson(jsonObject))
-            .toList());
-      });
+      if(mounted){
+        setState(() {
+          List responseJson = data['branch'];
+          list.addAll(responseJson
+              .map((jsonObject) => Branch.fromJson(jsonObject))
+              .toList());
+        });
+      }
     }
   }
 

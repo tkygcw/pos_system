@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/main.dart';
+import 'package:pos_system/object/attendance.dart';
 import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/printer_link_category.dart';
@@ -295,6 +296,12 @@ class SyncRecord {
                 syncRecordIdList.add(responseJson[i]['id']);
               }
               break;
+            case '29':
+              bool status = await callAttendanceQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+              if(status == true){
+                syncRecordIdList.add(responseJson[i]['id']);
+              }
+              break;
           }
         }
         print('sync record length: ${syncRecordIdList.length}');
@@ -402,6 +409,23 @@ class SyncRecord {
       }
     } else {
       int data = await PosDatabase.instance.updateSubscription(subscriptionData);
+      if(data == 1){
+        isComplete = true;
+      }
+    }
+    return isComplete;
+  }
+
+  callAttendanceQuery({data, method}) async {
+    bool isComplete = false;
+    Attendance attendanceData = Attendance.fromJson(data[0]);
+    if(method == '0'){
+      Attendance data = await PosDatabase.instance.insertSqliteAttendance(attendanceData);
+      if(data.created_at != ''){
+        isComplete = true;
+      }
+    } else {
+      int data = await PosDatabase.instance.updateAttendance(attendanceData);
       if(data == 1){
         isComplete = true;
       }

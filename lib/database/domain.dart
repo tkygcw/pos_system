@@ -46,6 +46,7 @@ class Domain {
   static Uri kitchen_list = Uri.parse(domain + 'mobile-api/kitchen_list/index.php');
   static Uri second_screen = Uri.parse(domain + 'mobile-api/second_screen/index.php');
   static Uri local_data_export = Uri.parse(domain + 'mobile-api/local_data_export/index.php');
+  static Uri attendance = Uri.parse(domain + 'mobile-api/attendance/index.php');
 
 
 /*
@@ -154,6 +155,21 @@ class Domain {
       var response = await http.post(Domain.user, body: {
         'getAllUser': '1',
         'company_id': company_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get all attendance
+  * */
+  getAllAttendance(branch_id) async {
+    try {
+      var response = await http.post(Domain.attendance, body: {
+        'getAllAttendance': '1',
+        'branch_id': branch_id,
       });
       return jsonDecode(response.body);
     } catch (error) {
@@ -385,7 +401,8 @@ class Domain {
         table_value,
         user_value,
         checklist_value,
-        kitchen_list_value
+        kitchen_list_value,
+        attendance_value
       }) async {
     try {
       //print('order cache value 15 sync: ${order_cache_value}');
@@ -418,7 +435,8 @@ class Domain {
         'tb_table_sync': table_value != null ? table_value : [].toString(),
         'tb_user_sync': user_value != null ? user_value : [].toString(),
         'tb_checklist_create': checklist_value != null ? checklist_value : [].toString(),
-        'tb_kitchen_list_create': kitchen_list_value != null ? kitchen_list_value : [].toString()
+        'tb_kitchen_list_create': kitchen_list_value != null ? kitchen_list_value : [].toString(),
+        'tb_attendance_create': attendance_value != null ? attendance_value : [].toString()
       }).timeout(Duration(seconds: isManualSync != null ? 120 : isSync != null ? 25 : 15), onTimeout: () => throw TimeoutException("Time out"));
       print('response in domain: ${jsonDecode(response.body)}');
       return jsonDecode(response.body);

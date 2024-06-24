@@ -63,7 +63,7 @@ class _ReportOverviewState extends State<ReportOverview> {
           builder: (context, snapshot) {
             if(snapshot.hasData){
               return LayoutBuilder(builder: (context, constraints) {
-                if (constraints.maxWidth > 800) {
+                if (constraints.maxWidth > 900 && constraints.maxHeight > 500) {
                   return Scaffold(
                     resizeToAvoidBottomInset: false,
                     body: Container(
@@ -489,8 +489,8 @@ class _ReportOverviewState extends State<ReportOverview> {
   }
 
   preload(ReportModel reportModel) async {
-    this.currentStDate = reportModel.startDateTime;
-    this.currentEdDate = reportModel.endDateTime;
+    currentStDate = reportModel.startDateTime;
+    currentEdDate = reportModel.endDateTime;
     await getAllPaidOrder();
     await readPaymentLinkCompany();
     await readBranchTaxes();

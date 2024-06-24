@@ -71,6 +71,16 @@ class Utils {
     }
   }
 
+  static formatReportDate(date) {
+    try {
+      final dateFormat = DateFormat("dd/MM/yyyy hh:mm:ss a");
+      DateTime todayDate = DateTime.parse(date);
+      return dateFormat.format(todayDate).toString();
+    } catch (e) {
+      return '';
+    }
+  }
+
   static formatProductVariant(String variant){
     try{
       String result = '';
