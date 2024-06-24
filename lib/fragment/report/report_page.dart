@@ -205,7 +205,7 @@ class _ReportPageState extends State<ReportPage> {
                       ),
                     ),
                     Visibility(
-                      visible: currentPage != 1 && currentPage != 5 && currentPage != 10 && currentPage != 13 && currentPage != 14  ? true : false,
+                      visible: currentPage != 1 && currentPage != 5 && currentPage != 10 && currentPage != 11 && currentPage != 13 && currentPage != 14  ? true : false,
                       child: Container(
                         child: IconButton(
                           icon: Icon(Icons.receipt),
