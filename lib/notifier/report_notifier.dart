@@ -5,15 +5,22 @@ import 'package:intl/intl.dart';
 class ReportModel extends ChangeNotifier {
   static final ReportModel instance = ReportModel.init();
   int load = 0;
-  String startDateTime = new DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
-  String endDateTime = new DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
-  String startDateTime2 = new DateFormat("dd/MM/yyyy").format(DateTime.now());
-  String endDateTime2 = new DateFormat("dd/MM/yyyy").format(DateTime.now());
+  String startDateTime = DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
+  String endDateTime = DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
+  String startDateTime2 = DateFormat("dd/MM/yyyy").format(DateTime.now());
+  String endDateTime2 = DateFormat("dd/MM/yyyy").format(DateTime.now());
   List<String> reportValue = [];
   List reportValue2 = [];
   List headerValue = [];
 
   ReportModel.init();
+
+  void resetDateTime(){
+    startDateTime = DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
+    endDateTime = DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
+    startDateTime2 = DateFormat("dd/MM/yyyy").format(DateTime.now());
+    endDateTime2 = DateFormat("dd/MM/yyyy").format(DateTime.now());
+  }
 
   void setDateTime (String startDateTime, String endDateTime) {
     this.startDateTime = startDateTime;

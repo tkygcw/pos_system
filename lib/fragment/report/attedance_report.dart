@@ -34,188 +34,191 @@ class _AttendanceReportState extends State<AttendanceReport> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<ReportModel>(builder: (context, ReportModel reportModel, child){
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if(reportModel.load == 0){
-            preload(reportModel);
-            reportModel.setLoaded();
-          }
-        });
         return LayoutBuilder(builder: (context, constraints) {
-          if (constraints.maxWidth > 800) {
+          if (constraints.maxWidth > 900 && constraints.maxHeight > 500) {
             return Scaffold(
               resizeToAvoidBottomInset: false,
-              body: this.isLoaded ?
-              Container(
-                padding: const EdgeInsets.all(8),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+              body: FutureBuilder(future: preload(reportModel), builder: (context, snapshot){
+                if(snapshot.hasData){
+                  return Container(
+                    padding: const EdgeInsets.all(8),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.vertical,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            child: Text(AppLocalizations.of(context)!.translate('attendance_report'),
-                                style: TextStyle(fontSize: 25, color: Colors.black)),
+                          Row(
+                            children: [
+                              Container(
+                                child: Text(AppLocalizations.of(context)!.translate('attendance_report'),
+                                    style: TextStyle(fontSize: 25, color: Colors.black)),
+                              ),
+                            ],
                           ),
+                          SizedBox(height: 5),
+                          Divider(
+                            height: 10,
+                            color: Colors.grey,
+                          ),
+                          SizedBox(height: 5),
+                          _dataRow.isNotEmpty ?
+                          Container(
+                            margin: EdgeInsets.all(10),
+                            child: SingleChildScrollView(
+                              child: DataTable(
+                                  border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
+                                  headingTextStyle: TextStyle(color: Colors.white),
+                                  headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
+                                  columns: <DataColumn>[
+                                    DataColumn(
+                                      label: Expanded(
+                                        child: Text(
+                                          AppLocalizations.of(context)!.translate('user'),
+                                          style: TextStyle(fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Expanded(
+                                        child: Text(AppLocalizations.of(context)!.translate('clock_in'),
+                                          style: TextStyle(fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Expanded(
+                                        child: Text(
+                                          AppLocalizations.of(context)!.translate('clock_out'),
+                                          style: TextStyle(fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Expanded(
+                                        child: Text(
+                                          AppLocalizations.of(context)!.translate('hour_minute'),
+                                          style: TextStyle(fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                  rows: _dataRow
+                              ),
+                            )
+                          ):
+                          Center(
+                            heightFactor: 12,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Icon(Icons.menu),
+                                Text(AppLocalizations.of(context)!.translate('no_record_found')),
+                              ],
+                            ),
+                          )
                         ],
                       ),
-                      SizedBox(height: 5),
-                      Divider(
-                        height: 10,
-                        color: Colors.grey,
-                      ),
-                      SizedBox(height: 5),
-                      _dataRow.isNotEmpty ?
-                      Container(
-                        margin: EdgeInsets.all(10),
-                        child: isLoaded ?
-                        SingleChildScrollView(
-                          child: DataTable(
-                              border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
-                              headingTextStyle: TextStyle(color: Colors.white),
-                              headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
-                              columns: <DataColumn>[
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      AppLocalizations.of(context)!.translate('user'),
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(AppLocalizations.of(context)!.translate('clock_in'),
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      AppLocalizations.of(context)!.translate('clock_out'),
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      AppLocalizations.of(context)!.translate('hour_minute'),
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                              rows: _dataRow
-                          ),
-                        ) : Center(
-                          child: CustomProgressBar(),
-                        ),
-                      ):
-                      Center(
-                        heightFactor: 12,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Icon(Icons.menu),
-                            Text(AppLocalizations.of(context)!.translate('no_record_found')),
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ) : CustomProgressBar(),
+                    ),
+                  );
+                } else {
+                  return CustomProgressBar();
+                }
+              })
             );
           } else {
             ///mobile layout
             return Scaffold(
               resizeToAvoidBottomInset: false,
-              body: this.isLoaded ?
-              Container(
-                padding: const EdgeInsets.all(8),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            child: Text(AppLocalizations.of(context)!.translate('attendance_report'),
-                                style: TextStyle(fontSize: 25, color: Colors.black)),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 5),
-                      Divider(
-                        height: 10,
-                        color: Colors.grey,
-                      ),
-                      SizedBox(height: 5),
-                      _dataRow.isNotEmpty ?
-                      Container(
-                          margin: EdgeInsets.all(10),
-                          child:
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: DataTable(
-                                border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
-                                headingTextStyle: TextStyle(color: Colors.white),
-                                headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
-                                columns: <DataColumn>[
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('user'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(AppLocalizations.of(context)!.translate('clock_in'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('clock_out'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('hour_minute'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
+              body: FutureBuilder(
+                  future: preload(reportModel),
+                  builder: (context, snapshot){
+                    if(snapshot.hasData){
+                      return Container(
+                        padding: const EdgeInsets.all(8),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    child: Text(AppLocalizations.of(context)!.translate('attendance_report'),
+                                        style: TextStyle(fontSize: 25, color: Colors.black)),
                                   ),
                                 ],
-                                rows: _dataRow
-                            ),
-                          )
-                      ):
-                      Center(
-                        heightFactor: 4,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Icon(Icons.menu),
-                            Text(AppLocalizations.of(context)!.translate('no_record_found')),
-                          ],
+                              ),
+                              SizedBox(height: 5),
+                              Divider(
+                                height: 10,
+                                color: Colors.grey,
+                              ),
+                              SizedBox(height: 5),
+                              _dataRow.isNotEmpty ?
+                              Container(
+                                  margin: EdgeInsets.all(10),
+                                  child:
+                                  SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: DataTable(
+                                        border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
+                                        headingTextStyle: TextStyle(color: Colors.white),
+                                        headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
+                                        columns: <DataColumn>[
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('user'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(AppLocalizations.of(context)!.translate('clock_in'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('clock_out'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('hour_minute'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                        rows: _dataRow
+                                    ),
+                                  )
+                              ):
+                              Center(
+                                heightFactor: 4,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.menu),
+                                    Text(AppLocalizations.of(context)!.translate('no_record_found')),
+                                  ],
+                                ),
+                              )
+                            ],
+                          ),
                         ),
-                      )
-                    ],
-                  ),
-                ),
-              ) : CustomProgressBar(),
+                      );
+                    } else {
+                      return CustomProgressBar();
+                    }
+                  })
             );
           }
         });
@@ -229,12 +232,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
     this.currentEdDate = reportModel.endDateTime;
     await getAllProductWithOrder();
     reportModel.addOtherValue(valueList: attendanceGroupData);
-    //reportModel.addOtherValue(valueList: categoryData);
-    if(mounted){
-      setState(() {
-        isLoaded = true;
-      });
-    }
+    return _dataRow;
   }
 
   getAllProductWithOrder() async {

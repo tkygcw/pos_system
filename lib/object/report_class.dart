@@ -779,7 +779,7 @@ class ReportObject{
     this.attendanceData = attendance;
     if (attendanceData.isNotEmpty) {
       for (int i = 0; i < attendanceData.length; i++) {
-        dateAttendance!.add(attendanceData![i]);
+        dateAttendance!.add(attendanceData[i]);
       }
     }
     ReportObject value = ReportObject(dateAttendance: dateAttendance);
@@ -798,7 +798,7 @@ class ReportObject{
     this.attendanceData = attendance;
     if (attendanceData.isNotEmpty) {
       for (int i = 0; i < attendanceData.length; i++) {
-        dateAttendance!.add(attendanceData![i]);
+        dateAttendance!.add(attendanceData[i]);
       }
     }
     ReportObject value = ReportObject(dateAttendance: dateAttendance);

@@ -64,7 +64,7 @@ class _ReportPageState extends State<ReportPage> {
   bool _isChecked = false;
   late SharedPreferences prefs;
   final adminPosPinController = TextEditingController();
-  bool isButtonDisabled = false;
+  bool isButtonDisabled = false,  _obscureText = true;
   bool _submitted = false;
   bool isLogOut = false;
   late bool reportPermission = true;
@@ -73,39 +73,31 @@ class _ReportPageState extends State<ReportPage> {
   @override
   void initState() {
     super.initState();
+    context.read<ReportModel>().resetDateTime();
     dateTimeNow = dateFormat.format(DateTime.now());
-    _controller = new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
+    _controller = TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
     _dateRangePickerController.selectedRange = PickerDateRange(DateTime.now(), DateTime.now());
     currentPage = 0;
     getPrefData();
     preload();
+    checkAccess();
     receipt.readCashierPrinter();
   }
 
   readAdminData(String pin) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final String? pos_user = prefs.getString('pos_pin_user');
-      Map userObject = json.decode(pos_user!);
-      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-      String dateTime = dateFormat.format(DateTime.now());
-
-      //List<User> userData = await PosDatabase.instance.readSpecificUserWithRole(pin);
       User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
-      print("adjustPrice userData: ${userData}");
       if (userData != null) {
         if(userData.report_permission == 1) {
           setState(() {
-            // Navigator.of(context).pop(true);
             reportPermission = true;
-            widget.report.resetLoad();
           });
         } else {
           reportPermission = false;
           Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('no_permission')}");
         }
-
       } else {
+        adminPosPinController.clear();
         Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('user_not_found')}");
       }
     } catch (e) {
@@ -126,7 +118,6 @@ class _ReportPageState extends State<ReportPage> {
     setState(() => _submitted = true);
     if (errorPassword == null) {
       await readAdminData(adminPosPinController.text);
-      return;
     } else {
       setState(() {
         isButtonDisabled = false;
@@ -149,702 +140,686 @@ class _ReportPageState extends State<ReportPage> {
 
   @override
   Widget build(BuildContext context) {
+    var deviceHeight = MediaQuery.of(context).size.height;
+    var deviceWidth = MediaQuery.of(context).size.width;
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<ReportModel>(builder: (context, ReportModel reportModel, child){
-          return LayoutBuilder(builder: (context, constraints) {
-            if(constraints.maxWidth > 900 && constraints.maxHeight > 500){
-              if(reportPermission) {
-              return Scaffold(
-                resizeToAvoidBottomInset: false,
-                appBar: AppBar(
-                  primary: false,
-                  automaticallyImplyLeading: false,
-                  title: Row(
-                    children: [
-                      Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 25, color: Colors.black)),
-                      Spacer(),
-                      Visibility(
-                        visible: currentPage != 13 ? true : false,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Checkbox(
-                              value: _isChecked,
-                              onChanged: (bool? value) {
-                                setState(() {
-                                  _isChecked = !_isChecked;
-                                  prefs.setBool('reportBasedOnOB', _isChecked);
-                                  reportModel.refresh();
-                                });
-                              },
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('report_calculate_based_on_opening_balance'));
-                              },
-                              child: Row(
-                                children: <Widget>[
-                                  Text(AppLocalizations.of(context)!.translate('advanced')),
-                                  SizedBox(width: 4),
-                                  Icon(Icons.info, color: color.backgroundColor, size: 22,),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(width: 25),
-                      Visibility(
-                        visible: this.currentPage != 13 ? true : false,
-                        child: Container(
-                          child: IconButton(
-                              icon: Icon(Icons.print),
-                              color: color.backgroundColor,
-                              onPressed: (){
-                                Navigator.push(
-                                  context,
-                                  PageTransition(
-                                    type: PageTransitionType.bottomToTop,
-                                    child: PrintReportPage(currentPage: this.currentPage,),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                      Visibility(
-                        visible: currentPage != 1 && currentPage != 5 && currentPage != 10 && currentPage != 13  ? true : false,
-                        child: Container(
-                          child: IconButton(
-                            icon: Icon(Icons.receipt),
-                            color: color.backgroundColor,
-                            onPressed: receiptOnPressed,
-                          ),
-                        ),
-                      ),
-                        Container(
-                            margin: EdgeInsets.only(right: 10),
-                            child: IconButton(
-                              onPressed: () {
-                                showDialog(barrierDismissible: false, context: context, builder: (BuildContext context) {
-                                  return WillPopScope(
-                                    onWillPop: ()  async  {
-                                      dateTimeNow = dateFormat.format(DateTime.now());
-                                      _controller = new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
-                                      _dateRangePickerController.selectedRange = PickerDateRange(DateTime.now(), DateTime.now());
-                                      setState(() {
-                                        reportModel.setDateTime(this.currentStDate, this.currentEdDate);
-                                        // reportModel.resetLoad();
-                                      });
-                                      return true;
-                                    },
-                                    child: AlertDialog(
-                                      title: Text(AppLocalizations.of(context)!.translate('select_a_date_range')),
-                                      content: Container(
-                                        height: 400,
-                                        width: 450,
-                                        child: Container(
-                                          child: Card(
-                                            elevation: 10,
-                                            child: SfDateRangePicker(
-                                              view: DateRangePickerView.month,
-                                              controller: _dateRangePickerController,
-                                              selectionMode: DateRangePickerSelectionMode.range,
-                                              allowViewNavigation: true,
-                                              showActionButtons: true,
-                                              showTodayButton: true,
-                                              onSelectionChanged: _onSelectionChanged,
-                                              maxDate: DateTime.now(),
-                                              confirmText: AppLocalizations.of(context)!.translate('ok'),
-                                              cancelText: AppLocalizations.of(context)!.translate('cancel'),
-                                              onSubmit: (object) {
-                                                _controller = _range != '' ?
-                                                new TextEditingController(text: '${_range}')
-                                                    :
-                                                new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
-                                                setState(() {
-                                                  reportModel.setDateTime(this.currentStDate, this.currentEdDate);
-                                                  // reportModel.resetLoad();
-                                                });
-                                                Navigator.of(context).pop();
-                                              },
-                                              onCancel: (){
-                                                Navigator.of(context).pop();
-                                              },
-
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                });
-                              },
-                              icon: Icon(Icons.calendar_month),
-                              color: color.backgroundColor,
-                            )),
-                        Container(
-                          width: 300,
-                          height: 55,
-                          child: TextField(
-                            controller: _controller,
-                            decoration: InputDecoration(
-                                border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(5.0)))
-                            ),
-                            style: TextStyle(color: Colors.black),
-                            enabled: false,
-                          ),
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Color(0xffFAFAFA),
-                    elevation: 0,
-                  ),
-                  body: Padding(
-                    padding: EdgeInsets.fromLTRB(8, 10, 8, 8),
-                    child: Row(
-                      children: [
-                        SideNavigationBar(
-                          expandable: false,
-                          theme: SideNavigationBarTheme(
-                            backgroundColor: Colors.white,
-                            togglerTheme: SideNavigationBarTogglerTheme.standard(),
-                            itemTheme: SideNavigationBarItemTheme(
-                              selectedItemColor: color.backgroundColor,
-                            ),
-                            dividerTheme: SideNavigationBarDividerTheme.standard(),
-                          ),
-                          selectedIndex: selectedIndex,
-                          items: [
-                            SideNavigationBarItem(
-                              icon: Icons.view_comfy_alt,
-                              label: AppLocalizations.of(context)!.translate('overview'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.list_alt,
-                              label: AppLocalizations.of(context)!.translate('daily_sales'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.fastfood,
-                              label: AppLocalizations.of(context)!.translate('product_report'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.fastfood,
-                              label: AppLocalizations.of(context)!.translate('category_report'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.fastfood,
-                              label: AppLocalizations.of(context)!.translate('modifier_report'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.fastfood,
-                              label: AppLocalizations.of(context)!.translate('edit_report'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.no_food,
-                              label: AppLocalizations.of(context)!.translate('cancel_report'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.no_food,
-                              label: AppLocalizations.of(context)!.translate('cancel_modifier_report'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.local_dining,
-                              label: AppLocalizations.of(context)!.translate('dining_report'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.payment,
-                              label: AppLocalizations.of(context)!.translate('payment_report'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.refresh,
-                              label: AppLocalizations.of(context)!.translate('refund_report'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.monetization_on,
-                              label: AppLocalizations.of(context)!.translate('cash_record_report'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.person,
-                              label: 'Staff Sales Report',
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.compare_arrows,
-                              label: AppLocalizations.of(context)!.translate('transfer_report'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.person,
-                              label: AppLocalizations.of(context)!.translate('attendance_report'),
-                            ),
-                          ],
-                          onTap: (index) {
-                            // WidgetsBinding.instance.addPostFrameCallback((_) {
-                            //   reportModel.resetLoad();
-                            // });
-                            setState(() {
-                              this.currentPage = index;
-                              selectedIndex = index;
-                            });
-                          },
-                        ),
-                        Expanded(
-                          child: views.elementAt(selectedIndex),
-                        )
-                      ],
-                    ),
-                  ),
-                );
-              } else {
-                return StatefulBuilder(builder: (context, StateSetter setState) {
-                  return Center(
-                    child: SingleChildScrollView(
-                      physics: NeverScrollableScrollPhysics(),
-                      child: AlertDialog(
-                        title: Text(AppLocalizations.of(context)!.translate('enter_admin_pin')),
-                        content: SizedBox(
-                          height: 75.0,
-                          width: 350.0,
-                          child: ValueListenableBuilder(
-                              valueListenable: adminPosPinController,
-                              builder: (context, TextEditingValue value, __) {
-                                return Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: TextField(
-                                    autofocus: true,
-                                    onSubmitted: (input) {
-                                      setState(() {
-                                        isButtonDisabled = true;
-                                      });
-                                      _submit(context);
-                                      if(mounted){
-                                        setState(() {
-                                          isButtonDisabled = false;
-                                        });
-                                      }
-                                    },
-                                    obscureText: true,
-                                    controller: adminPosPinController,
-                                    keyboardType: TextInputType.number,
-                                    decoration: InputDecoration(
-                                      errorText: _submitted
-                                          ? errorPassword == null
-                                          ? errorPassword
-                                          : AppLocalizations.of(context)?.translate(errorPassword!)
-                                          : null,
-                                      border: OutlineInputBorder(
-                                        borderSide: BorderSide(color: color.backgroundColor),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(color: color.backgroundColor),
-                                      ),
-                                      labelText: "PIN",
-                                    ),
-                                  ),
-                                );
-                              }),
-                        ),
-                        actions: <Widget>[
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: color.backgroundColor,
-                              ),
-                              child: Text(
-                                AppLocalizations.of(context)!.translate('clear'),
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              onPressed: isButtonDisabled
-                                  ? null
-                                  : () {
-                                setState(() {
-                                  isButtonDisabled = true;
-                                });
-                                adminPosPinController.clear();
-                                if(mounted){
-                                  setState(() {
-                                    isButtonDisabled = false;
-                                  });
-                                }
-                              },
-                            ),
-                          ),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: color.buttonColor,
-                              ),
-                              child: Text(
-                                AppLocalizations.of(context)!.translate('yes'),
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              onPressed: isButtonDisabled
-                                  ? null
-                                  : () async {
-                                setState(() {
-                                  isButtonDisabled = true;
-                                });
-                                _submit(context);
-                                if(mounted){
-                                  setState(() {
-                                    isButtonDisabled = false;
-                                  });
-                                }
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                });
-              }
-            } else {
-              ///mobile layout
-              if(reportPermission) {
-                return Scaffold(
-                  resizeToAvoidBottomInset: false,
-                  appBar: AppBar(
-                    automaticallyImplyLeading: false,
-                    title: Row(
-                      children: [
-                        Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 25, color: Colors.black)),
-                        Spacer(),
-                        Visibility(
-                          visible: currentPage != 13 ? true : false,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Checkbox(
-                                value: _isChecked,
-                                onChanged: (bool? value) {
-                                  setState(() {
-                                    _isChecked = !_isChecked;
-                                    prefs.setBool('reportBasedOnOB', _isChecked);
-                                    reportModel.refresh();
-                                  });
-                                },
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('report_calculate_based_on_opening_balance'));
-                                },
-                                child: Row(
-                                  children: <Widget>[
-                                    Text(AppLocalizations.of(context)!.translate('advanced')),
-                                    SizedBox(width: 4),
-                                    Icon(Icons.info, color: color.backgroundColor, size: 22,),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        Visibility(
-                          visible: this.currentPage != 13 ? true : false,
-                          child: IconButton(
-                            icon: Icon(Icons.print),
-                            color: color.backgroundColor,
-                            onPressed: (){
-                              Navigator.push(
-                                context,
-                                PageTransition(
-                                  type: PageTransitionType.bottomToTop,
-                                  child: PrintReportPage(currentPage: this.currentPage,),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        Visibility(
-                          visible: currentPage != 1 && currentPage != 5 && currentPage != 10 && currentPage != 11 && currentPage != 13  ? true : false,
-                          child: Container(
-                            child: IconButton(
-                              icon: Icon(Icons.receipt),
-                              color: color.backgroundColor,
-                              onPressed: receiptOnPressed,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          width: 230,
-                          height: 55,
-                          child: TextField(
-                            controller: _controller,
-                            decoration: InputDecoration(
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(Radius.circular(4)),
-                                  borderSide: BorderSide(width: 1,color: color.backgroundColor),
-                                ),
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(5.0)))
-                            ),
-                            style: TextStyle(color: Colors.black),
-                            readOnly: true,
-                            onTap: (){
-                              showDialog(context: context, builder: (BuildContext context) {
-                                return WillPopScope(
-                                  onWillPop: () async {
-                                    dateTimeNow = dateFormat.format(DateTime.now());
-                                    _controller = new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
-                                    _dateRangePickerController.selectedRange = PickerDateRange(DateTime.now(), DateTime.now());
-                                    setState(() {
-                                      reportModel.setDateTime(this.currentStDate, this.currentEdDate);
-                                      // reportModel.resetLoad();
-                                    });
-                                    return true;
-                                  },
-                                  child: AlertDialog(
-                                    contentPadding: EdgeInsets.zero,
-                                    content: Container(
-                                      height: MediaQuery.of(context).size.height,
-                                      width: MediaQuery.of(context).size.width,
-                                      child: SfDateRangePicker(
-                                        controller: _dateRangePickerController,
-                                        selectionMode: DateRangePickerSelectionMode.range,
-                                        allowViewNavigation: true,
-                                        showActionButtons: true,
-                                        showTodayButton: true,
-                                        onSelectionChanged: _onSelectionChanged,
-                                        maxDate: DateTime.now(),
-                                        onSubmit: (object) {
-                                          _controller = _range != '' ?
-                                          TextEditingController(text: '${_range}') :
-                                          TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
-                                          setState(() {
-                                            reportModel.setDateTime(this.currentStDate, this.currentEdDate);
-                                            // reportModel.resetLoad();
-                                          });
-                                          Navigator.of(context).pop();
-                                        },
-                                        onCancel: (){
-                                          Navigator.of(context).pop();
-                                        },
-
-                                      ),
-                                    ),
-                                  ),
-                                );
+        if(deviceWidth > 900 && deviceHeight > 500){
+          if(reportPermission) {
+            return Scaffold(
+              resizeToAvoidBottomInset: false,
+              appBar: AppBar(
+                primary: false,
+                automaticallyImplyLeading: false,
+                title: Row(
+                  children: [
+                    Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 25, color: Colors.black)),
+                    Spacer(),
+                    Visibility(
+                      visible: currentPage != 13 && currentPage != 14 ? true : false,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Checkbox(
+                            value: _isChecked,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                _isChecked = !_isChecked;
+                                prefs.setBool('reportBasedOnOB', _isChecked);
+                                reportModel.refresh();
                               });
                             },
                           ),
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Color(0xffFAFAFA),
-                    elevation: 0,
-                  ),
-                  body: Padding(
-                    padding: EdgeInsets.fromLTRB(8, 10, 8, 8),
-                    child: Row(
-                      children: [
-                        SideNavigationBar(
-                          initiallyExpanded: false,
-                          expandable: false,
-                          theme: SideNavigationBarTheme(
-                            backgroundColor: Colors.white,
-                            togglerTheme: SideNavigationBarTogglerTheme.standard(),
-                            itemTheme: SideNavigationBarItemTheme(
-                              selectedItemColor: color.backgroundColor,
-                            ),
-                            dividerTheme: SideNavigationBarDividerTheme.standard(),
-                          ),
-                          selectedIndex: selectedIndex,
-                          items: [
-                            SideNavigationBarItem(
-                              icon: Icons.view_comfy_alt,
-                              label: AppLocalizations.of(context)!.translate('overview'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.list_alt,
-                              label: AppLocalizations.of(context)!.translate('daily_sales'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.fastfood,
-                              label: AppLocalizations.of(context)!.translate('product_report'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.fastfood,
-                              label: AppLocalizations.of(context)!.translate('category_report'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.fastfood,
-                              label: AppLocalizations.of(context)!.translate('modifier_report'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.fastfood,
-                              label: AppLocalizations.of(context)!.translate('edit_report'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.no_food,
-                              label: AppLocalizations.of(context)!.translate('cancel_report'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.no_food,
-                              label: 'Cancel Modifier Report',
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.local_dining,
-                              label: AppLocalizations.of(context)!.translate('dining_report'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.payment,
-                              label: AppLocalizations.of(context)!.translate('payment_report'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.refresh,
-                              label: AppLocalizations.of(context)!.translate('refund_report'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.monetization_on,
-                              label: AppLocalizations.of(context)!.translate('cash_record_report'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.person,
-                              label: 'Staff Sales Report',
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.compare_arrows,
-                              label: AppLocalizations.of(context)!.translate('transfer_report'),
-                            ),
-                            SideNavigationBarItem(
-                              icon: Icons.person,
-                              label: AppLocalizations.of(context)!.translate('attendance_report'),
-                            ),
-                          ],
-                          onTap: (index) {
-                            // WidgetsBinding.instance.addPostFrameCallback((_) {
-                            //   reportModel.resetLoad();
-                            // });
-                            setState(() {
-                              this.currentPage = index;
-                              selectedIndex = index;
-                            });
-                          },
-                        ),
-                        Expanded(
-                          child: views.elementAt(selectedIndex),
-                        )
-                      ],
-                    ),
-                  ),
-                );
-              } else {
-                return StatefulBuilder(builder: (context, StateSetter setState) {
-                  return Center(
-                    child: SingleChildScrollView(
-                      physics: NeverScrollableScrollPhysics(),
-                      child: AlertDialog(
-                        title: Text(AppLocalizations.of(context)!.translate('enter_admin_pin')),
-                        content: SizedBox(
-                          height: 75.0,
-                          width: 350.0,
-                          child: ValueListenableBuilder(
-                              valueListenable: adminPosPinController,
-                              builder: (context, TextEditingValue value, __) {
-                                return Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: TextField(
-                                    autofocus: true,
-                                    onSubmitted: (input) {
-                                      setState(() {
-                                        isButtonDisabled = true;
-                                      });
-                                      _submit(context);
-                                      if(mounted){
-                                        setState(() {
-                                          isButtonDisabled = false;
-                                        });
-                                      }
-                                    },
-                                    obscureText: true,
-                                    controller: adminPosPinController,
-                                    keyboardType: TextInputType.number,
-                                    decoration: InputDecoration(
-                                      errorText: _submitted
-                                          ? errorPassword == null
-                                          ? errorPassword
-                                          : AppLocalizations.of(context)?.translate(errorPassword!)
-                                          : null,
-                                      border: OutlineInputBorder(
-                                        borderSide: BorderSide(color: color.backgroundColor),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(color: color.backgroundColor),
-                                      ),
-                                      labelText: "PIN",
-                                    ),
-                                  ),
-                                );
-                              }),
-                        ),
-                        actions: <Widget>[
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: color.backgroundColor,
-                              ),
-                              child: Text(
-                                AppLocalizations.of(context)!.translate('close'),
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              onPressed: isButtonDisabled
-                                  ? null
-                                  : () {
-                                setState(() {
-                                  isButtonDisabled = true;
-                                });
-                                Navigator.of(context).pop();
-                                if(mounted){
-                                  setState(() {
-                                    isButtonDisabled = false;
-                                  });
-                                }
-                              },
-                            ),
-                          ),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: color.buttonColor,
-                              ),
-                              child: Text(
-                                AppLocalizations.of(context)!.translate('yes'),
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              onPressed: isButtonDisabled
-                                  ? null
-                                  : () async {
-                                setState(() {
-                                  isButtonDisabled = true;
-                                });
-                                _submit(context);
-                                if(mounted){
-                                  setState(() {
-                                    isButtonDisabled = false;
-                                  });
-                                }
-                              },
+                          GestureDetector(
+                            onTap: () {
+                              Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('report_calculate_based_on_opening_balance'));
+                            },
+                            child: Row(
+                              children: <Widget>[
+                                Text(AppLocalizations.of(context)!.translate('advanced')),
+                                SizedBox(width: 4),
+                                Icon(Icons.info, color: color.backgroundColor, size: 22,),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
-                  );
-                });
-              }
-            }
-          });
+                    SizedBox(width: 25),
+                    Visibility(
+                      visible: currentPage != 14 ? true : false,
+                      child: Container(
+                        child: IconButton(
+                          icon: Icon(Icons.print),
+                          color: color.backgroundColor,
+                          onPressed: (){
+                            Navigator.push(
+                              context,
+                              PageTransition(
+                                type: PageTransitionType.bottomToTop,
+                                child: PrintReportPage(currentPage: currentPage,),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    Visibility(
+                      visible: currentPage != 1 && currentPage != 5 && currentPage != 10 && currentPage != 13 && currentPage != 14  ? true : false,
+                      child: Container(
+                        child: IconButton(
+                          icon: Icon(Icons.receipt),
+                          color: color.backgroundColor,
+                          onPressed: receiptOnPressed,
+                        ),
+                      ),
+                    ),
+                    Container(
+                        margin: EdgeInsets.only(right: 10),
+                        child: IconButton(
+                          onPressed: () {
+                            showDialog(barrierDismissible: false, context: context, builder: (BuildContext context) {
+                              return WillPopScope(
+                                onWillPop: ()  async  {
+                                  dateTimeNow = dateFormat.format(DateTime.now());
+                                  _controller = new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
+                                  _dateRangePickerController.selectedRange = PickerDateRange(DateTime.now(), DateTime.now());
+                                  setState(() {
+                                    reportModel.setDateTime(currentStDate, currentEdDate);
+                                  });
+                                  return true;
+                                },
+                                child: AlertDialog(
+                                  title: Text(AppLocalizations.of(context)!.translate('select_a_date_range')),
+                                  content: Container(
+                                    height: 400,
+                                    width: 450,
+                                    child: Container(
+                                      child: Card(
+                                        elevation: 10,
+                                        child: SfDateRangePicker(
+                                          view: DateRangePickerView.month,
+                                          controller: _dateRangePickerController,
+                                          selectionMode: DateRangePickerSelectionMode.range,
+                                          allowViewNavigation: true,
+                                          showActionButtons: true,
+                                          showTodayButton: true,
+                                          onSelectionChanged: _onSelectionChanged,
+                                          maxDate: DateTime.now(),
+                                          confirmText: AppLocalizations.of(context)!.translate('ok'),
+                                          cancelText: AppLocalizations.of(context)!.translate('cancel'),
+                                          onSubmit: (object) {
+                                            _controller = _range != '' ?
+                                            new TextEditingController(text: '${_range}')
+                                                :
+                                            new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
+                                            setState(() {
+                                              reportModel.setDateTime(currentStDate, currentEdDate);
+                                            });
+                                            Navigator.of(context).pop();
+                                          },
+                                          onCancel: (){
+                                            Navigator.of(context).pop();
+                                          },
+
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            });
+                          },
+                          icon: Icon(Icons.calendar_month),
+                          color: color.backgroundColor,
+                        )),
+                    Container(
+                      width: 300,
+                      height: 55,
+                      child: TextField(
+                        controller: _controller,
+                        decoration: InputDecoration(
+                            border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(5.0)))
+                        ),
+                        style: TextStyle(color: Colors.black),
+                        enabled: false,
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: Color(0xffFAFAFA),
+                elevation: 0,
+              ),
+              body: Padding(
+                padding: EdgeInsets.fromLTRB(8, 10, 8, 8),
+                child: Row(
+                  children: [
+                    SideNavigationBar(
+                      expandable: false,
+                      theme: SideNavigationBarTheme(
+                        backgroundColor: Colors.white,
+                        togglerTheme: SideNavigationBarTogglerTheme.standard(),
+                        itemTheme: SideNavigationBarItemTheme(
+                          selectedItemColor: color.backgroundColor,
+                        ),
+                        dividerTheme: SideNavigationBarDividerTheme.standard(),
+                      ),
+                      selectedIndex: selectedIndex,
+                      items: [
+                        SideNavigationBarItem(
+                          icon: Icons.view_comfy_alt,
+                          label: AppLocalizations.of(context)!.translate('overview'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.list_alt,
+                          label: AppLocalizations.of(context)!.translate('daily_sales'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.fastfood,
+                          label: AppLocalizations.of(context)!.translate('product_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.fastfood,
+                          label: AppLocalizations.of(context)!.translate('category_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.fastfood,
+                          label: AppLocalizations.of(context)!.translate('modifier_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.fastfood,
+                          label: AppLocalizations.of(context)!.translate('edit_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.no_food,
+                          label: AppLocalizations.of(context)!.translate('cancel_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.no_food,
+                          label: AppLocalizations.of(context)!.translate('cancel_modifier_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.local_dining,
+                          label: AppLocalizations.of(context)!.translate('dining_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.payment,
+                          label: AppLocalizations.of(context)!.translate('payment_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.refresh,
+                          label: AppLocalizations.of(context)!.translate('refund_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.monetization_on,
+                          label: AppLocalizations.of(context)!.translate('cash_record_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.person,
+                          label: AppLocalizations.of(context)!.translate('staff_sales_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.person,
+                          label: AppLocalizations.of(context)!.translate('attendance_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.compare_arrows,
+                          label: AppLocalizations.of(context)!.translate('transfer_report'),
+                        ),
+                      ],
+                      onTap: (index) {
+                        setState(() {
+                          currentPage = index;
+                          selectedIndex = index;
+                        });
+                      },
+                    ),
+                    Expanded(
+                      child: views.elementAt(selectedIndex),
+                    )
+                  ],
+                ),
+              ),
+            );
+          } else {
+            return StatefulBuilder(builder: (context, StateSetter setState) {
+              return Center(
+                child: SingleChildScrollView(
+                  physics: NeverScrollableScrollPhysics(),
+                  child: AlertDialog(
+                    title: Text(AppLocalizations.of(context)!.translate('enter_admin_pin')),
+                    content: SizedBox(
+                      height: 75.0,
+                      width: 350.0,
+                      child: ValueListenableBuilder(
+                          valueListenable: adminPosPinController,
+                          builder: (context, TextEditingValue value, __) {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: TextField(
+                                autofocus: true,
+                                onSubmitted: (input) {
+                                  setState(() {
+                                    isButtonDisabled = true;
+                                  });
+                                  _submit(context);
+                                  if(mounted){
+                                    setState(() {
+                                      isButtonDisabled = false;
+                                    });
+                                  }
+                                },
+                                obscureText: _obscureText,
+                                controller: adminPosPinController,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  suffixIcon: IconButton(
+                                    icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility),
+                                    onPressed: () {
+                                      setState(() {
+                                        _obscureText = !_obscureText;
+                                      });
+                                    },
+                                  ),
+                                  errorText: _submitted
+                                      ? errorPassword == null
+                                      ? errorPassword
+                                      : AppLocalizations.of(context)?.translate(errorPassword!)
+                                      : null,
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(color: color.backgroundColor),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: color.backgroundColor),
+                                  ),
+                                  labelText: "PIN",
+                                ),
+                              ),
+                            );
+                          }),
+                    ),
+                    actions: <Widget>[
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width / 6,
+                        height: MediaQuery.of(context).size.height / 12,
+                        child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: color.backgroundColor,
+                            ),
+                            child: Text(
+                              AppLocalizations.of(context)!.translate('clear'),
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            onPressed: (){
+                              adminPosPinController.clear();
+                            }
+                        ),
+                      ),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width / 6,
+                        height:  MediaQuery.of(context).size.height / 12,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: color.buttonColor,
+                          ),
+                          child: Text(
+                            AppLocalizations.of(context)!.translate('yes'),
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          onPressed: isButtonDisabled
+                              ? null
+                              : () async {
+                            setState(() {
+                              isButtonDisabled = true;
+                            });
+                            _submit(context);
+                            if(mounted){
+                              setState(() {
+                                isButtonDisabled = false;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            });
+          }
+        } else {
+          ///mobile layout
+          if(reportPermission) {
+            return Scaffold(
+              resizeToAvoidBottomInset: false,
+              appBar: AppBar(
+                automaticallyImplyLeading: false,
+                title: Row(
+                  children: [
+                    Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 25, color: Colors.black)),
+                    Spacer(),
+                    Visibility(
+                      visible: currentPage != 13 ? true : false,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Checkbox(
+                            value: _isChecked,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                _isChecked = !_isChecked;
+                                prefs.setBool('reportBasedOnOB', _isChecked);
+                                reportModel.refresh();
+                              });
+                            },
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('report_calculate_based_on_opening_balance'));
+                            },
+                            child: Row(
+                              children: <Widget>[
+                                Text(AppLocalizations.of(context)!.translate('advanced')),
+                                SizedBox(width: 4),
+                                Icon(Icons.info, color: color.backgroundColor, size: 22,),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    Visibility(
+                      visible: currentPage != 13 ? true : false,
+                      child: IconButton(
+                        icon: Icon(Icons.print),
+                        color: color.backgroundColor,
+                        onPressed: (){
+                          Navigator.push(
+                            context,
+                            PageTransition(
+                              type: PageTransitionType.bottomToTop,
+                              child: PrintReportPage(currentPage: this.currentPage,),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    Visibility(
+                      visible: currentPage != 1 && currentPage != 5 && currentPage != 10 && currentPage != 11 && currentPage != 13  ? true : false,
+                      child: Container(
+                        child: IconButton(
+                          icon: Icon(Icons.receipt),
+                          color: color.backgroundColor,
+                          onPressed: receiptOnPressed,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: 230,
+                      height: 55,
+                      child: TextField(
+                        controller: _controller,
+                        decoration: InputDecoration(
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(4)),
+                              borderSide: BorderSide(width: 1,color: color.backgroundColor),
+                            ),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(Radius.circular(5.0)))
+                        ),
+                        style: TextStyle(color: Colors.black),
+                        readOnly: true,
+                        onTap: (){
+                          showDialog(context: context, builder: (BuildContext context) {
+                            return WillPopScope(
+                              onWillPop: () async {
+                                dateTimeNow = dateFormat.format(DateTime.now());
+                                _controller = TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
+                                _dateRangePickerController.selectedRange = PickerDateRange(DateTime.now(), DateTime.now());
+                                setState(() {
+                                  reportModel.setDateTime(currentStDate, currentEdDate);
+                                });
+                                return true;
+                              },
+                              child: AlertDialog(
+                                contentPadding: EdgeInsets.zero,
+                                content: Container(
+                                  height: MediaQuery.of(context).size.height,
+                                  width: MediaQuery.of(context).size.width,
+                                  child: SfDateRangePicker(
+                                    controller: _dateRangePickerController,
+                                    selectionMode: DateRangePickerSelectionMode.range,
+                                    allowViewNavigation: true,
+                                    showActionButtons: true,
+                                    showTodayButton: true,
+                                    onSelectionChanged: _onSelectionChanged,
+                                    maxDate: DateTime.now(),
+                                    onSubmit: (object) {
+                                      _controller = _range != '' ?
+                                      TextEditingController(text: '${_range}') :
+                                      TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
+                                      setState(() {
+                                        reportModel.setDateTime(currentStDate, currentEdDate);
+                                      });
+                                      Navigator.of(context).pop();
+                                    },
+                                    onCancel: (){
+                                      Navigator.of(context).pop();
+                                    },
+
+                                  ),
+                                ),
+                              ),
+                            );
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: Color(0xffFAFAFA),
+                elevation: 0,
+              ),
+              body: Padding(
+                padding: EdgeInsets.fromLTRB(8, 10, 8, 8),
+                child: Row(
+                  children: [
+                    SideNavigationBar(
+                      initiallyExpanded: false,
+                      expandable: false,
+                      theme: SideNavigationBarTheme(
+                        backgroundColor: Colors.white,
+                        togglerTheme: SideNavigationBarTogglerTheme.standard(),
+                        itemTheme: SideNavigationBarItemTheme(
+                          selectedItemColor: color.backgroundColor,
+                        ),
+                        dividerTheme: SideNavigationBarDividerTheme.standard(),
+                      ),
+                      selectedIndex: selectedIndex,
+                      items: [
+                        SideNavigationBarItem(
+                          icon: Icons.view_comfy_alt,
+                          label: AppLocalizations.of(context)!.translate('overview'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.list_alt,
+                          label: AppLocalizations.of(context)!.translate('daily_sales'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.fastfood,
+                          label: AppLocalizations.of(context)!.translate('product_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.fastfood,
+                          label: AppLocalizations.of(context)!.translate('category_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.fastfood,
+                          label: AppLocalizations.of(context)!.translate('modifier_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.fastfood,
+                          label: AppLocalizations.of(context)!.translate('edit_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.no_food,
+                          label: AppLocalizations.of(context)!.translate('cancel_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.no_food,
+                          label: AppLocalizations.of(context)!.translate('cancel_modifier_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.local_dining,
+                          label: AppLocalizations.of(context)!.translate('dining_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.payment,
+                          label: AppLocalizations.of(context)!.translate('payment_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.refresh,
+                          label: AppLocalizations.of(context)!.translate('refund_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.monetization_on,
+                          label: AppLocalizations.of(context)!.translate('cash_record_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.person,
+                          label: AppLocalizations.of(context)!.translate('staff_sales_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.person,
+                          label: AppLocalizations.of(context)!.translate('attendance_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.compare_arrows,
+                          label: AppLocalizations.of(context)!.translate('transfer_report'),
+                        ),
+                      ],
+                      onTap: (index) {
+                        setState(() {
+                          currentPage = index;
+                          selectedIndex = index;
+                        });
+                      },
+                    ),
+                    Expanded(
+                      child: views.elementAt(selectedIndex),
+                    )
+                  ],
+                ),
+              ),
+            );
+          } else {
+            return StatefulBuilder(builder: (context, StateSetter setState) {
+              return Center(
+                child: SingleChildScrollView(
+                  child: AlertDialog(
+                    title: Text(AppLocalizations.of(context)!.translate('enter_admin_pin')),
+                    content: SizedBox(
+                      height: 75.0,
+                      width: 350.0,
+                      child: ValueListenableBuilder(
+                          valueListenable: adminPosPinController,
+                          builder: (context, TextEditingValue value, __) {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: TextField(
+                                autofocus: true,
+                                onSubmitted: (input) {
+                                  setState(() {
+                                    isButtonDisabled = true;
+                                  });
+                                  _submit(context);
+                                  if(mounted){
+                                    setState(() {
+                                      isButtonDisabled = false;
+                                    });
+                                  }
+                                },
+                                obscureText: _obscureText,
+                                controller: adminPosPinController,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  suffixIcon: IconButton(
+                                    icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility),
+                                    onPressed: () {
+                                      setState(() {
+                                        _obscureText = !_obscureText;
+                                      });
+                                    },
+                                  ),
+                                  errorText: _submitted
+                                      ? errorPassword == null
+                                      ? errorPassword
+                                      : AppLocalizations.of(context)?.translate(errorPassword!)
+                                      : null,
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(color: color.backgroundColor),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: color.backgroundColor),
+                                  ),
+                                  labelText: "PIN",
+                                ),
+                              ),
+                            );
+                          }),
+                    ),
+                    actions: <Widget>[
+                      SizedBox(
+                        width:  MediaQuery.of(context).size.width / 4,
+                        height: MediaQuery.of(context).size.height / 10,
+                        child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: color.backgroundColor,
+                            ),
+                            child: Text(
+                              AppLocalizations.of(context)!.translate('clear'),
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            onPressed: (){
+                              adminPosPinController.clear();
+                            }
+                        ),
+                      ),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width / 4,
+                        height: MediaQuery.of(context).size.height / 10,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: color.buttonColor,
+                          ),
+                          child: Text(
+                            AppLocalizations.of(context)!.translate('yes'),
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          onPressed: isButtonDisabled
+                              ? null
+                              : () async {
+                            setState(() {
+                              isButtonDisabled = true;
+                            });
+                            _submit(context);
+                            if(mounted){
+                              setState(() {
+                                isButtonDisabled = false;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            });
+          }
         }
-      );
+      });
     });
   }
 
@@ -895,7 +870,6 @@ class _ReportPageState extends State<ReportPage> {
   }
 
   preload(){
-    checkAccess();
     views.addAll([
       Container(
         child: ReportOverview(),
@@ -937,10 +911,10 @@ class _ReportPageState extends State<ReportPage> {
         child: StaffSalesReport(),
       ),
       Container(
-        child: TransferRecord(),
+        child: AttendanceReport(),
       ),
       Container(
-        child: AttendanceReport(),
+        child: TransferRecord(),
       ),
     ]);
   }
@@ -956,5 +930,8 @@ class _ReportPageState extends State<ReportPage> {
     } else {
       reportPermission = false;
     }
+    setState(() {
+
+    });
   }
 }

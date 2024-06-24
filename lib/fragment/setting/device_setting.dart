@@ -40,6 +40,7 @@ class _DeviceSettingState extends State<DeviceSetting> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             return Scaffold(
+              resizeToAvoidBottomInset: false,
               body: hasAccess
                   ? Consumer<ConnectivityChangeNotifier>(builder: (context, connectivity, child) {
                       return Column(
