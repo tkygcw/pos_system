@@ -76,7 +76,7 @@ class _PosPinPageState extends State<PosPinPage> {
   preload() async {
     syncRecord.syncFromCloud();
     if(notificationModel.syncCountStarted == false){
-      startTimers();
+      //startTimers();
     }
     await readAllPrinters();
   }

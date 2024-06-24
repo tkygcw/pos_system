@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/object/attendance.dart';
 import 'package:pos_system/object/bill.dart';
 import 'package:pos_system/object/branch_link_dining_option.dart';
 import 'package:pos_system/object/branch_link_modifier.dart';
@@ -100,6 +101,7 @@ class _LoadingPageState extends State<LoadingPage> {
       await _createProductImgFolder();
       await _createBannerImgFolder();
       await getAllUser();
+      await getAllAttendance();
       await getAllSettlement();
       await getBranchLinkUser();
       await getAllDiningOption();
@@ -639,6 +641,51 @@ getAllUser() async {
     FLog.error(
       className: "loading",
       text: "get all user error",
+      exception: e,
+    );
+  }
+}
+
+/*
+  sava attendance to database
+*/
+getAllAttendance() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    Map data = await Domain().getAllAttendance(branch_id.toString());
+    if (data['status'] == '1') {
+      List responseJson = data['data'];
+      for (var i = 0; i < responseJson.length; i++) {
+        try {
+          Attendance item = Attendance.fromJson(responseJson[i]);
+          Attendance attendance = Attendance(
+            attendance_key: item.attendance_key,
+            branch_id: item.branch_id,
+            user_id: item.user_id,
+            role: item.role,
+            clock_in_at: item.clock_in_at,
+            clock_out_at: item.clock_out_at,
+            duration: item.duration,
+            sync_status: 1,
+            created_at: item.created_at,
+            updated_at: item.updated_at,
+            soft_delete: item.soft_delete,
+          );
+          Attendance data = await PosDatabase.instance.insertAttendance(attendance);
+        } catch(e) {
+          FLog.error(
+            className: "loading",
+            text: "attendance create failed",
+            exception: "$e\n${responseJson[i].toJson()}",
+          );
+        }
+      }
+    }
+  } catch(e) {
+    FLog.error(
+      className: "loading",
+      text: "get all attendance error",
       exception: e,
     );
   }

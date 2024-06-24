@@ -1,32 +1,32 @@
 
-
-
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 
 class ReportModel extends ChangeNotifier {
+  static final ReportModel instance = ReportModel.init();
   int load = 0;
-  String startDateTime = new DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
-  String endDateTime = new DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
-  String startDateTime2 = new DateFormat("dd/MM/yyyy").format(DateTime.now());
-  String endDateTime2 = new DateFormat("dd/MM/yyyy").format(DateTime.now());
+  String startDateTime = DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
+  String endDateTime = DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
+  String startDateTime2 = DateFormat("dd/MM/yyyy").format(DateTime.now());
+  String endDateTime2 = DateFormat("dd/MM/yyyy").format(DateTime.now());
   List<String> reportValue = [];
   List reportValue2 = [];
   List headerValue = [];
 
-  void initDateTime(){
-    this.startDateTime = new DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
-    this.endDateTime = new DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
-    this.startDateTime2 = new DateFormat("dd/MM/yyyy").format(DateTime.now());
-    this.endDateTime2 = new DateFormat("dd/MM/yyyy").format(DateTime.now());
-    notifyListeners();
+  ReportModel.init();
+
+  void resetDateTime(){
+    startDateTime = DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
+    endDateTime = DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
+    startDateTime2 = DateFormat("dd/MM/yyyy").format(DateTime.now());
+    endDateTime2 = DateFormat("dd/MM/yyyy").format(DateTime.now());
   }
 
   void setDateTime (String startDateTime, String endDateTime) {
     this.startDateTime = startDateTime;
     this.endDateTime = endDateTime;
-    this.startDateTime2 = startDateTime;
-    this.endDateTime2 = endDateTime;
+    this.startDateTime2 = DateFormat("dd/MM/yyyy").format(DateTime.parse(startDateTime));
+    this.endDateTime2 = DateFormat("dd/MM/yyyy").format(DateTime.parse(endDateTime));
     notifyListeners();
   }
 
@@ -68,11 +68,7 @@ class ReportModel extends ChangeNotifier {
   // }
 
   void addOtherValue({headerValue, valueList}){
-    headerValue != null
-        ?
-    this.headerValue = headerValue
-        :
-    this.headerValue = [];
+    headerValue != null ? this.headerValue = headerValue : this.headerValue = [];
     this.reportValue2 = valueList;
   }
 

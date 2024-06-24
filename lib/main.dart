@@ -145,7 +145,7 @@ class MyApp extends StatelessWidget {
           create: (_) => TableModel.instance,
         ),
         ChangeNotifierProvider(
-          create: (_) => ReportModel(),
+          create: (_) => ReportModel.instance,
         ),
         ChangeNotifierProvider(
           create: (_) {

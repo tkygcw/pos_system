@@ -251,12 +251,39 @@ class _ProductReportState extends State<ProductReport> {
     controller.sink.add("refresh");
   }
 
+  calcGrandNetAmount({required List<OrderDetail> orderDetailList}){
+    final list = orderDetailList.map((e) => e.category_net_sales!).toList();
+    return Utils.to2Decimal(list.reduce((a, b) => a + b));
+  }
+
+  calcGrandGrossAmount({required List<OrderDetail> orderDetailList}){
+    final list = orderDetailList.map((e) => e.category_gross_sales!).toList();
+    return Utils.to2Decimal(list.reduce((a, b) => a + b));
+  }
+
+  calcGrandQty({required List<OrderDetail> orderDetailList}){
+    final list = orderDetailList.map((e) => e.category_item_sum).toList();
+    return list.reduce((a, b) => a! + b!).toString();
+  }
+
   getAllProductWithOrder() async {
     _dataRow.clear();
     ReportObject object = await ReportObject().getAllPaidCategory(currentStDate: currentStDate, currentEdDate: currentEdDate);
     orderDetailCategoryData = object.dateOrderDetail!;
     //print('date category data: ${categoryData.length}');
     if(orderDetailCategoryData.isNotEmpty){
+      _dataRow.add(
+        DataRow(
+            color: MaterialStatePropertyAll(Colors.grey),
+            cells: <DataCell>[
+              DataCell(Container()),
+              DataCell(Container()),
+              DataCell(Text(calcGrandQty(orderDetailList: orderDetailCategoryData))),
+              DataCell(Text(calcGrandNetAmount(orderDetailList: orderDetailCategoryData))),
+              DataCell(Text(calcGrandGrossAmount(orderDetailList: orderDetailCategoryData))),
+            ]
+        ),
+      );
       for(int i = 0; i < orderDetailCategoryData.length; i++){
         ReportObject object2 = await ReportObject().getAllPaidOrderDetailWithCategory(orderDetailCategoryData[i].category_name!, currentStDate: currentStDate, currentEdDate: currentEdDate);
         orderDetailCategoryData[i].categoryOrderDetailList = object2.dateOrderDetail!;

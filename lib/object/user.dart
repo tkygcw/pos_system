@@ -52,6 +52,8 @@ class User {
   String? created_at;
   String? updated_at;
   String? soft_delete;
+  String? clock_in_at;
+  int? attendance_sqlite_id;
 
   User(
       {this.user_id,
@@ -68,7 +70,9 @@ class User {
       this.status,
       this.created_at,
       this.updated_at,
-      this.soft_delete});
+      this.soft_delete,
+      this.clock_in_at,
+      this.attendance_sqlite_id});
 
   User copy({
     int? user_id,
@@ -120,6 +124,8 @@ class User {
         created_at: json[UserFields.created_at] as String?,
         updated_at: json[UserFields.updated_at] as String?,
         soft_delete: json[UserFields.soft_delete] as String?,
+        clock_in_at: json['clock_in_at'] as String?,
+        attendance_sqlite_id: json['attendance_sqlite_id'] as int?,
       );
 
   Map<String, Object?> toJson() => {
