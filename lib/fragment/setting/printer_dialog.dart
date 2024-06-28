@@ -123,9 +123,9 @@ class _PrinterDialogState extends State<PrinterDialog> {
               bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
             }
           }
-          if (_typeStatus == 1) {
-            await syncAllToCloud();
-          }
+          // if (_typeStatus == 1) {
+          //   await syncAllToCloud();
+          // }
           if (this.isLogOut == true) {
             openLogOutDialog();
             return;

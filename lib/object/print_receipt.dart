@@ -20,6 +20,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../database/pos_database.dart';
 import '../notifier/cart_notifier.dart';
 import '../translation/AppLocalizations.dart';
+import 'cart_product.dart';
 import 'order_cache.dart';
 import 'order_detail.dart';
 import 'order_modifier_detail.dart';
@@ -689,7 +690,7 @@ class PrintReceipt{
     }
   }
 
-  reprintCheckList(List<Printer> printerList, CartModel cartModel, context) async {
+  reprintCheckList(List<Printer> printerList, CartModel cartModel) async {
     print('reprint celled!!!');
     int printStatus = 0;
     try {
@@ -766,6 +767,79 @@ class PrintReceipt{
       printStatus = 5;
     }
     return printStatus;
+  }
+
+  printProductTicket(List<Printer> printerList, int orderCacheLocalId, List<cartProductItem> productTicketItem) async {
+    try{
+      List<Printer> activeCashierPrinter = printerList.where((e) => e.is_counter == 1 && e.is_label == 0 && e.printer_status == 1).toList();
+      if(activeCashierPrinter.isNotEmpty){
+        for (int i = 0; i < activeCashierPrinter.length; i++) {
+          var printerDetail = jsonDecode(activeCashierPrinter[i].value!);
+          for (int j = 0; j < productTicketItem.length; j++) {
+            for(int k = 0; k < productTicketItem[j].ticket_count!; k++){
+              int currentCount = k + 1;
+              //check printer type
+              if (activeCashierPrinter[i].type == 1) {
+                //check paper size
+                if (activeCashierPrinter[i].paper_size == 0) {
+                  //print LAN
+                  final profile = await CapabilityProfile.load();
+                  final printer = NetworkPrinter(PaperSize.mm80, profile);
+                  final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
+                  if (res == PosPrintResult.success) {
+                    await ReceiptLayout().printProductTicket80mm(false, orderCacheLocalId, currentCount, value: printer, cartItem: productTicketItem[j]);
+                    await Future.delayed(Duration(milliseconds: 100));
+                    printer.disconnect();
+                  } else {
+                    // failedPrintOrderDetail.add(orderDetail[k]);
+                  }
+                } else if (activeCashierPrinter[i].paper_size == 1) {
+                  //print LAN 58mm
+                  final profile = await CapabilityProfile.load();
+                  final printer = NetworkPrinter(PaperSize.mm58, profile);
+                  final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
+                  if (res == PosPrintResult.success) {
+                    //need to change to 58
+                    await ReceiptLayout().printProductTicket58mm(false, orderCacheLocalId, currentCount, value: printer, cartItem: productTicketItem[j]);
+                    await Future.delayed(Duration(milliseconds: 100));
+                    printer.disconnect();
+                  } else {
+                    // failedPrintOrderDetail.add(orderDetail[k]);
+                  }
+                }
+              } else {
+                //print USB
+                if (activeCashierPrinter[i].paper_size == 0) {
+                  var data_usb;
+                  data_usb = Uint8List.fromList(await ReceiptLayout().printProductTicket80mm(true, orderCacheLocalId, currentCount, cartItem: productTicketItem[j]));
+                  bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+                  if (isConnected == true) {
+                    await flutterUsbPrinter.write(data_usb);
+                  } else {
+                    // failedPrintOrderDetail.add(orderDetail[k]);
+                  }
+                } else if (activeCashierPrinter[i].paper_size == 1) {
+                  //print USB 58mm
+                  var data_usb;
+                  data_usb = Uint8List.fromList(await ReceiptLayout().printProductTicket58mm(true, orderCacheLocalId, currentCount, cartItem: productTicketItem[j]));
+                  bool? isConnected = await flutterUsbPrinter.connect(
+                      int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+                  if (isConnected == true) {
+                    await flutterUsbPrinter.write(data_usb);
+                  } else {
+                    // failedPrintOrderDetail.add(orderDetail[k]);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      // return failedPrintOrderDetail;
+    } catch (e){
+      print('Product ticket printing error: ${e}');
+      return 5;
+    }
   }
 
   getTableNumber(int orderCacheId, OrderDetail orderDetail) async {

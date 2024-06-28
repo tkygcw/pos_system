@@ -126,6 +126,9 @@ class OrderDetail{
   String? order_created_at = '';
   num? item_qty;
   String? failPrintBatch;
+  int? allow_ticket;
+  int? ticket_count;
+  String? ticket_exp;
 
   OrderDetail(
       {this.order_detail_sqlite_id,
@@ -174,6 +177,9 @@ class OrderDetail{
         this.item_qty,
         this.product_category_id,
         this.failPrintBatch,
+        this.allow_ticket,
+        this.ticket_count,
+        this.ticket_exp,
         List<String>? tableNumber,
         bool? isSelected
       }) {
@@ -292,7 +298,10 @@ class OrderDetail{
       product_category_id: json['product_category_id'] as String?,
       tableNumber: tableNumber,
       failPrintBatch: json['failPrintBatch'] as String?,
-      isSelected: json['isSelected'] as bool?
+      isSelected: json['isSelected'] as bool?,
+      allow_ticket: json['allow_ticket'] as int?,
+      ticket_count: json['ticket_count'] as int?,
+      ticket_exp: json['ticket_exp'] as String?
     );
   }
 
