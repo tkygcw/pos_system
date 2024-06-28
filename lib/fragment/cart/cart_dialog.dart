@@ -16,6 +16,7 @@ import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../main.dart';
 import '../../notifier/theme_color.dart';
+import '../../object/branch_link_product.dart';
 import '../../object/cart_product.dart';
 import '../../object/categories.dart';
 import '../../object/modifier_group.dart';
@@ -637,8 +638,10 @@ class CartDialogState extends State<CartDialog> {
     //loop all order detail
     for (int k = 0; k < orderDetailList.length; k++) {
       //Get data from branch link product
-      //List<BranchLinkProduct> result = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
-
+      List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
+      orderDetailList[k].allow_ticket = data[0].allow_ticket;
+      orderDetailList[k].ticket_count = data[0].ticket_count;
+      orderDetailList[k].ticket_exp = data[0].ticket_exp;
       //Get product category
       if(orderDetailList[k].category_sqlite_id! == '0'){
         orderDetailList[k].product_category_id = '0';
@@ -646,55 +649,8 @@ class CartDialogState extends State<CartDialog> {
         Categories category = await PosDatabase.instance.readSpecificCategoryByLocalId(orderDetailList[k].category_sqlite_id!);
         orderDetailList[k].product_category_id = category.category_id.toString();
       }
-      // List<Product> productResult = await PosDatabase.instance.readSpecificProductCategory(result[0].product_id!);
-      // orderDetailList[k].product_category_id = productResult[0].category_id;
-
-      // if (result[0].has_variant == '1') {
-      //   //Get product variant
-      //   List<BranchLinkProduct> variant = await PosDatabase.instance.readBranchLinkProductVariant(orderDetailList[k].branch_link_product_sqlite_id!);
-      //   orderDetailList[k].productVariant =
-      //       ProductVariant(product_variant_id: int.parse(variant[0].product_variant_id!), variant_name: variant[0].variant_name);
-      //
-      //   //Get product variant detail
-      //   List<ProductVariantDetail> productVariantDetail = await PosDatabase.instance.readProductVariantDetail(variant[0].product_variant_id!);
-      //   orderDetailList[k].variantItem.clear();
-      //   for (int v = 0; v < productVariantDetail.length; v++) {
-      //     //Get product variant item
-      //     List<VariantItem> variantItemDetail =
-      //         await PosDatabase.instance.readProductVariantItemByVariantID(productVariantDetail[v].variant_item_id!);
-      //     orderDetailList[k].variantItem.add(VariantItem(
-      //         variant_item_id: int.parse(productVariantDetail[v].variant_item_id!),
-      //         variant_group_id: variantItemDetail[0].variant_group_id,
-      //         name: variant[0].variant_name,
-      //         isSelected: true));
-      //     productVariantDetail.clear();
-      //   }
-      // }
-
       //check product modifier
       await getOrderModifierDetail(orderDetailList[k]);
-      // List<ModifierLinkProduct> productMod = await PosDatabase.instance.readProductModifier(result[0].product_sqlite_id!);
-      // if (productMod.isNotEmpty) {
-      //   orderDetailList[k].hasModifier = true;
-      // }
-      //
-      // if (orderDetailList[k].hasModifier == true) {
-      //   //Get order modifier detail
-      //   List<OrderModifierDetail> modDetail =
-      //       await PosDatabase.instance.readOrderModifierDetail(orderDetailList[k].order_detail_sqlite_id.toString());
-      //   if (modDetail.length > 0) {
-      //     orderDetailList[k].modifierItem.clear();
-      //     for (int m = 0; m < modDetail.length; m++) {
-      //       // print('mod detail length: ${modDetail.length}');
-      //       if (!orderDetailList[k].modifierItem.contains(modDetail[m].mod_group_id!)) {
-      //         orderDetailList[k].modifierItem.add(ModifierItem(
-      //             mod_group_id: modDetail[m].mod_group_id!, mod_item_id: int.parse(modDetail[m].mod_item_id!), name: modDetail[m].modifier_name!));
-      //         orderDetailList[k].mod_group_id.add(modDetail[m].mod_group_id!);
-      //         orderDetailList[k].mod_item_id = modDetail[m].mod_item_id;
-      //       }
-      //     }
-      //   }
-      // }
     }
     isFinish = true;
   }
@@ -706,51 +662,6 @@ class CartDialogState extends State<CartDialog> {
     } else {
       orderDetail.orderModifierDetail = [];
     }
-  }
-
-  getModifierGroupItem(OrderDetail orderDetail) {
-    modifierGroup = [];
-    List<ModifierItem> temp = List.from(orderDetail.modifierItem);
-
-    for (int j = 0; j < orderDetail.mod_group_id.length; j++) {
-      List<ModifierItem> modItemChild = [];
-      //check modifier group is existed or not
-      bool isModifierExisted = false;
-      int position = 0;
-      for (int g = 0; g < modifierGroup.length; g++) {
-        if (modifierGroup[g].mod_group_id == orderDetail.mod_group_id[j]) {
-          isModifierExisted = true;
-          position = g;
-          break;
-        }
-      }
-      //if new category
-      if (!isModifierExisted) {
-        modifierGroup.add(ModifierGroup(modifierChild: [], mod_group_id: int.parse(orderDetail.mod_group_id[j])));
-        position = modifierGroup.length - 1;
-      }
-
-      for (int k = 0; k < temp.length; k++) {
-        if (modifierGroup[position].mod_group_id.toString() == temp[k].mod_group_id) {
-          modItemChild.add(
-              ModifierItem(mod_group_id: orderDetail.mod_group_id[position], mod_item_id: temp[k].mod_item_id, name: temp[k].name, isChecked: true));
-          temp.removeAt(k);
-        }
-      }
-      modifierGroup[position].modifierChild = modItemChild;
-    }
-    return modifierGroup;
-  }
-
-  getVariantGroupItem(OrderDetail orderDetail) {
-    variantGroup = [];
-    //loop all order detail variant
-    for (int i = 0; i < orderDetail.variantItem.length; i++) {
-      variantGroup.add(VariantGroup(child: orderDetail.variantItem, variant_group_id: int.parse(orderDetail.variantItem[i].variant_group_id!)));
-    }
-
-    //print('variant group length: ${variantGroup.length}');
-    return variantGroup;
   }
 
   addToCart(CartModel cart) async {
@@ -766,17 +677,19 @@ class CartDialogState extends State<CartDialog> {
           price: orderDetailList[i].price!,
           quantity: int.tryParse(orderDetailList[i].quantity!) != null ? int.parse(orderDetailList[i].quantity!) : double.parse(orderDetailList[i].quantity!),
           orderModifierDetail: orderDetailList[i].orderModifierDetail,
-          //modifier: getModifierGroupItem(orderDetailList[i]),
-          //variant: getVariantGroupItem(orderDetailList[i]),
           productVariantName: orderDetailList[i].product_variant_name,
           remark: orderDetailList[i].remark!,
           unit: orderDetailList[i].unit,
           per_quantity_unit: orderDetailList[i].per_quantity_unit,
           status: 1,
           category_sqlite_id: orderDetailList[i].category_sqlite_id,
+          order_cache_sqlite_id: orderCacheList.last.order_cache_sqlite_id.toString(),
           first_cache_created_date_time: orderCacheList.last.created_at,  //orderCacheList[0].created_at,
           first_cache_batch: orderCacheList.last.batch_id,
           first_cache_order_by: orderCacheList.last.order_by,
+          allow_ticket: orderDetailList[i].allow_ticket,
+          ticket_count: orderDetailList[i].ticket_count,
+          ticket_exp: orderDetailList[i].ticket_exp
       );
       cart.addItem(value);
     }

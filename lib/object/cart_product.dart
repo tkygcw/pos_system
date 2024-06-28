@@ -36,6 +36,9 @@ class cartProductItem{
    String? unit;
    String? per_quantity_unit;
    String? order_queue;
+   int? allow_ticket;
+   int? ticket_count;
+   String? ticket_exp;
 
    cartProductItem(
        {
@@ -67,7 +70,10 @@ class cartProductItem{
          this.orderModifierDetail,
          this.unit,
          this.per_quantity_unit,
-         this.order_queue
+         this.order_queue,
+         this.allow_ticket,
+         this.ticket_count,
+         this.ticket_exp
        });
 
    static cartProductItem fromJson(Map<String, Object?> json) {
@@ -108,7 +114,10 @@ class cartProductItem{
          orderModifierDetail: orderModifierDetailList,
          unit: json['unit'] as String?,
          per_quantity_unit: json['per_quantity_unit'] as String?,
-         order_queue: json['order_queue'] as String?
+         order_queue: json['order_queue'] as String?,
+         allow_ticket: json['allow_ticket'] as int?,
+         ticket_count: json['ticketCount'] as int?,
+         ticket_exp: json['ticket_exp'] as String
      );
    }
 
