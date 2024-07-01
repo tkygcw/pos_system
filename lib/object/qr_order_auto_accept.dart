@@ -18,6 +18,7 @@ import 'package:pos_system/notifier/fail_print_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/branch_link_product.dart';
+import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
@@ -140,6 +141,41 @@ class QrOrderAutoAccept {
     }
   }
 
+  printProductTicket(int orderCacheLocalId){
+    try{
+      List<cartProductItem> cartItem = [];
+      List<OrderDetail> ticketOrderDetail = orderDetailList.where((e) => e.allow_ticket == 1).toList();
+      if(ticketOrderDetail.isNotEmpty){
+        for(final detail in ticketOrderDetail){
+          cartItem.add(cartProductItem(
+              product_name: detail.productName,
+              price: detail.price,
+              productVariantName: detail.product_variant_name,
+              quantity: convertQtyToNum(detail.quantity!),
+              unit: detail.unit,
+              remark: detail.remark,
+              orderModifierDetail: detail.orderModifierDetail,
+              per_quantity_unit: detail.per_quantity_unit,
+              ticket_count: detail.ticket_count,
+              ticket_exp: detail.ticket_exp
+          ));
+        }
+        PrintReceipt().printProductTicket(printerList, orderCacheLocalId, cartItem);
+      }
+    } catch(e) {
+      print("print product ticket error: ${e}");
+    }
+  }
+
+  convertQtyToNum(String quantity){
+    var val = int.tryParse(quantity);
+    if(val == null){
+      return double.parse(quantity);
+    } else {
+      return val;
+    }
+  }
+
   callPrinter(int orderCacheLocalId) async {
     try {
       final _failPrintModel = Provider.of<FailPrintModel>(context, listen: false);
@@ -191,6 +227,9 @@ class QrOrderAutoAccept {
 
       orderDetailList[i].orderModifierDetail = modDetailData;
       if(data.isNotEmpty){
+        orderDetailList[i].allow_ticket = data[0].allow_ticket;
+        orderDetailList[i].ticket_count = data[0].ticket_count;
+        orderDetailList[i].ticket_exp = data[0].ticket_exp;
         switch(data[0].stock_type){
           case '1': {
             orderDetailList[i].available_stock = data[0].daily_limit!;
@@ -246,6 +285,7 @@ class QrOrderAutoAccept {
         if(localSetting!.print_checklist == 1) {
           await printCheckList(qrOrderCacheList.order_cache_sqlite_id!);
         }
+        printProductTicket(qrOrderCacheList.order_cache_sqlite_id!);
         // syncToCloudFunction();
         await callPrinter(qrOrderCacheList.order_cache_sqlite_id!);
         TableModel.instance.changeContent(true);

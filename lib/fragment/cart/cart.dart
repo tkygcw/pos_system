@@ -842,7 +842,7 @@ class CartPageState extends State<CartPage> {
                                                   openReprintDialog(printerList, cart);
                                                 }
                                               },
-                                              child: Text(AppLocalizations.of(context)!.translate('print_check_list')),
+                                              child: Text(AppLocalizations.of(context)!.translate('reprint')),
                                             ),
                                           ),
                                         ),
@@ -2226,7 +2226,6 @@ class CartPageState extends State<CartPage> {
   dine in call
 */
   callCreateNewOrder(CartModel cart) async {
-    print("create new order function called!!!");
     try{
       resetValue();
       if(await checkTableStatus(cart) == false){
@@ -2244,6 +2243,10 @@ class CartPageState extends State<CartPage> {
           } else if (printStatus == 5) {
             Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
           }
+        }
+        List<cartProductItem> ticketProduct = cart.cartNotifierItem.where((e) => e.allow_ticket == 1).toList();
+        if(ticketProduct.isNotEmpty){
+          printReceipt.printProductTicket(printerList, int.parse(this.orderCacheId), ticketProduct);
         }
         cart.removeAllCartItem();
         cart.removeAllTable();
@@ -2310,6 +2313,10 @@ class CartPageState extends State<CartPage> {
               Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
             }
           }
+          List<cartProductItem> ticketProduct = cart.cartNotifierItem.where((e) => e.allow_ticket == 1 && e.status == 0).toList();
+          if(ticketProduct.isNotEmpty){
+            printReceipt.printProductTicket(printerList, int.parse(this.orderCacheId), ticketProduct);
+          }
           cart.removeAllCartItem();
           cart.removeAllTable();
           Navigator.of(context).pop();
@@ -2358,7 +2365,6 @@ class CartPageState extends State<CartPage> {
 */
   callCreateNewNotDineOrder(CartModel cart, AppSettingModel appSettingModel) async {
     try {
-      print("callCreateNewNotDineOrder");
       resetValue();
       await createOrderCache(cart, isAddOrder: false);
       await createOrderDetail(cart);
@@ -2375,6 +2381,10 @@ class CartPageState extends State<CartPage> {
         } else if (printStatus == 5) {
           Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
         }
+      }
+      List<cartProductItem> ticketProduct = cart.cartNotifierItem.where((e) => e.allow_ticket == 1).toList();
+      if(ticketProduct.isNotEmpty){
+        printReceipt.printProductTicket(printerList, int.parse(this.orderCacheId), ticketProduct);
       }
       Navigator.of(context).pop();
       checkDirectPayment(appSettingModel, cart);
@@ -3129,6 +3139,7 @@ class CartPageState extends State<CartPage> {
           updated_at: '',
           soft_delete: '');
 
+      newOrderDetailList[j].productVariantName = object.product_variant_name;
       try {
         OrderDetail orderDetailData = await PosDatabase.instance.insertSqliteOrderDetail(object);
         BranchLinkProduct? branchLinkProductData = await updateProductStock(
