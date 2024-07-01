@@ -337,7 +337,10 @@ class OrderDetail{
     'order_modifier_detail': orderModifierDetail,
     'tableNumber': tableNumber,
     'failPrintBatch': failPrintBatch,
-    'isSelected': isSelected
+    'isSelected': isSelected,
+    'allow_ticket': allow_ticket,
+    'ticket_count': ticket_count,
+    'ticket_exp': ticket_exp
   };
 
   Map<String, Object?> toInsertJson() => {
