@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/bill/refund_dialog.dart';
@@ -162,7 +163,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                             child: ListTile(
                               contentPadding: EdgeInsets.all(10),
                               title: Text(
-                                'RM${paidOrderList[index].final_amount}',
+                                'RM${paidOrderList[index].final_amount}' + getPaymentSplitStatus(paidOrderList[index].payment_status!, paidOrderList[index].payment_split!),
                                 style: TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold),
                               ),
                               leading: CircleAvatar(
@@ -435,21 +436,24 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                           trailing: Icon(Icons.navigate_next),
                         )
                       ),
-                      Card(
-                          elevation: 5,
-                          child: ListTile(
-                            leading: CircleAvatar(
-                                backgroundColor: Colors.grey.shade200,
-                                child: Icon(
-                                  Icons.edit,
-                                  color: Colors.grey,
-                                )),
-                            title: Text(AppLocalizations.of(context)!.translate('edit_payment_method')),
-                            onTap: (){
-                              openPaymentSelect(order: order);
-                            },
-                            trailing: Icon(Icons.navigate_next),
-                          )
+                      Visibility(
+                        visible: order.payment_split != 0 ? false : true,
+                        child: Card(
+                            elevation: 5,
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                  backgroundColor: Colors.grey.shade200,
+                                  child: Icon(
+                                    Icons.edit,
+                                    color: Colors.grey,
+                                  )),
+                              title: Text(AppLocalizations.of(context)!.translate('edit_payment_method')),
+                              onTap: (){
+                                openPaymentSelect(order: order);
+                              },
+                              trailing: Icon(Icons.navigate_next),
+                            )
+                        ),
                       ),
                     ]
                   ),

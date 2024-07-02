@@ -4960,7 +4960,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.payment_type_id, c.refund_by AS refund_name, c.created_at AS refund_at FROM $tableOrder AS a '
-        'JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
+        'LEFT JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
         'JOIN $tableRefund AS c ON a.refund_key = c.refund_key '
         'WHERE a.payment_status = ? AND a.refund_key != ? AND a.soft_delete = ? AND c.soft_delete = ? '
         'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? '
@@ -4976,7 +4976,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.payment_type_id, c.refund_by AS refund_name, c.created_at AS refund_at FROM $tableOrder AS a '
-            'JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
+            'LEFT JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
             'JOIN $tableRefund AS c ON a.refund_key = c.refund_key JOIN $tableCashRecord AS d on a.settlement_key = d.settlement_key AND d.remark = ?'
             'WHERE a.payment_status = ? AND a.refund_key != ? AND a.soft_delete = ? AND c.soft_delete = ? '
             'AND SUBSTR(d.created_at, 1, 10) >= ? AND SUBSTR(d.created_at, 1, 10) < ? '
@@ -5111,8 +5111,8 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.* FROM $tableOrderPromotionDetail AS a JOIN '
-        '$tableOrder AS b ON a.order_sqlite_id = b.order_sqlite_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND b.payment_status = ?',
-        ['', '', 1]);
+        '$tableOrder AS b ON a.order_sqlite_id = b.order_sqlite_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND b.payment_status = ? AND b.payment_split != ?',
+        ['', '', 1, 2]);
     return result.map((json) => OrderPromotionDetail.fromJson(json)).toList();
   }
 
@@ -5124,8 +5124,8 @@ class PosDatabase {
     final result = await db.rawQuery(
         'SELECT a.*, c.created_at AS counterOpenDate FROM $tableOrderPromotionDetail AS a JOIN '
             '$tableOrder AS b ON a.order_sqlite_id = b.order_sqlite_id JOIN $tableCashRecord AS c on b.settlement_key = c.settlement_key AND c.remark = ?'
-            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND b.payment_status = ?',
-        ['Opening Balance', '', '', 1]);
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND b.payment_status = ? AND b.payment_split != ?',
+        ['Opening Balance', '', '', 1, 2]);
     return result.map((json) => OrderPromotionDetail.fromJson(json)).toList();
   }
 
@@ -5136,7 +5136,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.payment_type_id '
-        'FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b '
+        'FROM $tableOrder AS a LEFT JOIN $tablePaymentLinkCompany AS b '
         'ON a.payment_link_company_id = b.payment_link_company_id '
         'WHERE a.soft_delete = ? AND a.payment_status != ? ORDER BY a.created_at DESC',
         ['', 0]);
@@ -5150,7 +5150,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.payment_type_id, c.created_at AS counterOpenDate '
-            'FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b '
+            'FROM $tableOrder AS a LEFT JOIN $tablePaymentLinkCompany AS b '
             'ON a.payment_link_company_id = b.payment_link_company_id '
             'JOIN $tableCashRecord AS c on a.settlement_key = c.settlement_key AND c.remark = ?'
             'WHERE a.soft_delete = ? AND a.payment_status != ? ORDER BY c.created_at DESC',
