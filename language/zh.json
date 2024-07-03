@@ -124,7 +124,6 @@
   "confirm_remove_all_system_log": "确认移除所有系统日志?",
   "confirm_remove_all_system_log_desc": "您想删除所有本机系统日志吗？",
   "confirm_remove_item": "确认移除项目？",
-  "confirm_reprint_check_list": "确认重新打印检查清单？",
   "confirm_reset_all_table": "确认重置所有桌子状态吗？",
   "confirm_reset_all_table_desc": "所有正在使用的桌子订单都将被重置(需要重新下所有餐桌订单)，您确定吗？",
   "confirm_reset_table_no": "确认重置桌号",
@@ -455,7 +454,9 @@
   "report": "报告",
   "report_calculate_based_on_opening_balance": "所有的报告将根据期初余额进行计算",
   "reprint": "重印",
+  "reprint_checklist": "重新打印清单",
   "reprint_settlement": "重新打印结算单",
+  "reprint_product_ticket": "重印产品票",
   "reset_all_table": "重置所有桌子",
   "reset_pos": "重置 POS",
   "reset_screen": "重置屏幕",
@@ -583,7 +584,6 @@
   "wifi_setting": "Wi-Fi 设置",
   "with_table": "与桌子",
   "would_you_like_to_remove": "确定是否删除？",
-  "would_you_like_to_reprint_check_list": "您想重新打印检查清单吗？",
   "wrong_pin_please_insert_valid_pin": "PIN 错误，请输入有效的 PIN",
   "yes": "是"
 }

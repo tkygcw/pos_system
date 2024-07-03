@@ -124,7 +124,6 @@
   "confirm_remove_all_system_log": "Sahkan padam semua log sistem?",
   "confirm_remove_all_system_log_desc": "Adakah anda ingin mengalih keluar semua log sistem dalam pos ini?",
   "confirm_remove_item": "Sahkan pemadam item?",
-  "confirm_reprint_check_list": "Sahkan pencetakan semula senarai semak?",
   "confirm_reset_all_table": "Sahkan tetapkan semula semua keadaan meja?",
   "confirm_reset_all_table_desc": "Semua meja yang sedang digunakan akan ditetapkan semula(perlu meletakkan semula semua pesanan meja), adakah anda pasti?",
   "confirm_reset_table_no": "Sahkan tetapkan semula meja no",
@@ -455,7 +454,9 @@
   "report": "Laporan",
   "report_calculate_based_on_opening_balance": "Laporan akan mengira berdasarkan baki pembukaan",
   "reprint": "Cetak semula",
+  "reprint_checklist": "Cetak semula senarai semak",
   "reprint_settlement": "Cetak semula penyelesaian",
+  "reprint_product_ticket": "Cetak semula tiket produk",
   "reset_all_table": "Tetapkan semula semua meja",
   "reset_pos": "Tetap semula POS",
   "reset_screen": "Tetapkan Semula Skrin",
@@ -583,7 +584,6 @@
   "wifi_setting": "Tetapan Wi-Fi",
   "with_table": "dengan meja",
   "would_you_like_to_remove": "Adakah anda ingin memadam?",
-  "would_you_like_to_reprint_check_list": "Adakah anda ingin mencetak semula senarai semak?",
   "wrong_pin_please_insert_valid_pin": "PIN salah. Sila masukkan PIN yang sah",
   "yes": "Ya"
 }

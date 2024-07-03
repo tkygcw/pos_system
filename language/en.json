@@ -124,7 +124,6 @@
   "confirm_remove_all_system_log": "Confirm remove all system log?",
   "confirm_remove_all_system_log_desc": "Would you like to remove all system log in this pos?",
   "confirm_remove_item": "Confirm remove item ?",
-  "confirm_reprint_check_list": "Confirm reprint check list?",
   "confirm_reset_all_table": "Confirm reset all table?",
   "confirm_reset_all_table_desc": "All of the order inside table in-used will be reset(need to re-place all table order), are you sure?",
   "confirm_reset_table_no": "Confirm reset table no",
@@ -455,7 +454,9 @@
   "report": "Report",
   "report_calculate_based_on_opening_balance": "The report will calculate based on the opening balance",
   "reprint": "Reprint",
+  "reprint_checklist": "Reprint checklist",
   "reprint_settlement": "Reprint settlement",
+  "reprint_product_ticket": "Reprint product ticket",
   "reset_all_table": "Reset all table",
   "reset_pos": "Reset Pos",
   "reset_screen": "Reset Screen",
@@ -583,7 +584,6 @@
   "wifi_setting": "Wi-Fi setting",
   "with_table": "with table",
   "would_you_like_to_remove": "Would you like to remove?",
-  "would_you_like_to_reprint_check_list": "Would you like to reprint check list?",
   "wrong_pin_please_insert_valid_pin": "Wrong pin. Please insert valid pin",
   "yes": "Yes"
 }

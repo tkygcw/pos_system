@@ -23,6 +23,7 @@ import '../../database/pos_database.dart';
 import '../../main.dart';
 import '../../notifier/fail_print_notifier.dart';
 import '../../object/branch_link_product.dart';
+import '../../object/cart_product.dart';
 import '../../object/order_cache.dart';
 import '../../object/order_detail.dart';
 import '../../object/table_use.dart';
@@ -384,7 +385,8 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                               if(_appSettingModel.autoPrintChecklist == true){
                                 await printCheckList();
                               }
-                              syncToCloudFunction();
+                              printProductTicket(widget.orderCacheLocalId);
+                              // syncToCloudFunction();
                               widget.callBack();
                               Navigator.of(context).pop();
                               await callPrinter();
@@ -633,7 +635,8 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                               if(_appSettingModel.autoPrintChecklist == true){
                                 await printCheckList();
                               }
-                              syncToCloudFunction();
+                              printProductTicket(widget.orderCacheLocalId);
+                              // syncToCloudFunction();
                               widget.callBack();
                               Navigator.of(context).pop();
                               await callPrinter();
@@ -662,13 +665,47 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     });
   }
 
-
-
   syncToCloudFunction() async {
     await syncAllToCloud();
     if (this.isLogOut == true) {
       openLogOutDialog();
       return;
+    }
+  }
+
+  printProductTicket(int orderCacheLocalId){
+    print("print product ticket called!!!");
+    try{
+      List<cartProductItem> cartItem = [];
+      List<OrderDetail> ticketOrderDetail = orderDetailList.where((e) => e.allow_ticket == 1).toList();
+      if(ticketOrderDetail.isNotEmpty){
+        for(final detail in ticketOrderDetail){
+          cartItem.add(cartProductItem(
+              product_name: detail.productName,
+              price: detail.price,
+              productVariantName: detail.product_variant_name,
+              quantity: convertQtyToNum(detail.quantity!),
+              unit: detail.unit,
+              remark: detail.remark,
+              orderModifierDetail: detail.orderModifierDetail,
+              per_quantity_unit: detail.per_quantity_unit,
+              ticket_count: detail.ticket_count,
+              ticket_exp: detail.ticket_exp
+          ));
+        }
+        PrintReceipt().printProductTicket(printerList, orderCacheLocalId, cartItem);
+      }
+    } catch(e) {
+      print("print product ticket error: ${e}");
+    }
+  }
+
+  convertQtyToNum(String quantity){
+    var val = int.tryParse(quantity);
+    if(val == null){
+      return double.parse(quantity);
+    } else {
+      return val;
     }
   }
 
@@ -1195,6 +1232,9 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     for (int i = 0; i < orderDetailList.length; i++) {
       BranchLinkProduct? data = await PosDatabase.instance.readSpecificAvailableBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
       if(data != null){
+        orderDetailList[i].allow_ticket = data.allow_ticket;
+        orderDetailList[i].ticket_count = data.ticket_count;
+        orderDetailList[i].ticket_exp = data.ticket_exp;
         switch(data.stock_type){
           case '1':{
             orderDetailList[i].available_stock = data.daily_limit_amount!;

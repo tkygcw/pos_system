@@ -96,6 +96,9 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   }
 
   productChecking() async {
+    print("product allow ticket: ${widget.productDetail?.allow_ticket}");
+    print("product ticket count: ${widget.productDetail?.ticket_count}");
+    print("product ticket exp: ${widget.productDetail?.ticket_exp}");
     await readProductVariant(widget.productDetail!.product_sqlite_id!);
     await readProductModifier(widget.productDetail!.product_sqlite_id!);
     await getProductPrice(widget.productDetail!.product_sqlite_id);
@@ -356,7 +359,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                       ),
                                     Column(
                                       children: [
-
                                         Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: Row(
@@ -1538,7 +1540,10 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         base_price: basePrice,
         refColor: Colors.black,
         unit: widget.productDetail!.unit!,
-        per_quantity_unit: widget.productDetail!.unit! != 'each' && widget.productDetail!.unit != 'each_c' ? widget.productDetail!.per_quantity_unit! : ''
+        per_quantity_unit: widget.productDetail!.unit! != 'each' && widget.productDetail!.unit != 'each_c' ? widget.productDetail!.per_quantity_unit! : '',
+        allow_ticket: widget.productDetail?.allow_ticket,
+        ticket_count: widget.productDetail?.ticket_count,
+        ticket_exp: widget.productDetail?.ticket_exp
     );
     print('value checked item length: ${value.checkedModifierLength}');
     print(jsonEncode((value)));

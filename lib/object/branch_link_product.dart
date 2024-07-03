@@ -64,6 +64,9 @@ class BranchLinkProduct {
   String? soft_delete;
   String? variant_name;
   String? product_name;
+  int? allow_ticket;
+  int? ticket_count;
+  String? ticket_exp;
 
   BranchLinkProduct(
       {this.branch_link_product_sqlite_id,
@@ -85,7 +88,11 @@ class BranchLinkProduct {
         this.updated_at,
         this.soft_delete,
         this.variant_name,
-        this.product_name});
+        this.product_name,
+        this.allow_ticket,
+        this.ticket_count,
+        this.ticket_exp,
+      });
 
   BranchLinkProduct copy({
     int? branch_link_product_sqlite_id,
@@ -133,27 +140,29 @@ class BranchLinkProduct {
       );
 
   static BranchLinkProduct fromJson(Map<String, Object?> json) => BranchLinkProduct(
-    branch_link_product_sqlite_id: json[BranchLinkProductFields.branch_link_product_sqlite_id] as int?,
-    branch_link_product_id: json[BranchLinkProductFields.branch_link_product_id] as int?,
-    branch_id: json[BranchLinkProductFields.branch_id] as String?,
+      branch_link_product_sqlite_id: json[BranchLinkProductFields.branch_link_product_sqlite_id] as int?,
+      branch_link_product_id: json[BranchLinkProductFields.branch_link_product_id] as int?,
+      branch_id: json[BranchLinkProductFields.branch_id] as String?,
       product_sqlite_id: json[BranchLinkProductFields.product_sqlite_id] as String?,
-    product_id: json[BranchLinkProductFields.product_id] as String?,
-    has_variant: json[BranchLinkProductFields.has_variant] as String?,
+      product_id: json[BranchLinkProductFields.product_id] as String?,
+      has_variant: json[BranchLinkProductFields.has_variant] as String?,
       product_variant_id: json[BranchLinkProductFields.product_variant_id] as String?,
       product_variant_sqlite_id: json[BranchLinkProductFields.product_variant_sqlite_id] as String?,
-    b_SKU: json[BranchLinkProductFields.b_SKU] as String?,
-    price: json[BranchLinkProductFields.price] as String?,
-    stock_type: json[BranchLinkProductFields.stock_type] as String?,
-    daily_limit: json[BranchLinkProductFields.daily_limit] as String?,
-    daily_limit_amount: json[BranchLinkProductFields.daily_limit_amount] as String?,
-    stock_quantity: json[BranchLinkProductFields.stock_quantity] as String?,
+      b_SKU: json[BranchLinkProductFields.b_SKU] as String?,
+      price: json[BranchLinkProductFields.price] as String?,
+      stock_type: json[BranchLinkProductFields.stock_type] as String?,
+      daily_limit: json[BranchLinkProductFields.daily_limit] as String?,
+      daily_limit_amount: json[BranchLinkProductFields.daily_limit_amount] as String?,
+      stock_quantity: json[BranchLinkProductFields.stock_quantity] as String?,
       sync_status: json[BranchLinkProductFields.sync_status] as int?,
-    created_at: json[BranchLinkProductFields.created_at] as String?,
-    updated_at: json[BranchLinkProductFields.updated_at] as String?,
-    soft_delete: json[BranchLinkProductFields.soft_delete] as String?,
-    variant_name: json['variant_name'] as String?,
-    product_name: json['name'] as String?
-
+      created_at: json[BranchLinkProductFields.created_at] as String?,
+      updated_at: json[BranchLinkProductFields.updated_at] as String?,
+      soft_delete: json[BranchLinkProductFields.soft_delete] as String?,
+      variant_name: json['variant_name'] as String?,
+      product_name: json['name'] as String?,
+      allow_ticket: json['allow_ticket'] as int?,
+      ticket_count: json['ticket_count'] as int?,
+      ticket_exp: json['ticket_exp'] as String?
   );
 
   Map<String, Object?> toJson() => {
