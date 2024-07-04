@@ -29,7 +29,6 @@ import '../notifier/theme_color.dart';
 import '../object/cash_record.dart';
 import '../object/print_receipt.dart';
 import '../object/printer.dart';
-import '../object/qr_order.dart';
 import '../object/user.dart';
 import '../second_device/server.dart';
 
@@ -271,7 +270,7 @@ class _PosPinPageState extends State<PosPinPage> {
       //sync qr order
       if(qrOrder.count == 0){
         qrOrder.count = 1;
-        await QrOrder.instance.getQrOrder(MyApp.navigatorKey.currentContext!);
+        await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
         qrOrder.count = 0;
       }
 

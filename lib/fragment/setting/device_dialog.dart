@@ -130,7 +130,6 @@ class _DeviceDialogState extends State<DeviceDialog> {
         isLoad = true;
       });
     }
-    print("device list: ${devices.toString()}");
   }
 
   @override

@@ -6,7 +6,6 @@ import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';

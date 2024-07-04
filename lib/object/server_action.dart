@@ -95,10 +95,10 @@ class ServerAction {
         break;
         case '2': {
           var parameter = jsonDecode(param);
-          Product product = Product.fromJson(parameter);
+          Product product = Product.fromJson(parameter['product_detail']);
           ProductOrderDialogState state = ProductOrderDialogState();
           await state.readProductVariant(product.product_sqlite_id!);
-          await state.readProductModifier(product.product_sqlite_id!);
+          await state.readProductModifier(product.product_sqlite_id!, diningOptionId: parameter['dining_option_id']);
           List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(product.product_sqlite_id.toString());
           objectData = {
             'variant': state.variantGroup,
@@ -128,11 +128,11 @@ class ServerAction {
         }
         break;
         case '6': {
-          List<Promotion> promotionList = [];
-          List<BranchLinkPromotion> data = await PosDatabase.instance.readBranchLinkPromotion();
-          for (int i = 0; i < data.length; i++) {
-            promotionList = await PosDatabase.instance.checkPromotion(data[i].promotion_id!);
-          }
+          // List<Promotion> promotionList = [];
+          // List<BranchLinkPromotion> data = await PosDatabase.instance.readBranchLinkPromotion();
+          // for (int i = 0; i < data.length; i++) {
+          //   promotionList = await PosDatabase.instance.checkPromotion(data[i].promotion_id!);
+          // }
           CartPageState cartPageState = CartPageState();
           await cartPageState.readAllBranchLinkDiningOption(serverCall: 1);
           await cartPageState.getPromotionData();
