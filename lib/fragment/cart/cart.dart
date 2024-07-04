@@ -862,8 +862,9 @@ class CartPageState extends State<CartPage> {
                                                       isLoading = true;
                                                     });
                                                     paymentAddToCart(cart);
-                                                    int printStatus = await printReceipt.printReviewReceipt(printerList, cart.selectedTable, cart, context);
-                                                    checkPrinterStatus(printStatus);
+
+                                                    openReprintDialog(printerList, cart);
+
                                                     setState(() {
                                                       isLoading = false;
                                                     });
@@ -1746,7 +1747,11 @@ class CartPageState extends State<CartPage> {
           promotion.promoRate = promoRate;
         }
       }
-      promoAmount += promo;
+      if(newOrderSubtotal > promo) {
+        promoAmount += promo;
+      } else {
+        autoApplyPromotionList.remove(promotion);
+      }
     } catch (e) {
       print("calc auto apply non specific error: $e");
       promoRate = '';
@@ -1770,7 +1775,11 @@ class CartPageState extends State<CartPage> {
         promoRate = promotion.amount! + '%';
         promotion.promoRate = promoRate;
       }
-      promoAmount += promo;
+      if(newOrderSubtotal > promo) {
+        promoAmount += promo;
+      } else {
+        autoApplyPromotionList.remove(promotion);
+      }
     } catch (e) {
       print("calc auto apply specific category error: $e");
       promoRate = '';
@@ -2532,46 +2541,22 @@ class CartPageState extends State<CartPage> {
 
   printKitchenList() async {
     try {
-      String flushbarStatus = '';
-      List<OrderDetail>? returnData = await printReceipt.printKitchenList(printerList, int.parse(this.orderCacheId));
-      if(returnData != null){
-        if (returnData.isNotEmpty) {
-          _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
-          CustomSnackBar.instance.showSnackBar(
-              title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
-              description: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
-              contentType: ContentType.failure,
-              playSound: true,
-              playtime: 2);
-          // playSound();
-          // Flushbar(
-          //   icon: Icon(Icons.error, size: 32, color: Colors.white),
-          //   shouldIconPulse: false,
-          //   title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
-          //   message: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
-          //   duration: Duration(seconds: 5),
-          //   backgroundColor: Colors.red,
-          //   messageColor: Colors.white,
-          //   flushbarPosition: FlushbarPosition.TOP,
-          //   maxWidth: 350,
-          //   margin: EdgeInsets.all(8),
-          //   borderRadius: BorderRadius.circular(8),
-          //   padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-          //   onTap: (flushbar) {
-          //     flushbar.dismiss(true);
-          //   },
-          //   onStatusChanged: (status) {
-          //     flushbarStatus = status.toString();
-          //   },
-          // )
-          //   ..show(context);
-          // Future.delayed(Duration(seconds: 3), () {
-          //   playSound();
-          // });
+      asyncQ.addJob((_) async {
+        List<OrderDetail>? returnData = await printReceipt.printKitchenList(printerList, int.parse(this.orderCacheId));
+        if(returnData != null){
+          if (returnData.isNotEmpty) {
+            _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
+            CustomSnackBar.instance.showSnackBar(
+                title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
+                description: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
+                contentType: ContentType.failure,
+                playSound: true,
+                playtime: 2);
+          }
+        } else {
+          Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('no_printer_added')}");
         }
-      } else {
-        Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('no_printer_added')}");
-      }
+      });
     } catch (e) {
       print("print kitchen list error: $e");
     }

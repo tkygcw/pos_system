@@ -2737,208 +2737,9 @@ class ReceiptLayout{
   }
 
 /*
-  qr kitchen layout 80mm
-*/
-  printQrKitchenList80mm(bool isUSB, OrderDetail orderDetail, int localId, {value}) async {
-    String dateTime = dateFormat.format(DateTime.now());
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    await readOrderCache(localId);
-
-    if(_isLoad == true){
-      var generator;
-      if (isUSB) {
-        final profile = await CapabilityProfile.load();
-        generator = Generator(PaperSize.mm80, profile);
-      } else {
-        generator = value;
-      }
-
-      List<int> bytes = [];
-      try {
-        bytes += generator.text('** kitchen list **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
-        bytes += generator.emptyLines(1);
-        bytes += generator.reset();
-        //other order detail
-        if(orderDetail.tableNumber.isNotEmpty){
-          bytes += generator.text('Table No: ${orderDetail.tableNumber[0]}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
-        } else {
-          bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
-        }
-        bytes += generator.text('Batch No: #${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('order time: ${Utils.formatDate(orderCache!.created_at)}', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.hr();
-        bytes += generator.reset();
-        /*
-    *
-    * body
-    *
-    * */
-        //order product
-        bytes += generator.row([
-          PosColumn(text: '${orderDetail.quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true, height: PosTextSize.size2, width: PosTextSize.size2)),
-          PosColumn(
-              text: '${orderDetail.productName}',
-              width: 8,
-              containsChinese: true,
-              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2)),
-          PosColumn(
-              text: '',
-              width: 2,
-              styles: PosStyles(align: PosAlign.right)),
-        ]);
-        bytes += generator.reset();
-        //product variant
-        if(orderDetail.has_variant == '1'){
-          bytes += generator.row([
-            PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.left)),
-            PosColumn(text: '(${orderDetail.product_variant_name})', width: 8, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
-            PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
-          ]);
-        }
-        bytes += generator.reset();
-        //product modifier
-        if(orderDetail.orderModifierDetail.isNotEmpty) {
-          List<OrderModifierDetail> modList = orderDetail.orderModifierDetail;
-          for (int j = 0; j < modList.length; j++) {
-            //modifier
-            bytes += generator.row([
-              PosColumn(text: '', width: 2),
-              PosColumn(text: '+${modList[j].mod_name}',
-                  width: 8,
-                  containsChinese: true,
-                  styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2)),
-              PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
-            ]);
-          }
-        }
-        /*
-        * product remark
-        * */
-        bytes += generator.reset();
-        if (orderDetail.remark != '') {
-          bytes += generator.row([
-            PosColumn(text: '', width: 2),
-            PosColumn(text: '**${orderDetail.remark}', width: 8, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
-            PosColumn(text: '', width: 2),
-          ]);
-        }
-
-        bytes += generator.feed(1);
-        bytes += generator.cut(mode: PosCutMode.partial);
-        return bytes;
-      } catch (e) {
-        print('layout error: $e');
-        return null;
-      }
-    }
-  }
-
-/*
-  qr kitchen layout 58mm
-*/
-  printQrKitchenList58mm(bool isUSB, OrderDetail orderDetail, int localId, {value}) async {
-    String dateTime = dateFormat.format(DateTime.now());
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    await readOrderCache(localId);
-
-    if(_isLoad == true){
-      var generator;
-      if (isUSB) {
-        final profile = await CapabilityProfile.load();
-        generator = Generator(PaperSize.mm58, profile);
-      } else {
-        generator = value;
-      }
-
-      List<int> bytes = [];
-      try {
-        bytes += generator.text('** kitchen list **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
-        bytes += generator.emptyLines(1);
-        bytes += generator.reset();
-        //other order detail
-        if(orderDetail.tableNumber.isNotEmpty){
-          bytes += generator.text('Table No: ${orderDetail.tableNumber[0]}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
-        } else {
-          bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
-        }
-        bytes += generator.text('Batch No', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('#${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('order time', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('${Utils.formatDate(dateTime)}', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.hr();
-        bytes += generator.reset();
-        /*
-    *
-    * body
-    *
-    * */
-        //order product
-        bytes += generator.row([
-          PosColumn(text: '${orderDetail.quantity}', width: 2, styles: PosStyles(bold: true, height: PosTextSize.size2, width: PosTextSize.size2)),
-          PosColumn(
-              text: '${orderDetail.productName}',
-              width: 8,
-              containsChinese: true,
-              styles: PosStyles(height: PosTextSize.size2, width: PosTextSize.size2)),
-          PosColumn(
-              text: '',
-              width: 2),
-        ]);
-        bytes += generator.reset();
-        //product variant
-        if(orderDetail.has_variant == '1'){
-          bytes += generator.row([
-            PosColumn(text: '', width: 2),
-            PosColumn(text: '(${orderDetail.product_variant_name})', width: 8, containsChinese: true,),
-            PosColumn(text: '', width: 2),
-          ]);
-        }
-        bytes += generator.reset();
-
-        //product modifier
-        if(orderDetail.orderModifierDetail.isNotEmpty) {
-          List<OrderModifierDetail> modList = orderDetail.orderModifierDetail;
-          for (int j = 0; j < modList.length; j++) {
-            //modifier
-            bytes += generator.row([
-              PosColumn(text: '', width: 2),
-              PosColumn(text: '+${modList[j].mod_name}',
-                  width: 8,
-                  containsChinese: true,
-                  styles: PosStyles(height: PosTextSize.size2, width: PosTextSize.size2)),
-              PosColumn(text: '', width: 2),
-            ]);
-          }
-        }
-        /*
-        * product remark
-        * */
-        bytes += generator.reset();
-        if (orderDetail.remark != '') {
-          bytes += generator.row([
-            PosColumn(text: '', width: 2),
-            PosColumn(text: '**${orderDetail.remark}', width: 8, containsChinese: true),
-            PosColumn(text: '', width: 2),
-          ]);
-        }
-
-        bytes += generator.feed(1);
-        bytes += generator.cut(mode: PosCutMode.partial);
-        return bytes;
-      } catch (e) {
-        print('layout error: $e');
-        return null;
-      }
-    }
-
-  }
-
-/*
   kitchen layout 80mm
 */
-  printKitchenList80mm(bool isUSB, int localId, {value, required OrderDetail orderDetail}) async {
+  printKitchenList80mm(bool isUSB, int localId, {value, required OrderDetail orderDetail, bool? isReprint}) async {
     print("printKitchenList80mm called");
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
@@ -2966,7 +2767,7 @@ class ReceiptLayout{
 
       List<int> bytes = [];
       try {
-        bytes += generator.text('** kitchen list **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
+        bytes += generator.text(isReprint != null ? '** Reprint List **' : '** kitchen list **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
         //other order detail
@@ -3086,7 +2887,7 @@ class ReceiptLayout{
 /*
   kitchen layout 58mm
 */
-  printKitchenList58mm(bool isUSB, int localId, {value, required OrderDetail orderDetail}) async {
+  printKitchenList58mm(bool isUSB, int localId, {value, required OrderDetail orderDetail, bool? isReprint}) async {
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
@@ -3114,7 +2915,7 @@ class ReceiptLayout{
 
       List<int> bytes = [];
       try {
-        bytes += generator.text('** kitchen list **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
+        bytes += generator.text(isReprint != null ? '** Reprint List **' : '** kitchen list **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
         //other order detail
