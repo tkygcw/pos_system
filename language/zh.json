@@ -454,6 +454,7 @@
   "report_calculate_based_on_opening_balance": "所有的报告将根据期初余额进行计算",
   "reprint": "重印",
   "reprint_checklist": "重新打印清单",
+  "reprint_kitchen_list": "重新厨房清单",
   "reprint_settlement": "重新打印结算单",
   "reprint_product_ticket": "重印产品票",
   "reset_all_table": "重置所有桌子",
