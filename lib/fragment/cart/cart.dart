@@ -758,24 +758,20 @@ class CartPageState extends State<CartPage> {
                                                     }
                                                   } else if (widget.currentPage == 'table') {
                                                     if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
-                                                      if (total == 0.0 && double.parse(finalAmount) == 0.0 || total != 0.0 && double.parse(finalAmount) != 0.0) {
-                                                        if (cart.selectedTable.length > 1) {
-                                                          if (await confirm(
-                                                            context,
-                                                            title: Text('${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
-                                                            content: Text('${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
-                                                            textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                                                            textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
-                                                          )) {
-                                                            paymentAddToCart(cart);
-                                                            return openPaymentSelect(cart);
-                                                          }
-                                                        } else {
+                                                      if (cart.selectedTable.length > 1) {
+                                                        if (await confirm(
+                                                          context,
+                                                          title: Text('${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
+                                                          content: Text('${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
+                                                          textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                                                          textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                                                        )) {
                                                           paymentAddToCart(cart);
-                                                          openPaymentSelect(cart);
+                                                          return openPaymentSelect(cart);
                                                         }
                                                       } else {
-                                                        Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Payment not match");
+                                                        paymentAddToCart(cart);
+                                                        openPaymentSelect(cart);
                                                       }
                                                     } else {
                                                       Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
