@@ -119,8 +119,8 @@ class cartProductItem{
          per_quantity_unit: json['per_quantity_unit'] as String?,
          order_queue: json['order_queue'] as String?,
          allow_ticket: json['allow_ticket'] as int?,
-         ticket_count: json['ticketCount'] as int?,
-         ticket_exp: json['ticket_exp'] as String
+         ticket_count: json['ticket_count'] as int?,
+         ticket_exp: json['ticket_exp'] as String?
      );
    }
 
@@ -154,7 +154,10 @@ class cartProductItem{
      'orderModifierDetail': orderModifierDetail,
      'unit': unit,
      'per_quantity_unit': per_quantity_unit,
-     'order_queue': order_queue
+     'order_queue': order_queue,
+     'allow_ticket': allow_ticket,
+     'ticket_count': ticket_count,
+     'ticket_exp': ticket_exp
    };
 
 }

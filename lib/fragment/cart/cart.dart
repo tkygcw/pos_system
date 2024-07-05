@@ -2329,7 +2329,8 @@ class CartPageState extends State<CartPage> {
         }
         List<cartProductItem> ticketProduct = cart.cartNotifierItem.where((e) => e.allow_ticket == 1).toList();
         if(ticketProduct.isNotEmpty){
-          printReceipt.printProductTicket(printerList, int.parse(this.orderCacheId), ticketProduct);
+          asyncQ.addJob((_) => printReceipt.printProductTicket(printerList, int.parse(this.orderCacheId), ticketProduct));
+          // printReceipt.printProductTicket(printerList, int.parse(this.orderCacheId), ticketProduct);
         }
         cart.removeAllCartItem();
         cart.removeAllTable();
@@ -2342,8 +2343,8 @@ class CartPageState extends State<CartPage> {
         //   openLogOutDialog();
         //   return;
         // }
-
-        printKitchenList();
+        asyncQ.addJob((_) => printKitchenList());
+        // printKitchenList();
       } else {
         cart.removeAllCartItem();
         cart.removeAllTable();
@@ -2398,7 +2399,7 @@ class CartPageState extends State<CartPage> {
           }
           List<cartProductItem> ticketProduct = cart.cartNotifierItem.where((e) => e.allow_ticket == 1 && e.status == 0).toList();
           if(ticketProduct.isNotEmpty){
-            printReceipt.printProductTicket(printerList, int.parse(this.orderCacheId), ticketProduct);
+            asyncQ.addJob((_) => printReceipt.printProductTicket(printerList, int.parse(this.orderCacheId), ticketProduct));
           }
           cart.removeAllCartItem();
           cart.removeAllTable();
@@ -2409,8 +2410,8 @@ class CartPageState extends State<CartPage> {
           //   openLogOutDialog();
           //   return;
           // }
-
-          printKitchenList();
+          asyncQ.addJob((_) => printKitchenList());
+          // printKitchenList();
         } else {
           Navigator.of(context).pop();
           showOutOfStockDialog(outOfStockItem);
@@ -2467,7 +2468,7 @@ class CartPageState extends State<CartPage> {
       }
       List<cartProductItem> ticketProduct = cart.cartNotifierItem.where((e) => e.allow_ticket == 1).toList();
       if(ticketProduct.isNotEmpty){
-        printReceipt.printProductTicket(printerList, int.parse(this.orderCacheId), ticketProduct);
+        asyncQ.addJob((_) => printReceipt.printProductTicket(printerList, int.parse(this.orderCacheId), ticketProduct));
       }
       Navigator.of(context).pop();
       checkDirectPayment(appSettingModel, cart);
@@ -2477,8 +2478,8 @@ class CartPageState extends State<CartPage> {
       //   openLogOutDialog();
       //   return;
       // }
-
-      printKitchenList();
+      asyncQ.addJob((_) => printKitchenList());
+      // printKitchenList();
     } catch(e) {
       FLog.error(
         className: "cart",
@@ -2487,8 +2488,6 @@ class CartPageState extends State<CartPage> {
       );
     }
   }
-
-
 
   Future<List<cartProductItem>> checkOrderStock(CartModel cartModel) async {
     List<cartProductItem> outOfStockItem = [];

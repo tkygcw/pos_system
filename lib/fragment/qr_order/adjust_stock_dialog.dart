@@ -674,7 +674,6 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   }
 
   printProductTicket(int orderCacheLocalId){
-    print("print product ticket called!!!");
     try{
       List<cartProductItem> cartItem = [];
       List<OrderDetail> ticketOrderDetail = orderDetailList.where((e) => e.allow_ticket == 1).toList();
@@ -693,7 +692,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
               ticket_exp: detail.ticket_exp
           ));
         }
-        PrintReceipt().printProductTicket(printerList, orderCacheLocalId, cartItem);
+        asyncQ.addJob((_) async => await PrintReceipt().printProductTicket(printerList, orderCacheLocalId, cartItem));
       }
     } catch(e) {
       print("print product ticket error: ${e}");
@@ -737,31 +736,31 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
             playSound: true,
             playtime: 2,
             contentType: ContentType.failure);
-        // playSound();
-        // Flushbar(
-        //   icon: Icon(Icons.error, size: 32, color: Colors.white),
-        //   shouldIconPulse: false,
-        //   title: "${AppLocalizations.of(_context)?.translate('error')}${AppLocalizations.of(_context)?.translate('kitchen_printer_timeout')}",
-        //   message: "${AppLocalizations.of(_context)?.translate('please_try_again_later')}",
-        //   duration: Duration(seconds: 5),
-        //   backgroundColor: Colors.red,
-        //   messageColor: Colors.white,
-        //   flushbarPosition: FlushbarPosition.TOP,
-        //   maxWidth: 350,
-        //   margin: EdgeInsets.all(8),
-        //   borderRadius: BorderRadius.circular(8),
-        //   padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-        //   onTap: (flushbar) {
-        //     flushbar.dismiss(true);
-        //   },
-        //   onStatusChanged: (status) {
-        //     flushbarStatus = status.toString();
-        //   },
-        // )..show(_context);
-        // Future.delayed(Duration(seconds: 3), () {
-        //   playSound();
-        // });
       }
+      // playSound();
+      // Flushbar(
+      //   icon: Icon(Icons.error, size: 32, color: Colors.white),
+      //   shouldIconPulse: false,
+      //   title: "${AppLocalizations.of(_context)?.translate('error')}${AppLocalizations.of(_context)?.translate('kitchen_printer_timeout')}",
+      //   message: "${AppLocalizations.of(_context)?.translate('please_try_again_later')}",
+      //   duration: Duration(seconds: 5),
+      //   backgroundColor: Colors.red,
+      //   messageColor: Colors.white,
+      //   flushbarPosition: FlushbarPosition.TOP,
+      //   maxWidth: 350,
+      //   margin: EdgeInsets.all(8),
+      //   borderRadius: BorderRadius.circular(8),
+      //   padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+      //   onTap: (flushbar) {
+      //     flushbar.dismiss(true);
+      //   },
+      //   onStatusChanged: (status) {
+      //     flushbarStatus = status.toString();
+      //   },
+      // )..show(_context);
+      // Future.delayed(Duration(seconds: 3), () {
+      //   playSound();
+      // });
     } catch(e) {
       print("callPrinter error: ${e}");
     }

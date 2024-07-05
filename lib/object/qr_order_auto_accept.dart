@@ -161,7 +161,7 @@ class QrOrderAutoAccept {
               ticket_exp: detail.ticket_exp
           ));
         }
-        PrintReceipt().printProductTicket(printerList, orderCacheLocalId, cartItem);
+        asyncQ.addJob((_) async => await PrintReceipt().printProductTicket(printerList, orderCacheLocalId, cartItem));
       }
     } catch(e) {
       print("print product ticket error: ${e}");
