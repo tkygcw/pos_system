@@ -95,6 +95,13 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     widget.productDetail!.name = initProductName;
   }
 
+  getInitCheckedModItem(){
+    for(final group in modifierGroup){
+      checkedModItem.addAll(group.modifierChild!.where((child) => child.isChecked == true).toList());
+    }
+    print("check mod item length: ${checkedModItem.length}");
+  }
+
   productChecking() async {
     print("product allow ticket: ${widget.productDetail?.allow_ticket}");
     print("product ticket count: ${widget.productDetail?.ticket_count}");
@@ -104,6 +111,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     await getProductPrice(widget.productDetail!.product_sqlite_id);
     await getProductDialogStock(widget.productDetail!);
     categories = await PosDatabase.instance.readSpecificCategoryById(widget.productDetail!.category_sqlite_id!);
+    getInitCheckedModItem();
     streamController.productOrderDialogController.sink.add('refresh');
   }
 
@@ -1074,7 +1082,8 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     }
   }
 
-  readProductModifier(int productID) async {
+  readProductModifier(int productID, {String? diningOptionId}) async {
+    String currentDiningOptionId = diningOptionId ?? widget.cartModel.selectedOptionId;
     List<ModifierGroup> data = await PosDatabase.instance.readProductModifierGroupName(productID);
     if(data.isNotEmpty){
       for (int i = 0; i < data.length; i++) {
@@ -1099,7 +1108,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                 mod_status: itemData[j].mod_status,
                 isChecked: false));
           }
-          if(modifierGroup[i].compulsory == '1' && modifierGroup[i].dining_id == widget.cartModel.selectedOptionId){
+          if(modifierGroup[i].compulsory == '1' && modifierGroup[i].dining_id == currentDiningOptionId){
             for(int k = 0; k < modItemChild.length; k++){
               modItemChild[k].isChecked = true;
             }
@@ -1149,9 +1158,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     double totalBasePrice = 0.0;
     double totalModPrice = 0.0;
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final int? branch_id = prefs.getInt('branch_id');
-
       List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(productId.toString());
       List<Product> productData = await PosDatabase.instance.checkSpecificProduct(productId.toString());
       if (data[0].has_variant == '0') {
@@ -1267,8 +1273,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   }
 
   checkProductStock(Product product, CartModel cart) async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
     if (product.has_variant == 0) {
       List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(product.product_sqlite_id.toString());
       print("Stock type: ${data1[0].stock_type}");
@@ -1346,8 +1350,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   Future<String?> getBranchLinkProductItem(Product product) async {
     branchLinkProduct_id = '';
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final int? branch_id = prefs.getInt('branch_id');
       List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(product.product_sqlite_id.toString());
       if(data.length == 1){
         branchLinkProduct_id = data[0].branch_link_product_sqlite_id.toString();

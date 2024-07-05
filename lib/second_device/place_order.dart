@@ -6,7 +6,6 @@ import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,6 +15,7 @@ import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import '../database/pos_database.dart';
 import '../fragment/custom_snackbar.dart';
 import '../main.dart';
+import '../notifier/app_setting_notifier.dart';
 import '../notifier/cart_notifier.dart';
 import '../notifier/fail_print_notifier.dart';
 import '../notifier/table_notifier.dart';
@@ -36,7 +36,6 @@ import '../translation/AppLocalizations.dart';
 
 abstract class PlaceOrder {
   BuildContext context = MyApp.navigatorKey.currentContext!;
-  AppSetting? appSetting;
   PrintReceipt printReceipt = PrintReceipt();
   List<Printer> printerList = [];
   List<BranchLinkProduct> branchLinkProductList = [];
@@ -45,7 +44,6 @@ abstract class PlaceOrder {
 
 
   initData() async {
-    appSetting = await PosDatabase.instance.readAppSetting();
     printerList = await printReceipt.readAllPrinters();
   }
 
@@ -148,53 +146,6 @@ abstract class PlaceOrder {
     return tempBatch.toString();
   }
 
-  // Future<void> callCreateNewNotDineOrder(CartModel cart) async {
-  //   print("callCreateNewNotDineOrder");
-  //   await createOrderCache(cart, isAddOrder: false);
-  //   await createOrderDetail(cart);
-  //   printCheckList();
-  //   // if (_appSettingModel.autoPrintChecklist == true) {
-  //   //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
-  //   //   if (printStatus == 1) {
-  //   //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
-  //   //   } else if (printStatus == 2) {
-  //   //     Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
-  //   //   } else if (printStatus == 5) {
-  //   //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
-  //   //   }
-  //   // }
-  //   // if (this.isLogOut == true) {
-  //   //   openLogOutDialog();
-  //   //   return;
-  //   // }
-  //
-  //   printKitchenList();
-  // }
-
-  // Future<void> callCreateNewOrder(CartModel cart) async {
-  //   if(await checkTableStatus(cart) == false){
-  //     await createTableUseID();
-  //     await createTableUseDetail(cart);
-  //     await createOrderCache(cart, isAddOrder: false);
-  //     await createOrderDetail(cart);
-  //     await updatePosTable(cart);
-  //     //print check list
-  //     printCheckList();
-  //     // if (_appSettingModel.autoPrintChecklist == true) {
-  //     //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
-  //     //   if (printStatus == 1) {
-  //     //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
-  //     //   } else if (printStatus == 2) {
-  //     //     Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
-  //     //   } else if (printStatus == 5) {
-  //     //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
-  //     //   }
-  //     // }
-  //     printKitchenList();
-  //   } else {
-  //     throw Exception("Contain table in-used");
-  //   }
-  // }
   ///check table status
   ///
   ///if true, contain table in used
@@ -252,7 +203,7 @@ abstract class PlaceOrder {
   }
 
   printCheckList(String order_by) async {
-    if(appSetting?.print_checklist == 1){
+    if(AppSettingModel.instance.autoPrintChecklist == true){
       int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheSqliteId), order_by: order_by);
     }
   }
@@ -422,7 +373,7 @@ abstract class PlaceOrder {
     }
   }
 
-  Future<void> createOrderCache(CartModel cart) {
+  Future<void> createOrderCache(CartModel cart, String orderBy, String orderByUserId) {
     // TODO: implement createOrderCache
     throw UnimplementedError();
   }
@@ -487,7 +438,7 @@ abstract class PlaceOrder {
           category_name: newOrderDetailList[j].category_name,
           productName: newOrderDetailList[j].product_name,
           has_variant: newOrderDetailList[j].variant!.length == 0 ? '0' : '1',
-          product_variant_name: getVariant2(newOrderDetailList[j]),
+          product_variant_name: newOrderDetailList[j].productVariantName,
           price: newOrderDetailList[j].price,
           original_price: newOrderDetailList[j].base_price,
           quantity: newOrderDetailList[j].quantity.toString(),
@@ -648,17 +599,21 @@ abstract class PlaceOrder {
 
 class PlaceNewDineInOrder extends PlaceOrder {
 
-  Future<Map<String, dynamic>> callCreateNewOrder(CartModel cart, String address, String orderBy) async {
+  Future<Map<String, dynamic>> callCreateNewOrder(CartModel cart, String address, String orderBy, String orderByUserId) async {
     Map<String, dynamic> objectData;
     await initData();
     if(await checkTableStatus(cart) == false){
       await createTableUseID();
       await createTableUseDetail(cart);
-      await createOrderCache(cart);
+      await createOrderCache(cart, orderBy, orderByUserId);
       await createOrderDetail(cart);
       await updatePosTable(cart);
       //print check list
-      printCheckList(orderBy);
+      await printCheckList(orderBy);
+      List<cartProductItem> ticketProduct = cart.cartNotifierItem.where((e) => e.allow_ticket == 1).toList();
+      if(ticketProduct.isNotEmpty){
+        await printReceipt.printProductTicket(printerList, int.parse(orderCacheSqliteId), ticketProduct);
+      }
       // if (_appSettingModel.autoPrintChecklist == true) {
       //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
       //   if (printStatus == 1) {
@@ -669,7 +624,7 @@ class PlaceNewDineInOrder extends PlaceOrder {
       //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
       //   }
       // }
-      printKitchenList(address);
+      asyncQ.addJob((_) => printKitchenList(address));
       objectData = {
         'tb_branch_link_product': branchLinkProductList,
       };
@@ -686,17 +641,15 @@ class PlaceNewDineInOrder extends PlaceOrder {
   }
 
   @override
-  Future<void> createOrderCache(CartModel cart) async {
+  Future<void> createOrderCache(CartModel cart, String orderBy, String orderByUserId) async {
     // TODO: implement createOrderCache
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    final String? user = prefs.getString('pos_pin_user');
     final String? loginUser = prefs.getString('user');
 
     List<TableUse> _tableUse = [];
-    Map userObject = json.decode(user!);
     Map loginUserObject = json.decode(loginUser!);
     String _tableUseId = '';
     String batch = '';
@@ -745,8 +698,8 @@ class PlaceNewDineInOrder extends PlaceOrder {
             dining_id: cart.selectedOptionId,//this.diningOptionID.toString(),
             order_sqlite_id: '',
             order_key: '',
-            order_by: userObject['name'].toString(),
-            order_by_user_id: userObject['user_id'].toString(),
+            order_by: orderBy,
+            order_by_user_id: orderByUserId,
             cancel_by: '',
             cancel_by_user_id: '',
             customer_id: '0',
@@ -779,14 +732,18 @@ class PlaceNewDineInOrder extends PlaceOrder {
 
 class PlaceNotDineInOrder extends PlaceOrder {
 
-  Future<Map<String, dynamic>> callCreateNewNotDineOrder(CartModel cart, String address, String orderBy) async {
+  Future<Map<String, dynamic>> callCreateNewNotDineOrder(CartModel cart, String address, String orderBy, String orderByUserId) async {
     print("callCreateNewNotDineOrder");
     Map<String, dynamic> objectData;
 
     await initData();
-    await createOrderCache(cart);
+    await createOrderCache(cart, orderBy, orderByUserId);
     await createOrderDetail(cart);
-    printCheckList(orderBy);
+    await printCheckList(orderBy);
+    List<cartProductItem> ticketProduct = cart.cartNotifierItem.where((e) => e.allow_ticket == 1).toList();
+    if(ticketProduct.isNotEmpty){
+      await printReceipt.printProductTicket(printerList, int.parse(orderCacheSqliteId), ticketProduct);
+    }
     // if (_appSettingModel.autoPrintChecklist == true) {
     //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
     //   if (printStatus == 1) {
@@ -802,7 +759,7 @@ class PlaceNotDineInOrder extends PlaceOrder {
     //   return;
     // }
 
-    printKitchenList(address);
+    asyncQ.addJob((_) => printKitchenList(address));
     objectData = {
       'tb_branch_link_product': branchLinkProductList,
     };
@@ -810,19 +767,15 @@ class PlaceNotDineInOrder extends PlaceOrder {
   }
 
   @override
-  Future<void> createOrderCache(CartModel cart) async {
+  Future<void> createOrderCache(CartModel cart, String orderBy, String orderByUserId) async {
     // TODO: implement createOrderCache
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    final String? user = prefs.getString('pos_pin_user');
     final String? loginUser = prefs.getString('user');
 
-    List<TableUse> _tableUse = [];
-    Map userObject = json.decode(user!);
     Map loginUserObject = json.decode(loginUser!);
-    String _tableUseId = '';
     String batch = '';
     try {
       batch = await batchChecking();
@@ -859,8 +812,8 @@ class PlaceNotDineInOrder extends PlaceOrder {
             dining_id: cart.selectedOptionId,//this.diningOptionID.toString(),
             order_sqlite_id: '',
             order_key: '',
-            order_by: userObject['name'].toString(),
-            order_by_user_id: userObject['user_id'].toString(),
+            order_by: orderBy,
+            order_by_user_id: orderByUserId,
             cancel_by: '',
             cancel_by_user_id: '',
             customer_id: '0',
@@ -889,14 +842,18 @@ class PlaceNotDineInOrder extends PlaceOrder {
 
 class PlaceAddOrder extends PlaceOrder {
 
-  Future<Map<String, dynamic>> callAddOrderCache(CartModel cart, String address, String orderBy) async {
+  Future<Map<String, dynamic>> callAddOrderCache(CartModel cart, String address, String orderBy, String orderByUserId) async {
     Map<String, dynamic> objectData;
     await initData();
     if(await checkTableStatus(cart) == true){
       if(checkIsTableSelectedInPaymentCart(cart) == false) {
-        await createOrderCache(cart);
+        await createOrderCache(cart, orderBy, orderByUserId);
         await createOrderDetail(cart);
-        printCheckList(orderBy);
+        await printCheckList(orderBy);
+        List<cartProductItem> ticketProduct = cart.cartNotifierItem.where((e) => e.allow_ticket == 1 && e.status == 0).toList();
+        if(ticketProduct.isNotEmpty){
+          await printReceipt.printProductTicket(printerList, int.parse(orderCacheSqliteId), ticketProduct);
+        }
         // if (_appSettingModel.autoPrintChecklist == true) {
         //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
         //   if (printStatus == 1) {
@@ -907,7 +864,7 @@ class PlaceAddOrder extends PlaceOrder {
         //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
         //   }
         // }
-        printKitchenList(address);
+        asyncQ.addJob((_) => printKitchenList(address));
         Map<String, dynamic>? objectData = {'tb_branch_link_product': branchLinkProductList};
         TableModel.instance.changeContent(true);
         return {'status': '1', 'data': objectData};
@@ -961,18 +918,15 @@ class PlaceAddOrder extends PlaceOrder {
   }
 
   @override
-  Future<void> createOrderCache(CartModel cart) async {
+  Future<void> createOrderCache(CartModel cart, String orderBy, String orderByUserId) async {
     // TODO: implement createOrderCache
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    final String? user = prefs.getString('pos_pin_user');
     final String? loginUser = prefs.getString('user');
 
-    Map userObject = json.decode(user!);
     Map loginUserObject = json.decode(loginUser!);
-    // String _tableUseId = '';
     String batch = '';
     try {
       batch = cart.cartNotifierItem[0].first_cache_batch!;
@@ -992,15 +946,15 @@ class PlaceAddOrder extends PlaceOrder {
             table_use_sqlite_id: _tableUse.table_use_sqlite_id.toString(),
             table_use_key: _tableUse.table_use_key,
             batch_id: batch.toString().padLeft(6, '0'),
-            dining_id: cart.selectedOptionId,//this.diningOptionID.toString(),
+            dining_id: cart.selectedOptionId,
             order_sqlite_id: '',
             order_key: '',
-            order_by: userObject['name'].toString(),
-            order_by_user_id: userObject['user_id'].toString(),
+            order_by: orderBy,
+            order_by_user_id: orderByUserId,
             cancel_by: '',
             cancel_by_user_id: '',
             customer_id: '0',
-            total_amount: cart.subtotal,  //newOrderSubtotal.toStringAsFixed(2),
+            total_amount: cart.subtotal,
             qr_order: 0,
             qr_order_table_sqlite_id: '',
             qr_order_table_id: '',
@@ -1010,7 +964,6 @@ class PlaceAddOrder extends PlaceOrder {
             updated_at: '',
             soft_delete: ''));
         orderCacheSqliteId = data.order_cache_sqlite_id.toString();
-        //orderNumber = data.order_queue.toString();
         await insertOrderCacheKey(data, dateTime);
         await insertOrderCacheKeyIntoTableUse(cart, data, dateTime);
       }

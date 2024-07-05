@@ -95,10 +95,10 @@ class ServerAction {
         break;
         case '2': {
           var parameter = jsonDecode(param);
-          Product product = Product.fromJson(parameter);
+          Product product = Product.fromJson(parameter['product_detail']);
           ProductOrderDialogState state = ProductOrderDialogState();
           await state.readProductVariant(product.product_sqlite_id!);
-          await state.readProductModifier(product.product_sqlite_id!);
+          await state.readProductModifier(product.product_sqlite_id!, diningOptionId: parameter['dining_option_id']);
           List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(product.product_sqlite_id.toString());
           objectData = {
             'variant': state.variantGroup,
@@ -128,11 +128,11 @@ class ServerAction {
         }
         break;
         case '6': {
-          List<Promotion> promotionList = [];
-          List<BranchLinkPromotion> data = await PosDatabase.instance.readBranchLinkPromotion();
-          for (int i = 0; i < data.length; i++) {
-            promotionList = await PosDatabase.instance.checkPromotion(data[i].promotion_id!);
-          }
+          // List<Promotion> promotionList = [];
+          // List<BranchLinkPromotion> data = await PosDatabase.instance.readBranchLinkPromotion();
+          // for (int i = 0; i < data.length; i++) {
+          //   promotionList = await PosDatabase.instance.checkPromotion(data[i].promotion_id!);
+          // }
           CartPageState cartPageState = CartPageState();
           await cartPageState.readAllBranchLinkDiningOption(serverCall: 1);
           await cartPageState.getPromotionData();
@@ -159,7 +159,6 @@ class ServerAction {
         break;
         case '8': {
           try{
-
             CartModel cart = CartModel();
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam['cart']);
@@ -169,14 +168,14 @@ class ServerAction {
               if(cartItem != null){
                 return result = cartItem;
               }
-              result = await order.callCreateNewOrder(cart, address!, decodeParam['order_by']);
+              result = await order.callCreateNewOrder(cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
             } else {
               PlaceNotDineInOrder order = PlaceNotDineInOrder();
               Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
               if(cartItem != null){
                 return result = cartItem;
               }
-              result = await order.callCreateNewNotDineOrder(cart, address!, decodeParam['order_by']);
+              result = await order.callCreateNewNotDineOrder(cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
             }
           } catch(e){
             result = {'status': '4', 'exception': "New-order error: ${e.toString()}"};
@@ -198,7 +197,7 @@ class ServerAction {
             if(cartItem != null){
               return result = cartItem;
             }
-            result = await order.callAddOrderCache(cart, address!, decodeParam['order_by']);
+            result = await order.callAddOrderCache(cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
           } catch(e){
             result = {'status': '4', 'exception': "add-order error: ${e.toString()}"};
             FLog.error(

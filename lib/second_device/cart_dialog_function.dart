@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 
 import '../database/pos_database.dart';
+import '../object/branch_link_product.dart';
 import '../object/categories.dart';
 import '../object/order_cache.dart';
 import '../object/order_detail.dart';
@@ -86,6 +87,11 @@ class CartDialogFunction {
     }
     //loop all order detail
     for (int k = 0; k < orderDetailList.length; k++) {
+      //Get data from branch link product
+      List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
+      orderDetailList[k].allow_ticket = data[0].allow_ticket;
+      orderDetailList[k].ticket_count = data[0].ticket_count;
+      orderDetailList[k].ticket_exp = data[0].ticket_exp;
       //Get product category
       if(orderDetailList[k].category_sqlite_id! == '0'){
         orderDetailList[k].product_category_id = '0';
