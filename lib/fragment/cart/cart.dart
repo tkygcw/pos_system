@@ -548,6 +548,19 @@ class CartPageState extends State<CartPage> {
                                           dense: true,
                                         ),
                                         Visibility(
+                                            visible: hasPromo == true ? true : false,
+                                            child: ListView.builder(
+                                                shrinkWrap: true,
+                                                physics: NeverScrollableScrollPhysics(),
+                                                itemCount: autoApplyPromotionList.length,
+                                                itemBuilder: (context, index) {
+                                                  return ListTile(
+                                                      title: Text('${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})', style: TextStyle(fontSize: 14)),
+                                                      visualDensity: VisualDensity(vertical: -4),
+                                                      dense: true,
+                                                      trailing: Text('-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)));
+                                                })),
+                                        Visibility(
                                           visible: cart.selectedPromotion != null ? true : false,
                                           child: ListTile(
                                             title: SingleChildScrollView(
@@ -575,19 +588,6 @@ class CartPageState extends State<CartPage> {
                                             dense: true,
                                           ),
                                         ),
-                                        Visibility(
-                                            visible: hasPromo == true ? true : false,
-                                            child: ListView.builder(
-                                                shrinkWrap: true,
-                                                physics: NeverScrollableScrollPhysics(),
-                                                itemCount: autoApplyPromotionList.length,
-                                                itemBuilder: (context, index) {
-                                                  return ListTile(
-                                                      title: Text('${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})', style: TextStyle(fontSize: 14)),
-                                                      visualDensity: VisualDensity(vertical: -4),
-                                                      dense: true,
-                                                      trailing: Text('-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)));
-                                                })),
                                         Visibility(
                                           visible: widget.currentPage == 'bill' ? true : false,
                                           child: ListView.builder(
@@ -782,12 +782,8 @@ class CartPageState extends State<CartPage> {
                                                     }
                                                   } else if (widget.currentPage == 'other_order') {
                                                     if (cart.cartNotifierItem.isNotEmpty) {
-                                                      if (total == 0.0 && double.parse(finalAmount) == 0.0 || total != 0.0 && double.parse(finalAmount) != 0.0) {
-                                                        paymentAddToCart(cart);
-                                                        openPaymentSelect(cart);
-                                                      } else {
-                                                        Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Payment not match");
-                                                      }
+                                                      paymentAddToCart(cart);
+                                                      openPaymentSelect(cart);
                                                     } else {
                                                       Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                                     }
@@ -1747,11 +1743,7 @@ class CartPageState extends State<CartPage> {
           promotion.promoRate = promoRate;
         }
       }
-      if(newOrderSubtotal > promo) {
-        promoAmount += promo;
-      } else {
-        autoApplyPromotionList.remove(promotion);
-      }
+      promoAmount += promo;
     } catch (e) {
       print("calc auto apply non specific error: $e");
       promoRate = '';
@@ -1775,11 +1767,7 @@ class CartPageState extends State<CartPage> {
         promoRate = promotion.amount! + '%';
         promotion.promoRate = promoRate;
       }
-      if(newOrderSubtotal > promo) {
-        promoAmount += promo;
-      } else {
-        autoApplyPromotionList.remove(promotion);
-      }
+      promoAmount += promo;
     } catch (e) {
       print("calc auto apply specific category error: $e");
       promoRate = '';
