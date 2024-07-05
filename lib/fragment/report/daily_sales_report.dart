@@ -341,7 +341,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
       for(int i = 0; i < settlementList.length; i++){
         //format datetime
         DateTime dataDate = DateTime.parse(settlementList[i].created_at!);
-        String stringDate = new DateFormat("dd-MM-yyyy").format(dataDate);
+        String stringDate = new DateFormat("yyyy-MM-dd").format(dataDate);
         settlementList[i].created_at = stringDate;
         settlementStringList.add(jsonEncode(settlementList[i]));
         ReportObject object = await ReportObject().getAllSettlementPaymentDetail(settlementList[i].created_at!, paymentLinkCompanyList);
