@@ -233,7 +233,7 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
                           inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                           textAlign: TextAlign.center,
                           decoration: InputDecoration(
-                            errorText: priceController.text.isEmpty || double.parse(priceController.text) < modifierTotalPrice ? '${AppLocalizations.of(context)?.translate('adjust_price_error')} ${modifierTotalPrice.toStringAsFixed(2)}' : null,
+                            errorText: priceController.text.isEmpty ? '${AppLocalizations.of(context)?.translate('adjust_price_error')} 0' : null,
                             focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: color.backgroundColor),
                             ),
@@ -241,11 +241,11 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
                           ),
                           onChanged: (value) => setState(() {
                             try{
-                              if(double.parse(priceController.text) < modifierTotalPrice) {
-                                isYesButtonDisabled = true;
-                              } else {
-                                isYesButtonDisabled = false;
-                              }
+                              // if(double.parse(priceController.text) < modifierTotalPrice) {
+                              //   isYesButtonDisabled = true;
+                              // } else {
+                              //   isYesButtonDisabled = false;
+                              // }
                               double.parse(value.replaceAll(',', ''));
                             }catch (e){
                               priceController.text = "";
@@ -257,20 +257,18 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
                                 : () async {
                               if(priceController.text.isNotEmpty) {
                                 if (double.parse(priceController.text).toStringAsFixed(2) != double.parse(widget.cartItem.price!).toStringAsFixed(2)) {
-                                  if(double.parse(priceController.text) >= modifierTotalPrice) {
-                                    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-                                    String dateTime = dateFormat.format(DateTime.now());
-                                    final prefs = await SharedPreferences.getInstance();
-                                    final String? pos_user = prefs.getString('pos_pin_user');
-                                    Map<String, dynamic> userMap = json.decode(pos_user!);
-                                    User userData = User.fromJson(userMap);
+                                  DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+                                  String dateTime = dateFormat.format(DateTime.now());
+                                  final prefs = await SharedPreferences.getInstance();
+                                  final String? pos_user = prefs.getString('pos_pin_user');
+                                  Map<String, dynamic> userMap = json.decode(pos_user!);
+                                  User userData = User.fromJson(userMap);
 
-                                    if(userData.edit_price_without_pin != 1) {
-                                      await showSecondDialog(context, color, cart);
-                                    } else {
-                                      await callUpdateCart(userData, dateTime, cart);
-                                      Navigator.of(context).pop();
-                                    }
+                                  if(userData.edit_price_without_pin != 1) {
+                                    await showSecondDialog(context, color, cart);
+                                  } else {
+                                    await callUpdateCart(userData, dateTime, cart);
+                                    Navigator.of(context).pop();
                                   }
                                 } else {
                                   //no changes
@@ -330,20 +328,18 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
                           : () async {
                         if(priceController.text.isNotEmpty) {
                           if (double.parse(priceController.text).toStringAsFixed(2) != double.parse(widget.cartItem.price!).toStringAsFixed(2)) {
-                            if(double.parse(priceController.text) >= modifierTotalPrice) {
-                              DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-                              String dateTime = dateFormat.format(DateTime.now());
-                              final prefs = await SharedPreferences.getInstance();
-                              final String? pos_user = prefs.getString('pos_pin_user');
-                              Map<String, dynamic> userMap = json.decode(pos_user!);
-                              User userData = User.fromJson(userMap);
+                            DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+                            String dateTime = dateFormat.format(DateTime.now());
+                            final prefs = await SharedPreferences.getInstance();
+                            final String? pos_user = prefs.getString('pos_pin_user');
+                            Map<String, dynamic> userMap = json.decode(pos_user!);
+                            User userData = User.fromJson(userMap);
 
-                              if(userData.edit_price_without_pin != 1) {
-                                await showSecondDialog(context, color, cart);
-                              } else {
-                                await callUpdateCart(userData, dateTime, cart);
-                                Navigator.of(context).pop();
-                              }
+                            if(userData.edit_price_without_pin != 1) {
+                              await showSecondDialog(context, color, cart);
+                            } else {
+                              await callUpdateCart(userData, dateTime, cart);
+                              Navigator.of(context).pop();
                             }
                           } else {
                             //no changes

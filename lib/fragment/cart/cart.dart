@@ -553,6 +553,19 @@ class CartPageState extends State<CartPage> {
                                           dense: true,
                                         ),
                                         Visibility(
+                                            visible: hasPromo == true ? true : false,
+                                            child: ListView.builder(
+                                                shrinkWrap: true,
+                                                physics: NeverScrollableScrollPhysics(),
+                                                itemCount: autoApplyPromotionList.length,
+                                                itemBuilder: (context, index) {
+                                                  return ListTile(
+                                                      title: Text('${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})', style: TextStyle(fontSize: 14)),
+                                                      visualDensity: VisualDensity(vertical: -4),
+                                                      dense: true,
+                                                      trailing: Text('-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)));
+                                                })),
+                                        Visibility(
                                           visible: cart.selectedPromotion != null ? true : false,
                                           child: ListTile(
                                             title: SingleChildScrollView(
@@ -583,19 +596,6 @@ class CartPageState extends State<CartPage> {
                                             dense: true,
                                           ),
                                         ),
-                                        Visibility(
-                                            visible: hasPromo == true ? true : false,
-                                            child: ListView.builder(
-                                                shrinkWrap: true,
-                                                physics: NeverScrollableScrollPhysics(),
-                                                itemCount: autoApplyPromotionList.length,
-                                                itemBuilder: (context, index) {
-                                                  return ListTile(
-                                                      title: Text('${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})', style: TextStyle(fontSize: 14)),
-                                                      visualDensity: VisualDensity(vertical: -4),
-                                                      dense: true,
-                                                      trailing: Text('-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)));
-                                                })),
                                         Visibility(
                                           visible: widget.currentPage == 'bill' ? true : false,
                                           child: ListView.builder(
@@ -781,36 +781,28 @@ class CartPageState extends State<CartPage> {
                                                     }
                                                   } else if (widget.currentPage == 'table') {
                                                     if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
-                                                      if (total == 0.0 && double.parse(finalAmount) == 0.0 || total != 0.0 && double.parse(finalAmount) != 0.0) {
-                                                        if (cart.selectedTable.length > 1) {
-                                                          if (await confirm(
-                                                            context,
-                                                            title: Text('${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
-                                                            content: Text('${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
-                                                            textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                                                            textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
-                                                          )) {
-                                                            paymentAddToCart(cart);
-                                                            return openPaymentSelect(cart);
-                                                          }
-                                                        } else {
+                                                      if (cart.selectedTable.length > 1) {
+                                                        if (await confirm(
+                                                          context,
+                                                          title: Text('${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
+                                                          content: Text('${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
+                                                          textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                                                          textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                                                        )) {
                                                           paymentAddToCart(cart);
-                                                          openPaymentSelect(cart);
+                                                          return openPaymentSelect(cart);
                                                         }
                                                       } else {
-                                                        Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Payment not match");
+                                                        paymentAddToCart(cart);
+                                                        openPaymentSelect(cart);
                                                       }
                                                     } else {
                                                       Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                                     }
                                                   } else if (widget.currentPage == 'other_order') {
                                                     if (cart.cartNotifierItem.isNotEmpty) {
-                                                      if (total == 0.0 && double.parse(finalAmount) == 0.0 || total != 0.0 && double.parse(finalAmount) != 0.0) {
-                                                        paymentAddToCart(cart);
-                                                        openPaymentSelect(cart);
-                                                      } else {
-                                                        Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Payment not match");
-                                                      }
+                                                      paymentAddToCart(cart);
+                                                      openPaymentSelect(cart);
                                                     } else {
                                                       Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                                     }
@@ -885,8 +877,9 @@ class CartPageState extends State<CartPage> {
                                                       isLoading = true;
                                                     });
                                                     paymentAddToCart(cart);
-                                                    int printStatus = await printReceipt.printReviewReceipt(printerList, cart.selectedTable, cart, context);
-                                                    checkPrinterStatus(printStatus);
+
+                                                    openReprintDialog(printerList, cart);
+
                                                     setState(() {
                                                       isLoading = false;
                                                     });
@@ -2614,46 +2607,22 @@ class CartPageState extends State<CartPage> {
 
   printKitchenList() async {
     try {
-      String flushbarStatus = '';
-      List<OrderDetail>? returnData = await printReceipt.printKitchenList(printerList, int.parse(this.orderCacheId));
-      if(returnData != null){
-        if (returnData.isNotEmpty) {
-          _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
-          CustomSnackBar.instance.showSnackBar(
-              title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
-              description: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
-              contentType: ContentType.failure,
-              playSound: true,
-              playtime: 2);
-          // playSound();
-          // Flushbar(
-          //   icon: Icon(Icons.error, size: 32, color: Colors.white),
-          //   shouldIconPulse: false,
-          //   title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
-          //   message: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
-          //   duration: Duration(seconds: 5),
-          //   backgroundColor: Colors.red,
-          //   messageColor: Colors.white,
-          //   flushbarPosition: FlushbarPosition.TOP,
-          //   maxWidth: 350,
-          //   margin: EdgeInsets.all(8),
-          //   borderRadius: BorderRadius.circular(8),
-          //   padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-          //   onTap: (flushbar) {
-          //     flushbar.dismiss(true);
-          //   },
-          //   onStatusChanged: (status) {
-          //     flushbarStatus = status.toString();
-          //   },
-          // )
-          //   ..show(context);
-          // Future.delayed(Duration(seconds: 3), () {
-          //   playSound();
-          // });
+      asyncQ.addJob((_) async {
+        List<OrderDetail>? returnData = await printReceipt.printKitchenList(printerList, int.parse(this.orderCacheId));
+        if(returnData != null){
+          if (returnData.isNotEmpty) {
+            _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
+            CustomSnackBar.instance.showSnackBar(
+                title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
+                description: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
+                contentType: ContentType.failure,
+                playSound: true,
+                playtime: 2);
+          }
+        } else {
+          Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('no_printer_added')}");
         }
-      } else {
-        Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('no_printer_added')}");
-      }
+      });
     } catch (e) {
       print("print kitchen list error: $e");
     }
