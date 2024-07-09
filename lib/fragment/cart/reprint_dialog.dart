@@ -96,7 +96,12 @@ class _ReprintDialogState extends State<ReprintDialog> {
     print("reprint kitchen list: ${widget.cart.cartNotifierItem}");
     // printReceipt.printProductTicket(widget.printerList, int.parse(ticketProduct[0].order_cache_sqlite_id!), ticketProduct);
     // if(widget.orderCacheId != null) {
+    try {
       asyncQ.addJob((_) async => await printReceipt.printKitchenList(widget.printerList, int.parse(widget.cart.cartNotifierItem[0].order_cache_sqlite_id!), isReprint: true));
+
+    } catch(e) {
+
+    }
     // }
   }
 

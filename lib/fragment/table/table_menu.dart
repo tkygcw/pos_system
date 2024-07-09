@@ -10,6 +10,7 @@ import 'package:pos_system/fragment/table/table_dialog.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/categories.dart';
+import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/table.dart';
@@ -54,6 +55,7 @@ class _TableMenuState extends State<TableMenu> {
   List<ModifierGroup> modifierGroup = [];
   List<PosTable> sameGroupTbList = [];
   List<PosTable> initialTableList = [];
+  List<String> groupList = [];
 
   double scrollContainerHeight = 130;
   double priceSST = 0.0;
@@ -76,6 +78,11 @@ class _TableMenuState extends State<TableMenu> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.cartModel.initialLoad();
     });
+  }
+
+  @override
+  void didPopNext() {
+    groupList = [];
   }
 
   @override
@@ -598,13 +605,14 @@ class _TableMenuState extends State<TableMenu> {
               if (tableList[index].status == 1) {
                 // table in use (colored)
                 for (int i = 0; i < tableList.length; i++) {
-                  if (tableList[index].group == tableList[i].group) {
+                  if (tableList[index].group == tableList[i].group || ((tableList[index].order_key == tableList[i].order_key) && tableList[index].order_key != null)) {
                     if (tableList[i].isSelected == false) {
                       if(tableList[i].order_key == null) {
                         for (int j = 0; j < tableList.length; j++) {
                           //reset all using table to un-select (table status == 1)
-                          if (tableList[j].status == 1 && tableList[j].order_key != null) {
+                          if (tableList[j].isSelected == true && tableList[j].order_key != null) {
                             tableList[j].isSelected = false;
+                            groupList.remove(tableList[j].group);
                             cart.removeAllCartItem();
                             cart.removePromotion();
                             cart.removeSpecificTable(tableList[j]);
@@ -614,8 +622,9 @@ class _TableMenuState extends State<TableMenu> {
                       } else {
                         for (int j = 0; j < tableList.length; j++) {
                           //reset all using table to un-select (table status == 1)
-                          if (tableList[j].status == 1 && tableList[j].group != tableList[index].group) {
+                          if (tableList[j].isSelected == true && tableList[j].group != tableList[index].group && tableList[index].order_key != tableList[j].order_key) {
                             tableList[j].isSelected = false;
+                            groupList.remove(tableList[j].group);
                             cart.removeAllCartItem();
                             cart.removePromotion();
                             cart.removeSpecificTable(tableList[j]);
@@ -623,12 +632,13 @@ class _TableMenuState extends State<TableMenu> {
                         }
                         tableList[i].isSelected = true;
                       }
-
                     } else if (tableList[i].isSelected == true) {
                       if (tableList[index].group == tableList[i].group) {
+                        print('same group unselect');
                         setState(() {
                           //removeFromCart(cart, tableList[index]);
                           tableList[i].isSelected = false;
+                          groupList.remove(tableList[i].group);
                           //print('table list: ${tableList[i].number}');
                           //cart.removeSpecificTable(tableList[i]);
                         });
@@ -636,9 +646,33 @@ class _TableMenuState extends State<TableMenu> {
                         setState(() {
                           //removeFromCart(cart, tableList[index]);
                           tableList[i].isSelected = false;
+                          groupList.remove(tableList[i].group);
                           //cart.removeSpecificTable(tableList[index]);
                         });
                       }
+                    }
+                    if (tableList[i].status == 1 && tableList[i].isSelected == true) {
+                      if(!groupList.contains(tableList[i].group)) {
+                        await readSpecificTableDetail(tableList[i]);
+                        //await readSpecificTableDetail(tableList[index]);
+                        List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificInUsedTableUseDetail(tableList[i].table_sqlite_id!);
+                        if (tableUseDetailData.isNotEmpty){
+                          List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
+                          if(data.isNotEmpty){
+                            if(data[0].order_key != ''){
+                              orderKey = data[0].order_key!;
+                            } else {
+                              orderKey = '';
+                            }
+                          }
+                        }
+                        addToCart(cart, tableList[i]);
+                        groupList.add(tableList[i].group!);
+                      }
+                    } else {
+                      await readSpecificTableDetail(tableList[i]);
+                      removeFromCart(cart, tableList[i]);
+                      groupList.remove(tableList[i].group);
                     }
                   }
                 }
@@ -647,6 +681,7 @@ class _TableMenuState extends State<TableMenu> {
                   //reset all using table to un-select (table status == 1)
                   if (tableList[j].status == 1) {
                     tableList[j].isSelected = false;
+                    groupList.remove(tableList[j].group);
                     cart.removeAllCartItem();
                     cart.removePromotion();
                     cart.removeSpecificTable(tableList[j]);
@@ -654,23 +689,7 @@ class _TableMenuState extends State<TableMenu> {
                 }
                 Fluttertoast.showToast(backgroundColor: Color(0xFF07F107), msg: AppLocalizations.of(context)!.translate('table_not_in_use'));
               }
-              if (tableList[index].status == 1 && tableList[index].isSelected == true) {
-                //await readSpecificTableDetail(tableList[index]);
-                List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificInUsedTableUseDetail(tableList[index].table_sqlite_id!);
-                if (tableUseDetailData.isNotEmpty){
-                  List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
-                  if(data.isNotEmpty){
-                    if(data[0].order_key != ''){
-                      orderKey = data[0].order_key!;
-                    } else {
-                      orderKey = '';
-                    }
-                  }
-                }
-                addToCart(cart, tableList[index]);
-              } else {
-                removeFromCart(cart, tableList[index]);
-              }
+
             }
           } else {
             if (tableList[index].status != 1) {
@@ -897,6 +916,7 @@ class _TableMenuState extends State<TableMenu> {
         if(tableList[i].status == 1){
           List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificInUsedTableUseDetail(tableList[i].table_sqlite_id!);
           if (tableUseDetailData.isNotEmpty) {
+
             List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
             if(data.isNotEmpty){
               double tableAmount = 0.0;
@@ -912,6 +932,9 @@ class _TableMenuState extends State<TableMenu> {
                 for(int k = 0; k < orderSplit.length; k++){
                   amountPaid += double.parse(orderSplit[k].amount!);
                 }
+                List<Order> orderData = await PosDatabase.instance.readSpecificOrderByOrderKey(data[0].order_key!);
+                tableAmount = double.parse(orderData[0].subtotal!);
+
                 tableAmount -= amountPaid;
                 tableList[i].order_key = data[0].order_key!;
               }
@@ -924,6 +947,7 @@ class _TableMenuState extends State<TableMenu> {
   }
 
   readSpecificTableDetail(PosTable posTable) async {
+    print("readSpecificTableDetail called");
     orderDetailList.clear();
     orderCacheList.clear();
 
@@ -1140,12 +1164,15 @@ class _TableMenuState extends State<TableMenu> {
     List<TableUseDetail> tableUseDetailList = [];
     //await readSpecificTableDetail(posTable);
     if (this.productDetailLoaded) {
+      print("condition true");
       var detailLength = orderDetailList.length;
       for (int i = 0; i < detailLength; i++) {
+        print("detailLength: ${detailLength}");
         value = cartProductItem(
           quantity: int.tryParse(orderDetailList[i].quantity!) != null ? int.parse(orderDetailList[i].quantity!) : double.parse(orderDetailList[i].quantity!),
           order_cache_sqlite_id: orderDetailList[i].order_cache_sqlite_id,
         );
+        print("removeSpecificItem");
         cart.removeSpecificItem(value);
         cart.removePromotion();
       }

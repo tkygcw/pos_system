@@ -556,6 +556,10 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
           status: 0,
           isRefund: isRefund,
           refColor: Colors.black,
+          order_cache_sqlite_id: orderDetailList[i].order_cache_sqlite_id,
+          first_cache_batch: orderCacheList[0].batch_id,
+          first_cache_order_by: orderCacheList[0].order_by,
+          first_cache_created_date_time: orderCacheList[0].created_at
       );
       cart.addItem(value);
     }
