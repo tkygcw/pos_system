@@ -24,6 +24,7 @@ class CartModel extends ChangeNotifier {
   bool isInit = false;
   int myCount = 0;
   bool isChange = false;
+  List<String> groupList = [];
 
   CartModel({
     List<cartProductItem>? cartNotifierItem,
@@ -32,6 +33,7 @@ class CartModel extends ChangeNotifier {
     String? selectedOptionId,
     String? subtotal
   }){
+    this.groupList = groupList ?? [];
     this.selectedTable = selectedTable ?? [];
     this.cartNotifierItem = cartNotifierItem ?? [];
     this.selectedOption = selectedOption ?? '';
@@ -72,6 +74,7 @@ class CartModel extends ChangeNotifier {
     removeAutoPromotion();
     removePaymentDetail();
     readAllBranchLinkDiningOption();
+    removeAllGroupList();
     //selectedOptionId = '1';
     notifyListeners();
   }
@@ -154,6 +157,27 @@ class CartModel extends ChangeNotifier {
       }
     }
     cartNotifierItem.removeWhere((element) => _removeItem.contains(element));
+  }
+
+  void addToGroupList(String tableGroupList) {
+    groupList.add(tableGroupList);
+    notifyListeners();
+  }
+
+  void removeAllGroupList() {
+    groupList.clear();
+    notifyListeners();
+  }
+
+  void removeSpecificGroupList(String tableGroupList) {
+    groupList.remove(tableGroupList);
+    notifyListeners();
+  }
+
+  bool checkGroupListContain(String tableGroupList) {
+    bool contains = groupList.contains(tableGroupList);
+    notifyListeners();
+    return contains;
   }
 
   void addTable(PosTable posTable) {

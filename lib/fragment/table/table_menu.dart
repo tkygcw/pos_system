@@ -55,7 +55,6 @@ class _TableMenuState extends State<TableMenu> {
   List<ModifierGroup> modifierGroup = [];
   List<PosTable> sameGroupTbList = [];
   List<PosTable> initialTableList = [];
-  List<String> groupList = [];
 
   double scrollContainerHeight = 130;
   double priceSST = 0.0;
@@ -78,11 +77,6 @@ class _TableMenuState extends State<TableMenu> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.cartModel.initialLoad();
     });
-  }
-
-  @override
-  void didPopNext() {
-    groupList = [];
   }
 
   @override
@@ -612,7 +606,7 @@ class _TableMenuState extends State<TableMenu> {
                           //reset all using table to un-select (table status == 1)
                           if (tableList[j].isSelected == true && tableList[j].order_key != null) {
                             tableList[j].isSelected = false;
-                            groupList.remove(tableList[j].group);
+                            cart.removeSpecificGroupList(tableList[j].group);
                             cart.removeAllCartItem();
                             cart.removePromotion();
                             cart.removeSpecificTable(tableList[j]);
@@ -624,7 +618,7 @@ class _TableMenuState extends State<TableMenu> {
                           //reset all using table to un-select (table status == 1)
                           if (tableList[j].isSelected == true && tableList[j].group != tableList[index].group && tableList[index].order_key != tableList[j].order_key) {
                             tableList[j].isSelected = false;
-                            groupList.remove(tableList[j].group);
+                            cart.removeSpecificGroupList(tableList[j].group);
                             cart.removeAllCartItem();
                             cart.removePromotion();
                             cart.removeSpecificTable(tableList[j]);
@@ -638,7 +632,7 @@ class _TableMenuState extends State<TableMenu> {
                         setState(() {
                           //removeFromCart(cart, tableList[index]);
                           tableList[i].isSelected = false;
-                          groupList.remove(tableList[i].group);
+                          cart.removeSpecificGroupList(tableList[i].group);
                           //print('table list: ${tableList[i].number}');
                           //cart.removeSpecificTable(tableList[i]);
                         });
@@ -646,13 +640,14 @@ class _TableMenuState extends State<TableMenu> {
                         setState(() {
                           //removeFromCart(cart, tableList[index]);
                           tableList[i].isSelected = false;
-                          groupList.remove(tableList[i].group);
+                          cart.removeSpecificGroupList(tableList[i].group);
                           //cart.removeSpecificTable(tableList[index]);
                         });
                       }
                     }
                     if (tableList[i].status == 1 && tableList[i].isSelected == true) {
-                      if(!groupList.contains(tableList[i].group)) {
+                      // if(!groupList.contains(tableList[i].group)) {
+                      if(!cart.groupList.contains(tableList[i].group)) {
                         await readSpecificTableDetail(tableList[i]);
                         //await readSpecificTableDetail(tableList[index]);
                         List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificInUsedTableUseDetail(tableList[i].table_sqlite_id!);
@@ -667,12 +662,13 @@ class _TableMenuState extends State<TableMenu> {
                           }
                         }
                         addToCart(cart, tableList[i]);
-                        groupList.add(tableList[i].group!);
+                        cart.addToGroupList(tableList[i].group!);
+                        // groupList.add(tableList[i].group!);
                       }
                     } else {
                       await readSpecificTableDetail(tableList[i]);
                       removeFromCart(cart, tableList[i]);
-                      groupList.remove(tableList[i].group);
+                      cart.removeSpecificGroupList(tableList[i].group);
                     }
                   }
                 }
@@ -681,7 +677,7 @@ class _TableMenuState extends State<TableMenu> {
                   //reset all using table to un-select (table status == 1)
                   if (tableList[j].status == 1) {
                     tableList[j].isSelected = false;
-                    groupList.remove(tableList[j].group);
+                    cart.removeSpecificGroupList(tableList[j].group);
                     cart.removeAllCartItem();
                     cart.removePromotion();
                     cart.removeSpecificTable(tableList[j]);

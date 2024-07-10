@@ -379,6 +379,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                               isButtonDisabled = true;
                             });
                             tableModel.changeContent(true);
+                            cartModel.removeAllGroupList();
                             cartModel.initialLoad();
                             Navigator.of(context).pop();
                             Navigator.of(context).pop();

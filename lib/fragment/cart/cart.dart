@@ -719,7 +719,7 @@ class CartPageState extends State<CartPage> {
                                     child: Row(
                                       children: [
                                         Visibility(
-                                          visible: widget.currentPage != 'bill' ? true : false,
+                                          visible: true,
                                           child: Expanded(
                                               child: ElevatedButton(
                                                   style: ElevatedButton.styleFrom(
@@ -824,7 +824,7 @@ class CartPageState extends State<CartPage> {
                                                   child: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
                                                       ? widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
                                                       ? Text(AppLocalizations.of(context)!.translate('place_order') + '\n (RM ${this.finalAmount})')
-                                                        : widget.currentPage == 'table' || widget.currentPage == 'other_order'
+                                                      : widget.currentPage == 'table' || widget.currentPage == 'other_order'
                                                       ? Text(AppLocalizations.of(context)!.translate('pay') + ' (RM ${this.finalAmount})')
                                                       : Text(AppLocalizations.of(context)!.translate('print_receipt'))
                                                       : widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
