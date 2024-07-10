@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import '../../notifier/cart_notifier.dart';
 import '../../notifier/notification_notifier.dart';
 import '../../notifier/theme_color.dart';
+import '../../object/branch_link_product.dart';
 import '../../object/cart_product.dart';
 import '../../object/categories.dart';
 import '../../object/modifier_group.dart';
@@ -200,9 +201,9 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                                   await getOrderDetail(paidOrderList[index]);
                                   //check is order refunded or not
                                   if (paidOrderList[index].payment_status == 1) {
-                                    await addToCart(cart, orderCacheList, paidOrderList[index], false);
+                                    await addToCart(cart, paidOrderList[index], false);
                                   } else {
-                                    await addToCart(cart, orderCacheList, paidOrderList[index], true);
+                                    await addToCart(cart, paidOrderList[index], true);
                                   }
                                   await callReadOrderTaxPromoDetail(paidOrderList[index]);
                                   if (_readComplete == true) {
@@ -351,9 +352,9 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                                     await getOrderDetail(paidOrderList[index]);
                                     //check is order refunded or not
                                     if (paidOrderList[index].payment_status == 1) {
-                                      await addToCart(cart, orderCacheList, paidOrderList[index], false);
+                                      await addToCart(cart, paidOrderList[index], false);
                                     } else {
-                                      await addToCart(cart, orderCacheList, paidOrderList[index], true);
+                                      await addToCart(cart, paidOrderList[index], true);
                                     }
                                     await callReadOrderTaxPromoDetail(paidOrderList[index]);
                                     if (_readComplete == true) {
@@ -526,10 +527,11 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
         orderPromotionList);
 
     cart.addPaymentDetail(value);
+    print("cart payment local id: ${cart.cartNotifierPayment[0].localOrderId}");
   }
 
-  addToCart(CartModel cart, List<OrderCache> orderCacheList, Order order, bool isRefund) async {
-    print('is refund: ${isRefund}');
+  addToCart(CartModel cart, Order order, bool isRefund) async {
+    cart.addAllCartOrderCache(this.orderCacheList);
     var value;
     List<TableUseDetail> tableUseDetailList = [];
     List<OrderCache> orderCacheList = [];
@@ -542,8 +544,6 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
           price: orderDetailList[i].price!,
           quantity: int.tryParse(orderDetailList[i].quantity!) != null ? int.parse(orderDetailList[i].quantity!) : double.parse(orderDetailList[i].quantity!),
           orderModifierDetail: orderDetailList[i].orderModifierDetail,
-          //modifier: getModifierGroupItem(orderDetailList[i]),
-          //variant: getVariantGroupItem(orderDetailList[i]),
           unit: orderDetailList[i].unit,
           per_quantity_unit: orderDetailList[i].per_quantity_unit,
           order_queue: orderCacheList[0].order_queue,
@@ -552,6 +552,13 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
           status: 0,
           isRefund: isRefund,
           refColor: Colors.black,
+          order_cache_sqlite_id: orderCacheList.first.order_cache_sqlite_id.toString(),
+          first_cache_batch: orderCacheList.first.batch_id,
+          first_cache_order_by: orderCacheList.first.order_by,
+          first_cache_created_date_time: orderCacheList.first.created_at,
+          allow_ticket: orderDetailList[i].allow_ticket,
+          ticket_count: orderDetailList[i].ticket_count,
+          ticket_exp: orderDetailList[i].ticket_exp,
       );
       cart.addItem(value);
     }
@@ -672,7 +679,11 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
     if (_cacheOrderDetail.isNotEmpty) {
       orderDetailList = List.from(_cacheOrderDetail);
       for (int k = 0; k < orderDetailList.length; k++) {
-        //List<BranchLinkProduct> result = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
+        //Get data from branch link product
+        List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
+        orderDetailList[k].allow_ticket = data[0].allow_ticket;
+        orderDetailList[k].ticket_count = data[0].ticket_count;
+        orderDetailList[k].ticket_exp = data[0].ticket_exp;
         //Get product category
         print("category local id: ${orderDetailList[k].category_sqlite_id}");
         if(orderDetailList[k].category_sqlite_id! == '0'){

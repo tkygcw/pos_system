@@ -32,7 +32,7 @@ class ReprintKitchenListFunction {
       if(selectedList.isNotEmpty){
         //reprint process
         List<Printer> printerList = await printReceipt.readAllPrinters();
-        List<OrderDetail> returnData = await printReceipt.reprintKitchenList(printerList, reprintList: selectedList);
+        List<OrderDetail> returnData = await printReceipt.reprintFailKitchenList(printerList, reprintList: selectedList);
         if (returnData.isNotEmpty) {
           splitOrderDetail(returnData);
           CustomSnackBar.instance.showSnackBar(
