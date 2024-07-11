@@ -241,7 +241,11 @@ class _TableMenuState extends State<TableMenu> {
                                     if (tableList[index].status != 1) {
                                       //openAddTableDialog(tableList[index]);
                                     } else {
-                                      openChangeTableDialog(tableList[index], cart);
+                                      if(tableList[index].order_key == null) {
+                                        openChangeTableDialog(tableList[index], cart);
+                                      } else {
+                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
+                                      }
                                     }
                                   },
                                   onTap: onTapDisable ? null : () {
@@ -347,7 +351,11 @@ class _TableMenuState extends State<TableMenu> {
                 if (tableList[index].status != 1) {
                   //openAddTableDialog(tableList[index]);
                 } else {
-                  openChangeTableDialog(tableList[index], cart);
+                  if(tableList[index].order_key == null) {
+                    openChangeTableDialog(tableList[index], cart);
+                  } else {
+                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
+                  }
                 }
               },
               onTap: onTapDisable ? null : () {
@@ -607,7 +615,7 @@ class _TableMenuState extends State<TableMenu> {
                           //reset all using table to un-select (table status == 1)
                           if (tableList[j].isSelected == true && tableList[j].order_key != null) {
                             tableList[j].isSelected = false;
-                            cart.removeSpecificGroupList(tableList[j].group);
+                            cart.removeSpecificGroupList(tableList[j].group!);
                             cart.removeAllCartItem();
                             cart.removePromotion();
                             cart.removeSpecificTable(tableList[j]);
@@ -619,7 +627,7 @@ class _TableMenuState extends State<TableMenu> {
                           //reset all using table to un-select (table status == 1)
                           if (tableList[j].isSelected == true && tableList[j].group != tableList[index].group && tableList[index].order_key != tableList[j].order_key) {
                             tableList[j].isSelected = false;
-                            cart.removeSpecificGroupList(tableList[j].group);
+                            cart.removeSpecificGroupList(tableList[j].group!);
                             cart.removeAllCartItem();
                             cart.removePromotion();
                             cart.removeSpecificTable(tableList[j]);
@@ -633,7 +641,7 @@ class _TableMenuState extends State<TableMenu> {
                         setState(() {
                           //removeFromCart(cart, tableList[index]);
                           tableList[i].isSelected = false;
-                          cart.removeSpecificGroupList(tableList[i].group);
+                          cart.removeSpecificGroupList(tableList[i].group!);
                           //print('table list: ${tableList[i].number}');
                           //cart.removeSpecificTable(tableList[i]);
                         });
@@ -641,7 +649,7 @@ class _TableMenuState extends State<TableMenu> {
                         setState(() {
                           //removeFromCart(cart, tableList[index]);
                           tableList[i].isSelected = false;
-                          cart.removeSpecificGroupList(tableList[i].group);
+                          cart.removeSpecificGroupList(tableList[i].group!);
                           //cart.removeSpecificTable(tableList[index]);
                         });
                       }
@@ -669,7 +677,7 @@ class _TableMenuState extends State<TableMenu> {
                     } else {
                       await readSpecificTableDetail(tableList[i]);
                       removeFromCart(cart, tableList[i]);
-                      cart.removeSpecificGroupList(tableList[i].group);
+                      cart.removeSpecificGroupList(tableList[i].group!);
                       cart.removeCartOrderCache(orderCacheList);
                     }
                   }
@@ -679,7 +687,7 @@ class _TableMenuState extends State<TableMenu> {
                   //reset all using table to un-select (table status == 1)
                   if (tableList[j].status == 1) {
                     tableList[j].isSelected = false;
-                    cart.removeSpecificGroupList(tableList[j].group);
+                    cart.removeSpecificGroupList(tableList[j].group!);
                     cart.removeAllCartItem();
                     cart.removePromotion();
                     cart.removeSpecificTable(tableList[j]);
@@ -692,8 +700,13 @@ class _TableMenuState extends State<TableMenu> {
           } else {
             if (tableList[index].status != 1) {
               //openEditTableDialog(tableList[index]);
-            } else
-              Fluttertoast.showToast(backgroundColor: Color(0xFF07F107), msg: AppLocalizations.of(context)!.translate('table_is_used'));
+            } else {
+              if(tableList[index].order_key == null) {
+                openChangeTableDialog(tableList[index], cart);
+              } else {
+                Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
+              }
+            }
           }
           setState(() {
             tapCount = 0;

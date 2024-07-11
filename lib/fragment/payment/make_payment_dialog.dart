@@ -133,7 +133,7 @@ class _MakePaymentState extends State<MakePayment> {
   late bool split_payment = false;
   bool isButtonDisabled = false;
   bool paymentSplitDialog = false;
-  int order_split_payment_link_company_id = 0;
+  String order_split_payment_link_company_id = '';
 
   // Array of button
   final List<String> buttons = [
@@ -811,7 +811,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                               onTap: () async {
                                                                 setState(() {
                                                                   _type = PaymentLists[index].type!;
-                                                                  order_split_payment_link_company_id = PaymentLists[index].payment_link_company_id!;
+                                                                  order_split_payment_link_company_id = PaymentLists[index].payment_link_company_id!.toString();
                                                                 });
                                                               },
                                                               child: Card(
@@ -909,7 +909,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                               onTap: () async {
                                                                 setState(() {
                                                                   _type = PaymentLists[index].type!;
-                                                                  order_split_payment_link_company_id = PaymentLists[index].payment_link_company_id!;
+                                                                  order_split_payment_link_company_id = PaymentLists[index].payment_link_company_id!.toString();
                                                                 });
                                                               },
                                                               child: Card(
@@ -1018,7 +1018,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                   onTap: () async {
                                                                     setState(() {
                                                                       _type = PaymentLists[index].type!;
-                                                                      order_split_payment_link_company_id = PaymentLists[index].payment_link_company_id!;
+                                                                      order_split_payment_link_company_id = PaymentLists[index].payment_link_company_id!.toString();
                                                                     });
                                                                   },
                                                                   child: Card(
@@ -2199,7 +2199,7 @@ class _MakePaymentState extends State<MakePayment> {
       if (orderNum != 0) {
         OrderPaymentSplit orderObject = OrderPaymentSplit(
             order_split_payment_id: 0,
-            payment_link_company_id: split_payment ? order_split_payment_link_company_id.toString() : widget.payment_link_company_id.toString(),
+            payment_link_company_id: order_split_payment_link_company_id != '' ? order_split_payment_link_company_id : widget.payment_link_company_id.toString(),
             amount: finalAmount,
             payment_received: paymentReceived == null ? '' : paymentReceived.toStringAsFixed(2),
             payment_change: orderChange == null ? '0.00' : orderChange,
