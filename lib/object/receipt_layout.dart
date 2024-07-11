@@ -2489,7 +2489,7 @@ class ReceiptLayout{
 /*
   reprint check list layout 80mm
 */
-  reprintCheckList80mm(bool isUSB, CartModel cartModel, {value}) async {
+  reprintCheckList80mm(bool isUSB, CartModel cartModel, {value, bool? isPayment}) async {
     Checklist? checklistLayout = await PosDatabase.instance.readSpecificChecklist('80');
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
@@ -2508,12 +2508,16 @@ class ReceiptLayout{
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       //other order detail
-      if(cartModel.selectedTable.isNotEmpty){
+      if(cartModel.selectedTable.isNotEmpty && isPayment == null){
         for(int i = 0; i < cartModel.selectedTable.length; i++){
           bytes += generator.text('Table No: ${cartModel.selectedTable[i].number}', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
         }
       } else {
-        bytes += generator.text('${cartModel.selectedOption}');
+        bytes += generator.text('${cartModel.selectedOption}', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
+      }
+      //order queue
+      if(cartModel.cartNotifierItem[0].order_queue != null && int.tryParse(cartModel.cartNotifierItem[0].order_queue!) != null){
+        bytes += generator.text('Order No: ${cartModel.cartNotifierItem[0].order_queue!}', styles: PosStyles(align: PosAlign.left, height:PosTextSize.size2, width: PosTextSize.size2));
       }
       bytes += generator.text('Batch No: #${cartModel.cartNotifierItem[0].first_cache_batch}-${branch_id.toString().padLeft(3 ,'0')}');
       bytes += generator.text('Order By: ${cartModel.cartNotifierItem[0].first_cache_order_by}', containsChinese: true);
@@ -2624,7 +2628,7 @@ class ReceiptLayout{
 /*
   reprint check list layout 58mm
 */
-  reprintCheckList58mm(bool isUSB, CartModel cartModel, {value}) async {
+  reprintCheckList58mm(bool isUSB, CartModel cartModel, {value, bool? isPayment}) async {
     Checklist? checklistLayout = await PosDatabase.instance.readSpecificChecklist('58');
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
@@ -2644,10 +2648,16 @@ class ReceiptLayout{
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       //other order detail
-      if(cartModel.selectedTable.isNotEmpty){
+      if(cartModel.selectedTable.isNotEmpty && isPayment == null){
         for(int i = 0; i < cartModel.selectedTable.length; i++){
           bytes += generator.text('Table No: ${cartModel.selectedTable[i].number}', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
         }
+      }else {
+        bytes += generator.text('${cartModel.selectedOption}', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
+      }
+      //order queue
+      if(cartModel.cartNotifierItem[0].order_queue != null && int.tryParse(cartModel.cartNotifierItem[0].order_queue!) != null){
+        bytes += generator.text('Order No: ${cartModel.cartNotifierItem[0].order_queue!}', styles: PosStyles(align: PosAlign.left, height:PosTextSize.size2, width: PosTextSize.size2));
       }
       bytes += generator.text('Batch No: #${cartModel.cartNotifierItem[0].first_cache_batch}-${branch_id.toString().padLeft(3 ,'0')}');
       bytes += generator.text('Order By: ${cartModel.cartNotifierItem[0].first_cache_order_by}', containsChinese: true);
@@ -2888,7 +2898,6 @@ class ReceiptLayout{
   kitchen layout 58mm
 */
   printKitchenList58mm(bool isUSB, int localId, {value, required OrderDetail orderDetail, bool? isReprint}) async {
-    String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     KitchenList? kitchenListLayout = await PosDatabase.instance.readSpecificKitchenList('58');
@@ -2933,7 +2942,7 @@ class ReceiptLayout{
         bytes += generator.text('Batch No', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('#${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Order time', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('${Utils.formatDate(dateTime)}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('${Utils.formatDate(orderCache!.created_at)}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.hr();
         bytes += generator.reset();
         /*
@@ -3022,7 +3031,7 @@ class ReceiptLayout{
 /*
   combine kitchen layout 80mm
 */
-  printCombinedKitchenList80mm(bool isUSB, int localId, {value, required List<OrderDetail> orderDetailList}) async {
+  printCombinedKitchenList80mm(bool isUSB, int localId, {value, required List<OrderDetail> orderDetailList, bool? isReprint}) async {
     List<cartProductItem> cartItemList = [];
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
@@ -3057,7 +3066,9 @@ class ReceiptLayout{
 
       List<int> bytes = [];
       try {
-        bytes += generator.text('** kitchen list **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
+        bytes += generator.reset();
+        bytes += generator.text(isReprint != null ? '** Reprint List **' : '** kitchen list **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
+        // bytes += generator.text('** kitchen list **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
         //other order detail
@@ -3168,8 +3179,7 @@ class ReceiptLayout{
 /*
   combine kitchen layout 58mm
 */
-  printCombinedKitchenList58mm(bool isUSB, int localId, {value, required List<OrderDetail> orderDetailList}) async {
-    String dateTime = dateFormat.format(DateTime.now());
+  printCombinedKitchenList58mm(bool isUSB, int localId, {value, required List<OrderDetail> orderDetailList, bool? isReprint}) async {
     List<cartProductItem> cartItemList = [];
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
@@ -3204,7 +3214,7 @@ class ReceiptLayout{
 
       List<int> bytes = [];
       try {
-        bytes += generator.text('** kitchen list **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
+        bytes += generator.text(isReprint != null ? '** Reprint List **' : '** kitchen list **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
         //other order detail
@@ -3222,7 +3232,7 @@ class ReceiptLayout{
         bytes += generator.text('Batch No', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('#${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Order time', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('${Utils.formatDate(dateTime)}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('${Utils.formatDate(orderCache!.created_at)}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.hr();
         bytes += generator.reset();
         /*
@@ -3483,7 +3493,7 @@ class ReceiptLayout{
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
     Map branchObject = json.decode(branch!);
-    Checklist? checklistLayout = await PosDatabase.instance.readSpecificChecklist('80');
+    Checklist? checklistLayout = await PosDatabase.instance.readSpecificChecklist('58');
     await readOrderCache(localId);
 
     if(_isLoad == true){
@@ -3561,9 +3571,28 @@ class ReceiptLayout{
         }
         bytes += generator.reset();
         //product modifier
-        if(cartItem.checkedModifierItem!.isNotEmpty) {
-          for (int j = 0; j < cartItem.checkedModifierItem!.length; j++) {
-            //modifier
+        if(cartItem.checkedModifierItem != null){
+          if(cartItem.checkedModifierItem!.isNotEmpty) {
+            for (int j = 0; j < cartItem.checkedModifierItem!.length; j++) {
+              //modifier
+              bytes += generator.row([
+                PosColumn(
+                    text: '',
+                    width: 2,
+                    styles: PosStyles(
+                        height: checklistLayout != null && checklistLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                        width: checklistLayout != null && checklistLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+                PosColumn(text: '+${cartItem.checkedModifierItem![j].name}',
+                    containsChinese: true,
+                    width: 10,
+                    styles: PosStyles(
+                        height: checklistLayout != null && checklistLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                        width: checklistLayout != null && checklistLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+              ]);
+            }
+          }
+        } else {
+          for(final modItem in cartItem.orderModifierDetail!){
             bytes += generator.row([
               PosColumn(
                   text: '',
@@ -3571,7 +3600,7 @@ class ReceiptLayout{
                   styles: PosStyles(
                       height: checklistLayout != null && checklistLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                       width: checklistLayout != null && checklistLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
-              PosColumn(text: '+${cartItem.checkedModifierItem![j].name}',
+              PosColumn(text: '+${modItem.mod_name}',
                   containsChinese: true,
                   width: 10,
                   styles: PosStyles(
@@ -4686,7 +4715,6 @@ class ReceiptLayout{
   read branch latest order cache (auto print when place order click)
 */
   readOrderCache(int orderCacheId) async {
-    final prefs = await SharedPreferences.getInstance();
     OrderCache cacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCacheId);
     orderCache = cacheData;
 

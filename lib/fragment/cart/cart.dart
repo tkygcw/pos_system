@@ -6,6 +6,7 @@ import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:f_logs/model/flog/flog.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -694,118 +695,121 @@ class CartPageState extends State<CartPage> {
                                     padding: const EdgeInsets.all(8.0),
                                     child: Row(
                                       children: [
-                                        Expanded(
-                                            child: ElevatedButton(
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor: color.backgroundColor,
-                                                  minimumSize: const Size.fromHeight(50), // NEW
-                                                ),
-                                                onPressed: isButtonDisabled
-                                                    ? null
-                                                    : () async {
-                                                  // setState(() {
-                                                  //   isButtonDisabled = true;
-                                                  // });
-                                                  await checkCashRecord();
-                                                  if (widget.currentPage == 'menu' || widget.currentPage == 'qr_order') {
-                                                    if (_isSettlement == true) {
-                                                      showDialog(
-                                                          barrierDismissible: false,
-                                                          context: context,
-                                                          builder: (BuildContext context) {
-                                                            return PopScope(
-                                                                canPop: false,
-                                                                child: CashDialog(isCashIn: true, callBack: () {}, isCashOut: false, isNewDay: true));
-                                                          });
-                                                      _isSettlement = false;
-                                                    } else {
-                                                      disableButton();
-                                                      if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == true) {
-                                                        if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
-                                                          openLoadingDialogBox();
-                                                          //_startTimer();
-                                                          print('has new item ${hasNewItem}');
-                                                          if (cart.cartNotifierItem[0].status == 1 && hasNewItem == true) {
-                                                            asyncQ.addJob((_) async => await callAddOrderCache(cart));
-                                                          } else if (cart.cartNotifierItem[0].status == 0) {
-                                                            asyncQ.addJob((_) async {
-                                                              await callCreateNewOrder(cart);
-                                                              print("local: cart add new order done");
+                                        Visibility(
+                                          visible: widget.currentPage != 'bill' ? true : false,
+                                          child: Expanded(
+                                              child: ElevatedButton(
+                                                  style: ElevatedButton.styleFrom(
+                                                    backgroundColor: color.backgroundColor,
+                                                    minimumSize: const Size.fromHeight(50), // NEW
+                                                  ),
+                                                  onPressed: isButtonDisabled
+                                                      ? null
+                                                      : () async {
+                                                    // setState(() {
+                                                    //   isButtonDisabled = true;
+                                                    // });
+                                                    await checkCashRecord();
+                                                    if (widget.currentPage == 'menu' || widget.currentPage == 'qr_order') {
+                                                      if (_isSettlement == true) {
+                                                        showDialog(
+                                                            barrierDismissible: false,
+                                                            context: context,
+                                                            builder: (BuildContext context) {
+                                                              return PopScope(
+                                                                  canPop: false,
+                                                                  child: CashDialog(isCashIn: true, callBack: () {}, isCashOut: false, isNewDay: true));
                                                             });
+                                                        _isSettlement = false;
+                                                      } else {
+                                                        disableButton();
+                                                        if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == true) {
+                                                          if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
+                                                            openLoadingDialogBox();
+                                                            //_startTimer();
+                                                            print('has new item ${hasNewItem}');
+                                                            if (cart.cartNotifierItem[0].status == 1 && hasNewItem == true) {
+                                                              asyncQ.addJob((_) async => await callAddOrderCache(cart));
+                                                            } else if (cart.cartNotifierItem[0].status == 0) {
+                                                              asyncQ.addJob((_) async {
+                                                                await callCreateNewOrder(cart);
+                                                                print("local: cart add new order done");
+                                                              });
+                                                            } else {
+                                                              Fluttertoast.showToast(
+                                                                  backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('cannot_replace_same_order'));
+                                                              Navigator.of(context).pop();
+                                                            }
+                                                            // cart.removeAllCartItem();
+                                                            // cart.removeAllTable();
                                                           } else {
                                                             Fluttertoast.showToast(
-                                                                backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('cannot_replace_same_order'));
-                                                            Navigator.of(context).pop();
+                                                                backgroundColor: Colors.red,
+                                                                msg: AppLocalizations.of(context)!.translate('make_sure_cart_is_not_empty_and_table_is_selected'));
                                                           }
-                                                          // cart.removeAllCartItem();
-                                                          // cart.removeAllTable();
                                                         } else {
-                                                          Fluttertoast.showToast(
-                                                              backgroundColor: Colors.red,
-                                                              msg: AppLocalizations.of(context)!.translate('make_sure_cart_is_not_empty_and_table_is_selected'));
-                                                        }
-                                                      } else {
-                                                        // not dine in call
-                                                        print("Not dine in called");
-                                                        cart.removeAllTable();
-                                                        if (cart.cartNotifierItem.isNotEmpty) {
-                                                          openLoadingDialogBox();
-                                                          asyncQ.addJob((_) async => await callCreateNewNotDineOrder(cart, appSettingModel));
-                                                        } else {
-                                                          Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                                          // not dine in call
+                                                          print("Not dine in called");
+                                                          cart.removeAllTable();
+                                                          if (cart.cartNotifierItem.isNotEmpty) {
+                                                            openLoadingDialogBox();
+                                                            asyncQ.addJob((_) async => await callCreateNewNotDineOrder(cart, appSettingModel));
+                                                          } else {
+                                                            Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                                          }
                                                         }
                                                       }
-                                                    }
-                                                  } else if (widget.currentPage == 'table') {
-                                                    if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
-                                                      if (cart.selectedTable.length > 1) {
-                                                        if (await confirm(
-                                                          context,
-                                                          title: Text('${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
-                                                          content: Text('${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
-                                                          textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                                                          textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
-                                                        )) {
+                                                    } else if (widget.currentPage == 'table') {
+                                                      if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
+                                                        if (cart.selectedTable.length > 1) {
+                                                          if (await confirm(
+                                                            context,
+                                                            title: Text('${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
+                                                            content: Text('${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
+                                                            textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                                                            textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                                                          )) {
+                                                            paymentAddToCart(cart);
+                                                            return openPaymentSelect(cart);
+                                                          }
+                                                        } else {
                                                           paymentAddToCart(cart);
-                                                          return openPaymentSelect(cart);
+                                                          openPaymentSelect(cart);
                                                         }
                                                       } else {
+                                                        Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                                      }
+                                                    } else if (widget.currentPage == 'other_order') {
+                                                      if (cart.cartNotifierItem.isNotEmpty) {
                                                         paymentAddToCart(cart);
                                                         openPaymentSelect(cart);
+                                                      } else {
+                                                        Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                                       }
                                                     } else {
-                                                      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                                      if (cart.cartNotifierItem.isNotEmpty) {
+                                                        int printStatus = await printReceipt.printCartReceiptList(printerList, cart, this.localOrderId);
+                                                        checkPrinterStatus(printStatus);
+                                                        cart.initialLoad();
+                                                        cart.changInit(true);
+                                                      } else {
+                                                        Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                                      }
                                                     }
-                                                  } else if (widget.currentPage == 'other_order') {
-                                                    if (cart.cartNotifierItem.isNotEmpty) {
-                                                      paymentAddToCart(cart);
-                                                      openPaymentSelect(cart);
-                                                    } else {
-                                                      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
-                                                    }
-                                                  } else {
-                                                    if (cart.cartNotifierItem.isNotEmpty) {
-                                                      int printStatus = await printReceipt.printCartReceiptList(printerList, cart, this.localOrderId, context);
-                                                      checkPrinterStatus(printStatus);
-                                                      cart.initialLoad();
-                                                      cart.changInit(true);
-                                                    } else {
-                                                      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
-                                                    }
-                                                  }
-                                                  enableButton();
-                                                },
-                                                child: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
-                                                    ? widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
-                                                    ? Text(AppLocalizations.of(context)!.translate('place_order') + '\n (RM ${this.finalAmount})')
-                                                    : widget.currentPage == 'table' || widget.currentPage == 'other_order'
-                                                    ? Text(AppLocalizations.of(context)!.translate('pay') + ' (RM ${this.finalAmount})')
-                                                    : Text(AppLocalizations.of(context)!.translate('print_receipt'))
-                                                    : widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
-                                                    ? Text(AppLocalizations.of(context)!.translate('place_order'))
-                                                    : widget.currentPage == 'table' || widget.currentPage == 'other_order'
-                                                    ? Text(AppLocalizations.of(context)!.translate('pay'))
-                                                    : Text(AppLocalizations.of(context)!.translate('print_receipt')))),
+                                                    enableButton();
+                                                  },
+                                                  child: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
+                                                      ? widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
+                                                      ? Text(AppLocalizations.of(context)!.translate('place_order') + '\n (RM ${this.finalAmount})')
+                                                      : widget.currentPage == 'table' || widget.currentPage == 'other_order'
+                                                      ? Text(AppLocalizations.of(context)!.translate('pay') + ' (RM ${this.finalAmount})')
+                                                      : Text(AppLocalizations.of(context)!.translate('print_receipt'))
+                                                      : widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
+                                                      ? Text(AppLocalizations.of(context)!.translate('place_order'))
+                                                      : widget.currentPage == 'table' || widget.currentPage == 'other_order'
+                                                      ? Text(AppLocalizations.of(context)!.translate('pay'))
+                                                      : Text(AppLocalizations.of(context)!.translate('print_receipt')))),
+                                        ),
                                         Visibility(
                                             child: SizedBox(
                                               width: 10,
@@ -839,8 +843,7 @@ class CartPageState extends State<CartPage> {
                                           ),
                                         ),
                                         Visibility(
-                                          visible: widget.currentPage == "table" || widget.currentPage == "other_order" ? true : false,
-                                          // && cart.cartNotifierItem.isNotEmpty ? true : false,
+                                          visible: widget.currentPage == "table" || widget.currentPage == "other_order" || widget.currentPage == "bill" ? true : false,
                                           child: Expanded(
                                               child: ElevatedButton(
                                                   style: ElevatedButton.styleFrom(
@@ -853,8 +856,9 @@ class CartPageState extends State<CartPage> {
                                                     setState(() {
                                                       isLoading = true;
                                                     });
-                                                    paymentAddToCart(cart);
-
+                                                    if(widget.currentPage != 'bill'){
+                                                      paymentAddToCart(cart);
+                                                    }
                                                     openReprintDialog(printerList, cart);
 
                                                     setState(() {
@@ -866,7 +870,7 @@ class CartPageState extends State<CartPage> {
                                                     color: Colors.white,
                                                     strokeWidth: 3,
                                                   )
-                                                      : Text(AppLocalizations.of(context)!.translate('print_receipt')))),
+                                                      : Text(AppLocalizations.of(context)!.translate('reprint')))),
                                         )
                                       ],
                                     ),
@@ -1937,6 +1941,7 @@ class CartPageState extends State<CartPage> {
                 printerList: printerList,
                 cart: cart,
                 parentContext: this.widget.parentContext!,
+                currentPage: this.widget.currentPage,
               ),
             ),
           );
@@ -2529,12 +2534,14 @@ class CartPageState extends State<CartPage> {
         if(returnData != null){
           if (returnData.isNotEmpty) {
             _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
-            CustomSnackBar.instance.showSnackBar(
-                title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
-                description: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
-                contentType: ContentType.failure,
-                playSound: true,
-                playtime: 2);
+            if(mounted){
+              CustomSnackBar.instance.showSnackBar(
+                  title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
+                  description: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
+                  contentType: ContentType.failure,
+                  playSound: true,
+                  playtime: 2);
+            }
           }
         } else {
           Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('no_printer_added')}");
