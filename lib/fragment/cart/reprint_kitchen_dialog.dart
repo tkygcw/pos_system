@@ -229,7 +229,7 @@ class _ReprintKitchenDialogState extends State<ReprintKitchenDialog> {
     _failPrintModel.removeAllFailedOrderDetail();
     Navigator.of(context).pop();
     reprintList = printList.where((element) => element.isSelected == true).toList();
-    List<OrderDetail> returnData = await printReceipt.reprintKitchenList(printerList, reprintList: reprintList);
+    List<OrderDetail> returnData = await printReceipt.reprintFailKitchenList(printerList, reprintList: reprintList);
     if (returnData.isNotEmpty) {
       reprintList.clear();
       _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);

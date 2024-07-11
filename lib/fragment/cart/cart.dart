@@ -811,7 +811,7 @@ class CartPageState extends State<CartPage> {
                                                       }
                                                     } else {
                                                       if (cart.cartNotifierItem.isNotEmpty) {
-                                                        int printStatus = await printReceipt.printCartReceiptList(printerList, cart, this.localOrderId, context);
+                                                        int printStatus = await printReceipt.printCartReceiptList(printerList, cart, this.localOrderId);
                                                         checkPrinterStatus(printStatus);
                                                         cart.initialLoad();
                                                         cart.changInit(true);
@@ -867,7 +867,6 @@ class CartPageState extends State<CartPage> {
                                         ),
                                         Visibility(
                                           visible: widget.currentPage == "table" || widget.currentPage == "other_order" || widget.currentPage == "bill" ? true : false,
-                                          // && cart.cartNotifierItem.isNotEmpty ? true : false,
                                           child: Expanded(
                                               child: ElevatedButton(
                                                   style: ElevatedButton.styleFrom(
@@ -880,8 +879,9 @@ class CartPageState extends State<CartPage> {
                                                     setState(() {
                                                       isLoading = true;
                                                     });
-                                                    paymentAddToCart(cart);
-
+                                                    if(widget.currentPage != 'bill'){
+                                                      paymentAddToCart(cart);
+                                                    }
                                                     openReprintDialog(printerList, cart);
 
                                                     setState(() {
@@ -2025,6 +2025,7 @@ class CartPageState extends State<CartPage> {
                 printerList: printerList,
                 cart: cart,
                 parentContext: this.widget.parentContext!,
+                currentPage: this.widget.currentPage,
               ),
             ),
           );
@@ -2617,12 +2618,14 @@ class CartPageState extends State<CartPage> {
         if(returnData != null){
           if (returnData.isNotEmpty) {
             _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
-            CustomSnackBar.instance.showSnackBar(
-                title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
-                description: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
-                contentType: ContentType.failure,
-                playSound: true,
-                playtime: 2);
+            if(mounted){
+              CustomSnackBar.instance.showSnackBar(
+                  title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
+                  description: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
+                  contentType: ContentType.failure,
+                  playSound: true,
+                  playtime: 2);
+            }
           }
         } else {
           Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('no_printer_added')}");

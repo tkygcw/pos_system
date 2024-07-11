@@ -290,8 +290,10 @@ class CartDialogState extends State<CartDialog> {
                               child: Text(AppLocalizations.of(context)!.translate('select_table'),
                                 style: TextStyle(color: Colors.white),
                               ),
-                              onPressed: !checkIsSelected() || isButtonDisabled ? null : () async {
+                              onPressed: !checkIsSelected() || isButtonDisabled ? null
+                                  : () async {
                                       cart.removeAllTable();
+                                      cart.removeAllCartOrderCache();
                                       cart.removeAllCartItem();
                                       isButtonDisabled = true;
                                       for (int index = 0; index < tableList.length; index++) {
@@ -683,6 +685,7 @@ class CartDialogState extends State<CartDialog> {
   }
 
   addToCart(CartModel cart) async {
+    cart.addAllCartOrderCache(orderCacheList);
     var value;
     List<TableUseDetail> tableUseDetailList = [];
     cart.removeAllTable();
@@ -702,12 +705,12 @@ class CartDialogState extends State<CartDialog> {
           status: 1,
           category_sqlite_id: orderDetailList[i].category_sqlite_id,
           order_cache_sqlite_id: orderCacheList.last.order_cache_sqlite_id.toString(),
-          first_cache_created_date_time: orderCacheList.last.created_at,  //orderCacheList[0].created_at,
+          first_cache_created_date_time: orderCacheList.last.created_at,
           first_cache_batch: orderCacheList.last.batch_id,
           first_cache_order_by: orderCacheList.last.order_by,
           allow_ticket: orderDetailList[i].allow_ticket,
           ticket_count: orderDetailList[i].ticket_count,
-          ticket_exp: orderDetailList[i].ticket_exp
+          ticket_exp: orderDetailList[i].ticket_exp,
       );
       cart.addItem(value);
     }

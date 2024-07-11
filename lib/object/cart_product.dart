@@ -4,6 +4,7 @@ import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/modifier_item.dart';
 import 'package:pos_system/object/variant_group.dart';
 
+import 'order_cache.dart';
 import 'order_modifier_detail.dart';
 
 class cartProductItem{
@@ -75,7 +76,7 @@ class cartProductItem{
          this.order_queue,
          this.allow_ticket,
          this.ticket_count,
-         this.ticket_exp
+         this.ticket_exp,
        });
 
    static cartProductItem fromJson(Map<String, Object?> json) {

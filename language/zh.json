@@ -407,6 +407,7 @@
   "print_combine_kitchen_list_required": "需要启用合并打印厨房订单",
   "print_check_list": "打印检查清单",
   "print_receipt": "打印收据",
+  "print_review_receipt": "打印审查收据",
   "printer": "打印机",
   "printer_connection_timeout": "打印机连接超时",
   "printer_label": "打印机标签",

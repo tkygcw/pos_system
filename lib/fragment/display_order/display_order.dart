@@ -5,12 +5,14 @@ import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/object/dining_option.dart';
+import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../notifier/theme_color.dart';
+import '../../object/branch_link_product.dart';
 import '../../object/cart_product.dart';
 import '../../object/categories.dart';
 import '../../object/modifier_group.dart';
@@ -214,7 +216,6 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                               await getOrderDetail(orderCacheList[index]);
                               await addToCart(cart, orderCacheList[index]);
 
-
                             } else if(orderCacheList[index].is_selected == true) {
                               orderCacheList[index].is_selected = false;
                               cart.notDineInInitLoad();
@@ -297,6 +298,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
   }
 
   addToCart(CartModel cart, OrderCache orderCache) async {
+    cart.addCartOrderCache(orderCache);
     var value;
     for (int i = 0; i < orderDetailList.length; i++) {
       value = cartProductItem(
@@ -307,8 +309,6 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
           quantity: int.tryParse(orderDetailList[i].quantity!) != null ? int.parse(orderDetailList[i].quantity!) : double.parse(orderDetailList[i].quantity!),
           checkedModifierItem: [],
           orderModifierDetail: orderDetailList[i].orderModifierDetail,
-          //modifier: getModifierGroupItem(orderDetailList[i]),
-          //variant: getVariantGroupItem(orderDetailList[i]),
           productVariantName: orderDetailList[i].product_variant_name,
           remark: orderDetailList[i].remark!,
           unit: orderDetailList[i].unit,
@@ -323,6 +323,9 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
           first_cache_batch: orderCache.batch_id,
           first_cache_order_by: orderCache.order_by,
           first_cache_created_date_time: orderCache.created_at,
+          allow_ticket: orderDetailList[i].allow_ticket,
+          ticket_count: orderDetailList[i].ticket_count,
+          ticket_exp: orderDetailList[i].ticket_exp,
           order_key: orderCache.order_key,
       );
       cart.addItem(value);
@@ -395,7 +398,11 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
       orderDetailList = List.from(detailData);
     }
     for (int k = 0; k < orderDetailList.length; k++) {
-      //List<BranchLinkProduct> result = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
+      //Get data from branch link product
+      List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
+      orderDetailList[k].allow_ticket = data[0].allow_ticket;
+      orderDetailList[k].ticket_count = data[0].ticket_count;
+      orderDetailList[k].ticket_exp = data[0].ticket_exp;
       //Get product category
       if(orderDetailList[k].category_sqlite_id! == '0'){
         orderDetailList[k].product_category_id = '0';

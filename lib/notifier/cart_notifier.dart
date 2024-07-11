@@ -15,9 +15,9 @@ class CartModel extends ChangeNotifier {
   List<cartPaymentDetail> cartNotifierPayment = [];
   List<Promotion> autoPromotion = [];
   Promotion? selectedPromotion;
-
   List<PosTable> selectedTable = [];
   List<OrderCache> selectedOrderQueue = [];
+  List<OrderCache> currentOrderCache = [];
   String selectedOption = '';
   String selectedOptionId = '';
   String? subtotal;
@@ -74,6 +74,7 @@ class CartModel extends ChangeNotifier {
     removeAutoPromotion();
     removePaymentDetail();
     readAllBranchLinkDiningOption();
+    currentOrderCache.clear();
     removeAllGroupList();
     //selectedOptionId = '1';
     notifyListeners();
@@ -85,6 +86,7 @@ class CartModel extends ChangeNotifier {
     removeAutoPromotion();
     removePromotion();
     removePaymentDetail();
+    currentOrderCache.clear();
     selectedOption = 'Take Away';
     //selectedOptionId = '2';
     notifyListeners();
@@ -233,5 +235,23 @@ class CartModel extends ChangeNotifier {
 
   void refresh() {
     notifyListeners();
+  }
+
+  void addAllCartOrderCache(List<OrderCache> orderCacheList){
+    currentOrderCache.addAll(orderCacheList);
+  }
+
+  void addCartOrderCache(OrderCache orderCache){
+    currentOrderCache.add(orderCache);
+  }
+
+  void removeCartOrderCache(List<OrderCache> orderCacheList){
+    for(final cache in orderCacheList){
+      currentOrderCache.removeWhere((e) => e.order_cache_sqlite_id == cache.order_cache_sqlite_id);
+    }
+  }
+
+  void removeAllCartOrderCache(){
+    currentOrderCache.clear();
   }
 }

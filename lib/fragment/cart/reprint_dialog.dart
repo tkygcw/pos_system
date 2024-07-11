@@ -1,10 +1,10 @@
 
-import 'package:flutter/cupertino.dart';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/main.dart';
-import 'package:pos_system/object/order_detail.dart';
+import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/print_receipt.dart';
 import '../../notifier/cart_notifier.dart';
 import '../../object/cart_product.dart';
@@ -15,7 +15,13 @@ class ReprintDialog extends StatefulWidget {
   final List<Printer> printerList;
   final CartModel cart;
   final BuildContext parentContext;
-  const ReprintDialog({Key? key, required this.printerList, required this.cart, required this.parentContext}) : super(key: key);
+  final String currentPage;
+  const ReprintDialog({
+    Key? key,
+    required this.printerList,
+    required this.cart,
+    required this.parentContext,
+    required this.currentPage}) : super(key: key);
 
   @override
   State<ReprintDialog> createState() => _ReprintDialogState();
@@ -41,7 +47,11 @@ class _ReprintDialogState extends State<ReprintDialog> {
 
   void reprintCheckList() async  {
     BuildContext _context = widget.parentContext;
-    int printStatus = await printReceipt.reprintCheckList(widget.printerList, widget.cart);
+    bool? isPaymentPage;
+    if(widget.currentPage == 'bill'){
+      isPaymentPage = true;
+    }
+    int printStatus = await printReceipt.reprintCheckList(widget.printerList, widget.cart, isPayment: isPaymentPage);
     switch(printStatus){
       case 1: {
         Fluttertoast.showToast(
@@ -92,18 +102,47 @@ class _ReprintDialogState extends State<ReprintDialog> {
   }
 
   void reprintKitchenList() async  {
-    BuildContext _context = widget.parentContext;
-    print("reprint kitchen list: ${widget.cart.cartNotifierItem}");
-    // printReceipt.printProductTicket(widget.printerList, int.parse(ticketProduct[0].order_cache_sqlite_id!), ticketProduct);
-    // if(widget.orderCacheId != null) {
-    try {
-      asyncQ.addJob((_) async => await printReceipt.printKitchenList(widget.printerList, int.parse(widget.cart.cartNotifierItem[0].order_cache_sqlite_id!), isReprint: true));
-
-    } catch(e) {
-
+    try{
+      BuildContext _context = widget.parentContext;
+      List<OrderCache> orderCacheList = widget.cart.currentOrderCache;
+      print("order cache list length: ${orderCacheList.length}");
+      for(final cache in orderCacheList){
+        asyncQ.addJob((_) async => await printReceipt.printKitchenList(widget.printerList, cache.order_cache_sqlite_id!, isReprint: true));
+      }
+    }catch(e){
+      FLog.error(
+        className: "reprint dialog",
+        text: "reprint kitchen list error",
+        exception: "$e",
+      );
     }
-    // }
   }
+
+  printReviewReceipt() async {
+    int printStatus = await printReceipt.printReviewReceipt(widget.printerList, widget.cart.selectedTable, widget.cart);
+    checkPrinterStatus(printStatus);
+  }
+
+  checkPrinterStatus(int printStatus) {
+    if (printStatus == 1) {
+      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+    } else if (printStatus == 2) {
+      Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    } else if (printStatus == 3) {
+      Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('no_printer_added'));
+    } else if (printStatus == 4) {
+      Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('no_cashier_printer')}");
+    }
+  }
+
+  printPaymentReceipt() async {
+    String localOrderId = widget.cart.cartNotifierPayment[0].localOrderId;
+    print("cart payment length: ${widget.cart.cartNotifierPayment.length}");
+    print("local order id in reprint: ${localOrderId}");
+    int printStatus = await printReceipt.printCartReceiptList(widget.printerList, widget.cart, localOrderId);
+    checkPrinterStatus(printStatus);
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -139,12 +178,26 @@ class _ReprintDialogState extends State<ReprintDialog> {
               ),
             ),
           ),
-          Card(
-            elevation: 5,
-            child: ListTile(
-              title: Text(AppLocalizations.of(context)!.translate('print_receipt')),
-              onTap: checkPrinterStatus,
-              trailing: Icon(Icons.receipt),
+        Visibility(
+          visible: widget.currentPage == 'table' || widget.currentPage == 'other_order' ? true : false,
+            child: Card(
+              elevation: 5,
+              child: ListTile(
+                title: Text(AppLocalizations.of(context)!.translate('print_review_receipt')),
+                onTap: printReviewReceipt,
+                trailing: Icon(Icons.receipt),
+              ),
+            ),
+          ),
+          Visibility(
+            visible: widget.currentPage == 'bill' ? true : false,
+            child: Card(
+              elevation: 5,
+              child: ListTile(
+                title: Text(AppLocalizations.of(context)!.translate('print_receipt')),
+                onTap: printPaymentReceipt,
+                trailing: Icon(Icons.receipt_long),
+              ),
             ),
           ),
         ],
@@ -162,19 +215,6 @@ class _ReprintDialogState extends State<ReprintDialog> {
 
       ],
     );
-  }
-
-  checkPrinterStatus() async {
-    int printStatus = await printReceipt.printReviewReceipt(widget.printerList, widget.cart.selectedTable, widget.cart);
-    if (printStatus == 1) {
-      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
-    } else if (printStatus == 2) {
-      Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
-    } else if (printStatus == 3) {
-      Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('no_printer_added'));
-    } else if (printStatus == 4) {
-      Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('no_cashier_printer')}");
-    }
   }
 }
 
