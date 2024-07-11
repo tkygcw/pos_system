@@ -6,6 +6,7 @@ import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/object/dining_option.dart';
 import 'package:pos_system/object/order_cache.dart';
+import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -80,6 +81,21 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
     setState(() {
       orderCacheList = data;
     });
+    for(int i = 0; i < orderCacheList.length; i++) {
+      print("orderCacheList[i].order_key: ${orderCacheList[i].order_key}");
+      if(orderCacheList[i].order_key != '') {
+        double amountPaid = 0;
+        double total_amount = double.parse(orderCacheList[i].total_amount!);
+        List<OrderPaymentSplit> orderSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(orderCacheList[i].order_key!);
+        for(int k = 0; k < orderSplit.length; k++){
+          amountPaid += double.parse(orderSplit[k].amount!);
+        }
+        total_amount -= amountPaid;
+        setState(() {
+          orderCacheList[i].total_amount = total_amount.toString();
+        });
+      }
+    }
   }
 
   // Future<Future<Object?>> openViewOrderDialog(OrderCache data) async {
@@ -177,14 +193,14 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                     itemBuilder: (BuildContext context, int index) {
                       return Card(
                         elevation: 5,
+                        color: orderCacheList[index].payment_status == 2 ? Color(0xFFFE8080) : Colors.white,
                         shape: orderCacheList[index].is_selected
                             ? new RoundedRectangleBorder(
                             side: new BorderSide(
-                                color: color.backgroundColor, width: 3.0),
+                                color: orderCacheList[index].payment_status == 2 ? Colors.red : color.backgroundColor, width: 3.0),
                             borderRadius: BorderRadius.circular(4.0))
                             : new RoundedRectangleBorder(
-                            side: new BorderSide(
-                                color: Colors.white, width: 3.0),
+                            side: new BorderSide(color: orderCacheList[index].payment_status == 2 ? Color(0xFFFE8080) : Colors.white, width: 3.0),
                             borderRadius: BorderRadius.circular(4.0)),
                         child: InkWell(
                           onTap: () async {
@@ -306,7 +322,8 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
           refColor: Colors.black,
           first_cache_batch: orderCache.batch_id,
           first_cache_order_by: orderCache.order_by,
-          first_cache_created_date_time: orderCache.created_at
+          first_cache_created_date_time: orderCache.created_at,
+          order_key: orderCache.order_key,
       );
       cart.addItem(value);
       if(orderCache.dining_name == 'Take Away'){
@@ -386,53 +403,8 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
         Categories category = await PosDatabase.instance.readSpecificCategoryByLocalId(orderDetailList[k].category_sqlite_id!);
         orderDetailList[k].product_category_id = category.category_id.toString();
       }
-      // List<Product> productResult = await PosDatabase.instance.readSpecificProductCategory(result[0].product_id!);
-      // orderDetailList[k].product_category_id = productResult[0].category_id;
-      // if(orderDetailList[k].has_variant == '1'){
-      //   List<BranchLinkProduct> variant = await PosDatabase.instance.readBranchLinkProductVariant(orderDetailList[k].branch_link_product_sqlite_id!);
-      //   orderDetailList[k].productVariant = ProductVariant(
-      //       product_variant_id: int.parse(variant[0].product_variant_id!),
-      //       variant_name: variant[0].variant_name);
-      //
-      //   //Get product variant detail
-      //   List<ProductVariantDetail> productVariantDetail = await PosDatabase.instance.readProductVariantDetail(variant[0].product_variant_id!);
-      //   orderDetailList[k].variantItem.clear();
-      //   for (int v = 0; v < productVariantDetail.length; v++) {
-      //     //Get product variant item
-      //     List<VariantItem> variantItemDetail = await PosDatabase.instance.readProductVariantItemByVariantID(productVariantDetail[v].variant_item_id!);
-      //     orderDetailList[k].variantItem.add(VariantItem(
-      //         variant_item_id: int.parse(productVariantDetail[v].variant_item_id!),
-      //         variant_group_id: variantItemDetail[0].variant_group_id,
-      //         name: variant[0].variant_name,
-      //         isSelected: true));
-      //     productVariantDetail.clear();
-      //   }
-      // }
       //check order modifier
       await getOrderModifierDetail(orderDetailList[k]);
-      // List<ModifierLinkProduct> productMod = await PosDatabase.instance.readProductModifier(result[0].product_sqlite_id!);
-      // if (productMod.length > 0) {
-      //   orderDetailList[k].hasModifier = true;
-      // }
-      //
-      // if (orderDetailList[k].hasModifier == true) {
-      //   //Get order modifier detail
-      //   List<OrderModifierDetail> modDetail = await PosDatabase.instance.readOrderModifierDetail(orderDetailList[k].order_detail_sqlite_id.toString());
-      //   if (modDetail.length > 0) {
-      //     orderDetailList[k].modifierItem.clear();
-      //     for (int m = 0; m < modDetail.length; m++) {
-      //       // print('mod detail length: ${modDetail.length}');
-      //       if (!orderDetailList[k].modifierItem.contains(modDetail[m].mod_group_id!)) {
-      //         orderDetailList[k].modifierItem.add(ModifierItem(
-      //             mod_group_id: modDetail[m].mod_group_id!,
-      //             mod_item_id: int.parse(modDetail[m].mod_item_id!),
-      //             name: modDetail[m].modifier_name!));
-      //         orderDetailList[k].mod_group_id.add(modDetail[m].mod_group_id!);
-      //         orderDetailList[k].mod_item_id = modDetail[m].mod_item_id;
-      //       }
-      //     }
-      //   }
-      // }
     }
   }
 

@@ -308,7 +308,7 @@ class CartPageState extends State<CartPage> {
                         Visibility(
                           visible: (widget.currentPage == 'menu' && cart.selectedOption == 'Dine in' && appSettingModel.table_order == true) ||
                               (widget.currentPage == 'menu' && cart.selectedOption != 'Dine in' && appSettingModel.directPaymentStatus == false) ||
-                              widget.currentPage == 'qr_order' || widget.currentPage == 'bill' || (widget.currentPage == 'table' && orderKey != '')
+                              widget.currentPage == 'qr_order' || widget.currentPage == 'bill' || ((widget.currentPage == 'table' || widget.currentPage == 'other_order') && orderKey != '')
                               ? false
                               : true,
                           child: IconButton(
@@ -719,7 +719,7 @@ class CartPageState extends State<CartPage> {
                                     child: Row(
                                       children: [
                                         Visibility(
-                                          visible: true,
+                                          visible: widget.currentPage != 'bill' ? true : false,
                                           child: Expanded(
                                               child: ElevatedButton(
                                                   style: ElevatedButton.styleFrom(
@@ -1887,6 +1887,7 @@ class CartPageState extends State<CartPage> {
   Cart Ordering initial called
 */
   getSubTotal(CartModel cart) async {
+    print("getSubTotal");
     try {
       // widget.currentPage == 'table' || widget.currentPage == 'qr_order'
       //     ? cart.selectedOption = 'Dine in'
@@ -2975,6 +2976,7 @@ class CartPageState extends State<CartPage> {
                 qr_order_table_sqlite_id: '',
                 qr_order_table_id: '',
                 accepted: 0,
+                payment_status: 0,
                 sync_status: 0,
                 created_at: dateTime,
                 updated_at: '',

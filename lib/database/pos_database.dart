@@ -383,6 +383,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.updated_at} $textType,
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_status} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderFields.payment_status} INTEGER NOT NULL DEFAULT 0");
         }break;
       }
     }
@@ -528,6 +529,7 @@ class PosDatabase {
           ${OrderCacheFields.qr_order_table_sqlite_id} $textType,
           ${OrderCacheFields.qr_order_table_id} $textType,
           ${OrderCacheFields.accepted} $integerType,
+          ${OrderCacheFields.payment_status} $integerType,
           ${OrderCacheFields.sync_status} $integerType,
           ${OrderCacheFields.created_at} $textType, 
           ${OrderCacheFields.updated_at} $textType, 
@@ -1813,8 +1815,9 @@ class PosDatabase {
     final id = db.rawInsert(
         'INSERT INTO $tableOrderCache(order_cache_id, order_cache_key, order_queue, company_id, branch_id, order_detail_id, '
         'table_use_sqlite_id, table_use_key, batch_id, dining_id, order_sqlite_id, order_key, order_by, order_by_user_id, '
-        'cancel_by, cancel_by_user_id, customer_id, total_amount, qr_order, qr_order_table_sqlite_id, qr_order_table_id, accepted, sync_status, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ',
+        'cancel_by, cancel_by_user_id, customer_id, total_amount, qr_order, qr_order_table_sqlite_id, qr_order_table_id, accepted, '
+            'payment_status, sync_status, created_at, updated_at, soft_delete) '
+        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ',
         [
           data.order_cache_id,
           data.order_cache_key,
@@ -1838,6 +1841,7 @@ class PosDatabase {
           data.qr_order_table_sqlite_id,
           data.qr_order_table_id,
           data.accepted,
+          data.payment_status,
           data.sync_status,
           data.created_at,
           data.updated_at,
@@ -3510,12 +3514,13 @@ class PosDatabase {
     try {
       final db = await instance.database;
       final result = await db.rawQuery(
-          'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, a.table_use_key, a.batch_id, a.order_sqlite_id, a.order_key, '
-          'a.order_by, a.total_amount, a.customer_id, a.created_at, a.updated_at, a.soft_delete, b.name AS name '
-          'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
-          'WHERE a.order_key = ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
+          'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
+          'a.table_use_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
+          'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a '
+          'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
+          'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
           'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.table_use_key = ? ORDER BY a.created_at DESC  ',
-          ['', '', '', branch_id, company_id, 0, '', '']);
+          ['1', '', '', branch_id, company_id, 0, '', '']);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {
@@ -3532,11 +3537,11 @@ class PosDatabase {
       final db = await instance.database;
       final result = await db.rawQuery(
           'SELECT a.order_cache_sqlite_id, a.order_queue, a.order_detail_id, a.dining_id, a.table_use_sqlite_id, a.table_use_key, a.batch_id, a.dining_id, '
-          'a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, '
+          'a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, a.payment_status,'
           'a.created_at, a.updated_at, a.soft_delete, b.name AS name '
           'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
-          'WHERE a.order_key = ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ? AND a.table_use_key = ?',
-          ['', '', '', '', name, '']);
+          'WHERE a.payment_status != ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ? AND a.table_use_key = ?',
+          ['2', '', '', '', name, '']);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {
@@ -6247,8 +6252,8 @@ class PosDatabase {
 */
   Future<int> updateOrderCacheOrderId(OrderCache data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableOrderCache SET order_sqlite_id = ?, order_key = ?, sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
-        [data.order_sqlite_id, data.order_key, data.sync_status, data.updated_at, data.order_cache_sqlite_id]);
+    return await db.rawUpdate('UPDATE $tableOrderCache SET order_sqlite_id = ?, order_key = ?, payment_status = ?, sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
+        [data.order_sqlite_id, data.order_key, data.payment_status, data.sync_status, data.updated_at, data.order_cache_sqlite_id]);
   }
 
 /*

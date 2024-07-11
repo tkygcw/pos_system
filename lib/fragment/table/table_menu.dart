@@ -335,7 +335,7 @@ class _TableMenuState extends State<TableMenu> {
             color: tableList[index].status != 0 && MediaQuery.of(context).size.height < 500 ? toColor(tableList[index].card_color!) :
               tableList[index].status == 1 && tableList[index].order_key != null ? Color(0xFFFE8080) : Colors.white,
             shape: tableList[index].isSelected
-                ? new RoundedRectangleBorder(side: new BorderSide(color: color.backgroundColor, width: 3.0), borderRadius: BorderRadius.circular(4.0))
+                ? new RoundedRectangleBorder(side: new BorderSide(color: tableList[index].order_key != null ? Colors.red : color.backgroundColor, width: 3.0), borderRadius: BorderRadius.circular(4.0))
                 : new RoundedRectangleBorder(side: new BorderSide(
                   color: tableList[index].status == 1 && tableList[index].order_key != null ? Color(0xFFFE8080) : Colors.white, width: 3.0
                 ), borderRadius: BorderRadius.circular(4.0)),
