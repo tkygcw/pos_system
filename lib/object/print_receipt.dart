@@ -506,7 +506,7 @@ class PrintReceipt{
 
   }
 
-  printCartReceiptList(List<Printer> printerList, CartModel cart, String localOrderId, context) async {
+  printCartReceiptList(List<Printer> printerList, CartModel cart, String localOrderId) async {
     try {
       int printStatus = 0;
       ///filter active cashier printer
@@ -691,7 +691,7 @@ class PrintReceipt{
     }
   }
 
-  reprintCheckList(List<Printer> printerList, CartModel cartModel) async {
+  reprintCheckList(List<Printer> printerList, CartModel cartModel, {bool? isPayment}) async {
     print('reprint celled!!!');
     int printStatus = 0;
     try {
@@ -702,7 +702,7 @@ class PrintReceipt{
             if (printerList[i].type == 0) {
               //print USB 80mm
               if (printerList[i].paper_size == 0) {
-                var data = Uint8List.fromList(await ReceiptLayout().reprintCheckList80mm(true, cartModel));
+                var data = Uint8List.fromList(await ReceiptLayout().reprintCheckList80mm(true, cartModel, isPayment: isPayment));
                 bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                 if (isConnected == true) {
                   await flutterUsbPrinter.write(data);
@@ -712,7 +712,7 @@ class PrintReceipt{
                 }
               } else {
                 //print 58mm
-                var data = Uint8List.fromList(await ReceiptLayout().reprintCheckList58mm(true, cartModel));
+                var data = Uint8List.fromList(await ReceiptLayout().reprintCheckList58mm(true, cartModel, isPayment: isPayment));
                 bool? isConnected = await flutterUsbPrinter.connect(
                     int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                 if (isConnected == true) {
@@ -730,7 +730,7 @@ class PrintReceipt{
                 final printer = NetworkPrinter(PaperSize.mm80, profile);
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                 if (res == PosPrintResult.success) {
-                  await ReceiptLayout().reprintCheckList80mm(false, cartModel, value: printer);
+                  await ReceiptLayout().reprintCheckList80mm(false, cartModel, value: printer, isPayment: isPayment);
                   await Future.delayed(Duration(milliseconds: 100));
                   printer.disconnect();
                   printStatus = 0;
@@ -746,7 +746,7 @@ class PrintReceipt{
                 final printer = NetworkPrinter(PaperSize.mm58, profile);
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                 if (res == PosPrintResult.success) {
-                  await ReceiptLayout().reprintCheckList58mm(false, cartModel, value: printer);
+                  await ReceiptLayout().reprintCheckList58mm(false, cartModel, value: printer, isPayment: isPayment);
                   await Future.delayed(Duration(milliseconds: 100));
                   printer.disconnect();
                   printStatus = 0;
@@ -881,7 +881,6 @@ class PrintReceipt{
       KitchenList? kitchenListLayout80mm = await PosDatabase.instance.readSpecificKitchenList('80');
       List<OrderDetail>? failedPrintOrderDetail;
       List<OrderDetail> orderDetail = await PosDatabase.instance.readSpecificOrderDetailByOrderCacheId(orderCacheLocalId.toString());
-
       int currentItem = 0;
       if(printerList.isNotEmpty){
         failedPrintOrderDetail = [];
@@ -919,7 +918,7 @@ class PrintReceipt{
                           await ReceiptLayout().printKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetail[k], isReprint: isReprint);
                         else if(kitchenListLayout80mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                           List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetail, data);
-                          await ReceiptLayout().printCombinedKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails);
+                          await ReceiptLayout().printCombinedKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails, isReprint: isReprint);
                           printCombinedKitchenList = true;
                         }
                         await Future.delayed(Duration(milliseconds: 100));
@@ -937,7 +936,7 @@ class PrintReceipt{
                           await ReceiptLayout().printKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetail[k], isReprint: isReprint);
                         else if(kitchenListLayout58mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                           List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetail, data);
-                          await ReceiptLayout().printCombinedKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails);
+                          await ReceiptLayout().printCombinedKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails, isReprint: isReprint);
                           printCombinedKitchenList = true;
                         }
                         await Future.delayed(Duration(milliseconds: 100));
@@ -975,7 +974,7 @@ class PrintReceipt{
                         data_usb = Uint8List.fromList(await ReceiptLayout().printKitchenList80mm(true, orderCacheLocalId, orderDetail: orderDetail[k], isReprint: isReprint));
                       else if(kitchenListLayout80mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                         List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetail, data);
-                        data_usb = Uint8List.fromList(await ReceiptLayout().printCombinedKitchenList80mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails));
+                        data_usb = Uint8List.fromList(await ReceiptLayout().printCombinedKitchenList80mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails, isReprint: isReprint));
                         printCombinedKitchenList = true;
                       }
                       bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
@@ -991,7 +990,7 @@ class PrintReceipt{
                         data_usb = Uint8List.fromList(await ReceiptLayout().printKitchenList58mm(true, orderCacheLocalId, orderDetail: orderDetail[k], isReprint: isReprint));
                       else if(kitchenListLayout58mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                         List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetail, data);
-                        data_usb = Uint8List.fromList(await ReceiptLayout().printCombinedKitchenList58mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails));
+                        data_usb = Uint8List.fromList(await ReceiptLayout().printCombinedKitchenList58mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails, isReprint: isReprint));
                         printCombinedKitchenList = true;
                       }
 
@@ -1037,14 +1036,11 @@ class PrintReceipt{
     }
   }
 
-  reprintKitchenList(List<Printer> printerList, {required List<OrderDetail> reprintList}) async {
+  reprintFailKitchenList(List<Printer> printerList, {required List<OrderDetail> reprintList}) async {
     List<OrderDetail>? failedPrintOrderDetail;
-    List<OrderDetail> reprintListGroup = [];
     bool printCombinedKitchenList = false;
     int currentItem = 0;
     try{
-      final prefs = await SharedPreferences.getInstance();
-      final int? branch_id = prefs.getInt('branch_id');
       KitchenList? kitchenListLayout58mm = await PosDatabase.instance.readSpecificKitchenList('58');
       KitchenList? kitchenListLayout80mm = await PosDatabase.instance.readSpecificKitchenList('80');
       if(printerList.isNotEmpty){

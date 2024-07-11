@@ -22,6 +22,7 @@ import '../../database/pos_database.dart';
 import '../../notifier/notification_notifier.dart';
 import '../../notifier/table_notifier.dart';
 import '../../notifier/theme_color.dart';
+import '../../object/branch_link_product.dart';
 import '../../object/cart_product.dart';
 import '../../object/modifier_group.dart';
 import '../../object/modifier_item.dart';
@@ -582,7 +583,7 @@ class _TableMenuState extends State<TableMenu> {
     );
   }
 
-  onSelect(index, cart) async {
+  onSelect(index, CartModel cart) async {
     try{
       openLoadingDialogBox();
       timer = Timer(Duration(milliseconds: 500), () async {
@@ -630,6 +631,7 @@ class _TableMenuState extends State<TableMenu> {
                 //await readSpecificTableDetail(tableList[index]);
                 addToCart(cart, tableList[index]);
               } else {
+                cart.removeCartOrderCache(orderCacheList);
                 removeFromCart(cart, tableList[index]);
               }
             }
@@ -894,6 +896,11 @@ class _TableMenuState extends State<TableMenu> {
     }
     //loop all order detail
     for (int k = 0; k < orderDetailList.length; k++) {
+      //Get data from branch link product
+      List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
+      orderDetailList[k].allow_ticket = data[0].allow_ticket;
+      orderDetailList[k].ticket_count = data[0].ticket_count;
+      orderDetailList[k].ticket_exp = data[0].ticket_exp;
       //Get product category
       if(orderDetailList[k].category_sqlite_id! == '0'){
         orderDetailList[k].product_category_id = '0';
@@ -911,18 +918,6 @@ class _TableMenuState extends State<TableMenu> {
     List<OrderModifierDetail> modDetail = await PosDatabase.instance.readOrderModifierDetail(orderDetail.order_detail_sqlite_id.toString());
     if (modDetail.isNotEmpty) {
       orderDetail.orderModifierDetail = modDetail;
-      // orderDetail.modifierItem.clear();
-      // for (int m = 0; m < modDetail.length; m++) {
-      //   // print('mod detail length: ${modDetail.length}');
-      //   if (!orderDetail.modifierItem.contains(modDetail[m].mod_group_id!)) {
-      //     orderDetail.modifierItem.add(ModifierItem(
-      //         mod_group_id: modDetail[m].mod_group_id!,
-      //         mod_item_id: int.parse(modDetail[m].mod_item_id!),
-      //         name: modDetail[m].modifier_name!));
-      //     orderDetail.mod_group_id.add(modDetail[m].mod_group_id!);
-      //     orderDetail.mod_item_id = modDetail[m].mod_item_id;
-      //   }
-      // }
     } else {
       orderDetail.orderModifierDetail = [];
     }
@@ -983,7 +978,8 @@ class _TableMenuState extends State<TableMenu> {
   }
 
   addToCart(CartModel cart, PosTable posTable) async {
-    var value;
+    cart.addAllCartOrderCache(orderCacheList);
+    cartProductItem value;
     List<TableUseDetail> tableUseDetailList = [];
     List<cartProductItem> cartItemList = [];
     var detailLength = orderDetailList.length;
@@ -1006,6 +1002,12 @@ class _TableMenuState extends State<TableMenu> {
         order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString(),
         base_price: orderDetailList[i].original_price,
         refColor: Colors.black,
+        first_cache_created_date_time: orderCacheList.last.created_at,  //orderCacheList[0].created_at,
+        first_cache_batch: orderCacheList.last.batch_id,
+        first_cache_order_by: orderCacheList.last.order_by,
+        allow_ticket: orderDetailList[i].allow_ticket,
+        ticket_count: orderDetailList[i].ticket_count,
+        ticket_exp: orderDetailList[i].ticket_exp,
       );
       cartItemList.add(value);
     }
