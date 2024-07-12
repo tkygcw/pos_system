@@ -222,16 +222,16 @@ class _TableMenuState extends State<TableMenu> {
                                 tableList.length, (index) {
                               // tableList[index].seats == 2;
                               return Card(
-                                color: Colors.white,
+                                color: tableList[index].status == 1 && tableList[index].order_key != null ? Color(0xFFFE8080) : Colors.white,
                                 shape: tableList[index].isSelected
                                     ? new RoundedRectangleBorder(
                                     side: new BorderSide(
-                                        color: color.backgroundColor, width: 3.0),
+                                        color: tableList[index].order_key != null ? Colors.red : color.backgroundColor, width: 3.0),
                                     borderRadius:
                                     BorderRadius.circular(4.0))
                                     : new RoundedRectangleBorder(
                                     side: new BorderSide(
-                                        color: Colors.white, width: 3.0),
+                                        color: tableList[index].status == 1 && tableList[index].order_key != null ? Color(0xFFFE8080) : Colors.white, width: 3.0),
                                     borderRadius:
                                     BorderRadius.circular(4.0)),
                                 elevation: 5,
@@ -1165,7 +1165,11 @@ class _TableMenuState extends State<TableMenu> {
                     }
                   }
                   else if (action == 'on_double_tap') {
-                    openChangeTableDialog(tableList[i], cart);
+                    if(tableList[i].order_key == null) {
+                      openChangeTableDialog(tableList[i], cart);
+                    } else {
+                      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
+                    }
                   }
                 },
               )

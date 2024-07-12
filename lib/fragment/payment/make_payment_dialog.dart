@@ -339,6 +339,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                     },
                                                     controller: splitAmountController,
                                                     keyboardType: TextInputType.number,
+                                                    inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                     decoration: InputDecoration(
                                                       border: OutlineInputBorder(
                                                         borderSide: BorderSide(color: color.backgroundColor),

@@ -1429,6 +1429,10 @@ class ReportFormat {
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
                           child: pw.Text('Amount', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Amount'))),
                         ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Payment Method', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('PaymentMethod'))),
+                        ),
                       ]
                   ),
                   for(int j = 0; j < valueList.length; j++)
@@ -1449,6 +1453,10 @@ class ReportFormat {
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
                             child: pw.Text('${formatAmount(cashRecord: valueList[j])}', style: pw.TextStyle(font: getFontFormat(formatAmount(cashRecord: valueList[j])))),
+                          ),
+                          pw.Padding(
+                            padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                            child: pw.Text('${valueList[j].payment_method}', style: pw.TextStyle(font: getFontFormat(valueList[j].payment_method))),
                           ),
                         ]
                     ),

@@ -59,6 +59,7 @@ class CashRecord {
   String? updated_at;
   String? soft_delete;
   String? userName;
+  String? payment_method;
 
   CashRecord(
       {this.cash_record_sqlite_id,
@@ -78,7 +79,9 @@ class CashRecord {
       this.created_at,
       this.updated_at,
       this.soft_delete,
-      this.userName});
+      this.userName,
+      this.payment_method,
+      });
 
   CashRecord copy({
     int? cash_record_sqlite_id,
@@ -136,7 +139,9 @@ class CashRecord {
       created_at: json[CashRecordFields.created_at] as String?,
       updated_at: json[CashRecordFields.updated_at] as String?,
       soft_delete: json[CashRecordFields.soft_delete] as String?,
-      userName: json['name'] as String?);
+      userName: json['name'] as String?,
+      payment_method: json['payment_method'] as String?,
+  );
 
   Map<String, Object?> toJson() => {
     CashRecordFields.cash_record_sqlite_id: cash_record_sqlite_id,

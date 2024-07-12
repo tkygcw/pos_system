@@ -159,15 +159,19 @@ class _AdvancedTableViewState extends State<AdvancedTableView> {
   }
 
   fontColor({required PosTable posTable}) {
-    if (posTable.status == 1) {
-      Color fontColor = Colors.black;
-      Color backgroundColor = toColor(posTable.card_color!);
-      if (backgroundColor.computeLuminance() > 0.5) {
-        fontColor = Colors.black;
-      } else {
-        fontColor = Colors.white;
+    try {
+      if (posTable.status == 1) {
+        Color fontColor = Colors.black;
+        Color backgroundColor = toColor(posTable.card_color!);
+        if (backgroundColor.computeLuminance() > 0.5) {
+          fontColor = Colors.black;
+        } else {
+          fontColor = Colors.white;
+        }
+        return fontColor;
       }
-      return fontColor;
+    } catch(e) {
+      return Colors.black;
     }
   }
 }

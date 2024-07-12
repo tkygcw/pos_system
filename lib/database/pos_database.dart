@@ -4153,6 +4153,15 @@ class PosDatabase {
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
 
+  /*
+  read order cache by table_use_key
+*/
+  Future<List<OrderCache>> readSpecificOrderCacheByTableUseKey(String table_use_key) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE table_use_key = ?', [table_use_key]);
+    return result.map((json) => OrderCache.fromJson(json)).toList();
+  }
+
 /*
   read order detail by paid order cache
 */
@@ -4340,9 +4349,10 @@ class PosDatabase {
   Future<List<CashRecord>> readAllTodayCashRecord(String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.created_at, a.type, a.user_id, a.amount, a.remark, b.name AS name FROM $tableCashRecord AS a JOIN $tableUser AS b on a.user_id = b.user_id '
-            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ?',
-        ['', '', date1, date2]);
+        'SELECT a.created_at, a.type, a.user_id, a.amount, a.remark, a.payment_name, b.name AS name, c.name AS payment_method  FROM $tableCashRecord AS a JOIN $tableUser AS b on a.user_id = b.user_id '
+            'JOIN $tablePaymentLinkCompany AS c on a.payment_type_id = c.payment_type_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ?',
+        ['', '', '', date1, date2]);
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }
 
@@ -4352,10 +4362,11 @@ class PosDatabase {
   Future<List<CashRecord>> readAllTodayCashRecordWithOB(String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.created_at, a.type, a.user_id, a.amount, a.remark, b.name AS name FROM $tableCashRecord AS a JOIN $tableUser AS b on a.user_id = b.user_id '
-            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.settlement_key IN (SELECT settlement_key FROM $tableCashRecord WHERE remark = ? AND '
+        'SELECT a.created_at, a.type, a.user_id, a.amount, a.remark, a.payment_name, b.name AS name, c.name AS payment_method FROM $tableCashRecord AS a JOIN $tableUser AS b on a.user_id = b.user_id '
+            'JOIN $tablePaymentLinkCompany AS c on a.payment_type_id = c.payment_type_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND a.settlement_key IN (SELECT settlement_key FROM $tableCashRecord WHERE remark = ? AND '
             'soft_delete = ? AND soft_delete = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ?)',
-        ['', '', 'Opening Balance', '', '', date1, date2]);
+        ['', '', '', 'Opening Balance', '', '', date1, date2]);
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }
 
