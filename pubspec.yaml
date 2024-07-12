@@ -99,7 +99,7 @@ dependencies:
   version: ^3.0.2
   f_logs: ^2.0.1
   flutter_file_dialog: ^3.0.2
-  connectivity_plus: ^5.0.2
+  connectivity_plus: ^6.0.3
   network_info_plus: ^4.1.0+1
   printing: ^5.13.1
   device_info_plus: ^9.1.2

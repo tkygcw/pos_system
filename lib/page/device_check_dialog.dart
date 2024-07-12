@@ -31,7 +31,7 @@ class _DeviceCheckDialogState extends State<DeviceCheckDialog> {
     setState(() => _submitted = true);
     if (errorPassword == null) {
       widget.callBack();
-      return;
+      // return;
     } else {
       return;
     }
