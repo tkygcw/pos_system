@@ -2613,26 +2613,28 @@ class CartPageState extends State<CartPage> {
 
   printKitchenList() async {
     try {
-      asyncQ.addJob((_) async {
-        List<OrderDetail>? returnData = await printReceipt.printKitchenList(printerList, int.parse(this.orderCacheId));
-        if(returnData != null){
-          if (returnData.isNotEmpty) {
-            _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
-            if(mounted){
-              CustomSnackBar.instance.showSnackBar(
-                  title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
-                  description: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
-                  contentType: ContentType.failure,
-                  playSound: true,
-                  playtime: 2);
-            }
+      List<OrderDetail>? returnData = await printReceipt.printKitchenList(printerList, int.parse(this.orderCacheId));
+      if(returnData != null){
+        if (returnData.isNotEmpty) {
+          _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
+          if(mounted){
+            CustomSnackBar.instance.showSnackBar(
+                title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
+                description: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
+                contentType: ContentType.failure,
+                playSound: true,
+                playtime: 2);
           }
-        } else {
-          Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('no_printer_added')}");
         }
-      });
+      } else {
+        Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('no_printer_added')}");
+      }
     } catch (e) {
-      print("print kitchen list error: $e");
+      FLog.error(
+        className: "cart",
+        text: "print kitchen list error",
+        exception: "$e",
+      );
     }
   }
 
