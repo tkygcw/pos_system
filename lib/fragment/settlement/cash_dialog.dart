@@ -485,7 +485,7 @@ class _CashDialogState extends State<CashDialog> {
       _value.add(jsonEncode(updatedData));
       //sync to cloud
       print('cash record value: ${_value.toString()}');
-      await syncCashRecordToCloud(_value.toString());
+      // await syncCashRecordToCloud(_value.toString());
       if (this.isLogOut == true) {
         openLogOutDialog();
       } else {

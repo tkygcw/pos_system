@@ -34,22 +34,6 @@ class _LoginPageState extends State<LoginPage> {
     // TODO: implement initState
     super.initState();
     loginCheck();
-    bindSocket();
-    //setScreenLayout();
-  }
-
-  setScreenLayout() {
-    // final double screenWidth = WidgetsBinding.instance.platformDispatcher.views.first.physicalSize.width;
-    final double screenHeight = WidgetsBinding
-        .instance.platformDispatcher.views.first.physicalSize.height /
-        WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
-    if (screenHeight < 500) {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown
-      ]);
-    }
-    loginCheck();
   }
 
   Duration get loginTime => Duration(milliseconds: 2250);
@@ -127,10 +111,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 scrollable: false,
                 logo: AssetImage("drawable/logo.png"),
-                //NetworkImage('${Domain.domain}asset/logo.png'),
-                // File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg').existsSync() == false
-                //     ? NetworkImage("https://channelsoft.com.my/wp-content/uploads/2020/02/logo1.jpg")
-                //     : FileImage(File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg')),
                 onLogin: _authUser,
                 onSubmitAnimationCompleted: () {
                   if(toNextPage == true){
@@ -189,14 +169,6 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-/*
-  bind server socket
-*/
-  bindSocket() async {
-    await Server.instance.bindServer();
-    await Server.instance.bindRequestServer();
-  }
-
   Future<Future<Object?>> openLogOutDialog() async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
@@ -233,7 +205,6 @@ class _LoginPageState extends State<LoginPage> {
 
   _createDir() async {
     final path = await _localDirectory;
-
     path.create();
     _createOtherImgFolder();
     _createPaymentQrFolder();

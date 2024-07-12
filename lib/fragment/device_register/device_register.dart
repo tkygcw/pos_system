@@ -57,6 +57,7 @@ class _DeviceRegisterState extends State<DeviceRegister> {
                       padding: const EdgeInsets.all(10.0),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton2(
+                          isExpanded: true,
                           hint: Row(
                             children: [
                               Icon(
@@ -80,23 +81,47 @@ class _DeviceRegisterState extends State<DeviceRegister> {
                               ),
                             ],
                           ),
+                          buttonStyleData: ButtonStyleData(
+                            height: 55,
+                            padding: const EdgeInsets.only(left: 14, right: 14),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(50),
+                              border: Border.all(
+                                color: Colors.black26,
+                              ),
+                              color: Colors.grey.shade100,
+                            ),
+                            elevation: 2,
+                          ),
+                          dropdownStyleData: DropdownStyleData(
+                            maxHeight: 200,
+                            isOverButton: true,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(30),
+                              color: Colors.grey.shade100,
+                            ),
+                            scrollbarTheme: ScrollbarThemeData(
+                              radius: const Radius.circular(30),
+                              thickness: WidgetStateProperty.all(8),
+                            ),
+                          ),
                           // dropdownMaxHeight: 200,
-                          iconEnabledColor: color.backgroundColor,
-                          buttonPadding: const EdgeInsets.only(left: 14, right: 14),
-                          buttonHeight: 55,
-                          isExpanded: true,
-                          dropdownMaxHeight: 200,
-                          scrollbarThickness: 8,
-                          dropdownOverButton: true,
-                          dropdownDecoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(30),
-                            color: Colors.grey.shade100,
-                          ),
-                          scrollbarRadius: Radius.circular(60),
-                          buttonDecoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(30),
-                            color: Colors.grey.shade100,
-                          ),
+                          // iconEnabledColor: color.backgroundColor,
+                          // buttonPadding: const EdgeInsets.only(left: 14, right: 14),
+                          // buttonHeight: 55,
+                          // isExpanded: true,
+                          // dropdownMaxHeight: 200,
+                          // scrollbarThickness: 8,
+                          // dropdownOverButton: true,
+                          // dropdownDecoration: BoxDecoration(
+                          //   borderRadius: BorderRadius.circular(30),
+                          //   color: Colors.grey.shade100,
+                          // ),
+                          // scrollbarRadius: Radius.circular(60),
+                          // buttonDecoration: BoxDecoration(
+                          //   borderRadius: BorderRadius.circular(30),
+                          //   color: Colors.grey.shade100,
+                          // ),
                           items: list
                               .map((device) => DropdownMenuItem<Device>(
                                     value: device,
