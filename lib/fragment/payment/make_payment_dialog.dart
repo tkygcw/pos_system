@@ -2199,7 +2199,8 @@ class _MakePaymentState extends State<MakePayment> {
     try {
       if (orderNum != 0) {
         OrderPaymentSplit orderObject = OrderPaymentSplit(
-            order_split_payment_id: 0,
+            order_payment_split_id: 0,
+            order_payment_split_key: '',
             payment_link_company_id: order_split_payment_link_company_id != '' ? order_split_payment_link_company_id : widget.payment_link_company_id.toString(),
             amount: finalAmount,
             payment_received: paymentReceived == null ? '' : paymentReceived.toStringAsFixed(2),
@@ -2210,7 +2211,8 @@ class _MakePaymentState extends State<MakePayment> {
             updated_at: '',
             soft_delete: '');
         OrderPaymentSplit data = await PosDatabase.instance.insertSqliteOrderPaymentSplit(orderObject);
-        // this.orderId = data.order_split_payment_id.toString();
+        OrderPaymentSplit? returnData = await insertOrderPaymentSplitKey(data, dateTime);
+        // this.orderId = data.order_payment_split_id.toString();
         // order_value = _value.toString();
         //await syncOrderToCloud(updatedOrder);
       }
@@ -2221,6 +2223,26 @@ class _MakePaymentState extends State<MakePayment> {
           msg: AppLocalizations.of(context)!.translate('create_order_error') +
               " ${e}");
     }
+  }
+
+  insertOrderPaymentSplitKey(OrderPaymentSplit orderPaymentSplit, String dateTime) async {
+    OrderPaymentSplit? returnData;
+    String key = await generateAttendanceKey(orderPaymentSplit);
+    OrderPaymentSplit data = OrderPaymentSplit(
+        updated_at: dateTime,
+        sync_status: 0,
+        order_payment_split_key: key,
+        order_payment_split_id: orderPaymentSplit.order_payment_split_id
+    );
+    int status =  await PosDatabase.instance.updateOrderPaymentSplitUniqueKey(data);
+    return returnData;
+  }
+
+  generateAttendanceKey(OrderPaymentSplit orderPaymentSplit) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    var bytes = orderPaymentSplit.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + orderPaymentSplit.order_payment_split_id.toString() + branch_id.toString();
+    return md5.convert(utf8.encode(bytes)).toString();
   }
 
   insertOrderKey() async {

@@ -2,8 +2,9 @@ String? tableOrderPaymentSplit = 'tb_order_payment_split';
 
 class OrderPaymentSplitFields {
   static List<String> values = [
-    order_split_payment_sqlite_id,
-    order_split_payment_id,
+    order_payment_split_sqlite_id,
+    order_payment_split_id,
+    order_payment_split_key,
     payment_link_company_id,
     amount,
     payment_received,
@@ -15,8 +16,9 @@ class OrderPaymentSplitFields {
     soft_delete
   ];
 
-  static String order_split_payment_sqlite_id = 'order_split_payment_sqlite_id';
-  static String order_split_payment_id = 'order_split_payment_id';
+  static String order_payment_split_sqlite_id = 'order_payment_split_sqlite_id';
+  static String order_payment_split_id = 'order_payment_split_id';
+  static String order_payment_split_key = 'order_payment_split_key';
   static String payment_link_company_id = 'payment_link_company_id';
   static String amount = 'amount';
   static String payment_received = 'payment_received';
@@ -30,8 +32,9 @@ class OrderPaymentSplitFields {
 }
 
 class OrderPaymentSplit {
-  int? order_split_payment_sqlite_id;
-  int? order_split_payment_id;
+  int? order_payment_split_sqlite_id;
+  int? order_payment_split_id;
+  String? order_payment_split_key;
   String? payment_link_company_id;
   String? amount;
   String? payment_received;
@@ -45,8 +48,9 @@ class OrderPaymentSplit {
   String? payment_type_id;
 
   OrderPaymentSplit(
-      {this.order_split_payment_sqlite_id,
-        this.order_split_payment_id,
+      {this.order_payment_split_sqlite_id,
+        this.order_payment_split_id,
+        this.order_payment_split_key,
         this.payment_link_company_id,
         this.amount,
         this.payment_received,
@@ -61,8 +65,9 @@ class OrderPaymentSplit {
       });
 
   OrderPaymentSplit copy({
-    int? order_split_payment_sqlite_id,
-    int? order_split_payment_id,
+    int? order_payment_split_sqlite_id,
+    int? order_payment_split_id,
+    String? order_payment_split_key,
     String? payment_link_company_id,
     String? amount,
     String? payment_received,
@@ -74,8 +79,9 @@ class OrderPaymentSplit {
     String? soft_delete
   }) =>
       OrderPaymentSplit(
-          order_split_payment_sqlite_id: order_split_payment_sqlite_id ?? this.order_split_payment_sqlite_id,
-          order_split_payment_id: order_split_payment_id ?? this.order_split_payment_id,
+          order_payment_split_sqlite_id: order_payment_split_sqlite_id ?? this.order_payment_split_sqlite_id,
+          order_payment_split_id: order_payment_split_id ?? this.order_payment_split_id,
+          order_payment_split_key: order_payment_split_key ?? this.order_payment_split_key,
           payment_link_company_id: payment_link_company_id ?? this.payment_link_company_id,
           amount: amount ?? this.amount,
           payment_received: payment_received ?? this.payment_received,
@@ -87,8 +93,9 @@ class OrderPaymentSplit {
           soft_delete: soft_delete ?? this.soft_delete);
 
   static OrderPaymentSplit fromJson(Map<String, Object?> json) => OrderPaymentSplit(
-    order_split_payment_sqlite_id: json[OrderPaymentSplitFields.order_split_payment_sqlite_id] as int?,
-    order_split_payment_id: json[OrderPaymentSplitFields.order_split_payment_id] as int?,
+    order_payment_split_sqlite_id: json[OrderPaymentSplitFields.order_payment_split_sqlite_id] as int?,
+    order_payment_split_id: json[OrderPaymentSplitFields.order_payment_split_id] as int?,
+    order_payment_split_key: json[OrderPaymentSplitFields.order_payment_split_key] as String?,
     payment_link_company_id: json[OrderPaymentSplitFields.payment_link_company_id] as String?,
     amount: json[OrderPaymentSplitFields.amount] as String?,
     payment_received: json[OrderPaymentSplitFields.payment_received] as String?,
@@ -103,8 +110,9 @@ class OrderPaymentSplit {
   );
 
   Map<String, Object?> toJson() => {
-    OrderPaymentSplitFields.order_split_payment_sqlite_id: order_split_payment_sqlite_id,
-    OrderPaymentSplitFields.order_split_payment_id: order_split_payment_id,
+    OrderPaymentSplitFields.order_payment_split_sqlite_id: order_payment_split_sqlite_id,
+    OrderPaymentSplitFields.order_payment_split_id: order_payment_split_id,
+    OrderPaymentSplitFields.order_payment_split_key: order_payment_split_key,
     OrderPaymentSplitFields.payment_link_company_id: payment_link_company_id,
     OrderPaymentSplitFields.amount: amount,
     OrderPaymentSplitFields.payment_received: payment_received,

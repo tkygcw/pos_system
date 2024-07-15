@@ -371,8 +371,9 @@ class PosDatabase {
         }break;
         case 16: {
           await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
-          ${OrderPaymentSplitFields.order_split_payment_sqlite_id} $idType,
-          ${OrderPaymentSplitFields.order_split_payment_id} $integerType,
+          ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
+          ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
+          ${OrderPaymentSplitFields.order_payment_split_key} $textType,
           ${OrderPaymentSplitFields.payment_link_company_id} $textType,
           ${OrderPaymentSplitFields.amount} $textType,
           ${OrderPaymentSplitFields.payment_received} $textType,
@@ -1131,8 +1132,9 @@ class PosDatabase {
     create order payment split table
 */
     await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
-          ${OrderPaymentSplitFields.order_split_payment_sqlite_id} $idType,
-          ${OrderPaymentSplitFields.order_split_payment_id} $integerType,
+          ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
+          ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
+          ${OrderPaymentSplitFields.order_payment_split_key} $textType,
           ${OrderPaymentSplitFields.payment_link_company_id} $textType,
           ${OrderPaymentSplitFields.amount} $textType,
           ${OrderPaymentSplitFields.payment_received} $textType,
@@ -2196,7 +2198,7 @@ class PosDatabase {
   Future<OrderPaymentSplit> insertSqliteOrderPaymentSplit(OrderPaymentSplit data) async {
     final db = await instance.database;
     final id = await db.insert(tableOrderPaymentSplit!, data.toJson());
-    return data.copy(order_split_payment_sqlite_id: id);
+    return data.copy(order_payment_split_sqlite_id: id);
   }
 
 /*
@@ -6503,6 +6505,19 @@ class PosDatabase {
   }
 
 /*
+  update order payment split unique key
+*/
+  Future<int> updateOrderPaymentSplitUniqueKey(OrderPaymentSplit data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableOrderPaymentSplit SET order_payment_split_key = ?, sync_status = ?, updated_at = ? WHERE order_payment_split_id = ?', [
+      data.order_payment_split_key,
+      data.sync_status,
+      data.updated_at,
+      data.order_payment_split_id,
+    ]);
+  }
+
+/*
   update attendance layout
 */
   Future<int> updateAttendance(Attendance data) async {
@@ -7613,6 +7628,15 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableAttendance SET sync_status = ? WHERE attendance_key = ?', [1, attendance_key]);
   }
+
+/*
+  update order payment split sync status (from cloud)
+*/
+  Future<int> updateOrderPaymentSplitSyncStatusFromCloud(String attendance_key) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableOrderPaymentSplit SET sync_status = ? WHERE order_payment_split_key = ?', [1, attendance_key]);
+  }
+
 /*
   ----------------------Sync to cloud(update)--------------------------------------------------------------------------------------------------------------------------------------------------
 */
@@ -7758,6 +7782,16 @@ class PosDatabase {
     final result = await db.rawQuery('SELECT * FROM $tableAttendance WHERE sync_status != ? LIMIT 10 ', [1]);
 
     return result.map((json) => Attendance.fromJson(json)).toList();
+  }
+
+/*
+  read all not yet sync order payment split
+*/
+  Future<List<OrderPaymentSplit>> readAllNotSyncOrderPaymentSplit() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableOrderPaymentSplit WHERE sync_status != ? LIMIT 10 ', [1]);
+
+    return result.map((json) => OrderPaymentSplit.fromJson(json)).toList();
   }
 
 /*
