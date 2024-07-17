@@ -2201,6 +2201,7 @@ class _MakePaymentState extends State<MakePayment> {
         OrderPaymentSplit orderObject = OrderPaymentSplit(
             order_payment_split_id: 0,
             order_payment_split_key: '',
+            branch_id: branch_id.toString(),
             payment_link_company_id: order_split_payment_link_company_id != '' ? order_split_payment_link_company_id : widget.payment_link_company_id.toString(),
             amount: finalAmount,
             payment_received: paymentReceived == null ? '' : paymentReceived.toStringAsFixed(2),

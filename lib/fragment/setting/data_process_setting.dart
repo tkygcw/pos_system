@@ -415,6 +415,7 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
     PosDatabase.instance.clearAllOrderModifierDetail();
     PosDatabase.instance.clearAllOrderTax();
     PosDatabase.instance.clearAllOrderPromotion();
+    PosDatabase.instance.clearAllOrderPaymentSplit();
     PosDatabase.instance.clearAllTableUse();
     PosDatabase.instance.clearAllTableUseDetail();
     resetAllInUsedTableStatus();

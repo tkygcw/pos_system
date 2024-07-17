@@ -5,6 +5,7 @@ class OrderPaymentSplitFields {
     order_payment_split_sqlite_id,
     order_payment_split_id,
     order_payment_split_key,
+    branch_id,
     payment_link_company_id,
     amount,
     payment_received,
@@ -19,6 +20,7 @@ class OrderPaymentSplitFields {
   static String order_payment_split_sqlite_id = 'order_payment_split_sqlite_id';
   static String order_payment_split_id = 'order_payment_split_id';
   static String order_payment_split_key = 'order_payment_split_key';
+  static String branch_id = 'branch_id';
   static String payment_link_company_id = 'payment_link_company_id';
   static String amount = 'amount';
   static String payment_received = 'payment_received';
@@ -35,6 +37,7 @@ class OrderPaymentSplit {
   int? order_payment_split_sqlite_id;
   int? order_payment_split_id;
   String? order_payment_split_key;
+  String? branch_id;
   String? payment_link_company_id;
   String? amount;
   String? payment_received;
@@ -51,6 +54,7 @@ class OrderPaymentSplit {
       {this.order_payment_split_sqlite_id,
         this.order_payment_split_id,
         this.order_payment_split_key,
+        this.branch_id,
         this.payment_link_company_id,
         this.amount,
         this.payment_received,
@@ -68,6 +72,7 @@ class OrderPaymentSplit {
     int? order_payment_split_sqlite_id,
     int? order_payment_split_id,
     String? order_payment_split_key,
+    String? branch_id,
     String? payment_link_company_id,
     String? amount,
     String? payment_received,
@@ -82,6 +87,7 @@ class OrderPaymentSplit {
           order_payment_split_sqlite_id: order_payment_split_sqlite_id ?? this.order_payment_split_sqlite_id,
           order_payment_split_id: order_payment_split_id ?? this.order_payment_split_id,
           order_payment_split_key: order_payment_split_key ?? this.order_payment_split_key,
+          branch_id: branch_id ?? this.branch_id,
           payment_link_company_id: payment_link_company_id ?? this.payment_link_company_id,
           amount: amount ?? this.amount,
           payment_received: payment_received ?? this.payment_received,
@@ -96,6 +102,7 @@ class OrderPaymentSplit {
     order_payment_split_sqlite_id: json[OrderPaymentSplitFields.order_payment_split_sqlite_id] as int?,
     order_payment_split_id: json[OrderPaymentSplitFields.order_payment_split_id] as int?,
     order_payment_split_key: json[OrderPaymentSplitFields.order_payment_split_key] as String?,
+    branch_id: json[OrderPaymentSplitFields.branch_id] as String?,
     payment_link_company_id: json[OrderPaymentSplitFields.payment_link_company_id] as String?,
     amount: json[OrderPaymentSplitFields.amount] as String?,
     payment_received: json[OrderPaymentSplitFields.payment_received] as String?,
@@ -113,6 +120,7 @@ class OrderPaymentSplit {
     OrderPaymentSplitFields.order_payment_split_sqlite_id: order_payment_split_sqlite_id,
     OrderPaymentSplitFields.order_payment_split_id: order_payment_split_id,
     OrderPaymentSplitFields.order_payment_split_key: order_payment_split_key,
+    OrderPaymentSplitFields.branch_id: branch_id,
     OrderPaymentSplitFields.payment_link_company_id: payment_link_company_id,
     OrderPaymentSplitFields.amount: amount,
     OrderPaymentSplitFields.payment_received: payment_received,

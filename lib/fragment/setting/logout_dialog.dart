@@ -223,6 +223,7 @@ class _logout_dialogState extends State<logout_dialog> {
     PosDatabase.instance.clearAllOrder();
     PosDatabase.instance.clearAllOrderTax();
     PosDatabase.instance.clearAllOrderPromotion();
+    PosDatabase.instance.clearAllOrderPaymentSplit();
     //clear refund
     PosDatabase.instance.clearAllRefund();
     //clear settlement

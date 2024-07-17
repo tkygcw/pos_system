@@ -374,6 +374,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
           ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
           ${OrderPaymentSplitFields.order_payment_split_key} $textType,
+          ${OrderPaymentSplitFields.branch_id} $textType,
           ${OrderPaymentSplitFields.payment_link_company_id} $textType,
           ${OrderPaymentSplitFields.amount} $textType,
           ${OrderPaymentSplitFields.payment_received} $textType,
@@ -1135,6 +1136,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
           ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
           ${OrderPaymentSplitFields.order_payment_split_key} $textType,
+          ${OrderPaymentSplitFields.branch_id} $textType,
           ${OrderPaymentSplitFields.payment_link_company_id} $textType,
           ${OrderPaymentSplitFields.amount} $textType,
           ${OrderPaymentSplitFields.payment_received} $textType,
@@ -1646,7 +1648,7 @@ class PosDatabase {
       final id = db.rawInsert(
           'INSERT INTO $tableOrder(order_id, order_number, order_queue, company_id, customer_id, dining_id, dining_name, '
               'branch_link_promotion_id, payment_link_company_id, branch_id, branch_link_tax_id, '
-              'subtotal, amount, rounding, final_amount, close_by, payment_status, paymment_split, payment_received, payment_change, order_key, '
+              'subtotal, amount, rounding, final_amount, close_by, payment_status, payment_split, payment_received, payment_change, order_key, '
               'refund_sqlite_id, refund_key, settlement_sqlite_id, settlement_key, sync_status, created_at, updated_at, soft_delete) '
               'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
           [
@@ -7318,6 +7320,14 @@ class PosDatabase {
   Future clearAllOrderPromotion() async {
     final db = await instance.database;
     return await db.rawDelete('DELETE FROM $tableOrderPromotionDetail');
+  }
+
+/*
+  Delete All local Order payment split
+*/
+  Future clearAllOrderPaymentSplit() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableOrderPaymentSplit');
   }
 
 /*
