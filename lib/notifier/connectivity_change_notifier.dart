@@ -6,13 +6,9 @@ import 'package:internet_connection_checker/internet_connection_checker.dart';
 import '../second_device/server.dart';
 
 class ConnectivityChangeNotifier extends ChangeNotifier {
-  bool _hasInternetAccess = false;
   ConnectivityChangeNotifier() {
     Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> result) async  {
-      _hasInternetAccess = await InternetConnectionChecker().hasConnection;
-      print('has internet access (listeners): ${_hasInternetAccess}');
-      resultHandler(result[0], _hasInternetAccess);
-
+      resultHandler(result[0]);
     });
   }
 
@@ -23,7 +19,7 @@ class ConnectivityChangeNotifier extends ChangeNotifier {
 
   bool get isConnect => _connection;
 
-  void resultHandler(ConnectivityResult result, bool hasAccess) async {
+  void resultHandler(ConnectivityResult result) async {
     await Server.instance.bindAllSocket();
     _connectivityResult = result;
     if (result == ConnectivityResult.none) {
@@ -37,21 +33,12 @@ class ConnectivityChangeNotifier extends ChangeNotifier {
     }else if (result == ConnectivityResult.other) {
       _connection = true;
     }
-    // if(hasAccess == true){
-    //
-    // } else {
-    //   _connectivityResult = ConnectivityResult.none;
-    //   _connection = false;
-    // }
-    print("change notifier");
     notifyListeners();
   }
 
 
   void initialLoad() async {
     List<ConnectivityResult> connectivityResult = await (Connectivity().checkConnectivity());
-    _hasInternetAccess = await InternetConnectionChecker().hasConnection;
-    print('has internet access (initial): ${_hasInternetAccess}');
-    resultHandler(connectivityResult[0], _hasInternetAccess);
+    resultHandler(connectivityResult[0]);
   }
 }

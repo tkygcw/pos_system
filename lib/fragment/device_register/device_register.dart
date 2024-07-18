@@ -101,27 +101,12 @@ class _DeviceRegisterState extends State<DeviceRegister> {
                               color: Colors.grey.shade100,
                             ),
                             scrollbarTheme: ScrollbarThemeData(
-                              radius: const Radius.circular(30),
-                              thickness: WidgetStateProperty.all(8),
+                                radius: const Radius.circular(30),
+                                thickness: WidgetStateProperty.all(5),
+                                mainAxisMargin: 20,
+                                crossAxisMargin: 5
                             ),
                           ),
-                          // dropdownMaxHeight: 200,
-                          // iconEnabledColor: color.backgroundColor,
-                          // buttonPadding: const EdgeInsets.only(left: 14, right: 14),
-                          // buttonHeight: 55,
-                          // isExpanded: true,
-                          // dropdownMaxHeight: 200,
-                          // scrollbarThickness: 8,
-                          // dropdownOverButton: true,
-                          // dropdownDecoration: BoxDecoration(
-                          //   borderRadius: BorderRadius.circular(30),
-                          //   color: Colors.grey.shade100,
-                          // ),
-                          // scrollbarRadius: Radius.circular(60),
-                          // buttonDecoration: BoxDecoration(
-                          //   borderRadius: BorderRadius.circular(30),
-                          //   color: Colors.grey.shade100,
-                          // ),
                           items: list
                               .map((device) => DropdownMenuItem<Device>(
                                     value: device,

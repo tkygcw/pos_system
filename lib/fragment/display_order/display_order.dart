@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/object/dining_option.dart';
-import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
@@ -171,8 +171,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
               resizeToAvoidBottomInset: false,
               body: Container(
                 padding: EdgeInsets.all(10),
-                child: orderCacheList.isNotEmpty
-                    ?
+                child: orderCacheList.isNotEmpty ?
                 ListView.builder(
                     shrinkWrap: true,
                     itemCount: orderCacheList.length,
@@ -191,18 +190,31 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                         child: InkWell(
                           onTap: () async {
                             if(orderCacheList[index].is_selected == false){
-                              //reset other selected order
-                              for(int i = 0; i < orderCacheList.length; i++){
-                                orderCacheList[i].is_selected = false;
-                                cart.notDineInInitLoad();
+                              if(cart.cartNotifierItem.isEmpty){
+                                orderCacheList[index].is_selected = true;
+                                cart.selectedOptionId = orderCacheList[index].dining_id!;
+                                await getOrderDetail(orderCacheList[index]);
+                                await addToCart(cart, orderCacheList[index]);
+                              } else {
+                                if(orderCacheList[index].dining_id == cart.selectedOptionId){
+                                  orderCacheList[index].is_selected = true;
+                                  await getOrderDetail(orderCacheList[index]);
+                                  await addToCart(cart, orderCacheList[index]);
+                                } else {
+                                  Fluttertoast.showToast(
+                                      backgroundColor: Colors.red,
+                                      msg: "${AppLocalizations.of(context)?.translate('dining_option_not_match')}");
+                                }
                               }
-                              orderCacheList[index].is_selected = true;
-                              await getOrderDetail(orderCacheList[index]);
-                              await addToCart(cart, orderCacheList[index]);
+                              //reset other selected order
+                              // for(int i = 0; i < orderCacheList.length; i++){
+                              //   orderCacheList[i].is_selected = false;
+                              //   cart.notDineInInitLoad();
+                              // }
 
                             } else if(orderCacheList[index].is_selected == true) {
                               orderCacheList[index].is_selected = false;
-                              cart.notDineInInitLoad();
+                              cart.removeCartItemBasedOnOrderCache(orderCacheList[index].order_cache_sqlite_id.toString());
                             }
                             //openViewOrderDialog(orderCacheList[index]);
                           },
