@@ -15,6 +15,7 @@ class DeviceCheckDialog extends StatefulWidget {
 
 class _DeviceCheckDialogState extends State<DeviceCheckDialog> {
   final adminPosPinController = TextEditingController();
+  int buttonTap = 0;
   bool isButtonDisabled = false, _submitted = false;
 
   String? get errorPassword {
@@ -31,9 +32,8 @@ class _DeviceCheckDialogState extends State<DeviceCheckDialog> {
     setState(() => _submitted = true);
     if (errorPassword == null) {
       widget.callBack();
-      return;
     } else {
-      return;
+      buttonTap = 0;
     }
   }
 
@@ -107,7 +107,10 @@ class _DeviceCheckDialogState extends State<DeviceCheckDialog> {
               TextButton(
                 child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
                 onPressed: isButtonDisabled ? null : () async {
-                  _submit(context);
+                  buttonTap++;
+                  if(buttonTap ==1){
+                    _submit(context);
+                  }
                 },
               ),
             ],
