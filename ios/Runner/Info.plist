@@ -2,8 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>com.apple.security.network.client</key>
-    <true/>
+	<key>UIRequiresFullScreen</key>
+	<true/>
+	<key>com.apple.security.network.client</key>
+	<true/>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -50,18 +52,18 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 	<key>FirebaseAppDelegateProxyEnabled</key>
-    <false/>
-    	<key>NSCameraUsageDescription</key>
-    	<string>This app requires access to the Camera to capture product pictures.</string>
-    	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    	<string>Need Location permission</string>
-    	<key>NSLocationAlwaysUsageDescription</key>
-    	<string>Need Location permission</string>
-    	<key>NSLocationWhenInUseUsageDescription</key>
-    	<string>Need Location permission</string>
-    	<key>NSMicrophoneUsageDescription</key>
-    	<string>This app requires access to the Microphone.</string>
-    	<key>NSPhotoLibraryUsageDescription</key>
-    	<string>This app requires access to the photo library to select product pictures</string>
+	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>This app requires access to the Camera to capture product pictures.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Need Location permission</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Need Location permission</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Need Location permission</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app requires access to the Microphone.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires access to the photo library to select product pictures</string>
 </dict>
 </plist>

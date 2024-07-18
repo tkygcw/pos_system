@@ -74,17 +74,7 @@ class _SetupPageState extends State<SetupPage> {
       print('token: ${token}');
       //token = 'testing';
     }on SocketException catch(_){
-      Navigator.of(context).pushAndRemoveUntil(
-        // the new route
-        MaterialPageRoute(
-          builder: (BuildContext context) => LoginPage(),
-        ),
-
-        // this function should return true when we're done removing routes
-        // but because we want to remove all other screens, we make it
-        // always return false
-            (Route route) => false,
-      );
+      backToLogin();
     } catch(e){
       print("get token error: ${e}");
     }
@@ -198,8 +188,18 @@ class _SetupPageState extends State<SetupPage> {
   backToLogin() async {
     final prefs = await SharedPreferences.getInstance();
     prefs.clear();
-    Navigator.of(context)
-        .pushReplacement(MaterialPageRoute(builder: (context) => LoginPage()));
+    PosDatabase.instance.clearAllBranch();
+    Navigator.of(context).pushAndRemoveUntil(
+      // the new route
+      MaterialPageRoute(
+        builder: (BuildContext context) => LoginPage(),
+      ),
+
+      // this function should return true when we're done removing routes
+      // but because we want to remove all other screens, we make it
+      // always return false
+          (Route route) => false,
+    );
   }
 
   checkBranchSelected() async {
@@ -283,7 +283,7 @@ class _SetupPageState extends State<SetupPage> {
 
   updateBranchToken() async {
     try{
-      var connectivityResult = await (Connectivity().checkConnectivity());
+      print("update branch token called");
       await PosDatabase.instance.updateBranchNotificationToken(Branch(
           notification_token: this.token,
           branchID: selectedBranch!.branchID
@@ -291,41 +291,28 @@ class _SetupPageState extends State<SetupPage> {
 /*
       ------------------------sync to cloud--------------------------------
 */
-      if (connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi || connectivityResult == ConnectivityResult.ethernet) {
+      bool _hasInternetAccess = await Domain().isHostReachable();
+      if(_hasInternetAccess){
         Map response = await Domain().updateBranchNotificationToken(this.token, selectedBranch!.branchID);
         if (response['status'] == '1') {
           Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => LoadingPage()));
         } else {
-          Fluttertoast.showToast(msg: '${AppLocalizations.of(context)?.translate('fail_get_token')}');
-          Navigator.of(context).pushAndRemoveUntil(
-            // the new route
-            MaterialPageRoute(
-              builder: (BuildContext context) => LoginPage(),
-            ),
-
-            // this function should return true when we're done removing routes
-            // but because we want to remove all other screens, we make it
-            // always return false
-                (Route route) => false,
-          );
+          Fluttertoast.showToast(
+              msg: '${AppLocalizations.of(context)?.translate('fail_get_token')}');
+          backToLogin();
         }
+      } else {
+        Fluttertoast.showToast(msg: '${AppLocalizations.of(context)?.translate('fail_get_token')}');
+        backToLogin();
       }
     }catch(e){
-      print('update token error: ${e}');
-      Fluttertoast.showToast(msg: '${AppLocalizations.of(context)?.translate('fail_get_token')}');
-      Navigator.of(context).pushAndRemoveUntil(
-        // the new route
-        MaterialPageRoute(
-          builder: (BuildContext context) => LoginPage(),
-        ),
-
-        // this function should return true when we're done removing routes
-        // but because we want to remove all other screens, we make it
-        // always return false
-            (Route route) => false,
+      FLog.error(
+        className: "setup",
+        text: "update branch token error",
+        exception: "$e",
       );
+      Fluttertoast.showToast(msg: '${AppLocalizations.of(context)?.translate('fail_get_token')}');
+      backToLogin();
     }
-    return;
-
   }
 }

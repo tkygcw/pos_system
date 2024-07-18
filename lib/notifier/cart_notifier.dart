@@ -158,6 +158,11 @@ class CartModel extends ChangeNotifier {
     cartNotifierItem.removeWhere((element) => _removeItem.contains(element));
   }
 
+  void removeCartItemBasedOnOrderCache(String orderCacheSqliteId){
+    cartNotifierItem.removeWhere((e) => e.order_cache_sqlite_id == orderCacheSqliteId);
+    notifyListeners();
+  }
+
   void addTable(PosTable posTable) {
     selectedTable.add(posTable);
     notifyListeners();
