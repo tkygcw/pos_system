@@ -222,7 +222,7 @@ class _TableMenuState extends State<TableMenu> {
                                 tableList.length, (index) {
                               // tableList[index].seats == 2;
                               return Card(
-                                color: tableList[index].status == 1 && tableList[index].order_key != null ? Color(0xFFFE8080) : Colors.white,
+                                color: tableList[index].status == 1 && tableList[index].order_key != null ? Color(0xFFFFB3B3) : Colors.white,
                                 shape: tableList[index].isSelected
                                     ? new RoundedRectangleBorder(
                                     side: new BorderSide(
@@ -231,7 +231,7 @@ class _TableMenuState extends State<TableMenu> {
                                     BorderRadius.circular(4.0))
                                     : new RoundedRectangleBorder(
                                     side: new BorderSide(
-                                        color: tableList[index].status == 1 && tableList[index].order_key != null ? Color(0xFFFE8080) : Colors.white, width: 3.0),
+                                        color: tableList[index].status == 1 && tableList[index].order_key != null ? Color(0xFFFFB3B3) : Colors.white, width: 3.0),
                                     borderRadius:
                                     BorderRadius.circular(4.0)),
                                 elevation: 5,
@@ -338,11 +338,11 @@ class _TableMenuState extends State<TableMenu> {
           // tableList[index].seats == 2;
           return Card(
             color: tableList[index].status != 0 && MediaQuery.of(context).size.height < 500 ? toColor(tableList[index].card_color!) :
-              tableList[index].status == 1 && tableList[index].order_key != null ? Color(0xFFFE8080) : Colors.white,
+              tableList[index].status == 1 && tableList[index].order_key != null ? Color(0xFFFFB3B3) : Colors.white,
             shape: tableList[index].isSelected
                 ? new RoundedRectangleBorder(side: new BorderSide(color: tableList[index].order_key != null ? Colors.red : color.backgroundColor, width: 3.0), borderRadius: BorderRadius.circular(4.0))
                 : new RoundedRectangleBorder(side: new BorderSide(
-                  color: tableList[index].status == 1 && tableList[index].order_key != null ? Color(0xFFFE8080) : Colors.white, width: 3.0
+                  color: tableList[index].status == 1 && tableList[index].order_key != null ? Color(0xFFFFB3B3) : Colors.white, width: 3.0
                 ), borderRadius: BorderRadius.circular(4.0)),
             elevation: 5,
             child: InkWell(
@@ -943,7 +943,7 @@ class _TableMenuState extends State<TableMenu> {
                   amountPaid += double.parse(orderSplit[k].amount!);
                 }
                 List<Order> orderData = await PosDatabase.instance.readSpecificOrderByOrderKey(data[0].order_key!);
-                tableAmount = double.parse(orderData[0].subtotal!);
+                tableAmount = double.parse(orderData[0].final_amount!);
 
                 tableAmount -= amountPaid;
                 tableList[i].order_key = data[0].order_key!;

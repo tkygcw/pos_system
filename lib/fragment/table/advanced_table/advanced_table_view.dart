@@ -81,7 +81,7 @@ class _AdvancedTableViewState extends State<AdvancedTableView> {
           }
         },
         child: Card(
-          color: widget.table.status == 1 && widget.table.order_key != '' && widget.table.order_key != null ? Color(0xFFFE8080)
+          color: widget.table.status == 1 && widget.table.order_key != '' && widget.table.order_key != null ? Color(0xFFFFB3B3)
             :widget.table.isSelected ? Colors.grey[300] : Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(4.0),

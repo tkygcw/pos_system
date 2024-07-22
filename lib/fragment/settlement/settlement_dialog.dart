@@ -8,6 +8,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
+import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/print_receipt.dart';
 import 'package:pos_system/object/settlement.dart';
@@ -734,6 +735,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
     Map logInUser = json.decode(login_user!);
     Map userObject = json.decode(pos_user!);
     print('settlement id: ${this.localSettlementId}');
+
     for (int j = 0; j < paymentList.length; j++) {
       SettlementLinkPayment object = SettlementLinkPayment(
           settlement_link_payment_id: 0,
@@ -838,6 +840,14 @@ class _SettlementDialogState extends State<SettlementDialog> {
             if (paymentList[j].payment_link_company_id == int.parse(orderList[i].payment_link_company_id!)) {
               paymentList[j].total_bill++;
               paymentList[j].totalAmount += double.parse(orderList[i].final_amount!);
+            } else if(int.parse(orderList[i].payment_link_company_id!) == 0) {
+              List<OrderPaymentSplit> orderPaymentSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(orderList[i].order_key!);
+              for(int k = 0; k < orderPaymentSplit.length; k++) {
+                if (paymentList[j].payment_link_company_id == int.parse(orderPaymentSplit[k].payment_link_company_id!)) {
+                  paymentList[j].total_bill++;
+                  paymentList[j].totalAmount += double.parse(orderPaymentSplit[k].amount!);
+                }
+              }
             }
           }
         }

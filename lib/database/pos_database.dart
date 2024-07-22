@@ -3902,6 +3902,15 @@ class PosDatabase {
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
 
+  /*
+  read all payment not complete order cache
+*/
+  Future<List<OrderCache>> readAllOrderCachePaymentNotComplete() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE created_at != ? AND payment_status = ? ORDER BY order_cache_sqlite_id', ['', 2]);
+    return result.map((json) => OrderCache.fromJson(json)).toList();
+  }
+
 /*
   read branch cash record(haven't settlement)
 */

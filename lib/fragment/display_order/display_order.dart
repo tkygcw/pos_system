@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/database/pos_database.dart';
@@ -6,8 +7,10 @@ import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/object/dining_option.dart';
+import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_payment_split.dart';
+import 'package:pos_system/page/loading_dialog.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -84,14 +87,18 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
       orderCacheList = data;
     });
     for(int i = 0; i < orderCacheList.length; i++) {
-      print("orderCacheList[i].order_key: ${orderCacheList[i].order_key}");
       if(orderCacheList[i].order_key != '') {
         double amountPaid = 0;
         double total_amount = double.parse(orderCacheList[i].total_amount!);
         List<OrderPaymentSplit> orderSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(orderCacheList[i].order_key!);
+
         for(int k = 0; k < orderSplit.length; k++){
           amountPaid += double.parse(orderSplit[k].amount!);
         }
+
+        List<Order> orderData = await PosDatabase.instance.readSpecificOrderByOrderKey(orderCacheList[i].order_key!);
+        total_amount = double.parse(orderData[0].final_amount!);
+
         total_amount -= amountPaid;
         setState(() {
           orderCacheList[i].total_amount = total_amount.toString();
@@ -194,43 +201,121 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                     itemBuilder: (BuildContext context, int index) {
                       return Card(
                         elevation: 5,
-                        color: orderCacheList[index].payment_status == 2 ? Color(0xFFFE8080) : Colors.white,
+                        color: orderCacheList[index].payment_status == 2 ? Color(0xFFFFB3B3) : Colors.white,
                         shape: orderCacheList[index].is_selected
                             ? new RoundedRectangleBorder(
                             side: new BorderSide(
                                 color: orderCacheList[index].payment_status == 2 ? Colors.red : color.backgroundColor, width: 3.0),
                             borderRadius: BorderRadius.circular(4.0))
                             : new RoundedRectangleBorder(
-                            side: new BorderSide(color: orderCacheList[index].payment_status == 2 ? Color(0xFFFE8080) : Colors.white, width: 3.0),
+                            side: new BorderSide(color: orderCacheList[index].payment_status == 2 ? Color(0xFFFFB3B3) : Colors.white, width: 3.0),
                             borderRadius: BorderRadius.circular(4.0)),
                         child: InkWell(
                           onTap: () async {
-                            if(orderCacheList[index].is_selected == false){
-                              if(cart.cartNotifierItem.isEmpty){
-                                orderCacheList[index].is_selected = true;
-                                cart.selectedOptionId = orderCacheList[index].dining_id!;
-                                await getOrderDetail(orderCacheList[index]);
-                                await addToCart(cart, orderCacheList[index]);
-                              } else {
-                                if(orderCacheList[index].dining_id == cart.selectedOptionId){
-                                  orderCacheList[index].is_selected = true;
-                                  await getOrderDetail(orderCacheList[index]);
-                                  await addToCart(cart, orderCacheList[index]);
+                            openLoadingDialogBox();
+
+                            try {
+                              if(orderCacheList[index].is_selected == false){
+                                await Future.delayed(Duration(milliseconds: 300));
+                                if(cart.cartNotifierItem.isEmpty){
+                                  // orderCacheList[index].is_selected = true;
+                                  // cart.selectedOptionId = orderCacheList[index].dining_id!;
+                                  // await getOrderDetail(orderCacheList[index]);
+                                  // await addToCart(cart, orderCacheList[index]);
+                                  if (orderCacheList[index].order_key != '') {
+                                    for(int i = 0; i < orderCacheList.length; i ++) {
+                                      if(orderCacheList[i].order_key == orderCacheList[index].order_key && orderCacheList[index].order_key != '') {
+                                        orderCacheList[i].is_selected = true;
+                                        cart.selectedOptionId = orderCacheList[i].dining_id!;
+                                        cart.selectedOptionOrderKey = orderCacheList[i].order_key!;
+                                        await getOrderDetail(orderCacheList[i]);
+                                        await addToCart(cart, orderCacheList[i]);
+                                      }
+                                    }
+                                  } else {
+                                    orderCacheList[index].is_selected = true;
+                                    cart.selectedOptionId = orderCacheList[index].dining_id!;
+                                    cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
+                                    await getOrderDetail(orderCacheList[index]);
+                                    await addToCart(cart, orderCacheList[index]);
+                                  }
                                 } else {
-                                  Fluttertoast.showToast(
-                                      backgroundColor: Colors.red,
-                                      msg: "${AppLocalizations.of(context)?.translate('dining_option_not_match')}");
+                                  if(orderCacheList[index].dining_id == cart.selectedOptionId){
+                                    if(cart.selectedOptionOrderKey == orderCacheList[index].order_key) {
+                                      if (orderCacheList[index].order_key != '') {
+                                        for(int i = 0; i < orderCacheList.length; i++) {
+                                          if(orderCacheList[i].order_key == orderCacheList[index].order_key && orderCacheList[index].order_key != '') {
+                                            orderCacheList[i].is_selected = true;
+                                            cart.selectedOptionId = orderCacheList[i].dining_id!;
+                                            cart.selectedOptionOrderKey = orderCacheList[i].order_key!;
+                                            await getOrderDetail(orderCacheList[i]);
+                                            await addToCart(cart, orderCacheList[i]);
+                                          } else {
+                                            orderCacheList[index].is_selected = true;
+                                            cart.selectedOptionId = orderCacheList[index].dining_id!;
+                                            cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
+                                            await getOrderDetail(orderCacheList[index]);
+                                            await addToCart(cart, orderCacheList[index]);
+                                          }
+                                        }
+                                      } else {
+                                        orderCacheList[index].is_selected = true;
+                                        cart.selectedOptionId = orderCacheList[index].dining_id!;
+                                        cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
+                                        await getOrderDetail(orderCacheList[index]);
+                                        await addToCart(cart, orderCacheList[index]);
+                                      }
+                                    } else {
+                                      Fluttertoast.showToast(
+                                          backgroundColor: Colors.red,
+                                          msg: "${AppLocalizations.of(context)?.translate('payment_status_not_match')}");
+                                    }
+
+
+                                    // orderCacheList[index].is_selected = true;
+                                    // await getOrderDetail(orderCacheList[index]);
+                                    // await addToCart(cart, orderCacheList[index]);
+                                  } else {
+                                    Fluttertoast.showToast(
+                                        backgroundColor: Colors.red,
+                                        msg: "${AppLocalizations.of(context)?.translate('dining_option_not_match')}");
+                                  }
+                                }
+                                //reset other selected order
+                                // for(int i = 0; i < orderCacheList.length; i++){
+                                //   orderCacheList[i].is_selected = false;
+                                //   cart.notDineInInitLoad();
+                                // }
+
+                              } else if(orderCacheList[index].is_selected == true) {
+                                if(orderCacheList[index].order_key != '') {
+                                  for(int i = 0; i < orderCacheList.length; i++) {
+                                    orderCacheList[i].is_selected = false;
+                                    cart.removePromotion();
+                                    cart.removeCartItemBasedOnOrderCache(orderCacheList[i].order_cache_sqlite_id.toString());
+                                  }
+                                } else {
+                                  orderCacheList[index].is_selected = false;
+                                  cart.removePromotion();
+                                  cart.removeCartItemBasedOnOrderCache(orderCacheList[index].order_cache_sqlite_id.toString());
                                 }
                               }
-                              //reset other selected order
-                              // for(int i = 0; i < orderCacheList.length; i++){
-                              //   orderCacheList[i].is_selected = false;
-                              //   cart.notDineInInitLoad();
-                              // }
-
-                            } else if(orderCacheList[index].is_selected == true) {
-                              orderCacheList[index].is_selected = false;
-                              cart.removeCartItemBasedOnOrderCache(orderCacheList[index].order_cache_sqlite_id.toString());
+                            } catch(e) {
+                              Navigator.of(context).pop();
+                              for(int i = 0; i < orderCacheList.length; i++) {
+                                orderCacheList[i].is_selected = false;
+                                cart.removePromotion();
+                                cart.removeCartItemBasedOnOrderCache(orderCacheList[i].order_cache_sqlite_id.toString());
+                              }
+                              FLog.error(
+                                className: "display_order",
+                                text: "other order on tap error",
+                                exception: e,
+                              );
+                            } finally {
+                              setState(() {
+                                Navigator.of(context).pop();
+                              });
                             }
                             //openViewOrderDialog(orderCacheList[index]);
                           },
@@ -300,6 +385,27 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
         );
       });
     });
+  }
+
+  Future<Future<Object?>> openLoadingDialogBox() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+                opacity: a1.value,
+                child: WillPopScope(child: LoadingDialog(isTableMenu: true), onWillPop: () async => false)),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   getDiningOption(diningOption){

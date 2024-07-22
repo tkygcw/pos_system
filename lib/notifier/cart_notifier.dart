@@ -20,6 +20,7 @@ class CartModel extends ChangeNotifier {
   List<OrderCache> currentOrderCache = [];
   String selectedOption = '';
   String selectedOptionId = '';
+  String selectedOptionOrderKey = '';
   String? subtotal;
   bool isInit = false;
   int myCount = 0;
@@ -31,6 +32,7 @@ class CartModel extends ChangeNotifier {
     List<PosTable>? selectedTable,
     String? selectedOption,
     String? selectedOptionId,
+    String? selectedOptionOrderKey,
     String? subtotal
   }){
     this.groupList = groupList ?? [];
@@ -38,6 +40,7 @@ class CartModel extends ChangeNotifier {
     this.cartNotifierItem = cartNotifierItem ?? [];
     this.selectedOption = selectedOption ?? '';
     this.selectedOptionId = selectedOptionId ?? '';
+    this.selectedOptionOrderKey = selectedOptionOrderKey ?? '';
     this.subtotal = subtotal;
   }
 
@@ -51,6 +54,7 @@ class CartModel extends ChangeNotifier {
         cartNotifierItem: cartNotifierItem,
         selectedOption: json['selectedOption'] as String?,
         selectedOptionId: json['selectedOptionId'] as String?,
+        selectedOptionOrderKey: json['selectedOptionOrderKey'] as String?,
         subtotal: json['subtotal'] as String?
     );
   }
@@ -77,6 +81,7 @@ class CartModel extends ChangeNotifier {
     currentOrderCache.clear();
     removeAllGroupList();
     //selectedOptionId = '1';
+    selectedOptionOrderKey = '';
     notifyListeners();
   }
 
@@ -89,6 +94,7 @@ class CartModel extends ChangeNotifier {
     currentOrderCache.clear();
     selectedOption = 'Take Away';
     //selectedOptionId = '2';
+    selectedOptionOrderKey = '';
     notifyListeners();
   }
 

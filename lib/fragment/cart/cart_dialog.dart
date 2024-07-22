@@ -357,11 +357,11 @@ class CartDialogState extends State<CartDialog> {
       key: Key(index.toString()),
       child: Card(
         elevation: 5,
-        shape: tableList[index].status == 1 && tableList[index].order_key != '' ? new RoundedRectangleBorder(side: new BorderSide(color: Color(0xFFFE8080), width: 3.0), borderRadius: BorderRadius.circular(4.0))
+        shape: tableList[index].status == 1 && tableList[index].order_key != '' ? new RoundedRectangleBorder(side: new BorderSide(color: Color(0xFFFFB3B3), width: 3.0), borderRadius: BorderRadius.circular(4.0))
         : tableList[index].isSelected
             ? new RoundedRectangleBorder(side: new BorderSide(color: color.backgroundColor, width: 3.0), borderRadius: BorderRadius.circular(4.0))
             : new RoundedRectangleBorder(side: new BorderSide(color: Colors.white, width: 3.0), borderRadius: BorderRadius.circular(4.0)),
-        color: tableList[index].status == 1 && tableList[index].order_key != '' ? Color(0xFFFE8080) : Colors.white,
+        color: tableList[index].status == 1 && tableList[index].order_key != '' ? Color(0xFFFFB3B3) : Colors.white,
         child: InkWell(
           splashColor: Colors.blue.withAlpha(30),
           onDoubleTap: () {

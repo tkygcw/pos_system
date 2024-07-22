@@ -1137,6 +1137,7 @@ class SyncToCloud {
           _value.add(jsonEncode(data[i]));
         }
         order_payment_split_value = _value.toString();
+        print("order_payment_split_value: ${order_payment_split_value}");
       }
     } catch(e){
       FLog.error(
