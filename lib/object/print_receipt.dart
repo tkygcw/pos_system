@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:esc_pos_printer/esc_pos_printer.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -135,6 +136,11 @@ class PrintReceipt{
       return printStatus;
     }catch(e){
       print('Open Cash Drawer Error: ${e}');
+      FLog.error(
+        className: "print_receipt",
+        text: "open cash drawer error",
+        exception: "$e",
+      );
       return 1;
     }
   }
@@ -412,6 +418,11 @@ class PrintReceipt{
       return printStatus;
     } catch (e) {
       print('Printer Connection Error cart: ${e}');
+      FLog.error(
+        className: "print_receipt",
+        text: "print payment receipt list error",
+        exception: "$e",
+      );
       return 1;
       // Fluttertoast.showToast(
       //     backgroundColor: Colors.red,
@@ -501,6 +512,11 @@ class PrintReceipt{
       return printStatus;
     }catch(e){
       print('Printer Connection Error cart: ${e}');
+      FLog.error(
+        className: "print_receipt",
+        text: "print review receipt error",
+        exception: "$e",
+      );
       return 1;
     }
 
@@ -599,6 +615,11 @@ class PrintReceipt{
       return printStatus;
     } catch (e) {
       print('Printer Connection Error cart: ${e}');
+      FLog.error(
+        className: "print_receipt",
+        text: "print cart receipt list error",
+        exception: "$e",
+      );
       return 1;
       // Fluttertoast.showToast(
       //     backgroundColor: Colors.red,
@@ -684,6 +705,11 @@ class PrintReceipt{
       return printStatus;
     } catch (e) {
       print('Printer Connection Error: ${e}');
+      FLog.error(
+        className: "print_receipt",
+        text: "print checklist error",
+        exception: "$e",
+      );
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
           msg: "check list error: $e");
@@ -765,6 +791,11 @@ class PrintReceipt{
       }
     } catch (e) {
       print('Printer Connection Error: ${e}');
+      FLog.error(
+        className: "print_receipt",
+        text: "reprint checklist error",
+        exception: "$e",
+      );
       printStatus = 5;
     }
     return printStatus;
@@ -839,6 +870,11 @@ class PrintReceipt{
       // return failedPrintOrderDetail;
     } catch (e){
       print('Product ticket printing error: ${e}');
+      FLog.error(
+        className: "print_receipt",
+        text: "print product ticket error",
+        exception: "$e",
+      );
       return 5;
     }
   }
@@ -876,10 +912,10 @@ class PrintReceipt{
 
   printKitchenList(List<Printer> printerList, int orderCacheLocalId, {bool? isReprint}) async {
     print("printKitchenList called");
+    List<OrderDetail>? failedPrintOrderDetail;
     try{
       KitchenList? kitchenListLayout58mm = await PosDatabase.instance.readSpecificKitchenList('58');
       KitchenList? kitchenListLayout80mm = await PosDatabase.instance.readSpecificKitchenList('80');
-      List<OrderDetail>? failedPrintOrderDetail;
       List<OrderDetail> orderDetail = await PosDatabase.instance.readSpecificOrderDetailByOrderCacheId(orderCacheLocalId.toString());
       int currentItem = 0;
       if(printerList.isNotEmpty){
@@ -1032,7 +1068,12 @@ class PrintReceipt{
       return failedPrintOrderDetail;
     } catch (e){
       print('Kitchen printing Error: ${e}');
-      return 5;
+      FLog.error(
+        className: "print_receipt",
+        text: "print kitchen list error",
+        exception: "$e",
+      );
+      return failedPrintOrderDetail;
     }
   }
 
@@ -1320,6 +1361,11 @@ class PrintReceipt{
       return failedPrintOrderDetail;
     } catch (e){
       print('Reprint kitchen printing Error: ${e}');
+      FLog.error(
+        className: "print_receipt",
+        text: "reprint kitchen list error",
+        exception: "$e",
+      );
       return failedPrintOrderDetail;
       // Fluttertoast.showToast(
       //     backgroundColor: Colors.red,
@@ -1336,10 +1382,10 @@ class PrintReceipt{
 
   printQrKitchenList(List<Printer> printerList, int orderCacheLocalId, {orderDetailList}) async {
     print("printQrKitchenList called");
+    List<OrderDetail> failedPrintOrderDetail = [];
     try{
       KitchenList? kitchenListLayout58mm = await PosDatabase.instance.readSpecificKitchenList('58');
       KitchenList? kitchenListLayout80mm = await PosDatabase.instance.readSpecificKitchenList('80');
-      List<OrderDetail> failedPrintOrderDetail = [];
       List<OrderDetail> orderDetail = await PosDatabase.instance.readSpecificOrderDetailByOrderCacheId(orderCacheLocalId.toString());
       int currentItem = 0;
 
@@ -1501,7 +1547,12 @@ class PrintReceipt{
       return failedPrintOrderDetail;
     } catch (e){
       print('QR Kitchen Printing Error: ${e}');
-      // return failedPrintOrderDetail = [];
+      FLog.error(
+        className: "print_receipt",
+        text: "print qr kitchen list error",
+        exception: "$e",
+      );
+      return failedPrintOrderDetail;
     }
   }
 
@@ -1783,6 +1834,11 @@ class PrintReceipt{
       }
       return printStatus;
     } catch (e) {
+      FLog.error(
+        className: "print_receipt",
+        text: "print settlement list error",
+        exception: "$e",
+      );
       print('Printer Connection Error: ${e}');
       return 0;
       //response = 'Failed to get platform version.';
