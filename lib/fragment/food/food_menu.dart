@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/fragment/product/product_order_dialog.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/notification_notifier.dart';
@@ -18,6 +19,7 @@ import '../../notifier/app_setting_notifier.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/colorCode.dart';
 import '../../object/search_delegate.dart';
+import 'dart:io' as Platform;
 
 class FoodMenu extends StatefulWidget {
   final CartModel cartModel;
@@ -349,10 +351,20 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   getPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     final String? user = prefs.getString('user');
-    imagePath = prefs.getString('local_path')!;
-
     Map userObject = json.decode(user!);
     companyID = userObject['company_id'];
+
+    if(Platform.Platform.isIOS){
+      String dir = await _localPath;
+      imagePath = dir + '/assets/$companyID';
+    } else {
+      imagePath = prefs.getString('local_path')!;
+    }
+  }
+
+  Future<String> get _localPath async {
+    final directory = await getApplicationSupportDirectory();
+    return directory.path;
   }
 
   searchProduct(String text) async {

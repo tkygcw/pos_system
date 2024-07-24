@@ -32,6 +32,7 @@ import '../object/table_use.dart';
 import '../object/table_use_detail.dart';
 import '../object/variant_group.dart';
 import '../translation/AppLocalizations.dart';
+import '../utils/Utils.dart';
 
 
 abstract class PlaceOrder {
@@ -319,7 +320,8 @@ abstract class PlaceOrder {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
     var bytes = tableUse.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + tableUse.table_use_sqlite_id.toString() + device_id.toString();
-    return md5.convert(utf8.encode(bytes)).toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
   }
 
   Future<void> insertTableUseKey(TableUse tableUse, String dateTime) async {
@@ -361,7 +363,8 @@ abstract class PlaceOrder {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
     var bytes = tableUseDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + tableUseDetail.table_use_detail_sqlite_id.toString() + device_id.toString();
-    return md5.convert(utf8.encode(bytes)).toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
   }
 
   Future<void> insertTableUseDetailKey(TableUseDetail tableUseDetail, String dateTime) async {
@@ -382,7 +385,8 @@ abstract class PlaceOrder {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
     var bytes = orderCache.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + orderCache.order_cache_sqlite_id.toString() + device_id.toString();
-    return md5.convert(utf8.encode(bytes)).toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
   }
 
   Future<void> insertOrderCacheKey(OrderCache orderCache, String dateTime) async {
@@ -489,7 +493,8 @@ abstract class PlaceOrder {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
     var bytes = orderDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + orderDetail.order_detail_sqlite_id.toString() + device_id.toString();
-    return md5.convert(utf8.encode(bytes)).toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
   }
 
   Future<void> updateProductStock(String branch_link_product_sqlite_id, num quantity, String dateTime) async {
@@ -569,7 +574,8 @@ abstract class PlaceOrder {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
     var bytes = orderModifierDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + orderModifierDetail.order_modifier_detail_sqlite_id.toString() + device_id.toString();
-    return md5.convert(utf8.encode(bytes)).toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
   }
 
   Future<void> updatePosTable(CartModel cart) async {

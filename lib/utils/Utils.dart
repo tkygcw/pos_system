@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -135,6 +136,10 @@ class Utils {
     NumberFormat format = NumberFormat('#,##0.00', 'en_US');
 
     return format.format(amount);
+  }
+
+  static shortHashString({hashCode}){
+    return shortHash(hashCode).toString();
   }
 
 }

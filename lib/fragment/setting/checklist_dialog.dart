@@ -19,6 +19,7 @@ import '../../main.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/print_receipt.dart';
 import '../../translation/AppLocalizations.dart';
+import '../../utils/Utils.dart';
 import '../logout_dialog.dart';
 
 class ChecklistDialog extends StatefulWidget {
@@ -440,7 +441,8 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     var bytes = checklist.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + checklist.checklist_sqlite_id.toString() + branch_id.toString();
-    return md5.convert(utf8.encode(bytes)).toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
   }
 
   Future<void> _submit(BuildContext context) async {

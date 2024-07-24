@@ -14,6 +14,7 @@ import 'package:crypto/crypto.dart';
 
 import '../../notifier/theme_color.dart';
 import '../../translation/AppLocalizations.dart';
+import '../../utils/Utils.dart';
 
 class AttendanceDialog extends StatefulWidget {
   const AttendanceDialog({Key? key}) : super(key: key);
@@ -521,7 +522,8 @@ class _AttendanceDialogState extends State<AttendanceDialog> {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     var bytes = attendance.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + attendance.attendance_sqlite_id.toString() + branch_id.toString();
-    return md5.convert(utf8.encode(bytes)).toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
   }
 
   getAllUsers() async {

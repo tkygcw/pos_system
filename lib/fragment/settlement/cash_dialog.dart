@@ -19,6 +19,7 @@ import '../../object/app_setting.dart';
 import '../../object/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../translation/AppLocalizations.dart';
+import '../../utils/Utils.dart';
 import '../logout_dialog.dart';
 
 class CashDialog extends StatefulWidget {
@@ -430,7 +431,8 @@ class _CashDialogState extends State<CashDialog> {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
     var bytes = cashRecord.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + cashRecord.cash_record_sqlite_id.toString() + device_id.toString();
-    return md5.convert(utf8.encode(bytes)).toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
   }
 
   insertCashRecordKey(CashRecord cashRecord, String dateTime) async {

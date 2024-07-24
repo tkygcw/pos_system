@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:f_logs/model/flog/flog.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/fragment/cart/cart.dart';
 import 'package:pos_system/fragment/product/product_order_dialog.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
@@ -27,11 +28,25 @@ class ServerAction {
   ServerAction({this.action});
 
   Future<String> encodeImage(String imageName) async {
+    String imagePath;
     final prefs = await SharedPreferences.getInstance();
-    final String imagePath = prefs.getString('local_path')!;
+    final String? user = prefs.getString('user');
+    Map userObject = json.decode(user!);
+    // final String imagePath = prefs.getString('local_path')!;
+    if(Platform.isIOS){
+      String dir = await _localPath;
+      imagePath = dir + '/assets/${userObject['company_id']}';
+    } else {
+      imagePath = prefs.getString('local_path')!;
+    }
     final imageBytes = await File(imagePath + '/' + imageName).readAsBytes();
     final base64Image = base64Encode(imageBytes);
     return base64Image;
+  }
+
+  Future<String> get _localPath async {
+    final directory = await getApplicationSupportDirectory();
+    return directory.path;
   }
 
   Future<Map<String, dynamic>?> checkAction({required String action, param, String? address}) async {

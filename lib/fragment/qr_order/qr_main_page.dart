@@ -78,35 +78,50 @@ class _QrMainPageState extends State<QrMainPage> {
       elevation: 0,
       automaticallyImplyLeading: false,
       title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(AppLocalizations.of(context)!.translate('qr_order'), style: TextStyle(fontSize: 25)),
-          SizedBox(
-            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 10 : MediaQuery.of(context).size.width / 8,
-            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 20 : MediaQuery.of(context).size.height / 12,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.zero,
-                backgroundColor: color.backgroundColor,
-              ),
-              child: Text(
-                AppLocalizations.of(context)!.translate('accept_all'),
-                style: TextStyle(color: Colors.white),
-              ),
-              onPressed: () async {
-                if (await confirm(
-                  context,
-                  title: Text("${AppLocalizations.of(context)!.translate('confirm_accept_all')}"),
-                  content: Text('${AppLocalizations.of(context)!.translate('confirm_accept_all_desc')}'),
-                  textOK: Text('${AppLocalizations.of(context)!.translate('yes')}'),
-                  textCancel: Text('${AppLocalizations.of(context)!.translate('no')}'),
-                )) {
-                  if(mounted){
-                    asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
-                  }
-                }
-              },
+          Spacer(),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: color.backgroundColor,
             ),
+            icon: Icon(Icons.sync),
+            label: Text(
+              AppLocalizations.of(context)!.translate('sync_qr_order'),
+              style: TextStyle(color: Colors.white),
+            ),
+            onPressed: () async {
+              print("qr order count: ${qrOrder.count }");
+              if(qrOrder.count == 0){
+                qrOrder.count = 1;
+                await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
+                qrOrder.count = 0;
+              }
+            },
+          ),
+          SizedBox(width: 10),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: color.backgroundColor,
+            ),
+            icon: Icon(Icons.receipt_long),
+            label: Text(
+              AppLocalizations.of(context)!.translate('accept_all'),
+              style: TextStyle(color: Colors.white),
+            ),
+            onPressed: () async {
+              if (await confirm(
+                context,
+                title: Text("${AppLocalizations.of(context)!.translate('confirm_accept_all')}"),
+                content: Text('${AppLocalizations.of(context)!.translate('confirm_accept_all_desc')}'),
+                textOK: Text('${AppLocalizations.of(context)!.translate('yes')}'),
+                textCancel: Text('${AppLocalizations.of(context)!.translate('no')}'),
+              )) {
+                if(mounted){
+                  asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
+                }
+              }
+            },
           ),
         ],
       ),
