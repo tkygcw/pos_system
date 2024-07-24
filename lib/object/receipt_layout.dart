@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:esc_pos_utils_plus/gbk_codec/gbk_codec.dart';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
@@ -2380,6 +2381,11 @@ class ReceiptLayout{
       return bytes;
     } catch (e) {
       print('layout error: $e');
+      FLog.error(
+        className: "receipt_layout",
+        text: "printCheckList80mm error",
+        exception: "$e",
+      );
       return null;
     }
   }
@@ -2512,6 +2518,11 @@ class ReceiptLayout{
       return bytes;
     } catch (e) {
       print('layout error: $e');
+      FLog.error(
+        className: "receipt_layout",
+        text: "printCheckList58mm error",
+        exception: "$e",
+      );
       return null;
     }
   }
@@ -2919,6 +2930,11 @@ class ReceiptLayout{
         return bytes;
       } catch (e) {
         print('layout error: $e');
+        FLog.error(
+          className: "receipt_layout",
+          text: "printKitchenList80mm error",
+          exception: "$e",
+        );
         return null;
       }
     }
@@ -3053,6 +3069,11 @@ class ReceiptLayout{
         return bytes;
       } catch (e) {
         print('layout error: $e');
+        FLog.error(
+          className: "receipt_layout",
+          text: "printKitchenList58mm error",
+          exception: "$e",
+        );
         return null;
       }
     }
