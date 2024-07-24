@@ -502,6 +502,7 @@ class ReportObject{
 
   getAllPaymentData({currentStDate, currentEdDate}) async {
     await getPrefData();
+
     datePayment = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);

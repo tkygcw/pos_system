@@ -107,6 +107,7 @@ class Order {
   int? item_sum;
   double? net_sales;
   double? gross_sales;
+  double? total_sales;
   String? bill_no;
   double? promo_amount;
   double? total_tax_amount;
@@ -159,6 +160,7 @@ class Order {
         this.item_sum,
         this.net_sales,
         this.gross_sales,
+        this.total_sales,
         this.bill_no,
         this.promo_amount,
         this.total_tax_amount,
@@ -271,6 +273,7 @@ class Order {
       item_sum: json['item_sum'] as int?,
       net_sales: json['net_sales'] as double?,
       gross_sales: json['gross_sales'] as double?,
+      total_sales: json['total_sales'] as double?,
       bill_no: json['bill_no'] as String?,
       promo_amount: json['promo_amount'] as double?,
       total_tax_amount: json['total_tax_amount'] as double?,

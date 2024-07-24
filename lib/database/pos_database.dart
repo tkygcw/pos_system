@@ -369,7 +369,7 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_count} $integerType NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_exp} $textType NOT NULL DEFAULT '' ");
         }break;
-        case 16: {
+        case 18: {
           await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
           ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
           ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
@@ -384,7 +384,6 @@ class PosDatabase {
           ${OrderPaymentSplitFields.created_at} $textType,
           ${OrderPaymentSplitFields.updated_at} $textType,
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
-          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_status} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderFields.payment_status} INTEGER NOT NULL DEFAULT 0");
         }break;
       }
@@ -3545,7 +3544,7 @@ class PosDatabase {
           'a.created_at, a.updated_at, a.soft_delete, b.name AS name '
           'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
           'WHERE a.payment_status != ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ? AND a.table_use_key = ?',
-          ['2', '', '', '', name, '']);
+          ['1', '', '', '', name, '']);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {
@@ -4702,11 +4701,25 @@ class PosDatabase {
   Future<List<Order>> readAllPaidPaymentType(String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.name AS name, COUNT(order_sqlite_id) AS item_sum, SUM(final_amount + 0.0) AS gross_sales, SUM(subtotal + 0.0) AS net_sales '
-        'FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
-        'WHERE a.soft_delete = ? AND a.payment_status = ? '
-        'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY a.payment_link_company_id ',
-        ['', 1, date1, date2]);
+        // 'SELECT a.*, b.name AS name, COUNT(order_sqlite_id) AS item_sum, SUM(final_amount + 0.0) AS gross_sales, SUM(subtotal + 0.0) AS net_sales '
+        // 'FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
+        // 'WHERE a.soft_delete = ? AND a.payment_status = ? '
+        // 'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY a.payment_link_company_id ',
+        // ['', 1, date1, date2]);
+        'SELECT c.name, COUNT(a.order_sqlite_id) AS item_sum, SUM(CASE WHEN a.payment_split = 0 THEN a.final_amount + 0.0 ELSE b.amount + 0.0 END) AS total_sales, '
+        'CASE WHEN a.payment_split = ? THEN a.payment_link_company_id ELSE b.payment_link_company_id END AS used_payment_method '
+        'FROM $tableOrder AS a LEFT JOIN $tableOrderPaymentSplit AS b ON a.order_key = b.order_key '
+        'JOIN $tablePaymentLinkCompany AS c ON c.payment_link_company_id = used_payment_method '
+        'WHERE (a.payment_split = 0) OR (a.payment_split != 0) AND a.soft_delete = ? AND a.payment_status = ? AND SUBSTR(a.created_at, 1, 10) >= ? '
+        'AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY used_payment_method ',
+        [0, '', 1, date1, date2]);
+
+        // 'SELECT a.*, b.name AS name, COUNT(order_sqlite_id) AS item_sum, SUM(final_amount + 0.0) AS gross_sales, SUM(subtotal + 0.0) AS net_sales '
+        //     'FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
+        //     'WHERE a.soft_delete = ? AND a.payment_status = ? '
+        //     'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY a.payment_link_company_id ',
+        // ['', 1, date1, date2]);
+
     return result.map((json) => Order.fromJson(json)).toList();
   }
 

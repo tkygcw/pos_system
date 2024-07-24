@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:esc_pos_printer/esc_pos_printer.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -876,10 +877,10 @@ class PrintReceipt{
 
   printKitchenList(List<Printer> printerList, int orderCacheLocalId, {bool? isReprint}) async {
     print("printKitchenList called");
+    List<OrderDetail>? failedPrintOrderDetail;
     try{
       KitchenList? kitchenListLayout58mm = await PosDatabase.instance.readSpecificKitchenList('58');
       KitchenList? kitchenListLayout80mm = await PosDatabase.instance.readSpecificKitchenList('80');
-      List<OrderDetail>? failedPrintOrderDetail;
       List<OrderDetail> orderDetail = await PosDatabase.instance.readSpecificOrderDetailByOrderCacheId(orderCacheLocalId.toString());
       int currentItem = 0;
       if(printerList.isNotEmpty){
@@ -1032,7 +1033,12 @@ class PrintReceipt{
       return failedPrintOrderDetail;
     } catch (e){
       print('Kitchen printing Error: ${e}');
-      return 5;
+      FLog.error(
+        className: "print_receipt",
+        text: "print kitchen list error",
+        exception: "$e",
+      );
+      return failedPrintOrderDetail;
     }
   }
 
