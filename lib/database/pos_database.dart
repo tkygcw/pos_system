@@ -74,7 +74,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 18, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 19, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -384,6 +384,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.created_at} $textType,
           ${OrderPaymentSplitFields.updated_at} $textType,
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderFields.payment_status} INTEGER NOT NULL DEFAULT 0");
         }break;
       }
