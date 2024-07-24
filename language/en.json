@@ -521,6 +521,7 @@
   "sync": "Sync",
   "sync_done": "Sync complete",
   "sync_failed": "Sync incomplete",
+  "sync_qr_order": "Sync QR order",
   "sync_reset": "Sync reset",
   "sync_reset_success": "Sync reset success",
   "system_log": "System Log",

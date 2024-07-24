@@ -1008,7 +1008,8 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     var bytes = tableUseDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') +
         tableUseDetail.table_use_detail_sqlite_id.toString() +
         device_id.toString();
-    return md5.convert(utf8.encode(bytes)).toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
   }
 
   insertTableUseDetailKey(TableUseDetail tableUseDetail, String dateTime) async {
@@ -1083,7 +1084,8 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
     var bytes = tableUse.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + tableUse.table_use_sqlite_id.toString() + device_id.toString();
-    return md5.convert(utf8.encode(bytes)).toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
   }
 
   insertTableUseKey(TableUse tableUse, String dateTime) async {

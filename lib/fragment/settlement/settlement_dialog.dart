@@ -27,6 +27,7 @@ import '../../object/printer.dart';
 import '../../object/report_class.dart';
 import '../../object/user.dart';
 import '../../translation/AppLocalizations.dart';
+import '../../utils/Utils.dart';
 import '../logout_dialog.dart';
 import '../setting/sync_dialog.dart';
 
@@ -454,7 +455,8 @@ class _SettlementDialogState extends State<SettlementDialog> {
         settlement.settlement_sqlite_id.toString() +
         device_id.toString();
     print('bytes: ${bytes}');
-    return md5.convert(utf8.encode(bytes)).toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
   }
 
   insertSettlementKey(Settlement settlement, String dateTime) async {
@@ -694,8 +696,8 @@ class _SettlementDialogState extends State<SettlementDialog> {
             .replaceAll(new RegExp(r'[^0-9]'), '') +
         settlementLinkPayment.settlement_link_payment_sqlite_id.toString() +
         device_id.toString();
-    //print('bytes: ${bytes}');
-    return md5.convert(utf8.encode(bytes)).toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
   }
 
   insertSettlementLinkPaymentKey(

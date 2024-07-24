@@ -31,6 +31,7 @@ import '../object/print_receipt.dart';
 import '../object/printer.dart';
 import '../object/user.dart';
 import '../second_device/server.dart';
+import '../utils/Utils.dart';
 
 class PosPinPage extends StatefulWidget {
   final String? cashBalance;
@@ -706,7 +707,8 @@ class _PosPinPageState extends State<PosPinPage> {
     final int? device_id = prefs.getInt('device_id');
     var bytes =
         transferOwner.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + transferOwner.transfer_owner_sqlite_id.toString() + device_id.toString();
-    return md5.convert(utf8.encode(bytes)).toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
   }
 
   insertTransferOwnerKey(TransferOwner transferOwner, String dateTime) async {

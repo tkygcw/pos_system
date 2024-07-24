@@ -63,6 +63,7 @@ import '../object/receipt.dart';
 import '../object/table_use.dart';
 import '../object/table_use_detail.dart';
 import '../object/tax.dart';
+import '../utils/Utils.dart';
 import 'login.dart';
 
 class LoadingPage extends StatefulWidget {
@@ -482,7 +483,8 @@ generateReceiptKey(Receipt receipt) async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     var bytes = receipt.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + receipt.receipt_sqlite_id.toString() + branch_id.toString();
-    return md5.convert(utf8.encode(bytes)).toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
   } catch(e) {
     FLog.error(
       className: "loading",

@@ -1569,8 +1569,8 @@ class _MakePaymentState extends State<MakePayment> {
     var bytes = order.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') +
         order.order_sqlite_id.toString() +
         device_id.toString();
-    print('bytes: ${bytes}');
-    return md5.convert(utf8.encode(bytes)).toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
   }
 
   generateOrderNumber() {
@@ -1691,7 +1691,8 @@ class _MakePaymentState extends State<MakePayment> {
         orderPromotionDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') +
             orderPromotionDetail.order_promotion_detail_sqlite_id.toString() +
             device_id.toString();
-    return md5.convert(utf8.encode(bytes)).toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
   }
 
   insertOrderPromotionDetailKey(
@@ -1764,7 +1765,8 @@ class _MakePaymentState extends State<MakePayment> {
         orderTaxDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') +
             orderTaxDetail.order_tax_detail_sqlite_id.toString() +
             device_id.toString();
-    return md5.convert(utf8.encode(bytes)).toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
   }
 
   insertOrderTaxDetailKey(

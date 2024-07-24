@@ -29,6 +29,7 @@ import '../../object/table_use.dart';
 import '../../object/table_use_detail.dart';
 import '../../object/user.dart';
 import '../../translation/AppLocalizations.dart';
+import '../../utils/Utils.dart';
 import '../logout_dialog.dart';
 
 class CartRemoveDialog extends StatefulWidget {
@@ -552,7 +553,8 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     var bytes = orderDetailCancel.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') +
         orderDetailCancel.order_detail_cancel_sqlite_id.toString() +
         device_id.toString();
-    return md5.convert(utf8.encode(bytes)).toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
   }
 
   insertOrderDetailCancelKey(OrderDetailCancel orderDetailCancel, String dateTime) async {

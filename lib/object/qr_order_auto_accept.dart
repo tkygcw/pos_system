@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:another_flushbar/flushbar.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:f_logs/model/flog/flog.dart';
@@ -34,6 +33,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../fragment/custom_snackbar.dart';
 import '../notifier/cart_notifier.dart';
+import '../utils/Utils.dart';
 
 class QrOrderAutoAccept {
   BuildContext context = MyApp.navigatorKey.currentContext!;
@@ -552,7 +552,8 @@ class QrOrderAutoAccept {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
     var bytes = tableUse.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + tableUse.table_use_sqlite_id.toString() + device_id.toString();
-    return md5.convert(utf8.encode(bytes)).toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
   }
 
   insertTableUseKey(TableUse tableUse, String dateTime) async {
@@ -664,7 +665,8 @@ class QrOrderAutoAccept {
     var bytes = tableUseDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') +
         tableUseDetail.table_use_detail_sqlite_id.toString() +
         device_id.toString();
-    return md5.convert(utf8.encode(bytes)).toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
   }
 
   insertTableUseDetailKey(TableUseDetail tableUseDetail, String dateTime) async {
