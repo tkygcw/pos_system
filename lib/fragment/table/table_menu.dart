@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/database/domain.dart';
@@ -86,6 +87,8 @@ class _TableMenuState extends State<TableMenu> {
     if(timer != null){
       timer!.cancel();
     }
+    tapCount = 0;
+    onTapDisable = false;
     super.dispose();
   }
 
@@ -254,7 +257,21 @@ class _TableMenuState extends State<TableMenu> {
                                       onTapDisable = true;
                                     });
                                     if(tapCount == 1){
-                                      asyncQ.addJob((_) async => await onSelect(index, cart));
+                                      asyncQ.addJob((_) async {
+                                        try{
+                                          await onSelect(index, cart);
+                                        }catch(e) {
+                                          setState(() {
+                                            tapCount = 0;
+                                            onTapDisable = false;
+                                          });
+                                          FLog.error(
+                                            className: "table menu",
+                                            text: "on select queue error",
+                                            exception: e,
+                                          );
+                                        }
+                                      });
                                     }
                                   },
                                   child: Container(
@@ -364,7 +381,21 @@ class _TableMenuState extends State<TableMenu> {
                   onTapDisable = true;
                 });
                 if(tapCount == 1){
-                  asyncQ.addJob((_) async => await onSelect(index, cart));
+                  asyncQ.addJob((_) async {
+                    try{
+                      await onSelect(index, cart);
+                    }catch(e) {
+                      setState(() {
+                        tapCount = 0;
+                        onTapDisable = false;
+                      });
+                      FLog.error(
+                        className: "table menu",
+                        text: "on select queue error",
+                        exception: e,
+                      );
+                    }
+                  });
                 }
               },
               child: Container(
@@ -637,7 +668,6 @@ class _TableMenuState extends State<TableMenu> {
                       }
                     } else if (tableList[i].isSelected == true) {
                       if (tableList[index].group == tableList[i].group) {
-                        print('same group unselect');
                         setState(() {
                           //removeFromCart(cart, tableList[index]);
                           tableList[i].isSelected = false;
@@ -714,7 +744,11 @@ class _TableMenuState extends State<TableMenu> {
             Navigator.of(context).pop();
           });
         }catch(e){
-          print("catch error: $e");
+          FLog.error(
+            className: "table menu",
+            text: "inside on select error",
+            exception: e,
+          );
           setState(() {
             tapCount = 0;
             onTapDisable = false;
@@ -723,7 +757,11 @@ class _TableMenuState extends State<TableMenu> {
         }
       });
     }catch(e){
-      print("on select get table order detail error: $e");
+      FLog.error(
+        className: "table menu",
+        text: "outside on select error",
+        exception: e,
+      );
       setState(() {
         tapCount = 0;
         onTapDisable = false;
@@ -1061,53 +1099,61 @@ class _TableMenuState extends State<TableMenu> {
   }
 
   addToCart(CartModel cart, PosTable posTable) async {
-    cart.addAllCartOrderCache(orderCacheList);
-    cartProductItem value;
-    List<TableUseDetail> tableUseDetailList = [];
-    List<cartProductItem> cartItemList = [];
-    var detailLength = orderDetailList.length;
-    for (int i = 0; i < detailLength; i++) {
-      value = cartProductItem(
-        branch_link_product_sqlite_id: orderDetailList[i].branch_link_product_sqlite_id!,
-        product_name: orderDetailList[i].productName!,
-        category_id: orderDetailList[i].product_category_id!,
-        price: orderDetailList[i].price!,
-        quantity: int.tryParse(orderDetailList[i].quantity!) != null ? int.parse(orderDetailList[i].quantity!) : double.parse(orderDetailList[i].quantity!),
-        orderModifierDetail: orderDetailList[i].orderModifierDetail,
-        productVariantName: orderDetailList[i].product_variant_name,
-        remark: orderDetailList[i].remark!,
-        unit: orderDetailList[i].unit,
-        per_quantity_unit: orderDetailList[i].per_quantity_unit,
-        status: 0,
-        order_cache_sqlite_id: orderDetailList[i].order_cache_sqlite_id,
-        order_cache_key: orderDetailList[i].order_cache_key,
-        category_sqlite_id: orderDetailList[i].category_sqlite_id,
-        order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString(),
-        base_price: orderDetailList[i].original_price,
-        refColor: Colors.black,
-        first_cache_created_date_time: orderCacheList.last.created_at,  //orderCacheList[0].created_at,
-        first_cache_batch: orderCacheList.last.batch_id,
-        first_cache_order_by: orderCacheList.last.order_by,
-        allow_ticket: orderDetailList[i].allow_ticket,
-        ticket_count: orderDetailList[i].ticket_count,
-        ticket_exp: orderDetailList[i].ticket_exp,
-        order_key: orderKey,
+    try{
+      cart.addAllCartOrderCache(orderCacheList);
+      cartProductItem value;
+      List<TableUseDetail> tableUseDetailList = [];
+      List<cartProductItem> cartItemList = [];
+      var detailLength = orderDetailList.length;
+      for (int i = 0; i < detailLength; i++) {
+        value = cartProductItem(
+          branch_link_product_sqlite_id: orderDetailList[i].branch_link_product_sqlite_id!,
+          product_name: orderDetailList[i].productName!,
+          category_id: orderDetailList[i].product_category_id!,
+          price: orderDetailList[i].price!,
+          quantity: int.tryParse(orderDetailList[i].quantity!) != null ? int.parse(orderDetailList[i].quantity!) : double.parse(orderDetailList[i].quantity!),
+          orderModifierDetail: orderDetailList[i].orderModifierDetail,
+          productVariantName: orderDetailList[i].product_variant_name,
+          remark: orderDetailList[i].remark!,
+          unit: orderDetailList[i].unit,
+          per_quantity_unit: orderDetailList[i].per_quantity_unit,
+          status: 0,
+          order_cache_sqlite_id: orderDetailList[i].order_cache_sqlite_id,
+          order_cache_key: orderDetailList[i].order_cache_key,
+          category_sqlite_id: orderDetailList[i].category_sqlite_id,
+          order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString(),
+          base_price: orderDetailList[i].original_price,
+          refColor: Colors.black,
+          first_cache_created_date_time: orderCacheList.last.created_at,  //orderCacheList[0].created_at,
+          first_cache_batch: orderCacheList.last.batch_id,
+          first_cache_order_by: orderCacheList.last.order_by,
+          allow_ticket: orderDetailList[i].allow_ticket,
+          ticket_count: orderDetailList[i].ticket_count,
+          ticket_exp: orderDetailList[i].ticket_exp,
+          order_key: orderKey,
+        );
+        cartItemList.add(value);
+      }
+      var cacheLength = orderCacheList.length;
+      for (int j = 0; j < cacheLength; j++) {
+        //Get specific table use detail
+        List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readAllTableUseDetail(orderCacheList[j].table_use_sqlite_id!);
+        tableUseDetailList = List.from(tableUseDetailData);
+      }
+      var length = tableUseDetailList.length;
+      for (int k = 0; k < length; k++) {
+        List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableUseDetailList[k].table_sqlite_id!);
+        tableData[0].isInPaymentCart = true;
+        cart.addTable(tableData[0]);
+      }
+      cart.addAllItem(cartItemList: cartItemList);
+    } catch(e){
+      FLog.error(
+        className: "table menu",
+        text: "add to cart error",
+        exception: e,
       );
-      cart.addItem(value);
     }
-    var cacheLength = orderCacheList.length;
-    for (int j = 0; j < cacheLength; j++) {
-      //Get specific table use detail
-      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readAllTableUseDetail(orderCacheList[j].table_use_sqlite_id!);
-      tableUseDetailList = List.from(tableUseDetailData);
-    }
-    var length = tableUseDetailList.length;
-    for (int k = 0; k < length; k++) {
-      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableUseDetailList[k].table_sqlite_id!);
-      tableData[0].isInPaymentCart = true;
-      cart.addTable(tableData[0]);
-    }
-    //cart.addAllItem(cartItemList: itemList);
   }
 
   removeFromCart(CartModel cart, PosTable posTable) async {
@@ -1161,7 +1207,21 @@ class _TableMenuState extends State<TableMenu> {
                       onTapDisable = true;
                     });
                     if(tapCount == 1){
-                     asyncQ.addJob((_) async => await onSelect(i, cart));
+                      asyncQ.addJob((_) async {
+                        try{
+                          await onSelect(i, cart);
+                        }catch(e) {
+                          setState(() {
+                            tapCount = 0;
+                            onTapDisable = false;
+                          });
+                          FLog.error(
+                            className: "table menu",
+                            text: "advance on select queue error",
+                            exception: e,
+                          );
+                        }
+                      });
                     }
                   }
                   else if (action == 'on_double_tap') {

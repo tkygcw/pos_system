@@ -527,6 +527,7 @@
   "sync": "Penyegerakan",
   "sync_done": "Penyegerakan selesai",
   "sync_failed": "Penyegerakan gagal",
+  "sync_qr_order": "Penyegerakan pesanan QR",
   "sync_reset": "Tetapan semula penyegerakan",
   "sync_reset_success": "Tetapan semula penyegerakan berjaya",
   "system_log": "Log Sistem",

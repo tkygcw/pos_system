@@ -527,6 +527,7 @@
   "sync": "同步",
   "sync_done": "同步完成",
   "sync_failed": "同步失败",
+  "sync_qr_order": "同步二维码订单",
   "sync_reset": "同步重置",
   "sync_reset_success": "同步重置成功",
   "system_log": "系统日志",
