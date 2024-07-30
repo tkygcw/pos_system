@@ -1,14 +1,24 @@
+import 'dart:convert';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/fragment/setting/table_setting/print_dynamic_qr.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
+import 'package:circular_menu/circular_menu.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:crypto/crypto.dart';
 
-import '../../notifier/theme_color.dart';
-import '../../object/table.dart';
-import '../../translation/AppLocalizations.dart';
-import '../report/print_report_page.dart';
+import '../../../database/domain.dart';
+import '../../../notifier/theme_color.dart';
+import '../../../object/table.dart';
+import '../../../translation/AppLocalizations.dart';
+import '../../report/print_report_page.dart';
 
 class TableSetting extends StatefulWidget {
   const TableSetting({Key? key}) : super(key: key);
@@ -18,18 +28,20 @@ class TableSetting extends StatefulWidget {
 }
 
 class _TableSettingState extends State<TableSetting> {
+  TextEditingController dateTimeController = TextEditingController(text: Utils.formatDate(DateTime.now().toString()));
+  PrintDynamicQr printDynamicQr = PrintDynamicQr();
+  DateTime currentDateTime = DateTime.now();
   List<PosTable> tableList = [];
   List<PosTable> checkedTable = [];
   String btnText = "Select All";
-  // int _maxChecked = 10;
-  // int _numChecked = 0;
+  bool dynamicQr = false;
   bool _isLoad = false;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    getAllTable();
+    getInitData();
   }
 
   @override
@@ -39,11 +51,86 @@ class _TableSettingState extends State<TableSetting> {
         if(constraints.maxWidth > 800) {
           return Scaffold(
             appBar: AppBar(
-              primary: false,
               automaticallyImplyLeading: false,
               title: Text(AppLocalizations.of(context)!.translate('table_qr_generate'), style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
               elevation: 0,
               actions: [
+                SizedBox(
+                  width: 200,
+                  child: CheckboxListTile(
+                      title: Container(child: Text("Dynamic QR")),
+                      value: dynamicQr,
+                      onChanged: (value) async {
+                        setState(() {
+                          dynamicQr = value!;
+                          unselectAllTable();
+                        });
+                        await generateUrl();
+                        if(dynamicQr == false){
+                          currentDateTime = DateTime.now();
+                          dateTimeController.text = Utils.formatDate(DateTime.now().toString());
+                        }
+                      }),
+                ),
+                Visibility(
+                  visible: dynamicQr ? true : false,
+                  child: SizedBox(
+                    width: 200,
+                    child: TextField(
+                      readOnly: true,
+                      onTap: (){
+                        showDialog(context: context, barrierDismissible: false, builder: (builder){
+                          return AlertDialog(
+                            title: Text("Set dynamic QR expired datetime"),
+                            content: SizedBox(
+                              height: 250,
+                              child: CupertinoDatePicker(
+                                mode: CupertinoDatePickerMode.dateAndTime,
+                                initialDateTime: currentDateTime,
+                                onDateTimeChanged: (DateTime newDateTime) async {
+                                  currentDateTime = newDateTime;
+                                  await generateUrl();
+                                },
+                              ),
+                            ),
+                            actions: [
+                              ElevatedButton(
+                                  onPressed: (){
+                                    dateTimeController.text = Utils.formatDate(currentDateTime.toString());
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text("Save"),
+                              ),
+                              ElevatedButton(
+                                onPressed: (){
+                                  dateTimeController.text = Utils.formatDate(DateTime.now().toString());
+                                  currentDateTime = DateTime.now();
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text("Cancel"),
+                              ),
+                            ],
+                          );
+                        });
+                      },
+                      controller: dateTimeController,
+                        // onPressed: (){
+                        //   showCupertinoDialog(context: context, builder: (builder){
+                        //     return AlertDialog(
+                        //       title: Text("Set dynamic QR expired datetime"),
+                        //       content: CupertinoDatePicker(
+                        //         mode: CupertinoDatePickerMode.dateAndTime,
+                        //         initialDateTime: DateTime.now(),
+                        //         onDateTimeChanged: (DateTime newDateTime){
+                        //         },
+                        //       ),
+                        //     );
+                        //   });
+                        // },
+                        // child: Text("time picker"),
+                    ),
+                  ),
+                ),
                 Container(
                   padding: EdgeInsets.all(10),
                   width: 125,
@@ -62,12 +149,7 @@ class _TableSettingState extends State<TableSetting> {
                             }
                             btnText = "Unselect";
                           } else {
-                            for(var table in tableList){
-                              if(table.isSelected == true){
-                                table.isSelected = false;
-                                checkedTable.clear();
-                              }
-                            }
+                            unselectAllTable();
                             btnText = "Select All";
                           }
                         });
@@ -78,30 +160,77 @@ class _TableSettingState extends State<TableSetting> {
             ),
             resizeToAvoidBottomInset: false,
             floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-            floatingActionButton: FloatingActionButton(
+            floatingActionButton: dynamicQr ?
+            FloatingActionButton(
               backgroundColor: color.backgroundColor,
-              onPressed: () {
-                if(checkedTable.isNotEmpty){
-                  Navigator.push(
-                    context,
-                    PageTransition(
-                      type: PageTransitionType.bottomToTop,
-                      child: PrintReportPage(
-                          currentPage: -1,
-                          tableList: this.checkedTable,
-                          callBack: () => getAllTable(),
-                      ),
-                    ),
-                  );
-                } else {
+              onPressed: () async {
+                if(dynamicQr == true && currentDateTime.isBefore(DateTime.now())){
                   Fluttertoast.showToast(
                       backgroundColor: Color(0xFFFF0000),
-                      msg: "${AppLocalizations.of(context)?.translate('no_table')}");
+                      msg: "QR expired datetime must after current datetime");
+                } else {
+                  if(checkedTable.isNotEmpty){
+                    await syncTableDynamicToCloud();
+                    await printDynamicQr.printDynamicQR(tableList: checkedTable);
+                  } else {
+                    Fluttertoast.showToast(
+                        backgroundColor: Color(0xFFFF0000),
+                        msg: "${AppLocalizations.of(context)?.translate('no_table')}");
+                  }
                 }
               },
               tooltip: "Print QR",
-              child: const Icon(Icons.print),
-            ),
+              child: const Icon(Icons.receipt),
+            ) :
+            CircularMenu(
+                curve: Curves.decelerate,
+                toggleButtonBoxShadow: [],
+                toggleButtonColor: color.backgroundColor,
+                items: [
+                  CircularMenuItem(
+                      color: color.buttonColor,
+                      boxShadow: [],
+                      icon: Icons.receipt,
+                      onTap: () async {
+                        if(checkedTable.isNotEmpty){
+                          await printDynamicQr.printDynamicQR(tableList: checkedTable);
+                        } else {
+                          Fluttertoast.showToast(
+                              backgroundColor: Color(0xFFFF0000),
+                              msg: "${AppLocalizations.of(context)?.translate('no_table')}");
+                        }
+                      }),
+                  CircularMenuItem(
+                    color: color.buttonColor,
+                    boxShadow: [],
+                    icon: Icons.picture_as_pdf,
+                    onTap: (){
+                      if(dynamicQr == true && currentDateTime.isBefore(DateTime.now())){
+                        Fluttertoast.showToast(
+                            backgroundColor: Color(0xFFFF0000),
+                            msg: "QR expired datetime must after current datetime");
+                      } else {
+                        if(checkedTable.isNotEmpty){
+                          Navigator.push(
+                            context,
+                            PageTransition(
+                              type: PageTransitionType.bottomToTop,
+                              child: PrintReportPage(
+                                currentPage: -1,
+                                tableList: this.checkedTable,
+                                callBack: () => getInitData(),
+                              ),
+                            ),
+                          );
+                        } else {
+                          Fluttertoast.showToast(
+                              backgroundColor: Color(0xFFFF0000),
+                              msg: "${AppLocalizations.of(context)?.translate('no_table')}");
+                        }
+                      }
+                    },
+                  ),
+                ]),
             body: _isLoad ?
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -145,7 +274,7 @@ class _TableSettingState extends State<TableSetting> {
                       ),
                     ),
                   ]
-              ),
+              )
             )
                 : CustomProgressBar(),
           );
@@ -204,7 +333,7 @@ class _TableSettingState extends State<TableSetting> {
                       child: PrintReportPage(
                         currentPage: -1,
                         tableList: this.checkedTable,
-                        callBack: () => getAllTable(),
+                        callBack: () => getInitData(),
                       ),
                     ),
                   );
@@ -269,16 +398,53 @@ class _TableSettingState extends State<TableSetting> {
     });
   }
 
-  getAllTable() async {
+  syncTableDynamicToCloud() async {
+    for(int i = 0; i < checkedTable.length; i++){
+      await Domain().insertTableDynamicQr(checkedTable[i]);
+    }
+  }
+
+  getInitData() async {
     this.btnText = "Select All";
     this.checkedTable.clear();
     List<PosTable> data = await PosDatabase.instance.readAllTable();
     tableList = data;
+    await generateUrl();
     sortTable();
     setState(() {
       _isLoad = true;
     });
+  }
 
+  unselectAllTable(){
+    for(var table in tableList){
+      if(table.isSelected == true){
+        table.isSelected = false;
+      }
+    }
+    checkedTable.clear();
+  }
+
+  generateUrl() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
+    if(dynamicQr){
+      for(int i = 0; i < tableList.length; i++){
+        final md5Hash = md5.convert(utf8.encode(currentDateTime.toString()));
+        final hashCode = Utils.shortHashString(hashCode: md5Hash);
+        var url = '${Domain.qr_domain}${branchObject['branch_url']}/${tableList[i].table_url}/${hashCode}';
+        tableList[i].qrOrderUrl = url;
+        tableList[i].dynamicQRExp = dateFormat.format(currentDateTime);
+      }
+    } else {
+      for(int i = 0; i < tableList.length; i++){
+        var url = '${Domain.qr_domain}${branchObject['branch_url']}/${tableList[i].table_url}';
+        tableList[i].qrOrderUrl = url;
+        tableList[i].dynamicQRExp = null;
+      }
+    }
   }
 
   sortTable(){

@@ -9,7 +9,7 @@ import 'package:pos_system/fragment/setting/hardware_setting.dart';
 import 'package:pos_system/fragment/setting/logout_dialog.dart';
 import 'package:pos_system/fragment/setting/printer_setting.dart';
 import 'package:pos_system/fragment/setting/receipt_setting.dart';
-import 'package:pos_system/fragment/setting/table_setting.dart';
+import 'package:pos_system/fragment/setting/table_setting/table_setting.dart';
 import 'package:pos_system/page/login.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';

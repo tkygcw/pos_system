@@ -191,7 +191,7 @@ class _HomePageState extends State<HomePage> {
                             badgeBackgroundColor: Colors.red,
                             isCollapsed: true,
                             items: _items,
-                            avatarImg: AssetImage("drawable/logo.png"),
+                            avatarImg: AssetImage("drawable/logo.jpg"),
                             title: widget.user!.name! + "\n" + (branchName ?? '') + " - " + AppLocalizations.of(context)!.translate(role.toLowerCase()),
                             backgroundColor: color.backgroundColor,
                             selectedTextColor: color.iconColor,

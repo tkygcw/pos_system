@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
+import 'package:pos_system/object/table.dart';
 
 class Domain {
   // static var domain = 'https://pos.lkmng.com/';
@@ -47,7 +48,44 @@ class Domain {
   static Uri second_screen = Uri.parse(domain + 'mobile-api/second_screen/index.php');
   static Uri local_data_export = Uri.parse(domain + 'mobile-api/local_data_export/index.php');
   static Uri attendance = Uri.parse(domain + 'mobile-api/attendance/index.php');
+  static Uri dynamic_qr = Uri.parse(domain + 'mobile-api/dynamic_qr/index.php');
+  static Uri table_dynamic = Uri.parse(domain + 'mobile-api/table_dynamic/index.php');
 
+
+  /**
+  * insert table dynamic qr
+  * */
+  insertTableDynamicQr(PosTable posTable) async {
+    try {
+      var response = await http.post(Domain.table_dynamic, body: {
+        'tb_dynamic_table_create': '1',
+        'table_id': posTable.table_id.toString(),
+        'qr_url': posTable.qrOrderUrl,
+        'qr_expired_dateTime': posTable.dynamicQRExp
+      }).timeout(Duration(seconds: 10), onTimeout: ()=> throw TimeoutException("Time out"));
+      print("response: ${jsonDecode(response.body)}");
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+
+/*
+  get dynamic qr layout
+*/
+  getDynamicQr({required String branch_id}) async {
+    try{
+      print("branch_id: ${branch_id}");
+      var response = await http.post(Domain.dynamic_qr, body: {
+        'getAllDynamicQr': '1',
+        'branch_id': branch_id,
+      });
+      return jsonDecode(response.body);
+    } catch(e){
+      Fluttertoast.showToast(msg: e.toString());
+    }
+  }
 
 /*
   get banner image
@@ -402,7 +440,8 @@ class Domain {
         user_value,
         checklist_value,
         kitchen_list_value,
-        attendance_value
+        attendance_value,
+        dynamic_qr_value
       }) async {
     try {
       //print('order cache value 15 sync: ${order_cache_value}');
@@ -436,7 +475,8 @@ class Domain {
         'tb_user_sync': user_value != null ? user_value : [].toString(),
         'tb_checklist_create': checklist_value != null ? checklist_value : [].toString(),
         'tb_kitchen_list_create': kitchen_list_value != null ? kitchen_list_value : [].toString(),
-        'tb_attendance_create': attendance_value != null ? attendance_value : [].toString()
+        'tb_attendance_create': attendance_value != null ? attendance_value : [].toString(),
+        'tb_dynamic_qr_create': dynamic_qr_value != null ? dynamic_qr_value : [].toString()
       }).timeout(Duration(seconds: isManualSync != null ? 120 : isSync != null ? 25 : 15), onTimeout: () => throw TimeoutException("Time out"));
       print('response in domain: ${jsonDecode(response.body)}');
       return jsonDecode(response.body);

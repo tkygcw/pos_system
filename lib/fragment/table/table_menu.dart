@@ -8,6 +8,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/fragment/table/table_change_dialog.dart';
 import 'package:pos_system/fragment/table/table_dialog.dart';
+import 'package:pos_system/fragment/table/table_dynamic_qr_dialog.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/categories.dart';
@@ -354,6 +355,9 @@ class _TableMenuState extends State<TableMenu> {
             elevation: 5,
             child: InkWell(
               splashColor: Colors.blue.withAlpha(30),
+              onLongPress: (){
+                openDynamicQRDialog(tableList[index]);
+              },
               onDoubleTap: () {
                 if (tableList[index].status != 1) {
                   //openAddTableDialog(tableList[index]);
@@ -702,6 +706,25 @@ class _TableMenuState extends State<TableMenu> {
         Navigator.of(context).pop();
       });
     }
+  }
+
+  Future<Future<Object?>> openDynamicQRDialog(PosTable posTable) async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: TableDynamicQrDialog(posTable: posTable),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   Future<Future<Object?>> openLoadingDialogBox() async {

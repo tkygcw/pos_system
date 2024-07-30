@@ -37,9 +37,9 @@ class _PrintReportPageState extends State<PrintReportPage> {
   void initState() {
     super.initState();
     reportFormat.presetTextFormat();
-    if(widget.currentPage == -1){
-      generateUrl();
-    }
+    // if(widget.currentPage == -1){
+    //   generateUrl();
+    // }
   }
   @override
   Widget build(BuildContext context) {

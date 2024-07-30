@@ -1,5 +1,5 @@
 enum ReceiptDialogEnum{
   big,
   medium,
-  small
+  small,
 }

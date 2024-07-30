@@ -58,6 +58,7 @@ class PosTable{
   bool isSelected = false;
   String? qrOrderUrl;
   bool? isInPaymentCart;
+  String? dynamicQRExp;
 
 
   PosTable(
@@ -80,7 +81,8 @@ class PosTable{
         this.card_color,
         this.qrOrderUrl,
         this.isInPaymentCart,
-        this.total_amount
+        this.total_amount,
+        this.dynamicQRExp
       });
 
   PosTable copy({

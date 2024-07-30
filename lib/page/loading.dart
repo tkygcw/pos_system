@@ -48,7 +48,6 @@ import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/object/variant_item.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:pos_system/page/progress_bar.dart';
-import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -59,6 +58,7 @@ import '../object/branch_link_user.dart';
 import '../object/checklist.dart';
 import '../object/customer.dart';
 import '../object/dining_option.dart';
+import '../object/dynamic_qr.dart';
 import '../object/receipt.dart';
 import '../object/table_use.dart';
 import '../object/table_use_detail.dart';
@@ -93,6 +93,7 @@ class _LoadingPageState extends State<LoadingPage> {
 
   startLoad() async {
     try{
+      await getAllDynamicQr();
       await getSubscription();
       await getAppSettingCloud();
       await createDeviceLogin();
@@ -141,6 +142,31 @@ class _LoadingPageState extends State<LoadingPage> {
     Timer(Duration(seconds: 2), () {
       Navigator.push(context, MaterialPageRoute(builder: (_) => PosPinPage()));
     });
+  }
+}
+
+/*
+  get dynamic qr from cloud
+*/
+getAllDynamicQr() async {
+  try{
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    Map data = await Domain().getDynamicQr(branch_id: branch_id.toString());
+    if(data['status'] == '1'){
+      List responseJson = data['data'];
+      for (var i = 0; i < responseJson.length; i++) {
+        DynamicQR item = DynamicQR.fromJson(responseJson[i]);
+        await PosDatabase.instance.insertSqliteDynamicQR(item);
+      }
+    }
+  }catch(e){
+    print("dynamic qr insert error: $e");
+    FLog.error(
+      className: "loading",
+      text: "dynamic qr insert failed",
+      exception: "$e}",
+    );
   }
 }
 

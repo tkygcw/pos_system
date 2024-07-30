@@ -51,6 +51,7 @@ import '../object/branch_link_promotion.dart';
 import '../object/branch_link_tax.dart';
 import '../object/checklist.dart';
 import '../object/color.dart';
+import '../object/dynamic_qr.dart';
 import '../object/order_detail_link_promotion.dart';
 import '../object/order_promotion_detail.dart';
 import '../object/printer.dart';
@@ -73,7 +74,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 18, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 19, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -367,6 +368,19 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_count} $integerType NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_exp} $textType NOT NULL DEFAULT '' ");
+        }break;
+        case 18: {
+          await db.execute('''CREATE TABLE $tableDynamicQR(
+          ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
+          ${DynamicQRFields.dynamic_qr_id} $integerType,
+          ${DynamicQRFields.dynamic_qr_key} $textType,
+          ${DynamicQRFields.branch_id} $textType,
+          ${DynamicQRFields.qr_code_size} $integerType,
+          ${DynamicQRFields.paper_size} $textType,
+          ${DynamicQRFields.sync_status} $integerType,
+          ${DynamicQRFields.created_at} $textType,
+          ${DynamicQRFields.updated_at} $textType,
+          ${DynamicQRFields.soft_delete} $textType)''');
         }break;
       }
     }
@@ -1107,6 +1121,23 @@ class PosDatabase {
           ${KitchenListFields.created_at} $textType,
           ${KitchenListFields.updated_at} $textType,
           ${KitchenListFields.soft_delete} $textType)''');
+
+    /*
+    create dynamic qr table
+*/
+    await db.execute('''CREATE TABLE $tableDynamicQR(
+          ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
+          ${DynamicQRFields.dynamic_qr_id} $integerType,
+          ${DynamicQRFields.dynamic_qr_key} $textType,
+          ${DynamicQRFields.branch_id} $textType,
+          ${DynamicQRFields.qr_code_size} $integerType,
+          ${DynamicQRFields.paper_size} $textType,
+          ${DynamicQRFields.sync_status} $integerType,
+          ${DynamicQRFields.created_at} $textType,
+          ${DynamicQRFields.updated_at} $textType,
+          ${DynamicQRFields.soft_delete} $textType)''');
+
+
   }
 
 
@@ -2171,7 +2202,7 @@ class PosDatabase {
   }
 
 /*
-  insert cash record (from cloud)
+  insert transfer owner (from cloud)
 */
   Future<TransferOwner> insertTransferOwner(TransferOwner data) async {
     final db = await instance.database;
@@ -2406,6 +2437,15 @@ class PosDatabase {
     final db = await instance.database;
     final id = await db.insert(tableKitchenList!, data.toJson());
     return data.copy(kitchen_list_sqlite_id: id);
+  }
+
+/*
+  add dynamic qr data into local db
+*/
+  Future<DynamicQR> insertSqliteDynamicQR(DynamicQR data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableDynamicQR!, data.toJson());
+    return data.copy(dynamic_qr_sqlite_id: id);
   }
 
 /*
@@ -3824,6 +3864,36 @@ class PosDatabase {
     final result = await db.rawQuery('SELECT * FROM $tableKitchenList WHERE soft_delete = ? AND paper_size = ? ORDER BY kitchen_list_sqlite_id ', ['', paperSize]);
     if (result.isNotEmpty) {
       return KitchenList.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  ----------------------------Dynamic QR layout part------------------------------------------------------------------------------------------------
+*/
+
+/*
+  read specific dynamic qr layout by key
+*/
+  Future<DynamicQR?> readSpecificDynamicQRByKey(String key) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableDynamicQR WHERE soft_delete = ? AND dynamic_qr_key = ? ', ['', key]);
+    if (result.isNotEmpty) {
+      return DynamicQR.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific dynamic qr layout by paper size
+*/
+  Future<DynamicQR?> readSpecificDynamicQRByPaperSize(String paperSize) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableDynamicQR WHERE soft_delete = ? AND paper_size = ? ', ['', paperSize]);
+    if (result.isNotEmpty) {
+      return DynamicQR.fromJson(result.first);
     } else {
       return null;
     }
@@ -6305,6 +6375,16 @@ class PosDatabase {
         [data.updated_at, data.sync_status, data.kitchen_list_item_separator, data.print_combine_kitchen_list, data.kitchen_list_show_price, data.product_name_font_size, data.other_font_size, data.kitchen_list_sqlite_id]);
   }
 
+/*
+  update dynamic qr layout
+*/
+  Future<int> updateDynamicQR(DynamicQR data) async {
+    final db = await instance.database;
+    return await db.rawUpdate("UPDATE $tableDynamicQR SET updated_at = ?, sync_status = ?, "
+        "qr_code_size = ? WHERE dynamic_qr_sqlite_id = ?",
+        [data.updated_at, data.sync_status, data.qr_code_size, data.dynamic_qr_sqlite_id]);
+  }
+
   /*
     update table position dx, dy by Chuah
   */
@@ -6347,6 +6427,18 @@ class PosDatabase {
 /*
   ------------------unique key part----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  update dynamic qr unique key
+*/
+  Future<int> updateDynamicQRUniqueKey(DynamicQR data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableDynamicQR SET dynamic_qr_key = ?, updated_at = ? WHERE dynamic_qr_sqlite_id = ?', [
+      data.dynamic_qr_key,
+      data.updated_at,
+      data.dynamic_qr_sqlite_id,
+    ]);
+  }
 
 /*
   update checklist unique key
@@ -6909,6 +7001,7 @@ class PosDatabase {
         'UPDATE $tableCashRecord SET sync_status = ?, soft_delete = ? WHERE cash_record_sqlite_id = ?', [data.sync_status, data.soft_delete, data.cash_record_sqlite_id]);
   }
 
+
 /*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
@@ -7290,6 +7383,14 @@ class PosDatabase {
   }
 
 /*
+  Delete specific dynamic qr
+*/
+  Future clearSpecificDynamicQr(int dynamic_qr_sqlite_id) async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableDynamicQR WHERE dynamic_qr_sqlite_id = ?', [dynamic_qr_sqlite_id]);
+  }
+
+/*
   ----------------------Sync from cloud--------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
@@ -7485,6 +7586,15 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableAttendance SET sync_status = ? WHERE attendance_key = ?', [1, attendance_key]);
   }
+
+/*
+  update dynamic qr sync status (from cloud)
+*/
+  Future<int> updateDynamicQrSyncStatusFromCloud(String dynamic_qr_key) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableDynamicQR SET sync_status = ? WHERE dynamic_qr_key = ?', [1, dynamic_qr_key]);
+  }
+
 /*
   ----------------------Sync to cloud(update)--------------------------------------------------------------------------------------------------------------------------------------------------
 */
@@ -7601,6 +7711,16 @@ class PosDatabase {
 /*
   ----------------------Sync to cloud(create)--------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  read all not yet sync dynamic qr
+*/
+  Future<List<DynamicQR>> readAllNotSyncDynamicQr() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableDynamicQR WHERE sync_status != ? LIMIT 10 ', [1]);
+
+    return result.map((json) => DynamicQR.fromJson(json)).toList();
+  }
 
 /*
   read all not yet sync checklist
