@@ -105,7 +105,8 @@ class CartPageState extends State<CartPage> {
       tableOrderPrice = 0.0,
       rounding = 0.0,
       paymentReceived = 0.0,
-      paymentChange = 0.0;
+      paymentChange = 0.0,
+      categoryTotalPrice = 0.0;
   String selectedPromoRate = '', promoName = '', promoRate = '', localTableUseId = '', orderCacheId = '', orderNumber = '', allPromo = '', finalAmount = '', localOrderId = '';
   String? table_use_value,
       table_use_detail_value,
@@ -1256,7 +1257,18 @@ class CartPageState extends State<CartPage> {
           cart.selectedPromotion!.promoAmount = selectedPromo;
         } else {
           hasSelectedPromo = true;
-          selectedPromo += (double.parse(promotion.amount!) * cartItem[j].quantity!);
+          // selectedPromo += (double.parse(promotion.amount!) * cartItem[j].quantity!);
+          double categoryTotalPrice = cartItem.map((item) {
+            double price = double.parse(item.price!);
+            num quantity = item.quantity!;
+            return price * quantity;
+          }).reduce((a, b) => a + b);
+
+          if(double.parse(cart.selectedPromotion!.amount!) > categoryTotalPrice) {
+            selectedPromo = categoryTotalPrice;
+          } else {
+            selectedPromo = double.parse(cart.selectedPromotion!.amount!);
+          }
           cart.selectedPromotion!.promoAmount = selectedPromo;
         }
       }
@@ -1280,7 +1292,11 @@ class CartPageState extends State<CartPage> {
         if (cart.cartNotifierItem.isNotEmpty) {
           for (int i = 0; i < cart.cartNotifierItem.length; i++) {
             hasSelectedPromo = true;
-            selectedPromo = double.parse(cart.selectedPromotion!.amount!);
+            if(double.parse(cart.selectedPromotion!.amount!) > newOrderSubtotal) {
+              selectedPromo = newOrderSubtotal;
+            } else {
+              selectedPromo = double.parse(cart.selectedPromotion!.amount!);
+            }
             cart.selectedPromotion!.promoAmount = selectedPromo;
           }
         }
@@ -1477,6 +1493,7 @@ class CartPageState extends State<CartPage> {
       autoApplyPromotionList = [];
       promoName = '';
       hasPromo = false;
+      categoryTotalPrice = 0.0;
       if (cart.cartNotifierItem.isNotEmpty) {
         //loop promotion list get promotion
         for (int j = 0; j < promotionList.length; j++) {
@@ -1729,19 +1746,25 @@ class CartPageState extends State<CartPage> {
   autoApplyNonSpecificCategoryAmount(Promotion promotion, CartModel cart) {
     try {
       promo = 0.0;
-      for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-        if (promotion.type == 1) {
-          promo += (double.parse(promotion.amount!) * cart.cartNotifierItem[i].quantity!);
+      if (promotion.type == 1) {
+        if(double.parse(promotion.amount!) > newOrderSubtotal) {
+          promo = newOrderSubtotal;
           promotion.promoAmount = promo;
-          promoRate = 'RM' + promotion.amount!;
-          promotion.promoRate = promoRate;
         } else {
-          promo += (double.parse(cart.cartNotifierItem[i].price!) * cart.cartNotifierItem[i].quantity!) * (double.parse(promotion.amount!) / 100);
-          promotion.promoAmount = promo;
-          promoRate = promotion.amount! + '%';
-          promotion.promoRate = promoRate;
+          promo += double.parse(promotion.amount!);
         }
+
+        // promo += (double.parse(promotion.amount!) * cart.cartNotifierItem[i].quantity!);
+        promotion.promoAmount = promo;
+        promoRate = 'RM' + promotion.amount!;
+        promotion.promoRate = promoRate;
+      } else {
+        promo += newOrderSubtotal * (double.parse(promotion.amount!) / 100);
+        promotion.promoAmount = promo;
+        promoRate = promotion.amount! + '%';
+        promotion.promoRate = promoRate;
       }
+
       promoAmount += promo;
     } catch (e) {
       print("calc auto apply non specific error: $e");
@@ -1753,11 +1776,24 @@ class CartPageState extends State<CartPage> {
   }
 
   autoApplySpecificCategoryAmount(Promotion promotion, cartProductItem cartItem) {
+    print("autoApplySpecificCategoryAmount called");
     try {
       promo = 0.0;
       if (promotion.type == 1) {
-        promo += (double.parse(promotion.amount!) * cartItem.quantity!);
-        promotion.promoAmount = promotion.promoAmount! + promo;
+        categoryTotalPrice += double.parse(cartItem.price!) * cartItem.quantity!;
+
+        if(categoryTotalPrice > double.parse(promotion.amount!)) {
+          print(">>");
+          promo = double.parse(promotion.amount!);
+          promotion.promoAmount = promo;
+        } else {
+          print("<<");
+          promo += double.parse(cartItem.price!);
+          promotion.promoAmount = promotion.promoAmount! + promo;
+        }
+
+        // promo += (double.parse(promotion.amount!) * cartItem.quantity!);
+        // promotion.promoAmount = promotion.promoAmount! + promo;
         promoRate = 'RM' + promotion.amount!;
         promotion.promoRate = promoRate;
       } else {

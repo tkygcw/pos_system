@@ -71,32 +71,11 @@ class _PromotionDialogState extends State<PromotionDialog> {
                               Text('-${double.parse(promotionList[index].amount!).toStringAsFixed(2)}'),
                               title: Text('${promotionList[index].name}'),
                               onTap: () async {
-                                bool outstanding = checkOfferAmount(promotionList[index]);
-                                if(outstanding){
-                                  Fluttertoast.showToast(
-                                      backgroundColor: Color(0xFFFF0000),
-                                      msg: AppLocalizations.of(context)!.translate('outstanding_promotion'));
-                                } else {
-                                  if(cart.cartNotifierItem.isNotEmpty){
-                                    if(promotionList[index].specific_category == '1'){
-                                      bool hasCategoryDiscount = cart.cartNotifierItem.any((item) => item.category_id == promotionList[index].category_id);
-                                      if(hasCategoryDiscount){
-                                        if(promotionList[index].all_time == '0') {
-                                          checkOfferTime(promotionList[index]);
-                                          isActive == true ?
-                                          cart.addPromotion(promotionList[index]) :
-                                          Fluttertoast.showToast(
-                                              backgroundColor: Color(0xFFFF0000),
-                                              msg: "${AppLocalizations.of(context)?.translate('offer_ended')}");
-                                        } else {
-                                          cart.addPromotion(promotionList[index]);
-                                        }
-                                      } else {
-                                        Fluttertoast.showToast(
-                                            backgroundColor: Color(0xFFFF0000),
-                                            msg: AppLocalizations.of(context)!.translate('no_product_match_with_promotion_category'));
-                                      }
-                                    } else {
+                                // bool outstanding = checkOfferAmount(promotionList[index]);
+                                if(cart.cartNotifierItem.isNotEmpty){
+                                  if(promotionList[index].specific_category == '1'){
+                                    bool hasCategoryDiscount = cart.cartNotifierItem.any((item) => item.category_id == promotionList[index].category_id);
+                                    if(hasCategoryDiscount){
                                       if(promotionList[index].all_time == '0') {
                                         checkOfferTime(promotionList[index]);
                                         isActive == true ?
@@ -105,31 +84,46 @@ class _PromotionDialogState extends State<PromotionDialog> {
                                             backgroundColor: Color(0xFFFF0000),
                                             msg: "${AppLocalizations.of(context)?.translate('offer_ended')}");
                                       } else {
-                                        if(promotionList[index].type == 2) {
-                                          await openPromotionDialog(context, cart, index);
-                                        } else {
-                                          cart.addPromotion(promotionList[index]);
-                                        }
+                                        cart.addPromotion(promotionList[index]);
+                                      }
+                                    } else {
+                                      Fluttertoast.showToast(
+                                          backgroundColor: Color(0xFFFF0000),
+                                          msg: AppLocalizations.of(context)!.translate('no_product_match_with_promotion_category'));
+                                    }
+                                  } else {
+                                    if(promotionList[index].all_time == '0') {
+                                      checkOfferTime(promotionList[index]);
+                                      isActive == true ?
+                                      cart.addPromotion(promotionList[index]) :
+                                      Fluttertoast.showToast(
+                                          backgroundColor: Color(0xFFFF0000),
+                                          msg: "${AppLocalizations.of(context)?.translate('offer_ended')}");
+                                    } else {
+                                      if(promotionList[index].type == 2) {
+                                        await openPromotionDialog(context, cart, index);
+                                      } else {
+                                        cart.addPromotion(promotionList[index]);
                                       }
                                     }
-                                    // if(promotionList[index].all_time == '0') {
-                                    //   checkOfferTime(promotionList[index]);
-                                    //   isActive == true ?
-                                    //   cart.addPromotion(promotionList[index]) :
-                                    //   Fluttertoast.showToast(
-                                    //       backgroundColor: Color(0xFFFF0000),
-                                    //       msg: "${AppLocalizations.of(context)?.translate('offer_ended')}");
-                                    // }else{
-                                    //   cart.addPromotion(promotionList[index]);
-                                    // }
-                                    Navigator.of(context).pop();
-                                  }else{
-                                    Fluttertoast.showToast(
-                                        backgroundColor: Color(0xFFFF0000),
-                                        msg: "${AppLocalizations.of(context)?.translate("empty_cart")}");
-
-                                    Navigator.of(context).pop();
                                   }
+                                  // if(promotionList[index].all_time == '0') {
+                                  //   checkOfferTime(promotionList[index]);
+                                  //   isActive == true ?
+                                  //   cart.addPromotion(promotionList[index]) :
+                                  //   Fluttertoast.showToast(
+                                  //       backgroundColor: Color(0xFFFF0000),
+                                  //       msg: "${AppLocalizations.of(context)?.translate('offer_ended')}");
+                                  // }else{
+                                  //   cart.addPromotion(promotionList[index]);
+                                  // }
+                                  Navigator.of(context).pop();
+                                }else{
+                                  Fluttertoast.showToast(
+                                      backgroundColor: Color(0xFFFF0000),
+                                      msg: "${AppLocalizations.of(context)?.translate("empty_cart")}");
+
+                                  Navigator.of(context).pop();
                                 }
                               },
                             ),
@@ -198,19 +192,9 @@ class _PromotionDialogState extends State<PromotionDialog> {
                                       willPop = false;
                                     });
                                     promotionList[index].amount = _textFieldController.text;
-                                    bool outstanding = checkOfferAmount(promotionList[index]);
-                                    if(outstanding){
-                                      Fluttertoast.showToast(
-                                          backgroundColor: Color(0xFFFF0000),
-                                          msg: AppLocalizations.of(context)!.translate('outstanding_promotion'));
-                                      setState(() {
-                                        isButtonDisabled = false;
-                                      });
-                                    } else {
-                                      promotionList[index].amount = _textFieldController.text;
-                                      cart.addPromotion(promotionList[index]);
-                                      Navigator.of(context).pop();
-                                    }
+                                    // bool outstanding = checkOfferAmount(promotionList[index]);
+                                    cart.addPromotion(promotionList[index]);
+                                    Navigator.of(context).pop();
                                   } else {
                                     Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('discount_invalid'));
                                   }

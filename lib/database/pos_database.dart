@@ -73,13 +73,14 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 18, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 19, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
     final idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
     final textType = 'TEXT NOT NULL';
     final integerType = 'INTEGER NOT NULL';
+    final jsonType = 'JSON DEFAULT "[]"';
     //get branch id pref
     final prefs = await SharedPreferences.getInstance();
     final String? branch_id = prefs.getInt('branch_id').toString();
@@ -366,7 +367,11 @@ class PosDatabase {
         case 17: {
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_count} $integerType NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_exp} $textType NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_exp} $textType DEFAULT '{}'");
+        }break;
+        case 18: {
+          await db.execute("ALTER TABLE $tablePromotion ADD ${PromotionFields.multiple_category} $jsonType");
+          await db.execute("ALTER TABLE $tablePromotion ADD ${PromotionFields.multiple_product} $jsonType");
         }break;
       }
     }
@@ -376,6 +381,7 @@ class PosDatabase {
     final idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
     final textType = 'TEXT NOT NULL';
     final integerType = 'INTEGER NOT NULL';
+    final jsonType = 'JSON DEFAULT "[]"';
 
 /*
     create user table
@@ -628,7 +634,8 @@ class PosDatabase {
 */
     await db.execute(
         '''CREATE TABLE $tablePromotion ( ${PromotionFields.promotion_id} $idType, ${PromotionFields.company_id} $textType,${PromotionFields.name} $textType,${PromotionFields.amount} $textType, 
-           ${PromotionFields.specific_category} $textType, ${PromotionFields.category_id} $textType, ${PromotionFields.type} $integerType,
+           ${PromotionFields.specific_category} $textType, ${PromotionFields.category_id} $textType, ${PromotionFields.multiple_category} $jsonType, 
+           ${PromotionFields.multiple_product} $jsonType, ${PromotionFields.type} $integerType,
            ${PromotionFields.auto_apply} $textType,${PromotionFields.all_day} $textType, ${PromotionFields.all_time} $textType, ${PromotionFields.sdate} $textType,
            ${PromotionFields.edate} $textType, ${PromotionFields.stime} $textType, ${PromotionFields.etime} $textType,
            ${PromotionFields.created_at} $textType, ${PromotionFields.updated_at} $textType, ${PromotionFields.soft_delete} $textType)''');
