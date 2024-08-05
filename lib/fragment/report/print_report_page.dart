@@ -37,6 +37,7 @@ class _PrintReportPageState extends State<PrintReportPage> {
   void initState() {
     super.initState();
     reportFormat.presetTextFormat();
+    posTableList = widget.tableList!;
     // if(widget.currentPage == -1){
     //   generateUrl();
     // }
@@ -44,23 +45,14 @@ class _PrintReportPageState extends State<PrintReportPage> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ReportModel>(builder: (context, ReportModel reportModel, child) {
-        return WillPopScope(
-          onWillPop: () async {
-            for(int i = 0; i < posTableList.length; i++){
-              setState(() {
-                posTableList[i].isSelected = false;
-                widget.callBack!();
-              });
-            }
-            return true;
+        return PopScope(
+          onPopInvoked: (value){
+            widget.callBack!();
           },
           child: Scaffold(
             appBar:  AppBar(
-              backgroundColor: Colors.white,
-                actions: [
-                ],
-                title: Text('Pdf',
-                    style: TextStyle(fontSize: 18))),
+                backgroundColor: Colors.white,
+                title: Text('Pdf', style: TextStyle(fontSize: 18))),
             body: PdfPreview(
               build: (format) {
                 switch(widget.currentPage){

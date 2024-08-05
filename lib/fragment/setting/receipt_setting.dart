@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
-import 'package:pos_system/fragment/setting/dynamic_qr_setting/dynamic_qr_receipt_dialog.dart';
 import 'package:pos_system/fragment/setting/kitchenlist_dialog.dart';
+import 'package:pos_system/fragment/setting/qr_code_setting/qr_receipt_dialog.dart';
 import 'package:pos_system/fragment/setting/receipt_dialog.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
@@ -321,8 +321,8 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                             },
                           ),
                           ListTile(
-                            title: Text("Dynamic QR setting"),
-                            subtitle: Text(AppLocalizations.of(context)!.translate('customize_your_receipt_look')),
+                            title: Text(AppLocalizations.of(context)!.translate('qr_code_setting')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('customize_your_qr_code_look')),
                             trailing: Icon(Icons.navigate_next),
                             onTap: (){
                               openDynamicQRDialog();

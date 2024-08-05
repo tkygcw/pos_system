@@ -377,10 +377,13 @@ class PosDatabase {
           ${DynamicQRFields.branch_id} $textType,
           ${DynamicQRFields.qr_code_size} $integerType,
           ${DynamicQRFields.paper_size} $textType,
+          ${DynamicQRFields.footer_text} $textType,
           ${DynamicQRFields.sync_status} $integerType,
           ${DynamicQRFields.created_at} $textType,
           ${DynamicQRFields.updated_at} $textType,
           ${DynamicQRFields.soft_delete} $textType)''');
+
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType DEFAULT 1");
         }break;
       }
     }
@@ -991,6 +994,7 @@ class PosDatabase {
           ${AppSettingFields.enable_numbering} $integerType,
           ${AppSettingFields.starting_number} $integerType,
           ${AppSettingFields.table_order} $integerType,
+          ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType,
           ${AppSettingFields.sync_status} $integerType,
           ${AppSettingFields.created_at} $textType,
           ${AppSettingFields.updated_at} $textType)''');
@@ -1132,6 +1136,7 @@ class PosDatabase {
           ${DynamicQRFields.branch_id} $textType,
           ${DynamicQRFields.qr_code_size} $integerType,
           ${DynamicQRFields.paper_size} $textType,
+          ${DynamicQRFields.footer_text} $textType,
           ${DynamicQRFields.sync_status} $integerType,
           ${DynamicQRFields.created_at} $textType,
           ${DynamicQRFields.updated_at} $textType,
@@ -6041,6 +6046,15 @@ class PosDatabase {
   }
 
 /*
+  update App Setting dynamic qr default exp after hour
+*/
+  Future<int> updateAppSettingsDynamicQrDefaultExpAfterHour(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET dynamic_qr_default_exp_after_hour = ?, sync_status = ?, updated_at = ?',
+        [data.dynamic_qr_default_exp_after_hour, 2, data.updated_at]);
+  }
+
+/*
   update first sync App Setting
 */
   Future<int> updateFirstSyncAppSettings(AppSetting data) async {
@@ -6380,9 +6394,9 @@ class PosDatabase {
 */
   Future<int> updateDynamicQR(DynamicQR data) async {
     final db = await instance.database;
-    return await db.rawUpdate("UPDATE $tableDynamicQR SET updated_at = ?, sync_status = ?, "
+    return await db.rawUpdate("UPDATE $tableDynamicQR SET updated_at = ?, sync_status = ?, footer_text = ?, "
         "qr_code_size = ? WHERE dynamic_qr_sqlite_id = ?",
-        [data.updated_at, data.sync_status, data.qr_code_size, data.dynamic_qr_sqlite_id]);
+        [data.updated_at, data.sync_status, data.footer_text, data.qr_code_size, data.dynamic_qr_sqlite_id]);
   }
 
   /*

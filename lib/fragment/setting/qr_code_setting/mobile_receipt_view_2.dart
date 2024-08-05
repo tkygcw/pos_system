@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:dotted_line/dotted_line.dart';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/object/dynamic_qr.dart';
 import 'package:pos_system/page/progress_bar.dart';
@@ -13,16 +14,18 @@ import '../../../enumClass/receipt_dialog_enum.dart';
 import '../../../notifier/theme_color.dart';
 import '../../../translation/AppLocalizations.dart';
 
-class ReceiptView2 extends StatefulWidget {
+class MobileReceiptView2 extends StatefulWidget {
   final Function(DynamicQR layout) callBack;
-  const ReceiptView2({Key? key, required this.callBack}) : super(key: key);
+  const MobileReceiptView2({Key? key, required this.callBack}) : super(key: key);
 
   @override
-  State<ReceiptView2> createState() => _ReceiptView2State();
+  State<MobileReceiptView2> createState() => _ReceiptView2State();
 }
 
-class _ReceiptView2State extends State<ReceiptView2> {
+class _ReceiptView2State extends State<MobileReceiptView2> {
+  final String receiptView = '58';
   StreamController actionController = StreamController();
+  TextEditingController footerTextController = TextEditingController(text: 'Powered by Optimy POS');
   late Stream actionStream;
   ReceiptDialogEnum qrCodeSize = ReceiptDialogEnum.big;
   late DynamicQR testLayout;
@@ -44,9 +47,10 @@ class _ReceiptView2State extends State<ReceiptView2> {
 
   getDynamicQRLayout() async {
     try {
-      DynamicQR? data = await PosDatabase.instance.readSpecificDynamicQRByPaperSize('58');
+      DynamicQR? data = await PosDatabase.instance.readSpecificDynamicQRByPaperSize(receiptView);
       if (data != null) {
         testLayout = data;
+        footerTextController.text = data.footer_text!;
         switch (data.qr_code_size) {
           case 0:
             {
@@ -64,11 +68,18 @@ class _ReceiptView2State extends State<ReceiptView2> {
             }
         }
       } else {
-        testLayout = DynamicQR(qr_code_size: 2);
+        testLayout = DynamicQR(
+            qr_code_size: 2,
+            paper_size: receiptView,
+            footer_text: footerTextController.text);
       }
     } catch (e) {
-      testLayout = DynamicQR(qr_code_size: 2);
-      print("read dynamic qr layout error: $e");
+      testLayout = DynamicQR(qr_code_size: 2, paper_size: receiptView, footer_text: footerTextController.text);
+      FLog.error(
+        className: "mobile receipt view 2",
+        text: "get dynamic qr layout error",
+        exception: "$e",
+      );
     }
     widget.callBack(testLayout);
   }
@@ -86,14 +97,7 @@ class _ReceiptView2State extends State<ReceiptView2> {
           stream: actionStream,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  preview_part(context),
-                  SizedBox(width: 25),
-                  setting_part(color, context),
-                ],
-              );
+              return setting_part(color, context);
             } else {
               return Center(
                 child: CustomProgressBar(),
@@ -104,8 +108,7 @@ class _ReceiptView2State extends State<ReceiptView2> {
   }
 
   Widget setting_part(ThemeColor color, BuildContext context) {
-    return Expanded(
-      flex: 1,
+    return SingleChildScrollView(
       child: Column(
         children: [
           Container(
@@ -152,56 +155,42 @@ class _ReceiptView2State extends State<ReceiptView2> {
             title: Text(AppLocalizations.of(context)!.translate('small')),
             controlAffinity: ListTileControlAffinity.trailing,
           ),
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text(AppLocalizations.of(context)!.translate('footer_text'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          ValueListenableBuilder(
+            // Note: pass _controller to the animation argument
+              valueListenable: footerTextController,
+              builder: (context, TextEditingValue value, __) {
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextField(
+                    onChanged: (value){
+                      setState(() {
+                        footerTextController.text = value;
+                        testLayout.footer_text = value;
+                        widget.callBack(testLayout);
+                      });
+                    },
+                    controller: footerTextController,
+                    keyboardType: TextInputType.multiline,
+                    maxLines: null,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: color.backgroundColor),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: color.backgroundColor),
+                      ),
+                      labelText: AppLocalizations.of(context)!.translate('footer_text_here'),
+                    ),
+                  ),
+                );
+              }),
         ],
-      ),
-    );
-  }
-
-  Widget preview_part(BuildContext context) {
-    return SingleChildScrollView(
-      child: Container(
-        width: 450,
-        decoration: BoxDecoration(
-            border: Border.all(color: Colors.blueGrey, style: BorderStyle.solid, width: 1)),
-        padding: MediaQuery.of(context).size.width > 1300
-            ? EdgeInsets.fromLTRB(40, 20, 40, 20)
-            : EdgeInsets.fromLTRB(20, 20, 20, 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(branchObject['name'],
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0)),
-            SizedBox(height: 10),
-            Text(branchObject['address'],
-                textAlign: TextAlign.center,
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0)),
-            Padding(
-              padding: EdgeInsets.only(top: 10, bottom: 10),
-              child: DottedLine(),
-            ),
-            Column(
-              children: [
-                Text("Table No: 1", style: TextStyle(fontWeight: FontWeight.bold)),
-                qrCodeSize == ReceiptDialogEnum.big
-                    ? Container(
-                  child: Image.asset("drawable/qr300.png"),
-                )
-                    : qrCodeSize == ReceiptDialogEnum.medium
-                    ? Container(
-                  child: Image.asset("drawable/qr250.png"),
-                )
-                    : Container(
-                  child: Image.asset("drawable/qr150.png"),
-                ),
-                Text("Generated At", style: TextStyle(fontWeight: FontWeight.bold)),
-                Text("DD/MM/YY hh:mm:ss AM"),
-                Text("Expired At", style: TextStyle(fontWeight: FontWeight.bold)),
-                Text("DD/MM/YY hh:mm:ss PM"),
-              ],
-            )
-          ],
-        ),
       ),
     );
   }

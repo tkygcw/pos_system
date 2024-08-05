@@ -4,6 +4,7 @@ import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/fragment/setting/adjust_hour_dialog.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:provider/provider.dart';
@@ -332,6 +333,15 @@ class _HardwareSettingState extends State<HardwareSetting> {
                               },
                             ),
                           ),
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('set_default_exp_after_hour')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('set_default_exp_after_hour_desc')),
+                            trailing: Text('${appSettingModel.dynamic_qr_default_exp_after_hour} ${AppLocalizations.of(context)!.translate('hours')}',
+                                style: TextStyle(fontWeight: FontWeight.w500)),
+                            onTap: (){
+                             openAdjustHourDialog(appSettingModel);
+                            },
+                          ),
                         ],
                       ),
                     );
@@ -344,6 +354,28 @@ class _HardwareSettingState extends State<HardwareSetting> {
         );
       });
     });
+  }
+
+  Future<Future<Object?>> openAdjustHourDialog(AppSettingModel appSettingModel) async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+                opacity: a1.value,
+                child: AdjustHourDialog(exp_hour: appSettingModel.dynamic_qr_default_exp_after_hour!)
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   updateAppSetting() async {

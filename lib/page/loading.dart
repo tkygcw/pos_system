@@ -283,6 +283,7 @@ getAppSettingLocal() async {
         enable_numbering: 0,
         starting_number: 0,
         table_order: 1,
+        dynamic_qr_default_exp_after_hour: 1,
         sync_status: 0,
         created_at: dateTime,
         updated_at: ''
@@ -315,6 +316,7 @@ syncAppSettingFromCloud(AppSetting item) async {
     enable_numbering: item.enable_numbering,
     starting_number: item.starting_number,
     table_order: item.table_order,
+    dynamic_qr_default_exp_after_hour: item.dynamic_qr_default_exp_after_hour,
     sync_status: 1,
     created_at: item.created_at,
     updated_at: item.updated_at,

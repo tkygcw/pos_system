@@ -8,7 +8,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/fragment/table/table_change_dialog.dart';
 import 'package:pos_system/fragment/table/table_dialog.dart';
-import 'package:pos_system/fragment/table/table_dynamic_qr_dialog.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/categories.dart';
@@ -34,6 +33,7 @@ import '../../object/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../object/variant_group.dart';
 import '../../page/loading_dialog.dart';
+import '../choose_qr_type_dialog.dart';
 import 'advanced_table/advanced_table_view.dart';
 
 class TableMenu extends StatefulWidget {
@@ -49,7 +49,7 @@ class _TableMenuState extends State<TableMenu> {
   Timer? timer;
 
   List<Printer> printerList = [];
-  List<PosTable> tableList = [];
+  List<PosTable> tableList = [], selectedTable = [];
   List<OrderCache> orderCacheList = [];
   List<OrderDetail> orderDetailList = [];
   List<VariantGroup> variantGroup = [];
@@ -65,6 +65,7 @@ class _TableMenuState extends State<TableMenu> {
   bool showAdvanced = false;
   bool productDetailLoaded = false;
   bool editingMode = false, isButtonDisable = false, onTapDisable = false;
+  String qrOrderStatus = '0';
   late SharedPreferences prefs;
 
   @override
@@ -87,6 +88,7 @@ class _TableMenuState extends State<TableMenu> {
     }
     tapCount = 0;
     onTapDisable = false;
+    selectedTable.clear();
     super.dispose();
   }
 
@@ -238,6 +240,10 @@ class _TableMenuState extends State<TableMenu> {
                                 elevation: 5,
                                 child: InkWell(
                                   splashColor: Colors.blue.withAlpha(30),
+                                  onLongPress: qrOrderStatus == '1' ? null : () {
+                                    selectedTable = [tableList[index]];
+                                    openChooseQRDialog(selectedTable);
+                                    },
                                   onDoubleTap: () {
                                     if (tableList[index].status != 1) {
                                       //openAddTableDialog(tableList[index]);
@@ -355,8 +361,9 @@ class _TableMenuState extends State<TableMenu> {
             elevation: 5,
             child: InkWell(
               splashColor: Colors.blue.withAlpha(30),
-              onLongPress: (){
-                openDynamicQRDialog(tableList[index]);
+              onLongPress: qrOrderStatus == '1' ? null : () {
+                selectedTable = [tableList[index]];
+                openChooseQRDialog(selectedTable);
               },
               onDoubleTap: () {
                 if (tableList[index].status != 1) {
@@ -708,14 +715,14 @@ class _TableMenuState extends State<TableMenu> {
     }
   }
 
-  Future<Future<Object?>> openDynamicQRDialog(PosTable posTable) async {
+  Future<Future<Object?>> openChooseQRDialog(List<PosTable> selectedTable) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
           final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
           return Transform(
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
-            child: TableDynamicQrDialog(posTable: posTable),
+            child: ChooseQrTypeDialog(posTableList: selectedTable),
           );
         },
         transitionDuration: Duration(milliseconds: 200),
@@ -1222,6 +1229,9 @@ class _TableMenuState extends State<TableMenu> {
     try {
       prefs = await SharedPreferences.getInstance();
       showAdvanced = prefs.getBool('show_advanced')!;
+      final String? branch = prefs.getString('branch');
+      Map branchObject = json.decode(branch!);
+      qrOrderStatus = branchObject['qr_order_status'];
     } catch (e) {
       showAdvanced = false;
     }

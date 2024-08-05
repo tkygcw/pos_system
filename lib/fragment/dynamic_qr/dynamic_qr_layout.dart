@@ -5,8 +5,8 @@ import 'package:pos_system/object/table.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 
-import '../../../object/dynamic_qr.dart';
-import '../../../utils/Utils.dart';
+import '../../object/dynamic_qr.dart';
+import '../../utils/Utils.dart';
 
 class DynamicQrLayout {
   Future<List<int>> print80mmFormat(bool isUSB, {value, required PosTable posTable}) async {
@@ -134,7 +134,7 @@ class DynamicQrLayout {
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
     Map branchObject = json.decode(branch!);
-    Generator generator;
+    var generator;
     if (isUSB) {
       final profile = await CapabilityProfile.load();
       generator = Generator(PaperSize.mm80, profile);
@@ -172,6 +172,7 @@ class DynamicQrLayout {
       bytes += generator.text('Expired At', containsChinese: true, styles: PosStyles(align: PosAlign.center, bold: true));
       bytes += generator.text('DD/MM/YYYY hh:mm:ss PM', containsChinese: true, styles: PosStyles(align: PosAlign.center));
       bytes += generator.hr();
+      bytes += generator.text(dynamicQR.footer_text!, containsChinese: true, styles: PosStyles(align: PosAlign.center));
 
       bytes += generator.cut(mode: PosCutMode.partial);
       return bytes;
@@ -187,7 +188,7 @@ class DynamicQrLayout {
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
     Map branchObject = json.decode(branch!);
-    Generator generator;
+    var generator;
     if (isUSB) {
       final profile = await CapabilityProfile.load();
       generator = Generator(PaperSize.mm58, profile);
@@ -225,6 +226,7 @@ class DynamicQrLayout {
       bytes += generator.text('Expired At', containsChinese: true, styles: PosStyles(align: PosAlign.center, bold: true));
       bytes += generator.text('DD/MM/YYYY hh:mm:ss PM', containsChinese: true, styles: PosStyles(align: PosAlign.center));
       bytes += generator.hr();
+      bytes += generator.text(dynamicQR.footer_text!, containsChinese: true, styles: PosStyles(align: PosAlign.center));
 
       bytes += generator.cut(mode: PosCutMode.partial);
       return bytes;

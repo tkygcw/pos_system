@@ -14,6 +14,7 @@ class AppSettingFields {
     enable_numbering,
     starting_number,
     table_order,
+    dynamic_qr_default_exp_after_hour,
     sync_status,
     created_at,
     updated_at
@@ -31,6 +32,7 @@ class AppSettingFields {
   static String enable_numbering = 'enable_numbering';
   static String starting_number = 'starting_number';
   static String table_order = 'table_order';
+  static String dynamic_qr_default_exp_after_hour = 'dynamic_qr_default_exp_after_hour';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -49,6 +51,7 @@ class AppSetting{
   int? enable_numbering;
   int? starting_number;
   int? table_order;
+  int? dynamic_qr_default_exp_after_hour;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -66,6 +69,7 @@ class AppSetting{
         this.enable_numbering,
         this.starting_number,
         this.table_order,
+        this.dynamic_qr_default_exp_after_hour,
         this.sync_status,
         this.created_at,
         this.updated_at
@@ -84,6 +88,7 @@ class AppSetting{
     int? enable_numbering,
     int? starting_number,
     int? table_order,
+    int? dynamic_qr_default_exp_after_hour,
     int? sync_status,
     String? created_at,
     String? updated_at
@@ -101,6 +106,7 @@ class AppSetting{
         enable_numbering: enable_numbering ?? this.enable_numbering,
         starting_number: starting_number ?? this.starting_number,
         table_order: table_order ?? this.table_order,
+        dynamic_qr_default_exp_after_hour: dynamic_qr_default_exp_after_hour ?? this.dynamic_qr_default_exp_after_hour,
         sync_status: sync_status ?? this.sync_status,
         created_at: created_at ?? this.created_at,
         updated_at: updated_at ?? this.updated_at
@@ -119,6 +125,7 @@ class AppSetting{
     enable_numbering: json[AppSettingFields.enable_numbering] as int?,
     starting_number: json[AppSettingFields.starting_number] as int?,
     table_order: json[AppSettingFields.table_order] as int?,
+    dynamic_qr_default_exp_after_hour: json[AppSettingFields.dynamic_qr_default_exp_after_hour] as int?,
     sync_status: json[AppSettingFields.sync_status] as int?,
     created_at: json[AppSettingFields.created_at] as String?,
     updated_at: json[AppSettingFields.updated_at] as String?
@@ -137,6 +144,7 @@ class AppSetting{
     AppSettingFields.enable_numbering: enable_numbering,
     AppSettingFields.starting_number: starting_number,
     AppSettingFields.table_order: table_order,
+    AppSettingFields.dynamic_qr_default_exp_after_hour: dynamic_qr_default_exp_after_hour,
     AppSettingFields.sync_status: sync_status,
     AppSettingFields.created_at: created_at,
     AppSettingFields.updated_at: updated_at

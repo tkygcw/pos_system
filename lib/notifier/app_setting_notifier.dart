@@ -12,8 +12,19 @@ class AppSettingModel extends ChangeNotifier {
   bool? enable_numbering;
   int? starting_number;
   bool? table_order;
+  int? dynamic_qr_default_exp_after_hour;
 
-  AppSettingModel({this.directPaymentStatus, this.autoPrintChecklist, this.autoPrintReceipt, this.show_sku, this.qr_order_auto_accept, this.enable_numbering, this.starting_number, this.table_order});
+  AppSettingModel({
+    this.directPaymentStatus,
+    this.autoPrintChecklist,
+    this.autoPrintReceipt,
+    this.show_sku,
+    this.qr_order_auto_accept,
+    this.enable_numbering,
+    this.starting_number,
+    this.table_order,
+    this.dynamic_qr_default_exp_after_hour
+  });
 
   void initialLoad() async {
     AppSetting? data = await PosDatabase.instance.readAppSetting();
@@ -26,6 +37,7 @@ class AppSettingModel extends ChangeNotifier {
       enable_numbering = data.enable_numbering == null || data.enable_numbering == 0 ? false : true;
       starting_number = data.starting_number != null || data.starting_number != 0 ? data.starting_number : 0;
       table_order = data.table_order == 0 ? false : true;
+      dynamic_qr_default_exp_after_hour = data.dynamic_qr_default_exp_after_hour;
     }
   }
 
@@ -61,6 +73,11 @@ class AppSettingModel extends ChangeNotifier {
 
   void setTableOrderStatus(bool status) {
     table_order = status;
+    notifyListeners();
+  }
+
+  void setDynamicQrDefaultExpAfterHour(int hour) {
+    dynamic_qr_default_exp_after_hour = hour;
     notifyListeners();
   }
 }

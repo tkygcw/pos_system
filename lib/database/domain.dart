@@ -55,18 +55,25 @@ class Domain {
   /**
   * insert table dynamic qr
   * */
-  insertTableDynamicQr(PosTable posTable) async {
+  insertTableDynamicQr(PosTable posTable,) async {
     try {
       var response = await http.post(Domain.table_dynamic, body: {
         'tb_dynamic_table_create': '1',
         'table_id': posTable.table_id.toString(),
-        'qr_url': posTable.qrOrderUrl,
+        'branch_id': posTable.branch_id,
+        'qr_url': posTable.dynamicQrHash,
         'qr_expired_dateTime': posTable.dynamicQRExp
-      }).timeout(Duration(seconds: 10), onTimeout: ()=> throw TimeoutException("Time out"));
+      }).timeout(Duration(seconds: 5), onTimeout: ()=> throw TimeoutException("Timeout"));
       print("response: ${jsonDecode(response.body)}");
       return jsonDecode(response.body);
     } catch (error) {
+      FLog.error(
+        className: "domain",
+        text: "dynamic qr insert failed",
+        exception: "$error",
+      );
       Fluttertoast.showToast(msg: error.toString());
+      return {'status': '2'};
     }
   }
 

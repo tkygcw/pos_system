@@ -8,6 +8,8 @@ class DynamicQRFields {
     branch_id,
     qr_code_size,
     paper_size,
+    footer_text,
+    default_exp_after_hour,
     sync_status,
     created_at,
     updated_at,
@@ -20,6 +22,8 @@ class DynamicQRFields {
   static String branch_id = 'branch_id';
   static String qr_code_size = 'qr_code_size';
   static String paper_size = 'paper_size';
+  static String footer_text = 'footer_text';
+  static String default_exp_after_hour = 'default_exp_after_hour';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -34,6 +38,7 @@ class DynamicQR {
   String? branch_id;
   int? qr_code_size;
   String? paper_size;
+  String? footer_text;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -46,6 +51,7 @@ class DynamicQR {
         this.branch_id,
         this.qr_code_size,
         this.paper_size,
+        this.footer_text,
         this.sync_status,
         this.created_at,
         this.updated_at,
@@ -58,6 +64,7 @@ class DynamicQR {
     String? branch_id,
     int? qr_code_size,
     String? paper_size,
+    String? footer_text,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -70,6 +77,7 @@ class DynamicQR {
           branch_id: branch_id ?? this.branch_id,
           qr_code_size: qr_code_size ?? this.qr_code_size,
           paper_size: paper_size ?? this.paper_size,
+          footer_text: footer_text ?? this.footer_text,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -82,6 +90,7 @@ class DynamicQR {
     branch_id: json[DynamicQRFields.branch_id] as String?,
     qr_code_size: json[DynamicQRFields.qr_code_size] as int?,
     paper_size: json[DynamicQRFields.paper_size] as String?,
+    footer_text: json[DynamicQRFields.footer_text] as String?,
     sync_status: json[DynamicQRFields.sync_status] as int?,
     created_at: json[DynamicQRFields.created_at] as String?,
     updated_at: json[DynamicQRFields.updated_at] as String?,
@@ -95,6 +104,7 @@ class DynamicQR {
     DynamicQRFields.branch_id: branch_id,
     DynamicQRFields.qr_code_size: qr_code_size,
     DynamicQRFields.paper_size: paper_size,
+    DynamicQRFields.footer_text: footer_text,
     DynamicQRFields.sync_status: sync_status,
     DynamicQRFields.created_at: created_at,
     DynamicQRFields.updated_at: updated_at,
