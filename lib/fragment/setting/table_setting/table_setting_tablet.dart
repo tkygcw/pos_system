@@ -48,7 +48,7 @@ class _TableSettingTabletState extends State<TableSettingTablet> {
           elevation: 0,
           actions: [
             Center(child: Text("${AppLocalizations.of(context)?.translate('selected')}: ${checkedTable.length}", style: TextStyle(color: Colors.black, fontSize: 18.0))),
-            Container(
+            Padding(
                 padding: EdgeInsets.only(right: 15),
                 child: Checkbox(
                   activeColor: color.backgroundColor,
@@ -179,9 +179,11 @@ class _TableSettingTabletState extends State<TableSettingTablet> {
     List<PosTable> data = await PosDatabase.instance.readAllTable();
     tableList = data;
     sortTable();
-    setState(() {
-      _isLoad = true;
-    });
+    if(mounted){
+      setState(() {
+        _isLoad = true;
+      });
+    }
   }
 
   sortTable(){

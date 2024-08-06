@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -57,12 +58,11 @@ class _TableDynamicQrDialogState extends State<TableDynamicQrDialog> {
     resetDefaultDatetime();
   }
 
-  generateTableNumber(){
+  String generateSelectedTable(){
     if(widget.posTableList.length > 1){
-      List<PosTable> tableList = sortTable(widget.posTableList);
-      return tableList.map((e) => e.number).toList().toString().replaceAll('[', '').replaceAll(']', '');
+      return "${AppLocalizations.of(context)?.translate('selected')}: ${widget.posTableList.length}";
     } else {
-      return widget.posTableList.first.number;
+      return "${AppLocalizations.of(context)?.translate('table_no')}: ${widget.posTableList.first.number}";
     }
   }
 
@@ -77,7 +77,7 @@ class _TableDynamicQrDialogState extends State<TableDynamicQrDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("${AppLocalizations.of(context)?.translate('table_no')}: ${generateTableNumber()}",
+              Text(generateSelectedTable(),
                 style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey, fontSize: 18.0),),
               SizedBox(height: 20),
               TextField(
@@ -122,8 +122,7 @@ class _TableDynamicQrDialogState extends State<TableDynamicQrDialog> {
                         if(res['status'] == '1'){
                           await printDynamicQr.printDynamicQR(table: updatedTable);
                         } else {
-                          resetTapCount();
-                          print("failed create dynamic qr");
+                          break;
                         }
                       }
                       if(widget.callback != null){

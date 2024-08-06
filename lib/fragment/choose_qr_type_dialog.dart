@@ -51,9 +51,6 @@ class _ChooseQrTypeDialogState extends State<ChooseQrTypeDialog> {
                 onTap: (){
                   Navigator.of(context).pop();
                   openDynamicQRDialog();
-                  // if(widget.callback != null){
-                  //   widget.callback!();
-                  // }
                 },
                 trailing: Icon(Icons.navigate_next),
               ),
@@ -69,16 +66,18 @@ class _ChooseQrTypeDialogState extends State<ChooseQrTypeDialog> {
                     )),
                 title: Text(AppLocalizations.of(context)!.translate('fixed_qr')),
                 onTap: () async {
-                  print("table length: ${widget.posTableList.length}");
-                  await getPref();
-                  for(int i = 0; i < widget.posTableList.length; i++){
-                    PosTable updatedTable = await generateFixQrUrl(widget.posTableList[i]);
-                    await printDynamicQr.printDynamicQR(table: updatedTable);
+                  tapCount++;
+                  if(tapCount == 1){
+                    await getPref();
+                    for(int i = 0; i < widget.posTableList.length; i++){
+                      PosTable updatedTable = await generateFixQrUrl(widget.posTableList[i]);
+                      await printDynamicQr.printDynamicQR(table: updatedTable);
+                    }
+                    if(widget.callback != null){
+                      widget.callback!();
+                    }
+                    Navigator.of(context).pop();
                   }
-                  if(widget.callback != null){
-                    widget.callback!();
-                  }
-                  Navigator.of(context).pop();
                 },
                 trailing: Icon(Icons.navigate_next),
               ),

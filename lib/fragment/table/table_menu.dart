@@ -1174,6 +1174,13 @@ class _TableMenuState extends State<TableMenu> {
                   else if (action == 'on_double_tap') {
                     openChangeTableDialog(tableList[i], cart);
                   }
+
+                  else if (action == 'on_long_press'){
+                    if(qrOrderStatus == '0'){
+                      selectedTable = [tableList[i]];
+                      openChooseQRDialog(selectedTable);
+                    }
+                  }
                 },
               )
           ],
@@ -1228,8 +1235,12 @@ class _TableMenuState extends State<TableMenu> {
   void getPreData() async {
     try {
       prefs = await SharedPreferences.getInstance();
-      showAdvanced = prefs.getBool('show_advanced')!;
-      final String? branch = prefs.getString('branch');
+      if(prefs.getBool('show_advanced') != null){
+        showAdvanced = prefs.getBool('show_advanced')!;
+      } else {
+        showAdvanced = false;
+      }
+      String? branch = prefs.getString('branch');
       Map branchObject = json.decode(branch!);
       qrOrderStatus = branchObject['qr_order_status'];
     } catch (e) {

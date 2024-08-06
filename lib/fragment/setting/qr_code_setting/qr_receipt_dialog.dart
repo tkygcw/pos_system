@@ -27,6 +27,7 @@ class DynamicQrReceiptDialog extends StatefulWidget {
 }
 
 class _DynamicQrReceiptDialogState extends State<DynamicQrReceiptDialog> {
+  PrintDynamicQr printDynamicQr = PrintDynamicQr();
   String receiptView = "80";
   DynamicQR? testPrintLayout;
   late Map branchObject;
@@ -34,6 +35,13 @@ class _DynamicQrReceiptDialogState extends State<DynamicQrReceiptDialog> {
 
   testLayout(DynamicQR qrLayout){
     testPrintLayout = qrLayout;
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    printDynamicQr.readCashierPrinter();
   }
 
   @override
@@ -100,7 +108,7 @@ class _DynamicQrReceiptDialogState extends State<DynamicQrReceiptDialog> {
                 ),
                 child: Text(AppLocalizations.of(context)!.translate('test_print')),
                 onPressed: () async {
-                  await PrintDynamicQr().testPrintDynamicQR(qrLayout: testPrintLayout!, paperSize: receiptView);
+                  await printDynamicQr.testPrintDynamicQR(qrLayout: testPrintLayout!, paperSize: receiptView);
                 },
               ),
             ),
@@ -191,7 +199,7 @@ class _DynamicQrReceiptDialogState extends State<DynamicQrReceiptDialog> {
                   ),
                   child: Text(AppLocalizations.of(context)!.translate('test_print')),
                   onPressed: () async {
-                    await PrintDynamicQr().testPrintDynamicQR(qrLayout: testPrintLayout!, paperSize: receiptView);
+                    await printDynamicQr.testPrintDynamicQR(qrLayout: testPrintLayout!, paperSize: receiptView);
                   },
                 ),
               ),

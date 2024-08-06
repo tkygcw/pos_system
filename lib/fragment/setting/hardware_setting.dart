@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'package:pos_system/fragment/setting/adjust_hour_dialog.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../controller/controllerObject.dart';
 import '../../database/pos_database.dart';
@@ -33,7 +35,7 @@ class _HardwareSettingState extends State<HardwareSetting> {
   late StreamController streamController;
   late Stream actionStream;
   Receipt? receiptObject;
-  bool cashDrawer = false, secondDisplay = false, tableOrder = true, directPayment = false, showSKU = false, qrOrderAutoAccept = false;
+  bool cashDrawer = false, secondDisplay = false, tableOrder = true, directPayment = false, showSKU = false, qrOrderAutoAccept = false, hasQrAccess = true;
 
   @override
   void initState() {
@@ -48,6 +50,7 @@ class _HardwareSettingState extends State<HardwareSetting> {
     actionStream.listen((event) async {
       switch(event){
         case 'init':{
+          await checkStatus();
           await getAllAppSetting();
           await read80mmReceiptLayout();
           controller.refresh(streamController);
@@ -75,6 +78,15 @@ class _HardwareSettingState extends State<HardwareSetting> {
         break;
       }
     });
+  }
+
+  Future<void> checkStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
+    if(branchObject['qr_order_status'] == '1'){
+      hasQrAccess = false;
+    }
   }
 
   read80mmReceiptLayout() async {
@@ -321,26 +333,26 @@ class _HardwareSettingState extends State<HardwareSetting> {
                             endIndent: 20,
                           ),
                           ListTile(
-                            title: Text(AppLocalizations.of(context)!.translate('auto_accept_qr_order')),
+                            title: Text(AppLocalizations.of(context)!.translate('auto_accept_qr_order'), style: TextStyle(color: !hasQrAccess ? Colors.grey: null)),
                             subtitle: Text(AppLocalizations.of(context)!.translate('auto_accept_qr_order_desc')),
                             trailing: Switch(
                               value: qrOrderAutoAccept,
                               activeColor: color.backgroundColor,
-                              onChanged: (value) {
+                              onChanged: hasQrAccess ? (value) {
                                 qrOrderAutoAccept = value;
                                 appSettingModel.setQrOrderAutoAcceptStatus(qrOrderAutoAccept);
                                 actionController.sink.add("qr_order_auto_accept");
-                              },
+                              } : null
                             ),
                           ),
                           ListTile(
-                            title: Text(AppLocalizations.of(context)!.translate('set_default_exp_after_hour')),
+                            title: Text(AppLocalizations.of(context)!.translate('set_default_exp_after_hour'), style: TextStyle(color: !hasQrAccess ? Colors.grey: null)),
                             subtitle: Text(AppLocalizations.of(context)!.translate('set_default_exp_after_hour_desc')),
                             trailing: Text('${appSettingModel.dynamic_qr_default_exp_after_hour} ${AppLocalizations.of(context)!.translate('hours')}',
-                                style: TextStyle(fontWeight: FontWeight.w500)),
-                            onTap: (){
+                                style: TextStyle(color: !hasQrAccess ? Colors.grey : null, fontWeight: FontWeight.w500)),
+                            onTap: hasQrAccess ? (){
                              openAdjustHourDialog(appSettingModel);
-                            },
+                            } : null
                           ),
                         ],
                       ),

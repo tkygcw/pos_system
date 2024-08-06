@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -9,6 +10,7 @@ import 'package:pos_system/fragment/setting/qr_code_setting/qr_receipt_dialog.da
 import 'package:pos_system/fragment/setting/receipt_dialog.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../notifier/theme_color.dart';
 import '../../object/receipt.dart';
@@ -36,6 +38,7 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
   Receipt? receiptObject;
   bool printCheckList = false,
       enableNumbering = false,
+      hasQrAccess = true,
       printReceipt = false;
   int startingNumber = 0, compareStartingNumber = 0;
 
@@ -52,6 +55,7 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
     actionStream.listen((event) async {
       switch(event){
         case 'init':{
+          await checkStatus();
           await getAllAppSetting();
           await read80mmReceiptLayout();
           controller.refresh(streamController);
@@ -64,6 +68,15 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
         break;
       }
     });
+  }
+
+  Future<void> checkStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
+    if(branchObject['qr_order_status'] == '1'){
+      hasQrAccess = false;
+    }
   }
 
   read80mmReceiptLayout() async {
@@ -321,12 +334,12 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                             },
                           ),
                           ListTile(
-                            title: Text(AppLocalizations.of(context)!.translate('qr_code_setting')),
+                            title: Text(AppLocalizations.of(context)!.translate('qr_code_setting'), style: TextStyle(color: !hasQrAccess ? Colors.grey: null)),
                             subtitle: Text(AppLocalizations.of(context)!.translate('customize_your_qr_code_look')),
                             trailing: Icon(Icons.navigate_next),
-                            onTap: (){
+                            onTap: hasQrAccess? (){
                               openDynamicQRDialog();
-                            },
+                            }: null
                           ),
                           ListTile(
                             title: Text(AppLocalizations.of(context)!.translate('auto_print_checklist')),

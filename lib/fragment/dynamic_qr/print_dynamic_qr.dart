@@ -64,6 +64,7 @@ class PrintDynamicQr {
   }
 
   testPrintDynamicQR({required DynamicQR qrLayout, required String paperSize}) async {
+    print("cashier printer length: ${cashierPrinter.length}");
     if(cashierPrinter.isNotEmpty){
       for(final printers in cashierPrinter){
         var printerDetail = jsonDecode(printers.value!);

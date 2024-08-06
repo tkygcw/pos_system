@@ -43,8 +43,9 @@ class _TableSettingMobileState extends State<TableSettingMobile> {
         automaticallyImplyLeading: false,
         elevation: 0,
         actions: [
-          Container(
-              padding: EdgeInsets.all(10),
+          Center(child: Text("${AppLocalizations.of(context)?.translate('selected')}: ${checkedTable.length}", style: TextStyle(color: Colors.black, fontSize: 18.0))),
+          Padding(
+              padding: EdgeInsets.only(right: 25),
               child: Checkbox(
                 activeColor: color.backgroundColor,
                 value: selectAll,
@@ -54,7 +55,6 @@ class _TableSettingMobileState extends State<TableSettingMobile> {
                   });
                   if(selectAll){
                     for(var table in tableList){
-                      print("table is selected: ${table.isSelected}");
                       if(table.isSelected == false){
                         table.isSelected = true;
                         checkedTable.add(table);
@@ -81,7 +81,11 @@ class _TableSettingMobileState extends State<TableSettingMobile> {
                 icon: Icons.qr_code_2,
                 onTap: () {
                   if(checkedTable.isNotEmpty){
-                    widget.openChooseQrDialog(checkedTable, unselectAllTable());
+                    widget.openChooseQrDialog(checkedTable, (){
+                      setState(() {
+                        unselectAllTable();
+                      });
+                    });
                   } else {
                     Fluttertoast.showToast(
                         backgroundColor: Color(0xFFFF0000),
