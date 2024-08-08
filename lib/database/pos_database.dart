@@ -363,11 +363,39 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_count} $integerType NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_exp} $textType NOT NULL DEFAULT '' ");
+          //new
+          await db.execute('''CREATE TABLE $tableDynamicQR(
+          ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
+          ${DynamicQRFields.dynamic_qr_id} $integerType,
+          ${DynamicQRFields.dynamic_qr_key} $textType,
+          ${DynamicQRFields.branch_id} $textType,
+          ${DynamicQRFields.qr_code_size} $integerType,
+          ${DynamicQRFields.paper_size} $textType,
+          ${DynamicQRFields.footer_text} $textType,
+          ${DynamicQRFields.sync_status} $integerType,
+          ${DynamicQRFields.created_at} $textType,
+          ${DynamicQRFields.updated_at} $textType,
+          ${DynamicQRFields.soft_delete} $textType)''');
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType DEFAULT 1");
         }break;
         case 17: {
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_count} $integerType NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_exp} $textType NOT NULL DEFAULT '' ");
+          //new
+          await db.execute('''CREATE TABLE $tableDynamicQR(
+          ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
+          ${DynamicQRFields.dynamic_qr_id} $integerType,
+          ${DynamicQRFields.dynamic_qr_key} $textType,
+          ${DynamicQRFields.branch_id} $textType,
+          ${DynamicQRFields.qr_code_size} $integerType,
+          ${DynamicQRFields.paper_size} $textType,
+          ${DynamicQRFields.footer_text} $textType,
+          ${DynamicQRFields.sync_status} $integerType,
+          ${DynamicQRFields.created_at} $textType,
+          ${DynamicQRFields.updated_at} $textType,
+          ${DynamicQRFields.soft_delete} $textType)''');
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType DEFAULT 1");
         }break;
         case 18: {
           await db.execute('''CREATE TABLE $tableDynamicQR(
@@ -382,7 +410,6 @@ class PosDatabase {
           ${DynamicQRFields.created_at} $textType,
           ${DynamicQRFields.updated_at} $textType,
           ${DynamicQRFields.soft_delete} $textType)''');
-
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType DEFAULT 1");
         }break;
       }
