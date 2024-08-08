@@ -228,7 +228,18 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                                   child: ElevatedButton(
                                     onPressed: () async {
                                       Navigator.pop(context);
-                                      await showSecondDialog(context, color);
+                                      // await showSecondDialog(context, color);
+                                      setState(() {
+                                        inProgress = true;
+                                      });
+                                      await dataZip(3);
+                                      if(mounted){
+                                        setState(() {
+                                          inProgress = false;
+                                        });
+                                      }
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pop();
                                     },
                                     child: Text(AppLocalizations.of(context)!.translate('debug')),
                                   ),
