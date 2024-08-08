@@ -33,6 +33,7 @@ class OrderDetailFields {
     sync_status,
     unit,
     per_quantity_unit,
+    product_sku,
     created_at,
     updated_at,
     soft_delete
@@ -62,6 +63,7 @@ class OrderDetailFields {
   static String sync_status = 'sync_status';
   static String unit = 'unit';
   static String per_quantity_unit = 'per_quantity_unit';
+  static String product_sku = 'product_sku';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
@@ -92,6 +94,7 @@ class OrderDetail{
   int? sync_status;
   String? unit;
   String? per_quantity_unit;
+  String? product_sku;
   String? created_at;
   String? updated_at;
   String? soft_delete;
@@ -155,6 +158,7 @@ class OrderDetail{
         this.sync_status,
         this.unit,
         this.per_quantity_unit,
+        this.product_sku,
         this.created_at,
         this.updated_at,
         this.soft_delete,
@@ -212,6 +216,7 @@ class OrderDetail{
     int? sync_status,
     String? unit,
     String? per_quantity_unit,
+    String? product_sku,
     String? created_at,
     String? updated_at,
     String? soft_delete
@@ -241,6 +246,7 @@ class OrderDetail{
           sync_status: sync_status ?? this.sync_status,
           unit: unit ?? this.unit,
           per_quantity_unit: per_quantity_unit ?? this.per_quantity_unit,
+          product_sku: product_sku ?? this.product_sku,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete);
@@ -276,13 +282,13 @@ class OrderDetail{
       sync_status: json[OrderDetailFields.sync_status] as int?,
       unit: json[OrderDetailFields.unit] as String?,
       per_quantity_unit: json[OrderDetailFields.per_quantity_unit] as String?,
+      product_sku: json[OrderDetailFields.product_sku] as String?,
       created_at: json[OrderDetailFields.created_at] as String?,
       updated_at: json[OrderDetailFields.updated_at] as String?,
       soft_delete: json[OrderDetailFields.soft_delete] as String?,
       total_amount: json['total_amount'] as String?,
       category_id: json['category_id'] as int?,
       branch_link_product_id: json['branch_link_product_id'] as int?,
-      //category_name: json['category_name'] as String?,
       category_item_sum: json['category_item_sum'] as num?,
       item_sum: json['item_sum'] as num?,
       category_net_sales: json['category_net_sales'] as double?,
@@ -330,6 +336,7 @@ class OrderDetail{
     OrderDetailFields.sync_status: sync_status,
     OrderDetailFields.unit: unit,
     OrderDetailFields.per_quantity_unit: per_quantity_unit,
+    OrderDetailFields.product_sku: product_sku,
     OrderDetailFields.created_at: created_at,
     OrderDetailFields.updated_at: updated_at,
     OrderDetailFields.soft_delete: soft_delete,
@@ -368,6 +375,7 @@ class OrderDetail{
     OrderDetailFields.sync_status: sync_status,
     OrderDetailFields.unit: unit,
     OrderDetailFields.per_quantity_unit: per_quantity_unit,
+    OrderDetailFields.product_sku: product_sku,
     OrderDetailFields.created_at: created_at,
     OrderDetailFields.updated_at: updated_at,
     OrderDetailFields.soft_delete: soft_delete

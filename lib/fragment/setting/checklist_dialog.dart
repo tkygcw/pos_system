@@ -41,7 +41,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
   String checklistView = "80";
   String? checklist_value;
   double? fontSize, otherFontSize;
-  bool isButtonDisabled = false, submitted = false, checkListShowPrice = false, checkListItemSeparator = false;
+  bool isButtonDisabled = false, submitted = false, checkListShowPrice = false, checkListItemSeparator = false, showSKU = false ;
   List<Printer> cashierPrinter = [];
 
   @override
@@ -94,6 +94,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
         otherFontSize = data.other_font_size == 0 ? 20 : 14;
         checkListShowPrice = data.check_list_show_price == 0 ? false : true;
         checkListItemSeparator = data.check_list_show_separator == 0 ? false : true;
+        showSKU = data.show_product_sku == 0 ? false : true;
       } else {
         checklist = null;
         productFontSize = ReceiptDialogEnum.small;
@@ -102,6 +103,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
         otherFontSize = 14;
         checkListShowPrice = false;
         checkListItemSeparator = false;
+        showSKU = false;
       }
     } catch(e){
       print("read check list layout error: $e");
@@ -139,7 +141,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                                 alignment: Alignment.topLeft,
                                 child: SegmentedButton(
                                   style: ButtonStyle(
-                                      side: MaterialStateProperty.all(
+                                      side: WidgetStateProperty.all(
                                         BorderSide.lerp(BorderSide(
                                           style: BorderStyle.solid,
                                           color: Colors.blueGrey,
@@ -363,6 +365,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
           other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : 1,
           check_list_show_price: checkListShowPrice == true ? 1: 0,
           check_list_show_separator: checkListItemSeparator == true ? 1: 0,
+          show_product_sku: showSKU ? 1 : 0,
           sync_status: checkData.sync_status == 0 ? 0 : 2,
           updated_at: dateTime,
           checklist_sqlite_id: checklist!.checklist_sqlite_id,
@@ -401,6 +404,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
         check_list_show_price: checkListShowPrice == true ? 1 : 0,
         check_list_show_separator: checkListItemSeparator == true ? 1 : 0,
         paper_size: checklistView,
+        show_product_sku: showSKU ? 1 : 0,
         sync_status: 0,
         created_at: dateTime,
         updated_at: '',
@@ -452,7 +456,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
     } else {
       await createChecklist();
     }
-    await syncAllToCloud();
+    // await syncAllToCloud();
     closeDialog(context);
 
   }
@@ -463,7 +467,8 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
       other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : 1,
       check_list_show_price: checkListShowPrice == true ? 1: 0,
       check_list_show_separator: checkListItemSeparator == true ? 1: 0,
-      paper_size: checklistView
+      paper_size: checklistView,
+      show_product_sku: showSKU ? 1 : 0
     );
   }
 
@@ -734,6 +739,19 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                 activeColor: color.backgroundColor,
                 onChanged: (value) async {
                   checkListItemSeparator = value;
+                  actionController.sink.add("switch");
+                },
+              ),
+            ),
+            ListTile(
+              title: Text("Show Product SKU"),
+              subtitle: Text("Show product SKU in checklist"),
+              trailing: Switch(
+                value: showSKU,
+                activeColor: color.backgroundColor,
+                onChanged: (value) {
+                  showSKU = value;
+                  print("show sku: ${showSKU}");
                   actionController.sink.add("switch");
                 },
               ),
