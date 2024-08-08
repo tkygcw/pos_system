@@ -362,11 +362,24 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_count} $integerType NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_exp} $textType NOT NULL DEFAULT '' ");
+          //new
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
         }break;
         case 17: {
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_count} $integerType NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_exp} $textType NOT NULL DEFAULT '' ");
+          //new
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
+        }break;
+        case 18: {
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
         }break;
       }
     }
@@ -977,6 +990,9 @@ class PosDatabase {
           ${AppSettingFields.enable_numbering} $integerType,
           ${AppSettingFields.starting_number} $integerType,
           ${AppSettingFields.table_order} $integerType,
+          ${AppSettingFields.show_product_desc} $integerType,
+          ${AppSettingFields.print_cancel_receipt} $integerType,
+          ${AppSettingFields.product_sort_by} $integerType,
           ${AppSettingFields.sync_status} $integerType,
           ${AppSettingFields.created_at} $textType,
           ${AppSettingFields.updated_at} $textType)''');
@@ -2171,7 +2187,7 @@ class PosDatabase {
   }
 
 /*
-  insert cash record (from cloud)
+  insert transfer owner (from cloud)
 */
   Future<TransferOwner> insertTransferOwner(TransferOwner data) async {
     final db = await instance.database;
@@ -6010,6 +6026,30 @@ class PosDatabase {
   Future<int> updateQrOrderAutoAcceptSetting(AppSetting data) async {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableAppSetting SET qr_order_auto_accept = ?, sync_status = ?, updated_at = ?', [data.qr_order_auto_accept, 2, data.updated_at]);
+  }
+
+/*
+  update show product description  Setting
+*/
+  Future<int> updateShowProDescSettings(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET show_product_desc = ?, sync_status = ?, updated_at = ?', [data.show_product_desc, 2, data.updated_at]);
+  }
+
+/*
+  update show product sort by  Setting
+*/
+  Future<int> updateProductSortBySettings(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET product_sort_by = ?, sync_status = ?, updated_at = ?', [data.product_sort_by, 2, data.updated_at]);
+  }
+
+/*
+  update print cancel receipt  Setting
+*/
+  Future<int> updatePrintCancelReceiptSettings(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET print_cancel_receipt = ?, sync_status = ?, updated_at = ?', [data.print_cancel_receipt, 2, data.updated_at]);
   }
 
 /*

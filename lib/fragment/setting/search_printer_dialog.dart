@@ -12,20 +12,19 @@ import 'package:provider/provider.dart';
 import '../../notifier/theme_color.dart';
 import '../../translation/AppLocalizations.dart';
 
-class DeviceDialog extends StatefulWidget {
+class SearchPrinterDialog extends StatefulWidget {
   final int type;
   final Function(String value) callBack;
 
-  const DeviceDialog({Key? key, required this.type, required this.callBack}) : super(key: key);
+  const SearchPrinterDialog({Key? key, required this.type, required this.callBack}) : super(key: key);
 
   @override
-  State<DeviceDialog> createState() => _DeviceDialogState();
+  State<SearchPrinterDialog> createState() => _SearchPrinterDialogState();
 }
 
-class _DeviceDialogState extends State<DeviceDialog> {
+class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
   List<Map<String, dynamic>> devices = [];
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
-  String wifi = "";
   List<String> ips = [];
   double percentage = 0.0;
   bool isLoad = false, isButtonDisable = false;
@@ -100,14 +99,11 @@ class _DeviceDialogState extends State<DeviceDialog> {
         }
       }
     }
-
-
     var subnet = ipToCSubnet(wifiIP!);
-
     final stream = scanner.icmpScan(subnet, progressCallback: (progress) {
-      if (this.mounted) {
+      if (mounted) {
         setState(() {
-          info = Text("${AppLocalizations.of(context)?.translate('scanning_device_within')} " + "$wifiName");
+          info = Text("${AppLocalizations.of(context)?.translate('scanning_device_within')} $wifiName\n${AppLocalizations.of(context)!.translate('device_ip')}: ${wifiIP}");
           percentage = progress;
           if (percentage == 1.0) {
             isLoad = true;

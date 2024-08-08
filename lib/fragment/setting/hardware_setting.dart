@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:confirm_dialog/confirm_dialog.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
@@ -32,7 +33,10 @@ class _HardwareSettingState extends State<HardwareSetting> {
   late StreamController streamController;
   late Stream actionStream;
   Receipt? receiptObject;
-  bool cashDrawer = false, secondDisplay = false, tableOrder = true, directPayment = false, showSKU = false, qrOrderAutoAccept = false;
+  final List<String> sortBy = ['default', 'product_name'];
+  int? selectedValue = 0;
+  bool cashDrawer = false, secondDisplay = false, directPayment = false, showSKU = false,
+      qrOrderAutoAccept = false, showProductDesc = false, hasQrAccess = true, tableOrder = true ;
 
   @override
   void initState() {
@@ -67,8 +71,18 @@ class _HardwareSettingState extends State<HardwareSetting> {
           controller.refresh(streamController);
         }
         break;
+        case 'show_pro_desc':{
+          await updateShowProDescAppSetting();
+          controller.refresh(streamController);
+        }
+        break;
         case 'qr_order_auto_accept':{
           await updateQrOrderAutoAcceptAppSetting();
+          controller.refresh(streamController);
+        }
+        break;
+        case 'prod_sort_by':{
+          await updateProductSortBySetting();
           controller.refresh(streamController);
         }
         break;
@@ -121,6 +135,15 @@ class _HardwareSettingState extends State<HardwareSetting> {
         this.qrOrderAutoAccept = true;
       } else {
         this.qrOrderAutoAccept = false;
+      }
+
+      if(appSetting.show_product_desc == 1){
+        this.showProductDesc = true;
+      } else {
+        this.showProductDesc = false;
+      }
+      if(appSetting.product_sort_by != null){
+        selectedValue = appSetting.product_sort_by!;
       }
     }
   }
@@ -312,6 +335,72 @@ class _HardwareSettingState extends State<HardwareSetting> {
                               },
                             ),
                           ),
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('show_product_desc')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('show_product_desc_desc')),
+                            trailing: Switch(
+                              value: showProductDesc,
+                              activeColor: color.backgroundColor,
+                              onChanged: (value) {
+                                showProductDesc = value;
+                                appSettingModel.setShowProductDescStatus(showProductDesc);
+                                actionController.sink.add("show_pro_desc");
+                              },
+                            ),
+                          ),
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('product_sort_by')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('product_sort_by_desc')),
+                            trailing: SizedBox(
+                              width: 200,
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton2(
+                                  isExpanded: true,
+                                  buttonStyleData: ButtonStyleData(
+                                    height: 55,
+                                    padding: const EdgeInsets.only(left: 14, right: 14),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: Border.all(
+                                        color: Colors.black26,
+                                      ),
+                                    ),
+                                  ),
+                                  dropdownStyleData: DropdownStyleData(
+                                    maxHeight: 200,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      color: Colors.grey.shade100,
+                                    ),
+                                    scrollbarTheme: ScrollbarThemeData(
+                                        thickness: WidgetStateProperty.all(5),
+                                        mainAxisMargin: 20,
+                                        crossAxisMargin: 5
+                                    ),
+                                  ),
+                                  items: sortBy.asMap().entries.map((sort) => DropdownMenuItem<int>(
+                                    value: sort.key,
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          AppLocalizations.of(context)!.translate(sort.value),
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )).toList(),
+                                  value: selectedValue,
+                                  onChanged: (int? value) {
+                                    selectedValue = value;
+                                    actionController.sink.add("prod_sort_by");
+                                    Provider.of<AppSettingModel>(context, listen: false).setProductSortByStatus(value!);
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
                           Divider(
                             color: Colors.grey,
                             height: 1,
@@ -395,6 +484,28 @@ class _HardwareSettingState extends State<HardwareSetting> {
         updated_at: dateTime
     );
     int data = await PosDatabase.instance.updateQrOrderAutoAcceptSetting(object);
+  }
+
+  updateShowProDescAppSetting() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    AppSetting object = AppSetting(
+        show_product_desc: showProductDesc == true ? 1 : 0,
+        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
+        updated_at: dateTime
+    );
+    int data = await PosDatabase.instance.updateShowProDescSettings(object);
+  }
+
+  updateProductSortBySetting() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    AppSetting object = AppSetting(
+        product_sort_by: selectedValue,
+        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
+        updated_at: dateTime
+    );
+    int data = await PosDatabase.instance.updateProductSortBySettings(object);
   }
 
   Future<bool> anyTableUse() async {

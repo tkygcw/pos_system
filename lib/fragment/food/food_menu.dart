@@ -327,7 +327,8 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   }
 
   sortProduct(List<Product> list){
-    list.sort((a, b) {
+    List<Product> hasSequenceProduct = list.where((e) => e.sequence_number != null && e.sequence_number != '').toList();
+    hasSequenceProduct.sort((a, b) {
       final aNumber = a.sequence_number!;
       final bNumber = b.sequence_number!;
 
@@ -345,7 +346,37 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
         return compareNatural(aNumber, bNumber);
       }
     });
-    return list;
+    list.removeWhere((e) => e.sequence_number != null && e.sequence_number != '');
+    List<Product> sortedList2 = getSortedList(list);
+    return hasSequenceProduct + sortedList2;
+  }
+
+  List<Product> getSortedList(List<Product> noSequenceProduct){
+    switch(AppSettingModel.instance.product_sort_by){
+      case 1 :{
+        return sortByProductName(noSequenceProduct);
+      }
+      case 2: {
+        return sortByProductLocalId(noSequenceProduct);
+      }
+      default: {
+        return noSequenceProduct;
+      }
+    }
+  }
+
+  sortByProductName(List<Product> sortedList){
+    sortedList.sort((a, b){
+      return compareNatural(a.name!, b.name!);
+    });
+    return sortedList;
+  }
+
+  sortByProductLocalId(List<Product> sortedList){
+    sortedList.sort((a, b){
+      return a.product_sqlite_id!.compareTo(b.product_sqlite_id!);
+    });
+    return sortedList;
   }
 
   getPreferences() async {
