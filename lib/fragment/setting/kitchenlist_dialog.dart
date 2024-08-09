@@ -41,7 +41,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
   String kitchen_listView = "80";
   String? kitchen_list_value;
   double? fontSize, otherFontSize;
-  bool isButtonDisabled = false, submitted = false, kitchenListShowPrice = false, printCombineKitchenList = false, kitchenListItemSeparator = false;
+  bool isButtonDisabled = false, submitted = false, kitchenListShowPrice = false, printCombineKitchenList = false, kitchenListItemSeparator = false, showSKU = false;
   List<Printer> kitchenPrinter = [];
 
   @override
@@ -95,6 +95,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         kitchenListShowPrice = data.kitchen_list_show_price == 0 ? false : true;
         printCombineKitchenList = data.print_combine_kitchen_list == 0 ? false : true;
         kitchenListItemSeparator = data.kitchen_list_item_separator == 0 ? false : true;
+        showSKU = data.show_product_sku == 0 ? false : true;
       } else {
         kitchen_list = null;
         productFontSize = ReceiptDialogEnum.big;
@@ -104,6 +105,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         kitchenListShowPrice = false;
         printCombineKitchenList = false;
         kitchenListItemSeparator = false;
+        showSKU = false;
       }
     } catch(e){
       print("read kitchen list layout error: $e");
@@ -361,6 +363,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
           kitchen_list_show_price: kitchenListShowPrice == true ? 1: 0,
           print_combine_kitchen_list: printCombineKitchenList == true ? 1: 0,
           kitchen_list_item_separator: kitchenListItemSeparator == true ? 1: 0,
+          show_product_sku: showSKU ? 1 : 0,
           sync_status: checkData.sync_status == 0 ? 0 : 2,
           updated_at: dateTime,
           kitchen_list_sqlite_id: kitchen_list!.kitchen_list_sqlite_id,
@@ -400,6 +403,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         kitchen_list_show_price: kitchenListShowPrice == true ? 1 : 0,
         print_combine_kitchen_list: printCombineKitchenList == true ? 1 : 0,
         kitchen_list_item_separator: kitchenListItemSeparator == true ? 1 : 0,
+        show_product_sku: showSKU ? 1 : 0,
         sync_status: 0,
         created_at: dateTime,
         updated_at: '',
@@ -560,8 +564,13 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                         children: [
                           Padding(
                             padding: EdgeInsets.only(top: 5),
-                            child: Text("Product 1${kitchenListShowPrice ? "(RM6.90)" : ''}",
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                            child: Row(
+                              children: [
+                                Visibility(visible: showSKU, child: Text("SKU001 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
+                                Text("Product 1${kitchenListShowPrice ? "(RM6.90)" : ''}",
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                              ],
+                            ),
                           ),
                           Text("(big | small)", style: TextStyle(fontSize: otherFontSize)),
                         ],
@@ -588,8 +597,13 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                               children: [
                                 Padding(
                                   padding: EdgeInsets.only(top: 5),
-                                  child: Text("Product 2${kitchenListShowPrice ? "(RM8.80)" : ''}",
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                  child: Row(
+                                    children: [
+                                      Visibility(visible: showSKU, child: Text("SKU002 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
+                                      Text("Product 2${kitchenListShowPrice ? "(RM8.80)" : ''}",
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                    ],
+                                  ),
                                 ),
                                 Text("**Remark", style: TextStyle(fontSize: otherFontSize)),
                               ],
@@ -612,8 +626,13 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                               children: [
                                 Padding(
                                   padding: EdgeInsets.only(top: 5),
-                                  child: Text("Product 3${kitchenListShowPrice ? "(RM15.90)" : ''}",
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                  child: Row(
+                                    children: [
+                                      Visibility(visible: showSKU, child: Text("SKU003 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
+                                      Text("Product 3${kitchenListShowPrice ? "(RM15.90)" : ''}",
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                    ],
+                                  ),
                                 ),
                                 Text("+add-on1", style: TextStyle(fontSize: otherFontSize)),
                               ],
@@ -741,6 +760,18 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                 },
               ),
             ),
+            ListTile(
+              title: Text("Show Product SKU"),
+              subtitle: Text("Show product sku in kitchen printing"),
+              trailing: Switch(
+                value: showSKU,
+                activeColor: color.backgroundColor,
+                onChanged: (value) async {
+                  showSKU = value;
+                  actionController.sink.add("switch");
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -783,8 +814,13 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                         children: [
                           Padding(
                             padding: EdgeInsets.only(top: 5),
-                            child: Text("Product 1${kitchenListShowPrice ? "(RM6.90)" : ''}",
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                            child: Row(
+                              children: [
+                                Visibility(visible: showSKU, child: Text("SKU001 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
+                                Text("Product 1${kitchenListShowPrice ? "(RM6.90)" : ''}",
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                              ],
+                            ),
                           ),
                           Text("(big | small)", style: TextStyle(fontSize: otherFontSize)),
                         ],
@@ -811,8 +847,13 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                               children: [
                                 Padding(
                                   padding: EdgeInsets.only(top: 5),
-                                  child: Text("Product 2${kitchenListShowPrice ? "(RM8.80)" : ''}",
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                  child: Row(
+                                    children: [
+                                      Visibility(visible: showSKU, child: Text("SKU002 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
+                                      Text("Product 2${kitchenListShowPrice ? "(RM8.80)" : ''}",
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                    ],
+                                  ),
                                 ),
                                 Text("**Remark", style: TextStyle(fontSize: otherFontSize)),
                               ],
@@ -835,8 +876,13 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                               children: [
                                 Padding(
                                   padding: EdgeInsets.only(top: 5),
-                                  child: Text("Product 3${kitchenListShowPrice ? "(RM15.90)" : ''}",
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                  child: Row(
+                                    children: [
+                                      Visibility(visible: showSKU, child: Text("SKU003 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
+                                      Text("Product 3${kitchenListShowPrice ? "(RM15.90)" : ''}",
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                    ],
+                                  ),
                                 ),
                                 Text("+add-on1", style: TextStyle(fontSize: otherFontSize)),
                               ],
@@ -962,6 +1008,18 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                     kitchenListItemSeparator = value;
                     actionController.sink.add("switch");
                   }
+                },
+              ),
+            ),
+            ListTile(
+              title: Text("Show Product SKU"),
+              subtitle: Text("Show product sku in kitchen printing"),
+              trailing: Switch(
+                value: showSKU,
+                activeColor: color.backgroundColor,
+                onChanged: (value) async {
+                  showSKU = value;
+                  actionController.sink.add("switch");
                 },
               ),
             ),

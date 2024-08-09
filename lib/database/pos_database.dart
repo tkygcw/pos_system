@@ -1105,6 +1105,7 @@ class PosDatabase {
           ${KitchenListFields.kitchen_list_show_price} $integerType,
           ${KitchenListFields.print_combine_kitchen_list} $integerType,
           ${KitchenListFields.kitchen_list_item_separator} $integerType,
+          ${KitchenListFields.show_product_sku} $integerType,
           ${KitchenListFields.sync_status} $integerType,
           ${KitchenListFields.created_at} $textType,
           ${KitchenListFields.updated_at} $textType,
@@ -2345,7 +2346,7 @@ class PosDatabase {
           data.updated_at,
           data.created_at,
           data.sync_status,
-          0,
+          0,//change later
           data.paper_size,
           data.check_list_show_separator,
           data.check_list_show_price,
@@ -2382,14 +2383,16 @@ class PosDatabase {
   Future<KitchenList> insertKitchenList(KitchenList data) async {
     final db = await instance.database;
     final id = db.rawInsert(
-        'INSERT INTO $tableKitchenList(soft_delete, updated_at, created_at, sync_status, kitchen_list_item_separator, print_combine_kitchen_list, kitchen_list_show_price, '
+        'INSERT INTO $tableKitchenList(soft_delete, updated_at, created_at, sync_status, show_product_sku, '
+            'kitchen_list_item_separator, print_combine_kitchen_list, kitchen_list_show_price, '
             'paper_size, other_font_size, product_name_font_size, branch_id, kitchen_list_key, kitchen_list_id) '
-            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           '',
           data.updated_at,
           data.created_at,
           data.sync_status,
+          0, //change later
           data.kitchen_list_item_separator,
           data.print_combine_kitchen_list,
           data.kitchen_list_show_price,
@@ -6305,9 +6308,9 @@ class PosDatabase {
 */
   Future<int> updateKitchenList(KitchenList data) async {
     final db = await instance.database;
-    return await db.rawUpdate("UPDATE $tableKitchenList SET updated_at = ?, sync_status = ?, kitchen_list_item_separator = ?, print_combine_kitchen_list = ?, "
+    return await db.rawUpdate("UPDATE $tableKitchenList SET updated_at = ?, sync_status = ?, show_product_sku = ?, kitchen_list_item_separator = ?, print_combine_kitchen_list = ?, "
         "kitchen_list_show_price = ?, product_name_font_size = ?, other_font_size = ? WHERE kitchen_list_sqlite_id = ?",
-        [data.updated_at, data.sync_status, data.kitchen_list_item_separator, data.print_combine_kitchen_list, data.kitchen_list_show_price, data.product_name_font_size, data.other_font_size, data.kitchen_list_sqlite_id]);
+        [data.updated_at, data.sync_status, data.show_product_sku, data.kitchen_list_item_separator, data.print_combine_kitchen_list, data.kitchen_list_show_price, data.product_name_font_size, data.other_font_size, data.kitchen_list_sqlite_id]);
   }
 
   /*

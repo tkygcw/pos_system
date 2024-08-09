@@ -20,7 +20,6 @@ import '../../object/branch_link_product.dart';
 import '../../object/cart_product.dart';
 import '../../object/categories.dart';
 import '../../object/modifier_group.dart';
-import '../../object/modifier_item.dart';
 import '../../object/order_cache.dart';
 import '../../object/order_detail.dart';
 import '../../object/order_modifier_detail.dart';
@@ -693,6 +692,7 @@ class CartDialogState extends State<CartDialog> {
           allow_ticket: orderDetailList[i].allow_ticket,
           ticket_count: orderDetailList[i].ticket_count,
           ticket_exp: orderDetailList[i].ticket_exp,
+          product_sku: orderDetailList[i].product_sku
       );
       cart.addItem(value);
     }

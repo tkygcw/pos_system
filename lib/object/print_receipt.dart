@@ -430,7 +430,7 @@ class PrintReceipt{
     }
   }
 
-  printReviewReceipt(List<Printer> printerList, List<PosTable> selectedTableList, CartModel cartModel) async {
+  printReviewReceipt(List<Printer> printerList, CartModel cartModel) async {
     try{
       int printStatus = 0;
       List<Printer> cashierPrinterList = printerList.where((item) => item.printer_status == 1 && item.is_counter == 1).toList();
@@ -443,7 +443,7 @@ class PrintReceipt{
             if (cashierPrinterList[i].paper_size == 0) {
               //print 80mm
               var data = Uint8List.fromList(
-                  await ReceiptLayout().printPreviewReceipt80mm(true, selectedTableList, cartModel));
+                  await ReceiptLayout().printPreviewReceipt80mm(true, cartModel));
               bool? isConnected = await flutterUsbPrinter.connect(
                   int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
               if (isConnected == true) {
@@ -458,7 +458,7 @@ class PrintReceipt{
             } else {
               //print 58mm
               var data = Uint8List.fromList(
-                  await ReceiptLayout().printPreviewReceipt58mm(true, selectedTableList, cartModel));
+                  await ReceiptLayout().printPreviewReceipt58mm(true, cartModel));
               bool? isConnected = await flutterUsbPrinter.connect(
                   int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
               if (isConnected == true) {
@@ -479,7 +479,7 @@ class PrintReceipt{
               final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
 
               if (res == PosPrintResult.success) {
-                await ReceiptLayout().printPreviewReceipt80mm(false, selectedTableList, cartModel, value: printer);
+                await ReceiptLayout().printPreviewReceipt80mm(false, cartModel, value: printer);
                 printer.disconnect();
                 printStatus = 0;
               } else if (res == PosPrintResult.timeout){
@@ -495,7 +495,7 @@ class PrintReceipt{
               final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
 
               if (res == PosPrintResult.success) {
-                await ReceiptLayout().printPreviewReceipt58mm(false, selectedTableList, cartModel, value: printer);
+                await ReceiptLayout().printPreviewReceipt58mm(false, cartModel, value: printer);
                 printer.disconnect();
                 printStatus = 0;
               } else if (res == PosPrintResult.timeout){
@@ -718,7 +718,6 @@ class PrintReceipt{
   }
 
   reprintCheckList(List<Printer> printerList, CartModel cartModel, {bool? isPayment}) async {
-    print('reprint celled!!!');
     int printStatus = 0;
     try {
       if(printerList.isNotEmpty){
