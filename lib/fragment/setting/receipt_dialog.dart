@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
@@ -55,6 +54,8 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   bool promoDetail = true;
   bool _submitted = false;
   bool isLogOut = false;
+  bool showSKU = false;
+  bool showBranchTel = true;
   Map? branchObject;
   double? fontSize;
   Receipt? testReceipt;
@@ -141,7 +142,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     receipt.header_text_status == 1 ? this.logoText = true : this.logoText = false;
     receipt.footer_text_status == 1 ? this.footerText = true : this.footerText = false;
     receipt.promotion_detail_status == 1 ? this.promoDetail = true : this.promoDetail = false;
-    receipt.show_address == 1 ? this.showAddress = true : this.showAddress = false;
+    receipt.show_address == 1 ? showAddress = true : showAddress = false;
     receipt.show_email == 1 ? this.showEmail = true : this.showEmail = false;
     headerText = receipt.header_text!;
     headerTextController.text = receipt.header_text!;
@@ -151,19 +152,20 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     footerTextController.text = receipt.footer_text!;
     receipt.header_font_size == 0 ? headerFontSize = ReceiptDialogEnum.big : headerFontSize = ReceiptDialogEnum.small;
     receipt.header_font_size == 0 ? fontSize = 30.0 : fontSize = 12.0;
+    receipt.show_product_sku == 0 ? showSKU = false : showSKU = true;
+    receipt.show_branch_tel == 0 ? showBranchTel = false : showBranchTel = true;
   }
 
   getSharePreferences() async {
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
     branchObject = json.decode(branch!);
-    // emailTextController.text = branchObject!['email'];
-    // emailAddress = branchObject!['email'];
-    // if(branchObject!['address'] != ''){
-    //   showAddress = true;
-    // } else {
-    //   showAddress = false;
-    // }
+    if(branchObject!['phone'] == '' && showBranchTel){
+      showBranchTel = false;
+    }
+    if(branchObject!['address'] == '' && showAddress){
+      showAddress = false;
+    }
     isLoad = true;
   }
 
@@ -246,6 +248,8 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       show_address: showAddress == true ? 1 : 0,
       show_email: showEmail == true ? 1 : 0,
       receipt_email: emailTextController.text,
+      show_product_sku: showSKU ? 1 : 0,
+      show_branch_tel: showBranchTel ? 1 : 0,
     );
   }
 
@@ -274,7 +278,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                             alignment: Alignment.topLeft,
                             child: SegmentedButton(
                               style: ButtonStyle(
-                                side: MaterialStateProperty.all(
+                                side: WidgetStateProperty.all(
                                   BorderSide.lerp(BorderSide(
                                     style: BorderStyle.solid,
                                     color: Colors.blueGrey,
@@ -321,7 +325,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       child: Text(AppLocalizations.of(context)!.translate('test_print')),
                       onPressed: () {
                         testReceiptLayout();
-                        PrintReceipt().printTestPrintReceipt(printerList, testReceipt!, this.receipt.paper_size!, context);
+                        PrintReceipt().printTestPrintReceipt(printerList, testReceipt!, receipt.paper_size!, context);
                       },
                     ),
                   ),
@@ -486,6 +490,8 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       show_address: showAddress == true ? 1 : 0,
       show_email: showEmail == true ? 1 : 0,
       receipt_email: emailTextController.text,
+      show_product_sku: showSKU == true ? 1 : 0,
+      show_branch_tel: showBranchTel ? 1 : 0,
       sync_status: checkData!.sync_status == 0 ? 0 : 2,
       updated_at: dateTime
     );
@@ -493,9 +499,9 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     if(status == 1){
       widget.callBack();
       Receipt? receipt = await PosDatabase.instance.readSpecificReceiptByKey(data.receipt_key!);
-      receiptValue.add(jsonEncode(receipt));
-      print("receipt value: ${receiptValue.toString()}");
-      await syncAllToCloud(receiptValue: receiptValue.toString());
+      // receiptValue.add(jsonEncode(receipt));
+      // print("receipt value: ${receiptValue.toString()}");
+      // await syncAllToCloud(receiptValue: receiptValue.toString());
     }
     print('update status: $status');
   }
@@ -534,6 +540,14 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     }
   }
 
+  String getProductSKU(int index){
+    if(showSKU){
+      return 'SKU00$index ';
+    } else {
+      return '';
+    }
+  }
+
   Widget ReceiptView1(ThemeColor color) => Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -568,9 +582,12 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     children: [
                       Visibility(
                         visible: showAddress ? true : false,
-                        child: Text('Jalan permas baru'),
+                        child: Text(branchObject!['address'], textAlign: TextAlign.center),
                       ),
-                      Text('Tel: 07-3456789'),
+                      Visibility(
+                        visible: showBranchTel,
+                        child: Text('Tel: ${branchObject!['phone']}'),
+                      ),
                       Visibility(
                         visible: showEmail? true : false,
                         child: Text('${emailAddress}'),
@@ -627,7 +644,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                           ),
                           Expanded(
                             flex: 4,
-                            child: Text('Product 1 (2.00/each)', style: TextStyle(fontWeight: FontWeight.bold)),
+                            child: Text('${getProductSKU(1)}Product 1 (2.00/each)', style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
                           Expanded(
                             flex: 0,
@@ -643,7 +660,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                           ),
                           Expanded(
                             flex: 4,
-                            child: Text('Product 2 (2.00/each)', style: TextStyle(fontWeight: FontWeight.bold)),
+                            child: Text('${getProductSKU(2)}Product 2 (2.00/each)', style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
 
                           Expanded(
@@ -655,42 +672,6 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     ],
                   ),
                 ),
-                // Container(
-                //   child: Row(
-                //     children: [
-                //       Expanded(
-                //         flex: 2,
-                //         child: Text('product1', style: TextStyle(fontWeight: FontWeight.bold)),
-                //       ),
-                //       Expanded(
-                //         flex: 1,
-                //         child: Text('2'),
-                //       ),
-                //       Expanded(
-                //         flex: 0,
-                //         child: Text('2.00'),
-                //       )
-                //     ],
-                //   ),
-                // ),
-                // Container(
-                //   child: Row(
-                //     children: [
-                //       Expanded(
-                //         flex: 2,
-                //         child: Text('product2', style: TextStyle(fontWeight: FontWeight.bold)),
-                //       ),
-                //       Expanded(
-                //         flex: 1,
-                //         child: Text('1'),
-                //       ),
-                //       Expanded(
-                //         flex: 0,
-                //         child: Text('2.00'),
-                //       )
-                //     ],
-                //   ),
-                // ),
                 DottedLine(),
                 Container(
                   padding: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
@@ -772,25 +753,6 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       ],
                     )
                 ),
-                // Visibility(
-                //     visible: !showTaxDetail ? true : false,
-                //     child: Row(
-                //       children: [
-                //         Expanded(
-                //           flex: 1,
-                //           child: Text(''),
-                //         ),
-                //         Expanded(
-                //           flex: 1,
-                //           child: Text(''),
-                //         ),
-                //         Expanded(
-                //           flex: 0,
-                //           child: Text('Tax inc.'),
-                //         )
-                //       ],
-                //     ),
-                // ),
                 Row(
                   children: [
                     Expanded(
@@ -1012,6 +974,30 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
+                  child: Text('Show branch Tel', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Container(
+                  child: Switch(
+                      value: showBranchTel,
+                      activeColor: color.backgroundColor,
+                      onChanged: branchObject!['phone'] != '' ? (bool value){
+                        setState(() {
+                          showBranchTel = value;
+                          print("show branch tel: ${showBranchTel}");
+                        });
+                      } :
+                          (bool value){
+                        Fluttertoast.showToast(msg: 'No branch phone no added');
+                      }
+                  ),
+                )
+              ],
+            ),
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
                   child: Text(AppLocalizations.of(context)!.translate('show_email'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
@@ -1042,7 +1028,6 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                         child: TextField(
                           onChanged: (value){
                             setState(() {
-                              print('value: $value');
                               emailAddress = value;
                             });
                           },
@@ -1115,54 +1100,9 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                           maxLines: 3,
                           maxLength: 40,
                         )
-                      // TextField(
-                      //   onChanged: (value){
-                      //     setState(() {
-                      //       footerTextString = value;
-                      //     });
-                      //   },
-                      //   controller: footerTextController,
-                      //   decoration: InputDecoration(
-                      //     errorText: _submitted
-                      //         ? errorFooterText == null
-                      //         ? errorFooterText
-                      //         : AppLocalizations.of(context)
-                      //         ?.translate(errorFooterText!)
-                      //         : null,
-                      //     border: OutlineInputBorder(
-                      //       borderSide: BorderSide(
-                      //           color: color.backgroundColor),
-                      //     ),
-                      //     focusedBorder: OutlineInputBorder(
-                      //       borderSide: BorderSide(
-                      //           color: color.backgroundColor),
-                      //     ),
-                      //     labelText: 'footer text here',
-                      //   ),
-                      // ),
                     );
                   }),
             ),
-            // Row(
-            //   children: [
-            //     Container(
-            //       alignment: Alignment.topLeft,
-            //       child: Text('Show tax detail', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-            //     ),
-            //     Spacer(),
-            //     Container(
-            //       child: Switch(
-            //           value: showTaxDetail,
-            //           activeColor: color.backgroundColor,
-            //           onChanged: (bool value){
-            //             setState(() {
-            //               showTaxDetail = value;
-            //             });
-            //           }
-            //       ),
-            //     )
-            //   ],
-            // ),
             Row(
               children: [
                 Container(
@@ -1177,6 +1117,25 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       onChanged: (bool value){
                         setState(() {
                           promoDetail = value;
+                        });
+                      }),
+                )
+              ],
+            ),
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text('Show product SKU', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Container(
+                  child: Switch(
+                      value: showSKU,
+                      activeColor: color.backgroundColor,
+                      onChanged: (bool value){
+                        setState(() {
+                          showSKU = value;
                         });
                       }),
                 )
@@ -1221,12 +1180,15 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                   child: Column(
                     children: [
                       Visibility(
-                        visible: showAddress ? true : false,
-                        child: Text('Jalan permas baru'),
+                        visible: showAddress,
+                        child: Text(branchObject!['address'], textAlign: TextAlign.center,),
                       ),
-                      Text('Tel: 07-3456789'),
                       Visibility(
-                        visible: showEmail? true : false,
+                          visible: showBranchTel,
+                          child: Text('Tel: ${branchObject!['phone']}'),
+                      ),
+                      Visibility(
+                        visible: showEmail,
                         child: Text('${emailAddress}'),
                       )
                     ],
@@ -1284,7 +1246,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                         ),
                         Expanded(
                           flex: 3,
-                          child: Text('Product 1', style: TextStyle(fontWeight: FontWeight.bold)),
+                          child: Text('${getProductSKU(1)}Product 1', style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
                         Expanded(
                           flex: 2,
@@ -1316,7 +1278,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                         ),
                         Expanded(
                           flex: 3,
-                          child: Text('Product 2', style: TextStyle(fontWeight: FontWeight.bold)),
+                          child: Text('${getProductSKU(2)}Product 2', style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
                         Expanded(
                           flex: 2,
@@ -1342,42 +1304,6 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     ),
                   ],
                 ),
-                // Container(
-                //   child: Row(
-                //     children: [
-                //       Expanded(
-                //         flex: 2,
-                //         child: Text('product1', style: TextStyle(fontWeight: FontWeight.bold)),
-                //       ),
-                //       Expanded(
-                //         flex: 1,
-                //         child: Text('2'),
-                //       ),
-                //       Expanded(
-                //         flex: 0,
-                //         child: Text('2.00'),
-                //       )
-                //     ],
-                //   ),
-                // ),
-                // Container(
-                //   child: Row(
-                //     children: [
-                //       Expanded(
-                //         flex: 2,
-                //         child: Text('product2', style: TextStyle(fontWeight: FontWeight.bold)),
-                //       ),
-                //       Expanded(
-                //         flex: 1,
-                //         child: Text('1'),
-                //       ),
-                //       Expanded(
-                //         flex: 0,
-                //         child: Text('2.00'),
-                //       )
-                //     ],
-                //   ),
-                // ),
                 Padding(
                   padding: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
                   child: DottedLine(),
@@ -1433,25 +1359,6 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       ],
                     )
                 ),
-                // Visibility(
-                //     visible: !showTaxDetail ? true : false,
-                //     child: Row(
-                //       children: [
-                //         Expanded(
-                //           flex: 1,
-                //           child: Text(''),
-                //         ),
-                //         Expanded(
-                //           flex: 1,
-                //           child: Text(''),
-                //         ),
-                //         Expanded(
-                //           flex: 0,
-                //           child: Text('Tax inc.'),
-                //         )
-                //       ],
-                //     ),
-                // ),
                 Row(
                   children: [
                     Expanded(
@@ -1663,6 +1570,29 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
+                  child: Text('Show branch Tel', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Container(
+                  child: Switch(
+                      value: showBranchTel,
+                      activeColor: color.backgroundColor,
+                      onChanged: branchObject!['phone'] != '' ? (bool value){
+                        setState(() {
+                          showBranchTel = value;
+                        });
+                      } :
+                          (bool value){
+                        Fluttertoast.showToast(msg: 'No branch phone no added');
+                      }
+                  ),
+                )
+              ],
+            ),
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
                   child: Text(AppLocalizations.of(context)!.translate('show_email'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
@@ -1681,7 +1611,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               ],
             ),
             Visibility(
-              visible: showEmail ? true : false,
+              visible: showEmail,
               child: ValueListenableBuilder(
                 // Note: pass _controller to the animation argument
                   valueListenable: emailTextController,
@@ -1764,54 +1694,28 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                           maxLines: 3,
                           maxLength: 40,
                         )
-                      // TextField(
-                      //   onChanged: (value){
-                      //     setState(() {
-                      //       footerTextString = value;
-                      //     });
-                      //   },
-                      //   controller: footerTextController,
-                      //   decoration: InputDecoration(
-                      //     errorText: _submitted
-                      //         ? errorFooterText == null
-                      //         ? errorFooterText
-                      //         : AppLocalizations.of(context)
-                      //         ?.translate(errorFooterText!)
-                      //         : null,
-                      //     border: OutlineInputBorder(
-                      //       borderSide: BorderSide(
-                      //           color: color.backgroundColor),
-                      //     ),
-                      //     focusedBorder: OutlineInputBorder(
-                      //       borderSide: BorderSide(
-                      //           color: color.backgroundColor),
-                      //     ),
-                      //     labelText: 'footer text here',
-                      //   ),
-                      // ),
                     );
                   }),
             ),
-            // Row(
-            //   children: [
-            //     Container(
-            //       alignment: Alignment.topLeft,
-            //       child: Text('Show tax detail', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-            //     ),
-            //     Spacer(),
-            //     Container(
-            //       child: Switch(
-            //           value: showTaxDetail,
-            //           activeColor: color.backgroundColor,
-            //           onChanged: (bool value){
-            //             setState(() {
-            //               showTaxDetail = value;
-            //             });
-            //           }
-            //       ),
-            //     )
-            //   ],
-            // ),
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text('Show product SKU', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Container(
+                  child: Switch(
+                      value: showSKU,
+                      activeColor: color.backgroundColor,
+                      onChanged: (bool value){
+                        setState(() {
+                          showSKU = value;
+                        });
+                      }),
+                )
+              ],
+            ),
           ],
         ),
       )

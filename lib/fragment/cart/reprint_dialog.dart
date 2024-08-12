@@ -50,7 +50,8 @@ class _ReprintDialogState extends State<ReprintDialog> {
     cartModel = CartModel(
       cartNotifierItem: cartItem,
       selectedOption: selectedOption,
-      selectedTable: selectedTable
+      selectedTable: selectedTable,
+      cartNotifierPayment: widget.cart.cartNotifierPayment.toList()
     );
   }
 

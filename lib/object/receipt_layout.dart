@@ -265,7 +265,7 @@ class ReceiptLayout{
     return commands;
   }
 
-  String getTestPrintProductSKU(Checklist layout, int index){
+  String getTestPrintProductSKU(int index, {layout}){
     if(layout.show_product_sku == 1){
       return 'SKU00$index ';
     } else {
@@ -309,7 +309,7 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: '${getTestPrintProductSKU(checklist, 1)}Product 1 ${checklist.check_list_show_price == 1 ? '(6.90/each)' : '' }',
+            text: '${getTestPrintProductSKU(1, layout: checklistLayout)}Product 1 ${checklist.check_list_show_price == 1 ? '(6.90/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -331,7 +331,7 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: '${getTestPrintProductSKU(checklist, 2)}Product 2 ${checklist.check_list_show_price == 1 ? '(8.80/each)' : '' }',
+            text: '${getTestPrintProductSKU(2, layout: checklistLayout)}Product 2 ${checklist.check_list_show_price == 1 ? '(8.80/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -363,7 +363,7 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: '${getTestPrintProductSKU(checklist, 3)}Product 3 ${checklist.check_list_show_price == 1 ? '(3.50/each)' : '' }',
+            text: '${getTestPrintProductSKU(3, layout: checklistLayout)}Product 3 ${checklist.check_list_show_price == 1 ? '(3.50/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -394,7 +394,7 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: '${getTestPrintProductSKU(checklist, 4)}Product 4 ${checklist.check_list_show_price == 1 ? '(15.90/each)' : '' }',
+            text: '${getTestPrintProductSKU(4, layout: checklistLayout)}Product 4 ${checklist.check_list_show_price == 1 ? '(15.90/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -426,7 +426,7 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: '${getTestPrintProductSKU(checklist, 5)}Product 5 ${checklist.check_list_show_price == 1 ? '(10.90/each)' : '' }',
+            text: '${getTestPrintProductSKU(5, layout: checklistLayout)}Product 5 ${checklist.check_list_show_price == 1 ? '(10.90/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -941,10 +941,12 @@ class ReceiptLayout{
       bytes += generator.reset();
       //Address
       if(receipt!.show_address == 1 && branchObject['address'].toString() != ''){
-        bytes += generator.text('${branchObject['address'].toString().replaceAll(',', '\n')}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('${branchObject['address']}', containsChinese: true, styles: PosStyles(align: PosAlign.center, ));
       }
       //telephone
-      bytes += generator.text('Tel: ${branchObject['phone']}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1));
+      if(receipt!.show_branch_tel == 1){
+        bytes += generator.text('Tel: ${branchObject['phone']}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1));
+      }
       if(receipt!.show_email == 1){
         bytes += generator.text('${receipt!.receipt_email}', styles: PosStyles(align: PosAlign.center));
       }
@@ -980,7 +982,7 @@ class ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: '2', width: 2),
         PosColumn(
-            text: 'Product 1 (2.00/each)',
+            text: '${getTestPrintProductSKU(1, layout: receipt)}Product 1 (2.00/each)',
             width: 7,
             containsChinese: true,
             styles: PosStyles(align: PosAlign.left, bold: true)),
@@ -992,7 +994,7 @@ class ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: '1', width: 2),
         PosColumn(
-            text: 'Product 2 (2.00/each)',
+            text: '${getTestPrintProductSKU(2, layout: receipt)}Product 2 (2.00/each)',
             width: 7,
             containsChinese: true,
             styles: PosStyles(align: PosAlign.left, bold: true)),
@@ -1140,12 +1142,14 @@ class ReceiptLayout{
         bytes += generator.reset();
         if(receipt!.show_address == 1 && branchObject['address'].toString() != ''){
           //Address
-          bytes += generator.text('${branchObject['address'].toString().replaceAll(',', '\n')}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
+          bytes += generator.text('${branchObject['address'].toString()}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
         }
         //telephone
-        bytes += generator.text('Tel: ${branchObject['phone']}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1));
+        if(receipt!.show_branch_tel == 1){
+          bytes += generator.text('Tel: ${branchObject['phone']}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1));
+        }
         if(receipt!.show_email == 1){
-          bytes += generator.text('${receipt!.receipt_email}', styles: PosStyles(align: PosAlign.center));
+          bytes += generator.text('${receipt!.receipt_email}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
         }
         bytes += generator.hr();
         bytes += generator.reset();
@@ -1183,7 +1187,7 @@ class ReceiptLayout{
         bytes += generator.row([
           PosColumn(text: '2', width: 2),
           PosColumn(
-              text: 'Product 1',
+              text: '${getTestPrintProductSKU(1, layout: receipt)}Product 1',
               width: 6,
               containsChinese: true,
               styles: PosStyles(bold: true)),
@@ -1201,7 +1205,7 @@ class ReceiptLayout{
         bytes += generator.row([
           PosColumn(text: '1', width: 2),
           PosColumn(
-              text: 'Product 2',
+              text: '${getTestPrintProductSKU(2, layout: receipt)}Product 2',
               width: 6,
               containsChinese: true,
               styles: PosStyles(bold: true)),
@@ -1293,8 +1297,14 @@ class ReceiptLayout{
         return null;
       }
     }
+  }
 
-
+  String getReceiptProductName(OrderDetail orderDetail){
+    if(receipt!.show_product_sku == 1){
+      return '${orderDetail.product_sku} ${orderDetail.productName}';
+    } else {
+      return orderDetail.productName!;
+    }
   }
 
 /*
@@ -1366,10 +1376,12 @@ class ReceiptLayout{
         bytes += generator.reset();
         //Address
         if(receipt!.show_address == 1 && branchObject['address'].toString() != ''){
-          bytes += generator.text('${branchObject['address'].toString().replaceAll(',', '\n')}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
+          bytes += generator.text('${branchObject['address']}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
         }
         //telephone
-        bytes += generator.text('Tel: ${branchObject['phone']}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1));
+        if(receipt!.show_branch_tel == 1 && branchObject['phone'] != ''){
+          bytes += generator.text('Tel: ${branchObject['phone']}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1));
+        }
         if(receipt!.show_email == 1){
           bytes += generator.text('${receipt!.receipt_email}', styles: PosStyles(align: PosAlign.center));
         }
@@ -1412,14 +1424,14 @@ class ReceiptLayout{
             PosColumn(text: '${orderDetailList[i].quantity}', width: 2),
             orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ?
             PosColumn(
-                text: productUnitPriceSplit  ? '${orderDetailList[i].productName}'
-                    : '${orderDetailList[i].productName} (${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})',
+                text: productUnitPriceSplit  ? getReceiptProductName(orderDetailList[i])
+                    : '${getReceiptProductName(orderDetailList[i])} (${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})',
                 width: 7,
                 containsChinese: true,
                 styles: PosStyles(align: PosAlign.left, bold: true))
                 : PosColumn(
-                text: productUnitPriceSplit  ? '${orderDetailList[i].productName}'
-                    : '${orderDetailList[i].productName} (${orderDetailList[i].price}/each)',
+                text: productUnitPriceSplit  ? getReceiptProductName(orderDetailList[i])
+                    : '${getReceiptProductName(orderDetailList[i])} (${orderDetailList[i].price}/each)',
                 width: 7,
                 containsChinese: true,
                 styles: PosStyles(align: PosAlign.left, bold: true)),
@@ -1638,8 +1650,10 @@ class ReceiptLayout{
           bytes += generator.text('${branchObject['address'].toString().replaceAll(',', '\n')}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
         }
         //telephone
-        bytes += generator.text('Tel: ${branchObject['phone']}',
-            styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1));
+        if(receipt!.show_branch_tel == 1 && branchObject['phone'] != ''){
+          bytes += generator.text('Tel: ${branchObject['phone']}',
+              styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1));
+        }
         if(receipt!.show_email == 1){
           bytes += generator.text('${receipt!.receipt_email}', styles: PosStyles(align: PosAlign.center));
         }
@@ -1686,14 +1700,14 @@ class ReceiptLayout{
             PosColumn(text: '${orderDetailList[i].quantity}', width: 2),
             orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ?
             PosColumn(
-                text: productUnitPriceSplit  ? '${orderDetailList[i].productName!.trim()}'
-                    : '${orderDetailList[i].productName!.trim()} (${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})',
+                text: productUnitPriceSplit  ? getReceiptProductName(orderDetailList[i])
+                    : '${getReceiptProductName(orderDetailList[i])} (${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})',
                 width: 6,
                 containsChinese: true,
                 styles: PosStyles(bold: true))
                 : PosColumn(
-                text: productUnitPriceSplit  ? '${orderDetailList[i].productName!.trim()}'
-                    : '${orderDetailList[i].productName!.trim()} (${orderDetailList[i].price}/each)',
+                text: productUnitPriceSplit  ? getReceiptProductName(orderDetailList[i])
+                    : '${getReceiptProductName(orderDetailList[i])} (${orderDetailList[i].price}/each)',
                 width: 6,
                 containsChinese: true,
                 styles: PosStyles(bold: true)),
@@ -1823,6 +1837,14 @@ class ReceiptLayout{
     }
   }
 
+  String getPreviewReceiptProductName(cartProductItem cartItem){
+    if(receipt!.show_product_sku == 1){
+      return '${cartItem.product_sku} ${cartItem.product_name}';
+    } else {
+      return cartItem.product_name!;
+    }
+  }
+
 /*
   Review Receipt layout 80mm
 */
@@ -1886,8 +1908,8 @@ class ReceiptLayout{
             PosColumn(text: '${cartModel.cartNotifierItem[i].quantity}', width: 2),
             PosColumn(
               // text: '${cartModel.cartNotifierItem[i].product_name} (${cartModel.cartNotifierItem[i].price}/${cartModel.cartNotifierItem[i].per_quantity_unit}${cartModel.cartNotifierItem[i].unit})',
-                text: productUnitPriceSplit  ? '${cartModel.cartNotifierItem[i].product_name}'
-                    : '${cartModel.cartNotifierItem[i].product_name} (${cartModel.cartNotifierItem[i].price}/${cartModel.cartNotifierItem[i].per_quantity_unit}${cartModel.cartNotifierItem[i].unit != 'each' && cartModel.cartNotifierItem[i].unit != 'each_c' ? cartModel.cartNotifierItem[i].unit : 'each'})',
+                text: productUnitPriceSplit  ? getPreviewReceiptProductName(cartModel.cartNotifierItem[i])
+                    : '${getPreviewReceiptProductName(cartModel.cartNotifierItem[i])} (${cartModel.cartNotifierItem[i].price}/${cartModel.cartNotifierItem[i].per_quantity_unit}${cartModel.cartNotifierItem[i].unit != 'each' && cartModel.cartNotifierItem[i].unit != 'each_c' ? cartModel.cartNotifierItem[i].unit : 'each'})',
                 width: 7,
                 containsChinese: true,
                 styles: PosStyles(align: PosAlign.left, bold: true)),
@@ -2034,7 +2056,12 @@ class ReceiptLayout{
         return bytes;
       } catch (e) {
         print('layout error: ${e}');
-        return null;
+        FLog.error(
+          className: "receipt_layout",
+          text: "print preview receipt 80 error",
+          exception: e,
+        );
+        return [];
       }
     }
   }
@@ -2092,8 +2119,8 @@ class ReceiptLayout{
           bytes += generator.row([
             PosColumn(text: '${cartModel.cartNotifierItem[i].quantity}', width: 2),
             PosColumn(
-                text: productUnitPriceSplit  ? '${cartModel.cartNotifierItem[i].product_name!.trim()}'
-                    : '${cartModel.cartNotifierItem[i].product_name!.trim()} (${cartModel.cartNotifierItem[i].price}/${cartModel.cartNotifierItem[i].per_quantity_unit}${cartModel.cartNotifierItem[i].unit != 'each' && cartModel.cartNotifierItem[i].unit != 'each_c' ? cartModel.cartNotifierItem[i].unit : 'each'})',
+                text: productUnitPriceSplit  ? getPreviewReceiptProductName(cartModel.cartNotifierItem[i])
+                    : '${getPreviewReceiptProductName(cartModel.cartNotifierItem[i])} (${cartModel.cartNotifierItem[i].price}/${cartModel.cartNotifierItem[i].per_quantity_unit}${cartModel.cartNotifierItem[i].unit != 'each' && cartModel.cartNotifierItem[i].unit != 'each_c' ? cartModel.cartNotifierItem[i].unit : 'each'})',
                 width: 6,
                 containsChinese: true,
                 styles: PosStyles(bold: true)),
@@ -2128,18 +2155,6 @@ class ReceiptLayout{
               ]);
             }
           }
-          // if(cartModel.cartNotifierItem[i].modifier!.isNotEmpty){
-          //   for (int j = 0; j < cartModel.cartNotifierItem[i].modifier!.length; j++) {
-          //     ModifierGroup group = cartModel.cartNotifierItem[i].modifier![j];
-          //     for (int k = 0; k < group.modifierChild!.length; k++) {
-          //       if (group.modifierChild![k].isChecked!) {
-          //         bytes += generator.row([
-          //           PosColumn(text: '+${group.modifierChild![k].name!}', width: 12, containsChinese: true)
-          //         ]);
-          //       }
-          //     }
-          //   }
-          // }
           //product remark
           bytes += generator.reset();
           if (cartModel.cartNotifierItem[i].remark != '') {
@@ -2232,6 +2247,11 @@ class ReceiptLayout{
         return bytes;
       } catch (e) {
         print('layout error: ${e}');
+        FLog.error(
+          className: "receipt_layout",
+          text: "print preview receipt 58 error",
+          exception: e,
+        );
         return null;
       }
     }
@@ -5138,70 +5158,67 @@ class ReceiptLayout{
     return result;
   }
 
-/*
-  reformat variant name
-*/
 
+  bool productNameDisplayOrder(List<OrderDetail> orderDetailList, int i, int paperSize) {
+    print("productNameDisplayOrder called");
+    int productNameWidth = 0;
+    String productUnitPrice = '';
+    if(orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c')
+      productUnitPrice = ' (${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})';
+    else
+      productUnitPrice = ' (${orderDetailList[i].price}/each)';
 
+    int productNameSpaceConsumed = calculateSpaceConsumed(getReceiptProductName(orderDetailList[i]));
 
-}
+    if(paperSize == 80)
+      productNameWidth = 26;
+    else
+      productNameWidth = 14;
 
-bool productNameDisplayOrder(List<OrderDetail> orderDetailList, int i, int paperSize) {
-  print("productNameDisplayOrder called");
-  int productNameWidth = 0;
-  String productUnitPrice = '';
-  if(orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c')
-    productUnitPrice = ' (${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})';
-  else
-    productUnitPrice = ' (${orderDetailList[i].price}/each)';
-
-  int productNameSpaceConsumed = calculateSpaceConsumed(orderDetailList[i].productName!);
-
-  if(paperSize == 80)
-    productNameWidth = 26;
-  else
-    productNameWidth = 14;
-
-  if(productNameSpaceConsumed + productUnitPrice.length > productNameWidth)
-    return true;
-  else
-    return false;
-}
-
-bool productNameDisplayCart(List<cartProductItem> cartNotifierItem, int i, int paperSize) {
-  int productNameWidth = 0;
-  String productUnitPrice = '(${cartNotifierItem[i].price}/${cartNotifierItem[i].per_quantity_unit}${cartNotifierItem[i].unit != 'each' && cartNotifierItem[i].unit != 'each_c' ? cartNotifierItem[i].unit : 'each'})';
-  int productNameSpaceConsumed = calculateSpaceConsumed(cartNotifierItem[i].product_name!);
-
-  if(paperSize == 80)
-    productNameWidth = 26;
-  else
-    productNameWidth = 14;
-
-  if(productNameSpaceConsumed + productUnitPrice.length > productNameWidth)
-    return true;
-  else
-    return false;
-}
-
-int calculateSpaceConsumed(String text) {
-  int spaceCount = 0;
-
-  for (int i = 0; i < text.length; i++) {
-    if (isChineseCharacter(text[i]) || isSpecialSymbol(text[i])) {
-      spaceCount += 2;
-    } else {
-      spaceCount += 1;
-    }
+    if(productNameSpaceConsumed + productUnitPrice.length > productNameWidth)
+      return true;
+    else
+      return false;
   }
-  return spaceCount;
-}
 
-bool isChineseCharacter(String character) {
-  final chinesePattern = RegExp(r'[\u4e00-\u9fa5]');
-  return chinesePattern.hasMatch(character);
-}
-bool isSpecialSymbol(String character) {
-  final specialSymbolPattern = RegExp(r'[！￥（）—：《》？【】、；。，]');
-  return specialSymbolPattern.hasMatch(character);
+  bool productNameDisplayCart(List<cartProductItem> cartNotifierItem, int i, int paperSize) {
+    int productNameWidth = 0;
+    String productUnitPrice = '(${cartNotifierItem[i].price}/${cartNotifierItem[i].per_quantity_unit}${cartNotifierItem[i].unit != 'each' && cartNotifierItem[i].unit != 'each_c' ? cartNotifierItem[i].unit : 'each'})';
+    int productNameSpaceConsumed = calculateSpaceConsumed(getPreviewReceiptProductName(cartNotifierItem[i]));
+
+    if(paperSize == 80)
+      productNameWidth = 26;
+    else
+      productNameWidth = 14;
+
+    if(productNameSpaceConsumed + productUnitPrice.length > productNameWidth)
+      return true;
+    else
+      return false;
+  }
+
+  int calculateSpaceConsumed(String text) {
+    int spaceCount = 0;
+
+    for (int i = 0; i < text.length; i++) {
+      if (isChineseCharacter(text[i]) || isSpecialSymbol(text[i])) {
+        spaceCount += 2;
+      } else {
+        spaceCount += 1;
+      }
+    }
+    return spaceCount;
+  }
+
+  bool isChineseCharacter(String character) {
+    final chinesePattern = RegExp(r'[\u4e00-\u9fa5]');
+    return chinesePattern.hasMatch(character);
+  }
+  bool isSpecialSymbol(String character) {
+    final specialSymbolPattern = RegExp(r'[！￥（）—：《》？【】、；。，]');
+    return specialSymbolPattern.hasMatch(character);
+  }
+
+
+
 }

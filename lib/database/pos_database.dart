@@ -73,7 +73,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 18, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 19, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -367,6 +367,12 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_count} $integerType NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_exp} $textType NOT NULL DEFAULT '' ");
+        }break;
+        case 17: {
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_product_sku} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_tel} $integerType DEFAULT 1");
+          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_product_sku} $integerType NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $textType NOT NULL DEFAULT 0 ");
         }break;
       }
     }
@@ -893,6 +899,8 @@ class PosDatabase {
           ${ReceiptFields.promotion_detail_status} $integerType,
           ${ReceiptFields.paper_size} $textType,
           ${ReceiptFields.status} $integerType,
+          ${ReceiptFields.show_product_sku} $integerType,
+          ${ReceiptFields.show_branch_tel} $integerType,
           ${ReceiptFields.sync_status} $integerType,
           ${ReceiptFields.created_at} $textType,
           ${ReceiptFields.updated_at} $textType,
@@ -2069,14 +2077,18 @@ class PosDatabase {
   Future<Receipt> insertReceipt(Receipt data) async {
     final db = await instance.database;
     final id = db.rawInsert(
-        'INSERT INTO $tableReceipt(soft_delete, updated_at, created_at, sync_status, header_font_size, status, paper_size, promotion_detail_status, '
+        'INSERT INTO $tableReceipt(soft_delete, updated_at, created_at, sync_status, show_branch_tel, '
+        'show_product_sku, header_font_size, status, paper_size, promotion_detail_status, '
         'footer_text_status, footer_text, footer_image_status, footer_image, receipt_email, show_email, show_address, '
-        'header_text_status, header_text, header_image_status, header_image, branch_id, receipt_key, receipt_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'header_text_status, header_text, header_image_status, header_image, branch_id, receipt_key, receipt_id) '
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.soft_delete,
           data.updated_at,
           data.created_at,
           data.sync_status,
+          1,//show branch tel
+          0,//show product sku
           data.header_font_size,
           data.status,
           data.paper_size,
@@ -6246,7 +6258,8 @@ class PosDatabase {
     return await db.rawUpdate(
         'UPDATE $tableReceipt SET header_image = ?, header_image_status = ?, header_text = ?, header_text_status = ?, '
         'header_font_size = ?, show_address = ?, show_email = ?, receipt_email = ?, '
-        'footer_image = ?, footer_image_status = ?, footer_text = ?, footer_text_status = ?, promotion_detail_status = ?, sync_status = ?, updated_at = ? WHERE receipt_sqlite_id = ?',
+        'footer_image = ?, footer_image_status = ?, footer_text = ?, footer_text_status = ?, '
+            'promotion_detail_status = ?, show_product_sku = ?, show_branch_tel = ?, sync_status = ?, updated_at = ? WHERE receipt_sqlite_id = ?',
         [
           data.header_image,
           data.header_image_status,
@@ -6261,6 +6274,8 @@ class PosDatabase {
           data.footer_text,
           data.footer_text_status,
           data.promotion_detail_status,
+          data.show_product_sku,
+          data.show_branch_tel,
           data.sync_status,
           data.updated_at,
           data.receipt_sqlite_id
