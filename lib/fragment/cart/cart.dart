@@ -3020,29 +3020,57 @@ class CartPageState extends State<CartPage> {
     try {
       await readAllOrder();
       await readAllOrderCache();
-
+      List<Order> orderData = await PosDatabase.instance.readLatestNotDineInOrder();
+      List<OrderCache> orderCacheData = await PosDatabase.instance.readAllNotDineInOrderCache();
       // not yet make settlement
       if(orderList.isNotEmpty) {
-        if(orderList[0].settlement_key! == '') {
-          if(int.tryParse(orderCacheList[0].order_queue!) == null || int.parse(orderCacheList[0].order_queue!) >= 9999) {
-            orderQueue = localSetting.starting_number!;
-          }
-          else {
-            orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
+        if(localSetting.table_order == 1) {
+          if(orderData.isNotEmpty) {
+            if(orderData[0].settlement_key! == '') {
+              if(int.tryParse(orderCacheData[0].order_queue!) == null || int.parse(orderCacheData[0].order_queue!) >= 9999) {
+                orderQueue = localSetting.starting_number!;
+              }
+              else {
+                orderQueue = int.parse(orderCacheData[0].order_queue!) + 1;
+              }
+            }
+          } else {
+            if(orderCacheData.isNotEmpty && orderCacheData[0].order_key == '') {
+              orderQueue = int.parse(orderCacheData[0].order_queue!) + 1;
+            } else {
+              orderQueue = localSetting.starting_number!;
+            }
           }
         } else {
-          // after settlement
-          if(orderCacheList[0].order_key == '' && orderCacheList[0].cancel_by == '') {
+          if(orderList[0].settlement_key! == '') {
+            if(int.tryParse(orderCacheList[0].order_queue!) == null || int.parse(orderCacheList[0].order_queue!) >= 9999) {
+              orderQueue = localSetting.starting_number!;
+            }
+            else {
+              orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
+            }
+          } else {
+            // after settlement
+            if(orderCacheList[0].order_key == '' && orderCacheList[0].cancel_by == '') {
+              orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
+            } else {
+              orderQueue = localSetting.starting_number!;
+            }
+          }
+        }
+      } else {
+        if(localSetting.table_order == 1) {
+          if(orderCacheData.isNotEmpty && orderCacheData[0].order_key == '') {
+            orderQueue = int.parse(orderCacheData[0].order_queue!) + 1;
+          } else {
+            orderQueue = localSetting.starting_number!;
+          }
+        } else {
+          if(orderCacheList.isNotEmpty && orderCacheList[0].order_key == '') {
             orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
           } else {
             orderQueue = localSetting.starting_number!;
           }
-        }
-      } else {
-        if(orderCacheList.isNotEmpty && orderCacheList[0].order_key == '') {
-          orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
-        } else {
-          orderQueue = localSetting.starting_number!;
         }
       }
       return orderQueue;
