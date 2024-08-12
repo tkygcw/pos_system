@@ -33,7 +33,7 @@ class _HardwareSettingState extends State<HardwareSetting> {
   late StreamController streamController;
   late Stream actionStream;
   Receipt? receiptObject;
-  final List<String> sortBy = ['default', 'product_name'];
+  final List<String> sortBy = ['default', 'product_name', 'product_sku'];
   int? selectedValue = 0;
   bool cashDrawer = false, secondDisplay = false, directPayment = false, showSKU = false,
       qrOrderAutoAccept = false, showProductDesc = false, hasQrAccess = true, tableOrder = true ;

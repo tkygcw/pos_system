@@ -352,12 +352,13 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   }
 
   List<Product> getSortedList(List<Product> noSequenceProduct){
+    print('product sort by: ${AppSettingModel.instance.product_sort_by}');
     switch(AppSettingModel.instance.product_sort_by){
       case 1 :{
         return sortByProductName(noSequenceProduct);
       }
       case 2: {
-        return sortByProductLocalId(noSequenceProduct);
+        return sortByProductSKU(noSequenceProduct);
       }
       default: {
         return noSequenceProduct;
@@ -372,9 +373,9 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
     return sortedList;
   }
 
-  sortByProductLocalId(List<Product> sortedList){
+  sortByProductSKU(List<Product> sortedList){
     sortedList.sort((a, b){
-      return a.product_sqlite_id!.compareTo(b.product_sqlite_id!);
+      return compareNatural(a.SKU!, b.SKU!);
     });
     return sortedList;
   }
