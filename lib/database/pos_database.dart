@@ -3857,6 +3857,15 @@ class PosDatabase {
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
 
+/*
+  read all order cache not dine in
+*/
+  Future<List<OrderCache>> readAllNotDineInOrderCache() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE table_use_sqlite_id = ? AND created_at != ? ORDER BY order_cache_sqlite_id DESC LIMIT 1', ['', '']);
+    return result.map((json) => OrderCache.fromJson(json)).toList();
+  }
+
   /*
   read all order cache in branch
 */
@@ -3967,6 +3976,15 @@ class PosDatabase {
 /*
   -----------------------Order part-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  read all order with not dine in
+*/
+  Future<List<Order>> readLatestNotDineInOrder() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableOrder WHERE dining_name != ? AND created_at != ? ORDER BY order_sqlite_id DESC LIMIT 1', ['Dine in', '']);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
 
 /*
   read all order created order(for generate order number use)
