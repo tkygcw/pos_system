@@ -1669,7 +1669,7 @@ class PosDatabase {
             data.final_amount,
             data.close_by,
             data.payment_status,
-            0,
+            data.payment_split,
             data.payment_received,
             data.payment_change,
             data.order_key,
