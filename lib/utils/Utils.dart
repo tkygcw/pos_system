@@ -139,7 +139,7 @@ class Utils {
   }
 
   static shortHashString({hashCode}){
-    return shortHash(hashCode).toString();
+    return shortHash(hashCode).toString()+shortHash(DateTime.now()).toString();
   }
 
 }

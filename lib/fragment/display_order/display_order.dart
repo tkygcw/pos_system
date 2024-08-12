@@ -518,9 +518,12 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
     for (int k = 0; k < orderDetailList.length; k++) {
       //Get data from branch link product
       List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
-      orderDetailList[k].allow_ticket = data[0].allow_ticket;
-      orderDetailList[k].ticket_count = data[0].ticket_count;
-      orderDetailList[k].ticket_exp = data[0].ticket_exp;
+      if(data.isNotEmpty) {
+        orderDetailList[k].allow_ticket = data[0].allow_ticket;
+        orderDetailList[k].ticket_count = data[0].ticket_count;
+        orderDetailList[k].ticket_exp = data[0].ticket_exp;
+      }
+
       //Get product category
       if(orderDetailList[k].category_sqlite_id! == '0'){
         orderDetailList[k].product_category_id = '0';

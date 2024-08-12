@@ -165,6 +165,7 @@ class CartModel extends ChangeNotifier {
       }
     }
     cartNotifierItem.removeWhere((element) => _removeItem.contains(element));
+    notifyListeners();
   }
 
   void addToGroupList(String tableGroupList) {
