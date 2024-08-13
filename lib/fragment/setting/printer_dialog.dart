@@ -14,7 +14,7 @@ import 'package:pos_system/fragment/setting/device_dialog.dart';
 import 'package:pos_system/fragment/setting/printer_category_dialog.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/printer_link_category.dart';
-import 'package:pos_system/object/receipt_layout.dart';
+import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';

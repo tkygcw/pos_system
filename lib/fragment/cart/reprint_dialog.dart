@@ -5,7 +5,7 @@ import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/order_cache.dart';
-import 'package:pos_system/object/print_receipt.dart';
+import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
 import 'package:pos_system/object/table.dart';
 import '../../notifier/cart_notifier.dart';
 import '../../object/cart_product.dart';

@@ -51,7 +51,7 @@ import '../../object/app_setting.dart';
 import '../../object/cart_payment.dart';
 import '../../object/cash_record.dart';
 import '../../object/order_modifier_detail.dart';
-import '../../object/print_receipt.dart';
+import '../printing_layout/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../object/table.dart';
 import '../../object/tax.dart';

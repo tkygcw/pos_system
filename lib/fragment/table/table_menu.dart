@@ -29,7 +29,7 @@ import '../../object/modifier_group.dart';
 import '../../object/modifier_item.dart';
 import '../../object/order_detail.dart';
 import '../../object/order_modifier_detail.dart';
-import '../../object/print_receipt.dart';
+import '../printing_layout/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../object/variant_group.dart';
 import '../../page/loading_dialog.dart';

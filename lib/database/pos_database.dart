@@ -2359,7 +2359,7 @@ class PosDatabase {
           data.updated_at,
           data.created_at,
           data.sync_status,
-          0,//change later
+          data.show_product_sku,//change later
           data.paper_size,
           data.check_list_show_separator,
           data.check_list_show_price,

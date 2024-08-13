@@ -13,19 +13,26 @@ import 'package:pos_system/object/kitchen_list.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/printer_link_category.dart';
 import 'package:pos_system/object/receipt.dart';
-import 'package:pos_system/object/receipt_layout.dart';
+import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
 import 'package:pos_system/object/settlement.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use_detail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../database/pos_database.dart';
-import '../notifier/cart_notifier.dart';
-import '../translation/AppLocalizations.dart';
-import 'cart_product.dart';
-import 'order_cache.dart';
-import 'order_detail.dart';
-import 'order_modifier_detail.dart';
+import '../../database/pos_database.dart';
+import 'bill/layout.dart';
+import 'bill/preview_layout.dart';
+import 'checklist/layout.dart';
+import 'kitchenlist/combine_layout.dart';
+import 'kitchenlist/default_layout.dart';
+import 'product_ticket/layout.dart';
+import 'reprint/checklist/layout.dart';
+import '../../notifier/cart_notifier.dart';
+import '../../translation/AppLocalizations.dart';
+import '../../object/cart_product.dart';
+import '../../object/order_cache.dart';
+import '../../object/order_detail.dart';
+import '../../object/order_modifier_detail.dart';
 
 class PrintReceipt{
   /**
@@ -340,7 +347,7 @@ class PrintReceipt{
           if (cashierPrinterList[i].type == 0) {
             if (cashierPrinterList[i].paper_size == 0) {
               //print 80mm
-              var data = Uint8List.fromList(await ReceiptLayout().printReceipt80mm(true, orderId, selectedTableList));
+              var data = Uint8List.fromList(await BillLayout().printReceipt80mm(true, orderId, selectedTableList));
               bool? isConnected = await flutterUsbPrinter.connect(
                   int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
               if (isConnected == true) {
@@ -355,7 +362,7 @@ class PrintReceipt{
             } else {
               //print 58mm
               var data = Uint8List.fromList(
-                  await ReceiptLayout().printReceipt58mm(true, orderId, selectedTableList));
+                  await BillLayout().printReceipt58mm(true, orderId, selectedTableList));
               bool? isConnected = await flutterUsbPrinter.connect(
                   int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
               if (isConnected == true) {
@@ -376,7 +383,7 @@ class PrintReceipt{
               final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
 
               if (res == PosPrintResult.success) {
-                await ReceiptLayout().printReceipt80mm(false, orderId, selectedTableList, value: printer);
+                await BillLayout().printReceipt80mm(false, orderId, selectedTableList, value: printer);
                 printer.disconnect();
                 printStatus = 0;
               } else if (res == PosPrintResult.timeout){
@@ -397,7 +404,7 @@ class PrintReceipt{
               final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
 
               if (res == PosPrintResult.success) {
-                await ReceiptLayout().printReceipt58mm(false, orderId, selectedTableList,value: printer);
+                await BillLayout().printReceipt58mm(false, orderId, selectedTableList,value: printer);
                 printer.disconnect();
                 printStatus = 0;
               } else if (res == PosPrintResult.timeout){
@@ -443,7 +450,7 @@ class PrintReceipt{
             if (cashierPrinterList[i].paper_size == 0) {
               //print 80mm
               var data = Uint8List.fromList(
-                  await ReceiptLayout().printPreviewReceipt80mm(true, cartModel));
+                  await PreviewLayout().printPreviewReceipt80mm(true, cartModel));
               bool? isConnected = await flutterUsbPrinter.connect(
                   int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
               if (isConnected == true) {
@@ -458,7 +465,7 @@ class PrintReceipt{
             } else {
               //print 58mm
               var data = Uint8List.fromList(
-                  await ReceiptLayout().printPreviewReceipt58mm(true, cartModel));
+                  await PreviewLayout().printPreviewReceipt58mm(true, cartModel));
               bool? isConnected = await flutterUsbPrinter.connect(
                   int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
               if (isConnected == true) {
@@ -479,7 +486,7 @@ class PrintReceipt{
               final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
 
               if (res == PosPrintResult.success) {
-                await ReceiptLayout().printPreviewReceipt80mm(false, cartModel, value: printer);
+                await PreviewLayout().printPreviewReceipt80mm(false, cartModel, value: printer);
                 printer.disconnect();
                 printStatus = 0;
               } else if (res == PosPrintResult.timeout){
@@ -495,7 +502,7 @@ class PrintReceipt{
               final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
 
               if (res == PosPrintResult.success) {
-                await ReceiptLayout().printPreviewReceipt58mm(false, cartModel, value: printer);
+                await PreviewLayout().printPreviewReceipt58mm(false, cartModel, value: printer);
                 printer.disconnect();
                 printStatus = 0;
               } else if (res == PosPrintResult.timeout){
@@ -536,7 +543,7 @@ class PrintReceipt{
             if (cashierPrinterList[i].type == 0) {
               if (cashierPrinterList[i].paper_size == 0) {
                 var data = Uint8List.fromList(
-                    await ReceiptLayout().printReceipt80mm(true, localOrderId, cart.selectedTable, isRefund: cart.cartNotifierItem[0].isRefund));
+                    await BillLayout().printReceipt80mm(true, localOrderId, cart.selectedTable, isRefund: cart.cartNotifierItem[0].isRefund));
                 bool? isConnected = await flutterUsbPrinter.connect(
                     int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                 if (isConnected == true) {
@@ -550,7 +557,7 @@ class PrintReceipt{
                 }
               } else {
                 var data = Uint8List.fromList(
-                    await ReceiptLayout().printReceipt58mm(true, localOrderId, cart.selectedTable, isRefund: cart.cartNotifierItem[0].isRefund));
+                    await BillLayout().printReceipt58mm(true, localOrderId, cart.selectedTable, isRefund: cart.cartNotifierItem[0].isRefund));
                 bool? isConnected = await flutterUsbPrinter.connect(
                     int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                 if (isConnected == true) {
@@ -570,7 +577,7 @@ class PrintReceipt{
                 final printer = NetworkPrinter(PaperSize.mm80, profile);
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                 if (res == PosPrintResult.success) {
-                  await ReceiptLayout().printReceipt80mm(false, localOrderId, cart.selectedTable, value: printer, isRefund: cart.cartNotifierItem[0].isRefund);
+                  await BillLayout().printReceipt80mm(false, localOrderId, cart.selectedTable, value: printer, isRefund: cart.cartNotifierItem[0].isRefund);
                   printer.disconnect();
                   printStatus = 0;
                 }  else if (res == PosPrintResult.timeout){
@@ -592,7 +599,7 @@ class PrintReceipt{
                 final printer = NetworkPrinter(PaperSize.mm58, profile);
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                 if (res == PosPrintResult.success) {
-                  await ReceiptLayout().printReceipt58mm(false, localOrderId, cart.selectedTable,value: printer, isRefund: cart.cartNotifierItem[0].isRefund);
+                  await BillLayout().printReceipt58mm(false, localOrderId, cart.selectedTable,value: printer, isRefund: cart.cartNotifierItem[0].isRefund);
                   printer.disconnect();
                   printStatus = 0;
                 } else if (res == PosPrintResult.timeout){
@@ -638,7 +645,7 @@ class PrintReceipt{
           if (printerList[i].type == 0) {
             //print USB 80mm
             if (printerList[i].paper_size == 0) {
-              var data = Uint8List.fromList(await ReceiptLayout().printCheckList80mm(true, orderCacheLocalId, order_by: order_by));
+              var data = Uint8List.fromList(await ChecklistLayout().printCheckList80mm(true, orderCacheLocalId, order_by: order_by));
               bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
               if (isConnected == true) {
                 await flutterUsbPrinter.write(data);
@@ -651,7 +658,7 @@ class PrintReceipt{
               }
             } else {
               //print 58mm
-              var data = Uint8List.fromList(await ReceiptLayout().printCheckList58mm(true, orderCacheLocalId, order_by: order_by));
+              var data = Uint8List.fromList(await ChecklistLayout().printCheckList58mm(true, orderCacheLocalId, order_by: order_by));
               bool? isConnected = await flutterUsbPrinter.connect(
                   int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
               if (isConnected == true) {
@@ -671,7 +678,7 @@ class PrintReceipt{
               final printer = NetworkPrinter(PaperSize.mm80, profile);
               final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
               if (res == PosPrintResult.success) {
-                await ReceiptLayout().printCheckList80mm(false, orderCacheLocalId, value: printer, order_by: order_by);
+                await ChecklistLayout().printCheckList80mm(false, orderCacheLocalId, value: printer, order_by: order_by);
                 await Future.delayed(Duration(milliseconds: 100));
                 printer.disconnect();
                 printStatus = 0;
@@ -687,7 +694,7 @@ class PrintReceipt{
               final printer = NetworkPrinter(PaperSize.mm58, profile);
               final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
               if (res == PosPrintResult.success) {
-                await ReceiptLayout().printCheckList58mm(false, orderCacheLocalId, value: printer, order_by: order_by);
+                await ChecklistLayout().printCheckList58mm(false, orderCacheLocalId, value: printer, order_by: order_by);
                 await Future.delayed(Duration(milliseconds: 100));
                 printer.disconnect();
                 printStatus = 0;
@@ -727,7 +734,7 @@ class PrintReceipt{
             if (printerList[i].type == 0) {
               //print USB 80mm
               if (printerList[i].paper_size == 0) {
-                var data = Uint8List.fromList(await ReceiptLayout().reprintCheckList80mm(true, cartModel, isPayment: isPayment));
+                var data = Uint8List.fromList(await ReprintCheckListLayout().reprintCheckList80mm(true, cartModel, isPayment: isPayment));
                 bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                 if (isConnected == true) {
                   await flutterUsbPrinter.write(data);
@@ -737,7 +744,7 @@ class PrintReceipt{
                 }
               } else {
                 //print 58mm
-                var data = Uint8List.fromList(await ReceiptLayout().reprintCheckList58mm(true, cartModel, isPayment: isPayment));
+                var data = Uint8List.fromList(await ReprintCheckListLayout().reprintCheckList58mm(true, cartModel, isPayment: isPayment));
                 bool? isConnected = await flutterUsbPrinter.connect(
                     int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                 if (isConnected == true) {
@@ -755,7 +762,7 @@ class PrintReceipt{
                 final printer = NetworkPrinter(PaperSize.mm80, profile);
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                 if (res == PosPrintResult.success) {
-                  await ReceiptLayout().reprintCheckList80mm(false, cartModel, value: printer, isPayment: isPayment);
+                  await ReprintCheckListLayout().reprintCheckList80mm(false, cartModel, value: printer, isPayment: isPayment);
                   await Future.delayed(Duration(milliseconds: 100));
                   printer.disconnect();
                   printStatus = 0;
@@ -771,7 +778,7 @@ class PrintReceipt{
                 final printer = NetworkPrinter(PaperSize.mm58, profile);
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                 if (res == PosPrintResult.success) {
-                  await ReceiptLayout().reprintCheckList58mm(false, cartModel, value: printer, isPayment: isPayment);
+                  await ReprintCheckListLayout().reprintCheckList58mm(false, cartModel, value: printer, isPayment: isPayment);
                   await Future.delayed(Duration(milliseconds: 100));
                   printer.disconnect();
                   printStatus = 0;
@@ -818,7 +825,7 @@ class PrintReceipt{
                   final printer = NetworkPrinter(PaperSize.mm80, profile);
                   final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                   if (res == PosPrintResult.success) {
-                    await ReceiptLayout().printProductTicket80mm(false, orderCacheLocalId, currentCount, value: printer, cartItem: productTicketItem[j]);
+                    await ProductTicketLayout().printProductTicket80mm(false, orderCacheLocalId, currentCount, value: printer, cartItem: productTicketItem[j]);
                     await Future.delayed(Duration(milliseconds: 100));
                     printer.disconnect();
                   } else {
@@ -831,7 +838,7 @@ class PrintReceipt{
                   final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                   if (res == PosPrintResult.success) {
                     //need to change to 58
-                    await ReceiptLayout().printProductTicket58mm(false, orderCacheLocalId, currentCount, value: printer, cartItem: productTicketItem[j]);
+                    await ProductTicketLayout().printProductTicket58mm(false, orderCacheLocalId, currentCount, value: printer, cartItem: productTicketItem[j]);
                     await Future.delayed(Duration(milliseconds: 100));
                     printer.disconnect();
                   } else {
@@ -842,7 +849,7 @@ class PrintReceipt{
                 //print USB
                 if (activeCashierPrinter[i].paper_size == 0) {
                   var data_usb;
-                  data_usb = Uint8List.fromList(await ReceiptLayout().printProductTicket80mm(true, orderCacheLocalId, currentCount, cartItem: productTicketItem[j]));
+                  data_usb = Uint8List.fromList(await ProductTicketLayout().printProductTicket80mm(true, orderCacheLocalId, currentCount, cartItem: productTicketItem[j]));
                   bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                   if (isConnected == true) {
                     await flutterUsbPrinter.write(data_usb);
@@ -852,7 +859,7 @@ class PrintReceipt{
                 } else if (activeCashierPrinter[i].paper_size == 1) {
                   //print USB 58mm
                   var data_usb;
-                  data_usb = Uint8List.fromList(await ReceiptLayout().printProductTicket58mm(true, orderCacheLocalId, currentCount, cartItem: productTicketItem[j]));
+                  data_usb = Uint8List.fromList(await ProductTicketLayout().printProductTicket58mm(true, orderCacheLocalId, currentCount, cartItem: productTicketItem[j]));
                   bool? isConnected = await flutterUsbPrinter.connect(
                       int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                   if (isConnected == true) {
@@ -950,10 +957,10 @@ class PrintReceipt{
                       final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                       if (res == PosPrintResult.success) {
                         if(kitchenListLayout80mm == null || kitchenListLayout80mm.print_combine_kitchen_list == 0 || orderDetail.length == 1)
-                          await ReceiptLayout().printKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetail[k], isReprint: isReprint);
+                          await DefaultKitchenListLayout().printKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetail[k], isReprint: isReprint);
                         else if(kitchenListLayout80mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                           List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetail, data);
-                          await ReceiptLayout().printCombinedKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails, isReprint: isReprint);
+                          await CombineKitchenListLayout().printCombinedKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails, isReprint: isReprint);
                           printCombinedKitchenList = true;
                         }
                         await Future.delayed(Duration(milliseconds: 100));
@@ -968,10 +975,10 @@ class PrintReceipt{
                       final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                       if (res == PosPrintResult.success) {
                         if(kitchenListLayout58mm == null || kitchenListLayout58mm.print_combine_kitchen_list == 0 || orderDetail.length == 1)
-                          await ReceiptLayout().printKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetail[k], isReprint: isReprint);
+                          await DefaultKitchenListLayout().printKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetail[k], isReprint: isReprint);
                         else if(kitchenListLayout58mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                           List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetail, data);
-                          await ReceiptLayout().printCombinedKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails, isReprint: isReprint);
+                          await CombineKitchenListLayout().printCombinedKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails, isReprint: isReprint);
                           printCombinedKitchenList = true;
                         }
                         await Future.delayed(Duration(milliseconds: 100));
@@ -1006,10 +1013,10 @@ class PrintReceipt{
                     if (printerList[i].paper_size == 0) {
                       var data_usb;
                       if(kitchenListLayout80mm == null || kitchenListLayout80mm.print_combine_kitchen_list == 0 || orderDetail.length == 1)
-                        data_usb = Uint8List.fromList(await ReceiptLayout().printKitchenList80mm(true, orderCacheLocalId, orderDetail: orderDetail[k], isReprint: isReprint));
+                        data_usb = Uint8List.fromList(await DefaultKitchenListLayout().printKitchenList80mm(true, orderCacheLocalId, orderDetail: orderDetail[k], isReprint: isReprint));
                       else if(kitchenListLayout80mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                         List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetail, data);
-                        data_usb = Uint8List.fromList(await ReceiptLayout().printCombinedKitchenList80mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails, isReprint: isReprint));
+                        data_usb = Uint8List.fromList(await CombineKitchenListLayout().printCombinedKitchenList80mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails, isReprint: isReprint));
                         printCombinedKitchenList = true;
                       }
                       bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
@@ -1022,10 +1029,10 @@ class PrintReceipt{
                       //print USB 58mm
                       var data_usb;
                       if(kitchenListLayout58mm == null || kitchenListLayout58mm.print_combine_kitchen_list == 0 || orderDetail.length == 1)
-                        data_usb = Uint8List.fromList(await ReceiptLayout().printKitchenList58mm(true, orderCacheLocalId, orderDetail: orderDetail[k], isReprint: isReprint));
+                        data_usb = Uint8List.fromList(await DefaultKitchenListLayout().printKitchenList58mm(true, orderCacheLocalId, orderDetail: orderDetail[k], isReprint: isReprint));
                       else if(kitchenListLayout58mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                         List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetail, data);
-                        data_usb = Uint8List.fromList(await ReceiptLayout().printCombinedKitchenList58mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails, isReprint: isReprint));
+                        data_usb = Uint8List.fromList(await CombineKitchenListLayout().printCombinedKitchenList58mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails, isReprint: isReprint));
                         printCombinedKitchenList = true;
                       }
 
@@ -1109,7 +1116,7 @@ class PrintReceipt{
                       final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                       if (res == PosPrintResult.success) {
                         if(kitchenListLayout80mm == null || kitchenListLayout80mm.print_combine_kitchen_list == 0 || reprintList.length == 1){
-                          await ReceiptLayout().printKitchenList80mm(false, int.parse(reprintList[k].order_cache_sqlite_id!), value: printer, orderDetail: reprintList[k], isReprint: true);
+                          await DefaultKitchenListLayout().printKitchenList80mm(false, int.parse(reprintList[k].order_cache_sqlite_id!), value: printer, orderDetail: reprintList[k], isReprint: true);
                         } else if(kitchenListLayout80mm.print_combine_kitchen_list == 1) {
                           List<String> distinctTableNumbers = [];
                           List<String> distinctOrderNumbers = [];
@@ -1131,7 +1138,7 @@ class PrintReceipt{
                               filteredOrders.addAll(reprintList.where((orderDetail) => orderDetail.orderQueue! == orderNumberFiltered).toList());
                               List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(filteredOrders, data);
                               if(filteredOrders.length > 1) {
-                                await ReceiptLayout().printCombinedKitchenList80mm(
+                                await CombineKitchenListLayout().printCombinedKitchenList80mm(
                                   false,
                                   int.parse(filteredOrders.first.order_cache_sqlite_id!),
                                   value: printer,
@@ -1139,7 +1146,7 @@ class PrintReceipt{
                                 );
                                 reprintList.removeWhere((orderDetail) => groupedOrderDetails.any((groupedDetail) => groupedDetail.order_detail_sqlite_id == orderDetail.order_detail_sqlite_id));
                               } else {
-                                await ReceiptLayout().printKitchenList80mm(false, int.parse(filteredOrders.first.order_cache_sqlite_id!), value: printer, orderDetail: groupedOrderDetails[0], isReprint: true);
+                                await DefaultKitchenListLayout().printKitchenList80mm(false, int.parse(filteredOrders.first.order_cache_sqlite_id!), value: printer, orderDetail: groupedOrderDetails[0], isReprint: true);
                                 reprintList.removeWhere((orderDetail) => orderDetail.orderQueue! == orderNumberFiltered);
                               }
                             }
@@ -1151,7 +1158,7 @@ class PrintReceipt{
                               filteredOrders.addAll(reprintList.where((orderDetail) => orderDetail.tableNumber.toString().replaceAll('[', '').replaceAll(']', '') == tableNumberFiltered).toList());
                               List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(filteredOrders, data);
                               if(filteredOrders.length > 1) {
-                                await ReceiptLayout().printCombinedKitchenList80mm(
+                                await CombineKitchenListLayout().printCombinedKitchenList80mm(
                                   false,
                                   int.parse(groupedOrderDetails.first.order_cache_sqlite_id!),
                                   value: printer,
@@ -1159,7 +1166,7 @@ class PrintReceipt{
                                 );
                                 reprintList.removeWhere((orderDetail) => groupedOrderDetails.any((groupedDetail) => groupedDetail.order_detail_sqlite_id == orderDetail.order_detail_sqlite_id));
                               } else {
-                                await ReceiptLayout().printKitchenList80mm(false, int.parse(filteredOrders.first.order_cache_sqlite_id!), value: printer, orderDetail: groupedOrderDetails[0], isReprint: true);
+                                await DefaultKitchenListLayout().printKitchenList80mm(false, int.parse(filteredOrders.first.order_cache_sqlite_id!), value: printer, orderDetail: groupedOrderDetails[0], isReprint: true);
                                 reprintList.removeWhere((orderDetail) => orderDetail.tableNumber.toString().replaceAll('[', '').replaceAll(']', '') == tableNumberFiltered);
                               }
                             }
@@ -1171,7 +1178,7 @@ class PrintReceipt{
                               filteredOrders.addAll(reprintList.where((orderDetail) => orderDetail.created_at! == dateTimeFiltered).toList());
                               List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(filteredOrders, data);
                               if(filteredOrders.length > 1) {
-                                await ReceiptLayout().printCombinedKitchenList80mm(
+                                await CombineKitchenListLayout().printCombinedKitchenList80mm(
                                   false,
                                   int.parse(filteredOrders.first.order_cache_sqlite_id!),
                                   value: printer,
@@ -1179,7 +1186,7 @@ class PrintReceipt{
                                 );
                                 reprintList.removeWhere((orderDetail) => groupedOrderDetails.any((groupedDetail) => groupedDetail.order_detail_sqlite_id == orderDetail.order_detail_sqlite_id));
                               } else {
-                                await ReceiptLayout().printKitchenList80mm(false, int.parse(filteredOrders.first.order_cache_sqlite_id!), value: printer, orderDetail: groupedOrderDetails[0], isReprint: true);
+                                await DefaultKitchenListLayout().printKitchenList80mm(false, int.parse(filteredOrders.first.order_cache_sqlite_id!), value: printer, orderDetail: groupedOrderDetails[0], isReprint: true);
                                 reprintList.removeWhere((orderDetail) => orderDetail.created_at! == dateTimeFiltered);
                               }
                             }
@@ -1200,7 +1207,7 @@ class PrintReceipt{
 
                       if (res == PosPrintResult.success) {
                         if(kitchenListLayout58mm == null || kitchenListLayout58mm.print_combine_kitchen_list == 0 || reprintList.length == 1){
-                          await ReceiptLayout().printKitchenList58mm(false, int.parse(reprintList[k].order_cache_sqlite_id!), value: printer, orderDetail: reprintList[k], isReprint: true);
+                          await DefaultKitchenListLayout().printKitchenList58mm(false, int.parse(reprintList[k].order_cache_sqlite_id!), value: printer, orderDetail: reprintList[k], isReprint: true);
                         } else if(kitchenListLayout58mm.print_combine_kitchen_list == 1) {
                           List<String> distinctTableNumbers = [];
                           List<String> distinctOrderNumbers = [];
@@ -1224,7 +1231,7 @@ class PrintReceipt{
                               filteredOrders.addAll(reprintList.where((orderDetail) => orderDetail.orderQueue! == orderNumberFiltered).toList());
                               List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(filteredOrders, data);
                               if(filteredOrders.length > 1) {
-                                await ReceiptLayout().printCombinedKitchenList58mm(
+                                await CombineKitchenListLayout().printCombinedKitchenList58mm(
                                   false,
                                   int.parse(groupedOrderDetails.first.order_cache_sqlite_id!),
                                   value: printer,
@@ -1232,7 +1239,7 @@ class PrintReceipt{
                                 );
                                 reprintList.removeWhere((orderDetail) => groupedOrderDetails.any((groupedDetail) => groupedDetail.order_detail_sqlite_id == orderDetail.order_detail_sqlite_id));
                               } else {
-                                await ReceiptLayout().printKitchenList58mm(false, int.parse(filteredOrders.first.order_cache_sqlite_id!), value: printer, orderDetail: filteredOrders[0], isReprint: true);
+                                await DefaultKitchenListLayout().printKitchenList58mm(false, int.parse(filteredOrders.first.order_cache_sqlite_id!), value: printer, orderDetail: filteredOrders[0], isReprint: true);
                                 reprintList.removeWhere((orderDetail) => orderDetail.orderQueue! == orderNumberFiltered);
                               }
                             }
@@ -1244,7 +1251,7 @@ class PrintReceipt{
                               filteredOrders.addAll(reprintList.where((orderDetail) => orderDetail.tableNumber.toString().replaceAll('[', '').replaceAll(']', '') == tableNumberFiltered).toList());
                               List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(filteredOrders, data);
                               if(filteredOrders.length > 1) {
-                                await ReceiptLayout().printCombinedKitchenList58mm(
+                                await CombineKitchenListLayout().printCombinedKitchenList58mm(
                                   false,
                                   int.parse(groupedOrderDetails.first.order_cache_sqlite_id!),
                                   value: printer,
@@ -1252,7 +1259,7 @@ class PrintReceipt{
                                 );
                                 reprintList.removeWhere((orderDetail) => groupedOrderDetails.any((groupedDetail) => groupedDetail.order_detail_sqlite_id == orderDetail.order_detail_sqlite_id));
                               } else {
-                                await ReceiptLayout().printKitchenList58mm(false, int.parse(filteredOrders.first.order_cache_sqlite_id!), value: printer, orderDetail: filteredOrders[0], isReprint: true);
+                                await DefaultKitchenListLayout().printKitchenList58mm(false, int.parse(filteredOrders.first.order_cache_sqlite_id!), value: printer, orderDetail: filteredOrders[0], isReprint: true);
                                 reprintList.removeWhere((orderDetail) => orderDetail.tableNumber.toString().replaceAll('[', '').replaceAll(']', '') == tableNumberFiltered);
                               }
                             }
@@ -1264,7 +1271,7 @@ class PrintReceipt{
                               filteredOrders.addAll(reprintList.where((orderDetail) => orderDetail.created_at! == dateTimeFiltered).toList());
                               List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(filteredOrders, data);
                               if(filteredOrders.length > 1) {
-                                await ReceiptLayout().printCombinedKitchenList58mm(
+                                await CombineKitchenListLayout().printCombinedKitchenList58mm(
                                   false,
                                   int.parse(groupedOrderDetails.first.order_cache_sqlite_id!),
                                   value: printer,
@@ -1272,7 +1279,7 @@ class PrintReceipt{
                                 );
                                 reprintList.removeWhere((orderDetail) => groupedOrderDetails.any((groupedDetail) => groupedDetail.order_detail_sqlite_id == orderDetail.order_detail_sqlite_id));
                               } else {
-                                await ReceiptLayout().printKitchenList58mm(false, int.parse(filteredOrders.first.order_cache_sqlite_id!), value: printer, orderDetail: filteredOrders[0], isReprint: true);
+                                await DefaultKitchenListLayout().printKitchenList58mm(false, int.parse(filteredOrders.first.order_cache_sqlite_id!), value: printer, orderDetail: filteredOrders[0], isReprint: true);
                                 reprintList.removeWhere((orderDetail) => orderDetail.created_at! == dateTimeFiltered);
                               }
                             }
@@ -1311,7 +1318,7 @@ class PrintReceipt{
                     //print USB
                     if (printerList[i].paper_size == 0) {
                       var data = Uint8List.fromList(
-                          await ReceiptLayout().printKitchenList80mm(true, int.parse(reprintList[k].order_cache_sqlite_id!), orderDetail: reprintList[k], isReprint: true));
+                          await DefaultKitchenListLayout().printKitchenList80mm(true, int.parse(reprintList[k].order_cache_sqlite_id!), orderDetail: reprintList[k], isReprint: true));
                       bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                       if (isConnected == true) {
                         await flutterUsbPrinter.write(data);
@@ -1321,7 +1328,7 @@ class PrintReceipt{
                     } else if (printerList[i].paper_size == 1) {
                       //print 58mm
                       var data = Uint8List.fromList(
-                          await ReceiptLayout().printKitchenList58mm(true, int.parse(reprintList[k].order_cache_sqlite_id!), orderDetail: reprintList[k], isReprint: true));
+                          await DefaultKitchenListLayout().printKitchenList58mm(true, int.parse(reprintList[k].order_cache_sqlite_id!), orderDetail: reprintList[k], isReprint: true));
                       bool? isConnected = await flutterUsbPrinter.connect(
                           int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                       if (isConnected == true) {
@@ -1411,10 +1418,10 @@ class PrintReceipt{
                     if (res == PosPrintResult.success) {
                       // await ReceiptLayout().printQrKitchenList80mm(false, orderDetailList[k], orderCacheLocalId, value: printer);
                       if(kitchenListLayout80mm == null || kitchenListLayout80mm.print_combine_kitchen_list == 0 || orderDetailList.length == 1)
-                        await ReceiptLayout().printKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetailList[k]);
+                        await DefaultKitchenListLayout().printKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetailList[k]);
                       else if(kitchenListLayout80mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                         List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetailList, data);
-                        await ReceiptLayout().printCombinedKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails);
+                        await CombineKitchenListLayout().printCombinedKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails);
                         printCombinedKitchenList = true;
                       }
                       await Future.delayed(Duration(milliseconds: 100));
@@ -1432,10 +1439,10 @@ class PrintReceipt{
                     if (res == PosPrintResult.success) {
                       // await ReceiptLayout().printQrKitchenList58mm(false, orderDetailList[k], orderCacheLocalId, value: printer);
                       if(kitchenListLayout58mm == null || kitchenListLayout58mm.print_combine_kitchen_list == 0 || orderDetailList.length == 1)
-                        await ReceiptLayout().printKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetailList[k]);
+                        await DefaultKitchenListLayout().printKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetailList[k]);
                       else if(kitchenListLayout58mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                         List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetail, data);
-                        await ReceiptLayout().printCombinedKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails);
+                        await CombineKitchenListLayout().printCombinedKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails);
                         printCombinedKitchenList = true;
                       }
                       await Future.delayed(Duration(milliseconds: 100));
@@ -1484,10 +1491,10 @@ class PrintReceipt{
                     //     await ReceiptLayout().printQrKitchenList80mm(true, orderDetailList[k], orderCacheLocalId));
                     var data_usb;
                     if(kitchenListLayout80mm == null || kitchenListLayout80mm.print_combine_kitchen_list == 0 || orderDetailList.length == 1)
-                      data_usb = Uint8List.fromList(await ReceiptLayout().printKitchenList80mm(true, orderCacheLocalId, orderDetail: orderDetailList[k]));
+                      data_usb = Uint8List.fromList(await DefaultKitchenListLayout().printKitchenList80mm(true, orderCacheLocalId, orderDetail: orderDetailList[k]));
                     else if(kitchenListLayout80mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                       List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetailList, data);
-                      data_usb = Uint8List.fromList(await ReceiptLayout().printCombinedKitchenList80mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails));
+                      data_usb = Uint8List.fromList(await CombineKitchenListLayout().printCombinedKitchenList80mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails));
                       printCombinedKitchenList = true;
                     }
                     bool? isConnected = await flutterUsbPrinter.connect(
@@ -1503,10 +1510,10 @@ class PrintReceipt{
                     //     await ReceiptLayout().printQrKitchenList58mm(true, orderDetailList[k], orderCacheLocalId));
                     var data_usb;
                     if(kitchenListLayout58mm == null || kitchenListLayout58mm.print_combine_kitchen_list == 0 || orderDetailList.length == 1)
-                      data_usb = Uint8List.fromList(await ReceiptLayout().printKitchenList58mm(true, orderCacheLocalId, orderDetail: orderDetailList[k]));
+                      data_usb = Uint8List.fromList(await DefaultKitchenListLayout().printKitchenList58mm(true, orderCacheLocalId, orderDetail: orderDetailList[k]));
                     else if(kitchenListLayout58mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                       List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetail, data);
-                      data_usb = Uint8List.fromList(await ReceiptLayout().printCombinedKitchenList58mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails));
+                      data_usb = Uint8List.fromList(await CombineKitchenListLayout().printCombinedKitchenList58mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails));
                       printCombinedKitchenList = true;
                     }
                     bool? isConnected = await flutterUsbPrinter.connect(

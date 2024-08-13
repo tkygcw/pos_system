@@ -25,7 +25,7 @@ import '../object/modifier_item.dart';
 import '../object/order_cache.dart';
 import '../object/order_detail.dart';
 import '../object/order_modifier_detail.dart';
-import '../object/print_receipt.dart';
+import '../fragment/printing_layout/print_receipt.dart';
 import '../object/printer.dart';
 import '../object/table.dart';
 import '../object/table_use.dart';
