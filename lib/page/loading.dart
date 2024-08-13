@@ -25,6 +25,7 @@ import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
+import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
@@ -2041,6 +2042,7 @@ getAllOrder() async {
       }
       getAllOrderPromotionDetail();
       getAllOrderTaxDetail();
+      getAllOrderPaymentSplit();
       getAllRefund();
     }
   } catch(e) {
@@ -2147,6 +2149,50 @@ getAllOrderTaxDetail() async {
     FLog.error(
       className: "loading",
       text: "getAllOrderTaxDetail error",
+      exception: e,
+    );
+  }
+}
+
+/*
+  save order payment split to database
+*/
+getAllOrderPaymentSplit() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    Map data = await Domain().getAllOrderPaymentSplit(branch_id.toString());
+    if (data['status'] == '1') {
+      List responseJson = data['data'];
+      for (var i = 0; i < responseJson.length; i++) {
+        try {
+          OrderPaymentSplit orderObject = await PosDatabase.instance.insertSqliteOrderPaymentSplit(OrderPaymentSplit(
+              order_payment_split_id: responseJson[i]['order_payment_split_id'],
+              order_payment_split_key: responseJson[i]['order_payment_split_key'],
+              branch_id: responseJson[i]['branch_id'],
+              payment_link_company_id: responseJson[i]['payment_link_company_id'],
+              amount: responseJson[i]['amount'],
+              payment_received: responseJson[i]['payment_received'],
+              payment_change: responseJson[i]['payment_change'],
+              order_key: responseJson[i]['order_key'],
+              sync_status: 1,
+              created_at: responseJson[i]['created_at'],
+              updated_at: responseJson[i]['updated_at'],
+              soft_delete: responseJson[i]['soft_delete']
+          ));
+        } catch(e) {
+          FLog.error(
+            className: "loading",
+            text: "order payment split insert failed (order_payment_split_id: ${responseJson[i]['order_payment_split_id']})",
+            exception: "$e\n${responseJson[i].toJson()}",
+          );
+        }
+      }
+    }
+  } catch(e) {
+    FLog.error(
+      className: "loading",
+      text: "getAllOrderPaymentSplit error",
       exception: e,
     );
   }

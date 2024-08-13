@@ -2228,22 +2228,25 @@ class _MakePaymentState extends State<MakePayment> {
 
   insertOrderPaymentSplitKey(OrderPaymentSplit orderPaymentSplit, String dateTime) async {
     OrderPaymentSplit? returnData;
-    String key = await generateAttendanceKey(orderPaymentSplit);
+    String key = await generateOrderPaymentSplitKey(orderPaymentSplit);
     OrderPaymentSplit data = OrderPaymentSplit(
         updated_at: dateTime,
         sync_status: 0,
         order_payment_split_key: key,
-        order_payment_split_id: orderPaymentSplit.order_payment_split_id
+        order_payment_split_sqlite_id: orderPaymentSplit.order_payment_split_sqlite_id
     );
     int status =  await PosDatabase.instance.updateOrderPaymentSplitUniqueKey(data);
     return returnData;
   }
 
-  generateAttendanceKey(OrderPaymentSplit orderPaymentSplit) async {
+  generateOrderPaymentSplitKey(OrderPaymentSplit orderPaymentSplit) async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     var bytes = orderPaymentSplit.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + orderPaymentSplit.order_payment_split_id.toString() + branch_id.toString();
-    return md5.convert(utf8.encode(bytes)).toString();
+    // return md5.convert(utf8.encode(bytes)).toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    print("hashKey: ${Utils.shortHashString(hashCode: md5Hash)}");
+    return Utils.shortHashString(hashCode: md5Hash);
   }
 
   insertOrderKey() async {

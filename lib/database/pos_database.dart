@@ -6552,11 +6552,11 @@ class PosDatabase {
 */
   Future<int> updateOrderPaymentSplitUniqueKey(OrderPaymentSplit data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableOrderPaymentSplit SET order_payment_split_key = ?, sync_status = ?, updated_at = ? WHERE order_payment_split_id = ?', [
+    return await db.rawUpdate('UPDATE $tableOrderPaymentSplit SET order_payment_split_key = ?, sync_status = ?, updated_at = ? WHERE order_payment_split_sqlite_id = ?', [
       data.order_payment_split_key,
       data.sync_status,
       data.updated_at,
-      data.order_payment_split_id,
+      data.order_payment_split_sqlite_id,
     ]);
   }
 
