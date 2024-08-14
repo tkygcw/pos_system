@@ -99,6 +99,12 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
         startingNumber = 0;
       }
       compareStartingNumber = startingNumber;
+
+      if(appSetting.print_cancel_receipt == 1){
+        printCancelReceipt = true;
+      } else {
+        printCancelReceipt = false;
+      }
     }
   }
 
