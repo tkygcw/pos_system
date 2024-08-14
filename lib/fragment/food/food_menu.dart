@@ -360,24 +360,43 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
       case 2: {
         return sortByProductSKU(noSequenceProduct);
       }
+      case 3: {
+        return sortByProductPrice(noSequenceProduct);
+      }
+      case 4: {
+        return sortByProductName(noSequenceProduct, isDESC: true);
+      }
+      case 5: {
+        return sortByProductSKU(noSequenceProduct, isDESC: true);
+      }
+      case 6: {
+        return sortByProductPrice(noSequenceProduct, isDESC: true);
+      }
       default: {
         return noSequenceProduct;
       }
     }
   }
 
-  sortByProductName(List<Product> sortedList){
+  sortByProductName(List<Product> sortedList, {isDESC}){
     sortedList.sort((a, b){
       return compareNatural(a.name!, b.name!);
     });
-    return sortedList;
+    return isDESC == null ? sortedList : sortedList.reversed.toList();
   }
 
-  sortByProductSKU(List<Product> sortedList){
+  sortByProductSKU(List<Product> sortedList, {bool? isDESC}){
     sortedList.sort((a, b){
       return compareNatural(a.SKU!, b.SKU!);
     });
-    return sortedList;
+    return isDESC == null ? sortedList : sortedList.reversed.toList();
+  }
+
+  sortByProductPrice(List<Product> sortedList, {bool? isDESC}){
+    sortedList.sort((a, b){
+      return compareNatural(a.price!, b.price!);
+    });
+    return isDESC == null ? sortedList : sortedList.reversed.toList();
   }
 
   getPreferences() async {

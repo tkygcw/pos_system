@@ -28,6 +28,7 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
   List<String> ips = [];
   double percentage = 0.0;
   bool isLoad = false, isButtonDisable = false;
+  String? wifiIP;
   Text? info;
 
   @override
@@ -88,7 +89,7 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
     final scanner = LanScanner();
     ips = [];
 
-    var wifiIP = await NetworkInfo().getWifiIP();
+    wifiIP = await NetworkInfo().getWifiIP();
     var wifiName = await NetworkInfo().getWifiName();
     if(wifiIP == null) {
       List<NetworkInterface> interfaces = await NetworkInterface.list();
@@ -138,7 +139,13 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
         return AlertDialog(
           insetPadding: EdgeInsets.all(0),
           actionsPadding: EdgeInsets.zero,
-          title: Text(AppLocalizations.of(context)!.translate('device_list')),
+          title: Row(
+            children: [
+              Text(AppLocalizations.of(context)!.translate('device_list')),
+              Spacer(),
+              Visibility(visible: isLoad, child: Text(wifiIP!))
+            ],
+          ),
           content: isLoad
               ? SizedBox(
                   height: MediaQuery.of(context).size.height / 2.5,

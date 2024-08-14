@@ -33,7 +33,15 @@ class _HardwareSettingState extends State<HardwareSetting> {
   late StreamController streamController;
   late Stream actionStream;
   Receipt? receiptObject;
-  final List<String> sortBy = ['default', 'product_name', 'product_sku'];
+  final List<String> sortBy = [
+    'default',
+    'product_name',
+    'product_sku',
+    'product_price',
+    'product_name_seq_desc',
+    'product_sku_seq_desc',
+    'product_price_seq_desc'
+  ];
   int? selectedValue = 0;
   bool cashDrawer = false, secondDisplay = false, directPayment = false, showSKU = false,
       qrOrderAutoAccept = false, showProductDesc = false, hasQrAccess = true, tableOrder = true ;
@@ -352,7 +360,7 @@ class _HardwareSettingState extends State<HardwareSetting> {
                             title: Text(AppLocalizations.of(context)!.translate('product_sort_by')),
                             subtitle: Text(AppLocalizations.of(context)!.translate('product_sort_by_desc')),
                             trailing: SizedBox(
-                              width: 200,
+                              width: 250,
                               child: DropdownButtonHideUnderline(
                                 child: DropdownButton2(
                                   isExpanded: true,
