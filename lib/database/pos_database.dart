@@ -2860,7 +2860,7 @@ class PosDatabase {
   Future<List<BranchLinkDining>> readBranchLinkDiningOption(String branch_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.name FROM $tableBranchLinkDining AS a JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_id = ?',
+        'SELECT a.*, b.name FROM $tableBranchLinkDining AS a JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_id = ? ORDER BY a.dining_id',
         ['', '', branch_id]);
 
     return result.map((json) => BranchLinkDining.fromJson(json)).toList();

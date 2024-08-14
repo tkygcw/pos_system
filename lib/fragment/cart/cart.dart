@@ -1965,6 +1965,7 @@ class CartPageState extends State<CartPage> {
               opacity: a1.value,
               child: CartDialog(
                 selectedTableList: cartModel.selectedTable,
+                callBack: (cart) {},
               ),
             ),
           );
@@ -2171,7 +2172,7 @@ class CartPageState extends State<CartPage> {
       branchLinkDiningIdList.add(data[i].dining_id!);
     }
     if (serverCall == null) {
-      if (diningList.length == 3) {
+      if (data.any((item) => item.name == 'Dine in')) {
         cart.selectedOption = 'Dine in';
       } else {
         cart.selectedOption = "Take Away";

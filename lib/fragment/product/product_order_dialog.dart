@@ -556,7 +556,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                 await addToCart(cart);
                                                 Navigator.of(context).pop();
                                               } else {
-                                                openChooseTableDialog(cart);
+                                                openChooseTableDialog(cart, context);
                                               }
                                             } else {
                                               Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
@@ -947,7 +947,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                               await addToCart(cart);
                                               Navigator.of(context).pop();
                                             } else {
-                                              openChooseTableDialog(cart);
+                                              openChooseTableDialog(cart, context);
                                             }
                                           } else {
                                             Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
@@ -1022,7 +1022,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
             await addToCart(cart);
             Navigator.of(context).pop();
           } else {
-            openChooseTableDialog(cart);
+            openChooseTableDialog(cart, context);
           }
         } else {
           Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
@@ -1418,7 +1418,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     }
   }
 
-  Future<Future<Object?>> openChooseTableDialog(CartModel cartModel) async {
+  Future<Future<Object?>> openChooseTableDialog(CartModel cartModel, context) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -1429,6 +1429,16 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
               opacity: a1.value,
               child: CartDialog(
                 selectedTableList: cartModel.selectedTable,
+                callBack: (cart) async {
+                  if (cart.selectedTable.isNotEmpty) {
+                    // Disable the button after it has been pressed
+                    setState(() {
+                      isButtonDisabled = true;
+                    });
+                    await addToCart(cart);
+                    Navigator.of(this.context).pop();
+                  }
+                }
               ),
             ),
           );
