@@ -99,6 +99,9 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
         }
       }
     }
+    if(wifiName == null){
+      wifiName = '"mobile data"';
+    }
     var subnet = ipToCSubnet(wifiIP!);
     final stream = scanner.icmpScan(subnet, progressCallback: (progress) {
       if (mounted) {
@@ -171,7 +174,7 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
               : CircularPercentIndicator(
                   footer: Container(margin: EdgeInsets.only(top: 10), child: info),
                   circularStrokeCap: CircularStrokeCap.round,
-                  radius: 90.0,
+                  radius: 80.0,
                   lineWidth: 10.0,
                   percent: percentage,
                   center: Text(
