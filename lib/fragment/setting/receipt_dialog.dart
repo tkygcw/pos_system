@@ -1126,7 +1126,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
-                  child: Text('Show product SKU', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                  child: Text(AppLocalizations.of(context)!.translate('show_product_sku'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
                 Container(
@@ -1701,7 +1701,8 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
-                  child: Text('Show product SKU', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                  child: Text(AppLocalizations.of(context)!.translate('show_product_sku'),
+                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
                 Container(
@@ -1951,6 +1952,26 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               })
         ],
       ),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text(AppLocalizations.of(context)!.translate('show_product_sku'),
+                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Container(
+            child: Switch(
+                value: showSKU,
+                activeColor: color.backgroundColor,
+                onChanged: (bool value){
+                  setState(() {
+                    showSKU = value;
+                  });
+                }),
+          )
+        ],
+      ),
     ],
   );
 
@@ -2166,6 +2187,26 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 ),
               );
             }),
+      ),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text(AppLocalizations.of(context)!.translate('show_product_sku'),
+                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Container(
+            child: Switch(
+                value: showSKU,
+                activeColor: color.backgroundColor,
+                onChanged: (bool value){
+                  setState(() {
+                    showSKU = value;
+                  });
+                }),
+          )
+        ],
       ),
     ],
   );

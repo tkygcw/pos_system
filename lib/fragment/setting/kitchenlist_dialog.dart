@@ -126,7 +126,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return LayoutBuilder(builder: (context,  constraints) {
-        if(constraints.maxWidth > 800){
+        if(constraints.maxWidth > 900 && constraints.maxHeight > 500){
           return AlertDialog(
             title: Text(AppLocalizations.of(context)!.translate('kitchen_list_layout')),
             content: StreamBuilder(
@@ -523,6 +523,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
           );
         },
         transitionDuration: Duration(milliseconds: 200),
+
         barrierDismissible: false,
         context: context,
         pageBuilder: (context, animation1, animation2) {
@@ -761,12 +762,12 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
               ),
             ),
             ListTile(
-              title: Text("Show Product SKU"),
-              subtitle: Text("Show product sku in kitchen printing"),
+              title: Text(AppLocalizations.of(context)!.translate('show_product_sku')),
+              subtitle: Text(AppLocalizations.of(context)!.translate('show_product_sku_desc')),
               trailing: Switch(
                 value: showSKU,
                 activeColor: color.backgroundColor,
-                onChanged: (value) async {
+                onChanged: (value) {
                   showSKU = value;
                   actionController.sink.add("switch");
                 },
@@ -1012,12 +1013,12 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
               ),
             ),
             ListTile(
-              title: Text("Show Product SKU"),
-              subtitle: Text("Show product sku in kitchen printing"),
+              title: Text(AppLocalizations.of(context)!.translate('show_product_sku')),
+              subtitle: Text(AppLocalizations.of(context)!.translate('show_product_sku_desc')),
               trailing: Switch(
                 value: showSKU,
                 activeColor: color.backgroundColor,
-                onChanged: (value) async {
+                onChanged: (value) {
                   showSKU = value;
                   actionController.sink.add("switch");
                 },
@@ -1138,6 +1139,18 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
           },
         ),
       ),
+      ListTile(
+        title: Text(AppLocalizations.of(context)!.translate('show_product_sku')),
+        subtitle: Text(AppLocalizations.of(context)!.translate('show_product_sku_desc')),
+        trailing: Switch(
+          value: showSKU,
+          activeColor: color.backgroundColor,
+          onChanged: (value) {
+            showSKU = value;
+            actionController.sink.add("switch");
+          },
+        ),
+      ),
     ],
   );
 
@@ -1247,6 +1260,18 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
               kitchenListItemSeparator = value;
               actionController.sink.add("switch");
             }
+          },
+        ),
+      ),
+      ListTile(
+        title: Text(AppLocalizations.of(context)!.translate('show_product_sku')),
+        subtitle: Text(AppLocalizations.of(context)!.translate('show_product_sku_desc')),
+        trailing: Switch(
+          value: showSKU,
+          activeColor: color.backgroundColor,
+          onChanged: (value) {
+            showSKU = value;
+            actionController.sink.add("switch");
           },
         ),
       ),

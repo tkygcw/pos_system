@@ -401,6 +401,7 @@ class OrderDetail{
     OrderDetailFields.sync_status: sync_status,
     OrderDetailFields.unit: unit,
     OrderDetailFields.per_quantity_unit: per_quantity_unit,
+    OrderDetailFields.product_sku: product_sku,
     OrderDetailFields.created_at: created_at,
     OrderDetailFields.updated_at: updated_at,
     OrderDetailFields.soft_delete: soft_delete,

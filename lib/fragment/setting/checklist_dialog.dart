@@ -123,7 +123,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return LayoutBuilder(builder: (context,  constraints) {
-        if(constraints.maxWidth > 800){
+        if(constraints.maxWidth > 900 && constraints.maxHeight > 500){
           return AlertDialog(
             title: Text(AppLocalizations.of(context)!.translate('check_list_layout')),
             content: StreamBuilder(
@@ -764,8 +764,8 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
               ),
             ),
             ListTile(
-              title: Text("Show Product SKU"),
-              subtitle: Text("Show product SKU in checklist"),
+              title: Text(AppLocalizations.of(context)!.translate('show_product_sku')),
+              subtitle: Text(AppLocalizations.of(context)!.translate('show_product_sku_desc')),
               trailing: Switch(
                 value: showSKU,
                 activeColor: color.backgroundColor,
@@ -1018,8 +1018,8 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
               ),
             ),
             ListTile(
-              title: Text("Show Product SKU"),
-              subtitle: Text("Show product SKU in checklist"),
+              title: Text(AppLocalizations.of(context)!.translate('show_product_sku')),
+              subtitle: Text(AppLocalizations.of(context)!.translate('show_product_sku_desc')),
               trailing: Switch(
                 value: showSKU,
                 activeColor: color.backgroundColor,
@@ -1117,6 +1117,18 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
           },
         ),
       ),
+      ListTile(
+        title: Text(AppLocalizations.of(context)!.translate('show_product_sku')),
+        subtitle: Text(AppLocalizations.of(context)!.translate('show_product_sku_desc')),
+        trailing: Switch(
+          value: showSKU,
+          activeColor: color.backgroundColor,
+          onChanged: (value) {
+            showSKU = value;
+            actionController.sink.add("switch");
+          },
+        ),
+      ),
     ],
   );
 
@@ -1198,6 +1210,18 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
           activeColor: color.backgroundColor,
           onChanged: (value) async {
             checkListItemSeparator = value;
+            actionController.sink.add("switch");
+          },
+        ),
+      ),
+      ListTile(
+        title: Text(AppLocalizations.of(context)!.translate('show_product_sku')),
+        subtitle: Text(AppLocalizations.of(context)!.translate('show_product_sku_desc')),
+        trailing: Switch(
+          value: showSKU,
+          activeColor: color.backgroundColor,
+          onChanged: (value) {
+            showSKU = value;
             actionController.sink.add("switch");
           },
         ),

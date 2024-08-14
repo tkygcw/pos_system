@@ -162,59 +162,61 @@ class _ReprintDialogState extends State<ReprintDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(AppLocalizations.of(context)!.translate('reprint')),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Card(
-            elevation: 5,
-            child: ListTile(
-                title: Text(AppLocalizations.of(context)!.translate('reprint_checklist')),
-                onTap: reprintCheckList,
-                trailing: Icon(Icons.print)
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Card(
+              elevation: 5,
+              child: ListTile(
+                  title: Text(AppLocalizations.of(context)!.translate('reprint_checklist')),
+                  onTap: reprintCheckList,
+                  trailing: Icon(Icons.print)
+              ),
             ),
-          ),
-          Card(
-            elevation: 5,
-            child: ListTile(
-              title: Text(AppLocalizations.of(context)!.translate('reprint_kitchen_list')),
-              onTap: reprintKitchenList,
-              trailing: Icon(Icons.kitchen),
+            Card(
+              elevation: 5,
+              child: ListTile(
+                title: Text(AppLocalizations.of(context)!.translate('reprint_kitchen_list')),
+                onTap: reprintKitchenList,
+                trailing: Icon(Icons.kitchen),
+              ),
             ),
-          ),
+            Visibility(
+              visible: ticketProduct.isNotEmpty ? true : false,
+              child: Card(
+                elevation: 5,
+                child: ListTile(
+                  title: Text(AppLocalizations.of(context)!.translate('reprint_product_ticket')),
+                  onTap: reprintProductTicket,
+                  trailing: Icon(Icons.print),
+                ),
+              ),
+            ),
           Visibility(
-            visible: ticketProduct.isNotEmpty ? true : false,
-            child: Card(
-              elevation: 5,
-              child: ListTile(
-                title: Text(AppLocalizations.of(context)!.translate('reprint_product_ticket')),
-                onTap: reprintProductTicket,
-                trailing: Icon(Icons.print),
+            visible: widget.currentPage == 'table' || widget.currentPage == 'other_order' ? true : false,
+              child: Card(
+                elevation: 5,
+                child: ListTile(
+                  title: Text(AppLocalizations.of(context)!.translate('print_review_receipt')),
+                  onTap: printReviewReceipt,
+                  trailing: Icon(Icons.receipt),
+                ),
               ),
             ),
-          ),
-        Visibility(
-          visible: widget.currentPage == 'table' || widget.currentPage == 'other_order' ? true : false,
-            child: Card(
-              elevation: 5,
-              child: ListTile(
-                title: Text(AppLocalizations.of(context)!.translate('print_review_receipt')),
-                onTap: printReviewReceipt,
-                trailing: Icon(Icons.receipt),
+            Visibility(
+              visible: widget.currentPage == 'bill' ? true : false,
+              child: Card(
+                elevation: 5,
+                child: ListTile(
+                  title: Text(AppLocalizations.of(context)!.translate('print_receipt')),
+                  onTap: printPaymentReceipt,
+                  trailing: Icon(Icons.receipt_long),
+                ),
               ),
             ),
-          ),
-          Visibility(
-            visible: widget.currentPage == 'bill' ? true : false,
-            child: Card(
-              elevation: 5,
-              child: ListTile(
-                title: Text(AppLocalizations.of(context)!.translate('print_receipt')),
-                onTap: printPaymentReceipt,
-                trailing: Icon(Icons.receipt_long),
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
       actions: [
         ElevatedButton(

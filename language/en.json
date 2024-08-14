@@ -492,6 +492,8 @@
   "show_device_second_display": "Show device second display (if have)",
   "show_email": "Show email",
   "show_presentation": "Show presentation",
+  "show_product_sku": "Show product SKU",
+  "show_product_sku_desc": "Enable to show product SKU in receipt",
   "show_promotion_detail": "Show promotion detail (80mm)",
   "show_sku": "Show SKU",
   "show_sku_desc": "Show SKU at menu page",

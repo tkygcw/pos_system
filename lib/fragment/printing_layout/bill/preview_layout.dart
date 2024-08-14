@@ -36,9 +36,6 @@ class PreviewLayout extends ReceiptLayout {
       bytes += generator.reset();
       if(cartModel.selectedTable.isNotEmpty){
         bytes += generator.text('Table No: ${getCartTableNumber(cartModel.selectedTable).toString().replaceAll('[', '').replaceAll(']', '')}');
-        // for(int i = 0; i < cartModel.selectedTable.length; i++){
-        //   bytes += generator.text('Table No: ${cartModel.selectedTable[i].number}');
-        // }
       }
       if(int.tryParse(orderCache!.order_queue!) != null) {
         bytes += generator.text('Order No: ${orderCache!.order_queue}');
