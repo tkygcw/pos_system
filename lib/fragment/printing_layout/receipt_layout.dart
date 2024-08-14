@@ -54,7 +54,7 @@ class ReceiptLayout{
   bool _isLoad = false;
 
   final Checklist checklistDefaultLayout = Checklist(
-    product_name_font_size: 1,
+    product_name_font_size: 0,
     other_font_size: 1,
     check_list_show_price: 0,
     check_list_show_separator: 0,
@@ -62,13 +62,19 @@ class ReceiptLayout{
   );
 
   final KitchenList kitchenListDefaultLayout = KitchenList(
-    product_name_font_size: 1,
+    product_name_font_size: 0,
     other_font_size: 1,
     kitchen_list_show_price: 0,
     print_combine_kitchen_list: 0,
     kitchen_list_item_separator: 0,
     show_product_sku: 0,
   );
+
+  getCartTableNumber(List<PosTable> tableList){
+    return tableList.map((e) => e.number).toList();
+  }
+
+
 
 /*
   open cash drawer function

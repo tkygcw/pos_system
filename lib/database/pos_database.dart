@@ -2405,7 +2405,7 @@ class PosDatabase {
           data.updated_at,
           data.created_at,
           data.sync_status,
-          0, //change later
+          data.show_product_sku,
           data.kitchen_list_item_separator,
           data.print_combine_kitchen_list,
           data.kitchen_list_show_price,

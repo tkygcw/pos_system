@@ -96,8 +96,8 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
         showSKU = data.show_product_sku == 0 ? false : true;
       } else {
         checklist = null;
-        productFontSize = ReceiptDialogEnum.small;
-        fontSize = 14;
+        productFontSize = ReceiptDialogEnum.big;
+        fontSize = 20;
         variantAddonFontSize = ReceiptDialogEnum.small;
         otherFontSize = 14;
         checkListShowPrice = false;

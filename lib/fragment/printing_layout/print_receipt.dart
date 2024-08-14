@@ -17,14 +17,13 @@ import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
 import 'package:pos_system/object/settlement.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use_detail.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/pos_database.dart';
 import 'bill/layout.dart';
 import 'bill/preview_layout.dart';
 import 'checklist/layout.dart';
-import 'kitchenlist/combine_layout.dart';
-import 'kitchenlist/default_layout.dart';
+import 'kitchenlist/kitchen_combine_layout.dart';
+import 'kitchenlist/kitchen_default_layout.dart';
 import 'product_ticket/layout.dart';
 import 'reprint/checklist/layout.dart';
 import '../../notifier/cart_notifier.dart';

@@ -100,9 +100,10 @@ class BillLayout extends ReceiptLayout{
       bytes += generator.text('Close at: ${Utils.formatDate(paidOrder!.created_at)}');
       bytes += generator.text('Close by: ${this.paidOrder!.close_by}', containsChinese: true);
       if(selectedTableList.isNotEmpty){
-        for(int i = 0; i < selectedTableList.length; i++){
-          bytes += generator.text('Table No: ${selectedTableList[i].number}');
-        }
+        bytes += generator.text('Table No: ${getCartTableNumber(selectedTableList).toString().replaceAll('[', '').replaceAll(']', '')}');
+        // for(int i = 0; i < selectedTableList.length; i++){
+        //   bytes += generator.text('Table No: ${selectedTableList[i].number}');
+        // }
       }
       bytes += generator.text('${paidOrder!.dining_name}');
       bytes += generator.reset();

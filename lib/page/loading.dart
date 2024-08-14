@@ -2277,7 +2277,7 @@ getAllOrderDetail() async {
               status: responseJson[i]['status'],
               unit: responseJson[i]['unit'],
               per_quantity_unit: responseJson[i]['per_quantity_unit'],
-              product_sku: '',
+              product_sku: responseJson[i]['product_sku'],
               sync_status: 1,
               created_at: responseJson[i]['created_at'],
               updated_at: responseJson[i]['updated_at'],
