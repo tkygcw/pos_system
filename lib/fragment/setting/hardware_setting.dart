@@ -360,7 +360,7 @@ class _HardwareSettingState extends State<HardwareSetting> {
                             title: Text(AppLocalizations.of(context)!.translate('product_sort_by')),
                             subtitle: Text(AppLocalizations.of(context)!.translate('product_sort_by_desc')),
                             trailing: SizedBox(
-                              width: 250,
+                              width: 200,
                               child: DropdownButtonHideUnderline(
                                 child: DropdownButton2(
                                   isExpanded: true,
@@ -388,15 +388,12 @@ class _HardwareSettingState extends State<HardwareSetting> {
                                   ),
                                   items: sortBy.asMap().entries.map((sort) => DropdownMenuItem<int>(
                                     value: sort.key,
-                                    child: Row(
-                                      children: [
-                                        Text(
-                                          AppLocalizations.of(context)!.translate(sort.value),
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ],
+                                    child: Text(
+                                      AppLocalizations.of(context)!.translate(sort.value),
+                                      overflow: TextOverflow.visible,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                      ),
                                     ),
                                   )).toList(),
                                   value: selectedValue,
