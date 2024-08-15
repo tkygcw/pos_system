@@ -5,6 +5,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:provider/provider.dart';
@@ -42,9 +43,17 @@ class _HardwareSettingState extends State<HardwareSetting> {
     'product_sku_seq_desc',
     'product_price_seq_desc'
   ];
+  final List<String> tableModeOption = [
+    'table_mode_no_table',
+    'table_mode_full_table',
+    'table_mode_no_table_special'
+  ];
   int? selectedValue = 0;
+  int? tableMode = 0;
   bool cashDrawer = false, secondDisplay = false, directPayment = false, showSKU = false,
-      qrOrderAutoAccept = false, showProductDesc = false, hasQrAccess = true, tableOrder = true ;
+      qrOrderAutoAccept = false, showProductDesc = false, hasQrAccess = true;
+  // String? tableMode;
+
 
   @override
   void initState() {
@@ -121,10 +130,8 @@ class _HardwareSettingState extends State<HardwareSetting> {
         this.secondDisplay = false;
       }
 
-      if(appSetting.table_order == 1){
-        this.tableOrder = true;
-      } else {
-        this.tableOrder = false;
+      if(appSetting.table_order != null) {
+        tableMode = appSetting.table_order!;
       }
 
       if(appSetting.direct_payment == 1){
@@ -169,90 +176,101 @@ class _HardwareSettingState extends State<HardwareSetting> {
                       child: Column(
                         children: [
                           ListTile(
-                            title: Text(AppLocalizations.of(context)!.translate('table_order')),
-                            subtitle: Text(AppLocalizations.of(context)!.translate('table_order_desc')),
-                            trailing: Switch(
-                              value: this.tableOrder,
-                              activeColor: color.backgroundColor,
-                              onChanged: (value) async {
-                                // switch on
-                                if(value){
-                                  this.tableOrder = value;
-                                  if (await confirm(
-                                    context,
-                                    title: Text('${AppLocalizations.of(context)?.translate('enable_table_order')}'),
-                                    content: Text('${AppLocalizations.of(context)?.translate('enable_table_order_desc')}'),
-                                    textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                                    textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
-                                  )) {
-                                    Navigator.of(context).pushAndRemoveUntil(
-                                      MaterialPageRoute(
-                                        builder: (BuildContext context) => PosPinPage(),
+                            title: Text(AppLocalizations.of(context)!.translate('table_mode')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('table_mode_desc')),
+                            trailing: SizedBox(
+                              width: 200,
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton2(
+                                  isExpanded: true,
+                                  buttonStyleData: ButtonStyleData(
+                                    height: 55,
+                                    padding: const EdgeInsets.only(left: 14, right: 14),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: Border.all(
+                                        color: Colors.black26,
                                       ),
-                                          (Route route) => false,
-                                    );
-                                    appSettingModel.setTableOrderStatus(tableOrder);
-                                  } else
-                                    this.tableOrder = !value;
-                                } else{
-                                  // switch off
-                                  if(await anyTableUse()){
-                                    Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_settle_the_bill_for_all_tables'));
-                                  } else if(appSettingModel.enable_numbering == false){
-                                    Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_enable_order_number'));
-                                  } else if(appSettingModel.directPaymentStatus == false){
-                                    Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_enable_direct_payment'));
-                                  } else {
-                                    this.tableOrder = value;
-                                    if (await confirm(
-                                      context,
-                                      title: Text('${AppLocalizations.of(context)?.translate('disable_table_order')}'),
-                                      content: Text('${AppLocalizations.of(context)?.translate('disable_table_order_desc')}'),
-                                      textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                                      textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
-                                    )) {
-                                      Navigator.of(context).pushAndRemoveUntil(
-                                        MaterialPageRoute(
-                                          builder: (BuildContext context) => PosPinPage(),
-                                        ),
-                                            (Route route) => false,
-                                      );
-                                      appSettingModel.setTableOrderStatus(tableOrder);
-                                    } else
-                                      this.tableOrder = !value;
-                                  }
-
-                                  // else {
-                                  //   if(appSettingModel.enable_numbering == false){
-                                  //     Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_enable_order_number'));
-                                  //   }
-                                  //   if(appSettingModel.directPaymentStatus == false){
-                                  //     Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_enable_direct_payment'));
-                                  //   } else {
-                                  //     this.tableOrder = value;
-                                  //     if (await confirm(
-                                  //       context,
-                                  //       title: Text('${AppLocalizations.of(context)?.translate('disable_table_order')}'),
-                                  //       content: Text('${AppLocalizations.of(context)?.translate('disable_table_order_desc')}'),
-                                  //       textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                                  //       textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
-                                  //     )) {
-                                  //       Navigator.of(context).pushAndRemoveUntil(
-                                  //         MaterialPageRoute(
-                                  //           builder: (BuildContext context) => PosPinPage(),
-                                  //         ),
-                                  //             (Route route) => false,
-                                  //       );
-                                  //       appSettingModel.setTableOrderStatus(tableOrder);
-                                  //     } else
-                                  //       this.tableOrder = !value;
-                                  //   }
-                                  // }
-                                }
-
-
-                                actionController.sink.add("switch");
-                              },
+                                    ),
+                                  ),
+                                  dropdownStyleData: DropdownStyleData(
+                                    maxHeight: 200,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      color: Colors.grey.shade100,
+                                    ),
+                                    scrollbarTheme: ScrollbarThemeData(
+                                        thickness: WidgetStateProperty.all(5),
+                                        mainAxisMargin: 20,
+                                        crossAxisMargin: 5
+                                    ),
+                                  ),
+                                  items: tableModeOption.asMap().entries.map((tableOption) => DropdownMenuItem<int>(
+                                    value: tableOption.key,
+                                    child: Text(
+                                      AppLocalizations.of(context)!.translate(tableOption.value),
+                                      overflow: TextOverflow.visible,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  )).toList(),
+                                  value: tableMode,
+                                  onChanged: (int? newValue) async{
+                                    if (appSettingModel.table_order != newValue) {
+                                      if (appSettingModel.table_order == 1) {
+                                        // switch off
+                                        if (await anyTableUse()) {
+                                          Fluttertoast.showToast(
+                                              msg: AppLocalizations.of(context)!.translate('please_settle_the_bill_for_all_tables'));
+                                        } else if (appSettingModel.enable_numbering == false) {
+                                          Fluttertoast.showToast(
+                                              msg: AppLocalizations.of(context)!.translate('please_enable_order_number'));
+                                        } else if (appSettingModel.directPaymentStatus == false) {
+                                          Fluttertoast.showToast(
+                                              msg: AppLocalizations.of(context)!.translate('please_enable_direct_payment'));
+                                        } else {
+                                          if (await confirm(
+                                            context,
+                                            title: Text('${AppLocalizations.of(context)?.translate('disable_table_order')}'),
+                                            content: Text('${AppLocalizations.of(context)?.translate('disable_table_order_desc')}'),
+                                            textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                                            textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                                          )) {
+                                            tableMode = newValue;
+                                            Navigator.of(context).pushAndRemoveUntil(
+                                              MaterialPageRoute(
+                                                builder: (BuildContext context) => PosPinPage(),
+                                              ),
+                                                  (Route route) => false,
+                                            );
+                                            appSettingModel.setTableOrderStatus(tableMode!);
+                                          }
+                                        }
+                                        newValue = appSettingModel.table_order;
+                                      } else {
+                                        if (await confirm(
+                                          context,
+                                          title: Text('${AppLocalizations.of(context)?.translate('disable_table_order')}'),
+                                          content: Text('${AppLocalizations.of(context)?.translate('disable_table_order_desc')}'),
+                                          textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                                          textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                                        )) {
+                                          tableMode = newValue;
+                                          Navigator.of(context).pushAndRemoveUntil(
+                                            MaterialPageRoute(
+                                              builder: (BuildContext context) => PosPinPage(),
+                                            ),
+                                                (Route route) => false,
+                                          );
+                                          appSettingModel.setTableOrderStatus(tableMode!);
+                                        }
+                                      }
+                                      actionController.sink.add("switch");
+                                    }
+                                  },
+                                ),
+                              ),
                             ),
                           ),
                           ListTile(
@@ -316,7 +334,7 @@ class _HardwareSettingState extends State<HardwareSetting> {
                               onChanged: (value) {
                                 // switch off
                                 if(!value) {
-                                  if(appSettingModel.table_order == false){
+                                  if(appSettingModel.table_order != 1){
                                     Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_enable_table_order'));
                                   } else {
                                     directPayment = value;
@@ -447,7 +465,7 @@ class _HardwareSettingState extends State<HardwareSetting> {
         open_cash_drawer: this.cashDrawer == true ? 1 : 0,
         show_second_display: this.secondDisplay == true ? 1 : 0,
         app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
-        table_order: this.tableOrder == true ? 1 : 0,
+        table_order: this.tableMode,
         updated_at: dateTime
     );
     int data = await PosDatabase.instance.updateAppSettings(object);

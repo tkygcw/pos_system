@@ -348,7 +348,7 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                               activeColor: color.backgroundColor,
                               onChanged: (value) async {
                                 if(!value) {
-                                  if(appSettingModel.table_order == false) {
+                                  if(appSettingModel.table_order != 1) {
                                     Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_enable_table_order_in_general_setting'));
                                   } else {
                                     enableNumbering = value;

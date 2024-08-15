@@ -553,7 +553,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                         await checkProductStock(widget.productDetail!, cart);
                                         //await getBranchLinkProductItem(widget.productDetail!);
                                         if (hasStock) {
-                                          if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == true) {
+                                          if (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 0) {
                                             if(simpleIntInput > 0){
                                               if (cart.selectedTable.isNotEmpty) {
                                                 // Disable the button after it has been pressed
@@ -568,7 +568,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                             } else {
                                               Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
                                             }
-                                          } else if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == false) {
+                                          } else if (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 1) {
                                             // Disable the button after it has been pressed
                                             setState(() {
                                               isButtonDisabled = true;
@@ -951,7 +951,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                       await checkProductStock(widget.productDetail!, cart);
                                       //await getBranchLinkProductItem(widget.productDetail!);
                                       if (hasStock == true) {
-                                        if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == true) {
+                                        if (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 0) {
                                           if(simpleIntInput > 0){
                                             if (cart.selectedTable.isNotEmpty) {
                                               // Disable the button after it has been pressed
@@ -1025,8 +1025,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
     await checkProductStock(widget.productDetail!, cart);
     if (hasStock) {
-      print("appSettingModel.table_order: ${localSetting!.table_order}");
-      if (cart.selectedOption == 'Dine in' && localSetting.table_order == 1) {
+      if (cart.selectedOption == 'Dine in' && localSetting!.table_order != 0) {
         if (simpleIntInput > 0) {
           if (cart.selectedTable.isNotEmpty) {
             // Disable the button after it has been pressed

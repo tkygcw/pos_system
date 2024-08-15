@@ -238,7 +238,7 @@ class _HomePageState extends State<HomePage> {
         onPressed: () => setState(() => currentPage = 'menu'),
         isSelected: currentPage == 'menu',
       ),
-      if (isLoad && _appSettingModel.table_order == true)
+      if (isLoad && _appSettingModel.table_order == 1)
         CollapsibleItem(
           text: AppLocalizations.of(context)!.translate('table'),
           icon: Icons.table_restaurant,
