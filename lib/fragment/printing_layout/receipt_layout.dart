@@ -685,7 +685,7 @@ class ReceiptLayout{
                 height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                 width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
         PosColumn(
-            text: 'Product 1${kitchen_list.kitchen_list_show_price == 1 ? '(RM6.90)' : '' }',
+            text: '${getTestPrintProductSKU(1, layout: kitchen_list)}Product 1${kitchen_list.kitchen_list_show_price == 1 ? '(RM6.90)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -718,7 +718,7 @@ class ReceiptLayout{
                   height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                   width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
           PosColumn(
-              text: 'Product 2${kitchen_list.kitchen_list_show_price == 1 ? '(RM8.80)' : '' }',
+              text: '${getTestPrintProductSKU(2, layout: kitchen_list)}Product 2${kitchen_list.kitchen_list_show_price == 1 ? '(RM8.80)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -750,7 +750,7 @@ class ReceiptLayout{
                   height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                   width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
           PosColumn(
-              text: 'Product 3${kitchen_list.kitchen_list_show_price == 1 ? '(RM15.90)' : '' }',
+              text: '${getTestPrintProductSKU(3, layout: kitchen_list)}Product 3${kitchen_list.kitchen_list_show_price == 1 ? '(RM15.90)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -818,7 +818,7 @@ class ReceiptLayout{
                 width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
         ),
         PosColumn(
-            text: 'Product 1${kitchen_list.kitchen_list_show_price == 1 ? '(RM6.90)' : '' }',
+            text: '${getTestPrintProductSKU(1, layout: kitchen_list)}Product 1${kitchen_list.kitchen_list_show_price == 1 ? '(RM6.90)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -854,7 +854,7 @@ class ReceiptLayout{
                   width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
           ),
           PosColumn(
-              text: 'Product 2${kitchen_list.kitchen_list_show_price == 1 ? '(RM9.90)' : '' }',
+              text: '${getTestPrintProductSKU(2, layout: kitchen_list)}Product 2${kitchen_list.kitchen_list_show_price == 1 ? '(RM9.90)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -889,7 +889,7 @@ class ReceiptLayout{
                   width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
           ),
           PosColumn(
-              text: 'Product 3${kitchen_list.kitchen_list_show_price == 1 ? '(RM15.90)' : '' }',
+              text: '${getTestPrintProductSKU(3, layout: kitchen_list)}Product 3${kitchen_list.kitchen_list_show_price == 1 ? '(RM15.90)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(

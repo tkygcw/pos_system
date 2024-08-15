@@ -467,7 +467,8 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         kitchen_list_show_price: kitchenListShowPrice == true ? 1: 0,
         print_combine_kitchen_list: printCombineKitchenList == true ? 1: 0,
         kitchen_list_item_separator: kitchenListItemSeparator == true ? 1: 0,
-        paper_size: kitchen_listView
+        paper_size: kitchen_listView,
+        show_product_sku: showSKU == true ? 1 : 0
     );
   }
 
