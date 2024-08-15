@@ -10,7 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
-import 'package:pos_system/fragment/setting/device_dialog.dart';
+import 'package:pos_system/fragment/setting/search_printer_dialog.dart';
 import 'package:pos_system/fragment/setting/printer_category_dialog.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/printer_link_category.dart';
@@ -1268,7 +1268,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: DeviceDialog(
+              child: SearchPrinterDialog(
                 callBack: addPrinterValue,
                 type: printerType,
               ),

@@ -192,12 +192,13 @@ class _HomePageState extends State<HomePage> {
                             isCollapsed: true,
                             items: _items,
                             avatarImg: AssetImage("drawable/logo.png"),
-                            title: widget.user!.name! + "\n" + (branchName ?? '') + " - " + AppLocalizations.of(context)!.translate(role.toLowerCase()),
+                            title: widget.user!.name! + "\n" + _truncateTitle((branchName ?? ''), 17) + "\n" + AppLocalizations.of(context)!.translate(role.toLowerCase()),
                             backgroundColor: color.backgroundColor,
                             selectedTextColor: color.iconColor,
                             textStyle: TextStyle(fontSize: 15, fontStyle: FontStyle.italic),
                             titleStyle: TextStyle(fontSize: 17, fontStyle: FontStyle.italic, fontWeight: FontWeight.bold),
                             toggleTitleStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            customItemOffsetX: 20,
                             selectedIconColor: color.iconColor,
                             selectedIconBox: color.buttonColor,
                             unselectedIconColor: Colors.white,
@@ -237,7 +238,7 @@ class _HomePageState extends State<HomePage> {
         onPressed: () => setState(() => currentPage = 'menu'),
         isSelected: currentPage == 'menu',
       ),
-      if (isLoad && _appSettingModel.table_order == true)
+      if (isLoad && _appSettingModel.table_order == 1)
         CollapsibleItem(
           text: AppLocalizations.of(context)!.translate('table'),
           icon: Icons.table_restaurant,
@@ -517,5 +518,12 @@ class _HomePageState extends State<HomePage> {
             );
           });
         });
+  }
+
+  String _truncateTitle(String title, int? maxLength) {
+    if (title.length > maxLength!) {
+      return title.substring(0, maxLength) + '...';
+    }
+    return title;
   }
 }

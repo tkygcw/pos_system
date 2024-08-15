@@ -33,9 +33,7 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
   late Stream actionStream;
   // List<AppSetting> appSettingList = [];
   Receipt? receiptObject;
-  bool printCheckList = false,
-      enableNumbering = false,
-      printReceipt = false;
+  bool printCheckList = false, enableNumbering = false, printReceipt = false, hasQrAccess = true, printCancelReceipt = true;
   int startingNumber = 0, compareStartingNumber = 0;
 
   @override
@@ -101,6 +99,12 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
         startingNumber = 0;
       }
       compareStartingNumber = startingNumber;
+
+      if(appSetting.print_cancel_receipt == 1){
+        printCancelReceipt = true;
+      } else {
+        printCancelReceipt = false;
+      }
     }
   }
 
@@ -324,6 +328,19 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                             ),
                           ),
                           ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('auto_print_cancel_receipt')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('auto_print_cancel_receipt_desc')),
+                            trailing: Switch(
+                              value: printCancelReceipt,
+                              activeColor: color.backgroundColor,
+                              onChanged: (value) async {
+                                printCancelReceipt = value;
+                                appSettingModel.setAutoPrintCancelReceiptStatus(value);
+                                await updatePrintCancelReceiptAppSetting();
+                              },
+                            ),
+                          ),
+                          ListTile(
                             title: Text(AppLocalizations.of(context)!.translate('order_numbering')),
                             subtitle: Text(AppLocalizations.of(context)!.translate('enable_order_numbering')),
                             trailing: Switch(
@@ -331,7 +348,7 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                               activeColor: color.backgroundColor,
                               onChanged: (value) async {
                                 if(!value) {
-                                  if(appSettingModel.table_order == false) {
+                                  if(appSettingModel.table_order != 1) {
                                     Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_enable_table_order_in_general_setting'));
                                   } else {
                                     enableNumbering = value;
@@ -376,6 +393,17 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
         );
       });
     });
+  }
+
+  updatePrintCancelReceiptAppSetting() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    AppSetting object = AppSetting(
+        print_cancel_receipt: printCancelReceipt == true ? 1 : 0,
+        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
+        updated_at: dateTime
+    );
+    int data = await PosDatabase.instance.updatePrintCancelReceiptSettings(object);
   }
 
   updateAppSetting() async {
