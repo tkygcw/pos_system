@@ -255,6 +255,13 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Visibility(
+                                      visible: appSettingModel.show_product_desc!,
+                                      child: Padding(
+                                        padding: EdgeInsets.only(bottom: 15.0),
+                                        child: Text(widget.productDetail!.description!),
+                                      ),
+                                    ),
+                                    Visibility(
                                       visible: widget.productDetail!.unit == 'each_c' ? true : false,
                                       child: Column(
                                         children: [
@@ -653,6 +660,13 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                 mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  Visibility(
+                                    visible: appSettingModel.show_product_desc!,
+                                    child: Padding(
+                                      padding: EdgeInsets.only(bottom: 15.0),
+                                      child: Text(widget.productDetail!.description!),
+                                    ),
+                                  ),
                                   Visibility(
                                     visible: widget.productDetail!.unit == 'each_c' ? true : false,
                                     child: Column(

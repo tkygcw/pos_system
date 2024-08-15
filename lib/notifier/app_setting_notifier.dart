@@ -12,8 +12,23 @@ class AppSettingModel extends ChangeNotifier {
   bool? enable_numbering;
   int? starting_number;
   bool? table_order;
+  bool? show_product_desc;
+  bool? autoPrintCancelReceipt;
+  int? product_sort_by;
 
-  AppSettingModel({this.directPaymentStatus, this.autoPrintChecklist, this.autoPrintReceipt, this.show_sku, this.qr_order_auto_accept, this.enable_numbering, this.starting_number, this.table_order});
+  AppSettingModel({
+    this.directPaymentStatus,
+    this.autoPrintChecklist,
+    this.autoPrintReceipt,
+    this.show_sku,
+    this.qr_order_auto_accept,
+    this.enable_numbering,
+    this.starting_number,
+    this.table_order,
+    this.show_product_desc,
+    this.autoPrintCancelReceipt,
+    this.product_sort_by
+  });
 
   void initialLoad() async {
     AppSetting? data = await PosDatabase.instance.readAppSetting();
@@ -26,6 +41,9 @@ class AppSettingModel extends ChangeNotifier {
       enable_numbering = data.enable_numbering == null || data.enable_numbering == 0 ? false : true;
       starting_number = data.starting_number != null || data.starting_number != 0 ? data.starting_number : 0;
       table_order = data.table_order == 0 ? false : true;
+      show_product_desc = data.show_product_desc == 0 ? false : true;
+      autoPrintCancelReceipt = data.print_cancel_receipt == 0 ? false : true;
+      product_sort_by = data.product_sort_by;
     }
   }
 
@@ -61,6 +79,21 @@ class AppSettingModel extends ChangeNotifier {
 
   void setTableOrderStatus(bool status) {
     table_order = status;
+    notifyListeners();
+  }
+
+  void setShowProductDescStatus(bool status) {
+    show_product_desc = status;
+    notifyListeners();
+  }
+
+  void setAutoPrintCancelReceiptStatus(bool status) {
+    autoPrintCancelReceipt = status;
+    notifyListeners();
+  }
+
+  void setProductSortByStatus(int status) {
+    product_sort_by = status;
     notifyListeners();
   }
 }

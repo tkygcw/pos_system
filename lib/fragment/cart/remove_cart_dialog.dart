@@ -7,6 +7,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/cart/adjust_quantity.dart';
 import 'package:pos_system/main.dart';
+import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
@@ -498,25 +499,27 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
   }
 
   callPrinter(String dateTime, CartModel cart) async {
-    int printStatus = await PrintReceipt().printDeleteList(printerList, widget.cartItem!.order_cache_sqlite_id!, dateTime);
-    if(printStatus == 1){
-      Fluttertoast.showToast(
-          backgroundColor: Colors.red,
-          msg: "${AppLocalizations.of(globalContext)?.translate('printer_not_connected')}");
-    } else if (printStatus == 2){
-      Fluttertoast.showToast(
-          backgroundColor: Colors.orangeAccent,
-          msg: "${AppLocalizations.of(globalContext)?.translate('printer_connection_timeout')}");
-    }
-    int kitchenPrintStatus = await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem!.order_cache_sqlite_id!, widget.cartItem!.category_sqlite_id!, dateTime, cart);
-    if(kitchenPrintStatus == 1){
-      Fluttertoast.showToast(
-          backgroundColor: Colors.red,
-          msg: "${AppLocalizations.of(globalContext)?.translate('printer_not_connected')}");
-    } else if (kitchenPrintStatus == 2){
-      Fluttertoast.showToast(
-          backgroundColor: Colors.orangeAccent,
-          msg: "${AppLocalizations.of(globalContext)?.translate('printer_connection_timeout')}");
+    if(AppSettingModel.instance.autoPrintCancelReceipt!){
+      int printStatus = await PrintReceipt().printCancelReceipt(printerList, widget.cartItem!.order_cache_sqlite_id!, dateTime);
+      if(printStatus == 1){
+        Fluttertoast.showToast(
+            backgroundColor: Colors.red,
+            msg: "${AppLocalizations.of(globalContext)?.translate('printer_not_connected')}");
+      } else if (printStatus == 2){
+        Fluttertoast.showToast(
+            backgroundColor: Colors.orangeAccent,
+            msg: "${AppLocalizations.of(globalContext)?.translate('printer_connection_timeout')}");
+      }
+      int kitchenPrintStatus = await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem!.order_cache_sqlite_id!, widget.cartItem!.category_sqlite_id!, dateTime, cart);
+      if(kitchenPrintStatus == 1){
+        Fluttertoast.showToast(
+            backgroundColor: Colors.red,
+            msg: "${AppLocalizations.of(globalContext)?.translate('printer_not_connected')}");
+      } else if (kitchenPrintStatus == 2){
+        Fluttertoast.showToast(
+            backgroundColor: Colors.orangeAccent,
+            msg: "${AppLocalizations.of(globalContext)?.translate('printer_connection_timeout')}");
+      }
     }
   }
 
