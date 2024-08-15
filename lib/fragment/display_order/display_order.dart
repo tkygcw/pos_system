@@ -6,9 +6,13 @@ import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
+import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/dining_option.dart';
 import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
+import 'package:pos_system/object/table.dart';
+import 'package:pos_system/object/table_use.dart';
+import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/page/loading_dialog.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
@@ -77,11 +81,22 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
     final String? user = prefs.getString('user');
     Map userObject = json.decode(user!);
     final int? branch_id = prefs.getInt('branch_id');
-    if (selectDiningOption == 'All') {
-      data = await PosDatabase.instance.readOrderCacheNoDineIn(branch_id.toString(), userObject['company_id']);
+    AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
+
+    if(localSetting!.table_order == 2) {
+      if (selectDiningOption == 'All') {
+        data = await PosDatabase.instance.readOrderCacheNoDineInAdvanced(branch_id.toString(), userObject['company_id']);
+      } else {
+        data = await PosDatabase.instance.readOrderCacheSpecial(selectDiningOption!);
+      }
     } else {
-      data = await PosDatabase.instance.readOrderCacheSpecial(selectDiningOption!);
+      if (selectDiningOption == 'All') {
+        data = await PosDatabase.instance.readOrderCacheNoDineIn(branch_id.toString(), userObject['company_id']);
+      } else {
+        data = await PosDatabase.instance.readOrderCacheSpecial(selectDiningOption!);
+      }
     }
+
     if(!mounted) return;
     setState(() {
       orderCacheList = data;
@@ -299,6 +314,11 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                                   cart.removePromotion();
                                   cart.removeCartItemBasedOnOrderCache(orderCacheList[index].order_cache_sqlite_id.toString());
                                 }
+                                List<TableUseDetail> tableUseDetailList = await PosDatabase.instance.readTableUseDetailByTableUseKey(orderCacheList[index].table_use_key!);
+                                for(int i = 0; i < tableUseDetailList.length; i++) {
+                                  List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableUseDetailList[i].table_sqlite_id!);
+                                  cart.removeSpecificTable(tableData[0]);
+                                }
                               }
                             } catch(e) {
                               Navigator.of(context).pop();
@@ -453,6 +473,19 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
         cart.selectedOption = 'Dine in';
       } else {
         cart.selectedOption = 'Delivery';
+      }
+    }
+
+    List<TableUseDetail> tableUseDetailList = await PosDatabase.instance.readTableUseDetailByTableUseKey(orderCache.table_use_key!);
+    print("tableUseDetailList.length: ${tableUseDetailList.length}");
+    for(int i = 0; i < tableUseDetailList.length; i++) {
+      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableUseDetailList[i].table_sqlite_id!);
+      if (cart.selectedTable.isNotEmpty) {
+        if (!cart.selectedTable.contains(tableData)) {
+          cart.addTable(tableData[0]);
+        }
+      } else {
+        cart.addTable(tableData[0]);
       }
     }
   }

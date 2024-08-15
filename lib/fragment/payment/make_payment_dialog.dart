@@ -454,7 +454,7 @@ class _MakePaymentState extends State<MakePayment> {
                                       margin: EdgeInsets.only(bottom: 20),
                                       alignment: Alignment.center,
                                       // child: Text(AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
-                                      child: Text(_appSettingModel.table_order != true ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
+                                      child: Text(_appSettingModel.table_order == 0 ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
                                           : AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
                                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
                                     ),
@@ -1244,7 +1244,7 @@ class _MakePaymentState extends State<MakePayment> {
                                   Container(
                                     alignment: Alignment.center,
                                     child: Text(
-                                        _appSettingModel.table_order != true ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
+                                        _appSettingModel.table_order == 0 ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
                                             : AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold,
