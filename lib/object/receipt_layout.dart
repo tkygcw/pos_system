@@ -1492,7 +1492,7 @@ class ReceiptLayout{
         //tax
         for(int t = 0; t < orderTaxList.length; t++){
           bytes += generator.row([
-            PosColumn(text: '${orderTaxList[t].tax_name}(${orderTaxList[t].rate}%)', width: 8, styles: PosStyles(align: PosAlign.right)),
+            PosColumn(text: '${orderTaxList[t].tax_name}(${orderTaxList[t].rate}%)', containsChinese: true, width: 8, styles: PosStyles(align: PosAlign.right)),
             PosColumn(text: '${orderTaxList[t].tax_amount}', width: 4, styles: PosStyles(align: PosAlign.right)),
           ]);
         }
@@ -1549,7 +1549,11 @@ class ReceiptLayout{
         bytes += generator.cut(mode: PosCutMode.partial);
         return bytes;
       } catch (e) {
-        print('layout error: ${e}');
+        FLog.error(
+          className: "receipt_layout",
+          text: "printReceipt80mm error",
+          exception: "$e",
+        );
         return null;
       }
     }
@@ -1750,7 +1754,7 @@ class ReceiptLayout{
         //tax
         for(int t = 0; t < orderTaxList.length; t++){
           bytes += generator.row([
-            PosColumn(text: '${orderTaxList[t].tax_name}(${orderTaxList[t].rate}%)', width: 8),
+            PosColumn(text: '${orderTaxList[t].tax_name}(${orderTaxList[t].rate}%)', containsChinese: true, width: 8),
             PosColumn(text: '${orderTaxList[t].tax_amount}', width: 4),
           ]);
         }
@@ -1809,7 +1813,11 @@ class ReceiptLayout{
         bytes += generator.cut(mode: PosCutMode.partial);
         return bytes;
       } catch (e) {
-        print(e);
+        FLog.error(
+          className: "receipt_layout",
+          text: "printReceipt58mm error",
+          exception: "$e",
+        );
         return null;
       }
     }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -12,23 +13,24 @@ import 'package:provider/provider.dart';
 import '../../notifier/theme_color.dart';
 import '../../translation/AppLocalizations.dart';
 
-class DeviceDialog extends StatefulWidget {
+class SearchPrinterDialog extends StatefulWidget {
   final int type;
   final Function(String value) callBack;
 
-  const DeviceDialog({Key? key, required this.type, required this.callBack}) : super(key: key);
+  const SearchPrinterDialog({Key? key, required this.type, required this.callBack}) : super(key: key);
 
   @override
-  State<DeviceDialog> createState() => _DeviceDialogState();
+  State<SearchPrinterDialog> createState() => _SearchPrinterDialogState();
 }
 
-class _DeviceDialogState extends State<DeviceDialog> {
+class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
+  StreamSubscription? streamSub;
   List<Map<String, dynamic>> devices = [];
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
-  String wifi = "";
   List<String> ips = [];
   double percentage = 0.0;
   bool isLoad = false, isButtonDisable = false;
+  String? wifiIP;
   Text? info;
 
   @override
@@ -44,6 +46,9 @@ class _DeviceDialogState extends State<DeviceDialog> {
   @override
   void dispose() {
     // TODO: implement dispose
+    if(streamSub != null){
+      streamSub!.cancel();
+    }
     super.dispose();
   }
 
@@ -89,7 +94,7 @@ class _DeviceDialogState extends State<DeviceDialog> {
     final scanner = LanScanner();
     ips = [];
 
-    var wifiIP = await NetworkInfo().getWifiIP();
+    wifiIP = await NetworkInfo().getWifiIP();
     var wifiName = await NetworkInfo().getWifiName();
     if(wifiIP == null) {
       List<NetworkInterface> interfaces = await NetworkInterface.list();
@@ -100,14 +105,14 @@ class _DeviceDialogState extends State<DeviceDialog> {
         }
       }
     }
-
-
+    if(wifiName == null){
+      wifiName = '"mobile data"';
+    }
     var subnet = ipToCSubnet(wifiIP!);
-
     final stream = scanner.icmpScan(subnet, progressCallback: (progress) {
-      if (this.mounted) {
+      if (mounted) {
         setState(() {
-          info = Text("${AppLocalizations.of(context)?.translate('scanning_device_within')} " + "$wifiName");
+          info = Text("${AppLocalizations.of(context)?.translate('scanning_device_within')} $wifiName\n${AppLocalizations.of(context)!.translate('device_ip')}: ${wifiIP}");
           percentage = progress;
           if (percentage == 1.0) {
             isLoad = true;
@@ -116,8 +121,10 @@ class _DeviceDialogState extends State<DeviceDialog> {
       }
     });
 
-    stream.listen((Host host) {
-      ips.add(host.internetAddress.address);
+    streamSub = stream.listen((Host host) {
+      if(wifiIP != host.internetAddress.address){
+        ips.add(host.internetAddress.address);
+      }
     });
   }
 
@@ -139,7 +146,13 @@ class _DeviceDialogState extends State<DeviceDialog> {
         return AlertDialog(
           insetPadding: EdgeInsets.all(0),
           actionsPadding: EdgeInsets.zero,
-          title: Text(AppLocalizations.of(context)!.translate('device_list')),
+          title: Row(
+            children: [
+              Text(AppLocalizations.of(context)!.translate('device_list')),
+              Spacer(),
+              Visibility(visible: widget.type != 0 && isLoad, child: Text(wifiIP.toString()))
+            ],
+          ),
           content: isLoad
               ? SizedBox(
                   height: MediaQuery.of(context).size.height / 2.5,
@@ -173,9 +186,10 @@ class _DeviceDialogState extends State<DeviceDialog> {
                             );
                           }))
               : CircularPercentIndicator(
+                  addAutomaticKeepAlive: false,
                   footer: Container(margin: EdgeInsets.only(top: 10), child: info),
                   circularStrokeCap: CircularStrokeCap.round,
-                  radius: 90.0,
+                  radius: 80.0,
                   lineWidth: 10.0,
                   percent: percentage,
                   center: Text(

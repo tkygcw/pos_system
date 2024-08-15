@@ -327,7 +327,8 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   }
 
   sortProduct(List<Product> list){
-    list.sort((a, b) {
+    List<Product> hasSequenceProduct = list.where((e) => e.sequence_number != null && e.sequence_number != '').toList();
+    hasSequenceProduct.sort((a, b) {
       final aNumber = a.sequence_number!;
       final bNumber = b.sequence_number!;
 
@@ -345,7 +346,57 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
         return compareNatural(aNumber, bNumber);
       }
     });
-    return list;
+    list.removeWhere((e) => e.sequence_number != null && e.sequence_number != '');
+    List<Product> sortedList2 = getSortedList(list);
+    return hasSequenceProduct + sortedList2;
+  }
+
+  List<Product> getSortedList(List<Product> noSequenceProduct){
+    print('product sort by: ${AppSettingModel.instance.product_sort_by}');
+    switch(AppSettingModel.instance.product_sort_by){
+      case 1 :{
+        return sortByProductName(noSequenceProduct);
+      }
+      case 2: {
+        return sortByProductSKU(noSequenceProduct);
+      }
+      case 3: {
+        return sortByProductPrice(noSequenceProduct);
+      }
+      case 4: {
+        return sortByProductName(noSequenceProduct, isDESC: true);
+      }
+      case 5: {
+        return sortByProductSKU(noSequenceProduct, isDESC: true);
+      }
+      case 6: {
+        return sortByProductPrice(noSequenceProduct, isDESC: true);
+      }
+      default: {
+        return noSequenceProduct;
+      }
+    }
+  }
+
+  sortByProductName(List<Product> sortedList, {isDESC}){
+    sortedList.sort((a, b){
+      return compareNatural(a.name!, b.name!);
+    });
+    return isDESC == null ? sortedList : sortedList.reversed.toList();
+  }
+
+  sortByProductSKU(List<Product> sortedList, {bool? isDESC}){
+    sortedList.sort((a, b){
+      return compareNatural(a.SKU!, b.SKU!);
+    });
+    return isDESC == null ? sortedList : sortedList.reversed.toList();
+  }
+
+  sortByProductPrice(List<Product> sortedList, {bool? isDESC}){
+    sortedList.sort((a, b){
+      return compareNatural(a.price!, b.price!);
+    });
+    return isDESC == null ? sortedList : sortedList.reversed.toList();
   }
 
   getPreferences() async {
