@@ -2767,7 +2767,7 @@ class PosDatabase {
   Future<List<BranchLinkDining>> readBranchLinkDiningOption(String branch_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.name FROM $tableBranchLinkDining AS a JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_id = ?',
+        'SELECT a.*, b.name FROM $tableBranchLinkDining AS a JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_id = ? ORDER BY a.dining_id',
         ['', '', branch_id]);
 
     return result.map((json) => BranchLinkDining.fromJson(json)).toList();
@@ -3380,6 +3380,27 @@ class PosDatabase {
           'WHERE a.order_key = ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
           'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.table_use_key = ? ORDER BY a.created_at DESC  ',
           ['', '', '', branch_id, company_id, 0, '', '']);
+
+      return result.map((json) => OrderCache.fromJson(json)).toList();
+    } catch (e) {
+      print(e);
+      return [];
+    }
+  }
+
+  /*
+  get all order cache except dine in (for no table with table note)
+*/
+  Future<List<OrderCache>> readOrderCacheNoDineInAdvanced(String branch_id, String company_id) async {
+    try {
+      final db = await instance.database;
+      final result = await db.rawQuery(
+          'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, a.table_use_key, a.batch_id, a.order_sqlite_id, a.order_key, '
+              'a.order_by, a.total_amount, a.customer_id, a.created_at, a.updated_at, a.soft_delete, b.name AS name '
+              'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
+              'WHERE a.order_key = ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
+              'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? ORDER BY a.created_at DESC  ',
+          ['', '', '', branch_id, company_id, 0, '']);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {

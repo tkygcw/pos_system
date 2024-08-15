@@ -58,7 +58,7 @@ class CartModel extends ChangeNotifier {
     final int? branch_id = prefs.getInt('branch_id');
     List<BranchLinkDining> data = await PosDatabase.instance.readBranchLinkDiningOption(branch_id!.toString());
 
-    if (data.length == 3) {
+    if (data.any((item) => item.name == 'Dine in')) {
       selectedOption = 'Dine in';
     } else {
       selectedOption = "Take Away";
