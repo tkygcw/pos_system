@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ class SearchPrinterDialog extends StatefulWidget {
 }
 
 class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
+  StreamSubscription? streamSub;
   List<Map<String, dynamic>> devices = [];
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   List<String> ips = [];
@@ -44,6 +46,9 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
   @override
   void dispose() {
     // TODO: implement dispose
+    if(streamSub != null){
+      streamSub!.cancel();
+    }
     super.dispose();
   }
 
@@ -116,8 +121,10 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
       }
     });
 
-    stream.listen((Host host) {
-      ips.add(host.internetAddress.address);
+    streamSub = stream.listen((Host host) {
+      if(wifiIP != host.internetAddress.address){
+        ips.add(host.internetAddress.address);
+      }
     });
   }
 
@@ -143,7 +150,7 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
             children: [
               Text(AppLocalizations.of(context)!.translate('device_list')),
               Spacer(),
-              Visibility(visible: isLoad, child: Text(wifiIP!))
+              Visibility(visible: widget.type != 0 && isLoad, child: Text(wifiIP.toString()))
             ],
           ),
           content: isLoad
@@ -179,6 +186,7 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
                             );
                           }))
               : CircularPercentIndicator(
+                  addAutomaticKeepAlive: false,
                   footer: Container(margin: EdgeInsets.only(top: 10), child: info),
                   circularStrokeCap: CircularStrokeCap.round,
                   radius: 80.0,
