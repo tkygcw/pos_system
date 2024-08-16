@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
 import 'package:pos_system/object/receipt.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
@@ -40,6 +41,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   String? footerDir;
   String headerText = '';
   String footerTextString = '';
+  String branchImgPath = '';
   ReceiptDialogEnum? headerFontSize;
   String? emailAddress;
   bool isLoad = false, isButtonDisabled = false;
@@ -56,6 +58,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   bool isLogOut = false;
   bool showSKU = false;
   bool showBranchTel = true;
+  bool showBranchLogo = false;
   Map? branchObject;
   double? fontSize;
   Receipt? testReceipt;
@@ -135,7 +138,8 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   //   }
   // }
 
-  initialData(Receipt data){
+  initialData(Receipt data) async {
+    branchImgPath = await ReceiptLayout().getBranchLogoImagePath();
     receipt = data;
     receipt.header_image_status == 1 ? this.logoImage = true  : this.logoImage = false;
     receipt.footer_image_status == 1 ? this.footerImage = true  : this.footerImage = false;
@@ -154,6 +158,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     receipt.header_font_size == 0 ? fontSize = 30.0 : fontSize = 12.0;
     receipt.show_product_sku == 0 ? showSKU = false : showSKU = true;
     receipt.show_branch_tel == 0 ? showBranchTel = false : showBranchTel = true;
+    receipt.show_branch_image == 0 ? showBranchLogo = false : showBranchLogo = true;
   }
 
   getSharePreferences() async {
@@ -166,6 +171,10 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     if(branchObject!['address'] == '' && showAddress){
       showAddress = false;
     }
+    if(branchObject!['logo'] == '' && showBranchLogo){
+      showBranchLogo = false;
+    }
+
     isLoad = true;
   }
 
@@ -562,13 +571,13 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Visibility(
-                    visible: logoImage ? true : false,
+                    visible: showBranchLogo,
                     child: Center(
-                      child: CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.black,
-                        child: Text(AppLocalizations.of(context)!.translate('logo')),
-                      ),
+                      child: Container(
+                        height: 200,
+                        width: 200,
+                        decoration: BoxDecoration(image: DecorationImage(image: FileImage(File(branchImgPath)), fit: BoxFit.cover)),
+                      )
                     )
                 ),
                 Visibility(
@@ -854,6 +863,27 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
         flex: 1,
         child: Column(
           children: [
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text('show branch logo', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Switch(
+                    value: showBranchLogo,
+                    activeColor: color.backgroundColor,
+                    onChanged: (bool value){
+                      if(branchObject!['logo'] != ''){
+                        setState(() {
+                          showBranchLogo = value;
+                        });
+                      } else {
+                        Fluttertoast.showToast(msg: 'No branch logo added');
+                      }
+                    })
+              ],
+            ),
             Row(
               children: [
                 Container(

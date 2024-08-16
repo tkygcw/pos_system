@@ -73,7 +73,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 20, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 21, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -290,6 +290,10 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_tel} $integerType DEFAULT 1");
           await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_product_sku} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
+        }break;
+        case 20: {
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.logo} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_image} $integerType DEFAULT 0");
         }break;
       }
     }
@@ -688,7 +692,8 @@ class PosDatabase {
            ${BranchFields.notification_token} $textType,
            ${BranchFields.qr_order_status} $textType,
            ${BranchFields.sub_pos_status} $integerType,
-           ${BranchFields.attendance_status} $integerType)''');
+           ${BranchFields.attendance_status} $integerType,
+           ${BranchFields.logo} $textType)''');
 
 /*
     create app color table
@@ -818,6 +823,7 @@ class PosDatabase {
           ${ReceiptFields.status} $integerType,
           ${ReceiptFields.show_product_sku} $integerType,
           ${ReceiptFields.show_branch_tel} $integerType,
+          ${ReceiptFields.show_branch_image} $integerType,
           ${ReceiptFields.sync_status} $integerType,
           ${ReceiptFields.created_at} $textType,
           ${ReceiptFields.updated_at} $textType,
@@ -1997,16 +2003,17 @@ class PosDatabase {
   Future<Receipt> insertReceipt(Receipt data) async {
     final db = await instance.database;
     final id = db.rawInsert(
-        'INSERT INTO $tableReceipt(soft_delete, updated_at, created_at, sync_status, show_branch_tel, '
+        'INSERT INTO $tableReceipt(soft_delete, updated_at, created_at, sync_status, show_branch_image, show_branch_tel, '
         'show_product_sku, header_font_size, status, paper_size, promotion_detail_status, '
         'footer_text_status, footer_text, footer_image_status, footer_image, receipt_email, show_email, show_address, '
         'header_text_status, header_text, header_image_status, header_image, branch_id, receipt_key, receipt_id) '
-            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.soft_delete,
           data.updated_at,
           data.created_at,
           data.sync_status,
+          0,//show branch img
           data.show_branch_tel,
           data.show_product_sku,
           data.header_font_size,

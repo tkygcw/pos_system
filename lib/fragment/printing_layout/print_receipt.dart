@@ -7,6 +7,7 @@ import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:pos_system/fragment/printing_layout/test_print/bill/layout.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/checklist.dart';
 import 'package:pos_system/object/kitchen_list.dart';
@@ -271,7 +272,7 @@ class PrintReceipt{
         if (cashierPrinter[i].type == 0) {
           if (paperSize == '80') {
             //print 80mm
-            var data = Uint8List.fromList(await ReceiptLayout().printTestReceipt80mm(true, receipt));
+            var data = Uint8List.fromList(await ReceiptTestPrintLayout().printTestReceipt80mm(true, receipt));
             bool? isConnected = await flutterUsbPrinter.connect(
                 int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
             if (isConnected == true) {
@@ -284,7 +285,7 @@ class PrintReceipt{
           } else {
             //print 58mm
             var data = Uint8List.fromList(
-                await ReceiptLayout().printTestReceipt58mm(true, receipt));
+                await ReceiptTestPrintLayout().printTestReceipt58mm(true, receipt));
             bool? isConnected = await flutterUsbPrinter.connect(
                 int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
             if (isConnected == true) {
@@ -303,7 +304,7 @@ class PrintReceipt{
             final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
 
             if (res == PosPrintResult.success) {
-              await ReceiptLayout().printTestReceipt80mm(false, receipt, value: printer);
+              await ReceiptTestPrintLayout().printTestReceipt80mm(false, receipt, value: printer);
               printer.disconnect();
             } else {
               Fluttertoast.showToast(
@@ -317,7 +318,7 @@ class PrintReceipt{
             final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
 
             if (res == PosPrintResult.success) {
-              await ReceiptLayout().printTestReceipt58mm(false, receipt, value: printer);
+              await ReceiptTestPrintLayout().printTestReceipt58mm(false, receipt, value: printer);
               printer.disconnect();
             } else {
               Fluttertoast.showToast(

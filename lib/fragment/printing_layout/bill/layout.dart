@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:image/image.dart' as img;
+import 'package:flutter/services.dart';
 import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
@@ -26,9 +28,10 @@ class BillLayout extends ReceiptLayout{
       await callOrderTaxPromoDetail();
       await callPaidOrderDetail(orderId);
     }
-    // final ByteData data = await rootBundle.load('drawable/logo2.png');
-    // final Uint8List bytes = data.buffer.asUint8List();
-    // final decodedImage = img.decodeImage(bytes);
+    final ByteData data = await rootBundle.load('drawable/duitNow_3.jpg');
+    final Uint8List imgBytes = data.buffer.asUint8List();
+    final branchImg = img.decodeImage(imgBytes)!;
+    print("root image: $branchImg ");
     var generator;
     if (isUSB) {
       final profile = await CapabilityProfile.load();
@@ -39,7 +42,7 @@ class BillLayout extends ReceiptLayout{
 
     List<int> bytes = [];
     try {
-      //bytes += generator.image(decodedImage);
+      bytes += generator.image(branchImg);
       bytes += generator.reset();
       if(paidOrder!.payment_status == 2) {
         bytes += generator.text('** Refund **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));

@@ -123,6 +123,7 @@ class _LoadingPageState extends State<LoadingPage> {
       await getTransferOwner();
       await clearCloudSyncRecord();
       await getAllReceipt();
+      await _createBranchLogoFolder();
     } catch(e) {
       Navigator.of(context).pushAndRemoveUntil(
         // the new route
@@ -462,6 +463,7 @@ createReceiptLayout80() async {
         status: 1,
         show_product_sku: 0,
         show_branch_tel: 1,
+        show_branch_image: 0,
         sync_status: 0,
         created_at: dateTime,
         updated_at: '',
@@ -550,6 +552,7 @@ createReceiptLayout58() async {
         status: 1,
         show_product_sku: 0,
         show_branch_tel: 1,
+        show_branch_image: 0,
         sync_status: 0,
         created_at: dateTime,
         updated_at: '',
@@ -2654,6 +2657,53 @@ downloadBannerImage(String path) async {
     FLog.error(
       className: "loading",
       text: "downloadBannerImage error",
+      exception: e,
+    );
+  }
+}
+
+_createBranchLogoFolder() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final folderName = 'branch';
+    final directory = await _localPath;
+    final path = '$directory/assets/$folderName';
+    final pathImg = Directory(path);
+    pathImg.create();
+    await prefs.setString('branch_path', path);
+    await downloadBranchLogo(pathImg.path);
+  } catch(e) {
+    FLog.error(
+      className: "loading",
+      text: " error",
+      exception: e,
+    );
+  }
+}
+
+/*
+  download branch logo
+*/
+downloadBranchLogo(String path) async {
+  try{
+    final prefs = await SharedPreferences.getInstance();
+    final String? user = prefs.getString('user');
+    final String? branch = prefs.getString('branch');
+    Map userObject = json.decode(user!);
+    Map branchObject = json.decode(branch!);
+    String imgName = branchObject['logo'];
+    if(imgName != ''){
+      final url = '${Domain.backend_domain}api/logo/' + userObject['company_id'] + '/' + imgName;
+      final response = await http.get(Uri.parse(url));
+      var localPath = path + '/' + imgName;
+      final imageFile = File(localPath);
+      await imageFile.writeAsBytes(response.bodyBytes);
+    }
+  } catch(e){
+    print("download branch logo error: ${e}");
+    FLog.error(
+      className: "loading",
+      text: "download branch logo error",
       exception: e,
     );
   }
