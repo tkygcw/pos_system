@@ -122,6 +122,38 @@ class ReceiptLayout{
     return totalPromotion.toStringAsFixed(2);
   }
 
+  String getReceiptProductName(OrderDetail orderDetail){
+    if(receipt!.show_product_sku == 1 && orderDetail.product_sku != ''){
+      return '${orderDetail.product_sku} ${orderDetail.productName}';
+    } else {
+      return orderDetail.productName!;
+    }
+  }
+
+  String getPreviewReceiptProductName(cartProductItem cartItem){
+    if(receipt!.show_product_sku == 1 && cartItem.product_sku != ''){
+      return '${cartItem.product_sku} ${cartItem.product_name}';
+    } else {
+      return cartItem.product_name!;
+    }
+  }
+
+  String getOrderDetailSKU(OrderDetail orderDetail, {layout}){
+    if(layout.show_product_sku == 1 && orderDetail.product_sku != ''){
+      return '${orderDetail.product_sku!} ';
+    } else {
+      return '';
+    }
+  }
+
+  String getCartProductSKU(cartProductItem cartItem, {layout}){
+    if(layout.show_product_sku == 1 && cartItem.product_sku != ''){
+      return '${cartItem.product_sku!} ';
+    } else {
+      return '';
+    }
+  }
+
 
 /*
   ----------------Receipt layout part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1318,38 +1350,6 @@ class ReceiptLayout{
         print('test print receipt error: $e');
         return null;
       }
-    }
-  }
-
-  String getReceiptProductName(OrderDetail orderDetail){
-    if(receipt!.show_product_sku == 1){
-      return '${orderDetail.product_sku} ${orderDetail.productName}';
-    } else {
-      return orderDetail.productName!;
-    }
-  }
-
-  String getPreviewReceiptProductName(cartProductItem cartItem){
-    if(receipt!.show_product_sku == 1){
-      return '${cartItem.product_sku} ${cartItem.product_name}';
-    } else {
-      return cartItem.product_name!;
-    }
-  }
-
-  String getOrderDetailSKU(OrderDetail orderDetail, {layout}){
-    if(layout.show_product_sku == 1){
-      return '${orderDetail.product_sku!} ';
-    } else {
-      return '';
-    }
-  }
-
-  String getCartProductSKU(cartProductItem cartItem, {layout}){
-    if(layout.show_product_sku == 1){
-      return '${cartItem.product_sku!} ';
-    } else {
-      return '';
     }
   }
 
