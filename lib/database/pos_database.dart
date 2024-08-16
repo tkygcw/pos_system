@@ -74,7 +74,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 19, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 20, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -273,7 +273,7 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
         }break;
-        case 18: {
+        case 19: {
           await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
           ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
           ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
