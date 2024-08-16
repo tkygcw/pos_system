@@ -234,6 +234,8 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
+          //new 19
+          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
         }break;
         case 16: {
           await db.execute('''CREATE TABLE $tableAttendance(
@@ -257,6 +259,8 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
+          //new 19
+          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
         }break;
         case 17: {
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
@@ -266,11 +270,15 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
+          //new 19
+          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
         }break;
         case 18: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
+          //new 19
+          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
         }break;
         case 19: {
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
