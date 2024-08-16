@@ -3011,7 +3011,7 @@ class CartPageState extends State<CartPage> {
       List<OrderCache> orderCacheData = await PosDatabase.instance.readAllNotDineInOrderCache();
       // not yet make settlement
       if(orderList.isNotEmpty) {
-        if(localSetting.table_order == 1) {
+        if(localSetting.table_order != 0) {
           if(orderData.isNotEmpty) {
             if(orderData[0].settlement_key! == '') {
               if(int.tryParse(orderCacheData[0].order_queue!) == null || int.parse(orderCacheData[0].order_queue!) >= 9999) {
@@ -3046,7 +3046,7 @@ class CartPageState extends State<CartPage> {
           }
         }
       } else {
-        if(localSetting.table_order == 1) {
+        if(localSetting.table_order != 0) {
           if(orderCacheData.isNotEmpty && orderCacheData[0].order_key == '') {
             orderQueue = int.parse(orderCacheData[0].order_queue!) + 1;
           } else {

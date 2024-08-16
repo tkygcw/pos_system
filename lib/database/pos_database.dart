@@ -73,7 +73,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 19, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 20, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -271,6 +271,9 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
+        }break;
+        case 19: {
+          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
         }break;
       }
     }
@@ -922,6 +925,7 @@ class PosDatabase {
           ${SettlementFields.settlement_by} $textType,
           ${SettlementFields.status} $integerType,
           ${SettlementFields.sync_status} $integerType,
+          ${SettlementFields.opened_at} $textType,
           ${SettlementFields.created_at} $textType,
           ${SettlementFields.updated_at} $textType,
           ${SettlementFields.soft_delete} $textType)''');
@@ -2136,8 +2140,8 @@ class PosDatabase {
     final id = db.rawInsert(
         'INSERT INTO $tableSettlement(settlement_id, settlement_key, company_id, branch_id, total_bill, '
         'total_sales, total_refund_bill, total_refund_amount, total_discount, total_cancellation, total_tax, '
-        'settlement_by_user_id, settlement_by, status, sync_status, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?, ?, ?, ?)',
+        'settlement_by_user_id, settlement_by, status, sync_status, opened_at, created_at, updated_at, soft_delete) '
+        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?, ?, ?, ?, ?)',
         [
           data.settlement_id,
           data.settlement_key,
@@ -2154,6 +2158,7 @@ class PosDatabase {
           data.settlement_by,
           data.status,
           data.sync_status,
+          data.opened_at,
           data.created_at,
           data.updated_at,
           data.soft_delete
@@ -3395,12 +3400,13 @@ class PosDatabase {
     try {
       final db = await instance.database;
       final result = await db.rawQuery(
-          'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, a.table_use_key, a.batch_id, a.order_sqlite_id, a.order_key, '
-              'a.order_by, a.total_amount, a.customer_id, a.created_at, a.updated_at, a.soft_delete, b.name AS name '
-              'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
-              'WHERE a.order_key = ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
+          'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
+              'a.table_use_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
+              'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a '
+              'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
+              'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
               'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? ORDER BY a.created_at DESC  ',
-          ['', '', '', branch_id, company_id, 0, '']);
+          ['1', '', '', branch_id, company_id, 0, '']);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {
@@ -3422,6 +3428,27 @@ class PosDatabase {
           'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
           'WHERE a.order_key = ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ? AND a.table_use_key = ?',
           ['', '', '', '', name, '']);
+
+      return result.map((json) => OrderCache.fromJson(json)).toList();
+    } catch (e) {
+      print(e);
+      return [];
+    }
+  }
+
+  /*
+  get order cache for different dine in option (for no table with table note)
+*/
+  Future<List<OrderCache>> readOrderCacheSpecialAdvanced(String name) async {
+    try {
+      final db = await instance.database;
+      final result = await db.rawQuery(
+          'SELECT a.order_cache_sqlite_id, a.order_queue, a.order_detail_id, a.dining_id, a.table_use_sqlite_id, a.table_use_key, a.batch_id, a.dining_id, '
+              'a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, '
+              'a.created_at, a.updated_at, a.soft_delete, b.name AS name '
+              'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
+              'WHERE a.order_key = ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ?',
+          ['', '', '', '', name]);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {
@@ -3878,6 +3905,19 @@ class PosDatabase {
   Future<CashRecord?> readSpecificCashRecordByRemark(String remark) async {
     final db = await instance.database;
     final result = await db.rawQuery('SELECT * FROM $tableCashRecord WHERE remark = ? AND soft_delete = ? ', [remark, '']);
+    if (result.isNotEmpty) {
+      return CashRecord.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific not settlement opening balance cash record
+*/
+  Future<CashRecord?> readLatestOpeningBalanceByRemark() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableCashRecord WHERE remark = ? AND settlement_key = ? AND soft_delete = ? ', ['Opening Balance', '', '']);
     if (result.isNotEmpty) {
       return CashRecord.fromJson(result.first);
     } else {
