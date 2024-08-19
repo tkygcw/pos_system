@@ -56,6 +56,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
   double totalSales = 0.0,
       totalRefundAmount = 0.0,
       totalPromotionAmount = 0.0,
+      totalCharge = 0.0,
       totalTax = 0.0;
   int totalBill = 0, totalRefundBill = 0, totalCancelItem = 0;
   List<Order> dateOrderList = [], dateRefundList = [], orderList = [];
@@ -508,8 +509,8 @@ class _SettlementDialogState extends State<SettlementDialog> {
         //totalPromotionAmount.toStringAsFixed(2),
         total_cancellation: this.totalCancelItem.toString(),
         //dateOrderDetailCancel[0].total_item != null ? dateOrderDetailCancel[0].total_item.toString() : '0',
+        total_charge: this.totalCharge.toStringAsFixed(2),
         total_tax: this.totalTax.toStringAsFixed(2),
-        //totalTax.toStringAsFixed(2),
         settlement_by_user_id: userObject['user_id'].toString(),
         settlement_by: userObject['name'].toString(),
         status: 0,
@@ -800,6 +801,8 @@ class _SettlementDialogState extends State<SettlementDialog> {
         await PosDatabase.instance.readAllNotSettlementPaidOrder();
     List<Order> refundData =
         await PosDatabase.instance.readAllNotSettlementRefundedOrder();
+    List<OrderTaxDetail> orderCharge =
+        await PosDatabase.instance.readAllNotSettlementOrderTaxDetailCharge();
     List<OrderTaxDetail> orderTax =
         await PosDatabase.instance.readAllNotSettlementOrderTaxDetail();
     List<OrderPromotionDetail> orderPromotion =
@@ -815,6 +818,9 @@ class _SettlementDialogState extends State<SettlementDialog> {
     if (refundData.isNotEmpty) {
       this.totalRefundBill = refundData.length;
       this.totalRefundAmount = refundData[0].gross_sales!;
+    }
+    if (orderCharge.isNotEmpty) {
+      this.totalCharge = orderCharge[0].total_charge_amount!;
     }
     if (orderTax.isNotEmpty) {
       this.totalTax = orderTax[0].total_tax_amount!;

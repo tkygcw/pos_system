@@ -1814,6 +1814,7 @@ class _MakePaymentState extends State<MakePayment> {
                 order_id: '0',
                 order_key: orderKey,
                 tax_name: taxList[i].name,
+                type: taxList[i].type,
                 rate: taxList[i].tax_rate,
                 tax_id: taxList[i].tax_id.toString(),
                 branch_link_tax_id:

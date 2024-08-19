@@ -283,6 +283,11 @@ class PosDatabase {
         case 19: {
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
         }break;
+        case 20: {
+          await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.type} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
+        }break;
       }
     }
   }
@@ -598,7 +603,7 @@ class PosDatabase {
     create tax table
 */
     await db.execute('''CREATE TABLE $tableTax ( ${TaxFields.tax_id} $idType, ${TaxFields.company_id} $textType,${TaxFields.name} $textType,
-           ${TaxFields.tax_rate} $textType,${TaxFields.created_at} $textType,${TaxFields.updated_at} $textType, 
+           ${TaxFields.type} $integerType, ${TaxFields.tax_rate} $textType,${TaxFields.created_at} $textType,${TaxFields.updated_at} $textType, 
            ${TaxFields.soft_delete} $textType)''');
 /*
     create tax link dining table
@@ -845,6 +850,7 @@ class PosDatabase {
           ${OrderTaxDetailFields.order_id} $textType,
           ${OrderTaxDetailFields.order_key} $textType,
           ${OrderTaxDetailFields.tax_name} $textType,
+          ${OrderTaxDetailFields.type} $integerType,
           ${OrderTaxDetailFields.rate} $textType,
           ${OrderTaxDetailFields.tax_id} $textType,
           ${OrderTaxDetailFields.branch_link_tax_id} $textType,
@@ -928,6 +934,7 @@ class PosDatabase {
           ${SettlementFields.total_refund_amount} $textType,
           ${SettlementFields.total_discount} $textType,
           ${SettlementFields.total_cancellation} $textType,
+          ${SettlementFields.total_charge} $textType, 
           ${SettlementFields.total_tax} $textType, 
           ${SettlementFields.settlement_by_user_id} $textType,
           ${SettlementFields.settlement_by} $textType,
@@ -1605,8 +1612,8 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableOrderTaxDetail(order_tax_detail_id, order_tax_detail_key, order_sqlite_id,  '
-        'order_id, order_key, tax_name, rate, tax_id, branch_link_tax_id, tax_amount, sync_status, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?)',
+        'order_id, order_key, tax_name, type, rate, tax_id, branch_link_tax_id, tax_amount, sync_status, created_at, updated_at, soft_delete) '
+        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?)',
         [
           data.order_tax_detail_id,
           data.order_tax_detail_key,
@@ -1614,6 +1621,7 @@ class PosDatabase {
           data.order_id,
           data.order_key,
           data.tax_name,
+          data.type,
           data.rate,
           data.tax_id,
           data.branch_link_tax_id,
@@ -2147,9 +2155,9 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableSettlement(settlement_id, settlement_key, company_id, branch_id, total_bill, '
-        'total_sales, total_refund_bill, total_refund_amount, total_discount, total_cancellation, total_tax, '
+        'total_sales, total_charge, total_refund_bill, total_refund_amount, total_discount, total_cancellation, total_tax, '
         'settlement_by_user_id, settlement_by, status, sync_status, opened_at, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?, ?, ?, ?, ?)',
+        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?, ?, ?, ?, ?)',
         [
           data.settlement_id,
           data.settlement_key,
@@ -2161,6 +2169,7 @@ class PosDatabase {
           data.total_refund_amount,
           data.total_discount,
           data.total_cancellation,
+          data.total_charge,
           data.total_tax,
           data.settlement_by_user_id,
           data.settlement_by,
@@ -4286,7 +4295,7 @@ class PosDatabase {
     final result = await db.rawQuery(
         'SELECT *, SUM(total_bill) AS all_bill, SUM(total_sales) AS all_sales, SUM(total_refund_bill) AS all_refund_bill, '
         'SUM(total_refund_amount) AS all_refund_amount, SUM(total_discount) AS all_discount, '
-        'SUM(total_tax) AS all_tax_amount, SUM(total_cancellation) AS all_cancellation '
+        'SUM(total_tax) AS all_tax_amount, SUM(total_cancellation) AS all_cancellation, SUM(total_charge) AS all_charge_amount '
         'FROM $tableSettlement WHERE soft_delete = ? AND status = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ? GROUP BY SUBSTR(created_at, 1, 10) ORDER BY SUBSTR(created_at, 1, 10) DESC ',
         ['', 0, date1, date2]);
     return result.map((json) => Settlement.fromJson(json)).toList();
@@ -4300,7 +4309,7 @@ class PosDatabase {
     final result = await db.rawQuery(
         'SELECT a.*, SUM(total_bill) AS all_bill, SUM(total_sales) AS all_sales, SUM(total_refund_bill) AS all_refund_bill, '
             'SUM(total_refund_amount) AS all_refund_amount, SUM(total_discount) AS all_discount, '
-            'SUM(total_tax) AS all_tax_amount, SUM(total_cancellation) AS all_cancellation '
+            'SUM(total_tax) AS all_tax_amount, SUM(total_cancellation) AS all_cancellation, SUM(total_charge) AS all_charge_amount '
             'FROM $tableSettlement AS a JOIN $tableCashRecord AS b ON b.settlement_key = a.settlement_key AND b.remark = ?'
             'WHERE a.soft_delete = ? AND a.status = ? AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? GROUP BY SUBSTR(b.created_at, 1, 10) ORDER BY SUBSTR(b.created_at, 1, 10) DESC ',
         ['Opening Balance', '', 0, date1, date2]);
@@ -5137,16 +5146,29 @@ class PosDatabase {
     return result.map((json) => OrderPromotionDetail.fromJson(json)).toList();
   }
 
+  /*
+  get settlement order tax detail
+*/
+  Future<List<OrderTaxDetail>> readAllNotSettlementOrderTaxDetailCharge() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT c.*, (SELECT SUM(a.tax_amount + 0.0) FROM $tableOrderTaxDetail AS a JOIN $tableOrder AS b ON a.order_key = b.order_key WHERE b.settlement_key = ? AND b.refund_key = ? AND a.type = ?) AS total_charge_amount '
+            'FROM $tableOrderTaxDetail AS c JOIN $tableOrder AS d ON c.order_key = d.order_key '
+            'WHERE c.soft_delete = ? AND d.soft_delete = ? AND d.settlement_key = ? AND d.refund_key = ?',
+        ['', '', 0, '', '', '', '']);
+    return result.map((json) => OrderTaxDetail.fromJson(json)).toList();
+  }
+
 /*
   get settlement order tax detail
 */
   Future<List<OrderTaxDetail>> readAllNotSettlementOrderTaxDetail() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT c.*, (SELECT SUM(a.tax_amount + 0.0) FROM $tableOrderTaxDetail AS a JOIN $tableOrder AS b ON a.order_key = b.order_key WHERE b.settlement_key = ? AND b.refund_key = ?) AS total_tax_amount '
+        'SELECT c.*, (SELECT SUM(a.tax_amount + 0.0) FROM $tableOrderTaxDetail AS a JOIN $tableOrder AS b ON a.order_key = b.order_key WHERE b.settlement_key = ? AND b.refund_key = ? AND a.type = ?) AS total_tax_amount '
         'FROM $tableOrderTaxDetail AS c JOIN $tableOrder AS d ON c.order_key = d.order_key '
-        'WHERE c.soft_delete = ? AND d.soft_delete = ? AND d.settlement_key = ? AND d.refund_key = ? ',
-        ['', '', '', '', '', '']);
+        'WHERE c.soft_delete = ? AND d.soft_delete = ? AND d.settlement_key = ? AND d.refund_key = ?',
+        ['', '', 1, '', '', '', '']);
     return result.map((json) => OrderTaxDetail.fromJson(json)).toList();
   }
 
@@ -5818,8 +5840,8 @@ class PosDatabase {
 */
   Future<int> updateTax(Tax data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableTax SET company_id = ?, name = ?, tax_rate = ?, updated_at = ?, soft_delete = ? WHERE tax_id = ?',
-        [data.company_id, data.name, data.tax_rate, data.updated_at, data.soft_delete, data.tax_id]);
+    return await db.rawUpdate('UPDATE $tableTax SET company_id = ?, name = ?, type = ?, tax_rate = ?, updated_at = ?, soft_delete = ? WHERE tax_id = ?',
+        [data.company_id, data.name, data.type, data.tax_rate, data.updated_at, data.soft_delete, data.tax_id]);
   }
 
 /*
