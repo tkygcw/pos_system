@@ -761,6 +761,7 @@ getAllSettlement() async {
             settlement_by: item.settlement_by,
             status: item.status,
             sync_status: 1,
+            opened_at: item.opened_at,
             created_at: item.created_at,
             updated_at: item.updated_at,
             soft_delete: item.soft_delete,

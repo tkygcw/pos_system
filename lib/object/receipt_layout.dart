@@ -4091,6 +4091,7 @@ class ReceiptLayout{
         bytes += generator.reset();
 
         bytes += generator.text('Settlement By: ${settlement.settlement_by}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('Opened At: ${Utils.formatDate(settlement.opened_at)}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Settlement Time: ${Utils.formatDate(settlementDateTime)}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.hr();
         bytes += generator.reset();
@@ -4399,6 +4400,7 @@ class ReceiptLayout{
         bytes += generator.reset();
 
         bytes += generator.text('Settlement By: ${settlement.settlement_by}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('Opened At: ${Utils.formatDate(settlement.opened_at)}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Settlement Time: ${Utils.formatDate(settlementDateTime)}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.hr();
         bytes += generator.reset();
