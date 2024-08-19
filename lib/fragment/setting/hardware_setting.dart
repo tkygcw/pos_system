@@ -232,7 +232,7 @@ class _HardwareSettingState extends State<HardwareSetting> {
                                         } else {
                                           if (await confirm(
                                             context,
-                                            title: Text('${AppLocalizations.of(context)?.translate('disable_table_order')}'),
+                                            title: Text('${AppLocalizations.of(context)?.translate('table_mode')}'),
                                             content: Text('${AppLocalizations.of(context)?.translate('disable_table_order_desc')}'),
                                             textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
                                             textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
@@ -251,7 +251,7 @@ class _HardwareSettingState extends State<HardwareSetting> {
                                       } else {
                                         if (await confirm(
                                           context,
-                                          title: Text('${AppLocalizations.of(context)?.translate('disable_table_order')}'),
+                                          title: Text('${AppLocalizations.of(context)?.translate('table_mode')}'),
                                           content: Text('${AppLocalizations.of(context)?.translate('disable_table_order_desc')}'),
                                           textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
                                           textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),

@@ -491,7 +491,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
     final String? pos_user = prefs.getString('pos_pin_user');
     Map logInUser = json.decode(login_user!);
     Map userObject = json.decode(pos_user!);
-
+    CashRecord? openingBalance = await PosDatabase.instance.readLatestOpeningBalanceByRemark();
     Settlement object = Settlement(
         settlement_id: 0,
         settlement_key: '',
@@ -514,6 +514,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
         settlement_by: userObject['name'].toString(),
         status: 0,
         sync_status: 0,
+        opened_at: openingBalance!.created_at != null ? openingBalance.created_at : '',
         created_at: dateTime,
         updated_at: '',
         soft_delete: '');
