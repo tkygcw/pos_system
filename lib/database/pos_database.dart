@@ -236,6 +236,15 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
           //new 19
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
+          //new 20
+          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_product_sku} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_tel} $integerType DEFAULT 1");
+          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_product_sku} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
+          //new 21
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.logo} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_image} $integerType DEFAULT 0");
         }break;
         case 16: {
           await db.execute('''CREATE TABLE $tableAttendance(
@@ -261,6 +270,15 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
           //new 19
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
+          //new 20
+          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_product_sku} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_tel} $integerType DEFAULT 1");
+          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_product_sku} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
+          //new 21
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.logo} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_image} $integerType DEFAULT 0");
         }break;
         case 17: {
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
@@ -272,12 +290,15 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
           //new 19
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
-          //new 19
+          //new 20
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
           await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_product_sku} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_tel} $integerType DEFAULT 1");
           await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_product_sku} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
+          //new 21
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.logo} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_image} $integerType DEFAULT 0");
         }break;
         case 18: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
@@ -285,24 +306,39 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
           //new 19
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
+          //new 20
+          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_product_sku} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_tel} $integerType DEFAULT 1");
+          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_product_sku} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
+          //new 21
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.logo} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_image} $integerType DEFAULT 0");
         }break;
         case 19: {
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
-          //new
+          //new 20
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
           await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_product_sku} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_tel} $integerType DEFAULT 1");
           await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_product_sku} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
-        }break;
-        case 19: {
-          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_product_sku} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_tel} $integerType DEFAULT 1");
-          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_product_sku} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
+          //new 21
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.logo} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_image} $integerType DEFAULT 0");
         }break;
         case 20: {
+          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_product_sku} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_tel} $integerType DEFAULT 1");
+          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_product_sku} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
+          //new 21
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.logo} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_image} $integerType DEFAULT 0");
+        }break;
+        case 21: {
           await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.logo} $textType DEFAULT '' ");
           await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_image} $integerType DEFAULT 0");
         }break;
