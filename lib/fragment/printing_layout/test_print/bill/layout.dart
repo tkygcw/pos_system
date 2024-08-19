@@ -3,12 +3,9 @@ import 'dart:convert';
 import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
 
 import 'package:image/image.dart' as img;
-import 'package:flutter/services.dart';
-import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:f_logs/model/flog/flog.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../object/receipt.dart';
 
@@ -17,7 +14,6 @@ class ReceiptTestPrintLayout extends ReceiptLayout{
   Test print Receipt layout 80mm
 */
   printTestReceipt80mm(bool isUSB, Receipt receipt2, {value}) async {
-    String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
     Map branchObject = json.decode(branch!);
@@ -33,12 +29,13 @@ class ReceiptTestPrintLayout extends ReceiptLayout{
     List<int> bytes = [];
     try {
       if(receipt!.show_branch_image == 1){
-        final decodedImage = await getBranchLogoImg();
-        bytes += generator.image(decodedImage);
+        img.Image? decodedImage = await getBranchLogoImg();
+        if(decodedImage != null){
+          bytes += generator.image(decodedImage);
+        }
       }
       if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
         ///big font
-        // bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
         bytes += generator.row([
           PosColumn(
               text: '${receipt!.header_text}',
@@ -198,13 +195,6 @@ class ReceiptTestPrintLayout extends ReceiptLayout{
         bytes += generator.emptyLines(1);
         bytes += generator.text('${receipt!.footer_text}', containsChinese: true, styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1));
       }
-      // else if(paidOrder!.payment_status == 2) {
-      //   bytes += generator.hr();
-      //   bytes += generator.text('refund by:', styles: PosStyles(align: PosAlign.center));
-      //   bytes += generator.text('${paidOrder!.refund_by}', styles: PosStyles(align: PosAlign.center));
-      //   bytes += generator.text('refund at:', styles: PosStyles(align: PosAlign.center));
-      //   bytes += generator.text('${Utils.formatDate(paidOrder!.refund_at)}', styles: PosStyles(align: PosAlign.center));
-      // }
       bytes += generator.emptyLines(1);
       //copyright
       bytes += generator.text('POWERED BY OPTIMY POS', styles: PosStyles(bold: true, align: PosAlign.center));
@@ -213,6 +203,11 @@ class ReceiptTestPrintLayout extends ReceiptLayout{
       return bytes;
     } catch (e) {
       print('layout error: ${e}');
+      FLog.error(
+        className: "test_print/bill/layout",
+        text: "printTestReceipt80mm error",
+        exception: e,
+      );
       return null;
     }
   }
@@ -221,7 +216,6 @@ class ReceiptTestPrintLayout extends ReceiptLayout{
   Test print Receipt layout 58mm
 */
   printTestReceipt58mm(bool isUSB, Receipt receipt2, {value}) async {
-    String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
     Map branchObject = json.decode(branch!);
@@ -237,7 +231,12 @@ class ReceiptTestPrintLayout extends ReceiptLayout{
 
     List<int> bytes = [];
     try {
-      //bytes += generator.image(image);
+      if(receipt!.show_branch_image == 1){
+        img.Image? decodedImage = await getBranchLogoImg();
+        if(decodedImage != null){
+          bytes += generator.image(decodedImage);
+        }
+      }
       bytes += generator.reset();
       if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
         bytes += generator.row([
@@ -412,6 +411,11 @@ class ReceiptTestPrintLayout extends ReceiptLayout{
       return bytes;
     } catch (e) {
       print('test print receipt error: $e');
+      FLog.error(
+        className: "test_print/bill/layout",
+        text: "printTestReceipt58mm error",
+        exception: e,
+      );
       return null;
     }
   }

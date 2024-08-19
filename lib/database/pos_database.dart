@@ -5891,8 +5891,9 @@ class PosDatabase {
 */
   Future<int> updateBranch(Branch data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableBranch SET name = ?, address = ?, phone = ?, email = ?, qr_order_status = ?, sub_pos_status = ?, attendance_status = ? WHERE branchID = ? ',
-        [data.name, data.address, data.phone, data.email, data.qr_order_status, data.sub_pos_status, data.attendance_status, data.branchID]);
+    return await db.rawUpdate('UPDATE $tableBranch SET name = ?, address = ?, phone = ?, email = ?, '
+        'qr_order_status = ?, sub_pos_status = ?, attendance_status = ?, logo = ? WHERE branchID = ? ',
+        [data.name, data.address, data.phone, data.email, data.qr_order_status, data.sub_pos_status, data.attendance_status, data.logo, data.branchID]);
   }
 
 /*
@@ -6249,7 +6250,7 @@ class PosDatabase {
         'UPDATE $tableReceipt SET header_image = ?, header_image_status = ?, header_text = ?, header_text_status = ?, '
         'header_font_size = ?, show_address = ?, show_email = ?, receipt_email = ?, '
         'footer_image = ?, footer_image_status = ?, footer_text = ?, footer_text_status = ?, '
-            'promotion_detail_status = ?, show_product_sku = ?, show_branch_tel = ?, sync_status = ?, updated_at = ? WHERE receipt_sqlite_id = ?',
+            'promotion_detail_status = ?, show_product_sku = ?, show_branch_tel = ?, show_branch_image = ?, sync_status = ?, updated_at = ? WHERE receipt_sqlite_id = ?',
         [
           data.header_image,
           data.header_image_status,
@@ -6266,6 +6267,7 @@ class PosDatabase {
           data.promotion_detail_status,
           data.show_product_sku,
           data.show_branch_tel,
+          data.show_branch_image,
           data.sync_status,
           data.updated_at,
           data.receipt_sqlite_id

@@ -41,7 +41,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   String? footerDir;
   String headerText = '';
   String footerTextString = '';
-  String branchImgPath = '';
+  String? branchImgPath;
   ReceiptDialogEnum? headerFontSize;
   String? emailAddress;
   bool isLoad = false, isButtonDisabled = false;
@@ -158,7 +158,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     receipt.header_font_size == 0 ? fontSize = 30.0 : fontSize = 12.0;
     receipt.show_product_sku == 0 ? showSKU = false : showSKU = true;
     receipt.show_branch_tel == 0 ? showBranchTel = false : showBranchTel = true;
-    receipt.show_branch_image == 0 ? showBranchLogo = false : showBranchLogo = true;
+    receipt.show_branch_image == 0 || branchImgPath == null ? showBranchLogo = false : showBranchLogo = true;
   }
 
   getSharePreferences() async {
@@ -259,6 +259,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       receipt_email: emailTextController.text,
       show_product_sku: showSKU ? 1 : 0,
       show_branch_tel: showBranchTel ? 1 : 0,
+      show_branch_image: showBranchLogo ? 1 : 0
     );
   }
 
@@ -501,6 +502,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       receipt_email: emailTextController.text,
       show_product_sku: showSKU == true ? 1 : 0,
       show_branch_tel: showBranchTel ? 1 : 0,
+      show_branch_image: showBranchLogo ? 1 : 0,
       sync_status: checkData!.sync_status == 0 ? 0 : 2,
       updated_at: dateTime
     );
@@ -571,12 +573,12 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Visibility(
-                    visible: showBranchLogo,
+                    visible: showBranchLogo == true && branchImgPath != null ? true : false,
                     child: Center(
                       child: Container(
                         height: 200,
                         width: 200,
-                        decoration: BoxDecoration(image: DecorationImage(image: FileImage(File(branchImgPath)), fit: BoxFit.cover)),
+                        decoration: BoxDecoration(image: DecorationImage(image: FileImage(File(branchImgPath ?? '')), fit: BoxFit.cover)),
                       )
                     )
                 ),
@@ -874,7 +876,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     value: showBranchLogo,
                     activeColor: color.backgroundColor,
                     onChanged: (bool value){
-                      if(branchObject!['logo'] != ''){
+                      if(branchObject!['logo'] != '' && branchImgPath != null){
                         setState(() {
                           showBranchLogo = value;
                         });
@@ -1191,13 +1193,13 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               // crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Visibility(
-                    visible: logoImage ? true : false,
+                    visible: showBranchLogo == true && branchImgPath != null ? true : false,
                     child: Center(
-                      child: CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.black,
-                        child: Text(AppLocalizations.of(context)!.translate('logo')),
-                      ),
+                        child: Container(
+                          height: 200,
+                          width: 200,
+                          decoration: BoxDecoration(image: DecorationImage(image: FileImage(File(branchImgPath ?? '')), fit: BoxFit.cover)),
+                        )
                     )
                 ),
                 Visibility(
@@ -1484,6 +1486,27 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
         flex: 1,
         child: Column(
           children: [
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text('show branch logo', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Switch(
+                    value: showBranchLogo,
+                    activeColor: color.backgroundColor,
+                    onChanged: (bool value){
+                      if(branchObject!['logo'] != '' && branchImgPath != null){
+                        setState(() {
+                          showBranchLogo = value;
+                        });
+                      } else {
+                        Fluttertoast.showToast(msg: 'No branch logo added');
+                      }
+                    })
+              ],
+            ),
             Row(
               children: [
                 Container(

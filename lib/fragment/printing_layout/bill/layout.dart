@@ -28,10 +28,6 @@ class BillLayout extends ReceiptLayout{
       await callOrderTaxPromoDetail();
       await callPaidOrderDetail(orderId);
     }
-    final ByteData data = await rootBundle.load('drawable/duitNow_3.jpg');
-    final Uint8List imgBytes = data.buffer.asUint8List();
-    final branchImg = img.decodeImage(imgBytes)!;
-    print("root image: $branchImg ");
     var generator;
     if (isUSB) {
       final profile = await CapabilityProfile.load();
@@ -42,7 +38,12 @@ class BillLayout extends ReceiptLayout{
 
     List<int> bytes = [];
     try {
-      bytes += generator.image(branchImg);
+      if(receipt!.show_branch_image == 1){
+        img.Image? decodedImage = await getBranchLogoImg();
+        if(decodedImage != null){
+          bytes += generator.image(decodedImage);
+        }
+      }
       bytes += generator.reset();
       if(paidOrder!.payment_status == 2) {
         bytes += generator.text('** Refund **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
@@ -298,10 +299,6 @@ class BillLayout extends ReceiptLayout{
       await callOrderTaxPromoDetail();
       await callPaidOrderDetail(orderId);
     }
-    // final ByteData data = await rootBundle.load('drawable/logo1.jpg');
-    // final Uint8List bytes = data.buffer.asUint8List();
-    // final image = img.decodeImage(bytes);
-    // print('image byte: ${image}');
 
     var generator;
     if (isUSB) {
@@ -313,7 +310,12 @@ class BillLayout extends ReceiptLayout{
 
     List<int> bytes = [];
     try {
-      //bytes += generator.image(image);
+      if(receipt!.show_branch_image == 1){
+        img.Image? decodedImage = await getBranchLogoImg();
+        if(decodedImage != null){
+          bytes += generator.image(decodedImage);
+        }
+      }
       bytes += generator.reset();
       if(paidOrder!.payment_status == 2){
         bytes += generator.text('** Refund **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));

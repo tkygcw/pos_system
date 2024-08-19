@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:image/image.dart' as img;
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:esc_pos_utils_plus/gbk_codec/gbk_codec.dart';
@@ -79,18 +80,26 @@ class ReceiptLayout{
     return directory.path;
   }
   
-  getBranchLogoImg() async {
-    final Uint8List imgBytes = File(await getBranchLogoImagePath()).readAsBytesSync();
-    final branchImg = img.decodeImage(imgBytes)!;
-    print("branchImg: $branchImg");
+  Future<img.Image?>getBranchLogoImg() async {
+    img.Image? branchImg;
+    try{
+      String? imagePath = await getBranchLogoImagePath();
+      if(imagePath != null){
+        final Uint8List imgBytes = File(imagePath).readAsBytesSync();
+        branchImg = img.decodeImage(imgBytes)!;
+      }
+    }catch(e){
+      branchImg = null;
+      FLog.error(
+        className: "receipt layout",
+        text: "getBranchLogoImg error",
+        exception: e,
+      );
+    }
     return branchImg;
   }
 
-  getCartTableNumber(List<PosTable> tableList){
-    return tableList.map((e) => e.number).toList();
-  }
-
-  Future<String>getBranchLogoImagePath() async {
+  Future<String?>getBranchLogoImagePath() async {
     try{
       String imagePath = '';
       final prefs = await SharedPreferences.getInstance();
@@ -98,18 +107,25 @@ class ReceiptLayout{
       Map branchObject = json.decode(branch!);
       String imgName = branchObject['logo'];
       String branchPath = prefs.getString('branch_path')!;
-
-      if(Platform.isIOS){
-        String dir = await _localPath;
-        imagePath = dir + '/assets/$branchPath';
+      if(imgName != ''){
+        if(Platform.isIOS){
+          String dir = await _localPath;
+          imagePath = dir + '/assets/branch';
+        } else {
+          imagePath = branchPath;
+        }
+        return '${imagePath}/$imgName';
       } else {
-        imagePath = branchPath;
+        return null;
       }
-      return '${imagePath}/$imgName';
     }catch(e){
       print("get branch logo image error: $e");
-      return '';
+      return null;
     }
+  }
+
+  getCartTableNumber(List<PosTable> tableList){
+    return tableList.map((e) => e.number).toList();
   }
 
 /*

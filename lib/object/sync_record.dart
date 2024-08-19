@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/attendance.dart';
@@ -493,10 +494,15 @@ class SyncRecord {
       Branch? branch = await PosDatabase.instance.readSpecificBranch(branchData.branchID!);
       await prefs.setString('branch', json.encode(branch!));
       if(data == 1){
+        await downloadBranchLogo(prefs);
         isComplete = true;
       }
     } catch(e){
-      print("sync record branch error: ${e}");
+      FLog.error(
+        className: "sync record",
+        text: "callBranchQuery error",
+        exception: e,
+      );
       isComplete = true;
     }
     return isComplete;
@@ -1331,5 +1337,32 @@ class SyncRecord {
     }catch(e){
       print("download product image error: $e");
     }
+  }
+}
+
+/*
+  download branch logo
+*/
+downloadBranchLogo(SharedPreferences prefs) async {
+  try{
+    final String? user = prefs.getString('user');
+    final String? branch = prefs.getString('branch');
+    Map userObject = json.decode(user!);
+    Map branchObject = json.decode(branch!);
+    String imgName = branchObject['logo'];
+    String branchPath = prefs.getString('branch_path')!;
+    if(imgName != ''){
+      final url = '${Domain.backend_domain}api/logo/' + userObject['company_id'] + '/' + imgName;
+      final response = await http.get(Uri.parse(url));
+      var localPath = branchPath + '/' + imgName;
+      final imageFile = File(localPath);
+      await imageFile.writeAsBytes(response.bodyBytes);
+    }
+  } catch(e){
+    FLog.error(
+      className: "sync record",
+      text: "download branch logo error",
+      exception: e,
+    );
   }
 }
