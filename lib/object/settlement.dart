@@ -20,6 +20,7 @@ class SettlementFields {
     settlement_by,
     status,
     sync_status,
+    opened_at,
     created_at,
     updated_at,
     soft_delete
@@ -41,6 +42,7 @@ class SettlementFields {
   static String settlement_by = 'settlement_by';
   static String status = 'status';
   static String sync_status = 'sync_status';
+  static String opened_at = 'opened_at';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
@@ -63,6 +65,7 @@ class Settlement{
   String? settlement_by;
   int? status;
   int? sync_status;
+  String? opened_at;
   String? created_at;
   String? updated_at;
   String? soft_delete;
@@ -92,6 +95,7 @@ class Settlement{
         this.settlement_by,
         this.status,
         this.sync_status,
+        this.opened_at,
         this.created_at,
         this.updated_at,
         this.soft_delete,
@@ -122,6 +126,7 @@ class Settlement{
     String? settlement_by,
     int? status,
     int? sync_status,
+    String? opened_at,
     String? created_at,
     String? updated_at,
     String? soft_delete,
@@ -143,6 +148,7 @@ class Settlement{
           settlement_by: settlement_by ?? this.settlement_by,
           status: status ?? this.status,
           sync_status: sync_status ?? this.sync_status,
+          opened_at: opened_at ?? this.opened_at,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete);
@@ -164,6 +170,7 @@ class Settlement{
     settlement_by: json[SettlementFields.settlement_by] as String?,
     status: json[SettlementFields.status] as int?,
     sync_status: json[SettlementFields.sync_status] as int?,
+    opened_at: json[SettlementFields.opened_at] as String?,
     created_at: json[SettlementFields.created_at] as String?,
     updated_at: json[SettlementFields.updated_at] as String?,
     soft_delete: json[SettlementFields.soft_delete] as String?,
@@ -194,6 +201,7 @@ class Settlement{
     SettlementFields.settlement_by: settlement_by,
     SettlementFields.status: status,
     SettlementFields.sync_status: sync_status,
+    SettlementFields.opened_at: opened_at,
     SettlementFields.created_at: created_at,
     SettlementFields.updated_at: updated_at,
     SettlementFields.soft_delete: soft_delete,

@@ -83,7 +83,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
       if (selectDiningOption == 'All') {
         data = await PosDatabase.instance.readOrderCacheNoDineInAdvanced(branch_id.toString(), userObject['company_id']);
       } else {
-        data = await PosDatabase.instance.readOrderCacheSpecial(selectDiningOption!);
+        data = await PosDatabase.instance.readOrderCacheSpecialAdvanced(selectDiningOption!);
       }
     } else {
       if (selectDiningOption == 'All') {
