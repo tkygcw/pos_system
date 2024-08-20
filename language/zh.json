@@ -499,6 +499,7 @@
   "settlement_history": "结算历史",
   "settlement_role_error": "只有所有者和管理员可以进行结算",
   "show_address": "显示地址",
+  "show_branch_logo": "显示分行标志",
   "show_device_second_display": "显示设备第二显示屏（如果有）",
   "show_email": "显示电子邮箱",
   "show_presentation": "演示",

@@ -150,10 +150,10 @@ class _ReprintDialogState extends State<ReprintDialog> {
   }
 
   printPaymentReceipt() async {
-    String localOrderId = widget.cart.cartNotifierPayment[0].localOrderId;
+    String localOrderId = cartModel.cartNotifierPayment[0].localOrderId;
     print("cart payment length: ${widget.cart.cartNotifierPayment.length}");
     print("local order id in reprint: ${localOrderId}");
-    int printStatus = await printReceipt.printCartReceiptList(widget.printerList, widget.cart, localOrderId);
+    int printStatus = await printReceipt.printCartReceiptList(widget.printerList, cartModel, localOrderId);
     checkPrinterStatus(printStatus);
   }
 

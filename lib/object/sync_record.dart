@@ -494,7 +494,7 @@ class SyncRecord {
       Branch? branch = await PosDatabase.instance.readSpecificBranch(branchData.branchID!);
       await prefs.setString('branch', json.encode(branch!));
       if(data == 1){
-        await downloadBranchLogo(prefs);
+        await createBranchLogoFolder(prefs);
         isComplete = true;
       }
     } catch(e){
@@ -1338,31 +1338,49 @@ class SyncRecord {
       print("download product image error: $e");
     }
   }
-}
+
+  createBranchLogoFolder(SharedPreferences prefs) async {
+    try {
+      final folderName = 'branch';
+      final directory = await _localPath;
+      final path = '$directory/assets/$folderName';
+      final pathImg = Directory(path);
+      pathImg.create();
+      await prefs.setString('branch_path', path);
+      await downloadBranchLogo(prefs);
+    } catch(e) {
+      FLog.error(
+        className: "loading",
+        text: " error",
+        exception: e,
+      );
+    }
+  }
 
 /*
   download branch logo
 */
-downloadBranchLogo(SharedPreferences prefs) async {
-  try{
-    final String? user = prefs.getString('user');
-    final String? branch = prefs.getString('branch');
-    Map userObject = json.decode(user!);
-    Map branchObject = json.decode(branch!);
-    String imgName = branchObject['logo'];
-    String branchPath = prefs.getString('branch_path')!;
-    if(imgName != ''){
-      final url = '${Domain.backend_domain}api/logo/' + userObject['company_id'] + '/' + imgName;
-      final response = await http.get(Uri.parse(url));
-      var localPath = branchPath + '/' + imgName;
-      final imageFile = File(localPath);
-      await imageFile.writeAsBytes(response.bodyBytes);
+  downloadBranchLogo(SharedPreferences prefs) async {
+    try{
+      final String? user = prefs.getString('user');
+      final String? branch = prefs.getString('branch');
+      Map userObject = json.decode(user!);
+      Map branchObject = json.decode(branch!);
+      String imgName = branchObject['logo'];
+      String branchPath = prefs.getString('branch_path')!;
+      if(imgName != ''){
+        final url = '${Domain.backend_domain}api/logo/' + userObject['company_id'] + '/' + imgName;
+        final response = await http.get(Uri.parse(url));
+        var localPath = branchPath + '/' + imgName;
+        final imageFile = File(localPath);
+        await imageFile.writeAsBytes(response.bodyBytes);
+      }
+    } catch(e){
+      FLog.error(
+        className: "sync record",
+        text: "download branch logo error",
+        exception: e,
+      );
     }
-  } catch(e){
-    FLog.error(
-      className: "sync record",
-      text: "download branch logo error",
-      exception: e,
-    );
   }
 }

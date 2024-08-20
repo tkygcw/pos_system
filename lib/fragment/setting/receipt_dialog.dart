@@ -158,7 +158,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     receipt.header_font_size == 0 ? fontSize = 30.0 : fontSize = 12.0;
     receipt.show_product_sku == 0 ? showSKU = false : showSKU = true;
     receipt.show_branch_tel == 0 ? showBranchTel = false : showBranchTel = true;
-    receipt.show_branch_image == 0 || branchImgPath == null ? showBranchLogo = false : showBranchLogo = true;
+    receipt.show_branch_logo == 0 || branchImgPath == null ? showBranchLogo = false : showBranchLogo = true;
   }
 
   getSharePreferences() async {
@@ -170,9 +170,6 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     }
     if(branchObject!['address'] == '' && showAddress){
       showAddress = false;
-    }
-    if(branchObject!['logo'] == '' && showBranchLogo){
-      showBranchLogo = false;
     }
 
     isLoad = true;
@@ -259,7 +256,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       receipt_email: emailTextController.text,
       show_product_sku: showSKU ? 1 : 0,
       show_branch_tel: showBranchTel ? 1 : 0,
-      show_branch_image: showBranchLogo ? 1 : 0
+      show_branch_logo: showBranchLogo ? 1 : 0
     );
   }
 
@@ -502,7 +499,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       receipt_email: emailTextController.text,
       show_product_sku: showSKU == true ? 1 : 0,
       show_branch_tel: showBranchTel ? 1 : 0,
-      show_branch_image: showBranchLogo ? 1 : 0,
+      show_branch_logo: showBranchLogo ? 1 : 0,
       sync_status: checkData!.sync_status == 0 ? 0 : 2,
       updated_at: dateTime
     );
@@ -869,19 +866,26 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
-                  child: Text('show branch logo', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                  child: Text(AppLocalizations.of(context)!.translate('show_branch_logo'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
                 Switch(
                     value: showBranchLogo,
                     activeColor: color.backgroundColor,
-                    onChanged: (bool value){
-                      if(branchObject!['logo'] != '' && branchImgPath != null){
+                    onChanged: (bool value) async {
+                      if(value == true){
+                        branchImgPath = await ReceiptLayout().getBranchLogoImagePath();
+                        if(branchImgPath != null){
+                          setState(() {
+                            showBranchLogo = value;
+                          });
+                        } else {
+                          Fluttertoast.showToast(msg: 'No branch logo added');
+                        }
+                      } else {
                         setState(() {
                           showBranchLogo = value;
                         });
-                      } else {
-                        Fluttertoast.showToast(msg: 'No branch logo added');
                       }
                     })
               ],
@@ -1490,19 +1494,26 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
-                  child: Text('show branch logo', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                  child: Text(AppLocalizations.of(context)!.translate('show_branch_logo'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
                 Switch(
                     value: showBranchLogo,
                     activeColor: color.backgroundColor,
-                    onChanged: (bool value){
-                      if(branchObject!['logo'] != '' && branchImgPath != null){
+                    onChanged: (bool value) async {
+                      if(value == true){
+                        branchImgPath = await ReceiptLayout().getBranchLogoImagePath();
+                        if(branchImgPath != null){
+                          setState(() {
+                            showBranchLogo = value;
+                          });
+                        } else {
+                          Fluttertoast.showToast(msg: 'No branch logo added');
+                        }
+                      } else {
                         setState(() {
                           showBranchLogo = value;
                         });
-                      } else {
-                        Fluttertoast.showToast(msg: 'No branch logo added');
                       }
                     })
               ],
@@ -1778,6 +1789,34 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
 
   Widget MobileReceiptView1(ThemeColor color) => Column(
     children: [
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text(AppLocalizations.of(context)!.translate('show_branch_logo'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: showBranchLogo,
+              activeColor: color.backgroundColor,
+              onChanged: (bool value) async {
+                if(value == true){
+                  branchImgPath = await ReceiptLayout().getBranchLogoImagePath();
+                  if(branchImgPath != null){
+                    setState(() {
+                      showBranchLogo = value;
+                    });
+                  } else {
+                    Fluttertoast.showToast(msg: 'No branch logo added');
+                  }
+                } else {
+                  setState(() {
+                    showBranchLogo = value;
+                  });
+                }
+              })
+        ],
+      ),
       Container(
         alignment: Alignment.topLeft,
         child: Text(AppLocalizations.of(context)!.translate('logo_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
@@ -2030,6 +2069,34 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
 
   Widget MobileReceiptView2(ThemeColor color) => Column(
     children: [
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text(AppLocalizations.of(context)!.translate('show_branch_logo'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: showBranchLogo,
+              activeColor: color.backgroundColor,
+              onChanged: (bool value) async {
+                if(value == true){
+                  branchImgPath = await ReceiptLayout().getBranchLogoImagePath();
+                  if(branchImgPath != null){
+                    setState(() {
+                      showBranchLogo = value;
+                    });
+                  } else {
+                    Fluttertoast.showToast(msg: 'No branch logo added');
+                  }
+                } else {
+                  setState(() {
+                    showBranchLogo = value;
+                  });
+                }
+              })
+        ],
+      ),
       Container(
         alignment: Alignment.topLeft,
         child: Text(AppLocalizations.of(context)!.translate('logo_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),

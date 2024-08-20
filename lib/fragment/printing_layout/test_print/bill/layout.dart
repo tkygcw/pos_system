@@ -28,7 +28,7 @@ class ReceiptTestPrintLayout extends ReceiptLayout{
 
     List<int> bytes = [];
     try {
-      if(receipt!.show_branch_image == 1){
+      if(receipt!.show_branch_logo == 1){
         img.Image? decodedImage = await getBranchLogoImg();
         if(decodedImage != null){
           bytes += generator.image(decodedImage);
@@ -231,7 +231,7 @@ class ReceiptTestPrintLayout extends ReceiptLayout{
 
     List<int> bytes = [];
     try {
-      if(receipt!.show_branch_image == 1){
+      if(receipt!.show_branch_logo == 1){
         img.Image? decodedImage = await getBranchLogoImg();
         if(decodedImage != null){
           bytes += generator.image(decodedImage);

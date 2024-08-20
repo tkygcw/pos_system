@@ -119,7 +119,11 @@ class ReceiptLayout{
         return null;
       }
     }catch(e){
-      print("get branch logo image error: $e");
+      FLog.error(
+        className: "receipt layout",
+        text: "getBranchLogoImg error",
+        exception: e,
+      );
       return null;
     }
   }

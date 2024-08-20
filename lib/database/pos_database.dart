@@ -244,7 +244,7 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
           //new 21
           await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.logo} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_image} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_logo} $integerType DEFAULT 0");
         }break;
         case 16: {
           await db.execute('''CREATE TABLE $tableAttendance(
@@ -278,7 +278,7 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
           //new 21
           await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.logo} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_image} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_logo} $integerType DEFAULT 0");
         }break;
         case 17: {
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
@@ -298,7 +298,7 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
           //new 21
           await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.logo} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_image} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_logo} $integerType DEFAULT 0");
         }break;
         case 18: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
@@ -314,7 +314,7 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
           //new 21
           await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.logo} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_image} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_logo} $integerType DEFAULT 0");
         }break;
         case 19: {
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
@@ -326,7 +326,7 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
           //new 21
           await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.logo} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_image} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_logo} $integerType DEFAULT 0");
         }break;
         case 20: {
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
@@ -336,11 +336,11 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
           //new 21
           await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.logo} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_image} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_logo} $integerType DEFAULT 0");
         }break;
         case 21: {
           await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.logo} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_image} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_logo} $integerType DEFAULT 0");
         }break;
       }
     }
@@ -870,7 +870,7 @@ class PosDatabase {
           ${ReceiptFields.status} $integerType,
           ${ReceiptFields.show_product_sku} $integerType,
           ${ReceiptFields.show_branch_tel} $integerType,
-          ${ReceiptFields.show_branch_image} $integerType,
+          ${ReceiptFields.show_branch_logo} $integerType,
           ${ReceiptFields.sync_status} $integerType,
           ${ReceiptFields.created_at} $textType,
           ${ReceiptFields.updated_at} $textType,
@@ -2051,7 +2051,7 @@ class PosDatabase {
   Future<Receipt> insertReceipt(Receipt data) async {
     final db = await instance.database;
     final id = db.rawInsert(
-        'INSERT INTO $tableReceipt(soft_delete, updated_at, created_at, sync_status, show_branch_image, show_branch_tel, '
+        'INSERT INTO $tableReceipt(soft_delete, updated_at, created_at, sync_status, show_branch_logo, show_branch_tel, '
         'show_product_sku, header_font_size, status, paper_size, promotion_detail_status, '
         'footer_text_status, footer_text, footer_image_status, footer_image, receipt_email, show_email, show_address, '
         'header_text_status, header_text, header_image_status, header_image, branch_id, receipt_key, receipt_id) '
@@ -2061,7 +2061,7 @@ class PosDatabase {
           data.updated_at,
           data.created_at,
           data.sync_status,
-          0,//show branch img
+          data.show_branch_logo,
           data.show_branch_tel,
           data.show_product_sku,
           data.header_font_size,
@@ -6334,7 +6334,7 @@ class PosDatabase {
         'UPDATE $tableReceipt SET header_image = ?, header_image_status = ?, header_text = ?, header_text_status = ?, '
         'header_font_size = ?, show_address = ?, show_email = ?, receipt_email = ?, '
         'footer_image = ?, footer_image_status = ?, footer_text = ?, footer_text_status = ?, '
-            'promotion_detail_status = ?, show_product_sku = ?, show_branch_tel = ?, show_branch_image = ?, sync_status = ?, updated_at = ? WHERE receipt_sqlite_id = ?',
+            'promotion_detail_status = ?, show_product_sku = ?, show_branch_tel = ?, show_branch_logo = ?, sync_status = ?, updated_at = ? WHERE receipt_sqlite_id = ?',
         [
           data.header_image,
           data.header_image_status,
@@ -6351,7 +6351,7 @@ class PosDatabase {
           data.promotion_detail_status,
           data.show_product_sku,
           data.show_branch_tel,
-          data.show_branch_image,
+          data.show_branch_logo,
           data.sync_status,
           data.updated_at,
           data.receipt_sqlite_id
