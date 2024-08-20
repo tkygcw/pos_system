@@ -38,8 +38,9 @@ import '../table/table_change_dialog.dart';
 
 class CartDialog extends StatefulWidget {
   final List<PosTable> selectedTableList;
+  final Function(CartModel) callBack;
 
-  const CartDialog({Key? key, required this.selectedTableList}) : super(key: key);
+  const CartDialog({Key? key, required this.selectedTableList, required this.callBack}) : super(key: key);
 
   @override
   State<CartDialog> createState() => CartDialogState();
@@ -67,6 +68,7 @@ class CartDialogState extends State<CartDialog> {
   Color cardColor = Colors.white;
   String? table_use_detail_value, table_value, tableUseDetailKey, tableUseKey;
   String group = '';
+  int initialTableStatus = 0;
 
   @override
   void initState() {
@@ -310,6 +312,11 @@ class CartDialogState extends State<CartDialog> {
                                       if(orderDetailList.isNotEmpty){
                                         addToCart(cart);
                                       }
+                                      widget.callBack(cart);
+                                      if(cart.selectedTable.isNotEmpty) {
+                                        // Navigator.of(context).pop();
+                                      }
+
                                       Navigator.of(context).pop();
                                     },
                             ),

@@ -1556,7 +1556,7 @@ class PrintReceipt{
     }
   }
 
-  printDeleteList(List<Printer> printerList, String orderCacheId, String dateTime) async {
+  printCancelReceipt(List<Printer> printerList, String orderCacheId, String dateTime) async {
     try {
       int printStatus = 0;
       for (int i = 0; i < printerList.length; i++) {

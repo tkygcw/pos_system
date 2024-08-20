@@ -279,7 +279,7 @@ class CartPageState extends State<CartPage> {
                           ),
                         ),
                         Visibility(
-                          visible: cart.selectedOption == 'Dine in' && widget.currentPage == 'menu' && appSettingModel.table_order == true
+                          visible: cart.selectedOption == 'Dine in' && widget.currentPage == 'menu' && appSettingModel.table_order != 0
                               ? true
                               : false,
                           child: Expanded(
@@ -301,7 +301,7 @@ class CartPageState extends State<CartPage> {
                           ),
                         ),
                         Visibility(
-                          visible: (widget.currentPage == 'menu' && cart.selectedOption == 'Dine in' && appSettingModel.table_order == true) ||
+                          visible: (widget.currentPage == 'menu' && cart.selectedOption == 'Dine in' && appSettingModel.table_order != 0) ||
                               (widget.currentPage == 'menu' && cart.selectedOption != 'Dine in' && appSettingModel.directPaymentStatus == false) ||
                               widget.currentPage == 'qr_order' ||
                               widget.currentPage == 'bill'
@@ -722,7 +722,7 @@ class CartPageState extends State<CartPage> {
                                                         _isSettlement = false;
                                                       } else {
                                                         disableButton();
-                                                        if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == true) {
+                                                        if (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 0) {
                                                           if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
                                                             openLoadingDialogBox();
                                                             //_startTimer();
@@ -731,7 +731,7 @@ class CartPageState extends State<CartPage> {
                                                               asyncQ.addJob((_) async => await callAddOrderCache(cart));
                                                             } else if (cart.cartNotifierItem[0].status == 0) {
                                                               asyncQ.addJob((_) async {
-                                                                await callCreateNewOrder(cart);
+                                                                await callCreateNewOrder(cart, appSettingModel);
                                                                 print("local: cart add new order done");
                                                               });
                                                             } else {
@@ -1965,6 +1965,7 @@ class CartPageState extends State<CartPage> {
               opacity: a1.value,
               child: CartDialog(
                 selectedTableList: cartModel.selectedTable,
+                callBack: (cart) {},
               ),
             ),
           );
@@ -2091,6 +2092,7 @@ class CartPageState extends State<CartPage> {
                   callBack: () {
                     if (this.widget.currentPage == "menu" || this.widget.currentPage == 'bill') {
                       cart.removeAllCartItem();
+                      cart.removeAllTable();
                     }
                   }),
             ),
@@ -2171,7 +2173,7 @@ class CartPageState extends State<CartPage> {
       branchLinkDiningIdList.add(data[i].dining_id!);
     }
     if (serverCall == null) {
-      if (diningList.length == 3) {
+      if (data.any((item) => item.name == 'Dine in')) {
         cart.selectedOption = 'Dine in';
       } else {
         cart.selectedOption = "Take Away";
@@ -2222,15 +2224,22 @@ class CartPageState extends State<CartPage> {
 /*
   dine in call
 */
-  callCreateNewOrder(CartModel cart) async {
+  callCreateNewOrder(CartModel cart, AppSettingModel appSettingModel) async {
     try{
       resetValue();
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+      AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
+
       if(await checkTableStatus(cart) == false){
         await createTableUseID();
         await createTableUseDetail(cart);
         await createOrderCache(cart, isAddOrder: false);
         await createOrderDetail(cart);
-        await updatePosTable(cart);
+
+        if(cart.selectedOption == 'Dine in' && localSetting!.table_order == 1) {
+          await updatePosTable(cart);
+        }
         if (_appSettingModel.autoPrintChecklist == true) {
           int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
           if (printStatus == 1) {
@@ -2246,10 +2255,16 @@ class CartPageState extends State<CartPage> {
           asyncQ.addJob((_) => printReceipt.printProductTicket(printerList, int.parse(this.orderCacheId), ticketProduct));
           // printReceipt.printProductTicket(printerList, int.parse(this.orderCacheId), ticketProduct);
         }
-        cart.removeAllCartItem();
-        cart.removeAllTable();
-        // Server.instance.sendRefreshMessage();
-        Navigator.of(context).pop();
+
+        if(appSettingModel.table_order == 2) {
+          Navigator.of(context).pop();
+          await checkDirectPayment(appSettingModel, cart);
+        } else {
+          cart.removeAllCartItem();
+          cart.removeAllTable();
+          // Server.instance.sendRefreshMessage();
+          Navigator.of(context).pop();
+        }
 
         //syncAllToCloud();
         // print('finish sync');
@@ -2517,8 +2532,11 @@ class CartPageState extends State<CartPage> {
 
   checkDirectPayment(AppSettingModel appSettingModel, cart) {
     if (appSettingModel.directPaymentStatus == true) {
+      print("11");
       paymentAddToCart(cart);
+      print("22");
       updateCartItem(cart);
+      print("33");
       openPaymentSelect(cart);
     } else {
       cart.removeAllCartItem();
@@ -2841,7 +2859,7 @@ class CartPageState extends State<CartPage> {
       final String? loginUser = prefs.getString('user');
 
       AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
-      int orderQueue = localSetting!.enable_numbering == 1 && ((localSetting.table_order == 1 && cart.selectedOption != 'Dine in') ||  localSetting.table_order == 0) ? await generateOrderQueue() : -1;
+      int orderQueue = localSetting!.enable_numbering == 1 && ((localSetting.table_order != 0 && cart.selectedOption != 'Dine in') ||  localSetting.table_order == 0) ? await generateOrderQueue() : -1;
 
       TableUse? _tableUse;
       List<PosTable> inUsedTable = [];
@@ -2857,18 +2875,23 @@ class CartPageState extends State<CartPage> {
           batch = await batchChecking();
         }
         //check selected table is in use or not
-        if (cart.selectedOption == 'Dine in' && localSetting.table_order == 1) {
+        if (cart.selectedOption == 'Dine in' && localSetting.table_order != 0) {
           if(isAddOrder == true){
             inUsedTable = await checkCartTableStatus(cart.selectedTable);
           } else {
             inUsedTable.addAll(cart.selectedTable);
           }
           List<TableUseDetail> useDetail = await PosDatabase.instance.readSpecificTableUseDetail(inUsedTable[0].table_sqlite_id!);
-          if (useDetail.isNotEmpty) {
-            _tableUseId = useDetail[0].table_use_sqlite_id!;
+          if(localSetting.table_order == 1) {
+            if (useDetail.isNotEmpty) {
+              _tableUseId = useDetail[0].table_use_sqlite_id!;
+            } else {
+              _tableUseId = this.localTableUseId;
+            }
           } else {
             _tableUseId = this.localTableUseId;
           }
+
           List<TableUse> tableUseData = await PosDatabase.instance.readSpecificTableUseId(int.parse(_tableUseId));
           _tableUse = tableUseData[0];
         }
@@ -2882,8 +2905,8 @@ class CartPageState extends State<CartPage> {
                 company_id: loginUserObject['company_id'].toString(),
                 branch_id: branch_id.toString(),
                 order_detail_id: '',
-                table_use_sqlite_id: cart.selectedOption == 'Dine in' && localSetting.table_order == 1 ? _tableUse!.table_use_sqlite_id.toString() : '',
-                table_use_key: cart.selectedOption == 'Dine in' && localSetting.table_order == 1 ? _tableUse!.table_use_key : '',
+                table_use_sqlite_id: cart.selectedOption == 'Dine in' && localSetting.table_order != 0 ? _tableUse!.table_use_sqlite_id.toString() : '',
+                table_use_key: cart.selectedOption == 'Dine in' && localSetting.table_order != 0 ? _tableUse!.table_use_key : '',
                 batch_id: batch.toString().padLeft(6, '0'),
                 dining_id: this.diningOptionID.toString(),
                 order_sqlite_id: '',
@@ -2984,29 +3007,57 @@ class CartPageState extends State<CartPage> {
     try {
       await readAllOrder();
       await readAllOrderCache();
-
+      List<Order> orderData = await PosDatabase.instance.readLatestNotDineInOrder();
+      List<OrderCache> orderCacheData = await PosDatabase.instance.readAllNotDineInOrderCache();
       // not yet make settlement
       if(orderList.isNotEmpty) {
-        if(orderList[0].settlement_key! == '') {
-          if(int.tryParse(orderCacheList[0].order_queue!) == null || int.parse(orderCacheList[0].order_queue!) >= 9999) {
-            orderQueue = localSetting.starting_number!;
-          }
-          else {
-            orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
+        if(localSetting.table_order != 0) {
+          if(orderData.isNotEmpty) {
+            if(orderData[0].settlement_key! == '') {
+              if(int.tryParse(orderCacheData[0].order_queue!) == null || int.parse(orderCacheData[0].order_queue!) >= 9999) {
+                orderQueue = localSetting.starting_number!;
+              }
+              else {
+                orderQueue = int.parse(orderCacheData[0].order_queue!) + 1;
+              }
+            }
+          } else {
+            if(orderCacheData.isNotEmpty && orderCacheData[0].order_key == '') {
+              orderQueue = int.parse(orderCacheData[0].order_queue!) + 1;
+            } else {
+              orderQueue = localSetting.starting_number!;
+            }
           }
         } else {
-          // after settlement
-          if(orderCacheList[0].order_key == '' && orderCacheList[0].cancel_by == '') {
+          if(orderList[0].settlement_key! == '') {
+            if(int.tryParse(orderCacheList[0].order_queue!) == null || int.parse(orderCacheList[0].order_queue!) >= 9999) {
+              orderQueue = localSetting.starting_number!;
+            }
+            else {
+              orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
+            }
+          } else {
+            // after settlement
+            if(orderCacheList[0].order_key == '' && orderCacheList[0].cancel_by == '') {
+              orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
+            } else {
+              orderQueue = localSetting.starting_number!;
+            }
+          }
+        }
+      } else {
+        if(localSetting.table_order != 0) {
+          if(orderCacheData.isNotEmpty && orderCacheData[0].order_key == '') {
+            orderQueue = int.parse(orderCacheData[0].order_queue!) + 1;
+          } else {
+            orderQueue = localSetting.starting_number!;
+          }
+        } else {
+          if(orderCacheList.isNotEmpty && orderCacheList[0].order_key == '') {
             orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
           } else {
             orderQueue = localSetting.starting_number!;
           }
-        }
-      } else {
-        if(orderCacheList.isNotEmpty && orderCacheList[0].order_key == '') {
-          orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
-        } else {
-          orderQueue = localSetting.starting_number!;
         }
       }
       return orderQueue;

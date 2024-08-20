@@ -14,6 +14,9 @@ class AppSettingFields {
     enable_numbering,
     starting_number,
     table_order,
+    show_product_desc,
+    print_cancel_receipt,
+    product_sort_by,
     dynamic_qr_default_exp_after_hour,
     sync_status,
     created_at,
@@ -32,6 +35,9 @@ class AppSettingFields {
   static String enable_numbering = 'enable_numbering';
   static String starting_number = 'starting_number';
   static String table_order = 'table_order';
+  static String show_product_desc = 'show_product_desc';
+  static String print_cancel_receipt = 'print_cancel_receipt';
+  static String product_sort_by = 'product_sort_by';
   static String dynamic_qr_default_exp_after_hour = 'dynamic_qr_default_exp_after_hour';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
@@ -51,6 +57,9 @@ class AppSetting{
   int? enable_numbering;
   int? starting_number;
   int? table_order;
+  int? show_product_desc;
+  int? print_cancel_receipt;
+  int? product_sort_by;
   int? dynamic_qr_default_exp_after_hour;
   int? sync_status;
   String? created_at;
@@ -69,6 +78,9 @@ class AppSetting{
         this.enable_numbering,
         this.starting_number,
         this.table_order,
+        this.show_product_desc,
+        this.print_cancel_receipt,
+        this.product_sort_by,
         this.dynamic_qr_default_exp_after_hour,
         this.sync_status,
         this.created_at,
@@ -88,6 +100,9 @@ class AppSetting{
     int? enable_numbering,
     int? starting_number,
     int? table_order,
+    int? show_product_desc,
+    int? print_cancel_receipt,
+    int? product_sort_by,
     int? dynamic_qr_default_exp_after_hour,
     int? sync_status,
     String? created_at,
@@ -106,6 +121,9 @@ class AppSetting{
         enable_numbering: enable_numbering ?? this.enable_numbering,
         starting_number: starting_number ?? this.starting_number,
         table_order: table_order ?? this.table_order,
+        show_product_desc: show_product_desc ?? this.show_product_desc,
+        print_cancel_receipt: print_cancel_receipt ?? this.print_cancel_receipt,
+        product_sort_by: product_sort_by ?? this.product_sort_by,
         dynamic_qr_default_exp_after_hour: dynamic_qr_default_exp_after_hour ?? this.dynamic_qr_default_exp_after_hour,
         sync_status: sync_status ?? this.sync_status,
         created_at: created_at ?? this.created_at,
@@ -125,6 +143,9 @@ class AppSetting{
     enable_numbering: json[AppSettingFields.enable_numbering] as int?,
     starting_number: json[AppSettingFields.starting_number] as int?,
     table_order: json[AppSettingFields.table_order] as int?,
+    show_product_desc: json[AppSettingFields.show_product_desc] as int?,
+    print_cancel_receipt: json[AppSettingFields.print_cancel_receipt] as int?,
+    product_sort_by: json[AppSettingFields.product_sort_by] as int?,
     dynamic_qr_default_exp_after_hour: json[AppSettingFields.dynamic_qr_default_exp_after_hour] as int?,
     sync_status: json[AppSettingFields.sync_status] as int?,
     created_at: json[AppSettingFields.created_at] as String?,
@@ -144,6 +165,9 @@ class AppSetting{
     AppSettingFields.enable_numbering: enable_numbering,
     AppSettingFields.starting_number: starting_number,
     AppSettingFields.table_order: table_order,
+    AppSettingFields.show_product_desc: show_product_desc,
+    AppSettingFields.print_cancel_receipt: print_cancel_receipt,
+    AppSettingFields.product_sort_by: product_sort_by,
     AppSettingFields.dynamic_qr_default_exp_after_hour: dynamic_qr_default_exp_after_hour,
     AppSettingFields.sync_status: sync_status,
     AppSettingFields.created_at: created_at,
