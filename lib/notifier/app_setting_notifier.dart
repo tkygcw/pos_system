@@ -28,7 +28,7 @@ class AppSettingModel extends ChangeNotifier {
     this.table_order,
     this.show_product_desc,
     this.autoPrintCancelReceipt,
-    this.product_sort_by
+    this.product_sort_by,
     this.dynamic_qr_default_exp_after_hour
   });
 
