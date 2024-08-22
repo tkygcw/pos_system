@@ -456,6 +456,7 @@ abstract class PlaceOrder {
           sync_status: 0,
           unit: newOrderDetailList[j].unit,
           per_quantity_unit: newOrderDetailList[j].per_quantity_unit,
+          product_sku: newOrderDetailList[j].product_sku,
           created_at: dateTime,
           updated_at: '',
           soft_delete: '');
