@@ -3409,12 +3409,12 @@ class PosDatabase {
       final db = await instance.database;
       final result = await db.rawQuery(
           'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
-              'a.table_use_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
+              'a.table_use_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, '
               'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a '
               'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
-              'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
+              'WHERE a.order_key = ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
               'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? ORDER BY a.created_at DESC  ',
-          ['1', '', '', branch_id, company_id, 0, '']);
+          ['', '', '', branch_id, company_id, 0, '']);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {
@@ -3831,6 +3831,18 @@ class PosDatabase {
         'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id '
         'WHERE a.soft_delete = ? AND a.settlement_key = ? AND b.soft_delete = ? ORDER BY a.created_at DESC',
         ['', '', '']);
+    return result.map((json) => CashRecord.fromJson(json)).toList();
+  }
+
+/*
+  read branch opening cash record(haven't settlement)
+*/
+  Future<List<CashRecord>> readBranchOpeningCashRecord() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id '
+            'WHERE a.soft_delete = ? AND a.settlement_key = ? AND b.soft_delete = ? AND a.remark = ? ORDER BY a.created_at DESC',
+        ['', '', '', 'Opening Balance']);
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }
 

@@ -149,6 +149,8 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                         setState(() {
                           selectDiningOption = value!;
                         });
+                        cart.removeAllCartItem();
+                        cart.removeAllTable();
                         getOrderList();
                       },
                       menuMaxHeight: 300,

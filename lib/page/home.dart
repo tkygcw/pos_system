@@ -244,12 +244,13 @@ class _HomePageState extends State<HomePage> {
           icon: Icons.table_restaurant,
           onPressed: () => setState(() => currentPage = 'table'),
         ),
-      CollapsibleItem(
-        text: AppLocalizations.of(context)!.translate('qr_order'),
-        icon: Icons.qr_code_2,
-        badgeCount: qr_length,
-        onPressed: () => setState(() => currentPage = 'qr_order'),
-      ),
+      if (isLoad && _appSettingModel.table_order == 1)
+        CollapsibleItem(
+          text: AppLocalizations.of(context)!.translate('qr_order'),
+          icon: Icons.qr_code_2,
+          badgeCount: qr_length,
+          onPressed: () => setState(() => currentPage = 'qr_order'),
+        ),
       CollapsibleItem(
         text: AppLocalizations.of(context)!.translate('other_order'),
         icon: Icons.shopping_cart_sharp,
