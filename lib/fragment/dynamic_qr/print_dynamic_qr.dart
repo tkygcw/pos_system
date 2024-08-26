@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:esc_pos_printer/esc_pos_printer.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
@@ -23,43 +24,51 @@ class PrintDynamicQr {
   }
 
   printDynamicQR({required PosTable table}) async {
-    if(cashierPrinter.isNotEmpty){
-      for(final printers in cashierPrinter){
-        var printerDetail = jsonDecode(printers.value!);
-        if (printers.type == 0) {
-          if(printers.paper_size == 0){
-            var data = Uint8List.fromList(await layout.print80mmFormat(true, posTable: table));
-            bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
-            if (isConnected == true) {
-              await flutterUsbPrinter.write(data);
+    try{
+      if(cashierPrinter.isNotEmpty){
+        for(final printers in cashierPrinter){
+          var printerDetail = jsonDecode(printers.value!);
+          if (printers.type == 0) {
+            if(printers.paper_size == 0){
+              var data = Uint8List.fromList(await layout.print80mmFormat(true, posTable: table));
+              bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
+              }
+            } else {
+              var data = Uint8List.fromList(await layout.print58mmFormat(true, posTable: table));
+              bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
+              }
             }
           } else {
-            var data = Uint8List.fromList(await layout.print58mmFormat(true, posTable: table));
-            bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
-            if (isConnected == true) {
-              await flutterUsbPrinter.write(data);
-            }
-          }
-        } else {
-          if(printers.paper_size == 0){
-            final profile = await CapabilityProfile.load();
-            final printer = NetworkPrinter(PaperSize.mm80, profile);
-            final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
-            if (res == PosPrintResult.success) {
-              await layout.print80mmFormat(false, value: printer, posTable: table);
-              printer.disconnect();
-            }
-          } else {
-            final profile = await CapabilityProfile.load();
-            final printer = NetworkPrinter(PaperSize.mm58, profile);
-            final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
-            if (res == PosPrintResult.success) {
-              await layout.print58mmFormat(false, value: printer, posTable: table);
-              printer.disconnect();
+            if(printers.paper_size == 0){
+              final profile = await CapabilityProfile.load();
+              final printer = NetworkPrinter(PaperSize.mm80, profile);
+              final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
+              if (res == PosPrintResult.success) {
+                await layout.print80mmFormat(false, value: printer, posTable: table);
+                printer.disconnect();
+              }
+            } else {
+              final profile = await CapabilityProfile.load();
+              final printer = NetworkPrinter(PaperSize.mm58, profile);
+              final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
+              if (res == PosPrintResult.success) {
+                await layout.print58mmFormat(false, value: printer, posTable: table);
+                printer.disconnect();
+              }
             }
           }
         }
       }
+    }catch(e){
+      FLog.error(
+        className: "print_dynamic_qr",
+        text: "printDynamicQR error",
+        exception: "$e",
+      );
     }
   }
 

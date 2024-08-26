@@ -235,9 +235,9 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
-          //new 19
-          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
           //new 20
+          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
+          //new 21
           await db.execute('''CREATE TABLE $tableDynamicQR(
           ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
           ${DynamicQRFields.dynamic_qr_id} $integerType,
@@ -274,9 +274,9 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
-          //new 19
-          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
           //new 20
+          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
+          //new 21
           await db.execute('''CREATE TABLE $tableDynamicQR(
           ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
           ${DynamicQRFields.dynamic_qr_id} $integerType,
@@ -299,9 +299,9 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
-          //new 19
-          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
           //new 20
+          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
+          //new 21
           await db.execute('''CREATE TABLE $tableDynamicQR(
           ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
           ${DynamicQRFields.dynamic_qr_id} $integerType,
@@ -320,9 +320,9 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
-          //new 19
-          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
           //new 20
+          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
+          //new 21
           await db.execute('''CREATE TABLE $tableDynamicQR(
           ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
           ${DynamicQRFields.dynamic_qr_id} $integerType,
@@ -339,7 +339,7 @@ class PosDatabase {
         }break;
         case 19: {
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
-          //new 20
+          //new 21
           await db.execute('''CREATE TABLE $tableDynamicQR(
           ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
           ${DynamicQRFields.dynamic_qr_id} $integerType,

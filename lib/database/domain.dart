@@ -64,7 +64,6 @@ class Domain {
         'qr_url': posTable.dynamicQrHash,
         'qr_expired_dateTime': posTable.dynamicQRExp
       }).timeout(Duration(seconds: 5), onTimeout: ()=> throw TimeoutException("Timeout"));
-      print("response: ${jsonDecode(response.body)}");
       return jsonDecode(response.body);
     } catch (error) {
       FLog.error(

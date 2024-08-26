@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -44,7 +43,6 @@ class _TableDynamicQrDialogState extends State<TableDynamicQrDialog> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    print("table length in dialog: ${widget.posTableList.length}");
     dateTimeController = TextEditingController(text: Utils.formatDate(currentDateTime.toString()));
     printDynamicQr.readCashierPrinter();
     getPref();
@@ -219,7 +217,6 @@ class _TableDynamicQrDialogState extends State<TableDynamicQrDialog> {
     currentSelectedTable.dynamicQrHash = hashCode;
     currentSelectedTable.qrOrderUrl = url;
     currentSelectedTable.dynamicQRExp = dateFormat.format(currentDateTime);
-    print("table qr url: ${currentSelectedTable.qrOrderUrl}");
     return currentSelectedTable;
   }
 
