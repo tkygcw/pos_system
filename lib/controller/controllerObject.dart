@@ -4,7 +4,9 @@ class ControllerClass{
   StreamController productOrderDialogController = StreamController();
   StreamController appDeviceController = StreamController();
   StreamController hardwareSettingController = StreamController();
+  StreamController orderSettingController = StreamController();
   late Stream hardwareSettingStream = hardwareSettingController.stream.asBroadcastStream();
+  late Stream orderSettingStream = hardwareSettingController.stream.asBroadcastStream();
   late Stream appDeviceStream = appDeviceController.stream.asBroadcastStream();
   late Stream productOrderDialogStream = productOrderDialogController.stream.asBroadcastStream();
 

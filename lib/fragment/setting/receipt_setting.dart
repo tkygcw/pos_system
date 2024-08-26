@@ -383,47 +383,6 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                               },
                             ),
                           ),
-                          ListTile(
-                            title: Text(AppLocalizations.of(context)!.translate('order_numbering')),
-                            subtitle: Text(AppLocalizations.of(context)!.translate('enable_order_numbering')),
-                            trailing: Switch(
-                              value: enableNumbering,
-                              activeColor: color.backgroundColor,
-                              onChanged: (value) async {
-                                if(!value) {
-                                  if(appSettingModel.table_order != 1) {
-                                    Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_enable_table_order_in_general_setting'));
-                                  } else {
-                                    enableNumbering = value;
-                                    appSettingModel.setOrderNumberingStatus(enableNumbering);
-                                    actionController.sink.add("switch");
-                                  }
-                                } else {
-                                  enableNumbering = value;
-                                  appSettingModel.setOrderNumberingStatus(enableNumbering);
-                                  actionController.sink.add("switch");
-                                }
-                              },
-                            ),
-                          ),
-                          ListTile(
-                            title: Text(AppLocalizations.of(context)!.translate('order_starting_number'),
-                              style: TextStyle(
-                                color: !enableNumbering ? Colors.grey : null,
-                              )),
-                            subtitle: Text(AppLocalizations.of(context)!.translate('default_order_starting_number'),
-                                style: TextStyle(
-                                  color: !enableNumbering ? Colors.grey : null,
-                                )),
-                            trailing: Text(startingNumber.toString()+'    ', style: TextStyle(color: !enableNumbering ? Colors.grey : null, fontWeight: FontWeight.w500)),
-                            onTap: (){
-                              if (enableNumbering) {
-                                openStartingNumberDialog();
-                              } else{
-                                Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('order_starting_number_required'));
-                              }
-                            },
-                          ),
                         ],
                       ),
                     );

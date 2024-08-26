@@ -292,10 +292,11 @@ packages:
   custom_pin_screen:
     dependency: "direct main"
     description:
-      name: custom_pin_screen
-      sha256: f4312585a7363eb1b37700c4d2fc5765e30a94307906618a9a51a099537ae411
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: "0881309cb2f509b270cfa73781ba6aa800e1d709"
+      url: "https://github.com/tkygcw/custom_pin_screen.git"
+    source: git
     version: "0.3.0"
   dart_ping:
     dependency: transitive
