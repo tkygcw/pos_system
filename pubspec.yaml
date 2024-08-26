@@ -77,7 +77,7 @@ dependencies:
   xml2json: ^5.3.6
   firebase_messaging: ^14.1.1
   firebase_core: ^2.3.0
-  flutter_local_notifications: ^9.7.0
+  flutter_local_notifications: ^17.2.2
   presentation_displays: ^0.2.3
   app_settings: ^4.2.0
   location: ^4.4.0
@@ -93,7 +93,7 @@ dependencies:
   assets_audio_player: ^3.0.6
   dotted_line: ^3.2.0
   esc_pos_utils_plus: ^2.0.2
-  carousel_slider: ^4.2.1
+  carousel_slider: ^5.0.0
   another_flushbar: ^1.12.30
   flash: ^3.0.5
   version: ^3.0.2

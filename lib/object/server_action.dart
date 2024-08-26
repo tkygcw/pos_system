@@ -92,6 +92,7 @@ class ServerAction {
           var data9 = await PosDatabase.instance.readAllTaxLinkDining();
           var data10 = await getBranchPromotionData();
           var data11 = appLanguage.appLocal.languageCode;
+          print("data2 length: ${data2.length}");
            objectData = {
              'tb_categories': data,
              'tb_product': data2,
