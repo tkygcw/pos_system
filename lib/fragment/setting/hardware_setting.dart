@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
@@ -6,9 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/object/order.dart';
+import 'package:pos_system/fragment/setting/adjust_hour_dialog.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../controller/controllerObject.dart';
 import '../../database/pos_database.dart';
@@ -68,6 +71,7 @@ class _HardwareSettingState extends State<HardwareSetting> {
     actionStream.listen((event) async {
       switch(event){
         case 'init':{
+          await checkStatus();
           await getAllAppSetting();
           await read80mmReceiptLayout();
           controller.refresh(streamController);
@@ -105,6 +109,15 @@ class _HardwareSettingState extends State<HardwareSetting> {
         break;
       }
     });
+  }
+
+  Future<void> checkStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
+    if(branchObject['qr_order_status'] == '1'){
+      hasQrAccess = false;
+    }
   }
 
   read80mmReceiptLayout() async {
@@ -303,6 +316,35 @@ class _HardwareSettingState extends State<HardwareSetting> {
                               ),
                             ),
                           ),
+                          Divider(
+                            color: Colors.grey,
+                            height: 1,
+                            thickness: 1,
+                            indent: 20,
+                            endIndent: 20,
+                          ),
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('auto_accept_qr_order'), style: TextStyle(color: !hasQrAccess ? Colors.grey: null)),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('auto_accept_qr_order_desc')),
+                            trailing: Switch(
+                              value: qrOrderAutoAccept,
+                              activeColor: color.backgroundColor,
+                              onChanged: hasQrAccess ? (value) {
+                                qrOrderAutoAccept = value;
+                                appSettingModel.setQrOrderAutoAcceptStatus(qrOrderAutoAccept);
+                                actionController.sink.add("qr_order_auto_accept");
+                              } : null
+                            ),
+                          ),
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('set_default_exp_after_hour'), style: TextStyle(color: !hasQrAccess ? Colors.grey: null)),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('set_default_exp_after_hour_desc')),
+                            trailing: Text('${appSettingModel.dynamic_qr_default_exp_after_hour} ${AppLocalizations.of(context)!.translate('hours')}',
+                                style: TextStyle(color: !hasQrAccess ? Colors.grey : null, fontWeight: FontWeight.w500)),
+                            onTap: hasQrAccess ? (){
+                             openAdjustHourDialog(appSettingModel);
+                            } : null
+                          ),
                         ],
                       ),
                     );
@@ -315,6 +357,28 @@ class _HardwareSettingState extends State<HardwareSetting> {
         );
       });
     });
+  }
+
+  Future<Future<Object?>> openAdjustHourDialog(AppSettingModel appSettingModel) async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+                opacity: a1.value,
+                child: AdjustHourDialog(exp_hour: appSettingModel.dynamic_qr_default_exp_after_hour!)
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   updateAppSetting() async {

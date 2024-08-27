@@ -121,12 +121,9 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
               child: LayoutBuilder(builder: (context, constraints) {
                 if (constraints.maxWidth > 800) {
                   return AlertDialog(
-                    //contentPadding: EdgeInsets.zero,
-                    title: Text(AppLocalizations.of(context)!
-                        .translate('payment_success')),
-                    content: isLoaded
-                        ? Container(
-                      width: 360,
+                    title: Text(AppLocalizations.of(context)!.translate('payment_success')),
+                    content: isLoaded ? Container(
+                      width: 380,
                       height: 350,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,

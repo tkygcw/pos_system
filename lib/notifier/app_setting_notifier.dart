@@ -15,6 +15,7 @@ class AppSettingModel extends ChangeNotifier {
   bool? show_product_desc;
   bool? autoPrintCancelReceipt;
   int? product_sort_by;
+  int? dynamic_qr_default_exp_after_hour;
 
   AppSettingModel({
     this.directPaymentStatus,
@@ -27,7 +28,8 @@ class AppSettingModel extends ChangeNotifier {
     this.table_order,
     this.show_product_desc,
     this.autoPrintCancelReceipt,
-    this.product_sort_by
+    this.product_sort_by,
+    this.dynamic_qr_default_exp_after_hour
   });
 
   void initialLoad() async {
@@ -44,6 +46,7 @@ class AppSettingModel extends ChangeNotifier {
       show_product_desc = data.show_product_desc == 0 ? false : true;
       autoPrintCancelReceipt = data.print_cancel_receipt == 0 ? false : true;
       product_sort_by = data.product_sort_by;
+      dynamic_qr_default_exp_after_hour = data.dynamic_qr_default_exp_after_hour;
     }
   }
 
@@ -94,6 +97,11 @@ class AppSettingModel extends ChangeNotifier {
 
   void setProductSortByStatus(int status) {
     product_sort_by = status;
+    notifyListeners();
+  }
+
+  void setDynamicQrDefaultExpAfterHour(int hour) {
+    dynamic_qr_default_exp_after_hour = hour;
     notifyListeners();
   }
 }
