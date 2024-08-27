@@ -296,11 +296,10 @@ class _MakePaymentState extends State<MakePayment> {
                                   Card(
                                     elevation: 5,
                                     child: Column(
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Container(
-                                          height: MediaQuery.of(context).size.width < 1300
-                                              ? MediaQuery.of(context).size.width / 4.5
-                                              : MediaQuery.of(context).size.width / 5,
+                                        SizedBox(
+                                          height: 250,
                                           child: ListView.builder(
                                               shrinkWrap: true,
                                               itemCount: itemList.length,
@@ -330,20 +329,12 @@ class _MakePaymentState extends State<MakePayment> {
                                                           getModifier(itemList[index]) +
                                                           getRemark(itemList[index]),
                                                       style: TextStyle(fontSize: 12)),
-                                                  trailing: Container(
-                                                    child: FittedBox(
-                                                      child: Row(
-                                                        children: [
-                                                          Text(
-                                                            'x${itemList[index].quantity.toString()}',
-                                                            style: TextStyle(
-                                                                color: color.backgroundColor,
-                                                                fontWeight: FontWeight.bold,
-                                                                fontSize: 20),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
+                                                  trailing: Text(
+                                                    'x${itemList[index].quantity.toString()}',
+                                                    style: TextStyle(
+                                                        color: color.backgroundColor,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 20),
                                                   ),
                                                 );
                                               }),
@@ -358,12 +349,9 @@ class _MakePaymentState extends State<MakePayment> {
                                         ),
                                         SizedBox(height: 10),
                                         Container(
-                                          constraints: new BoxConstraints(
-                                              maxHeight: MediaQuery.of(context).size.height < 500 && cart.selectedOption == 'Dine in'
-                                                  ? 31
-                                                  : MediaQuery.of(context).size.height < 700 && cart.selectedOption == 'Dine in'
-                                                  ? 190
-                                                  : 200),
+                                          constraints: BoxConstraints(
+                                            maxHeight: 200,
+                                          ),
                                           child: ListView(
                                             controller: _controller,
                                             padding: EdgeInsets.only(left: 5, right: 5),
@@ -376,9 +364,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                 dense: true,
                                               ),
                                               Visibility(
-                                                visible: hasSelectedPromo
-                                                    ? true
-                                                    : false,
+                                                visible: hasSelectedPromo ? true : false,
                                                 child: ListTile(
                                                   title: SingleChildScrollView(
                                                     scrollDirection: Axis.horizontal,
@@ -396,9 +382,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                 ),
                                               ),
                                               Visibility(
-                                                  visible: hasPromo == true
-                                                      ? true
-                                                      : false,
+                                                  visible: hasPromo,
                                                   child: ListView.builder(
                                                       physics: NeverScrollableScrollPhysics(),
                                                       padding: EdgeInsets.zero,
@@ -1050,7 +1034,9 @@ class _MakePaymentState extends State<MakePayment> {
                                                           style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                                                           onPressed: () {
                                                             inputController.clear();
-                                                            change = '0.00';
+                                                            setState(() {
+                                                              change = '0.00';
+                                                            });
                                                           },
                                                           child: Text(AppLocalizations.of(context)!.translate('clear'))),
                                                     ],
