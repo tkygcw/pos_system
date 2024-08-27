@@ -33,6 +33,7 @@ import '../printing_layout/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../object/variant_group.dart';
 import '../../page/loading_dialog.dart';
+import '../choose_qr_type_dialog.dart';
 import 'advanced_table/advanced_table_view.dart';
 
 class TableMenu extends StatefulWidget {
@@ -48,7 +49,7 @@ class _TableMenuState extends State<TableMenu> {
   Timer? timer;
 
   List<Printer> printerList = [];
-  List<PosTable> tableList = [];
+  List<PosTable> tableList = [], selectedTable = [];
   List<OrderCache> orderCacheList = [];
   List<OrderDetail> orderDetailList = [];
   List<VariantGroup> variantGroup = [];
@@ -64,6 +65,7 @@ class _TableMenuState extends State<TableMenu> {
   bool showAdvanced = false;
   bool productDetailLoaded = false;
   bool editingMode = false, isButtonDisable = false, onTapDisable = false;
+  String qrOrderStatus = '0';
   late SharedPreferences prefs;
 
   @override
@@ -86,6 +88,7 @@ class _TableMenuState extends State<TableMenu> {
     }
     tapCount = 0;
     onTapDisable = false;
+    selectedTable.clear();
     super.dispose();
   }
 
@@ -237,6 +240,10 @@ class _TableMenuState extends State<TableMenu> {
                                 elevation: 5,
                                 child: InkWell(
                                   splashColor: Colors.blue.withAlpha(30),
+                                  onLongPress: qrOrderStatus == '1' ? null : () {
+                                    selectedTable = [tableList[index]];
+                                    openChooseQRDialog(selectedTable);
+                                    },
                                   onDoubleTap: () {
                                     if (tableList[index].status != 1) {
                                       //openAddTableDialog(tableList[index]);
@@ -354,6 +361,10 @@ class _TableMenuState extends State<TableMenu> {
             elevation: 5,
             child: InkWell(
               splashColor: Colors.blue.withAlpha(30),
+              onLongPress: qrOrderStatus == '1' ? null : () {
+                selectedTable = [tableList[index]];
+                openChooseQRDialog(selectedTable);
+              },
               onDoubleTap: () {
                 if (tableList[index].status != 1) {
                   //openAddTableDialog(tableList[index]);
@@ -702,6 +713,25 @@ class _TableMenuState extends State<TableMenu> {
         Navigator.of(context).pop();
       });
     }
+  }
+
+  Future<Future<Object?>> openChooseQRDialog(List<PosTable> selectedTable) async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: ChooseQrTypeDialog(posTableList: selectedTable),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   Future<Future<Object?>> openLoadingDialogBox() async {
@@ -1145,6 +1175,13 @@ class _TableMenuState extends State<TableMenu> {
                   else if (action == 'on_double_tap') {
                     openChangeTableDialog(tableList[i], cart);
                   }
+
+                  else if (action == 'on_long_press'){
+                    if(qrOrderStatus == '0'){
+                      selectedTable = [tableList[i]];
+                      openChooseQRDialog(selectedTable);
+                    }
+                  }
                 },
               )
           ],
@@ -1199,7 +1236,14 @@ class _TableMenuState extends State<TableMenu> {
   void getPreData() async {
     try {
       prefs = await SharedPreferences.getInstance();
-      showAdvanced = prefs.getBool('show_advanced')!;
+      if(prefs.getBool('show_advanced') != null){
+        showAdvanced = prefs.getBool('show_advanced')!;
+      } else {
+        showAdvanced = false;
+      }
+      String? branch = prefs.getString('branch');
+      Map branchObject = json.decode(branch!);
+      qrOrderStatus = branchObject['qr_order_status'];
     } catch (e) {
       showAdvanced = false;
     }

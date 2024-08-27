@@ -7,9 +7,10 @@ import 'package:pos_system/fragment/Attendance/attendance_dialog.dart';
 import 'package:pos_system/fragment/setting/features_setting.dart';
 import 'package:pos_system/fragment/setting/hardware_setting.dart';
 import 'package:pos_system/fragment/setting/logout_dialog.dart';
+import 'package:pos_system/fragment/setting/order_setting.dart';
 import 'package:pos_system/fragment/setting/printer_setting.dart';
 import 'package:pos_system/fragment/setting/receipt_setting.dart';
-import 'package:pos_system/fragment/setting/table_setting.dart';
+import 'package:pos_system/fragment/setting/table_setting/table_setting.dart';
 import 'package:pos_system/page/login.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
@@ -42,6 +43,9 @@ class _SettingMenuState extends State<SettingMenu> {
     // General Setting
     Container(
       child: HardwareSetting(),
+    ),
+    Container(
+      child: OrderSetting(),
     ),
     Container(
       child: PrinterSetting(),
@@ -177,6 +181,10 @@ class _SettingMenuState extends State<SettingMenu> {
                         label: AppLocalizations.of(context)!.translate('general_setting'),
                       ),
                       SideNavigationBarItem(
+                        icon: Icons.shopping_cart,
+                        label: AppLocalizations.of(context)!.translate('order_setting'),
+                      ),
+                      SideNavigationBarItem(
                         icon: Icons.print,
                         label: AppLocalizations.of(context)!.translate('printer_setting'),
                       ),
@@ -285,6 +293,10 @@ class _SettingMenuState extends State<SettingMenu> {
                         SideNavigationBarItem(
                           icon: Icons.devices,
                           label: AppLocalizations.of(context)!.translate('general_setting'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.devices,
+                          label: AppLocalizations.of(context)!.translate('order_setting'),
                         ),
                         SideNavigationBarItem(
                           icon: Icons.print,
