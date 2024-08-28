@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:f_logs/model/flog/flog.dart';
-import 'package:package_info/package_info.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/fragment/cart/cart.dart';
 import 'package:pos_system/fragment/product/product_order_dialog.dart';
@@ -54,8 +53,7 @@ class ServerAction {
   Future<Map<String, dynamic>?> checkAction({required String action, param, String? address}) async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    String version = packageInfo.version;
+    String minVersion = '1.0.10';
     Map<String, dynamic>? result;
     Map<String, dynamic>? objectData;
     try{
@@ -63,21 +61,17 @@ class ServerAction {
         case '-1': {
           String status = '';
           var jsonParam = jsonDecode(param);
-          print("json param: $jsonParam");
-          print("sub pos branchId: ${jsonParam['branch_id']}");
-          print("server branch id: ${branch_id.toString()}");
           if(jsonParam['branch_id'].toString() == branch_id.toString()){
             status = '1';
           } else {
             status = '2';
           }
           //check supported version
-          Version minSupportVersion = Version.parse(jsonParam['minSupportVersion']);
-          Version currentVersion = Version.parse(version);
-          if(currentVersion < minSupportVersion){
+          Version subPosAppVersion = Version.parse(jsonParam['app_version']);
+          Version supportedVersion = Version.parse(minVersion);
+          if(subPosAppVersion < supportedVersion){
             status = '3';
           }
-          print("status: $status");
           result = {'status': status};
         }
         break;
