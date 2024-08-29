@@ -53,7 +53,7 @@ class ServerAction {
   Future<Map<String, dynamic>?> checkAction({required String action, param, String? address}) async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    String minVersion = '1.0.10';
+    String minVersion = '1.0.11';
     Map<String, dynamic>? result;
     Map<String, dynamic>? objectData;
     try{
