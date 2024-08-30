@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:esc_pos_utils/esc_pos_utils.dart';
-import 'package:esc_pos_utils_plus/gbk_codec/gbk_codec.dart';
+import 'package:esc_pos_utils/gbk_codec/gbk_codec.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
