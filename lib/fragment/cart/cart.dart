@@ -1166,29 +1166,32 @@ class CartPageState extends State<CartPage> {
   getSelectedTable(CartModel cart, AppSettingModel appSettingModel) {
     List<String> result = [];
     String? orderQueue = '';
-    for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-      if (cart.cartNotifierItem[i].order_queue != '') orderQueue = cart.cartNotifierItem[i].order_queue;
-    }
-
-    if (cart.selectedTable.isEmpty && cart.selectedOption == 'Dine in') {
-      result.add('-');
-    } else if (cart.selectedOption != 'Dine in') {
-      result.add('N/A');
+    if(cart.tableNumberList.isNotEmpty){
+      result.addAll(cart.tableNumberList);
     } else {
-      if (cart.selectedTable.length > 1) {
-        for (int i = 0; i < cart.selectedTable.length; i++) {
-          result.add('${cart.selectedTable[i].number}');
-        }
-      } else {
-        result.add('${cart.selectedTable[0].number}');
+      for (int i = 0; i < cart.cartNotifierItem.length; i++) {
+        if (cart.cartNotifierItem[i].order_queue != '') orderQueue = cart.cartNotifierItem[i].order_queue;
       }
-    }
+      if (cart.selectedTable.isEmpty && cart.selectedOption == 'Dine in') {
+        result.add('-');
+      } else if (cart.selectedOption != 'Dine in') {
+        result.add('N/A');
+      } else {
+        if (cart.selectedTable.length > 1) {
+          for (int i = 0; i < cart.selectedTable.length; i++) {
+            result.add('${cart.selectedTable[i].number}');
+          }
+        } else {
+          result.add('${cart.selectedTable[0].number}');
+        }
+      }
 
-    if (result[0] == '-' || result[0] == 'N/A') {
-      if (orderQueue != '') {
-        result.clear();
-        result.add(AppLocalizations.of(context)!.translate('order') + ': ${orderQueue}');
-        return result[0];
+      if (result[0] == '-' || result[0] == 'N/A') {
+        if (orderQueue != '') {
+          result.clear();
+          result.add(AppLocalizations.of(context)!.translate('order') + ': ${orderQueue}');
+          return result[0];
+        }
       }
     }
     result[0] = AppLocalizations.of(context)!.translate('table') + ': ${result.toString().replaceAll('[', '').replaceAll(']', '')}';
@@ -2804,6 +2807,7 @@ class CartPageState extends State<CartPage> {
                   table_sqlite_id: cart.selectedTable[i].table_sqlite_id.toString(),
                   table_id: cart.selectedTable[i].table_id.toString(),
                   status: 0,
+                  table_number: cart.selectedTable[i].number,
                   sync_status: 0,
                   created_at: dateTime,
                   updated_at: '',

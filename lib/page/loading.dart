@@ -1713,6 +1713,7 @@ getAllTableUseDetail() async {
               table_sqlite_id: tableData.table_sqlite_id.toString(),
               table_id: item.table_id,
               status: item.status,
+              table_number: '',//item.table_number
               sync_status: 1,
               created_at: item.created_at,
               updated_at: item.updated_at,

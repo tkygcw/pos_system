@@ -74,7 +74,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 21, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 22, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -368,6 +368,9 @@ class PosDatabase {
           ${DynamicQRFields.updated_at} $textType,
           ${DynamicQRFields.soft_delete} $textType)''');
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType DEFAULT 1");
+        }break;
+        case 21: {
+          await db.execute("ALTER TABLE $tableTableUseDetail ADD ${TableUseDetailFields.table_number} $textType DEFAULT '' ");
         }break;
       }
     }
@@ -827,6 +830,7 @@ class PosDatabase {
           ${TableUseDetailFields.table_sqlite_id} $textType,
           ${TableUseDetailFields.table_id} $textType,
           ${TableUseDetailFields.status} $integerType,
+          ${TableUseDetailFields.table_number} $textType,
           ${TableUseDetailFields.sync_status} $integerType,
           ${TableUseDetailFields.created_at} $textType,
           ${TableUseDetailFields.updated_at} $textType,
@@ -1778,7 +1782,9 @@ class PosDatabase {
   Future<TableUseDetail> insertTableUseDetail(TableUseDetail data) async {
     final db = await instance.database;
     final id = db.rawInsert(
-        'INSERT INTO $tableTableUseDetail(table_use_detail_id, table_use_detail_key, table_use_sqlite_id, table_use_key, table_sqlite_id, table_id, status, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO $tableTableUseDetail(table_use_detail_id, table_use_detail_key, table_use_sqlite_id, table_use_key, table_sqlite_id, table_id, '
+            'status, table_number, sync_status, created_at, updated_at, soft_delete) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.table_use_detail_id,
           data.table_use_detail_key,
@@ -1787,6 +1793,7 @@ class PosDatabase {
           data.table_sqlite_id,
           data.table_id,
           data.status,
+          data.table_number,
           data.sync_status,
           data.created_at,
           data.updated_at,
@@ -3391,7 +3398,9 @@ class PosDatabase {
 */
   Future<List<TableUseDetail>> readAllTableUseDetail(String table_use_sqlite_id) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableTableUseDetail WHERE soft_delete = ? AND status = ? AND table_use_sqlite_id = ?', ['', 0, table_use_sqlite_id]);
+    final result = await db.rawQuery('SELECT a.*, b.number AS table_number FROM $tableTableUseDetail AS a '
+        'JOIN $tablePosTable AS b ON a.table_sqlite_id = b.table_sqlite_id '
+        'WHERE a.soft_delete = ? AND a.status = ? AND a.table_use_sqlite_id = ?', ['', 0, table_use_sqlite_id]);
 
     return result.map((json) => TableUseDetail.fromJson(json)).toList();
   }
@@ -6256,6 +6265,16 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableTableUseDetail SET table_sqlite_id = ?, table_id = ?, sync_status = ?, updated_at = ? WHERE table_use_detail_key = ?',
         [data.table_sqlite_id, data.table_id, data.sync_status, data.updated_at, data.table_use_detail_key]);
+  }
+
+/*
+  update table use detail
+*/
+  Future<int> updatePaymentSuccessTableUseDetail(TableUseDetail data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableTableUseDetail SET updated_at = ?, sync_status = ?, status = ?, table_number = ? '
+        'WHERE table_use_sqlite_id = ? AND table_use_detail_sqlite_id = ?',
+        [data.updated_at, data.sync_status, data.status, data.table_number, data.table_use_sqlite_id, data.table_use_detail_sqlite_id]);
   }
 
 /*

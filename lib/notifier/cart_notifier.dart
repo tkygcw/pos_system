@@ -18,6 +18,7 @@ class CartModel extends ChangeNotifier {
   List<PosTable> selectedTable = [];
   List<OrderCache> selectedOrderQueue = [];
   List<OrderCache> currentOrderCache = [];
+  List<String> tableNumberList = [];
   String selectedOption = '';
   String selectedOptionId = '';
   String? subtotal;
@@ -28,12 +29,14 @@ class CartModel extends ChangeNotifier {
   CartModel({
     List<cartProductItem>? cartNotifierItem,
     List<PosTable>? selectedTable,
+    List<String>? tableNumberList,
     String? selectedOption,
     String? selectedOptionId,
     String? subtotal
   }){
     this.selectedTable = selectedTable ?? [];
     this.cartNotifierItem = cartNotifierItem ?? [];
+    this.tableNumberList = tableNumberList ?? [];
     this.selectedOption = selectedOption ?? '';
     this.selectedOptionId = selectedOptionId ?? '';
     this.subtotal = subtotal;
@@ -73,6 +76,7 @@ class CartModel extends ChangeNotifier {
     removePaymentDetail();
     readAllBranchLinkDiningOption();
     currentOrderCache.clear();
+    tableNumberList.clear();
     //selectedOptionId = '1';
     notifyListeners();
   }
@@ -85,6 +89,7 @@ class CartModel extends ChangeNotifier {
     removePaymentDetail();
     currentOrderCache.clear();
     selectedOption = 'Take Away';
+    tableNumberList.clear();
     //selectedOptionId = '2';
     notifyListeners();
   }

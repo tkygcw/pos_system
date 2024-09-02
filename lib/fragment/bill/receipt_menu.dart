@@ -565,47 +565,22 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
     List<String> _uniqueList = [];
     var _value;
     for (int j = 0; j < orderCacheList.length; j++) {
-      //print('order cache list ${j+1}: ${orderCacheList[j].table_use_sqlite_id}');
-      // if(_uniqueOrderCacheList.isEmpty){
-      //   _uniqueOrderCacheList.add(orderCacheList[j]);
-      // } else {
-      //   for(int m = 0; m < _uniqueOrderCacheList.length; m++){
-      //     print('table use id ${m+1}: ${_uniqueOrderCacheList[m].table_use_sqlite_id}');
-      //     print('cache table use id ${m+1}: ${orderCacheList[j].table_use_sqlite_id}');
-      //     if(_uniqueOrderCacheList[m].table_use_sqlite_id == orderCacheList[j].table_use_sqlite_id){
-      //       break;
-      //       //_uniqueOrderCacheList.removeAt(j);
-      //       //_uniqueOrderCacheList.add(orderCacheList[j]);
-      //     } else {
-      //       //_uniqueOrderCacheList.add(orderCacheList[j]);
-      //     }
-      //   }
-      // }
       _uniqueList.add(orderCacheList[j].table_use_sqlite_id!);
       _value = _uniqueList.toSet().toList();
-      //Get specific table use detail
-      // List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readDeleteOnlyTableUseDetail(orderCacheList[j].table_use_sqlite_id!);
-      // if(!tableUseDetailList.contains(tableUseDetailData)){
-      //   tableUseDetailList.addAll(tableUseDetailData);
-      // }
-      //tableUseDetailList = List.from(tableUseDetailData);
-      //add selected dining option
       cart.selectedOption = order.dining_name!;
-      // if (orderCacheList[j].dining_id == '2') {
-      //   cart.selectedOption = 'Take Away';
-      // } else if (orderCacheList[j].dining_id == '3') {
-      //   cart.selectedOption = 'Delivery';
-      // } else {
-      //   cart.selectedOption = 'Dine in';
-      // }
-      print('cycle ${j + 1} finish');
     }
     //get all table use detail
     for (int m = 0; m < _value.length; m++) {
       List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readDeleteOnlyTableUseDetail(_value[m]!);
-      if (!tableUseDetailList.contains(tableUseDetailData)) {
+      List<String> tableNumberedTableUseDetail = tableUseDetailData.where((e) => e.table_number != '').map((e) => e.table_number!).toList();
+      if(tableNumberedTableUseDetail.isNotEmpty){
+        cart.tableNumberList.addAll(tableNumberedTableUseDetail);
+      } else {
         tableUseDetailList.addAll(tableUseDetailData);
       }
+      // if (!tableUseDetailList.contains(tableUseDetailData)) {
+      //   tableUseDetailList.addAll(tableUseDetailData);
+      // }
     }
     //get table object add to cart
     for (int k = 0; k < tableUseDetailList.length; k++) {

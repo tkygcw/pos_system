@@ -425,7 +425,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     String dateTime = dateFormat.format(DateTime.now());
     await updateOrder(dateTime: dateTime);
     if (widget.dining_name == 'Dine in' && widget.selectedTableList.isNotEmpty) {
-      await deleteCurrentTableUseDetail(dateTime: dateTime);
+      await updateCurrentTableUseDetail(dateTime: dateTime);
       await deleteCurrentTableUseId(dateTime: dateTime);
       await updatePosTableStatus(dateTime: dateTime);
     }
@@ -502,30 +502,24 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
   //   }
   // }
 
-  deleteCurrentTableUseDetail({required String dateTime}) async {
+  updateCurrentTableUseDetail({required String dateTime}) async {
     List<String> _value = [];
     try {
       if (widget.orderCacheIdList.isNotEmpty) {
         for (int j = 0; j < widget.orderCacheIdList.length; j++) {
-          List<OrderCache> data = await PosDatabase.instance
-              .readSpecificOrderCache(widget.orderCacheIdList[j]);
-          List<TableUseDetail> tableUseCheckData = await PosDatabase.instance
-              .readAllTableUseDetail(data[0].table_use_sqlite_id!);
+          List<OrderCache> data = await PosDatabase.instance.readSpecificOrderCache(widget.orderCacheIdList[j]);
+          List<TableUseDetail> tableUseCheckData = await PosDatabase.instance.readAllTableUseDetail(data[0].table_use_sqlite_id!);
           for (int i = 0; i < tableUseCheckData.length; i++) {
             TableUseDetail tableUseDetailObject = TableUseDetail(
                 updated_at: dateTime,
                 sync_status: tableUseCheckData[i].sync_status == 0 ? 0 : 2,
+                table_number: tableUseCheckData[i].table_number,
                 status: 1,
                 table_use_sqlite_id: data[0].table_use_sqlite_id!,
-                table_use_detail_sqlite_id:
-                    tableUseCheckData[i].table_use_detail_sqlite_id);
-
-            int deletedData = await PosDatabase.instance
-                .deleteTableUseDetail(tableUseDetailObject);
+                table_use_detail_sqlite_id: tableUseCheckData[i].table_use_detail_sqlite_id);
+            int deletedData = await PosDatabase.instance.updatePaymentSuccessTableUseDetail(tableUseDetailObject);
             if (deletedData == 1) {
-              TableUseDetail detailData = await PosDatabase.instance
-                  .readSpecificTableUseDetailByLocalId(
-                      tableUseDetailObject.table_use_detail_sqlite_id!);
+              TableUseDetail detailData = await PosDatabase.instance.readSpecificTableUseDetailByLocalId(tableUseDetailObject.table_use_detail_sqlite_id!);
               _value.add(jsonEncode(detailData));
             }
           }

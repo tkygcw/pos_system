@@ -11,6 +11,7 @@ class TableUseDetailFields {
     table_sqlite_id,
     table_id,
     status,
+    table_number,
     sync_status,
     created_at,
     updated_at,
@@ -25,6 +26,7 @@ class TableUseDetailFields {
   static String table_sqlite_id = 'table_sqlite_id';
   static String table_id = 'table_id';
   static String status = 'status';
+  static String table_number = 'table_number';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -40,6 +42,7 @@ class TableUseDetail{
   String? table_sqlite_id;
   String? table_id;
   int? status;
+  String? table_number;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -54,6 +57,7 @@ class TableUseDetail{
         this.table_sqlite_id,
         this.table_id,
         this.status,
+        this.table_number,
         this.sync_status,
         this.created_at,
         this.updated_at,
@@ -68,6 +72,7 @@ class TableUseDetail{
     String? table_sqlite_id,
     String? table_id,
     int? status,
+    String? table_number,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -82,6 +87,7 @@ class TableUseDetail{
           table_sqlite_id: table_sqlite_id ?? this.table_sqlite_id,
           table_id: table_id ?? this.table_id,
           status: status ?? this.status,
+          table_number: table_number ?? this.table_number,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -96,6 +102,7 @@ class TableUseDetail{
     table_sqlite_id: json[TableUseDetailFields.table_sqlite_id] as String?,
     table_id: json[TableUseDetailFields.table_id] as String?,
     status: json[TableUseDetailFields.status] as int?,
+    table_number: json[TableUseDetailFields.table_number] as String?,
     sync_status: json[TableUseDetailFields.sync_status] as int?,
     created_at: json[TableUseDetailFields.created_at] as String?,
     updated_at: json[TableUseDetailFields.updated_at] as String?,
@@ -111,6 +118,7 @@ class TableUseDetail{
     TableUseDetailFields.table_sqlite_id: table_sqlite_id,
     TableUseDetailFields.table_id: table_id,
     TableUseDetailFields.status: status,
+    TableUseDetailFields.table_number: table_number,
     TableUseDetailFields.sync_status: sync_status,
     TableUseDetailFields.created_at: created_at,
     TableUseDetailFields.updated_at: updated_at,
