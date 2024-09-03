@@ -103,7 +103,7 @@ class SyncToCloud {
           checklist_value:  this.checklist_value,
           kitchen_list_value:  this.kitchen_list_value,
           attendance_value:  this.attendance_value,
-          dynamic_qr_value: this.dynamic_qr_value
+          dynamic_qr_value: this.dynamic_qr_value,
           order_payment_split_value:  this.order_payment_split_value,
       );
       if (data['status'] == '1') {

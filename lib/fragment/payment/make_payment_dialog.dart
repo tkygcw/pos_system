@@ -273,796 +273,794 @@ class _MakePaymentState extends State<MakePayment> {
                     }
                     return willPop;
                   },
-                  child: Center(
-                    child: SingleChildScrollView(
-                      physics: NeverScrollableScrollPhysics(),
-                      child: AlertDialog(
-                        title: Row(
-                          children: [
-                            Text(AppLocalizations.of(context)!.translate('payment_detail')),
-                            SizedBox(
-                              width: 20,
-                            ),
-                            Visibility(
-                              // visible: getTotalOrderCache(selectedTableList) == 1,
-                              visible: true,
-                              child: SizedBox(
-                                width: MediaQuery.of(context).size.width / 10,
-                                height: MediaQuery.of(context).size.height / 20,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    padding: EdgeInsets.zero,
-                                    backgroundColor: Color(0xff0d5060),
-                                  ),
-                                  child: Text(!split_payment ? AppLocalizations.of(context)!.translate('split_payment')
-                                    : AppLocalizations.of(context)!.translate('split_payment_cancel'),
-                                    style: TextStyle(color: Colors.white,),
-                                  ),
-                                  onPressed: () async {
-                                    split_payment = !split_payment;
-                                    paymentSplitDialog = true;
-                                    splitAmountController.clear();
-                                    if(!split_payment) {
-                                      paymentSplitDialog = false;
-                                    }
+                  child: MediaQuery(
+                    data: MediaQuery.of(context).copyWith(viewInsets: EdgeInsets.zero),
+                    child: AlertDialog(
+                      title: Row(
+                        children: [
+                          Text(AppLocalizations.of(context)!.translate('payment_detail')),
+                          SizedBox(
+                            width: 20,
+                          ),
+                          Visibility(
+                            // visible: getTotalOrderCache(selectedTableList) == 1,
+                            visible: true,
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width / 10,
+                              height: MediaQuery.of(context).size.height / 20,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  backgroundColor: Color(0xff0d5060),
+                                ),
+                                child: Text(!split_payment ? AppLocalizations.of(context)!.translate('split_payment')
+                                  : AppLocalizations.of(context)!.translate('split_payment_cancel'),
+                                  style: TextStyle(color: Colors.white,),
+                                ),
+                                onPressed: () async {
+                                  split_payment = !split_payment;
+                                  paymentSplitDialog = true;
+                                  splitAmountController.clear();
+                                  if(!split_payment) {
+                                    paymentSplitDialog = false;
+                                  }
 
-                                    splitAmountController.text.isEmpty && paymentSplitDialog? await showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return AlertDialog(
-                                          title: Text(AppLocalizations.of(context)!.translate('split_payment_amount')),
-                                          content: SizedBox(
-                                            height: 75.0,
-                                            width: 350.0,
-                                            child: ValueListenableBuilder(
-                                              valueListenable: splitAmountController,
-                                              builder: (context, TextEditingValue value, __) {
-                                                return Padding(
-                                                  padding: const EdgeInsets.all(8.0),
-                                                  child: TextField(
-                                                    autofocus: true,
-                                                    onSubmitted: (input) {
-                                                      if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
-                                                          double.parse(splitAmountController.text) < double.parse(finalAmount)){
-                                                        finalAmount = splitAmountController.text;
-                                                        setState(() {
-                                                          isButtonDisabled = true;
-                                                          willPop = false;
-                                                          Navigator.of(context).pop();
-                                                        });
-                                                      } else {
-                                                        Fluttertoast.showToast(
-                                                            backgroundColor: Color(0xFFFF0000),
-                                                            msg: AppLocalizations.of(context)!.translate('invalid_input'));
-                                                        splitAmountController.clear();
-                                                      }
-                                                    },
-                                                    controller: splitAmountController,
-                                                    keyboardType: TextInputType.number,
-                                                    inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
-                                                    decoration: InputDecoration(
-                                                      border: OutlineInputBorder(
-                                                        borderSide: BorderSide(color: color.backgroundColor),
-                                                      ),
-                                                      focusedBorder: OutlineInputBorder(
-                                                        borderSide: BorderSide(color: color.backgroundColor),
-                                                      ),
-                                                      labelText: AppLocalizations.of(context)!.translate('amount'),
+                                  splitAmountController.text.isEmpty && paymentSplitDialog? await showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text(AppLocalizations.of(context)!.translate('split_payment_amount')),
+                                        content: SizedBox(
+                                          height: 75.0,
+                                          width: 350.0,
+                                          child: ValueListenableBuilder(
+                                            valueListenable: splitAmountController,
+                                            builder: (context, TextEditingValue value, __) {
+                                              return Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: TextField(
+                                                  autofocus: true,
+                                                  onSubmitted: (input) {
+                                                    if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                        double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                      finalAmount = splitAmountController.text;
+                                                      setState(() {
+                                                        isButtonDisabled = true;
+                                                        willPop = false;
+                                                        Navigator.of(context).pop();
+                                                      });
+                                                    } else {
+                                                      Fluttertoast.showToast(
+                                                          backgroundColor: Color(0xFFFF0000),
+                                                          msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                      splitAmountController.clear();
+                                                    }
+                                                  },
+                                                  controller: splitAmountController,
+                                                  keyboardType: TextInputType.number,
+                                                  inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
+                                                  decoration: InputDecoration(
+                                                    border: OutlineInputBorder(
+                                                      borderSide: BorderSide(color: color.backgroundColor),
                                                     ),
+                                                    focusedBorder: OutlineInputBorder(
+                                                      borderSide: BorderSide(color: color.backgroundColor),
+                                                    ),
+                                                    labelText: AppLocalizations.of(context)!.translate('amount'),
                                                   ),
-                                                );
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                        actions: <Widget>[
+                                          SizedBox(
+                                            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                            child: ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: color.backgroundColor,
+                                              ),
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('close'),
+                                                style: TextStyle(color: Colors.white),
+                                              ),
+                                              onPressed: isButtonDisabled
+                                                  ? null
+                                                  : () {
+                                                setState(() {
+                                                  isButtonDisabled = true;
+                                                  splitAmountController.clear();
+                                                  split_payment = !split_payment;
+                                                });
+                                                Navigator.of(context).pop();
+                                                if (mounted) {
+                                                  setState(() {
+                                                    isButtonDisabled = false;
+                                                  });
+                                                }
                                               },
                                             ),
                                           ),
-                                          actions: <Widget>[
-                                            SizedBox(
-                                              width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                              height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                              child: ElevatedButton(
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor: color.backgroundColor,
-                                                ),
-                                                child: Text(
-                                                  AppLocalizations.of(context)!.translate('close'),
-                                                  style: TextStyle(color: Colors.white),
-                                                ),
-                                                onPressed: isButtonDisabled
-                                                    ? null
-                                                    : () {
+                                          SizedBox(
+                                            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                            child: ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: color.buttonColor,
+                                              ),
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('yes'),
+                                                style: TextStyle(color: Colors.white),
+                                              ),
+                                              onPressed: isButtonDisabled
+                                                  ? null
+                                                  : () async {
+                                                if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                    double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                  finalAmount = splitAmountController.text;
                                                   setState(() {
                                                     isButtonDisabled = true;
-                                                    splitAmountController.clear();
-                                                    split_payment = !split_payment;
+                                                    willPop = false;
+                                                    Navigator.of(context).pop();
                                                   });
-                                                  Navigator.of(context).pop();
-                                                  if (mounted) {
-                                                    setState(() {
-                                                      isButtonDisabled = false;
-                                                    });
-                                                  }
-                                                },
-                                              ),
+                                                } else {
+                                                  Fluttertoast.showToast(
+                                                      backgroundColor: Color(0xFFFF0000),
+                                                      msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                  splitAmountController.clear();
+                                                }
+                                              },
                                             ),
-                                            SizedBox(
-                                              width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                              height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                              child: ElevatedButton(
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor: color.buttonColor,
-                                                ),
-                                                child: Text(
-                                                  AppLocalizations.of(context)!.translate('yes'),
-                                                  style: TextStyle(color: Colors.white),
-                                                ),
-                                                onPressed: isButtonDisabled
-                                                    ? null
-                                                    : () async {
-                                                  if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
-                                                      double.parse(splitAmountController.text) < double.parse(finalAmount)){
-                                                    finalAmount = splitAmountController.text;
-                                                    setState(() {
-                                                      isButtonDisabled = true;
-                                                      willPop = false;
-                                                      Navigator.of(context).pop();
-                                                    });
-                                                  } else {
-                                                    Fluttertoast.showToast(
-                                                        backgroundColor: Color(0xFFFF0000),
-                                                        msg: AppLocalizations.of(context)!.translate('invalid_input'));
-                                                    splitAmountController.clear();
-                                                  }
-                                                },
-                                              ),
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    ) : null;
-                                    setState(() {
-                                      isButtonDisabled = false;
-                                    });
-                                  },
-                                ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ) : null;
+                                  setState(() {
+                                    isButtonDisabled = false;
+                                  });
+                                },
                               ),
                             ),
-                            Spacer(),
-                            IconButton(
-                              onPressed: isButtonDisable
-                                  ? null
-                                  : () {
-                                      setState(() {
-                                        if (notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true) {
-                                          reInitSecondDisplay(isWillPop: true);
-                                        }
-                                        willPop = true;
-                                        Navigator.of(context).pop();
-                                      });
-                                    },
-                              color: Colors.red,
-                              icon: Icon(Icons.close),
-                            ),
-                          ],
-                        ),
-                        content: Container(
-                            width: MediaQuery.of(context).size.width,
-                            // height: MediaQuery.of(context).size.height,
-                            child: Row(
-                              children: [
-                                Expanded(child: Column(
-                                  children: [
-                                    Container(
-                                      margin: EdgeInsets.only(bottom: 20),
-                                      alignment: Alignment.center,
-                                      // child: Text(AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
-                                      child: Text(_appSettingModel.table_order == 0 ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
-                                          : AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
-                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
-                                    ),
-                                    Card(
-                                      elevation: 5,
-                                      child: Column(
-                                        children: [
-                                          Container(
-                                            height: MediaQuery.of(context).size.width < 1300
-                                                ? MediaQuery.of(context).size.width / 4.5
-                                                : MediaQuery.of(context).size.width / 5,
-                                            child: ListView.builder(
-                                                shrinkWrap: true,
-                                                itemCount: itemList.length,
-                                                itemBuilder: (context, index) {
-                                                  return ListTile(
-                                                    hoverColor: Colors.transparent,
-                                                    onTap: null,
-                                                    isThreeLine: true,
-                                                    title: RichText(
-                                                      text: TextSpan(
-                                                        children: <TextSpan>[
-                                                          TextSpan(
-                                                            text: '${itemList[index].product_name!} (${itemList[index].price!}/${itemList[index].per_quantity_unit!}${itemList[index].unit! == 'each' || itemList[index].unit! == 'each_c' ? 'each' : itemList[index].unit!})\n',
-                                                            style: TextStyle(
-                                                              fontSize: MediaQuery.of(context).size.height > 500 ? 20 : 15,
-                                                              color: color.backgroundColor,
-                                                              fontWeight: FontWeight.bold,
-                                                            ),
+                          ),
+                          Spacer(),
+                          IconButton(
+                            onPressed: isButtonDisable
+                                ? null
+                                : () {
+                                    setState(() {
+                                      if (notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true) {
+                                        reInitSecondDisplay(isWillPop: true);
+                                      }
+                                      willPop = true;
+                                      Navigator.of(context).pop();
+                                    });
+                                  },
+                            color: Colors.red,
+                            icon: Icon(Icons.close),
+                          ),
+                        ],
+                      ),
+                      content: Container(
+                          width: double.maxFinite,
+                          // height: MediaQuery.of(context).size.height,
+                          child: Row(
+                            children: [
+                              Expanded(child: Column(
+                                children: [
+                                  Container(
+                                    margin: EdgeInsets.only(bottom: 20),
+                                    alignment: Alignment.center,
+                                    // child: Text(AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
+                                    child: Text(_appSettingModel.table_order == 0 ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
+                                        : AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
+                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                                  ),
+                                  Card(
+                                    elevation: 5,
+                                    child: Column(
+                                      children: [
+                                        Container(
+                                          height: MediaQuery.of(context).size.width < 1300
+                                              ? MediaQuery.of(context).size.width / 4.5
+                                              : MediaQuery.of(context).size.width / 5,
+                                          child: ListView.builder(
+                                              shrinkWrap: true,
+                                              itemCount: itemList.length,
+                                              itemBuilder: (context, index) {
+                                                return ListTile(
+                                                  hoverColor: Colors.transparent,
+                                                  onTap: null,
+                                                  isThreeLine: true,
+                                                  title: RichText(
+                                                    text: TextSpan(
+                                                      children: <TextSpan>[
+                                                        TextSpan(
+                                                          text: '${itemList[index].product_name!} (${itemList[index].price!}/${itemList[index].per_quantity_unit!}${itemList[index].unit! == 'each' || itemList[index].unit! == 'each_c' ? 'each' : itemList[index].unit!})\n',
+                                                          style: TextStyle(
+                                                            fontSize: MediaQuery.of(context).size.height > 500 ? 20 : 15,
+                                                            color: color.backgroundColor,
+                                                            fontWeight: FontWeight.bold,
                                                           ),
-                                                          TextSpan(
-                                                              text: "RM" + getItemTotalPrice(productItem: itemList[index]),
-                                                              style: TextStyle(fontSize: 15, color: color.backgroundColor)),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                    subtitle: Text(getVariant(itemList[index]) +
-                                                            getModifier(itemList[index]) +
-                                                            getRemark(itemList[index]),
-                                                        style: TextStyle(fontSize: 12)),
-                                                    trailing: Container(
-                                                      child: FittedBox(
-                                                        child: Row(
-                                                          children: [
-                                                            Text(
-                                                              'x${itemList[index].quantity.toString()}',
-                                                              style: TextStyle(
-                                                                  color: color.backgroundColor,
-                                                                  fontWeight: FontWeight.bold,
-                                                                  fontSize: 20),
-                                                            ),
-                                                          ],
                                                         ),
-                                                      ),
+                                                        TextSpan(
+                                                            text: "RM" + getItemTotalPrice(productItem: itemList[index]),
+                                                            style: TextStyle(fontSize: 15, color: color.backgroundColor)),
+                                                      ],
                                                     ),
-                                                  );
-                                                }),
-                                          ),
-                                          SizedBox(height: 10),
-                                          Divider(
-                                            color: Colors.grey,
-                                            height: 1,
-                                            thickness: 1,
-                                            indent: 20,
-                                            endIndent: 20,
-                                          ),
-                                          SizedBox(height: 10),
-                                          Container(
-                                            constraints: new BoxConstraints(
-                                                maxHeight: MediaQuery.of(context).size.height < 500 && cart.selectedOption == 'Dine in'
-                                                    ? 31
-                                                    : MediaQuery.of(context).size.height < 700 && cart.selectedOption == 'Dine in'
-                                                    ? 190
-                                                    : 200),
-                                            child: ListView(
-                                              controller: _controller,
-                                              padding: EdgeInsets.only(left: 5, right: 5),
-                                              physics: ClampingScrollPhysics(),
-                                              children: [
-                                                ListTile(
-                                                  title: Text('Subtotal', style: TextStyle(fontSize: 14)),
-                                                  trailing: Text('${total.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
-                                                  visualDensity: VisualDensity(vertical: -4),
-                                                  dense: true,
-                                                ),
-                                                Visibility(
-                                                  visible: hasSelectedPromo
-                                                      ? true
-                                                      : false,
-                                                  child: ListTile(
-                                                    title: SingleChildScrollView(
-                                                      scrollDirection: Axis.horizontal,
+                                                  ),
+                                                  subtitle: Text(getVariant(itemList[index]) +
+                                                          getModifier(itemList[index]) +
+                                                          getRemark(itemList[index]),
+                                                      style: TextStyle(fontSize: 12)),
+                                                  trailing: Container(
+                                                    child: FittedBox(
                                                       child: Row(
                                                         children: [
-                                                          Text('${allPromo} (${selectedPromoRate})',
-                                                              style: TextStyle(fontSize: 14)),
+                                                          Text(
+                                                            'x${itemList[index].quantity.toString()}',
+                                                            style: TextStyle(
+                                                                color: color.backgroundColor,
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 20),
+                                                          ),
                                                         ],
                                                       ),
                                                     ),
-                                                    trailing: Text('-${selectedPromo.toStringAsFixed(2)}',
-                                                        style: TextStyle(fontSize: 14)),
-                                                    visualDensity: VisualDensity(vertical: -4),
-                                                    dense: true,
                                                   ),
+                                                );
+                                              }),
+                                        ),
+                                        SizedBox(height: 10),
+                                        Divider(
+                                          color: Colors.grey,
+                                          height: 1,
+                                          thickness: 1,
+                                          indent: 20,
+                                          endIndent: 20,
+                                        ),
+                                        SizedBox(height: 10),
+                                        Container(
+                                          constraints: new BoxConstraints(
+                                              maxHeight: MediaQuery.of(context).size.height < 500 && cart.selectedOption == 'Dine in'
+                                                  ? 31
+                                                  : MediaQuery.of(context).size.height < 700 && cart.selectedOption == 'Dine in'
+                                                  ? 190
+                                                  : 200),
+                                          child: ListView(
+                                            controller: _controller,
+                                            padding: EdgeInsets.only(left: 5, right: 5),
+                                            physics: ClampingScrollPhysics(),
+                                            children: [
+                                              ListTile(
+                                                title: Text('Subtotal', style: TextStyle(fontSize: 14)),
+                                                trailing: Text('${total.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
+                                                visualDensity: VisualDensity(vertical: -4),
+                                                dense: true,
+                                              ),
+                                              Visibility(
+                                                visible: hasSelectedPromo
+                                                    ? true
+                                                    : false,
+                                                child: ListTile(
+                                                  title: SingleChildScrollView(
+                                                    scrollDirection: Axis.horizontal,
+                                                    child: Row(
+                                                      children: [
+                                                        Text('${allPromo} (${selectedPromoRate})',
+                                                            style: TextStyle(fontSize: 14)),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  trailing: Text('-${selectedPromo.toStringAsFixed(2)}',
+                                                      style: TextStyle(fontSize: 14)),
+                                                  visualDensity: VisualDensity(vertical: -4),
+                                                  dense: true,
                                                 ),
-                                                Visibility(
-                                                    visible: hasPromo == true
-                                                        ? true
-                                                        : false,
-                                                    child: ListView.builder(
-                                                        physics: NeverScrollableScrollPhysics(),
-                                                        padding: EdgeInsets.zero,
-                                                        shrinkWrap: true,
-                                                        itemCount: autoApplyPromotionList.length,
-                                                        itemBuilder: (context, index) {
-                                                          return ListTile(
-                                                              title: Text('${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})',
-                                                                  style: TextStyle(fontSize: 14)),
-                                                              visualDensity: VisualDensity(vertical: -4),
-                                                              dense: true,
-                                                              trailing: Text('-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}',
-                                                                  style: TextStyle(fontSize: 14)));
-                                                        })),
-                                                ListView.builder(
-                                                    shrinkWrap: true,
-                                                    padding: EdgeInsets.zero,
-                                                    physics: NeverScrollableScrollPhysics(),
-                                                    itemCount: taxList.length,
-                                                    itemBuilder: (context, index) {
-                                                      return ListTile(
-                                                        title: Text('${taxList[index].name}(${taxList[index].tax_rate}%)'),
-                                                        trailing: Text('${taxList[index].tax_amount?.toStringAsFixed(2)}'),
-                                                        //Text(''),
-                                                        visualDensity: VisualDensity(vertical: -4),
-                                                        dense: true,
+                                              ),
+                                              Visibility(
+                                                  visible: hasPromo == true
+                                                      ? true
+                                                      : false,
+                                                  child: ListView.builder(
+                                                      physics: NeverScrollableScrollPhysics(),
+                                                      padding: EdgeInsets.zero,
+                                                      shrinkWrap: true,
+                                                      itemCount: autoApplyPromotionList.length,
+                                                      itemBuilder: (context, index) {
+                                                        return ListTile(
+                                                            title: Text('${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})',
+                                                                style: TextStyle(fontSize: 14)),
+                                                            visualDensity: VisualDensity(vertical: -4),
+                                                            dense: true,
+                                                            trailing: Text('-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}',
+                                                                style: TextStyle(fontSize: 14)));
+                                                      })),
+                                              ListView.builder(
+                                                  shrinkWrap: true,
+                                                  padding: EdgeInsets.zero,
+                                                  physics: NeverScrollableScrollPhysics(),
+                                                  itemCount: taxList.length,
+                                                  itemBuilder: (context, index) {
+                                                    return ListTile(
+                                                      title: Text('${taxList[index].name}(${taxList[index].tax_rate}%)'),
+                                                      trailing: Text('${taxList[index].tax_amount?.toStringAsFixed(2)}'),
+                                                      //Text(''),
+                                                      visualDensity: VisualDensity(vertical: -4),
+                                                      dense: true,
+                                                    );
+                                                  }),
+                                              ListTile(
+                                                title: Text('Total',
+                                                    style: TextStyle(fontSize: 14)),
+                                                trailing: Text('${totalAmount.toStringAsFixed(2)}',
+                                                    style: TextStyle(fontSize: 14)),
+                                                visualDensity: VisualDensity(vertical: -4),
+                                                dense: true,
+                                              ),
+                                              ListTile(
+                                                title: Text('Rounding',
+                                                    style: TextStyle(fontSize: 14)),
+                                                trailing: Text(
+                                                    '${rounding.toStringAsFixed(2)}',
+                                                    style: TextStyle(fontSize: 14)),
+                                                visualDensity: VisualDensity(vertical: -4),
+                                                dense: true,
+                                              ),
+                                              ListTile(
+                                                visualDensity: VisualDensity(vertical: -4),
+                                                title: Text('Final Amount',
+                                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                                trailing: Text(
+                                                    "${finalAmount}",
+                                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                                dense: true,
+                                              ),
+                                            ],
+                                            shrinkWrap: true,
+                                          ),
+                                        ),
+                                        SizedBox(height: 10),
+                                        Divider(
+                                          color: Colors.grey,
+                                          height: 1,
+                                          thickness: 1,
+                                          indent: 20,
+                                          endIndent: 20,
+                                        ),
+                                        SizedBox(height: 10),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              )),
+                              //divider
+                              Container(
+                                padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                height:
+                                    MediaQuery.of(context).size.height / 2,
+                                child: VerticalDivider(
+                                    color: Colors.grey, thickness: 1),
+                              ),
+                              Expanded(
+                                child: _type == 0
+                                      ? Container(
+                                          margin: EdgeInsets.fromLTRB(30, 0, 25, 0),
+                                          //height: MediaQuery.of(context).size.height / 1,
+                                          child: Column(
+                                            //mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Container(
+                                                child: Text('RM${finalAmount}',
+                                                    style: TextStyle(
+                                                        fontSize: 24,
+                                                        fontWeight:
+                                                            FontWeight.bold)),
+                                              ),
+                                              Container(
+                                                margin:
+                                                    EdgeInsets.only(bottom: 10),
+                                                alignment: Alignment.centerLeft,
+                                                child:
+                                                    Text('Change: ${change}'),
+                                              ),
+                                              Container(
+                                                margin: EdgeInsets.only(bottom: 10),
+                                                child: ValueListenableBuilder(
+                                                    valueListenable: inputController,
+                                                    builder: (context, TextEditingValue value, __) {
+                                                      return Container(
+                                                        child: TextField(
+                                                          onSubmitted: (value) {
+                                                            makePayment();
+                                                          },
+                                                          onChanged: (value) {
+                                                            calcChange(value);
+                                                          },
+                                                          inputFormatters: [
+                                                            FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
+                                                          ],
+                                                          keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                                          textAlign: TextAlign.right,
+                                                          maxLines: 1,
+                                                          controller: inputController,
+                                                          decoration: InputDecoration(
+                                                            border: OutlineInputBorder(
+                                                                borderSide: BorderSide(
+                                                                    color: color.backgroundColor)),
+                                                            focusedBorder: OutlineInputBorder(
+                                                              borderSide: BorderSide(color: color.backgroundColor),
+                                                            ),
+                                                          ),
+                                                          style: TextStyle(
+                                                              fontSize: 40),
+                                                        ),
                                                       );
                                                     }),
-                                                ListTile(
-                                                  title: Text('Total',
-                                                      style: TextStyle(fontSize: 14)),
-                                                  trailing: Text('${totalAmount.toStringAsFixed(2)}',
-                                                      style: TextStyle(fontSize: 14)),
-                                                  visualDensity: VisualDensity(vertical: -4),
-                                                  dense: true,
+                                              ),
+                                              //cash chips
+                                              Container(
+                                                  child: Wrap(
+                                                      runSpacing: 5,
+                                                      spacing: 10,
+                                                      children: [
+                                                    ChoiceChip(
+                                                      label: Text('RM $finalAmount'),
+                                                      selected: chipSelected,
+                                                      elevation: 5,
+                                                      onSelected: (chipSelected) {
+                                                        inputController.text = finalAmount;
+                                                        calcChange(inputController.text);
+                                                      },
+                                                    ),
+                                                    ChoiceChip(
+                                                      label: Text('RM 10.00'),
+                                                      selected: chipSelected,
+                                                      elevation: 5,
+                                                      onSelected: (chipSelected) {
+                                                        inputController.text = '10.00';
+                                                        calcChange(inputController.text);
+                                                      },
+                                                    ),
+                                                    ChoiceChip(
+                                                      label: Text('RM 20.00'),
+                                                      selected: chipSelected,
+                                                      elevation: 5,
+                                                      onSelected: (chipSelected) {
+                                                        inputController.text = '20.00';
+                                                        calcChange(inputController.text);
+                                                      },
+                                                    ),
+                                                    ChoiceChip(
+                                                      label: Text('RM 50.00'),
+                                                      selected: chipSelected,
+                                                      elevation: 5,
+                                                      onSelected: (chipSelected) {
+                                                        inputController.text = '50.00';
+                                                        calcChange(inputController.text);
+                                                      },
+                                                    ),
+                                                    ChoiceChip(
+                                                      label: Text('RM 100.00'),
+                                                      selected: chipSelected,
+                                                      elevation: 5,
+                                                      onSelected: (chipSelected) {
+                                                        inputController.text = '100.00';
+                                                        calcChange(inputController.text);
+                                                      },
+                                                    ),
+                                                  ])),
+                                              Container(
+                                                margin: EdgeInsets.only(top: 10),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Container(child: SizedBox(
+                                                      height: 70,
+                                                      width: 150,
+                                                      child:
+                                                          ElevatedButton.icon(
+                                                              onPressed: isButtonDisable || itemList.isEmpty ? null : () async => makePayment(),
+                                                              style: ElevatedButton.styleFrom(
+                                                                backgroundColor: color.backgroundColor,
+                                                                elevation: 5,
+                                                              ),
+                                                              icon: Icon(Icons.payments, size: 24),
+                                                              label: Text(
+                                                                AppLocalizations.of(context)!.translate('make_payment'),
+                                                                style: TextStyle(fontSize: 20),
+                                                              )),
+                                                    )),
+                                                    SizedBox(
+                                                      width: 10,
+                                                    ),
+                                                    SizedBox(
+                                                      height: 70,
+                                                      width: 150,
+                                                      child: ElevatedButton.icon(
+                                                        onPressed: () async {
+                                                          inputController.clear();
+                                                          change = '0.00';
+                                                        },
+                                                        style: ElevatedButton.styleFrom(
+                                                          elevation: 5,
+                                                          backgroundColor: color.buttonColor,
+                                                        ),
+                                                        icon: Icon(Icons.backspace),
+                                                        label: Text(AppLocalizations.of(context)!.translate('clear'),
+                                                            style: TextStyle(fontSize: 20)),
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
-                                                ListTile(
-                                                  title: Text('Rounding',
-                                                      style: TextStyle(fontSize: 14)),
-                                                  trailing: Text(
-                                                      '${rounding.toStringAsFixed(2)}',
-                                                      style: TextStyle(fontSize: 14)),
-                                                  visualDensity: VisualDensity(vertical: -4),
-                                                  dense: true,
-                                                ),
-                                                ListTile(
-                                                  visualDensity: VisualDensity(vertical: -4),
-                                                  title: Text('Final Amount',
-                                                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                                  trailing: Text(
-                                                      "${finalAmount}",
-                                                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                                  dense: true,
-                                                ),
-                                              ],
-                                              shrinkWrap: true,
-                                            ),
-                                          ),
-                                          SizedBox(height: 10),
-                                          Divider(
-                                            color: Colors.grey,
-                                            height: 1,
-                                            thickness: 1,
-                                            indent: 20,
-                                            endIndent: 20,
-                                          ),
-                                          SizedBox(height: 10),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                )),
-                                //divider
-                                Container(
-                                  padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                  height:
-                                      MediaQuery.of(context).size.height / 2,
-                                  child: VerticalDivider(
-                                      color: Colors.grey, thickness: 1),
-                                ),
-                                Expanded(
-                                  child: _type == 0
-                                        ? Container(
-                                            margin: EdgeInsets.fromLTRB(30, 0, 25, 0),
-                                            //height: MediaQuery.of(context).size.height / 1,
-                                            child: Column(
-                                              //mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                Container(
-                                                  child: Text('RM${finalAmount}',
-                                                      style: TextStyle(
-                                                          fontSize: 24,
-                                                          fontWeight:
-                                                              FontWeight.bold)),
-                                                ),
-                                                Container(
-                                                  margin:
-                                                      EdgeInsets.only(bottom: 10),
-                                                  alignment: Alignment.centerLeft,
-                                                  child:
-                                                      Text('Change: ${change}'),
-                                                ),
-                                                Container(
-                                                  margin: EdgeInsets.only(bottom: 10),
-                                                  child: ValueListenableBuilder(
-                                                      valueListenable: inputController,
-                                                      builder: (context, TextEditingValue value, __) {
-                                                        return Container(
-                                                          child: TextField(
-                                                            onSubmitted: (value) {
-                                                              makePayment();
+                                              ),
+                                              Visibility(
+                                                visible: split_payment,
+                                                child: isload ? Container(
+                                                  padding: EdgeInsets.only(top: 20),
+                                                  height: 100,
+                                                  child: Center(
+                                                    child: ListView(
+                                                        shrinkWrap: true,
+                                                        // crossAxisCount: 5,
+                                                        scrollDirection: Axis.horizontal,
+                                                        children: List.generate(PaymentLists.length, (index) {
+                                                          return GestureDetector(
+                                                            onTap: () async {
+                                                              setState(() {
+                                                                _type = PaymentLists[index].type!;
+                                                                order_split_payment_link_company_id = PaymentLists[index].payment_link_company_id!.toString();
+                                                              });
                                                             },
-                                                            onChanged: (value) {
-                                                              calcChange(value);
-                                                            },
-                                                            inputFormatters: [
-                                                              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
-                                                            ],
-                                                            keyboardType: TextInputType.numberWithOptions(decimal: true),
-                                                            textAlign: TextAlign.right,
-                                                            maxLines: 1,
-                                                            controller: inputController,
-                                                            decoration: InputDecoration(
-                                                              border: OutlineInputBorder(
-                                                                  borderSide: BorderSide(
-                                                                      color: color.backgroundColor)),
-                                                              focusedBorder: OutlineInputBorder(
-                                                                borderSide: BorderSide(color: color.backgroundColor),
+                                                            child: Card(
+                                                              elevation: 5,
+                                                              color: Colors.white,
+                                                              shape: RoundedRectangleBorder(
+                                                                borderRadius: BorderRadius.circular(16.0),
+                                                              ),
+                                                              child: Container(
+                                                                height: MediaQuery.of(context).size.height / 4,
+                                                                width: 100,
+                                                                child: Stack(
+                                                                  alignment: Alignment.center,
+                                                                  children: [
+                                                                    Text(
+                                                                      '${PaymentLists[index].name}',
+                                                                      textAlign: TextAlign.center,
+                                                                      overflow: TextOverflow.clip,
+                                                                      style: TextStyle(
+                                                                        fontWeight: FontWeight.w700,
+                                                                        fontStyle: FontStyle.normal,
+                                                                        fontSize: 15,
+                                                                        color: Colors.blueGrey,
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
                                                               ),
                                                             ),
-                                                            style: TextStyle(
-                                                                fontSize: 40),
-                                                          ),
-                                                        );
-                                                      }),
-                                                ),
-                                                //cash chips
-                                                Container(
-                                                    child: Wrap(
-                                                        runSpacing: 5,
-                                                        spacing: 10,
-                                                        children: [
-                                                      ChoiceChip(
-                                                        label: Text('RM $finalAmount'),
-                                                        selected: chipSelected,
-                                                        elevation: 5,
-                                                        onSelected: (chipSelected) {
-                                                          inputController.text = finalAmount;
-                                                          calcChange(inputController.text);
-                                                        },
-                                                      ),
-                                                      ChoiceChip(
-                                                        label: Text('RM 10.00'),
-                                                        selected: chipSelected,
-                                                        elevation: 5,
-                                                        onSelected: (chipSelected) {
-                                                          inputController.text = '10.00';
-                                                          calcChange(inputController.text);
-                                                        },
-                                                      ),
-                                                      ChoiceChip(
-                                                        label: Text('RM 20.00'),
-                                                        selected: chipSelected,
-                                                        elevation: 5,
-                                                        onSelected: (chipSelected) {
-                                                          inputController.text = '20.00';
-                                                          calcChange(inputController.text);
-                                                        },
-                                                      ),
-                                                      ChoiceChip(
-                                                        label: Text('RM 50.00'),
-                                                        selected: chipSelected,
-                                                        elevation: 5,
-                                                        onSelected: (chipSelected) {
-                                                          inputController.text = '50.00';
-                                                          calcChange(inputController.text);
-                                                        },
-                                                      ),
-                                                      ChoiceChip(
-                                                        label: Text('RM 100.00'),
-                                                        selected: chipSelected,
-                                                        elevation: 5,
-                                                        onSelected: (chipSelected) {
-                                                          inputController.text = '100.00';
-                                                          calcChange(inputController.text);
-                                                        },
-                                                      ),
-                                                    ])),
-                                                Container(
-                                                  margin: EdgeInsets.only(top: 10),
-                                                  child: Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment.center,
-                                                    children: [
-                                                      Container(child: SizedBox(
-                                                        height: 70,
-                                                        width: 150,
-                                                        child:
-                                                            ElevatedButton.icon(
-                                                                onPressed: isButtonDisable || itemList.isEmpty ? null : () async => makePayment(),
-                                                                style: ElevatedButton.styleFrom(
-                                                                  backgroundColor: color.backgroundColor,
-                                                                  elevation: 5,
-                                                                ),
-                                                                icon: Icon(Icons.payments, size: 24),
-                                                                label: Text(
-                                                                  AppLocalizations.of(context)!.translate('make_payment'),
-                                                                  style: TextStyle(fontSize: 20),
-                                                                )),
-                                                      )),
-                                                      SizedBox(
-                                                        width: 10,
-                                                      ),
-                                                      SizedBox(
-                                                        height: 70,
-                                                        width: 150,
-                                                        child: ElevatedButton.icon(
-                                                          onPressed: () async {
-                                                            inputController.clear();
-                                                            change = '0.00';
-                                                          },
-                                                          style: ElevatedButton.styleFrom(
-                                                            elevation: 5,
-                                                            backgroundColor: color.buttonColor,
-                                                          ),
-                                                          icon: Icon(Icons.backspace),
-                                                          label: Text(AppLocalizations.of(context)!.translate('clear'),
-                                                              style: TextStyle(fontSize: 20)),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                                Visibility(
-                                                  visible: split_payment,
-                                                  child: isload ? Container(
-                                                    padding: EdgeInsets.only(top: 20),
-                                                    height: 100,
-                                                    child: Center(
-                                                      child: ListView(
-                                                          shrinkWrap: true,
-                                                          // crossAxisCount: 5,
-                                                          scrollDirection: Axis.horizontal,
-                                                          children: List.generate(PaymentLists.length, (index) {
-                                                            return GestureDetector(
-                                                              onTap: () async {
-                                                                setState(() {
-                                                                  _type = PaymentLists[index].type!;
-                                                                  order_split_payment_link_company_id = PaymentLists[index].payment_link_company_id!.toString();
-                                                                });
-                                                              },
-                                                              child: Card(
-                                                                elevation: 5,
-                                                                color: Colors.white,
-                                                                shape: RoundedRectangleBorder(
-                                                                  borderRadius: BorderRadius.circular(16.0),
-                                                                ),
-                                                                child: Container(
-                                                                  height: MediaQuery.of(context).size.height / 4,
-                                                                  width: 100,
-                                                                  child: Stack(
-                                                                    alignment: Alignment.center,
-                                                                    children: [
-                                                                      Text(
-                                                                        '${PaymentLists[index].name}',
-                                                                        textAlign: TextAlign.center,
-                                                                        overflow: TextOverflow.clip,
-                                                                        style: TextStyle(
-                                                                          fontWeight: FontWeight.w700,
-                                                                          fontStyle: FontStyle.normal,
-                                                                          fontSize: 15,
-                                                                          color: Colors.blueGrey,
-                                                                        ),
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            );
-                                                          })
-                                                      ),
+                                                          );
+                                                        })
                                                     ),
-                                                  )
-                                                      : CustomProgressBar(),
+                                                  ),
                                                 )
-                                              ],
-                                            ), // GridView.builder
-                                          )
-                                        : _type == 1 ?
-                                            ///card payment
-                                            Column(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                Container(
-                                                  child: ClipRRect(
-                                                    borderRadius: BorderRadius.circular(16.0),
-                                                    child:
-                                                        ///***If you have exported images you must have to copy those images in assets/images directory.
-                                                        Image(image: AssetImage("drawable/duitNow.jpg")),
-                                                  ),
+                                                    : CustomProgressBar(),
+                                              )
+                                            ],
+                                          ), // GridView.builder
+                                        )
+                                      : _type == 1 ?
+                                          ///card payment
+                                          Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Container(
+                                                child: ClipRRect(
+                                                  borderRadius: BorderRadius.circular(16.0),
+                                                  child:
+                                                      ///***If you have exported images you must have to copy those images in assets/images directory.
+                                                      Image(image: AssetImage("drawable/duitNow.jpg")),
                                                 ),
-                                                Container(
-                                                  margin: EdgeInsets.all(20),
-                                                  child: Text('RM${finalAmount}',
-                                                    style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
-                                                  ),
+                                              ),
+                                              Container(
+                                                margin: EdgeInsets.all(20),
+                                                child: Text('RM${finalAmount}',
+                                                  style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
                                                 ),
-                                                Container(
-                                                  child: ElevatedButton.icon(
-                                                    style: ButtonStyle(
-                                                        backgroundColor: MaterialStateProperty.all(Colors.green),
-                                                        padding: MaterialStateProperty.all(EdgeInsets.all(20))),
-                                                    onPressed: isButtonDisable || itemList.isEmpty ? null : () async {
-                                                      setState(() {
-                                                        willPop = false;
-                                                        isButtonDisable = true;
-                                                      });
-                                                      await callCreateOrder(finalAmount);
+                                              ),
+                                              Container(
+                                                child: ElevatedButton.icon(
+                                                  style: ButtonStyle(
+                                                      backgroundColor: MaterialStateProperty.all(Colors.green),
+                                                      padding: MaterialStateProperty.all(EdgeInsets.all(20))),
+                                                  onPressed: isButtonDisable || itemList.isEmpty ? null : () async {
+                                                    setState(() {
+                                                      willPop = false;
+                                                      isButtonDisable = true;
+                                                    });
+                                                    await callCreateOrder(finalAmount);
 
-                                                      if (this.isLogOut == true) {
-                                                        openLogOutDialog();
-                                                        return;
-                                                      }
-                                                      openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
-                                                    },
-                                                    icon: Icon(Icons.call_received),
-                                                    label: Text(
-                                                        AppLocalizations.of(context)!.translate('payment_received'),
-                                                        style: TextStyle(fontSize: 20)),
-                                                  ),
+                                                    if (this.isLogOut == true) {
+                                                      openLogOutDialog();
+                                                      return;
+                                                    }
+                                                    openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
+                                                  },
+                                                  icon: Icon(Icons.call_received),
+                                                  label: Text(
+                                                      AppLocalizations.of(context)!.translate('payment_received'),
+                                                      style: TextStyle(fontSize: 20)),
                                                 ),
-                                                Visibility(
-                                                  visible: split_payment,
-                                                  child: isload ? Container(
-                                                    padding: EdgeInsets.only(top: 20),
-                                                    height: 100,
-                                                    child: Center(
-                                                      child: ListView(
-                                                          shrinkWrap: true,
-                                                          // crossAxisCount: 5,
-                                                          scrollDirection: Axis.horizontal,
-                                                          children: List.generate(PaymentLists.length, (index) {
-                                                            return GestureDetector(
-                                                              onTap: () async {
-                                                                setState(() {
-                                                                  _type = PaymentLists[index].type!;
-                                                                  order_split_payment_link_company_id = PaymentLists[index].payment_link_company_id!.toString();
-                                                                });
-                                                              },
-                                                              child: Card(
-                                                                elevation: 5,
-                                                                color: Colors.white,
-                                                                shape: RoundedRectangleBorder(
-                                                                  borderRadius: BorderRadius.circular(16.0),
-                                                                ),
-                                                                child: Container(
-                                                                  height: MediaQuery.of(context).size.height / 4,
-                                                                  width: 100,
-                                                                  child: Stack(
-                                                                    alignment: Alignment.center,
-                                                                    children: [
-                                                                      Text(
-                                                                        '${PaymentLists[index].name}',
-                                                                        textAlign: TextAlign.center,
-                                                                        overflow: TextOverflow.clip,
-                                                                        style: TextStyle(
-                                                                          fontWeight: FontWeight.w700,
-                                                                          fontStyle: FontStyle.normal,
-                                                                          fontSize: 15,
-                                                                          color: Colors.blueGrey,
-                                                                        ),
+                                              ),
+                                              Visibility(
+                                                visible: split_payment,
+                                                child: isload ? Container(
+                                                  padding: EdgeInsets.only(top: 20),
+                                                  height: 100,
+                                                  child: Center(
+                                                    child: ListView(
+                                                        shrinkWrap: true,
+                                                        // crossAxisCount: 5,
+                                                        scrollDirection: Axis.horizontal,
+                                                        children: List.generate(PaymentLists.length, (index) {
+                                                          return GestureDetector(
+                                                            onTap: () async {
+                                                              setState(() {
+                                                                _type = PaymentLists[index].type!;
+                                                                order_split_payment_link_company_id = PaymentLists[index].payment_link_company_id!.toString();
+                                                              });
+                                                            },
+                                                            child: Card(
+                                                              elevation: 5,
+                                                              color: Colors.white,
+                                                              shape: RoundedRectangleBorder(
+                                                                borderRadius: BorderRadius.circular(16.0),
+                                                              ),
+                                                              child: Container(
+                                                                height: MediaQuery.of(context).size.height / 4,
+                                                                width: 100,
+                                                                child: Stack(
+                                                                  alignment: Alignment.center,
+                                                                  children: [
+                                                                    Text(
+                                                                      '${PaymentLists[index].name}',
+                                                                      textAlign: TextAlign.center,
+                                                                      overflow: TextOverflow.clip,
+                                                                      style: TextStyle(
+                                                                        fontWeight: FontWeight.w700,
+                                                                        fontStyle: FontStyle.normal,
+                                                                        fontSize: 15,
+                                                                        color: Colors.blueGrey,
                                                                       ),
-                                                                    ],
-                                                                  ),
+                                                                    ),
+                                                                  ],
                                                                 ),
                                                               ),
-                                                            );
-                                                          })
-                                                      ),
+                                                            ),
+                                                          );
+                                                        })
                                                     ),
-                                                  )
-                                                  : CustomProgressBar(),
+                                                  ),
                                                 )
-                                              ],
-                                            )
-                                            : _type == 2
-                                                ? Column(
-                                                  children: [
-                                                    Container(
-                                                      margin: EdgeInsets.all(25),
-                                                      child: scanning == false ?
-                                                      ClipRRect(
-                                                        borderRadius: BorderRadius.circular(0.0),
-                                                        child: Image(
-                                                          image: AssetImage("drawable/TNG.jpg"),
-                                                          // FileImage(File(
-                                                          //     'data/user/0/com.example.pos_system/files/assets/img/TNG.jpg')),
-                                                          height: 250,
-                                                          width: 250,
-                                                        ),
-                                                      ) :
-                                                      Container(
-                                                        height: 300,
-                                                        width: 300,
-                                                        // margin: EdgeInsets.all(25),
-                                                        child: _buildQrView(context),
+                                                : CustomProgressBar(),
+                                              )
+                                            ],
+                                          )
+                                          : _type == 2
+                                              ? Column(
+                                                children: [
+                                                  Container(
+                                                    margin: EdgeInsets.all(25),
+                                                    child: scanning == false ?
+                                                    ClipRRect(
+                                                      borderRadius: BorderRadius.circular(0.0),
+                                                      child: Image(
+                                                        image: AssetImage("drawable/TNG.jpg"),
+                                                        // FileImage(File(
+                                                        //     'data/user/0/com.example.pos_system/files/assets/img/TNG.jpg')),
+                                                        height: 250,
+                                                        width: 250,
                                                       ),
-                                                    ),
+                                                    ) :
                                                     Container(
-                                                      alignment: Alignment.center,
+                                                      height: 300,
+                                                      width: 300,
+                                                      // margin: EdgeInsets.all(25),
+                                                      child: _buildQrView(context),
+                                                    ),
+                                                  ),
+                                                  Container(
+                                                    alignment: Alignment.center,
+                                                    child: Text(
+                                                        'RM${finalAmount}',
+                                                        style: TextStyle(
+                                                            fontSize: 40,
+                                                            fontWeight: FontWeight.bold)),
+                                                  ),
+                                                  Container(
+                                                    margin: EdgeInsets.all(20),
+                                                    alignment: Alignment.center,
+                                                    child: ElevatedButton(
+                                                      style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor, padding: EdgeInsets.fromLTRB(20, 14, 20, 14)),
+                                                      onPressed: () async {
+                                                        setState(() {
+                                                          willPop = false;
+                                                          scanning = true;
+                                                        });
+                                                        //await controller?.resumeCamera();
+                                                        await controller?.scannedDataStream;
+                                                        await callCreateOrder(finalAmount);
+                                                        if (this.isLogOut == true) {
+                                                          openLogOutDialog();
+                                                          return;
+                                                        }
+                                                      },
                                                       child: Text(
-                                                          'RM${finalAmount}',
-                                                          style: TextStyle(
-                                                              fontSize: 40,
-                                                              fontWeight: FontWeight.bold)),
+                                                          scanning == false ?
+                                                          AppLocalizations.of(context)!.translate('scan_qr') :
+                                                          AppLocalizations.of(context)!.translate('scanning'),
+                                                          style: TextStyle(fontSize: 24)),
                                                     ),
-                                                    Container(
-                                                      margin: EdgeInsets.all(20),
-                                                      alignment: Alignment.center,
-                                                      child: ElevatedButton(
-                                                        style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor, padding: EdgeInsets.fromLTRB(20, 14, 20, 14)),
-                                                        onPressed: () async {
-                                                          setState(() {
-                                                            willPop = false;
-                                                            scanning = true;
-                                                          });
-                                                          //await controller?.resumeCamera();
-                                                          await controller?.scannedDataStream;
-                                                          await callCreateOrder(finalAmount);
-                                                          if (this.isLogOut == true) {
-                                                            openLogOutDialog();
-                                                            return;
-                                                          }
-                                                        },
-                                                        child: Text(
-                                                            scanning == false ?
-                                                            AppLocalizations.of(context)!.translate('scan_qr') :
-                                                            AppLocalizations.of(context)!.translate('scanning'),
-                                                            style: TextStyle(fontSize: 24)),
-                                                      ),
-                                                    ),
-                                                    Visibility(
-                                                      visible: split_payment,
-                                                      child: isload ? Container(
-                                                        height: 100,
-                                                        child: Center(
-                                                          child: ListView(
-                                                              shrinkWrap: true,
-                                                              // crossAxisCount: 5,
-                                                              scrollDirection: Axis.horizontal,
-                                                              children: List.generate(PaymentLists.length, (index) {
-                                                                return GestureDetector(
-                                                                  onTap: () async {
-                                                                    setState(() {
-                                                                      _type = PaymentLists[index].type!;
-                                                                      order_split_payment_link_company_id = PaymentLists[index].payment_link_company_id!.toString();
-                                                                    });
-                                                                  },
-                                                                  child: Card(
-                                                                    elevation: 5,
-                                                                    color: Colors.white,
-                                                                    shape: RoundedRectangleBorder(
-                                                                      borderRadius: BorderRadius.circular(16.0),
-                                                                    ),
-                                                                    child: Container(
-                                                                      height: MediaQuery.of(context).size.height / 4,
-                                                                      width: 100,
-                                                                      child: Stack(
-                                                                        alignment: Alignment.center,
-                                                                        children: [
-                                                                          Text(
-                                                                            '${PaymentLists[index].name}',
-                                                                            textAlign: TextAlign.center,
-                                                                            overflow: TextOverflow.clip,
-                                                                            style: TextStyle(
-                                                                              fontWeight: FontWeight.w700,
-                                                                              fontStyle: FontStyle.normal,
-                                                                              fontSize: 15,
-                                                                              color: Colors.blueGrey,
-                                                                            ),
+                                                  ),
+                                                  Visibility(
+                                                    visible: split_payment,
+                                                    child: isload ? Container(
+                                                      height: 100,
+                                                      child: Center(
+                                                        child: ListView(
+                                                            shrinkWrap: true,
+                                                            // crossAxisCount: 5,
+                                                            scrollDirection: Axis.horizontal,
+                                                            children: List.generate(PaymentLists.length, (index) {
+                                                              return GestureDetector(
+                                                                onTap: () async {
+                                                                  setState(() {
+                                                                    _type = PaymentLists[index].type!;
+                                                                    order_split_payment_link_company_id = PaymentLists[index].payment_link_company_id!.toString();
+                                                                  });
+                                                                },
+                                                                child: Card(
+                                                                  elevation: 5,
+                                                                  color: Colors.white,
+                                                                  shape: RoundedRectangleBorder(
+                                                                    borderRadius: BorderRadius.circular(16.0),
+                                                                  ),
+                                                                  child: Container(
+                                                                    height: MediaQuery.of(context).size.height / 4,
+                                                                    width: 100,
+                                                                    child: Stack(
+                                                                      alignment: Alignment.center,
+                                                                      children: [
+                                                                        Text(
+                                                                          '${PaymentLists[index].name}',
+                                                                          textAlign: TextAlign.center,
+                                                                          overflow: TextOverflow.clip,
+                                                                          style: TextStyle(
+                                                                            fontWeight: FontWeight.w700,
+                                                                            fontStyle: FontStyle.normal,
+                                                                            fontSize: 15,
+                                                                            color: Colors.blueGrey,
                                                                           ),
-                                                                        ],
-                                                                      ),
+                                                                        ),
+                                                                      ],
                                                                     ),
                                                                   ),
-                                                                );
-                                                              })
-                                                          ),
+                                                                ),
+                                                              );
+                                                            })
                                                         ),
-                                                      )
-                                                          : CustomProgressBar(),
+                                                      ),
                                                     )
-                                                  ],
-                                                )
-                                                : Container(),
-                                )
-                              ],
-                            )),
-                      ),
+                                                        : CustomProgressBar(),
+                                                  )
+                                                ],
+                                              )
+                                              : Container(),
+                              )
+                            ],
+                          )),
                     ),
                   ));
             } else {
@@ -2595,9 +2593,7 @@ class _MakePaymentState extends State<MakePayment> {
         });
       }
     } catch (e) {
-      setState(() {
-        change = '0.00';
-      });
+      change = '0.00';
     }
   }
 
