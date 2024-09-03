@@ -34,7 +34,7 @@ import '../../notifier/cart_notifier.dart';
 import '../../object/branch_link_dining_option.dart';
 import '../../object/cart_product.dart';
 import '../../object/modifier_group.dart';
-import '../../object/print_receipt.dart';
+import '../printing_layout/print_receipt.dart';
 import '../../object/promotion.dart';
 import '../../object/second_display_data.dart';
 import '../../object/table.dart';

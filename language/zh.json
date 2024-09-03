@@ -524,6 +524,8 @@
   "show_presentation": "演示",
   "show_product_desc": "显示产品描述",
   "show_product_desc_desc": "在产品订单对话框中显示产品描述",
+  "show_product_sku": "显示产品SKU",
+  "show_product_sku_desc": "启用在收据中显示产品SKU",
   "show_promotion_detail": "显示促销详情（80mm）",
   "show_sku": "显示SKU",
   "show_sku_desc": "在菜单页面显示SKU",
