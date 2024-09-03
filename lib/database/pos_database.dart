@@ -51,6 +51,7 @@ import '../object/branch_link_promotion.dart';
 import '../object/branch_link_tax.dart';
 import '../object/checklist.dart';
 import '../object/color.dart';
+import '../object/dynamic_qr.dart';
 import '../object/order_detail_link_promotion.dart';
 import '../object/order_promotion_detail.dart';
 import '../object/printer.dart';
@@ -73,7 +74,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 20, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 21, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -234,8 +235,22 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
-          //new 19
+          //new 20
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
+          //new 21
+          await db.execute('''CREATE TABLE $tableDynamicQR(
+          ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
+          ${DynamicQRFields.dynamic_qr_id} $integerType,
+          ${DynamicQRFields.dynamic_qr_key} $textType,
+          ${DynamicQRFields.branch_id} $textType,
+          ${DynamicQRFields.qr_code_size} $integerType,
+          ${DynamicQRFields.paper_size} $textType,
+          ${DynamicQRFields.footer_text} $textType,
+          ${DynamicQRFields.sync_status} $integerType,
+          ${DynamicQRFields.created_at} $textType,
+          ${DynamicQRFields.updated_at} $textType,
+          ${DynamicQRFields.soft_delete} $textType)''');
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType DEFAULT 1");
         }break;
         case 16: {
           await db.execute('''CREATE TABLE $tableAttendance(
@@ -259,8 +274,22 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
-          //new 19
+          //new 20
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
+          //new 21
+          await db.execute('''CREATE TABLE $tableDynamicQR(
+          ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
+          ${DynamicQRFields.dynamic_qr_id} $integerType,
+          ${DynamicQRFields.dynamic_qr_key} $textType,
+          ${DynamicQRFields.branch_id} $textType,
+          ${DynamicQRFields.qr_code_size} $integerType,
+          ${DynamicQRFields.paper_size} $textType,
+          ${DynamicQRFields.footer_text} $textType,
+          ${DynamicQRFields.sync_status} $integerType,
+          ${DynamicQRFields.created_at} $textType,
+          ${DynamicQRFields.updated_at} $textType,
+          ${DynamicQRFields.soft_delete} $textType)''');
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType DEFAULT 1");
         }break;
         case 17: {
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
@@ -270,18 +299,75 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
-          //new 19
+          //new 20
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
+          //new 21
+          await db.execute('''CREATE TABLE $tableDynamicQR(
+          ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
+          ${DynamicQRFields.dynamic_qr_id} $integerType,
+          ${DynamicQRFields.dynamic_qr_key} $textType,
+          ${DynamicQRFields.branch_id} $textType,
+          ${DynamicQRFields.qr_code_size} $integerType,
+          ${DynamicQRFields.paper_size} $textType,
+          ${DynamicQRFields.footer_text} $textType,
+          ${DynamicQRFields.sync_status} $integerType,
+          ${DynamicQRFields.created_at} $textType,
+          ${DynamicQRFields.updated_at} $textType,
+          ${DynamicQRFields.soft_delete} $textType)''');
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType DEFAULT 1");
         }break;
         case 18: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
-          //new 19
+          //new 20
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
+          //new 21
+          await db.execute('''CREATE TABLE $tableDynamicQR(
+          ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
+          ${DynamicQRFields.dynamic_qr_id} $integerType,
+          ${DynamicQRFields.dynamic_qr_key} $textType,
+          ${DynamicQRFields.branch_id} $textType,
+          ${DynamicQRFields.qr_code_size} $integerType,
+          ${DynamicQRFields.paper_size} $textType,
+          ${DynamicQRFields.footer_text} $textType,
+          ${DynamicQRFields.sync_status} $integerType,
+          ${DynamicQRFields.created_at} $textType,
+          ${DynamicQRFields.updated_at} $textType,
+          ${DynamicQRFields.soft_delete} $textType)''');
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType DEFAULT 1");
         }break;
         case 19: {
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
+          //new 21
+          await db.execute('''CREATE TABLE $tableDynamicQR(
+          ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
+          ${DynamicQRFields.dynamic_qr_id} $integerType,
+          ${DynamicQRFields.dynamic_qr_key} $textType,
+          ${DynamicQRFields.branch_id} $textType,
+          ${DynamicQRFields.qr_code_size} $integerType,
+          ${DynamicQRFields.paper_size} $textType,
+          ${DynamicQRFields.footer_text} $textType,
+          ${DynamicQRFields.sync_status} $integerType,
+          ${DynamicQRFields.created_at} $textType,
+          ${DynamicQRFields.updated_at} $textType,
+          ${DynamicQRFields.soft_delete} $textType)''');
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType DEFAULT 1");
+        }break;
+        case 20: {
+          await db.execute('''CREATE TABLE $tableDynamicQR(
+          ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
+          ${DynamicQRFields.dynamic_qr_id} $integerType,
+          ${DynamicQRFields.dynamic_qr_key} $textType,
+          ${DynamicQRFields.branch_id} $textType,
+          ${DynamicQRFields.qr_code_size} $integerType,
+          ${DynamicQRFields.paper_size} $textType,
+          ${DynamicQRFields.footer_text} $textType,
+          ${DynamicQRFields.sync_status} $integerType,
+          ${DynamicQRFields.created_at} $textType,
+          ${DynamicQRFields.updated_at} $textType,
+          ${DynamicQRFields.soft_delete} $textType)''');
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType DEFAULT 1");
         }break;
         case 20: {
           await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.type} $integerType DEFAULT 0");
@@ -901,6 +987,7 @@ class PosDatabase {
           ${AppSettingFields.show_product_desc} $integerType,
           ${AppSettingFields.print_cancel_receipt} $integerType,
           ${AppSettingFields.product_sort_by} $integerType,
+          ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType,
           ${AppSettingFields.sync_status} $integerType,
           ${AppSettingFields.created_at} $textType,
           ${AppSettingFields.updated_at} $textType)''');
@@ -1033,6 +1120,24 @@ class PosDatabase {
           ${KitchenListFields.created_at} $textType,
           ${KitchenListFields.updated_at} $textType,
           ${KitchenListFields.soft_delete} $textType)''');
+
+    /*
+    create dynamic qr table
+*/
+    await db.execute('''CREATE TABLE $tableDynamicQR(
+          ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
+          ${DynamicQRFields.dynamic_qr_id} $integerType,
+          ${DynamicQRFields.dynamic_qr_key} $textType,
+          ${DynamicQRFields.branch_id} $textType,
+          ${DynamicQRFields.qr_code_size} $integerType,
+          ${DynamicQRFields.paper_size} $textType,
+          ${DynamicQRFields.footer_text} $textType,
+          ${DynamicQRFields.sync_status} $integerType,
+          ${DynamicQRFields.created_at} $textType,
+          ${DynamicQRFields.updated_at} $textType,
+          ${DynamicQRFields.soft_delete} $textType)''');
+
+
   }
 
 
@@ -2338,6 +2443,15 @@ class PosDatabase {
   }
 
 /*
+  add dynamic qr data into local db
+*/
+  Future<DynamicQR> insertSqliteDynamicQR(DynamicQR data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableDynamicQR!, data.toJson());
+    return data.copy(dynamic_qr_sqlite_id: id);
+  }
+
+/*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
@@ -3418,12 +3532,12 @@ class PosDatabase {
       final db = await instance.database;
       final result = await db.rawQuery(
           'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
-              'a.table_use_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
+              'a.table_use_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, '
               'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a '
               'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
-              'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
+              'WHERE a.order_key = ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
               'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? ORDER BY a.created_at DESC  ',
-          ['1', '', '', branch_id, company_id, 0, '']);
+          ['', '', '', branch_id, company_id, 0, '']);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {
@@ -3802,6 +3916,36 @@ class PosDatabase {
   }
 
 /*
+  ----------------------------Dynamic QR layout part------------------------------------------------------------------------------------------------
+*/
+
+/*
+  read specific dynamic qr layout by key
+*/
+  Future<DynamicQR?> readSpecificDynamicQRByKey(String key) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableDynamicQR WHERE soft_delete = ? AND dynamic_qr_key = ? ', ['', key]);
+    if (result.isNotEmpty) {
+      return DynamicQR.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific dynamic qr layout by paper size
+*/
+  Future<DynamicQR?> readSpecificDynamicQRByPaperSize(String paperSize) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableDynamicQR WHERE soft_delete = ? AND paper_size = ? ', ['', paperSize]);
+    if (result.isNotEmpty) {
+      return DynamicQR.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
   ----------------------------Cash record part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 /*
@@ -3840,6 +3984,18 @@ class PosDatabase {
         'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id '
         'WHERE a.soft_delete = ? AND a.settlement_key = ? AND b.soft_delete = ? ORDER BY a.created_at DESC',
         ['', '', '']);
+    return result.map((json) => CashRecord.fromJson(json)).toList();
+  }
+
+/*
+  read branch opening cash record(haven't settlement)
+*/
+  Future<List<CashRecord>> readBranchOpeningCashRecord() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id '
+            'WHERE a.soft_delete = ? AND a.settlement_key = ? AND b.soft_delete = ? AND a.remark = ? ORDER BY a.created_at DESC',
+        ['', '', '', 'Opening Balance']);
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }
 
@@ -4518,7 +4674,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, SUM(b.quantity * a.original_price + 0.0) AS category_net_sales, SUM(b.quantity * a.price + 0.0) AS category_gross_sales,'
-        'SUM(CASE WHEN a.unit != ? OR a.unit != ? THEN 1 ELSE b.quantity END) AS category_item_sum '
+        'SUM(CASE WHEN a.unit != ? AND a.unit != ? THEN 1 ELSE b.quantity END) AS category_item_sum '
         'FROM $tableOrderDetail AS a JOIN $tableOrderDetailCancel AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
         'WHERE a.soft_delete = ? AND b.soft_delete = ? '
         'AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? GROUP BY a.category_name '
@@ -4722,7 +4878,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT b.*, SUM(b.original_price * b.quantity + 0.0) AS category_net_sales, SUM(b.price * b.quantity + 0.0) AS category_gross_sales, '
-            'SUM(CASE WHEN b.unit != ? OR b.unit != ? THEN 1 ELSE b.quantity END) AS category_item_sum '
+            'SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN 1 ELSE b.quantity END) AS category_item_sum '
             'FROM $tableOrderDetail AS b JOIN $tableOrderCache AS c ON b.order_cache_sqlite_id = c.order_cache_sqlite_id '
             'JOIN $tableOrder AS d ON c.order_sqlite_id = d.order_sqlite_id '
             'WHERE b.soft_delete = ? AND c.soft_delete = ? AND c.accepted = ? AND c.cancel_by = ? AND d.soft_delete = ? AND b.status = ? AND d.payment_status = ? '
@@ -5987,6 +6143,15 @@ class PosDatabase {
   }
 
 /*
+  update App Setting dynamic qr default exp after hour
+*/
+  Future<int> updateAppSettingsDynamicQrDefaultExpAfterHour(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET dynamic_qr_default_exp_after_hour = ?, sync_status = ?, updated_at = ?',
+        [data.dynamic_qr_default_exp_after_hour, 2, data.updated_at]);
+  }
+
+/*
   update first sync App Setting
 */
   Future<int> updateFirstSyncAppSettings(AppSetting data) async {
@@ -6345,6 +6510,16 @@ class PosDatabase {
         [data.updated_at, data.sync_status, data.kitchen_list_item_separator, data.print_combine_kitchen_list, data.kitchen_list_show_price, data.product_name_font_size, data.other_font_size, data.kitchen_list_sqlite_id]);
   }
 
+/*
+  update dynamic qr layout
+*/
+  Future<int> updateDynamicQR(DynamicQR data) async {
+    final db = await instance.database;
+    return await db.rawUpdate("UPDATE $tableDynamicQR SET updated_at = ?, sync_status = ?, footer_text = ?, "
+        "qr_code_size = ? WHERE dynamic_qr_sqlite_id = ?",
+        [data.updated_at, data.sync_status, data.footer_text, data.qr_code_size, data.dynamic_qr_sqlite_id]);
+  }
+
   /*
     update table position dx, dy by Chuah
   */
@@ -6387,6 +6562,18 @@ class PosDatabase {
 /*
   ------------------unique key part----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  update dynamic qr unique key
+*/
+  Future<int> updateDynamicQRUniqueKey(DynamicQR data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableDynamicQR SET dynamic_qr_key = ?, updated_at = ? WHERE dynamic_qr_sqlite_id = ?', [
+      data.dynamic_qr_key,
+      data.updated_at,
+      data.dynamic_qr_sqlite_id,
+    ]);
+  }
 
 /*
   update checklist unique key
@@ -6949,6 +7136,7 @@ class PosDatabase {
         'UPDATE $tableCashRecord SET sync_status = ?, soft_delete = ? WHERE cash_record_sqlite_id = ?', [data.sync_status, data.soft_delete, data.cash_record_sqlite_id]);
   }
 
+
 /*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
@@ -7330,6 +7518,14 @@ class PosDatabase {
   }
 
 /*
+  Delete specific dynamic qr
+*/
+  Future clearSpecificDynamicQr(int dynamic_qr_sqlite_id) async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableDynamicQR WHERE dynamic_qr_sqlite_id = ?', [dynamic_qr_sqlite_id]);
+  }
+
+/*
   ----------------------Sync from cloud--------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
@@ -7525,6 +7721,15 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableAttendance SET sync_status = ? WHERE attendance_key = ?', [1, attendance_key]);
   }
+
+/*
+  update dynamic qr sync status (from cloud)
+*/
+  Future<int> updateDynamicQrSyncStatusFromCloud(String dynamic_qr_key) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableDynamicQR SET sync_status = ? WHERE dynamic_qr_key = ?', [1, dynamic_qr_key]);
+  }
+
 /*
   ----------------------Sync to cloud(update)--------------------------------------------------------------------------------------------------------------------------------------------------
 */
@@ -7641,6 +7846,16 @@ class PosDatabase {
 /*
   ----------------------Sync to cloud(create)--------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  read all not yet sync dynamic qr
+*/
+  Future<List<DynamicQR>> readAllNotSyncDynamicQr() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableDynamicQR WHERE sync_status != ? LIMIT 10 ', [1]);
+
+    return result.map((json) => DynamicQR.fromJson(json)).toList();
+  }
 
 /*
   read all not yet sync checklist

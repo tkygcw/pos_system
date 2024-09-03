@@ -515,7 +515,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
         settlement_by: userObject['name'].toString(),
         status: 0,
         sync_status: 0,
-        opened_at: openingBalance!.created_at != null ? openingBalance.created_at : '',
+        opened_at: openingBalance != null && openingBalance!.created_at != null ? openingBalance.created_at : '',
         created_at: dateTime,
         updated_at: '',
         soft_delete: '');

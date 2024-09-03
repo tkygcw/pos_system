@@ -32,7 +32,7 @@ class NotificationPlugin {
     /*
     * ios
     * */
-    var initializationSettingsIOS = IOSInitializationSettings(
+    var initializationSettingsIOS = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
@@ -76,7 +76,7 @@ class NotificationPlugin {
       styleInformation: DefaultStyleInformation(true, true),
     );
 
-    var iosChannelSpecifics = IOSNotificationDetails();
+    var iosChannelSpecifics = DarwinNotificationDetails();
 
     var platformChannelSpecifics = NotificationDetails(android: androidChannelSpecifics, iOS: iosChannelSpecifics);
 
