@@ -10,7 +10,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
-import 'package:pos_system/object/print_receipt.dart';
+import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/utils/Utils.dart';

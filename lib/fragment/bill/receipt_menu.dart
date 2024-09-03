@@ -535,6 +535,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
     var value;
     List<TableUseDetail> tableUseDetailList = [];
     List<OrderCache> orderCacheList = [];
+    List<cartProductItem> cartItemList = [];
     for (int i = 0; i < orderDetailList.length; i++) {
       orderCacheList = await PosDatabase.instance.readSpecificOrderCache(orderDetailList[i].order_cache_sqlite_id!);
       value = cartProductItem(
@@ -559,9 +560,11 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
           allow_ticket: orderDetailList[i].allow_ticket,
           ticket_count: orderDetailList[i].ticket_count,
           ticket_exp: orderDetailList[i].ticket_exp,
+          product_sku: orderDetailList[i].product_sku
       );
-      cart.addItem(value);
+      cartItemList.add(value);
     }
+    cart.addAllItem(cartItemList: cartItemList);
     List<String> _uniqueList = [];
     var _value;
     for (int j = 0; j < orderCacheList.length; j++) {

@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
-import 'package:pos_system/object/print_receipt.dart';
+import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';

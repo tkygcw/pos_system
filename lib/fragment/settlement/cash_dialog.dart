@@ -16,7 +16,7 @@ import '../../database/domain.dart';
 import '../../main.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/app_setting.dart';
-import '../../object/print_receipt.dart';
+import '../printing_layout/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../translation/AppLocalizations.dart';
 import '../../utils/Utils.dart';

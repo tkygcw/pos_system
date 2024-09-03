@@ -17,7 +17,7 @@ import '../../database/pos_database.dart';
 import '../../enumClass/receipt_dialog_enum.dart';
 import '../../main.dart';
 import '../../notifier/theme_color.dart';
-import '../../object/print_receipt.dart';
+import '../printing_layout/print_receipt.dart';
 import '../../translation/AppLocalizations.dart';
 import '../../utils/Utils.dart';
 import '../logout_dialog.dart';
@@ -41,7 +41,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
   String kitchen_listView = "80";
   String? kitchen_list_value;
   double? fontSize, otherFontSize;
-  bool isButtonDisabled = false, submitted = false, kitchenListShowPrice = false, printCombineKitchenList = false, kitchenListItemSeparator = false;
+  bool isButtonDisabled = false, submitted = false, kitchenListShowPrice = false, printCombineKitchenList = false, kitchenListItemSeparator = false, showSKU = false;
   List<Printer> kitchenPrinter = [];
 
   @override
@@ -95,6 +95,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         kitchenListShowPrice = data.kitchen_list_show_price == 0 ? false : true;
         printCombineKitchenList = data.print_combine_kitchen_list == 0 ? false : true;
         kitchenListItemSeparator = data.kitchen_list_item_separator == 0 ? false : true;
+        showSKU = data.show_product_sku == 0 ? false : true;
       } else {
         kitchen_list = null;
         productFontSize = ReceiptDialogEnum.big;
@@ -104,6 +105,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         kitchenListShowPrice = false;
         printCombineKitchenList = false;
         kitchenListItemSeparator = false;
+        showSKU = false;
       }
     } catch(e){
       print("read kitchen list layout error: $e");
@@ -124,7 +126,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return LayoutBuilder(builder: (context,  constraints) {
-        if(constraints.maxWidth > 800){
+        if(constraints.maxWidth > 900 && constraints.maxHeight > 500){
           return AlertDialog(
             title: Text(AppLocalizations.of(context)!.translate('kitchen_list_layout')),
             content: StreamBuilder(
@@ -361,6 +363,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
           kitchen_list_show_price: kitchenListShowPrice == true ? 1: 0,
           print_combine_kitchen_list: printCombineKitchenList == true ? 1: 0,
           kitchen_list_item_separator: kitchenListItemSeparator == true ? 1: 0,
+          show_product_sku: showSKU ? 1 : 0,
           sync_status: checkData.sync_status == 0 ? 0 : 2,
           updated_at: dateTime,
           kitchen_list_sqlite_id: kitchen_list!.kitchen_list_sqlite_id,
@@ -400,6 +403,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         kitchen_list_show_price: kitchenListShowPrice == true ? 1 : 0,
         print_combine_kitchen_list: printCombineKitchenList == true ? 1 : 0,
         kitchen_list_item_separator: kitchenListItemSeparator == true ? 1 : 0,
+        show_product_sku: showSKU ? 1 : 0,
         sync_status: 0,
         created_at: dateTime,
         updated_at: '',
@@ -463,7 +467,8 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         kitchen_list_show_price: kitchenListShowPrice == true ? 1: 0,
         print_combine_kitchen_list: printCombineKitchenList == true ? 1: 0,
         kitchen_list_item_separator: kitchenListItemSeparator == true ? 1: 0,
-        paper_size: kitchen_listView
+        paper_size: kitchen_listView,
+        show_product_sku: showSKU == true ? 1 : 0
     );
   }
 
@@ -519,6 +524,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
           );
         },
         transitionDuration: Duration(milliseconds: 200),
+
         barrierDismissible: false,
         context: context,
         pageBuilder: (context, animation1, animation2) {
@@ -560,8 +566,13 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                         children: [
                           Padding(
                             padding: EdgeInsets.only(top: 5),
-                            child: Text("Product 1${kitchenListShowPrice ? "(RM6.90)" : ''}",
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                            child: Row(
+                              children: [
+                                Visibility(visible: showSKU, child: Text("SKU001 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
+                                Text("Product 1${kitchenListShowPrice ? "(RM6.90)" : ''}",
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                              ],
+                            ),
                           ),
                           Text("(big | small)", style: TextStyle(fontSize: otherFontSize)),
                         ],
@@ -588,8 +599,13 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                               children: [
                                 Padding(
                                   padding: EdgeInsets.only(top: 5),
-                                  child: Text("Product 2${kitchenListShowPrice ? "(RM8.80)" : ''}",
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                  child: Row(
+                                    children: [
+                                      Visibility(visible: showSKU, child: Text("SKU002 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
+                                      Text("Product 2${kitchenListShowPrice ? "(RM8.80)" : ''}",
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                    ],
+                                  ),
                                 ),
                                 Text("**Remark", style: TextStyle(fontSize: otherFontSize)),
                               ],
@@ -612,8 +628,13 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                               children: [
                                 Padding(
                                   padding: EdgeInsets.only(top: 5),
-                                  child: Text("Product 3${kitchenListShowPrice ? "(RM15.90)" : ''}",
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                  child: Row(
+                                    children: [
+                                      Visibility(visible: showSKU, child: Text("SKU003 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
+                                      Text("Product 3${kitchenListShowPrice ? "(RM15.90)" : ''}",
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                    ],
+                                  ),
                                 ),
                                 Text("+add-on1", style: TextStyle(fontSize: otherFontSize)),
                               ],
@@ -741,6 +762,18 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                 },
               ),
             ),
+            ListTile(
+              title: Text(AppLocalizations.of(context)!.translate('show_product_sku')),
+              subtitle: Text(AppLocalizations.of(context)!.translate('show_product_sku_desc')),
+              trailing: Switch(
+                value: showSKU,
+                activeColor: color.backgroundColor,
+                onChanged: (value) {
+                  showSKU = value;
+                  actionController.sink.add("switch");
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -783,8 +816,13 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                         children: [
                           Padding(
                             padding: EdgeInsets.only(top: 5),
-                            child: Text("Product 1${kitchenListShowPrice ? "(RM6.90)" : ''}",
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                            child: Row(
+                              children: [
+                                Visibility(visible: showSKU, child: Text("SKU001 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
+                                Text("Product 1${kitchenListShowPrice ? "(RM6.90)" : ''}",
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                              ],
+                            ),
                           ),
                           Text("(big | small)", style: TextStyle(fontSize: otherFontSize)),
                         ],
@@ -811,8 +849,13 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                               children: [
                                 Padding(
                                   padding: EdgeInsets.only(top: 5),
-                                  child: Text("Product 2${kitchenListShowPrice ? "(RM8.80)" : ''}",
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                  child: Row(
+                                    children: [
+                                      Visibility(visible: showSKU, child: Text("SKU002 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
+                                      Text("Product 2${kitchenListShowPrice ? "(RM8.80)" : ''}",
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                    ],
+                                  ),
                                 ),
                                 Text("**Remark", style: TextStyle(fontSize: otherFontSize)),
                               ],
@@ -835,8 +878,13 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                               children: [
                                 Padding(
                                   padding: EdgeInsets.only(top: 5),
-                                  child: Text("Product 3${kitchenListShowPrice ? "(RM15.90)" : ''}",
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                  child: Row(
+                                    children: [
+                                      Visibility(visible: showSKU, child: Text("SKU003 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
+                                      Text("Product 3${kitchenListShowPrice ? "(RM15.90)" : ''}",
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                    ],
+                                  ),
                                 ),
                                 Text("+add-on1", style: TextStyle(fontSize: otherFontSize)),
                               ],
@@ -965,6 +1013,18 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                 },
               ),
             ),
+            ListTile(
+              title: Text(AppLocalizations.of(context)!.translate('show_product_sku')),
+              subtitle: Text(AppLocalizations.of(context)!.translate('show_product_sku_desc')),
+              trailing: Switch(
+                value: showSKU,
+                activeColor: color.backgroundColor,
+                onChanged: (value) {
+                  showSKU = value;
+                  actionController.sink.add("switch");
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -1080,6 +1140,18 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
           },
         ),
       ),
+      ListTile(
+        title: Text(AppLocalizations.of(context)!.translate('show_product_sku')),
+        subtitle: Text(AppLocalizations.of(context)!.translate('show_product_sku_desc')),
+        trailing: Switch(
+          value: showSKU,
+          activeColor: color.backgroundColor,
+          onChanged: (value) {
+            showSKU = value;
+            actionController.sink.add("switch");
+          },
+        ),
+      ),
     ],
   );
 
@@ -1189,6 +1261,18 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
               kitchenListItemSeparator = value;
               actionController.sink.add("switch");
             }
+          },
+        ),
+      ),
+      ListTile(
+        title: Text(AppLocalizations.of(context)!.translate('show_product_sku')),
+        subtitle: Text(AppLocalizations.of(context)!.translate('show_product_sku_desc')),
+        trailing: Switch(
+          value: showSKU,
+          activeColor: color.backgroundColor,
+          onChanged: (value) {
+            showSKU = value;
+            actionController.sink.add("switch");
           },
         ),
       ),

@@ -16,6 +16,7 @@ import 'package:pos_system/second_device/place_order.dart';
 import 'package:pos_system/second_device/reprint_kitchen_list_function.dart';
 import 'package:pos_system/second_device/table_function.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:version/version.dart';
 
 import '../database/pos_database.dart';
 import '../main.dart';
@@ -52,22 +53,25 @@ class ServerAction {
   Future<Map<String, dynamic>?> checkAction({required String action, param, String? address}) async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
+    String minVersion = '1.0.11';
     Map<String, dynamic>? result;
     Map<String, dynamic>? objectData;
-
     try{
       switch(action){
         case '-1': {
           String status = '';
-          var branchId = jsonDecode(param);
-          print("branchId: ${branchId}");
-          print("server branch id: ${branch_id.toString()}");
-          if(branchId.toString() == branch_id.toString()){
+          var jsonParam = jsonDecode(param);
+          if(jsonParam['branch_id'].toString() == branch_id.toString()){
             status = '1';
           } else {
             status = '2';
           }
-          print("status: $status");
+          //check supported version
+          Version subPosAppVersion = Version.parse(jsonParam['app_version']);
+          Version supportedVersion = Version.parse(minVersion);
+          if(subPosAppVersion < supportedVersion){
+            status = '3';
+          }
           result = {'status': status};
         }
         break;
@@ -92,6 +96,7 @@ class ServerAction {
           var data9 = await PosDatabase.instance.readAllTaxLinkDining();
           var data10 = await getBranchPromotionData();
           var data11 = appLanguage.appLocal.languageCode;
+          print("data2 length: ${data2.length}");
            objectData = {
              'tb_categories': data,
              'tb_product': data2,
@@ -308,7 +313,11 @@ class ServerAction {
       }
       return result;
     } catch(e){
-      print('server error: $e');
+      FLog.error(
+        className: "server_action",
+        text: "checkAction error",
+        exception: e,
+      );
       result = {'status': '2'};
       return result;
     }

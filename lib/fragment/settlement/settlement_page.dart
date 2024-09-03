@@ -30,7 +30,7 @@ import '../../main.dart';
 import '../../notifier/connectivity_change_notifier.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/cash_record.dart';
-import '../../object/print_receipt.dart';
+import '../printing_layout/print_receipt.dart';
 import '../../translation/AppLocalizations.dart';
 import '../logout_dialog.dart';
 

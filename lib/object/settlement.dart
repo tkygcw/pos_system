@@ -15,6 +15,7 @@ class SettlementFields {
     total_refund_amount,
     total_discount,
     total_cancellation,
+    total_charge,
     total_tax,
     settlement_by_user_id,
     settlement_by,
@@ -37,6 +38,7 @@ class SettlementFields {
   static String total_refund_amount = 'total_refund_amount';
   static String total_discount = 'total_discount';
   static String total_cancellation = 'total_cancellation';
+  static String total_charge = 'total_charge';
   static String total_tax = 'total_tax';
   static String settlement_by_user_id = 'settlement_by_user_id';
   static String settlement_by = 'settlement_by';
@@ -60,6 +62,7 @@ class Settlement{
   String? total_refund_amount;
   String? total_discount;
   String? total_cancellation;
+  String? total_charge;
   String? total_tax;
   String? settlement_by_user_id;
   String? settlement_by;
@@ -74,6 +77,7 @@ class Settlement{
   int? all_refund_bill;
   double? all_refund_amount;
   double? all_discount;
+  double? all_charge_amount;
   double? all_tax_amount;
   int? all_cancellation;
   List<SettlementLinkPayment>? settlementPayment;
@@ -90,6 +94,7 @@ class Settlement{
         this.total_refund_amount,
         this.total_discount,
         this.total_cancellation,
+        this.total_charge,
         this.total_tax,
         this.settlement_by_user_id,
         this.settlement_by,
@@ -104,6 +109,7 @@ class Settlement{
         this.all_refund_bill,
         this.all_refund_amount,
         this.all_discount,
+        this.all_charge_amount,
         this.all_tax_amount,
         this.all_cancellation,
         this.settlementPayment
@@ -121,6 +127,7 @@ class Settlement{
     String? total_refund_amount,
     String? total_discount,
     String? total_cancellation,
+    String? total_charge,
     String? total_tax,
     String? settlement_by_user_id,
     String? settlement_by,
@@ -143,6 +150,7 @@ class Settlement{
           total_refund_amount: total_refund_amount ?? this.total_refund_amount,
           total_discount: total_discount ?? this.total_discount,
           total_cancellation: total_cancellation ?? this.total_cancellation,
+          total_charge: total_charge ?? this.total_charge,
           total_tax: total_tax ?? this.total_tax,
           settlement_by_user_id: settlement_by_user_id ?? this.settlement_by_user_id,
           settlement_by: settlement_by ?? this.settlement_by,
@@ -165,6 +173,7 @@ class Settlement{
     total_refund_amount: json[SettlementFields.total_refund_amount] as String?,
     total_discount: json[SettlementFields.total_discount] as String?,
     total_cancellation: json[SettlementFields.total_cancellation] as String?,
+    total_charge: json[SettlementFields.total_charge] as String?,
     total_tax: json[SettlementFields.total_tax] as String?,
     settlement_by_user_id: json[SettlementFields.settlement_by_user_id] as String?,
     settlement_by: json[SettlementFields.settlement_by] as String?,
@@ -179,6 +188,7 @@ class Settlement{
     all_refund_bill: json['all_refund_bill'] as int?,
     all_refund_amount: json['all_refund_amount'] as double?,
     all_discount: json['all_discount'] as double?,
+    all_charge_amount: json['all_charge_amount'] as double?,
     all_tax_amount: json['all_tax_amount'] as double?,
     all_cancellation: json['all_cancellation'] as int?
 
@@ -196,6 +206,7 @@ class Settlement{
     SettlementFields.total_refund_amount: total_refund_amount,
     SettlementFields.total_discount: total_discount,
     SettlementFields.total_cancellation: total_cancellation,
+    SettlementFields.total_charge: total_charge,
     SettlementFields.total_tax: total_tax,
     SettlementFields.settlement_by_user_id: settlement_by_user_id,
     SettlementFields.settlement_by: settlement_by,

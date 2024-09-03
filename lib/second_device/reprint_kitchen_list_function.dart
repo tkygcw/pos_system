@@ -13,7 +13,7 @@ import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import '../fragment/custom_snackbar.dart';
 import '../main.dart';
 import '../object/order_detail.dart';
-import '../object/print_receipt.dart';
+import '../fragment/printing_layout/print_receipt.dart';
 import '../translation/AppLocalizations.dart';
 
 class ReprintKitchenListFunction {

@@ -5,6 +5,7 @@ class TaxFields {
     tax_id,
     company_id,
     name,
+    type,
     tax_rate,
     created_at,
     updated_at,
@@ -14,6 +15,7 @@ class TaxFields {
   static String tax_id = 'tax_id';
   static String company_id = 'company_id';
   static String name = 'name';
+  static String type = 'type';
   static String tax_rate = 'tax_rate';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -24,6 +26,7 @@ class Tax{
   int? tax_id;
   String? company_id;
   String? name;
+  int? type;
   String? tax_rate;
   String? created_at;
   String? updated_at;
@@ -34,6 +37,7 @@ class Tax{
       {this.tax_id,
         this.company_id,
         this.name,
+        this.type,
         this.tax_rate,
         this.created_at,
         this.updated_at,
@@ -44,6 +48,7 @@ class Tax{
     int? tax_id,
     String? company_id,
     String? name,
+    int? type,
     String? tax_rate,
     String? created_at,
     String? updated_at,
@@ -53,6 +58,7 @@ class Tax{
           tax_id: tax_id ?? this.tax_id,
           company_id: company_id ?? this.company_id,
           name: name ?? this.name,
+          type: type ?? this.type,
           tax_rate: tax_rate ?? this.tax_rate,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -62,6 +68,7 @@ class Tax{
     tax_id: json[TaxFields.tax_id] as int?,
     company_id: json[TaxFields.company_id] as String?,
     name: json[TaxFields.name] as String?,
+    type: json[TaxFields.type] as int?,
     tax_rate: json[TaxFields.tax_rate] as String?,
     created_at: json[TaxFields.created_at] as String?,
     updated_at: json[TaxFields.updated_at] as String?,
@@ -72,6 +79,7 @@ class Tax{
     TaxFields.tax_id: tax_id,
     TaxFields.company_id: company_id,
     TaxFields.name: name,
+    TaxFields.type: type,
     TaxFields.tax_rate: tax_rate,
     TaxFields.created_at: created_at,
     TaxFields.updated_at: updated_at,

@@ -292,6 +292,10 @@ class ReportFormat {
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(10, 5, 10, 5),
+                          child: pw.Text('Total Charge', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Charge'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(10, 5, 10, 5),
                           child: pw.Text('Total Tax', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Total Tax'))),
                         ),
                         pw.Padding(
@@ -327,6 +331,10 @@ class ReportFormat {
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
                             child: pw.Text('${valueList[j].all_discount?.toStringAsFixed(2)}', style: pw.TextStyle(font: getFontFormat(valueList[j].all_discount?.toStringAsFixed(2)))),
+                          ),
+                          pw.Padding(
+                            padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                            child: pw.Text('${valueList[j].all_charge_amount?.toStringAsFixed(2)}', style: pw.TextStyle(font: getFontFormat(valueList[j].all_charge_amount?.toStringAsFixed(2)))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),

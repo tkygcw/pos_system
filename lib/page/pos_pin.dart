@@ -27,7 +27,7 @@ import '../fragment/logout_dialog.dart';
 import '../fragment/setting/printer_dialog.dart';
 import '../notifier/theme_color.dart';
 import '../object/cash_record.dart';
-import '../object/print_receipt.dart';
+import '../fragment/printing_layout/print_receipt.dart';
 import '../object/printer.dart';
 import '../object/user.dart';
 import '../second_device/server.dart';
