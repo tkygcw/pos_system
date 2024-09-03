@@ -9,6 +9,7 @@ import 'package:pos_system/utils/Utils.dart';
 import 'package:printing/printing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../database/domain.dart';
 import 'cash_record.dart';
 
 
@@ -291,6 +292,10 @@ class ReportFormat {
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(10, 5, 10, 5),
+                          child: pw.Text('Total Charge', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Charge'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(10, 5, 10, 5),
                           child: pw.Text('Total Tax', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Total Tax'))),
                         ),
                         pw.Padding(
@@ -326,6 +331,10 @@ class ReportFormat {
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
                             child: pw.Text('${valueList[j].all_discount?.toStringAsFixed(2)}', style: pw.TextStyle(font: getFontFormat(valueList[j].all_discount?.toStringAsFixed(2)))),
+                          ),
+                          pw.Padding(
+                            padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                            child: pw.Text('${valueList[j].all_charge_amount?.toStringAsFixed(2)}', style: pw.TextStyle(font: getFontFormat(valueList[j].all_charge_amount?.toStringAsFixed(2)))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
@@ -1671,8 +1680,20 @@ class ReportFormat {
     return pdf.save();
   }
 
-  Future<Uint8List> generateQrPdf(PdfPageFormat format, List<PosTable> tableList) async {
-    print('table length: ${tableList.length}');
+  Future<List<PosTable>>generateUrl(List<PosTable> posTableList) async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
+    for(int i = 0; i < posTableList.length; i++){
+      var url = '${Domain.qr_domain}${branchObject['branch_url']}/${posTableList[i].table_url}';
+      posTableList[i].qrOrderUrl = url;
+    }
+    return posTableList;
+  }
+
+  Future<Uint8List> generateQrPdf(PdfPageFormat format, List<PosTable> selectedTable) async {
+    print('table length: ${selectedTable.length}');
+    List<PosTable> tableList = await generateUrl(selectedTable);
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
     final font = await PdfGoogleFonts.robotoBlack();
     final imageByteData = await rootBundle.load('drawable/logo.png');

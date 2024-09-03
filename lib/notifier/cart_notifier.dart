@@ -29,6 +29,7 @@ class CartModel extends ChangeNotifier {
 
   CartModel({
     List<cartProductItem>? cartNotifierItem,
+    List<cartPaymentDetail>? cartNotifierPayment,
     List<PosTable>? selectedTable,
     String? selectedOption,
     String? selectedOptionId,
@@ -42,6 +43,7 @@ class CartModel extends ChangeNotifier {
     this.selectedOptionId = selectedOptionId ?? '';
     this.selectedOptionOrderKey = selectedOptionOrderKey ?? '';
     this.subtotal = subtotal;
+    this.cartNotifierPayment = cartNotifierPayment ?? [];
   }
 
   static CartModel fromJson(Map<String, Object?> json) {

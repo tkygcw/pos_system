@@ -87,7 +87,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
       if (selectDiningOption == 'All') {
         data = await PosDatabase.instance.readOrderCacheNoDineInAdvanced(branch_id.toString(), userObject['company_id']);
       } else {
-        data = await PosDatabase.instance.readOrderCacheSpecial(selectDiningOption!);
+        data = await PosDatabase.instance.readOrderCacheSpecialAdvanced(selectDiningOption!);
       }
     } else {
       if (selectDiningOption == 'All') {
@@ -172,6 +172,8 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                         setState(() {
                           selectDiningOption = value!;
                         });
+                        cart.removeAllCartItem();
+                        cart.removeAllTable();
                         getOrderList();
                       },
                       menuMaxHeight: 300,
@@ -436,6 +438,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
   }
 
   addToCart(CartModel cart, OrderCache orderCache) async {
+    List<cartProductItem> cartItemList = [];
     cart.addCartOrderCache(orderCache);
     var value;
     for (int i = 0; i < orderDetailList.length; i++) {
@@ -464,9 +467,10 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
           allow_ticket: orderDetailList[i].allow_ticket,
           ticket_count: orderDetailList[i].ticket_count,
           ticket_exp: orderDetailList[i].ticket_exp,
+          product_sku: orderDetailList[i].product_sku
           order_key: orderCache.order_key,
       );
-      cart.addItem(value);
+      cartItemList.add(value);
       if(orderCache.dining_name == 'Take Away'){
         cart.selectedOption = 'Take Away';
       } else if(orderCache.dining_name == 'Dine in'){
@@ -475,6 +479,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
         cart.selectedOption = 'Delivery';
       }
     }
+    cart.addAllItem(cartItemList: cartItemList);
 
     List<TableUseDetail> tableUseDetailList = await PosDatabase.instance.readTableUseDetailByTableUseKey(orderCache.table_use_key!);
     print("tableUseDetailList.length: ${tableUseDetailList.length}");

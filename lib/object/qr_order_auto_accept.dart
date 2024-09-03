@@ -21,7 +21,7 @@ import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
-import 'package:pos_system/object/print_receipt.dart';
+import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/qr_order.dart';
 import 'package:pos_system/object/table.dart';

@@ -30,7 +30,7 @@ import '../../main.dart';
 import '../../notifier/connectivity_change_notifier.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/cash_record.dart';
-import '../../object/print_receipt.dart';
+import '../printing_layout/print_receipt.dart';
 import '../../translation/AppLocalizations.dart';
 import '../logout_dialog.dart';
 
@@ -51,7 +51,7 @@ class _SettlementPageState extends State<SettlementPage> {
   String selectedPayment = 'All/Cash Drawer';
   PaymentLinkCompany? paymentMethod;
   List<PaymentLinkCompany> companyPaymentList = [];
-  bool isLoad = false, isLogOut = false;
+  bool isLoad = false, isLogOut = false, _isOpening = false;
 
   @override
   void initState() {
@@ -138,11 +138,21 @@ class _SettlementPageState extends State<SettlementPage> {
                                   final String? pos_user = prefs.getString('pos_pin_user');
                                   Map<String, dynamic> userMap = json.decode(pos_user!);
                                   User userData = User.fromJson(userMap);
+                                  await checkOpening();
 
-                                  if (userData.cash_drawer_permission != 1) {
-                                    openCashInDialog();
+                                  if(_isOpening) {
+                                    if (userData.cash_drawer_permission != 1) {
+                                      openCashInDialog();
+                                    } else {
+                                      await openCashDialog(true, false);
+                                    }
                                   } else {
-                                    await openCashDialog(true, false);
+                                    showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return PopScope(
+                                              child: CashDialog(isCashIn: true, callBack: () {readCashRecord();}, isCashOut: false, isNewDay: true));
+                                        });
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor)),
@@ -157,11 +167,21 @@ class _SettlementPageState extends State<SettlementPage> {
                                 final String? pos_user = prefs.getString('pos_pin_user');
                                 Map<String, dynamic> userMap = json.decode(pos_user!);
                                 User userData = User.fromJson(userMap);
+                                await checkOpening();
 
-                                if (userData.cash_drawer_permission != 1) {
-                                  openCashOutDialog();
+                                if(_isOpening) {
+                                  if (userData.cash_drawer_permission != 1) {
+                                    openCashOutDialog();
+                                  } else {
+                                    await openCashDialog(false, true);
+                                  }
                                 } else {
-                                  await openCashDialog(false, true);
+                                  showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return PopScope(
+                                            child: CashDialog(isCashIn: true, callBack: () {readCashRecord();}, isCashOut: false, isNewDay: true));
+                                      });
                                 }
                               },
                               style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
@@ -467,11 +487,21 @@ class _SettlementPageState extends State<SettlementPage> {
                                           final String? pos_user = prefs.getString('pos_pin_user');
                                           Map<String, dynamic> userMap = json.decode(pos_user!);
                                           User userData = User.fromJson(userMap);
+                                          await checkOpening();
 
-                                          if (userData.cash_drawer_permission != 1) {
-                                            openCashInDialog();
+                                          if(_isOpening) {
+                                            if (userData.cash_drawer_permission != 1) {
+                                              openCashInDialog();
+                                            } else {
+                                              await openCashDialog(true, false);
+                                            }
                                           } else {
-                                            await openCashDialog(true, false);
+                                            showDialog(
+                                                context: context,
+                                                builder: (BuildContext context) {
+                                                  return PopScope(
+                                                      child: CashDialog(isCashIn: true, callBack: () {readCashRecord();}, isCashOut: false, isNewDay: true));
+                                                });
                                           }
                                         },
                                         style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor)),
@@ -489,11 +519,21 @@ class _SettlementPageState extends State<SettlementPage> {
                                           final String? pos_user = prefs.getString('pos_pin_user');
                                           Map<String, dynamic> userMap = json.decode(pos_user!);
                                           User userData = User.fromJson(userMap);
+                                          await checkOpening();
 
-                                          if (userData.cash_drawer_permission != 1) {
-                                            openCashOutDialog();
+                                          if(_isOpening) {
+                                            if (userData.cash_drawer_permission != 1) {
+                                              openCashOutDialog();
+                                            } else {
+                                              await openCashDialog(false, true);
+                                            }
                                           } else {
-                                            await openCashDialog(false, true);
+                                            showDialog(
+                                                context: context,
+                                                builder: (BuildContext context) {
+                                                  return PopScope(
+                                                      child: CashDialog(isCashIn: true, callBack: () {readCashRecord();}, isCashOut: false, isNewDay: true));
+                                                });
                                           }
                                         } else {
                                           Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
@@ -735,6 +775,15 @@ class _SettlementPageState extends State<SettlementPage> {
         }
       });
     });
+  }
+
+  checkOpening() async {
+    List<CashRecord> data = await PosDatabase.instance.readBranchOpeningCashRecord();
+    if (data.length <= 0) {
+      _isOpening = false;
+    } else {
+      _isOpening = true;
+    }
   }
 
 /*

@@ -39,7 +39,7 @@ import '../../notifier/cart_notifier.dart';
 import '../../object/branch_link_dining_option.dart';
 import '../../object/cart_product.dart';
 import '../../object/modifier_group.dart';
-import '../../object/print_receipt.dart';
+import '../printing_layout/print_receipt.dart';
 import '../../object/promotion.dart';
 import '../../object/second_display_data.dart';
 import '../../object/table.dart';
@@ -1506,7 +1506,9 @@ class _MakePaymentState extends State<MakePayment> {
                                                           style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                                                           onPressed: () {
                                                             inputController.clear();
-                                                            change = '0.00';
+                                                            setState(() {
+                                                              change = '0.00';
+                                                            });
                                                           },
                                                           child: Text(AppLocalizations.of(context)!.translate('clear'))),
                                                     ],
@@ -2405,6 +2407,7 @@ class _MakePaymentState extends State<MakePayment> {
                 order_id: '0',
                 order_key: orderKey,
                 tax_name: taxList[i].name,
+                type: taxList[i].type,
                 rate: taxList[i].tax_rate,
                 tax_id: taxList[i].tax_id.toString(),
                 branch_link_tax_id:
@@ -2587,10 +2590,14 @@ class _MakePaymentState extends State<MakePayment> {
           change = value.toStringAsFixed(2);
         });
       } else {
-        change = '0.00';
+        setState(() {
+          change = '0.00';
+        });
       }
     } catch (e) {
-      change = '0.00';
+      setState(() {
+        change = '0.00';
+      });
     }
   }
 

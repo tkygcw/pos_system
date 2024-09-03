@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import '../../notifier/fail_print_notifier.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/order_detail.dart';
-import '../../object/print_receipt.dart';
+import '../printing_layout/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../translation/AppLocalizations.dart';
 

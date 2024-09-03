@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:confirm_dialog/confirm_dialog.dart';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
@@ -60,14 +61,12 @@ class _QrMainPageState extends State<QrMainPage> {
             );
           })
       ) :
-      Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.qr_code_2, size: 40.0),
-            Text(AppLocalizations.of(context)!.translate('no_order'), style: TextStyle(fontSize: 24)),
-          ],
-        ),
+      Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.lock),
+          Text(AppLocalizations.of(context)!.translate('upgrade_to_use_qr_order'))
+        ],
       );
     });
   }
@@ -91,7 +90,6 @@ class _QrMainPageState extends State<QrMainPage> {
               style: TextStyle(color: Colors.white),
             ),
             onPressed: () async {
-              print("qr order count: ${qrOrder.count }");
               if(qrOrder.count == 0){
                 qrOrder.count = 1;
                 await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
@@ -193,7 +191,6 @@ class _QrMainPageState extends State<QrMainPage> {
               ),
             ),
             onTap: () async {
-              print("table sqlite id: ${qrOrderCacheList[index].qr_order_table_sqlite_id!}");
               await checkOrderDetail(qrOrderCacheList[index].order_cache_sqlite_id!, index);
               //pop stock adjust dialog
               openAdjustStockDialog(orderDetailList, qrOrderCacheList[index].order_cache_sqlite_id!,
@@ -293,6 +290,11 @@ class _QrMainPageState extends State<QrMainPage> {
         orderDetailList[i].isRemove = false;
       }
     }catch(e){
+      FLog.error(
+        className: "qr main page",
+        text: "check order detail error",
+        exception: e,
+      );
       print("check order detail error: ${e}");
     }
   }

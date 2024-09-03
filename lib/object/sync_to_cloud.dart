@@ -25,6 +25,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../database/domain.dart';
 import '../database/pos_database.dart';
 import 'cash_record.dart';
+import 'dynamic_qr.dart';
 import 'order.dart';
 import 'order_cache.dart';
 import 'order_detail.dart';
@@ -55,10 +56,11 @@ class SyncToCloud {
   List<BranchLinkProduct> notSyncBranchLinkProductList = [];
   List<Printer> notSyncPrinterList = [];
   List<PrinterLinkCategory> notSyncPrinterCategoryList = [];
+  List<DynamicQR> notSyncDynamicQr = [];
   String? table_use_value, table_use_detail_value, order_cache_value, order_detail_value, order_detail_cancel_value,
       order_modifier_detail_value, order_value, order_promotion_value, order_tax_value, receipt_value, refund_value, table_value, settlement_value,
       settlement_link_payment_value, cash_record_value, app_setting_value, branch_link_product_value, printer_value, printer_link_category_value,
-      transfer_owner_value, checklist_value, kitchen_list_value, attendance_value, order_payment_split_value;
+      transfer_owner_value, checklist_value, kitchen_list_value, attendance_value, dynamic_qr_value, order_payment_split_value;
 
   resetCount(){
     count = 0;
@@ -101,6 +103,7 @@ class SyncToCloud {
           checklist_value:  this.checklist_value,
           kitchen_list_value:  this.kitchen_list_value,
           attendance_value:  this.attendance_value,
+          dynamic_qr_value: this.dynamic_qr_value
           order_payment_split_value:  this.order_payment_split_value,
       );
       if (data['status'] == '1') {
@@ -205,6 +208,9 @@ class SyncToCloud {
                 await PosDatabase.instance.updateOrderPaymentSplitSyncStatusFromCloud(responseJson[i]['order_payment_split_key']);
               }
               break;
+              case 'tb_dynamic_qr': {
+                await PosDatabase.instance.updateDynamicQrSyncStatusFromCloud(responseJson[i]['dynamic_qr_key']);
+              }
             }
           }
         } else {
@@ -257,6 +263,7 @@ class SyncToCloud {
     checklist_value = [].toString();
     kitchen_list_value = [].toString();
     attendance_value = [].toString();
+    dynamic_qr_value = [].toString();
     order_payment_split_value = [].toString();
   }
 
@@ -286,6 +293,29 @@ class SyncToCloud {
     await getNotSyncTableUseDetail();
     await getNotSyncTable();
     await getNotSyncTransfer();
+    await getNotSyncDynamicQr();
+  }
+
+  getNotSyncDynamicQr() async {
+    List<String> _value = [];
+    try{
+      List<DynamicQR> data = await PosDatabase.instance.readAllNotSyncDynamicQr();
+      if(data.isNotEmpty){
+        for(int i = 0; i < data.length; i++){
+          _value.add(jsonEncode(data[i]));
+        }
+        dynamic_qr_value = _value.toString();
+        print("dynamic qr value: ${dynamic_qr_value}");
+      }
+    } catch(e){
+      print('sync dynamic qr to cloud error: $e');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "dynamic qr sync to cloud error",
+        exception: e,
+      );
+      dynamic_qr_value = null;
+    }
   }
 
   getNotSyncChecklist() async {

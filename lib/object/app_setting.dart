@@ -17,6 +17,7 @@ class AppSettingFields {
     show_product_desc,
     print_cancel_receipt,
     product_sort_by,
+    dynamic_qr_default_exp_after_hour,
     sync_status,
     created_at,
     updated_at
@@ -37,6 +38,7 @@ class AppSettingFields {
   static String show_product_desc = 'show_product_desc';
   static String print_cancel_receipt = 'print_cancel_receipt';
   static String product_sort_by = 'product_sort_by';
+  static String dynamic_qr_default_exp_after_hour = 'dynamic_qr_default_exp_after_hour';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -58,6 +60,7 @@ class AppSetting{
   int? show_product_desc;
   int? print_cancel_receipt;
   int? product_sort_by;
+  int? dynamic_qr_default_exp_after_hour;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -78,6 +81,7 @@ class AppSetting{
         this.show_product_desc,
         this.print_cancel_receipt,
         this.product_sort_by,
+        this.dynamic_qr_default_exp_after_hour,
         this.sync_status,
         this.created_at,
         this.updated_at
@@ -99,6 +103,7 @@ class AppSetting{
     int? show_product_desc,
     int? print_cancel_receipt,
     int? product_sort_by,
+    int? dynamic_qr_default_exp_after_hour,
     int? sync_status,
     String? created_at,
     String? updated_at
@@ -119,6 +124,7 @@ class AppSetting{
         show_product_desc: show_product_desc ?? this.show_product_desc,
         print_cancel_receipt: print_cancel_receipt ?? this.print_cancel_receipt,
         product_sort_by: product_sort_by ?? this.product_sort_by,
+        dynamic_qr_default_exp_after_hour: dynamic_qr_default_exp_after_hour ?? this.dynamic_qr_default_exp_after_hour,
         sync_status: sync_status ?? this.sync_status,
         created_at: created_at ?? this.created_at,
         updated_at: updated_at ?? this.updated_at
@@ -140,6 +146,7 @@ class AppSetting{
     show_product_desc: json[AppSettingFields.show_product_desc] as int?,
     print_cancel_receipt: json[AppSettingFields.print_cancel_receipt] as int?,
     product_sort_by: json[AppSettingFields.product_sort_by] as int?,
+    dynamic_qr_default_exp_after_hour: json[AppSettingFields.dynamic_qr_default_exp_after_hour] as int?,
     sync_status: json[AppSettingFields.sync_status] as int?,
     created_at: json[AppSettingFields.created_at] as String?,
     updated_at: json[AppSettingFields.updated_at] as String?
@@ -161,6 +168,7 @@ class AppSetting{
     AppSettingFields.show_product_desc: show_product_desc,
     AppSettingFields.print_cancel_receipt: print_cancel_receipt,
     AppSettingFields.product_sort_by: product_sort_by,
+    AppSettingFields.dynamic_qr_default_exp_after_hour: dynamic_qr_default_exp_after_hour,
     AppSettingFields.sync_status: sync_status,
     AppSettingFields.created_at: created_at,
     AppSettingFields.updated_at: updated_at

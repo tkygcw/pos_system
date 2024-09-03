@@ -49,6 +49,10 @@ class _AdvancedTableViewState extends State<AdvancedTableView> {
           }
         },
 
+        onLongPress: (){
+          widget.callBack('on_long_press', !widget.table.isSelected);
+        },
+
         onPanUpdate: (details) {
           if (widget.editingMode) {
             setState(() {

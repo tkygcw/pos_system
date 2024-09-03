@@ -191,7 +191,7 @@ class _HomePageState extends State<HomePage> {
                             badgeBackgroundColor: Colors.red,
                             isCollapsed: true,
                             items: _items,
-                            avatarImg: AssetImage("drawable/logo.png"),
+                            avatarImg: AssetImage("drawable/logo.jpg"),
                             title: widget.user!.name! + "\n" + _truncateTitle((branchName ?? ''), 17) + "\n" + AppLocalizations.of(context)!.translate(role.toLowerCase()),
                             backgroundColor: color.backgroundColor,
                             selectedTextColor: color.iconColor,
@@ -244,12 +244,13 @@ class _HomePageState extends State<HomePage> {
           icon: Icons.table_restaurant,
           onPressed: () => setState(() => currentPage = 'table'),
         ),
-      CollapsibleItem(
-        text: AppLocalizations.of(context)!.translate('qr_order'),
-        icon: Icons.qr_code_2,
-        badgeCount: qr_length,
-        onPressed: () => setState(() => currentPage = 'qr_order'),
-      ),
+      if (isLoad && _appSettingModel.table_order == 1)
+        CollapsibleItem(
+          text: AppLocalizations.of(context)!.translate('qr_order'),
+          icon: Icons.qr_code_2,
+          badgeCount: qr_length,
+          onPressed: () => setState(() => currentPage = 'qr_order'),
+        ),
       CollapsibleItem(
         text: AppLocalizations.of(context)!.translate('other_order'),
         icon: Icons.shopping_cart_sharp,

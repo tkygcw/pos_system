@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -267,38 +268,46 @@ class _RefundDialogState extends State<RefundDialog> {
   }
 
   createRefund(User user) async {
-    String dateTime = dateFormat.format(DateTime.now());
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    final String? login_user = prefs.getString('user');
-    List<String> _value = [];
-    Map logInUser = json.decode(login_user!);
+    try{
+      String dateTime = dateFormat.format(DateTime.now());
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+      final String? login_user = prefs.getString('user');
+      List<String> _value = [];
+      Map logInUser = json.decode(login_user!);
 
-    Refund refundObject = Refund(
-        refund_id: 0,
-        refund_key: '',
-        company_id: logInUser['company_id'].toString(),
-        branch_id: branch_id.toString(),
-        order_cache_sqlite_id: '',
-        order_cache_key: '',
-        order_sqlite_id: widget.order.order_sqlite_id.toString(),
-        order_key: widget.order.order_key,
-        refund_by: user.name,
-        refund_by_user_id: user.user_id.toString(),
-        bill_id: widget.order.generateOrderNumber(),
-        sync_status: 0,
-        created_at: dateTime,
-        updated_at: '',
-        soft_delete: ''
-    );
-    Refund data = await PosDatabase.instance.insertSqliteRefund(refundObject);
-    refundLocalId = data.refund_sqlite_id.toString();
-    Refund updatedData = await insertRefundKey(data, dateTime);
-    refundKey = updatedData.refund_key!;
-    _value.add(jsonEncode(updatedData));
-    refund_value = _value.toString();
-    //sync to cloud
-    //syncRefundToCloud(_value.toString());
+      Refund refundObject = Refund(
+          refund_id: 0,
+          refund_key: '',
+          company_id: logInUser['company_id'].toString(),
+          branch_id: branch_id.toString(),
+          order_cache_sqlite_id: '',
+          order_cache_key: '',
+          order_sqlite_id: widget.order.order_sqlite_id.toString(),
+          order_key: widget.order.order_key,
+          refund_by: user.name,
+          refund_by_user_id: user.user_id.toString(),
+          bill_id: widget.order.generateOrderNumber(),
+          sync_status: 0,
+          created_at: dateTime,
+          updated_at: '',
+          soft_delete: ''
+      );
+      Refund data = await PosDatabase.instance.insertSqliteRefund(refundObject);
+      refundLocalId = data.refund_sqlite_id.toString();
+      Refund updatedData = await insertRefundKey(data, dateTime);
+      refundKey = updatedData.refund_key!;
+      _value.add(jsonEncode(updatedData));
+      refund_value = _value.toString();
+      //sync to cloud
+      //syncRefundToCloud(_value.toString());
+    } catch(e) {
+      FLog.error(
+        className: "refund_dialog",
+        text: "createRefund error",
+        exception: "$e",
+      );
+    }
   }
 
   // syncRefundToCloud(String value) async {
@@ -314,24 +323,32 @@ class _RefundDialogState extends State<RefundDialog> {
   // }
 
   updateOrderPaymentStatus() async {
-    List<String> _value = [];
-    String dateTime = dateFormat.format(DateTime.now());
-    Order checkData = await PosDatabase.instance.readSpecificOrder(widget.order.order_sqlite_id!);
-    Order _orderObject = Order(
-        refund_sqlite_id: this.refundLocalId,
-        refund_key: this.refundKey,
-        sync_status: checkData.sync_status == 0 ? 0 : 2,
-        updated_at: dateTime,
-        order_sqlite_id: checkData.order_sqlite_id
-    );
-    int status = await PosDatabase.instance.updateOrderPaymentRefundStatus(_orderObject);
-    if(status == 1){
-      Order orderData = await PosDatabase.instance.readSpecificOrder(_orderObject.order_sqlite_id!);
-      _value.add(jsonEncode(orderData));
+    try{
+      List<String> _value = [];
+      String dateTime = dateFormat.format(DateTime.now());
+      Order checkData = await PosDatabase.instance.readSpecificOrder(widget.order.order_sqlite_id!);
+      Order _orderObject = Order(
+          refund_sqlite_id: this.refundLocalId,
+          refund_key: this.refundKey,
+          sync_status: checkData.sync_status == 0 ? 0 : 2,
+          updated_at: dateTime,
+          order_sqlite_id: checkData.order_sqlite_id
+      );
+      int status = await PosDatabase.instance.updateOrderPaymentRefundStatus(_orderObject);
+      if(status == 1){
+        Order orderData = await PosDatabase.instance.readSpecificOrder(_orderObject.order_sqlite_id!);
+        _value.add(jsonEncode(orderData));
+      }
+      order_value = _value.toString();
+      //sync to cloud
+      //syncUpdatedOrderToCloud(_value.toString());
+    } catch(e){
+      FLog.error(
+        className: "refund_dialog",
+        text: "updateOrderPaymentStatus error",
+        exception: "$e",
+      );
     }
-    order_value = _value.toString();
-    //sync to cloud
-    //syncUpdatedOrderToCloud(_value.toString());
   }
 
   // syncUpdatedOrderToCloud(String value) async {
@@ -375,50 +392,26 @@ class _RefundDialogState extends State<RefundDialog> {
   }
 
   createRefundedCashRecord(User user) async {
-    String dateTime = dateFormat.format(DateTime.now());
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    final String? login_user = prefs.getString('user');
-    List<String> _value = [];
-    Map logInUser = json.decode(login_user!);
+    try {
+      String dateTime = dateFormat.format(DateTime.now());
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+      final String? login_user = prefs.getString('user');
+      List<String> _value = [];
+      Map logInUser = json.decode(login_user!);
 
-    print("widget.order.payment_type: ${widget.order.payment_type}");
+      print("widget.order.payment_type: ${widget.order.payment_type}");
 
-    if(widget.order.payment_link_company_id != '0') {
-      CashRecord cashRecordObject = CashRecord(
-          cash_record_id: 0,
-          cash_record_key: '',
-          company_id: logInUser['company_id'].toString(),
-          branch_id: branch_id.toString(),
-          remark: widget.order.generateOrderNumber(),
-          amount: widget.order.final_amount,
-          payment_name: '',
-          payment_type_id: widget.order.payment_type,
-          type: 4,
-          user_id: user.user_id.toString(),
-          settlement_key: '',
-          settlement_date: '',
-          sync_status: 0,
-          created_at: dateTime,
-          updated_at: '',
-          soft_delete: '');
-      CashRecord data = await PosDatabase.instance.insertSqliteCashRecord(cashRecordObject);
-      CashRecord updatedData = await insertCashRecordKey(data, dateTime);
-      _value.add(jsonEncode(updatedData));
-      cash_record_value = _value.toString();
-    } else {
-      List<OrderPaymentSplit> orderPaymentSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(widget.order.order_key!);
-      for(int i = 0; i<orderPaymentSplit.length; i++){
-        print("orderPaymentSplit data $i: ${jsonEncode(orderPaymentSplit)}");
+      if(widget.order.payment_link_company_id != '0') {
         CashRecord cashRecordObject = CashRecord(
             cash_record_id: 0,
             cash_record_key: '',
             company_id: logInUser['company_id'].toString(),
             branch_id: branch_id.toString(),
             remark: widget.order.generateOrderNumber(),
-            amount: orderPaymentSplit[i].amount,
+            amount: widget.order.final_amount,
             payment_name: '',
-            payment_type_id: orderPaymentSplit[i].payment_type_id,
+            payment_type_id: widget.order.payment_type,
             type: 4,
             user_id: user.user_id.toString(),
             settlement_key: '',
@@ -431,11 +424,42 @@ class _RefundDialogState extends State<RefundDialog> {
         CashRecord updatedData = await insertCashRecordKey(data, dateTime);
         _value.add(jsonEncode(updatedData));
         cash_record_value = _value.toString();
+      } else {
+        List<OrderPaymentSplit> orderPaymentSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(widget.order.order_key!);
+        for(int i = 0; i<orderPaymentSplit.length; i++){
+          print("orderPaymentSplit data $i: ${jsonEncode(orderPaymentSplit)}");
+          CashRecord cashRecordObject = CashRecord(
+              cash_record_id: 0,
+              cash_record_key: '',
+              company_id: logInUser['company_id'].toString(),
+              branch_id: branch_id.toString(),
+              remark: widget.order.generateOrderNumber(),
+              amount: orderPaymentSplit[i].amount,
+              payment_name: '',
+              payment_type_id: orderPaymentSplit[i].payment_type_id,
+              type: 4,
+              user_id: user.user_id.toString(),
+              settlement_key: '',
+              settlement_date: '',
+              sync_status: 0,
+              created_at: dateTime,
+              updated_at: '',
+              soft_delete: '');
+          CashRecord data = await PosDatabase.instance.insertSqliteCashRecord(cashRecordObject);
+          CashRecord updatedData = await insertCashRecordKey(data, dateTime);
+          _value.add(jsonEncode(updatedData));
+          cash_record_value = _value.toString();
+        }
       }
+      //sync to cloud
+      //syncCashRecordToCloud(_value.toString());
+    } catch(e) {
+      FLog.error(
+        className: "refund_dialog",
+        text: "createRefundedCashRecord error",
+        exception: "$e",
+      );
     }
-
-    //sync to cloud
-    //syncCashRecordToCloud(_value.toString());
   }
 
   // syncCashRecordToCloud(String value) async {
@@ -499,6 +523,11 @@ class _RefundDialogState extends State<RefundDialog> {
       }
     } catch(e){
       mainSyncToCloud.resetCount();
+      FLog.error(
+        className: "refund_dialog",
+        text: "syncAllToCloud error",
+        exception: "$e",
+      );
     }
     // bool _hasInternetAccess = await Domain().isHostReachable();
     // if (_hasInternetAccess) {
