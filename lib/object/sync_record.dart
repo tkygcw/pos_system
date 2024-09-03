@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:f_logs/model/flog/flog.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/attendance.dart';
@@ -935,33 +934,24 @@ class SyncRecord {
 
   callModifierItemQuery({data, method}) async {
     bool isComplete = false;
-    try{
-      ModifierItem modifierItemData = ModifierItem.fromJson(data[0]);
-      if(method == '0'){
-        //create
-        ModifierItem? checkData = await PosDatabase.instance.checkSpecificModifierItemId(modifierItemData.mod_item_id!);
-        if(checkData == null){
-          ModifierItem insertData = await PosDatabase.instance.insertModifierItem(modifierItemData);
-          if(insertData.created_at != ''){
-            isComplete = true;
-          }
-        } else {
+    ModifierItem modifierItemData = ModifierItem.fromJson(data[0]);
+    if(method == '0'){
+      //create
+      ModifierItem? checkData = await PosDatabase.instance.checkSpecificModifierItemId(modifierItemData.mod_item_id!);
+      if(checkData == null){
+        ModifierItem insertData = await PosDatabase.instance.insertModifierItem(modifierItemData);
+        if(insertData.created_at != ''){
           isComplete = true;
         }
       } else {
-        //update
-        int updateData = await PosDatabase.instance.updateModifierItem(modifierItemData);
-        if(updateData == 1){
-          isComplete = true;
-        }
+        isComplete = true;
       }
-    }catch(e){
-      FLog.error(
-        className: "sync record",
-        text: "callModifierItemQuery error",
-        exception: e,
-      );
-      isComplete = false;
+    } else {
+      //update
+      int updateData = await PosDatabase.instance.updateModifierItem(modifierItemData);
+      if(updateData == 1){
+        isComplete = true;
+      }
     }
     return isComplete;
   }
@@ -992,8 +982,8 @@ class SyncRecord {
   }
 
   callBranchLinkProductQuery({data, method}) async {
-    bool isComplete = false;
     try{
+      bool isComplete = false;
       BranchLinkProduct branchLinkProductData = BranchLinkProduct.fromJson(data[0]);
       Product? productData = await PosDatabase.instance.readProductLocalId(branchLinkProductData.product_id!);
       ProductVariant? productVariantData = await PosDatabase.instance.readProductVariantSqliteID(branchLinkProductData.product_variant_id!);
@@ -1035,59 +1025,47 @@ class SyncRecord {
           isComplete = true;
         }
       }
+      return isComplete;
     } catch(e){
-      FLog.error(
-        className: "sync record",
-        text: "callBranchLinkProductQuery error",
-        exception: e,
-      );
-      isComplete = false;
+      print(e);
+      return false;
     }
-    return isComplete;
+
   }
 
   callProductVariantDetailQuery({data, method}) async {
     bool isComplete = false;
-    try{
-      ProductVariantDetail productVariantDetailItem = ProductVariantDetail.fromJson(data[0]);
-      ProductVariant? productVariantData = await PosDatabase.instance.readProductVariantSqliteID(productVariantDetailItem.product_variant_id!);
-      VariantItem? variantItemData = await PosDatabase.instance.readVariantItemSqliteID(productVariantDetailItem.variant_item_id!);
-      ProductVariantDetail object = ProductVariantDetail(
-          product_variant_detail_id: productVariantDetailItem.product_variant_detail_id,
-          product_variant_id: productVariantDetailItem.product_variant_id,
-          product_variant_sqlite_id: productVariantData!.product_variant_sqlite_id.toString(),
-          variant_item_id: productVariantDetailItem.variant_item_id,
-          variant_item_sqlite_id: variantItemData!.variant_item_sqlite_id.toString(),
-          sync_status: 1,
-          created_at: productVariantDetailItem.created_at,
-          updated_at: productVariantDetailItem.updated_at,
-          soft_delete: productVariantDetailItem.soft_delete
-      );
-      if(method == '0'){
-        //create
-        ProductVariantDetail? checkData = await PosDatabase.instance.checkSpecificProductVariantDetailId(object.product_variant_detail_id!);
-        if(checkData == null){
-          ProductVariantDetail data = await PosDatabase.instance.insertProductVariantDetail(object);
-          if(data.product_variant_detail_sqlite_id != null){
-            isComplete = true;
-          }
-        } else {
+    ProductVariantDetail productVariantDetailItem = ProductVariantDetail.fromJson(data[0]);
+    ProductVariant? productVariantData = await PosDatabase.instance.readProductVariantSqliteID(productVariantDetailItem.product_variant_id!);
+    VariantItem? variantItemData = await PosDatabase.instance.readVariantItemSqliteID(productVariantDetailItem.variant_item_id!);
+    ProductVariantDetail object = ProductVariantDetail(
+        product_variant_detail_id: productVariantDetailItem.product_variant_detail_id,
+        product_variant_id: productVariantDetailItem.product_variant_id,
+        product_variant_sqlite_id: productVariantData!.product_variant_sqlite_id.toString(),
+        variant_item_id: productVariantDetailItem.variant_item_id,
+        variant_item_sqlite_id: variantItemData!.variant_item_sqlite_id.toString(),
+        sync_status: 1,
+        created_at: productVariantDetailItem.created_at,
+        updated_at: productVariantDetailItem.updated_at,
+        soft_delete: productVariantDetailItem.soft_delete
+    );
+    if(method == '0'){
+      //create
+      ProductVariantDetail? checkData = await PosDatabase.instance.checkSpecificProductVariantDetailId(object.product_variant_detail_id!);
+      if(checkData == null){
+        ProductVariantDetail data = await PosDatabase.instance.insertProductVariantDetail(object);
+        if(data.product_variant_detail_sqlite_id != null){
           isComplete = true;
         }
       } else {
-        //update
-        int data = await PosDatabase.instance.updateProductVariantDetail(object);
-        if(data == 1){
-          isComplete = true;
-        }
+        isComplete = true;
       }
-    }catch(e){
-      FLog.error(
-        className: "sync record",
-        text: "callProductVariantDetailQuery error",
-        exception: e,
-      );
-      isComplete = false;
+    } else {
+      //update
+      int data = await PosDatabase.instance.updateProductVariantDetail(object);
+      if(data == 1){
+        isComplete = true;
+      }
     }
     return isComplete;
   }
@@ -1135,44 +1113,35 @@ class SyncRecord {
 
   callVariantItemQuery({data, method}) async {
     bool isComplete = false;
-    try{
-      VariantItem variantItemData = VariantItem.fromJson(data[0]);
-      VariantGroup? variantGroupData = await PosDatabase.instance.readVariantGroupSqliteID(variantItemData.variant_group_id!);
-      VariantItem object = VariantItem(
-          variant_item_id: variantItemData.variant_item_id,
-          variant_group_id: variantItemData.variant_group_id,
-          variant_group_sqlite_id: variantGroupData != null ? variantGroupData.variant_group_sqlite_id.toString(): '0',
-          name: variantItemData.name,
-          sync_status: 1,
-          created_at: variantItemData.created_at,
-          updated_at: variantItemData.updated_at,
-          soft_delete: variantItemData.soft_delete
-      );
-      if(method == '0'){
-        //create
-        VariantItem? checkData = await PosDatabase.instance.checkSpecificVariantItemId(object.variant_item_id!);
-        if(checkData == null){
-          VariantItem data = await PosDatabase.instance.insertVariantItem(object);
-          if(data.variant_item_sqlite_id != null){
-            isComplete = true;
-          }
-        } else {
+    VariantItem variantItemData = VariantItem.fromJson(data[0]);
+    VariantGroup? variantGroupData = await PosDatabase.instance.readVariantGroupSqliteID(variantItemData.variant_group_id!);
+    VariantItem object = VariantItem(
+        variant_item_id: variantItemData.variant_item_id,
+        variant_group_id: variantItemData.variant_group_id,
+        variant_group_sqlite_id: variantGroupData != null ? variantGroupData.variant_group_sqlite_id.toString(): '0',
+        name: variantItemData.name,
+        sync_status: 1,
+        created_at: variantItemData.created_at,
+        updated_at: variantItemData.updated_at,
+        soft_delete: variantItemData.soft_delete
+    );
+    if(method == '0'){
+      //create
+      VariantItem? checkData = await PosDatabase.instance.checkSpecificVariantItemId(object.variant_item_id!);
+      if(checkData == null){
+        VariantItem data = await PosDatabase.instance.insertVariantItem(object);
+        if(data.variant_item_sqlite_id != null){
           isComplete = true;
         }
       } else {
-        //update
-        int data = await PosDatabase.instance.updateVariantItem(object);
-        if(data == 1){
-          isComplete = true;
-        }
+        isComplete = true;
       }
-    }catch(e){
-      FLog.error(
-        className: "sync record",
-        text: "callVariantItemQuery error",
-        exception: e,
-      );
-      isComplete = false;
+    } else {
+      //update
+      int data = await PosDatabase.instance.updateVariantItem(object);
+      if(data == 1){
+        isComplete = true;
+      }
     }
     return isComplete;
   }
@@ -1212,11 +1181,7 @@ class SyncRecord {
         }
       }
     }catch(e){
-      FLog.error(
-        className: "sync record",
-        text: "callVariantGroupQuery error",
-        exception: e,
-      );
+      print("callVariantGroupQuery error: ${e}");
       isComplete = false;
     }
 
@@ -1225,75 +1190,59 @@ class SyncRecord {
 
   callModifierLinkProductQuery({data, method}) async {
     bool isComplete = false;
-    try{
-      ModifierLinkProduct modData = ModifierLinkProduct.fromJson(data[0]);
-      Product? productData = await PosDatabase.instance.readProductSqliteID(modData.product_id!);
-      ModifierLinkProduct object = ModifierLinkProduct(
-        modifier_link_product_id: modData.modifier_link_product_id,
-        mod_group_id: modData.mod_group_id,
-        product_id: modData.product_id,
-        product_sqlite_id: productData!.product_sqlite_id.toString(),
-        sync_status: 1,
-        created_at: modData.created_at,
-        updated_at: modData.updated_at,
-        soft_delete: modData.soft_delete,
-      );
-      if(method == '0'){
-        //create
-        ModifierLinkProduct? checkData = await PosDatabase.instance.checkSpecificModifierLinkProductId(object.modifier_link_product_id!);
-        if(checkData == null){
-          ModifierLinkProduct data = await PosDatabase.instance.insertModifierLinkProduct(object);
-          if(data.modifier_link_product_sqlite_id != null){
-            isComplete = true;
-          }
-        } else {
+    ModifierLinkProduct modData = ModifierLinkProduct.fromJson(data[0]);
+    Product? productData = await PosDatabase.instance.readProductSqliteID(modData.product_id!);
+    ModifierLinkProduct object = ModifierLinkProduct(
+      modifier_link_product_id: modData.modifier_link_product_id,
+      mod_group_id: modData.mod_group_id,
+      product_id: modData.product_id,
+      product_sqlite_id: productData!.product_sqlite_id.toString(),
+      sync_status: 1,
+      created_at: modData.created_at,
+      updated_at: modData.updated_at,
+      soft_delete: modData.soft_delete,
+    );
+    if(method == '0'){
+      //create
+      ModifierLinkProduct? checkData = await PosDatabase.instance.checkSpecificModifierLinkProductId(object.modifier_link_product_id!);
+      if(checkData == null){
+        ModifierLinkProduct data = await PosDatabase.instance.insertModifierLinkProduct(object);
+        if(data.modifier_link_product_sqlite_id != null){
           isComplete = true;
         }
       } else {
-        //update
-        int data = await PosDatabase.instance.updateModifierLinkProduct(object);
-        if(data == 1){
-          isComplete = true;
-        }
+        isComplete = true;
       }
-    }catch(e){
-      FLog.error(
-        className: "sync record",
-        text: "callModifierLinkProductQuery error",
-        exception: e,
-      );
-      isComplete = false;
+    } else {
+      //update
+      int data = await PosDatabase.instance.updateModifierLinkProduct(object);
+      if(data == 1){
+        isComplete = true;
+      }
     }
     return isComplete;
   }
 
   callCategoryQuery({data, method}) async {
+    print('query call: ${data[0]}');
+    Categories category = Categories.fromJson(data[0]);
     bool isComplete = false;
-    try{
-      Categories category = Categories.fromJson(data[0]);
-      if(method == '0'){
-        Categories? checkData = await PosDatabase.instance.checkSpecificCategoryId(category.category_id!);
-        if(checkData == null){
-          Categories categoryData = await PosDatabase.instance.insertCategories(category);
-          if(categoryData.category_sqlite_id != null){
-            isComplete = true;
-          }
-        } else {
+
+    if(method == '0'){
+      Categories? checkData = await PosDatabase.instance.checkSpecificCategoryId(category.category_id!);
+      if(checkData == null){
+        Categories categoryData = await PosDatabase.instance.insertCategories(category);
+        if(categoryData.category_sqlite_id != null){
           isComplete = true;
         }
       } else {
-        int categoryData = await PosDatabase.instance.updateCategoryFromCloud(category);
-        if(categoryData == 1){
-          isComplete = true;
-        }
+        isComplete = true;
       }
-    }catch(e){
-      FLog.error(
-        className: "sync record",
-        text: "callCategoryQuery error",
-        exception: e,
-      );
-      isComplete = false;
+    } else {
+      int categoryData = await PosDatabase.instance.updateCategoryFromCloud(category);
+      if(categoryData == 1){
+        isComplete = true;
+      }
     }
     return isComplete;
   }
