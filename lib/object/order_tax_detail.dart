@@ -9,6 +9,7 @@ class OrderTaxDetailFields {
     order_id,
     order_key,
     tax_name,
+    type,
     rate,
     tax_id,
     branch_link_tax_id,
@@ -26,6 +27,7 @@ class OrderTaxDetailFields {
   static String order_id = 'order_id';
   static String order_key = 'order_key';
   static String tax_name = 'tax_name';
+  static String type = 'type';
   static String rate = 'rate';
   static String tax_id = 'tax_id';
   static String branch_link_tax_id = 'branch_link_tax_id';
@@ -44,6 +46,7 @@ class OrderTaxDetail {
   String? order_id;
   String? order_key;
   String? tax_name;
+  int? type;
   String? rate;
   String? tax_id;
   String? branch_link_tax_id;
@@ -52,6 +55,7 @@ class OrderTaxDetail {
   String? created_at;
   String? updated_at;
   String? soft_delete;
+  double? total_charge_amount;
   double? total_tax_amount;
   String? counterOpenDate;
 
@@ -63,6 +67,7 @@ class OrderTaxDetail {
         this.order_id,
         this.order_key,
         this.tax_name,
+        this.type,
         this.rate,
         this.tax_id,
         this.branch_link_tax_id,
@@ -71,6 +76,7 @@ class OrderTaxDetail {
         this.created_at,
         this.updated_at,
         this.soft_delete,
+        this.total_charge_amount,
         this.total_tax_amount,
         this.counterOpenDate
       });
@@ -83,6 +89,7 @@ class OrderTaxDetail {
     String? order_id,
     String? order_key,
     String? tax_name,
+    int? type,
     String? rate,
     String? tax_id,
     String? branch_link_tax_id,
@@ -100,6 +107,7 @@ class OrderTaxDetail {
           order_id: order_id ?? this.order_id,
           order_key: order_key ?? this.order_key,
           tax_name: tax_name ?? this.tax_name,
+          type: type ?? this.type,
           rate: rate ?? this.rate,
           tax_id: tax_id ?? this.tax_id,
           branch_link_tax_id: branch_link_tax_id ?? this.branch_link_tax_id,
@@ -117,6 +125,7 @@ class OrderTaxDetail {
       order_id: json[OrderTaxDetailFields.order_id] as String?,
       order_key: json[OrderTaxDetailFields.order_key] as String?,
       tax_name: json[OrderTaxDetailFields.tax_name] as String?,
+      type: json[OrderTaxDetailFields.type] as int?,
       rate: json[OrderTaxDetailFields.rate] as String?,
       tax_id: json[OrderTaxDetailFields.tax_id] as String?,
       branch_link_tax_id: json[OrderTaxDetailFields.branch_link_tax_id] as String?,
@@ -125,6 +134,7 @@ class OrderTaxDetail {
       created_at: json[OrderTaxDetailFields.created_at] as String?,
       updated_at: json[OrderTaxDetailFields.updated_at] as String?,
       soft_delete: json[OrderTaxDetailFields.soft_delete] as String?,
+      total_charge_amount: json['total_charge_amount'] as double?,
       total_tax_amount: json['total_tax_amount'] as double?,
       counterOpenDate: json['counterOpenDate'] as String?,
   );
@@ -137,6 +147,7 @@ class OrderTaxDetail {
     OrderTaxDetailFields.order_id: order_id,
     OrderTaxDetailFields.order_key: order_key,
     OrderTaxDetailFields.tax_name: tax_name,
+    OrderTaxDetailFields.type: type,
     OrderTaxDetailFields.rate: rate,
     OrderTaxDetailFields.tax_id: tax_id,
     OrderTaxDetailFields.branch_link_tax_id: branch_link_tax_id,

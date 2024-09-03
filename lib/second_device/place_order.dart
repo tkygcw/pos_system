@@ -25,7 +25,7 @@ import '../object/modifier_item.dart';
 import '../object/order_cache.dart';
 import '../object/order_detail.dart';
 import '../object/order_modifier_detail.dart';
-import '../object/print_receipt.dart';
+import '../fragment/printing_layout/print_receipt.dart';
 import '../object/printer.dart';
 import '../object/table.dart';
 import '../object/table_use.dart';
@@ -456,6 +456,7 @@ abstract class PlaceOrder {
           sync_status: 0,
           unit: newOrderDetailList[j].unit,
           per_quantity_unit: newOrderDetailList[j].per_quantity_unit,
+          product_sku: newOrderDetailList[j].product_sku,
           created_at: dateTime,
           updated_at: '',
           soft_delete: '');
