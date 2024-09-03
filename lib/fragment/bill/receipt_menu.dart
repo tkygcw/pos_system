@@ -536,6 +536,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
     List<TableUseDetail> tableUseDetailList = [];
     List<OrderCache> orderCacheList = [];
     List<cartProductItem> cartItemList = [];
+    print("order detail length: ${orderDetailList.length}");
     for (int i = 0; i < orderDetailList.length; i++) {
       orderCacheList = await PosDatabase.instance.readSpecificOrderCache(orderDetailList[i].order_cache_sqlite_id!);
       value = cartProductItem(
@@ -564,7 +565,6 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
       );
       cartItemList.add(value);
     }
-    cart.addAllItem(cartItemList: cartItemList);
     List<String> _uniqueList = [];
     var _value;
     for (int j = 0; j < orderCacheList.length; j++) {
@@ -588,14 +588,16 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
     //get table object add to cart
     for (int k = 0; k < tableUseDetailList.length; k++) {
       List<PosTable> tableData = await PosDatabase.instance.readSpecificTableIncludeDeleted(tableUseDetailList[k].table_sqlite_id!);
-      if (cart.selectedTable.isNotEmpty) {
-        if (!cart.selectedTable.contains(tableData)) {
-          cart.addTable(tableData[0]);
-        }
-      } else {
-        cart.addTable(tableData[0]);
-      }
+      cart.tableNumberList.addAll(tableData.map((e) => e.number!).toList());
+      // if (cart.selectedTable.isNotEmpty) {
+      //   if (!cart.selectedTable.contains(tableData)) {
+      //     cart.addTable(tableData[0]);
+      //   }
+      // } else {
+      //   cart.addTable(tableData[0]);
+      // }
     }
+    cart.addAllItem(cartItemList: cartItemList);
   }
 
   getModifierGroupItem(OrderDetail orderDetail) {

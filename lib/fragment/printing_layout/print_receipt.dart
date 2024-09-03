@@ -19,6 +19,7 @@ import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use_detail.dart';
 
 import '../../database/pos_database.dart';
+import '../cart/reprint/reprint_payment_layout.dart';
 import 'bill/layout.dart';
 import 'bill/preview_layout.dart';
 import 'checklist/layout.dart';
@@ -542,7 +543,7 @@ class PrintReceipt{
             if (cashierPrinterList[i].type == 0) {
               if (cashierPrinterList[i].paper_size == 0) {
                 var data = Uint8List.fromList(
-                    await BillLayout().printReceipt80mm(true, localOrderId, cart.selectedTable, isRefund: cart.cartNotifierItem[0].isRefund));
+                    await ReprintPaymentLayout().reprintPaymentReceipt80mm(true, localOrderId, cart.tableNumberList, isRefund: cart.cartNotifierItem[0].isRefund));
                 bool? isConnected = await flutterUsbPrinter.connect(
                     int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                 if (isConnected == true) {
@@ -556,7 +557,7 @@ class PrintReceipt{
                 }
               } else {
                 var data = Uint8List.fromList(
-                    await BillLayout().printReceipt58mm(true, localOrderId, cart.selectedTable, isRefund: cart.cartNotifierItem[0].isRefund));
+                    await ReprintPaymentLayout().reprintPaymentReceipt58mm(true, localOrderId, cart.tableNumberList, isRefund: cart.cartNotifierItem[0].isRefund));
                 bool? isConnected = await flutterUsbPrinter.connect(
                     int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                 if (isConnected == true) {
@@ -576,7 +577,7 @@ class PrintReceipt{
                 final printer = NetworkPrinter(PaperSize.mm80, profile);
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                 if (res == PosPrintResult.success) {
-                  await BillLayout().printReceipt80mm(false, localOrderId, cart.selectedTable, value: printer, isRefund: cart.cartNotifierItem[0].isRefund);
+                  await ReprintPaymentLayout().reprintPaymentReceipt80mm(false, localOrderId, cart.tableNumberList, value: printer, isRefund: cart.cartNotifierItem[0].isRefund);
                   printer.disconnect();
                   printStatus = 0;
                 }  else if (res == PosPrintResult.timeout){
@@ -598,7 +599,7 @@ class PrintReceipt{
                 final printer = NetworkPrinter(PaperSize.mm58, profile);
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                 if (res == PosPrintResult.success) {
-                  await BillLayout().printReceipt58mm(false, localOrderId, cart.selectedTable,value: printer, isRefund: cart.cartNotifierItem[0].isRefund);
+                  await ReprintPaymentLayout().reprintPaymentReceipt58mm(false, localOrderId, cart.tableNumberList, value: printer, isRefund: cart.cartNotifierItem[0].isRefund);
                   printer.disconnect();
                   printStatus = 0;
                 } else if (res == PosPrintResult.timeout){
