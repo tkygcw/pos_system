@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/pos_database.dart';
@@ -65,7 +66,11 @@ class _SecondDisplayState extends State<SecondDisplay> {
                 }
               }
             } catch(e){
-              print("second display callback error: $e");
+              FLog.error(
+                className: "second_display",
+                text: "SecondaryDisplay callback error",
+                exception: e,
+              );
               setState(() {
                 value == "init";
               });
@@ -285,6 +290,11 @@ class _SecondDisplayState extends State<SecondDisplay> {
       }
     }catch(e){
       paymentImg = null;
+      FLog.error(
+        className: "second_display",
+        text: "init payment image error",
+        exception: e,
+      );
     }
 
   }
@@ -327,7 +337,11 @@ class _SecondDisplayState extends State<SecondDisplay> {
       final imageFile = File(localPath);
       await imageFile.writeAsBytes(response.bodyBytes);
     } catch(e){
-      print("download payment image error: ${e}");
+      FLog.error(
+        className: "second_display",
+        text: "download payment image error",
+        exception: e,
+      );
     }
   }
 
@@ -349,11 +363,15 @@ class _SecondDisplayState extends State<SecondDisplay> {
         });
       }
     }catch(e){
+      FLog.error(
+        className: "second_display",
+        text: "init banner error",
+        exception: e,
+      );
       imageList.clear();
       setState(() {
         bannerLoaded = true;
       });
-      print("init banner error: ${e}");
     }
   }
 
@@ -416,7 +434,11 @@ class _SecondDisplayState extends State<SecondDisplay> {
         }
       }
     } catch(e){
-      print("download banner image error: ${e}");
+      FLog.error(
+        className: "second_display",
+        text: "download banner image error",
+        exception: e,
+      );
     }
   }
 
@@ -441,7 +463,11 @@ class _SecondDisplayState extends State<SecondDisplay> {
         }
       }
     }catch(e){
-      print("second display get variant error: ${e}");
+      FLog.error(
+        className: "second_display",
+        text: "get variant error",
+        exception: e,
+      );
       result = "";
     }
     return result;
