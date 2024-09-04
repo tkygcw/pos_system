@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/attendance.dart';
 import 'package:pos_system/object/bill.dart';
@@ -74,7 +75,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 22, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 23, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -289,6 +290,8 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
+          //new 23
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
         }break;
         case 16: {
           await db.execute('''CREATE TABLE $tableAttendance(
@@ -337,6 +340,8 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
+          //new 23
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
         }break;
         case 17: {
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
@@ -371,6 +376,8 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
+          //new 23
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
         }break;
         case 18: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
@@ -401,6 +408,8 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
+          //new 23
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
         }break;
         case 19: {
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
@@ -427,6 +436,8 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
+          //new 23
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
         }break;
         case 20: {
           await db.execute('''CREATE TABLE $tableDynamicQR(
@@ -451,6 +462,8 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
+          //new 23
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
         }break;
         case 21: {
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
@@ -461,7 +474,17 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
+          //new 23
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
         }break;
+        case 22: {
+          if(defaultTargetPlatform == TargetPlatform.iOS){
+            await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.type} $integerType DEFAULT 0");
+            await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
+            await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
+          }
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
+        }
       }
     }
   }
@@ -1079,6 +1102,7 @@ class PosDatabase {
           ${AppSettingFields.print_cancel_receipt} $integerType,
           ${AppSettingFields.product_sort_by} $integerType,
           ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType,
+          ${AppSettingFields.variant_item_sort_by} $integerType,
           ${AppSettingFields.sync_status} $integerType,
           ${AppSettingFields.created_at} $textType,
           ${AppSettingFields.updated_at} $textType)''');
@@ -2776,6 +2800,17 @@ class PosDatabase {
   }
 
 /*
+  read product variant detail by variant item sqlite id
+*/
+  Future<List<ProductVariantDetail>> readProductVariantDetailByVariantItemSqliteId(String variantItemSqliteId) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableProductVariantDetail WHERE variant_item_sqlite_id = ? AND soft_delete = ?',
+        [variantItemSqliteId, '']);
+
+    return result.map((json) => ProductVariantDetail.fromJson(json)).toList();
+  }
+
+/*
   read product variant item
 */
   Future<List<VariantItem>> readProductVariantItemByVariantID(String variant_item_id) async {
@@ -2979,12 +3014,17 @@ class PosDatabase {
 /*
   checking product variant
 */
-  Future<List<BranchLinkProduct>> checkProductVariant(String product_variant_id, String product_id) async {
+  Future<BranchLinkProduct?> checkProductVariant(String product_variant_id, String product_id) async {
     final db = await instance.database;
-    final result = await db
-        .rawQuery('SELECT * FROM $tableBranchLinkProduct WHERE soft_delete =? AND product_variant_sqlite_id = ? AND product_sqlite_id = ?', ['', product_variant_id, product_id]);
+    final result = await db.rawQuery('SELECT * FROM $tableBranchLinkProduct '
+        'WHERE soft_delete =? AND product_variant_sqlite_id = ? AND product_sqlite_id = ?',
+        ['', product_variant_id, product_id]);
 
-    return result.map((json) => BranchLinkProduct.fromJson(json)).toList();
+    if(result.isNotEmpty){
+      return BranchLinkProduct.fromJson(result.first);
+    } else {
+      return null;
+    }
   }
 
 /*
@@ -6308,6 +6348,14 @@ class PosDatabase {
   Future<int> updateProductSortBySettings(AppSetting data) async {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableAppSetting SET product_sort_by = ?, sync_status = ?, updated_at = ?', [data.product_sort_by, 2, data.updated_at]);
+  }
+
+/*
+  update show product sort by  Setting
+*/
+  Future<int> updateVariantItemSortBySettings(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET variant_item_sort_by = ?, sync_status = ?, updated_at = ?', [data.variant_item_sort_by, 2, data.updated_at]);
   }
 
 /*
