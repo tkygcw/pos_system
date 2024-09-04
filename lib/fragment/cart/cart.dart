@@ -105,8 +105,7 @@ class CartPageState extends State<CartPage> {
       tableOrderPrice = 0.0,
       rounding = 0.0,
       paymentReceived = 0.0,
-      paymentChange = 0.0,
-      categoryTotalPrice = 0.0;
+      paymentChange = 0.0;
   String selectedPromoRate = '', promoName = '', promoRate = '', localTableUseId = '', orderCacheId = '', orderNumber = '', allPromo = '', finalAmount = '', localOrderId = '';
   String? table_use_value,
       table_use_detail_value,
@@ -1201,6 +1200,7 @@ class CartPageState extends State<CartPage> {
 */
   calPromotion(CartModel cart) {
     promoAmount = 0.0;
+    cart.categoryTotalPriceMap.clear();
     getAutoApplyPromotion(cart);
     getManualApplyPromotion(cart);
     // if (!controller.isClosed) {
@@ -1209,10 +1209,12 @@ class CartPageState extends State<CartPage> {
   }
 
   getManualApplyPromotion(CartModel cart) {
+    print("getManualApplyPromotion called");
     List<cartProductItem> _sameCategoryList = [];
     allPromo = '';
     selectedPromoRate = '';
     double rate = 0.0;
+    double categoryTotalPrice = 0;
     try {
       if (cart.selectedPromotion != null) {
         allPromo = cart.selectedPromotion!.name!;
@@ -1226,15 +1228,60 @@ class CartPageState extends State<CartPage> {
           cart.selectedPromotion!.promoRate = selectedPromoRate;
         }
 
-        if (cart.selectedPromotion!.specific_category == '1') {
-          for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-            if (cart.cartNotifierItem[i].category_id == cart.selectedPromotion!.category_id) {
-              _sameCategoryList.add(cart.cartNotifierItem[i]);
+        if(newOrderSubtotal - promoAmount > 0) {
+          if (cart.selectedPromotion!.specific_category != '0') {
+            for (int i = 0; i < cart.cartNotifierItem.length; i++) {
+              if(cart.selectedPromotion!.specific_category == '1') {
+                if (cart.cartNotifierItem[i].category_id == cart.selectedPromotion!.category_id) {
+                  // categoryTotalPrice += double.parse(cart.cartNotifierItem[i].price!) * cart.cartNotifierItem[i].quantity!;
+
+                  if (!cart.categoryTotalPriceMap.containsKey(cart.cartNotifierItem[i].category_id)) {
+                    categoryTotalPrice = double.parse(cart.cartNotifierItem[i].price!) * cart.cartNotifierItem[i].quantity!;
+                    cart.addCategoryTotalPrice(cart.cartNotifierItem[i].category_id!, categoryTotalPrice);
+                  } else {
+                    if(categoryTotalPrice > 0) {
+                      double currentCategoryPrice = cart.categoryTotalPriceMap[cart.cartNotifierItem[i].category_id]!;
+                      categoryTotalPrice = double.parse(cart.cartNotifierItem[i].price!) * cart.cartNotifierItem[i].quantity!;
+                      cart.categoryTotalPriceMap[cart.cartNotifierItem[i].category_id!] = currentCategoryPrice + categoryTotalPrice;
+                    }
+                  }
+                }
+              } else if(cart.selectedPromotion!.specific_category == '2') {
+                List<dynamic> categoryArray = cart.selectedPromotion!.multiple_category ?? [];
+                for(var item in categoryArray) {
+                  if (cart.cartNotifierItem[i].category_id == item['category_id'].toString()) {
+                    // categoryTotalPrice += double.parse(cart.cartNotifierItem[i].price!) * cart.cartNotifierItem[i].quantity!;
+                    // if (!cart.categoryTotalPriceMap.containsKey(cart.cartNotifierItem[i].category_id)) {
+                    //   double categoryTotalPrice = double.parse(cart.cartNotifierItem[i].price!) * cart.cartNotifierItem[i].quantity!;
+                    //   cart.categoryTotalPriceMap[cart.cartNotifierItem[i].category_id!] = categoryTotalPrice;
+                    // }
+
+                    if (!cart.categoryTotalPriceMap.containsKey(cart.cartNotifierItem[i].category_id)) {
+                      print("manual apply not contain key");
+                      categoryTotalPrice = double.parse(cart.cartNotifierItem[i].price!) * cart.cartNotifierItem[i].quantity!;
+                      cart.addCategoryTotalPrice(cart.cartNotifierItem[i].category_id!, categoryTotalPrice);
+                    } else {
+                      print("manual apply contain key");
+                      if(categoryTotalPrice > 0) {
+                        double currentCategoryPrice = cart.categoryTotalPriceMap[cart.cartNotifierItem[i].category_id]!;
+                        categoryTotalPrice = double.parse(cart.cartNotifierItem[i].price!) * cart.cartNotifierItem[i].quantity!;
+                        cart.categoryTotalPriceMap[cart.cartNotifierItem[i].category_id!] = currentCategoryPrice + categoryTotalPrice;
+                      }
+                    }
+
+                  }
+                }
+              }
             }
+            print("ppppppp: ${cart.categoryTotalPriceMap[cart.selectedPromotion!.category_id]!}");
+            specificCategoryAmount(cart.selectedPromotion!, cart.categoryTotalPriceMap[cart.selectedPromotion!.category_id]!, cart);
           }
-          specificCategoryAmount(cart.selectedPromotion!, _sameCategoryList, cart);
+          else {
+            nonSpecificCategoryAmount(cart, rate);
+          }
         } else {
-          nonSpecificCategoryAmount(cart, rate);
+          promoAmount += 0;
+          cart.selectedPromotion!.promoAmount = selectedPromo;
         }
       }
     } catch (error) {
@@ -1245,33 +1292,59 @@ class CartPageState extends State<CartPage> {
     }
   }
 
-  specificCategoryAmount(Promotion promotion, List<cartProductItem> cartItem, CartModel cart) {
+  specificCategoryAmount(Promotion promotion, double categoryTotalPrice, CartModel cart) {
+    print("categoryTotalPrice: ${categoryTotalPrice}");
     try {
       selectedPromo = 0.0;
       hasSelectedPromo = false;
 
-      for (int j = 0; j < cartItem.length; j++) {
-        if (promotion.type == 0) {
-          hasSelectedPromo = true;
-          selectedPromo += (double.parse(cartItem[j].price!) * cartItem[j].quantity!) * (double.parse(promotion.amount!) / 100);
-          cart.selectedPromotion!.promoAmount = selectedPromo;
+      if (promotion.type == 0) {
+        hasSelectedPromo = true;
+        if(categoryTotalPrice <= 0) {
+          print("categoryTotalPrice <= 0");
+          selectedPromo = 0;
         } else {
-          hasSelectedPromo = true;
-          // selectedPromo += (double.parse(promotion.amount!) * cartItem[j].quantity!);
-          double categoryTotalPrice = cartItem.map((item) {
-            double price = double.parse(item.price!);
-            num quantity = item.quantity!;
-            return price * quantity;
-          }).reduce((a, b) => a + b);
+          // selectedPromo = (categoryTotalPrice - promoAmount) * (double.parse(promotion.amount!) / 100);
+          selectedPromo = categoryTotalPrice * (double.parse(promotion.amount!) / 100);
+        }
+        cart.selectedPromotion!.promoAmount = selectedPromo;
+      } else {
+        hasSelectedPromo = true;
+        if(newOrderSubtotal - promoAmount <= 0) {
+          selectedPromo = 0;
+        } else {
+          if(categoryTotalPrice <= 0) {
+            selectedPromo = 0;
+          }
+          // if category after discount = 0
+          else if(double.parse(cart.selectedPromotion!.amount!) > categoryTotalPrice) {
+            // if category after discount < promo
+            // selectedPromo = categoryTotalPrice;
 
-          if(double.parse(cart.selectedPromotion!.amount!) > categoryTotalPrice) {
+            // if(newOrderSubtotal - promoAmount > categoryTotalPrice) {
+            //   selectedPromo = double.parse(cart.selectedPromotion!.amount!);
+            // } else {
+            //   selectedPromo = newOrderSubtotal - promoAmount;
+            // }
+
             selectedPromo = categoryTotalPrice;
           } else {
+            // if category after discount > promo
+            // selectedPromo = double.parse(cart.selectedPromotion!.amount!);
+
+            // if(newOrderSubtotal - promoAmount > categoryTotalPrice) {
+            //   selectedPromo = double.parse(cart.selectedPromotion!.amount!);
+            // } else {
+            //   selectedPromo = newOrderSubtotal - promoAmount;
+            // }
+
             selectedPromo = double.parse(cart.selectedPromotion!.amount!);
           }
-          cart.selectedPromotion!.promoAmount = selectedPromo;
         }
+        cart.selectedPromotion!.promoAmount = selectedPromo;
       }
+      print("cart.categoryTotalPriceMap[promotion.category_id!]: ${cart.categoryTotalPriceMap[promotion.category_id!]}");
+      cart.categoryTotalPriceMap[promotion.category_id!] = categoryTotalPrice - selectedPromo;
       promoAmount += selectedPromo;
     } catch (e) {
       print('Specific category offer amount error: $e');
@@ -1287,13 +1360,13 @@ class CartPageState extends State<CartPage> {
 
       if (cart.selectedPromotion!.type == 0) {
         hasSelectedPromo = true;
-        selectedPromo = double.parse((total * rate).toStringAsFixed(2));
+        selectedPromo = double.parse(((total - promoAmount) * rate).toStringAsFixed(2));
       } else {
         if (cart.cartNotifierItem.isNotEmpty) {
           for (int i = 0; i < cart.cartNotifierItem.length; i++) {
             hasSelectedPromo = true;
-            if(double.parse(cart.selectedPromotion!.amount!) > newOrderSubtotal) {
-              selectedPromo = newOrderSubtotal;
+            if(double.parse(cart.selectedPromotion!.amount!) > newOrderSubtotal - promoAmount) {
+              selectedPromo = newOrderSubtotal - promoAmount;
             } else {
               selectedPromo = double.parse(cart.selectedPromotion!.amount!);
             }
@@ -1302,7 +1375,6 @@ class CartPageState extends State<CartPage> {
         }
       }
       promoAmount += selectedPromo;
-      print('promotion amount: ${promoAmount}');
       cart.selectedPromotion!.promoAmount = selectedPromo;
     } catch (error) {
       print('check promotion type error: $error');
@@ -1486,45 +1558,66 @@ class CartPageState extends State<CartPage> {
   }
 
   getAutoApplyPromotion(CartModel cart) {
+    print("getAutoApplyPromotion called");
     try {
       // cart.removeAutoPromotion();
       cart.autoPromotion = [];
-
       autoApplyPromotionList = [];
       promoName = '';
       hasPromo = false;
-      categoryTotalPrice = 0.0;
+      print("cart.cartNotifierItem length: ${cart.cartNotifierItem.length}");
       if (cart.cartNotifierItem.isNotEmpty) {
         //loop promotion list get promotion
         for (int j = 0; j < promotionList.length; j++) {
           promotionList[j].promoAmount = 0.0;
           //check is the promotion auto apply
+          double categoryTotalPrice = 0;
           if (promotionList[j].auto_apply == '1') {
             //check is promotion all day & all time
             if (promotionList[j].all_day == '1' && promotionList[j].all_time == '1') {
-              if (promotionList[j].specific_category == '1') {
+              if (promotionList[j].specific_category != '0') {
                 //Auto apply specific category promotion
                 for (int m = 0; m < cart.cartNotifierItem.length; m++) {
-                  if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
-                    hasPromo = true;
-                    promoName = promotionList[j].name!;
-                    if (!autoApplyPromotionList.contains(promotionList[j])) {
-                      autoApplyPromotionList.add(promotionList[j]);
-                      if (widget.currentPage != 'menu') {
-                        // cart.addAutoApplyPromo(promotionList[j]);
+                  if(promotionList[j].specific_category == '1') {
+                    if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
+                      hasPromo = true;
+                      promoName = promotionList[j].name!;
+                      if (!autoApplyPromotionList.contains(promotionList[j])) {
+                        autoApplyPromotionList.add(promotionList[j]);
+                      }
+
+                      if (!cart.categoryTotalPriceMap.containsKey(cart.cartNotifierItem[m].category_id)) {
+                        categoryTotalPrice = double.parse(cart.cartNotifierItem[m].price!) * cart.cartNotifierItem[m].quantity!;
+                        cart.addCategoryTotalPrice(cart.cartNotifierItem[m].category_id!, categoryTotalPrice);
+                      } else {
+                        if(categoryTotalPrice > 0) {
+                          double currentCategoryPrice = cart.categoryTotalPriceMap[cart.cartNotifierItem[m].category_id]!;
+                          categoryTotalPrice = double.parse(cart.cartNotifierItem[m].price!) * cart.cartNotifierItem[m].quantity!;
+                          cart.categoryTotalPriceMap[cart.cartNotifierItem[m].category_id!] = currentCategoryPrice + categoryTotalPrice;
+                        }
                       }
                     }
-                    autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
+                  } else if(promotionList[j].specific_category == '2') {
+                    List<dynamic> categoryArray = promotionList[j].multiple_category ?? [];
+                    for(var item in categoryArray) {
+                      if (cart.cartNotifierItem[m].category_id == item['category_id'].toString()) {
+                        hasPromo = true;
+                        promoName = promotionList[j].name!;
+                        if (!autoApplyPromotionList.contains(promotionList[j])) {
+                          autoApplyPromotionList.add(promotionList[j]);
+                        }
+                        categoryTotalPrice += double.parse(cart.cartNotifierItem[m].price!) * cart.cartNotifierItem[m].quantity!;
+                      }
+                    }
                   }
                 }
+                autoApplySpecificCategoryAmount(cart, promotionList[j], cart.categoryTotalPriceMap[promotionList[j].category_id!]!);
+
               } else {
                 //Auto apply non specific category promotion
                 if (cart.cartNotifierItem.isNotEmpty) {
                   hasPromo = true;
                   autoApplyPromotionList.add(promotionList[j]);
-                  if (widget.currentPage != 'menu') {
-                    // cart.addAutoApplyPromo(promotionList[j]);
-                  }
                   promoName = promotionList[j].name!;
                   autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
                 }
@@ -1532,23 +1625,41 @@ class CartPageState extends State<CartPage> {
             } else {
               if (promotionList[j].all_day == '0' && promotionList[j].all_time == '0') {
                 if (cart.cartNotifierItem[0].status == 0) {
-                  if (promotionDateTimeChecking(sDate: promotionList[j].sdate, eDate: promotionList[j].edate, sTime: promotionList[j].stime, eTime: promotionList[j].etime) ==
-                      true) {
-                    if (promotionList[j].specific_category == '1') {
+                  if (promotionDateTimeChecking(sDate: promotionList[j].sdate, eDate: promotionList[j].edate, sTime: promotionList[j].stime, eTime: promotionList[j].etime) == true) {
+                    if (promotionList[j].specific_category != '0') {
                       //Auto apply specific category promotion
                       for (int m = 0; m < cart.cartNotifierItem.length; m++) {
-                        if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
-                          hasPromo = true;
-                          promoName = promotionList[j].name!;
-                          if (!autoApplyPromotionList.contains(promotionList[j])) {
-                            autoApplyPromotionList.add(promotionList[j]);
-                            if (widget.currentPage != 'menu') {
-                              // cart.addAutoApplyPromo(promotionList[j]);
+                        if(promotionList[j].specific_category == '1') {
+                          if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
+                            hasPromo = true;
+                            promoName = promotionList[j].name!;
+                            if (!autoApplyPromotionList.contains(promotionList[j])) {
+                              autoApplyPromotionList.add(promotionList[j]);
+                            }
+                            if (!cart.categoryTotalPriceMap.containsKey(cart.cartNotifierItem[m].category_id)) {
+                              double categoryTotalPrice = double.parse(cart.cartNotifierItem[m].price!) * cart.cartNotifierItem[m].quantity!;
+                              cart.addCategoryTotalPrice(cart.cartNotifierItem[m].category_id!, categoryTotalPrice);
                             }
                           }
-                          autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
+                        } else if(promotionList[j].specific_category == '2') {
+                          List<dynamic> categoryArray = promotionList[j].multiple_category ?? [];
+
+                          for(var item in categoryArray) {
+                            if (cart.cartNotifierItem[m].category_id == item['category_id'].toString()) {
+                              hasPromo = true;
+                              promoName = promotionList[j].name!;
+                              if (!autoApplyPromotionList.contains(promotionList[j])) {
+                                autoApplyPromotionList.add(promotionList[j]);
+                                if (widget.currentPage != 'menu') {
+                                  // cart.addAutoApplyPromo(promotionList[j]);
+                                }
+                              }
+                              categoryTotalPrice += double.parse(cart.cartNotifierItem[m].price!) * cart.cartNotifierItem[m].quantity!;
+                            }
+                          }
                         }
                       }
+                      autoApplySpecificCategoryAmount(cart, promotionList[j], cart.categoryTotalPriceMap[promotionList[j].category_id!]!);
                     } else {
                       //Auto apply non specific category promotion
                       if (cart.cartNotifierItem.isNotEmpty) {
@@ -1570,21 +1681,40 @@ class CartPageState extends State<CartPage> {
                       eTime: promotionList[j].etime,
                       cache_created_at: cart.cartNotifierItem[0].first_cache_created_date_time) ==
                       true) {
-                    if (promotionList[j].specific_category == '1') {
+                    if (promotionList[j].specific_category != '0') {
                       //Auto apply specific category promotion
                       for (int m = 0; m < cart.cartNotifierItem.length; m++) {
-                        if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
-                          hasPromo = true;
-                          promoName = promotionList[j].name!;
-                          if (!autoApplyPromotionList.contains(promotionList[j])) {
-                            autoApplyPromotionList.add(promotionList[j]);
-                            if (widget.currentPage != 'menu') {
-                              // cart.addAutoApplyPromo(promotionList[j]);
+                        if(promotionList[j].specific_category == '1') {
+                          if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
+                            hasPromo = true;
+                            promoName = promotionList[j].name!;
+                            if (!autoApplyPromotionList.contains(promotionList[j])) {
+                              autoApplyPromotionList.add(promotionList[j]);
+                            }
+                            if (!cart.categoryTotalPriceMap.containsKey(cart.cartNotifierItem[m].category_id)) {
+                              double categoryTotalPrice = double.parse(cart.cartNotifierItem[m].price!) * cart.cartNotifierItem[m].quantity!;
+                              cart.addCategoryTotalPrice(cart.cartNotifierItem[m].category_id!, categoryTotalPrice);
                             }
                           }
-                          autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
+                        } else if(promotionList[j].specific_category == '2') {
+                          List<dynamic> categoryArray = promotionList[j].multiple_category ?? [];
+
+                          for(var item in categoryArray) {
+                            if (cart.cartNotifierItem[m].category_id == item['category_id'].toString()) {
+                              hasPromo = true;
+                              promoName = promotionList[j].name!;
+                              if (!autoApplyPromotionList.contains(promotionList[j])) {
+                                autoApplyPromotionList.add(promotionList[j]);
+                                if (widget.currentPage != 'menu') {
+                                  // cart.addAutoApplyPromo(promotionList[j]);
+                                }
+                              }
+                              categoryTotalPrice += double.parse(cart.cartNotifierItem[m].price!) * cart.cartNotifierItem[m].quantity!;
+                            }
+                          }
                         }
                       }
+                      autoApplySpecificCategoryAmount(cart, promotionList[j], cart.categoryTotalPriceMap[promotionList[j].category_id!]!);
                     } else {
                       //Auto apply non specific category promotion
                       if (cart.cartNotifierItem.isNotEmpty) {
@@ -1603,21 +1733,43 @@ class CartPageState extends State<CartPage> {
                 //check cart item status and promotion time
                 if (cart.cartNotifierItem[0].status == 0) {
                   if (promotionDateTimeChecking(sDate: promotionList[j].sdate, eDate: promotionList[j].edate) == true) {
-                    if (promotionList[j].specific_category == '1') {
+                    if (promotionList[j].specific_category != '0') {
                       //Auto apply specific category promotion
                       for (int m = 0; m < cart.cartNotifierItem.length; m++) {
-                        if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
-                          hasPromo = true;
-                          promoName = promotionList[j].name!;
-                          if (!autoApplyPromotionList.contains(promotionList[j])) {
-                            autoApplyPromotionList.add(promotionList[j]);
-                            if (widget.currentPage != 'menu') {
-                              // cart.addAutoApplyPromo(promotionList[j]);
+                        if(promotionList[j].specific_category == '1') {
+                          if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
+                            hasPromo = true;
+                            promoName = promotionList[j].name!;
+                            if (!autoApplyPromotionList.contains(promotionList[j])) {
+                              autoApplyPromotionList.add(promotionList[j]);
+                              if (widget.currentPage != 'menu') {
+                                // cart.addAutoApplyPromo(promotionList[j]);
+                              }
+                            }
+                            if (!cart.categoryTotalPriceMap.containsKey(cart.cartNotifierItem[m].category_id)) {
+                              double categoryTotalPrice = double.parse(cart.cartNotifierItem[m].price!) * cart.cartNotifierItem[m].quantity!;
+                              cart.addCategoryTotalPrice(cart.cartNotifierItem[m].category_id!, categoryTotalPrice);
                             }
                           }
-                          autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
+                        } else if(promotionList[j].specific_category == '2') {
+                          List<dynamic> categoryArray = promotionList[j].multiple_category ?? [];
+
+                          for(var item in categoryArray) {
+                            if (cart.cartNotifierItem[m].category_id == item['category_id'].toString()) {
+                              hasPromo = true;
+                              promoName = promotionList[j].name!;
+                              if (!autoApplyPromotionList.contains(promotionList[j])) {
+                                autoApplyPromotionList.add(promotionList[j]);
+                                if (widget.currentPage != 'menu') {
+                                  // cart.addAutoApplyPromo(promotionList[j]);
+                                }
+                              }
+                              categoryTotalPrice += double.parse(cart.cartNotifierItem[m].price!) * cart.cartNotifierItem[m].quantity!;
+                            }
+                          }
                         }
                       }
+                      autoApplySpecificCategoryAmount(cart, promotionList[j], cart.categoryTotalPriceMap[promotionList[j].category_id!]!);
                     } else {
                       //Auto apply non specific category promotion
                       if (cart.cartNotifierItem.isNotEmpty) {
@@ -1635,21 +1787,42 @@ class CartPageState extends State<CartPage> {
                   if (promotionDateTimeChecking(
                       sDate: promotionList[j].sdate, eDate: promotionList[j].edate, cache_created_at: cart.cartNotifierItem[0].first_cache_created_date_time) ==
                       true) {
-                    if (promotionList[j].specific_category == '1') {
+                    if (promotionList[j].specific_category != '0') {
                       //Auto apply specific category promotion
                       for (int m = 0; m < cart.cartNotifierItem.length; m++) {
-                        if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
-                          hasPromo = true;
-                          promoName = promotionList[j].name!;
-                          if (!autoApplyPromotionList.contains(promotionList[j])) {
-                            autoApplyPromotionList.add(promotionList[j]);
-                            if (widget.currentPage != 'menu') {
-                              // cart.addAutoApplyPromo(promotionList[j]);
+                        if(promotionList[j].specific_category == '1') {
+                          if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
+                            hasPromo = true;
+                            promoName = promotionList[j].name!;
+                            if (!autoApplyPromotionList.contains(promotionList[j])) {
+                              autoApplyPromotionList.add(promotionList[j]);
+                              if (widget.currentPage != 'menu') {
+                                // cart.addAutoApplyPromo(promotionList[j]);
+                              }
+                            }
+                            if (!cart.categoryTotalPriceMap.containsKey(cart.cartNotifierItem[m].category_id)) {
+                              double categoryTotalPrice = double.parse(cart.cartNotifierItem[m].price!) * cart.cartNotifierItem[m].quantity!;
+                              cart.addCategoryTotalPrice(cart.cartNotifierItem[m].category_id!, categoryTotalPrice);
                             }
                           }
-                          autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
+                        } else if(promotionList[j].specific_category == '2') {
+                          List<dynamic> categoryArray = promotionList[j].multiple_category ?? [];
+                          for(var item in categoryArray) {
+                            if (cart.cartNotifierItem[m].category_id == item['category_id'].toString()) {
+                              hasPromo = true;
+                              promoName = promotionList[j].name!;
+                              if (!autoApplyPromotionList.contains(promotionList[j])) {
+                                autoApplyPromotionList.add(promotionList[j]);
+                                if (widget.currentPage != 'menu') {
+                                  // cart.addAutoApplyPromo(promotionList[j]);
+                                }
+                              }
+                              categoryTotalPrice += double.parse(cart.cartNotifierItem[m].price!) * cart.cartNotifierItem[m].quantity!;
+                            }
+                          }
                         }
                       }
+                      autoApplySpecificCategoryAmount(cart, promotionList[j], cart.categoryTotalPriceMap[promotionList[j].category_id!]!);
                     } else {
                       //Auto apply non specific category promotion
                       if (cart.cartNotifierItem.isNotEmpty) {
@@ -1668,21 +1841,42 @@ class CartPageState extends State<CartPage> {
                 //check cart item status and promotion time
                 if (cart.cartNotifierItem[0].status == 0) {
                   if (promotionDateTimeChecking(sTime: promotionList[j].stime, eTime: promotionList[j].etime) == true) {
-                    if (promotionList[j].specific_category == '1') {
+                    if (promotionList[j].specific_category != '0') {
                       //Auto apply specific category promotion
                       for (int m = 0; m < cart.cartNotifierItem.length; m++) {
-                        if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
-                          hasPromo = true;
-                          promoName = promotionList[j].name!;
-                          if (!autoApplyPromotionList.contains(promotionList[j])) {
-                            autoApplyPromotionList.add(promotionList[j]);
-                            if (widget.currentPage != 'menu') {
-                              // cart.addAutoApplyPromo(promotionList[j]);
+                        if(promotionList[j].specific_category == '1') {
+                          if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
+                            hasPromo = true;
+                            promoName = promotionList[j].name!;
+                            if (!autoApplyPromotionList.contains(promotionList[j])) {
+                              autoApplyPromotionList.add(promotionList[j]);
+                              if (widget.currentPage != 'menu') {
+                                // cart.addAutoApplyPromo(promotionList[j]);
+                              }
+                            }
+                            if (!cart.categoryTotalPriceMap.containsKey(cart.cartNotifierItem[m].category_id)) {
+                              double categoryTotalPrice = double.parse(cart.cartNotifierItem[m].price!) * cart.cartNotifierItem[m].quantity!;
+                              cart.addCategoryTotalPrice(cart.cartNotifierItem[m].category_id!, categoryTotalPrice);
                             }
                           }
-                          autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
+                        } else if(promotionList[j].specific_category == '2') {
+                          List<dynamic> categoryArray = promotionList[j].multiple_category ?? [];
+                          for(var item in categoryArray) {
+                            if (cart.cartNotifierItem[m].category_id == item['category_id'].toString()) {
+                              hasPromo = true;
+                              promoName = promotionList[j].name!;
+                              if (!autoApplyPromotionList.contains(promotionList[j])) {
+                                autoApplyPromotionList.add(promotionList[j]);
+                                if (widget.currentPage != 'menu') {
+                                  // cart.addAutoApplyPromo(promotionList[j]);
+                                }
+                              }
+                              categoryTotalPrice += double.parse(cart.cartNotifierItem[m].price!) * cart.cartNotifierItem[m].quantity!;
+                            }
+                          }
                         }
                       }
+                      autoApplySpecificCategoryAmount(cart, promotionList[j], cart.categoryTotalPriceMap[promotionList[j].category_id!]!);
                     } else {
                       //Auto apply non specific category promotion
                       if (cart.cartNotifierItem.isNotEmpty) {
@@ -1700,21 +1894,42 @@ class CartPageState extends State<CartPage> {
                   if (promotionDateTimeChecking(
                       sTime: promotionList[j].stime, eTime: promotionList[j].etime, cache_created_at: cart.cartNotifierItem[0].first_cache_created_date_time) ==
                       true) {
-                    if (promotionList[j].specific_category == '1') {
+                    if (promotionList[j].specific_category != '0') {
                       //Auto apply specific category promotion
                       for (int m = 0; m < cart.cartNotifierItem.length; m++) {
-                        if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
-                          hasPromo = true;
-                          promoName = promotionList[j].name!;
-                          if (!autoApplyPromotionList.contains(promotionList[j])) {
-                            autoApplyPromotionList.add(promotionList[j]);
-                            if (widget.currentPage != 'menu') {
-                              // cart.addAutoApplyPromo(promotionList[j]);
+                        if(promotionList[j].specific_category == '1') {
+                          if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
+                            hasPromo = true;
+                            promoName = promotionList[j].name!;
+                            if (!autoApplyPromotionList.contains(promotionList[j])) {
+                              autoApplyPromotionList.add(promotionList[j]);
+                              if (widget.currentPage != 'menu') {
+                                // cart.addAutoApplyPromo(promotionList[j]);
+                              }
+                            }
+                            if (!cart.categoryTotalPriceMap.containsKey(cart.cartNotifierItem[m].category_id)) {
+                              double categoryTotalPrice = double.parse(cart.cartNotifierItem[m].price!) * cart.cartNotifierItem[m].quantity!;
+                              cart.addCategoryTotalPrice(cart.cartNotifierItem[m].category_id!, categoryTotalPrice);
                             }
                           }
-                          autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
+                        } else if(promotionList[j].specific_category == '2') {
+                          List<dynamic> categoryArray = promotionList[j].multiple_category ?? [];
+                          for(var item in categoryArray) {
+                            if (cart.cartNotifierItem[m].category_id == item['category_id'].toString()) {
+                              hasPromo = true;
+                              promoName = promotionList[j].name!;
+                              if (!autoApplyPromotionList.contains(promotionList[j])) {
+                                autoApplyPromotionList.add(promotionList[j]);
+                                if (widget.currentPage != 'menu') {
+                                  // cart.addAutoApplyPromo(promotionList[j]);
+                                }
+                              }
+                              categoryTotalPrice += double.parse(cart.cartNotifierItem[m].price!) * cart.cartNotifierItem[m].quantity!;
+                            }
+                          }
                         }
                       }
+                      autoApplySpecificCategoryAmount(cart, promotionList[j], cart.categoryTotalPriceMap[promotionList[j].category_id!]!);
                     } else {
                       //Auto apply non specific category promotion
                       if (cart.cartNotifierItem.isNotEmpty) {
@@ -1743,12 +1958,13 @@ class CartPageState extends State<CartPage> {
     }
   }
 
+
   autoApplyNonSpecificCategoryAmount(Promotion promotion, CartModel cart) {
     try {
       promo = 0.0;
       if (promotion.type == 1) {
-        if(double.parse(promotion.amount!) > newOrderSubtotal) {
-          promo = newOrderSubtotal;
+        if(double.parse(promotion.amount!) > newOrderSubtotal - promoAmount) {
+          promo = newOrderSubtotal - promoAmount;
           promotion.promoAmount = promo;
         } else {
           promo += double.parse(promotion.amount!);
@@ -1759,8 +1975,13 @@ class CartPageState extends State<CartPage> {
         promoRate = 'RM' + promotion.amount!;
         promotion.promoRate = promoRate;
       } else {
-        promo += newOrderSubtotal * (double.parse(promotion.amount!) / 100);
-        promotion.promoAmount = promo;
+        if(newOrderSubtotal - promoAmount <= 0) {
+          promo += 0;
+          promotion.promoAmount = promo;
+        } else {
+          promo += (newOrderSubtotal - promoAmount) * (double.parse(promotion.amount!) / 100);
+          promotion.promoAmount = promo;
+        }
         promoRate = promotion.amount! + '%';
         promotion.promoRate = promoRate;
       }
@@ -1775,33 +1996,35 @@ class CartPageState extends State<CartPage> {
     controller.add('refresh');
   }
 
-  autoApplySpecificCategoryAmount(Promotion promotion, cartProductItem cartItem) {
-    print("autoApplySpecificCategoryAmount called");
+  autoApplySpecificCategoryAmount(CartModel cart, Promotion promotion, double categoryTotalPrice) {
     try {
       promo = 0.0;
       if (promotion.type == 1) {
-        categoryTotalPrice += double.parse(cartItem.price!) * cartItem.quantity!;
 
-        if(categoryTotalPrice > double.parse(promotion.amount!)) {
-          print(">>");
-          promo = double.parse(promotion.amount!);
-          promotion.promoAmount = promo;
+        if(categoryTotalPrice <= 0) {
+          promo = 0;
+        } else if(double.parse(promotion.amount!) > categoryTotalPrice) {
+          print("22");
+          promo = categoryTotalPrice;
         } else {
-          print("<<");
-          promo += double.parse(cartItem.price!);
-          promotion.promoAmount = promotion.promoAmount! + promo;
+          print("33");
+          promo = double.parse(promotion.amount!);
         }
 
-        // promo += (double.parse(promotion.amount!) * cartItem.quantity!);
-        // promotion.promoAmount = promotion.promoAmount! + promo;
+        promotion.promoAmount = promo;
         promoRate = 'RM' + promotion.amount!;
         promotion.promoRate = promoRate;
       } else {
-        promo += (double.parse(cartItem.price!) * cartItem.quantity!) * (double.parse(promotion.amount!) / 100);
-        promotion.promoAmount = promotion.promoAmount! + promo;
+        // promo = (categoryTotalPrice - promoAmount) * (double.parse(promotion.amount!) / 100);
+        promo = categoryTotalPrice * (double.parse(promotion.amount!) / 100);
+        promotion.promoAmount = promo;
+
         promoRate = promotion.amount! + '%';
         promotion.promoRate = promoRate;
       }
+
+      cart.categoryTotalPriceMap[promotion.category_id!] = categoryTotalPrice - promo;
+      // cart.addCategoryTotalPrice(promotion.category_id!, categoryTotalPrice);
       promoAmount += promo;
     } catch (e) {
       print("calc auto apply specific category error: $e");
@@ -1879,6 +2102,7 @@ class CartPageState extends State<CartPage> {
       newOrderSubtotal = 0.0;
       promo = 0.0;
       promoAmount = 0.0;
+
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
         total += (double.parse((cart.cartNotifierItem[i].price!)) * cart.cartNotifierItem[i].quantity!);
         if (cart.cartNotifierItem[i].status == 0) {
@@ -2230,6 +2454,16 @@ class CartPageState extends State<CartPage> {
         List<Promotion> temp = await PosDatabase.instance.checkPromotion(data[i].promotion_id!);
         if (temp.isNotEmpty) promotionList.add(temp[0]);
       }
+      // sort with specific category, 3 - 2 - 1 - 0
+      Map<String, int> categoryOrder = {
+        "3": 0,
+        "2": 1,
+        "1": 2,
+        "0": 3
+      };
+
+      promotionList.sort((a, b) => categoryOrder[a.specific_category]!.compareTo(categoryOrder[b.specific_category]!));
+
     } catch (error) {
       print('promotion list error $error');
     }

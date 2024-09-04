@@ -534,6 +534,7 @@ class SyncRecord {
   callPromotionQuery({data, method}) async {
     bool isComplete = false;
     Promotion promotion = Promotion.fromJson(data[0]);
+    print("promotion data: ${jsonEncode(promotion)}");
     try{
       if(method == '0'){
         Promotion? checkData = await PosDatabase.instance.checkSpecificPromotionId(promotion.promotion_id!);
