@@ -5,7 +5,8 @@ import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/order_cache.dart';
-import 'package:pos_system/object/print_receipt.dart';
+import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
+import 'package:pos_system/object/table.dart';
 import '../../notifier/cart_notifier.dart';
 import '../../object/cart_product.dart';
 import '../../object/printer.dart';
@@ -28,6 +29,7 @@ class ReprintDialog extends StatefulWidget {
 }
 
 class _ReprintDialogState extends State<ReprintDialog> {
+  late final CartModel cartModel;
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   PrintReceipt printReceipt = PrintReceipt();
   List<cartProductItem> ticketProduct = [];
@@ -37,7 +39,20 @@ class _ReprintDialogState extends State<ReprintDialog> {
   void initState() {
     // TODO: implement initState
     getTicketProduct();
+    getCartModel();
     super.initState();
+  }
+
+  getCartModel(){
+    List<PosTable> selectedTable = widget.cart.selectedTable.toList();
+    List<cartProductItem> cartItem = widget.cart.cartNotifierItem.toList();
+    String selectedOption = widget.cart.selectedOption;
+    cartModel = CartModel(
+      cartNotifierItem: cartItem,
+      selectedOption: selectedOption,
+      selectedTable: selectedTable,
+      cartNotifierPayment: widget.cart.cartNotifierPayment.toList()
+    );
   }
 
   getTicketProduct(){
@@ -45,13 +60,13 @@ class _ReprintDialogState extends State<ReprintDialog> {
     ticketProduct = cart.cartNotifierItem.where((e) => e.allow_ticket == 1).toList();
   }
 
-  void reprintCheckList() async  {
+  void reprintCheckList() async {
     BuildContext _context = widget.parentContext;
     bool? isPaymentPage;
     if(widget.currentPage == 'bill'){
       isPaymentPage = true;
     }
-    int printStatus = await printReceipt.reprintCheckList(widget.printerList, widget.cart, isPayment: isPaymentPage);
+    int printStatus = await printReceipt.reprintCheckList(widget.printerList, cartModel, isPayment: isPaymentPage);
     switch(printStatus){
       case 1: {
         Fluttertoast.showToast(
@@ -103,7 +118,6 @@ class _ReprintDialogState extends State<ReprintDialog> {
 
   void reprintKitchenList() async  {
     try{
-      BuildContext _context = widget.parentContext;
       List<OrderCache> orderCacheList = widget.cart.currentOrderCache;
       print("order cache list length: ${orderCacheList.length}");
       for(final cache in orderCacheList){
@@ -119,7 +133,7 @@ class _ReprintDialogState extends State<ReprintDialog> {
   }
 
   printReviewReceipt() async {
-    int printStatus = await printReceipt.printReviewReceipt(widget.printerList, widget.cart.selectedTable, widget.cart);
+    int printStatus = await printReceipt.printReviewReceipt(widget.printerList, cartModel);
     checkPrinterStatus(printStatus);
   }
 
@@ -148,59 +162,61 @@ class _ReprintDialogState extends State<ReprintDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(AppLocalizations.of(context)!.translate('reprint')),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Card(
-            elevation: 5,
-            child: ListTile(
-                title: Text(AppLocalizations.of(context)!.translate('reprint_checklist')),
-                onTap: reprintCheckList,
-                trailing: Icon(Icons.print)
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Card(
+              elevation: 5,
+              child: ListTile(
+                  title: Text(AppLocalizations.of(context)!.translate('reprint_checklist')),
+                  onTap: reprintCheckList,
+                  trailing: Icon(Icons.print)
+              ),
             ),
-          ),
-          Card(
-            elevation: 5,
-            child: ListTile(
-              title: Text(AppLocalizations.of(context)!.translate('reprint_kitchen_list')),
-              onTap: reprintKitchenList,
-              trailing: Icon(Icons.kitchen),
+            Card(
+              elevation: 5,
+              child: ListTile(
+                title: Text(AppLocalizations.of(context)!.translate('reprint_kitchen_list')),
+                onTap: reprintKitchenList,
+                trailing: Icon(Icons.kitchen),
+              ),
             ),
-          ),
+            Visibility(
+              visible: ticketProduct.isNotEmpty ? true : false,
+              child: Card(
+                elevation: 5,
+                child: ListTile(
+                  title: Text(AppLocalizations.of(context)!.translate('reprint_product_ticket')),
+                  onTap: reprintProductTicket,
+                  trailing: Icon(Icons.print),
+                ),
+              ),
+            ),
           Visibility(
-            visible: ticketProduct.isNotEmpty ? true : false,
-            child: Card(
-              elevation: 5,
-              child: ListTile(
-                title: Text(AppLocalizations.of(context)!.translate('reprint_product_ticket')),
-                onTap: reprintProductTicket,
-                trailing: Icon(Icons.print),
+            visible: widget.currentPage == 'table' || widget.currentPage == 'other_order' ? true : false,
+              child: Card(
+                elevation: 5,
+                child: ListTile(
+                  title: Text(AppLocalizations.of(context)!.translate('print_review_receipt')),
+                  onTap: printReviewReceipt,
+                  trailing: Icon(Icons.receipt),
+                ),
               ),
             ),
-          ),
-        Visibility(
-          visible: widget.currentPage == 'table' || widget.currentPage == 'other_order' ? true : false,
-            child: Card(
-              elevation: 5,
-              child: ListTile(
-                title: Text(AppLocalizations.of(context)!.translate('print_review_receipt')),
-                onTap: printReviewReceipt,
-                trailing: Icon(Icons.receipt),
+            Visibility(
+              visible: widget.currentPage == 'bill' ? true : false,
+              child: Card(
+                elevation: 5,
+                child: ListTile(
+                  title: Text(AppLocalizations.of(context)!.translate('print_receipt')),
+                  onTap: printPaymentReceipt,
+                  trailing: Icon(Icons.receipt_long),
+                ),
               ),
             ),
-          ),
-          Visibility(
-            visible: widget.currentPage == 'bill' ? true : false,
-            child: Card(
-              elevation: 5,
-              child: ListTile(
-                title: Text(AppLocalizations.of(context)!.translate('print_receipt')),
-                onTap: printPaymentReceipt,
-                trailing: Icon(Icons.receipt_long),
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
       actions: [
         ElevatedButton(

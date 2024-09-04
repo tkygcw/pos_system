@@ -16,7 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../main.dart';
-import '../../object/print_receipt.dart';
+import '../printing_layout/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../translation/AppLocalizations.dart';
 import '../logout_dialog.dart';
