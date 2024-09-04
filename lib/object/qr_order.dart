@@ -100,7 +100,7 @@ class QrOrder extends ChangeNotifier {
           } else {
             categoryLocalId = '0';
           }
-
+          print("product sku: ${response['data'][i]['order_detail'][j]['product_sku']}");
           OrderDetail orderDetail = OrderDetail(
             order_detail_id: 0,
             order_detail_key: response['data'][i]['order_detail'][j]['order_detail_key'],
@@ -124,7 +124,7 @@ class QrOrder extends ChangeNotifier {
             status: 0,
             unit: 'each',
             per_quantity_unit: '',
-            product_sku: response['data'][i]['order_detail'][j]['product_sku'],
+            product_sku: response['data'][i]['order_detail'][j]['product_sku'] ?? '',
             sync_status: 1,
             created_at: dateTime,
             updated_at: '',
