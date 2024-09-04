@@ -48,7 +48,6 @@ import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/object/variant_item.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:pos_system/page/progress_bar.dart';
-import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -59,6 +58,7 @@ import '../object/branch_link_user.dart';
 import '../object/checklist.dart';
 import '../object/customer.dart';
 import '../object/dining_option.dart';
+import '../object/dynamic_qr.dart';
 import '../object/receipt.dart';
 import '../object/table_use.dart';
 import '../object/table_use_detail.dart';
@@ -93,6 +93,7 @@ class _LoadingPageState extends State<LoadingPage> {
 
   startLoad() async {
     try{
+      await getAllDynamicQr();
       await getSubscription();
       await getAppSettingCloud();
       await createDeviceLogin();
@@ -141,6 +142,31 @@ class _LoadingPageState extends State<LoadingPage> {
     Timer(Duration(seconds: 2), () {
       Navigator.push(context, MaterialPageRoute(builder: (_) => PosPinPage()));
     });
+  }
+}
+
+/*
+  get dynamic qr from cloud
+*/
+getAllDynamicQr() async {
+  try{
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    Map data = await Domain().getDynamicQr(branch_id: branch_id.toString());
+    if(data['status'] == '1'){
+      List responseJson = data['data'];
+      for (var i = 0; i < responseJson.length; i++) {
+        DynamicQR item = DynamicQR.fromJson(responseJson[i]);
+        await PosDatabase.instance.insertSqliteDynamicQR(item);
+      }
+    }
+  }catch(e){
+    print("dynamic qr insert error: $e");
+    FLog.error(
+      className: "loading",
+      text: "dynamic qr insert failed",
+      exception: "$e}",
+    );
   }
 }
 
@@ -260,6 +286,7 @@ getAppSettingLocal() async {
         show_product_desc: 0,
         print_cancel_receipt: 1,
         product_sort_by: 0,
+        dynamic_qr_default_exp_after_hour: 1,
         sync_status: 0,
         created_at: dateTime,
         updated_at: ''
@@ -295,6 +322,7 @@ syncAppSettingFromCloud(AppSetting item) async {
     show_product_desc: item.show_product_desc,
     print_cancel_receipt: item.print_cancel_receipt,
     product_sort_by: item.product_sort_by,
+    dynamic_qr_default_exp_after_hour: item.dynamic_qr_default_exp_after_hour,
     sync_status: 1,
     created_at: item.created_at,
     updated_at: item.updated_at,
@@ -460,6 +488,8 @@ createReceiptLayout80() async {
         promotion_detail_status: 0,
         paper_size: '80',
         status: 1,
+        show_product_sku: 0,
+        show_branch_tel: 1,
         sync_status: 0,
         created_at: dateTime,
         updated_at: '',
@@ -546,6 +576,8 @@ createReceiptLayout58() async {
         promotion_detail_status: 0,
         paper_size: '58',
         status: 1,
+        show_product_sku: 0,
+        show_branch_tel: 1,
         sync_status: 0,
         created_at: dateTime,
         updated_at: '',
@@ -756,11 +788,13 @@ getAllSettlement() async {
             total_refund_amount: item.total_refund_amount,
             total_discount: item.total_discount,
             total_cancellation: item.total_cancellation,
+            total_charge: item.total_charge,
             total_tax: item.total_tax,
             settlement_by_user_id: item.settlement_by_user_id,
             settlement_by: item.settlement_by,
             status: item.status,
             sync_status: 1,
+            opened_at: item.opened_at,
             created_at: item.created_at,
             updated_at: item.updated_at,
             soft_delete: item.soft_delete,
@@ -2130,6 +2164,7 @@ getAllOrderTaxDetail() async {
             order_id: orderData != null ? orderData.order_id.toString() : '',
             order_key: responseJson[i]['order_key'],
             tax_name: responseJson[i]['tax_name'],
+            type: responseJson[i]['type'],
             rate: responseJson[i]['rate'],
             tax_id: responseJson[i]['tax_id'],
             branch_link_tax_id: responseJson[i]['branch_link_tax_id'],
@@ -2283,6 +2318,7 @@ getAllOrderDetail() async {
               status: responseJson[i]['status'],
               unit: responseJson[i]['unit'],
               per_quantity_unit: responseJson[i]['per_quantity_unit'],
+              product_sku: responseJson[i]['product_sku'],
               sync_status: 1,
               created_at: responseJson[i]['created_at'],
               updated_at: responseJson[i]['updated_at'],

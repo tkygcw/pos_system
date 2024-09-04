@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pos_system/database/pos_database.dart';
-import 'package:pos_system/object/print_receipt.dart';
+import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
 import 'package:pos_system/page/progress_bar.dart';
 
 import '../../object/printer.dart';

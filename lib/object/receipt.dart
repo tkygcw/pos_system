@@ -21,6 +21,8 @@ class ReceiptFields {
     promotion_detail_status,
     paper_size,
     status,
+    show_product_sku,
+    show_branch_tel,
     sync_status,
     created_at,
     updated_at,
@@ -46,6 +48,8 @@ class ReceiptFields {
   static String promotion_detail_status = 'promotion_detail_status';
   static String paper_size = 'paper_size';
   static String status = 'status';
+  static String show_product_sku = 'show_product_sku';
+  static String show_branch_tel = 'show_branch_tel';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -73,6 +77,8 @@ class Receipt {
   int? promotion_detail_status;
   String? paper_size;
   int? status;
+  int? show_product_sku;
+  int? show_branch_tel;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -98,6 +104,8 @@ class Receipt {
         this.promotion_detail_status,
         this.paper_size,
         this.status,
+        this.show_product_sku,
+        this.show_branch_tel,
         this.sync_status,
         this.created_at,
         this.updated_at,
@@ -123,6 +131,8 @@ class Receipt {
     int? promotion_detail_status,
     String? paper_size,
     int? status,
+    int? show_product_sku,
+    int? show_branch_tel,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -148,6 +158,8 @@ class Receipt {
           promotion_detail_status: promotion_detail_status ?? this.promotion_detail_status,
           paper_size: paper_size ?? this.paper_size,
           status: status ?? this.status,
+          show_product_sku: show_product_sku ?? this.show_product_sku,
+          show_branch_tel: show_branch_tel ?? this.show_branch_tel,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -173,6 +185,8 @@ class Receipt {
     promotion_detail_status: json[ReceiptFields.promotion_detail_status] as int?,
     paper_size: json[ReceiptFields.paper_size] as String?,
     status: json[ReceiptFields.status] as int?,
+    show_product_sku: json[ReceiptFields.show_product_sku] as int?,
+    show_branch_tel: json[ReceiptFields.show_branch_tel] as int?,
     sync_status: json[ReceiptFields.sync_status] as int?,
     created_at: json[ReceiptFields.created_at] as String?,
     updated_at: json[ReceiptFields.updated_at] as String?,
@@ -199,6 +213,8 @@ class Receipt {
     ReceiptFields.promotion_detail_status: promotion_detail_status,
     ReceiptFields.paper_size: paper_size,
     ReceiptFields.status: status,
+    ReceiptFields.show_product_sku: show_product_sku,
+    ReceiptFields.show_branch_tel: show_branch_tel,
     ReceiptFields.sync_status: sync_status,
     ReceiptFields.created_at: created_at,
     ReceiptFields.updated_at: updated_at,

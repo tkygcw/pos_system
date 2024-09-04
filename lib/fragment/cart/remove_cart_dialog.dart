@@ -11,7 +11,7 @@ import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
-import 'package:pos_system/object/print_receipt.dart';
+import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
