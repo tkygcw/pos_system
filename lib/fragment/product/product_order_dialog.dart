@@ -450,21 +450,18 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                   onPressed: () {
                                                     // stock disable or in stock
                                                     if(dialogStock == '' || simpleIntInput+1 < int.parse(dialogStock)) {
-                                                      print('stock_quantity: '+dialogStock);
                                                       setState(() {
                                                         simpleIntInput += 1;
                                                         quantityController.text = simpleIntInput.toString();
                                                         simpleIntInput =  int.parse(quantityController.text.replaceAll(',', ''));
                                                       });
                                                     } else{
-                                                      print('stock_quantity: '+dialogStock);
                                                       setState(() {
                                                         simpleIntInput = int.parse(dialogStock);
                                                         quantityController.text = simpleIntInput.toString();
                                                         simpleIntInput = int.parse(quantityController.text.replaceAll(',', ''));
                                                       });
                                                       if(dialogStock == '0'){
-                                                        print('stock_quantity: '+dialogStock);
                                                         Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
                                                       }
                                                     }
@@ -857,21 +854,18 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                 onPressed: () {
                                                   // stock disable or in stock
                                                   if(dialogStock == '' || simpleIntInput+1 < int.parse(dialogStock)) {
-                                                    print('stock_quantity: '+dialogStock);
                                                     setState(() {
                                                       simpleIntInput += 1;
                                                       quantityController.text = simpleIntInput.toString();
                                                       simpleIntInput =  int.parse(quantityController.text.replaceAll(',', ''));
                                                     });
                                                   } else{
-                                                    print('stock_quantity: '+dialogStock);
                                                     setState(() {
                                                       simpleIntInput = int.parse(dialogStock);
                                                       quantityController.text = simpleIntInput.toString();
                                                       simpleIntInput = int.parse(quantityController.text.replaceAll(',', ''));
                                                     });
                                                     if(dialogStock == '0'){
-                                                      print('stock_quantity: '+dialogStock);
                                                       Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
                                                     }
                                                   }
@@ -1061,7 +1055,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   readProductVariant(int productID) async {
     //loop variant group first
     List<VariantGroup> data = await PosDatabase.instance.readProductVariantGroup(productID);
-    print("variant data: ${jsonEncode(data).toString()}");
     variantGroup.addAll(data);
     for (int i = 0; i < data.length; i++) {
       //loop variant child based on variant group id
@@ -1074,7 +1067,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   }
 
   List<VariantItem> getSortedList(List<VariantItem> variantItemList){
-    print('variant item sort by: ${AppSettingModel.instance.variant_item_sort_by}');
     switch(AppSettingModel.instance.variant_item_sort_by){
       case 1 :{
         return variantItemList;
@@ -1108,9 +1100,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
             compulsory: data[i].compulsory,
             sequence_number: data[i].sequence_number
         ));
-        print("data: ${modifierGroup.length}");
         List<ModifierItem> itemData = await PosDatabase.instance.readProductModifierItem(data[i].mod_group_id!);
-        print("mod item data: ${itemData}");
         List<ModifierItem> modItemChild = [];
         if(itemData.isNotEmpty){
           for (int j = 0; j < itemData.length; j++) {
@@ -1233,7 +1223,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         dialogPrice = finalPrice;
       }
     } catch (e) {
-      print('Get product base price error ${e}');
       FLog.error(
         className: "product_order_dialog",
         text: "Get product base price error",
@@ -1295,13 +1284,11 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   checkProductStock(Product product, CartModel cart) async {
     if (product.has_variant == 0) {
       List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(product.product_sqlite_id.toString());
-      print("Stock type: ${data1[0].stock_type}");
       switch(data1[0].stock_type){
         case '1' :{
           if (int.parse(data1[0].daily_limit!) > 0 && simpleIntInput <= int.parse(data1[0].daily_limit!)) {
             num stockLeft =  widget.productDetail!.unit == 'each' || widget.productDetail!.unit == 'each_c' ? int.parse(data1[0].daily_limit!) : double.parse(data1[0].daily_limit!) - checkCartProductQuantity(cart, data1[0]);
             bool isQtyNotExceed = simpleIntInput <= stockLeft;
-            print('stock left: ${stockLeft}');
             if(stockLeft > 0 && isQtyNotExceed){
               hasStock = true;
             } else {
@@ -1337,7 +1324,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
             if (int.parse(data.daily_limit!) > 0 && simpleIntInput <= int.parse(data.daily_limit!)) {
               num stockLeft =  int.parse(data.daily_limit!) - checkCartProductQuantity(cart, data);
               bool isQtyNotExceed = simpleIntInput <= stockLeft;
-              print('stock left: ${stockLeft}');
               if(stockLeft > 0 && isQtyNotExceed){
                 hasStock = true;
               } else {
@@ -1366,7 +1352,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         }
       }
     }
-    print('has stock ${hasStock}');
   }
 
   Future<String?> getBranchLinkProductItem(Product product) async {
@@ -1382,7 +1367,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
           branchLinkProduct_id = productData.branch_link_product_sqlite_id.toString();
         }
       }
-      print("branchLinkProduct_id: ${branchLinkProduct_id}");
       return branchLinkProduct_id;
     } catch (e) {
       Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('make_sure_stock_is_restock'));
@@ -1480,8 +1464,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     List<int> cartModItemId = [];
     List<int> checkedModItemId = [];
     bool same = true;
-    print('cart mod item length:${checkedCartModItem.length}');
-    print('checked mod item length:${checkedModItem.length}');
     if (checkedCartModItem.length != checkedModItem.length) {
       same = false;
     } else {
@@ -1495,7 +1477,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       }
       //get all same mod item into a list
       List<int> comparedList = cartModItemId.toSet().intersection(checkedModItemId.toSet()).toList();
-      print('compared list length: ${comparedList.length}');
       if(comparedList.length == checkedModItem.length){
         same = true;
       } else {
@@ -1514,7 +1495,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         value = cartItem.quantity! + newAddItem.quantity!;
       }
     }catch(e){
-      print("quantity stack error: $e");
       FLog.error(
         className: "product_order_dialog",
         text: "quantity stack error",
@@ -1566,17 +1546,11 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         ticket_count: widget.productDetail?.ticket_count,
         ticket_exp: widget.productDetail?.ticket_exp
     );
-    print('value checked item length: ${value.checkedModifierLength}');
-    print(jsonEncode((value)));
-    //print('value category: ${value.category_name}');
-    // print('base price: ${value.base_price}');
-    // print('price: ${value.price}');
     List<cartProductItem> item = [];
     if(cart.cartNotifierItem.isEmpty){
       cart.addItem(value);
     } else {
       for(int k = 0; k < cart.cartNotifierItem.length; k++){
-        print('cart checked mod item length in cart: ${cart.cartNotifierItem[k].checkedModifierLength}');
         if(cart.cartNotifierItem[k].branch_link_product_sqlite_id == value.branch_link_product_sqlite_id
             && value.remark == cart.cartNotifierItem[k].remark
             && value.product_name == cart.cartNotifierItem[k].product_name
@@ -1586,7 +1560,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
           item.add(cart.cartNotifierItem[k]);
         }
       }
-      print('item length: ${item.length}');
       while(item.length > 1){
         for(int i = 0 ; i < item.length; i++){
           bool status = compareCartProductModifier(cartModifierGroup: item[i].modifier!);
@@ -1595,13 +1568,11 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
           }
         }
       }
-      print('item after first compare length: ${item.length}');
       if(item.length == 1){
         if(item[0].checkedModifierLength == 0){
           item[0].quantity = quantityStack(cartItem: item[0], newAddItem: value);
         } else {
           bool status = compareCartProductModifier(cartModifierGroup: item[0].modifier!);
-          print('compared status: ${status}');
           if(status == false){
             cart.addItem(value);
           } else{
@@ -1611,7 +1582,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       } else {
         cart.addItem(value);
       }
-      print('length after: ${cart.cartNotifierItem.length}');
     }
     cart.resetCount();
   }

@@ -161,7 +161,6 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   }
 
   void refresh() {
-    print("refresh called!!!");
     controller.sink.add("refresh");
   }
 
@@ -181,7 +180,6 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
         ));
         categoryList.add(_data[i].name!);
       }
-
       for (int i = 0; i < categoryList.length; i++) {
         if (categoryList[i] == AppLocalizations.of(MyApp.navigatorKey.currentContext!)!.translate('all_category')) {
           List<Product> data = await PosDatabase.instance.readAllProduct();
@@ -352,7 +350,6 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   }
 
   List<Product> getSortedList(List<Product> noSequenceProduct){
-    print('product sort by: ${AppSettingModel.instance.product_sort_by}');
     switch(AppSettingModel.instance.product_sort_by){
       case 1 :{
         return sortByProductName(noSequenceProduct);
@@ -419,9 +416,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   }
 
   searchProduct(String text) async {
-    print('search product called');
     List<Product> hha = await PosDatabase.instance.searchProduct(text);
-    print('product length: ${hha.length}');
     setState(() {
       categoryTabContent.clear();
       insertProduct(hha);
