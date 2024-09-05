@@ -973,6 +973,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
           table_sqlite_id: widget.tableLocalId,
           table_id: tableData[0].table_id.toString(),
           status: 0,
+          table_number: '',
           sync_status: 0,
           created_at: dateTime,
           updated_at: '',

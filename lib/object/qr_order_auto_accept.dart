@@ -646,6 +646,7 @@ class QrOrderAutoAccept {
           table_sqlite_id: tableLocalId,
           table_id: tableData[0].table_id.toString(),
           status: 0,
+          table_number: '',
           sync_status: 0,
           created_at: dateTime,
           updated_at: '',
@@ -654,8 +655,11 @@ class QrOrderAutoAccept {
       _value.add(jsonEncode(updatedDetail));
       this.table_use_detail_value = _value.toString();
     } catch (e) {
-      print("create_table_detail_error: $e");
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('create_table_detail_error')+" ${e}");
+      FLog.error(
+        className: "qr_order_auto_accept",
+        text: "createTableUseDetail error",
+        exception: e,
+      );
     }
   }
 

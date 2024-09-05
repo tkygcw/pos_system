@@ -2807,7 +2807,7 @@ class CartPageState extends State<CartPage> {
                   table_sqlite_id: cart.selectedTable[i].table_sqlite_id.toString(),
                   table_id: cart.selectedTable[i].table_id.toString(),
                   status: 0,
-                  table_number: cart.selectedTable[i].number,
+                  table_number: '',
                   sync_status: 0,
                   created_at: dateTime,
                   updated_at: '',

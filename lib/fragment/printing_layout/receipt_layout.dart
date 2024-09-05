@@ -2702,6 +2702,13 @@ class ReceiptLayout{
     _isLoad = true;
   }
 
+  reprintOrderDetail(String localOrderId) async {
+    List<OrderCache> orderCacheList = await PosDatabase.instance.readSpecificOrderCacheByOrderID(localOrderId);
+    for(int i = 0; i < orderCacheList.length; i++){
+      await getOrderDetail(orderCacheList[i]);
+    }
+  }
+
 /*
   read paid order cache
 */
@@ -2719,7 +2726,7 @@ class ReceiptLayout{
     List<TableUseDetail> detailData2 = await PosDatabase.instance.readAllDeletedTableUseDetail(paidCache.table_use_sqlite_id!);
     for(int i = 0; i < detailData2.length; i++){
       List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(detailData2[i].table_sqlite_id!);
-      if(!tableList.contains(tableData)){
+      if(tableData.isNotEmpty){
         tableList.add(tableData[0]);
       }
     }
@@ -2729,14 +2736,9 @@ class ReceiptLayout{
   read paid order cache detail
 */
   getOrderDetail(OrderCache orderCache) async {
-
     List<OrderDetail> detailData = await PosDatabase.instance.readSpecificOrderDetailByOrderCacheId(orderCache.order_cache_sqlite_id.toString());
     if(detailData.isNotEmpty){
-      for(int i = 0; i < detailData.length; i++){
-        if(!orderDetailList.contains(detailData[i])){
-          orderDetailList.add(detailData[i]);
-        }
-      }
+      orderDetailList = detailData;
     }
     // for (int k = 0; k < orderDetailList.length; k++) {
     //   List<BranchLinkProduct> result = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);

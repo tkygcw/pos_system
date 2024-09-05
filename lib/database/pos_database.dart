@@ -75,7 +75,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 23, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 24, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -238,6 +238,8 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
+          //new 23
+          await db.execute("ALTER TABLE $tableTableUseDetail ADD ${TableUseDetailFields.table_number} $textType DEFAULT '' ");
         }break;
         case 15: {
           await db.execute("UPDATE $tableUser SET ${UserFields.edit_price_without_pin} = 1 WHERE role = 0 AND soft_delete = ''");
@@ -291,7 +293,7 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
           //new 23
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableTableUseDetail ADD ${TableUseDetailFields.table_number} $textType DEFAULT '' ");
         }break;
         case 16: {
           await db.execute('''CREATE TABLE $tableAttendance(
@@ -341,7 +343,7 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
           //new 23
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableTableUseDetail ADD ${TableUseDetailFields.table_number} $textType DEFAULT '' ");
         }break;
         case 17: {
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
@@ -377,7 +379,7 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
           //new 23
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableTableUseDetail ADD ${TableUseDetailFields.table_number} $textType DEFAULT '' ");
         }break;
         case 18: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
@@ -409,7 +411,7 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
           //new 23
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableTableUseDetail ADD ${TableUseDetailFields.table_number} $textType DEFAULT '' ");
         }break;
         case 19: {
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
@@ -437,7 +439,7 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
           //new 23
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableTableUseDetail ADD ${TableUseDetailFields.table_number} $textType DEFAULT '' ");
         }break;
         case 20: {
           await db.execute('''CREATE TABLE $tableDynamicQR(
@@ -463,7 +465,7 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
           //new 23
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableTableUseDetail ADD ${TableUseDetailFields.table_number} $textType DEFAULT '' ");
         }break;
         case 21: {
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
@@ -475,7 +477,7 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
           //new 23
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableTableUseDetail ADD ${TableUseDetailFields.table_number} $textType DEFAULT '' ");
         }break;
         case 22: {
           if(defaultTargetPlatform == TargetPlatform.iOS){
@@ -485,7 +487,8 @@ class PosDatabase {
           }
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
         }
-        case 21: {
+        break;
+        case 23: {
           await db.execute("ALTER TABLE $tableTableUseDetail ADD ${TableUseDetailFields.table_number} $textType DEFAULT '' ");
         }break;
       }
@@ -3426,11 +3429,14 @@ class PosDatabase {
 /*
   read table id by table no included deleted
 */
-  Future<List<PosTable>> readSpecificTableIncludeDeleted(String table_sqlite_id) async {
+  Future<PosTable?> readSpecificTableIncludeDeleted(String table_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery('SELECT * FROM $tablePosTable WHERE table_sqlite_id = ?', [table_sqlite_id]);
-
-    return result.map((json) => PosTable.fromJson(json)).toList();
+    if(result.isNotEmpty){
+      return PosTable.fromJson(result.first);
+    } else {
+      return null;
+    }
   }
 
 /*
@@ -3547,6 +3553,16 @@ class PosDatabase {
   read all occurrence table detail based on table use id
 */
   Future<List<TableUseDetail>> readAllTableUseDetail(String table_use_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableTableUseDetail WHERE soft_delete = ? AND status = ? AND table_use_sqlite_id = ?', ['', 0, table_use_sqlite_id]);
+
+    return result.map((json) => TableUseDetail.fromJson(json)).toList();
+  }
+
+/*
+  read all occurrence table detail based on table use id
+*/
+  Future<List<TableUseDetail>> readPaymentTableUseDetail(String table_use_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery('SELECT a.*, b.number AS table_number FROM $tableTableUseDetail AS a '
         'JOIN $tablePosTable AS b ON a.table_sqlite_id = b.table_sqlite_id '
@@ -4380,7 +4396,7 @@ class PosDatabase {
 /*
   read all deleted table use detail
 */
-  Future<List<TableUseDetail>> readDeleteOnlyTableUseDetail(String table_use_sqlite_id) async {
+  Future<List<TableUseDetail>> readNotInUsedTableUseDetail(String table_use_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery('SELECT * FROM $tableTableUseDetail WHERE soft_delete = ? AND status = ? AND table_use_sqlite_id = ?', ['', 1, table_use_sqlite_id]);
 

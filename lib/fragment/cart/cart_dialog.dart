@@ -885,9 +885,10 @@ class CartDialogState extends State<CartDialog> {
           table_use_key: tableUseDetailData[0].table_use_key,
           table_sqlite_id: newTableId.toString(),
           table_id: tableData[0].table_id.toString(),
-          created_at: dateTime,
           status: 0,
+          table_number: '',
           sync_status: 0,
+          created_at: dateTime,
           updated_at: '',
           soft_delete: ''));
       this.tableUseKey = insertData.table_use_key;

@@ -43,6 +43,10 @@ class _ReprintDialogState extends State<ReprintDialog> {
     super.initState();
   }
 
+  closeDialog(){
+    Navigator.of(context).pop();
+  }
+
   getCartModel(){
     List<PosTable> selectedTable = widget.cart.selectedTable.toList();
     List<cartProductItem> cartItem = widget.cart.cartNotifierItem.toList();
@@ -87,6 +91,7 @@ class _ReprintDialogState extends State<ReprintDialog> {
         Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(_context)!.translate('printing_error'));
       }break;
     }
+    closeDialog();
   }
 
   void reprintProductTicket() async  {
@@ -114,6 +119,7 @@ class _ReprintDialogState extends State<ReprintDialog> {
     //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(_context)!.translate('printing_error'));
     //   }break;
     // }
+    closeDialog();
   }
 
   void reprintKitchenList() async  {
@@ -130,11 +136,20 @@ class _ReprintDialogState extends State<ReprintDialog> {
         exception: "$e",
       );
     }
+    closeDialog();
   }
 
   printReviewReceipt() async {
     int printStatus = await printReceipt.printReviewReceipt(widget.printerList, cartModel);
     checkPrinterStatus(printStatus);
+    closeDialog();
+  }
+
+  printPaymentReceipt() async {
+    String localOrderId = widget.cart.cartNotifierPayment.first.localOrderId;
+    int printStatus = await printReceipt.printCartReceiptList(widget.printerList, widget.cart, localOrderId);
+    checkPrinterStatus(printStatus);
+    closeDialog();
   }
 
   checkPrinterStatus(int printStatus) {
@@ -148,15 +163,6 @@ class _ReprintDialogState extends State<ReprintDialog> {
       Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('no_cashier_printer')}");
     }
   }
-
-  printPaymentReceipt() async {
-    String localOrderId = widget.cart.cartNotifierPayment[0].localOrderId;
-    print("cart payment length: ${widget.cart.cartNotifierPayment.length}");
-    print("local order id in reprint: ${localOrderId}");
-    int printStatus = await printReceipt.printCartReceiptList(widget.printerList, widget.cart, localOrderId);
-    checkPrinterStatus(printStatus);
-  }
-
 
   @override
   Widget build(BuildContext context) {

@@ -4,7 +4,6 @@ import 'package:f_logs/model/flog/flog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 
-import '../../../object/table.dart';
 import '../../../utils/Utils.dart';
 import '../../printing_layout/receipt_layout.dart';
 
@@ -20,11 +19,11 @@ class ReprintPaymentLayout extends ReceiptLayout{
     if(isRefund != null && isRefund == true){
       await getRefundOrder(orderId);
       await callOrderTaxPromoDetail();
-      await callRefundOrderDetail(orderId);
+      await reprintOrderDetail(orderId);
     } else {
       await getPaidOrder(orderId);
       await callOrderTaxPromoDetail();
-      await callPaidOrderDetail(orderId);
+      await reprintOrderDetail(orderId);
     }
     // final ByteData data = await rootBundle.load('drawable/logo2.png');
     // final Uint8List bytes = data.buffer.asUint8List();
@@ -267,8 +266,8 @@ class ReprintPaymentLayout extends ReceiptLayout{
       return bytes;
     } catch (e) {
       FLog.error(
-        className: "receipt_layout",
-        text: "printReceipt80mm error",
+        className: "reprint_payment_layout",
+        text: "reprintPaymentReceipt80mm error",
         exception: "$e",
       );
       return null;
@@ -279,7 +278,6 @@ class ReprintPaymentLayout extends ReceiptLayout{
   Receipt layout 58mm
 */
   reprintPaymentReceipt58mm(bool isUSB, String orderId, List<String> tableNumberList, {value, isRefund}) async {
-    String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
     Map branchObject = json.decode(branch!);
@@ -287,11 +285,11 @@ class ReprintPaymentLayout extends ReceiptLayout{
     if(isRefund != null && isRefund == true){
       await getRefundOrder(orderId);
       await callOrderTaxPromoDetail();
-      await callRefundOrderDetail(orderId);
+      await reprintOrderDetail(orderId);
     } else {
       await getPaidOrder(orderId);
       await callOrderTaxPromoDetail();
-      await callPaidOrderDetail(orderId);
+      await reprintOrderDetail(orderId);
     }
     // final ByteData data = await rootBundle.load('drawable/logo1.jpg');
     // final Uint8List bytes = data.buffer.asUint8List();
@@ -527,11 +525,11 @@ class ReprintPaymentLayout extends ReceiptLayout{
       return bytes;
     } catch (e) {
       FLog.error(
-        className: "receipt_layout",
-        text: "printReceipt58mm error",
+        className: "reprint_payment_layout",
+        text: "reprintPaymentReceipt58mm error",
         exception: "$e",
       );
-      return null;
+      return 1;
     }
   }
 }

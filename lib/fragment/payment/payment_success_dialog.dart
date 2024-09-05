@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -508,7 +509,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
       if (widget.orderCacheIdList.isNotEmpty) {
         for (int j = 0; j < widget.orderCacheIdList.length; j++) {
           List<OrderCache> data = await PosDatabase.instance.readSpecificOrderCache(widget.orderCacheIdList[j]);
-          List<TableUseDetail> tableUseCheckData = await PosDatabase.instance.readAllTableUseDetail(data[0].table_use_sqlite_id!);
+          List<TableUseDetail> tableUseCheckData = await PosDatabase.instance.readPaymentTableUseDetail(data[0].table_use_sqlite_id!);
           for (int i = 0; i < tableUseCheckData.length; i++) {
             TableUseDetail tableUseDetailObject = TableUseDetail(
                 updated_at: dateTime,
@@ -529,12 +530,11 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
         //syncTableUseDetailToCloud(_value.toString());
       }
     } catch (e) {
-      print('Delete current table use detail error: ${e}');
-      Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000),
-          msg: AppLocalizations.of(context)!
-                  .translate('delete_current_table_use_detail_error') +
-              " $e");
+      FLog.error(
+        className: "payment_success_dialog",
+        text: "updateCurrentTableUseDetail error",
+        exception: "$e",
+      );
     }
   }
 

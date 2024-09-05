@@ -551,9 +551,6 @@ class PrintReceipt{
                   printStatus = 0;
                 } else {
                   printStatus = 1;
-                  // Fluttertoast.showToast(
-                  //     backgroundColor: Colors.red,
-                  //     msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
                 }
               } else {
                 var data = Uint8List.fromList(
@@ -565,9 +562,6 @@ class PrintReceipt{
                   printStatus = 0;
                 } else {
                   printStatus = 1;
-                  // Fluttertoast.showToast(
-                  //     backgroundColor: Colors.red,
-                  //     msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
                 }
               }
             } else {
@@ -581,17 +575,10 @@ class PrintReceipt{
                   printer.disconnect();
                   printStatus = 0;
                 }  else if (res == PosPrintResult.timeout){
-                  print('printer time out');
                   printStatus = 2;
-                  // Fluttertoast.showToast(
-                  //     backgroundColor: Colors.orangeAccent,
-                  //     msg: "${AppLocalizations.of(context)?.translate('lan_printer_timeout')}");
                 }
                 else {
                   printStatus = 1;
-                  // Fluttertoast.showToast(
-                  //     backgroundColor: Colors.red,
-                  //     msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
                 }
               } else {
                 //print LAN 58mm
@@ -605,14 +592,8 @@ class PrintReceipt{
                 } else if (res == PosPrintResult.timeout){
                   print('printer time out');
                   printStatus = 2;
-                  // Fluttertoast.showToast(
-                  //     backgroundColor: Colors.orangeAccent,
-                  //     msg: "${AppLocalizations.of(context)?.translate('lan_printer_timeout')}");
                 }else {
                   printStatus = 1;
-                  // Fluttertoast.showToast(
-                  //     backgroundColor: Colors.red,
-                  //     msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
                 }
               }
             }
@@ -621,16 +602,12 @@ class PrintReceipt{
       }
       return printStatus;
     } catch (e) {
-      print('Printer Connection Error cart: ${e}');
       FLog.error(
         className: "print_receipt",
-        text: "print cart receipt list error",
+        text: "printCartReceiptList error",
         exception: "$e",
       );
       return 1;
-      // Fluttertoast.showToast(
-      //     backgroundColor: Colors.red,
-      //     msg: "${AppLocalizations.of(context)?.translate('printing_error')}");
     }
   }
 
