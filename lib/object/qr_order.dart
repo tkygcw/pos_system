@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:another_flushbar/flushbar.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +9,6 @@ import 'package:pos_system/main.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/qr_order_auto_accept.dart';
 import 'package:pos_system/object/table.dart';
-import 'package:pos_system/page/loading.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -102,7 +100,7 @@ class QrOrder extends ChangeNotifier {
           } else {
             categoryLocalId = '0';
           }
-
+          print("product sku: ${response['data'][i]['order_detail'][j]['product_sku']}");
           OrderDetail orderDetail = OrderDetail(
             order_detail_id: 0,
             order_detail_key: response['data'][i]['order_detail'][j]['order_detail_key'],
@@ -126,6 +124,7 @@ class QrOrder extends ChangeNotifier {
             status: 0,
             unit: 'each',
             per_quantity_unit: '',
+            product_sku: response['data'][i]['order_detail'][j]['product_sku'] ?? '',
             sync_status: 1,
             created_at: dateTime,
             updated_at: '',

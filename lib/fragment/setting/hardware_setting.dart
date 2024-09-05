@@ -1,15 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
-import 'package:pos_system/object/order.dart';
 import 'package:pos_system/fragment/setting/adjust_hour_dialog.dart';
 import 'package:pos_system/object/table.dart';
-import 'package:pos_system/page/pos_pin.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -46,16 +43,21 @@ class _HardwareSettingState extends State<HardwareSetting> {
     'product_sku_seq_desc',
     'product_price_seq_desc'
   ];
+  final List<String> variantItemSortBy = [
+    'variant_item_name',
+    'variant_item_sku',
+    'variant_item_name_seq_desc'
+  ];
   final List<String> tableModeOption = [
     'table_mode_no_table',
     'table_mode_full_table',
     'table_mode_no_table_special'
   ];
   int? selectedValue = 0;
+  int? variantSelectedValue = 0;
   int? tableMode = 0;
   bool cashDrawer = false, secondDisplay = false, directPayment = false, showSKU = false,
       qrOrderAutoAccept = false, showProductDesc = false, hasQrAccess = true;
-  // String? tableMode;
 
 
   @override
@@ -104,6 +106,11 @@ class _HardwareSettingState extends State<HardwareSetting> {
         break;
         case 'prod_sort_by':{
           await updateProductSortBySetting();
+          controller.refresh(streamController);
+        }
+        break;
+        case 'variant_item_sort_by':{
+          await updateVariantItemSortBySetting();
           controller.refresh(streamController);
         }
         break;
@@ -170,8 +177,13 @@ class _HardwareSettingState extends State<HardwareSetting> {
       } else {
         this.showProductDesc = false;
       }
+
       if(appSetting.product_sort_by != null){
         selectedValue = appSetting.product_sort_by!;
+      }
+
+      if(appSetting.variant_item_sort_by != null){
+        variantSelectedValue = appSetting.variant_item_sort_by!;
       }
     }
   }
@@ -316,6 +328,56 @@ class _HardwareSettingState extends State<HardwareSetting> {
                               ),
                             ),
                           ),
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('variant_item_sort_by')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('variant_item_sort_by_desc')),
+                            trailing: SizedBox(
+                              width: 200,
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton2(
+                                  isExpanded: true,
+                                  buttonStyleData: ButtonStyleData(
+                                    height: 55,
+                                    padding: const EdgeInsets.only(left: 14, right: 14),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: Border.all(
+                                        color: Colors.black26,
+                                      ),
+                                    ),
+                                  ),
+                                  dropdownStyleData: DropdownStyleData(
+                                    maxHeight: 200,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      color: Colors.grey.shade100,
+                                    ),
+                                    scrollbarTheme: ScrollbarThemeData(
+                                        thickness: WidgetStateProperty.all(5),
+                                        mainAxisMargin: 20,
+                                        crossAxisMargin: 5
+                                    ),
+                                  ),
+                                  items: variantItemSortBy.asMap().entries.map((sort) => DropdownMenuItem<int>(
+                                    value: sort.key,
+                                    child: Text(
+                                      AppLocalizations.of(context)!.translate(sort.value),
+                                      overflow: TextOverflow.visible,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  )).toList(),
+                                  value: variantSelectedValue,
+                                  onChanged: (int? value) {
+                                    variantSelectedValue = value;
+                                    actionController.sink.add("variant_item_sort_by");
+                                    Provider.of<AppSettingModel>(context, listen: false).setVariantItemSortByStatus(value!);
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
                           Divider(
                             color: Colors.grey,
                             height: 1,
@@ -452,6 +514,17 @@ class _HardwareSettingState extends State<HardwareSetting> {
         updated_at: dateTime
     );
     int data = await PosDatabase.instance.updateProductSortBySettings(object);
+  }
+
+  updateVariantItemSortBySetting() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    AppSetting object = AppSetting(
+        variant_item_sort_by: variantSelectedValue,
+        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
+        updated_at: dateTime
+    );
+    int data = await PosDatabase.instance.updateVariantItemSortBySettings(object);
   }
 
   Future<bool> anyTableUse() async {
