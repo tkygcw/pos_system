@@ -210,7 +210,7 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                             subtitle: Text(AppLocalizations.of(context)!.translate('open_wifi_setting')),
                             trailing: Icon(Icons.wifi),
                             onTap: () {
-                              AppSettings.openWIFISettings();
+                              AppSettings.openAppSettings(type: AppSettingsType.wifi);
                             },
                           ),
                           ListTile(
@@ -218,7 +218,7 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                             subtitle: Text(AppLocalizations.of(context)!.translate('open_app_notification_setting')),
                             trailing: Icon(Icons.notifications_on),
                             onTap: () {
-                              AppSettings.openNotificationSettings();
+                              AppSettings.openAppSettings(type: AppSettingsType.notification);
                             },
                           ),
                           ListTile(
@@ -226,7 +226,7 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                             subtitle: Text(AppLocalizations.of(context)!.translate('open_device_sound_setting')),
                             trailing: Icon(Icons.volume_up),
                             onTap: () {
-                              AppSettings.openSoundSettings();
+                              AppSettings.openAppSettings(type: AppSettingsType.sound);
                             },
                           ),
                           ListTile(
