@@ -69,11 +69,11 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   bool isButtonDisabled = false;
   bool isButtonDisabled2 = false;
   bool willPop = true;
+  bool restock  = false;
 
   late TableModel tableModel;
   late CartModel cart;
   late ThemeColor color;
-  TextEditingController quantityController = TextEditingController();
 
   @override
   void initState() {
@@ -82,7 +82,6 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     readCartItemInfo();
     currentQuantity = widget.cartItem.quantity!;
     simpleIntInput = 1;
-    quantityController = TextEditingController(text: simpleIntInput.toString());
     tableModel = context.read<TableModel>();
     cart = context.read<CartModel>();
   }
@@ -232,7 +231,8 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
               ),
             );
           });
-        });
+        },
+    );
   }
 
   @override
@@ -248,7 +248,10 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
             //reason input
             ReasonInputWidget(reasonCallBack: reasonCallBack),
             // quantity input
-            QuantityInputWidget(cartItemList: [widget.cartItem], qtyCallBack: qtyCallBack)
+            QuantityInputWidget(
+              cartItemList: [widget.cartItem],
+              callback: qtyInputCallback,
+            )
           ],
         ),
       ),
@@ -293,9 +296,9 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     );
   }
 
-  qtyCallBack(num qty){
-    simpleIntInput = qty;
-    print("qty input: $simpleIntInput");
+  qtyInputCallback({bool? restock, num? qty}){
+    simpleIntInput = qty ?? this.simpleIntInput;
+    this.restock = restock ?? this.restock;
   }
 
   reasonCallBack(String reason){
@@ -313,7 +316,6 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       final String? pos_user = prefs.getString('pos_pin_user');
       Map<String, dynamic> userMap = json.decode(pos_user!);
       User userData = User.fromJson(userMap);
-
       if(simpleIntInput > widget.cartItem.quantity!){
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000),
