@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -1221,32 +1222,39 @@ class _MakePaymentState extends State<MakePayment> {
   }
 
   void _onQRViewCreated(QRViewController p1) {
-    setState(() {
-      this.controller = p1;
-    });
-
-    p1.scannedDataStream.listen((scanData) async {
+    try{
       setState(() {
-        result = scanData;
-        print('result:${result?.code}');
+        this.controller = p1;
       });
-      p1.pauseCamera();
-
-      await checkDeviceLogin();
-      if (this.isLogOut == true) {
-        openLogOutDialog();
-        return;
-      }
-      var api = await paymentApi();
-      if (api == 0) {
-        openPaymentSuccessDialog(widget.dining_id,
-            isCashMethod: false, diningName: widget.dining_name);
-      } else {
-        Fluttertoast.showToast(
-            backgroundColor: Color(0xFFFF0000), msg: "${api}");
-        Navigator.pop(context);
-      }
-    });
+      p1.scannedDataStream.listen((scanData) async {
+        setState(() {
+          result = scanData;
+          print('result:${result?.code}');
+        });
+        p1.pauseCamera();
+        //check login value
+        // await checkDeviceLogin();
+        // if (this.isLogOut == true) {
+        //   openLogOutDialog();
+        //   return;
+        // }
+        var api = await paymentApi();
+        if (api == 0) {
+          openPaymentSuccessDialog(widget.dining_id,
+              isCashMethod: false, diningName: widget.dining_name);
+        } else {
+          Fluttertoast.showToast(
+              backgroundColor: Color(0xFFFF0000), msg: "${api}");
+          Navigator.pop(context);
+        }
+      });
+    }catch(e){
+      FLog.error(
+        className: "make_payment_dialog",
+        text: "_onQRViewCreated error",
+        exception: "$e",
+      );
+    }
   }
 
 // function to calculate the input operation
@@ -1922,39 +1930,48 @@ class _MakePaymentState extends State<MakePayment> {
 */
 
   paymentApi() async {
-    var response = await Api().sendPayment(
-        branchObject['ipay_merchant_code'],
-        branchObject['ipay_merchant_key'],
-        336,
-        orderId!,
-        Utils.formatPaymentAmount(double.parse(finalAmount)),
-        // '1.00',
-        //need to change to finalAmount, every 1000 add 1,000
-        'MYR',
-        'ipay',
-        branchObject['name'],
-        branchObject['email'],
-        branchObject['phone'],
-        'taylor',
-        result!.code!,
-        '',
-        '',
-        '',
-        '',
-        signature256(
-            branchObject['ipay_merchant_key'],
-            branchObject['ipay_merchant_code'],
-            orderId!,
-            finalAmount,
-            //need to change to finalAmount
-            'MYR',
-            '',
-            result!.code!,
-            ''));
-    if (response != null) {
-      return response;
-    } else {
-      return 0;
+    try{
+      var response = await Api().sendPayment(
+          branchObject['ipay_merchant_code'],
+          branchObject['ipay_merchant_key'],
+          336,
+          orderId!,
+          Utils.formatPaymentAmount(double.parse(finalAmount)),
+          // '1.00',
+          //need to change to finalAmount, every 1000 add 1,000
+          'MYR',
+          'ipay',
+          branchObject['name'],
+          branchObject['email'],
+          branchObject['phone'],
+          'taylor',
+          result!.code!,
+          '',
+          '',
+          '',
+          '',
+          signature256(
+              branchObject['ipay_merchant_key'],
+              branchObject['ipay_merchant_code'],
+              orderId!,
+              finalAmount,
+              //need to change to finalAmount
+              'MYR',
+              '',
+              result!.code!,
+              ''));
+      if (response != null) {
+        return response;
+      } else {
+        return 0;
+      }
+    }catch(e){
+      FLog.error(
+        className: "make_payment_dialog",
+        text: "paymentApi error",
+        exception: "$e",
+      );
+      return e;
     }
   }
 
