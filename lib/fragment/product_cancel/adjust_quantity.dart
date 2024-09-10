@@ -2,9 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/fragment/product_cancel/quantity_input_widget.dart';
+import 'package:pos_system/fragment/product_cancel/reason_input_widget.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:provider/provider.dart';
@@ -61,15 +62,17 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       order_detail_value,
       order_detail_cancel_value,
       table_value;
+  String reason = '';
   OrderDetail? orderDetail;
   bool isLogOut = false;
-  bool _isLoaded = false;
   bool _submitted = false;
   bool isButtonDisabled = false;
   bool isButtonDisabled2 = false;
   bool willPop = true;
 
   late TableModel tableModel;
+  late CartModel cart;
+  late ThemeColor color;
   TextEditingController quantityController = TextEditingController();
 
   @override
@@ -78,8 +81,10 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     readAllPrinters();
     readCartItemInfo();
     currentQuantity = widget.cartItem.quantity!;
-    simpleIntInput = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? 0 : 1;
-    quantityController = TextEditingController(text: widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? '' : '${simpleIntInput}');
+    simpleIntInput = 1;
+    quantityController = TextEditingController(text: simpleIntInput.toString());
+    tableModel = context.read<TableModel>();
+    cart = context.read<CartModel>();
   }
 
   @override
@@ -110,8 +115,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     }
   }
 
-  Future showSecondDialog(
-      BuildContext context, ThemeColor color, CartModel cart) {
+  Future showSecondDialog(BuildContext context, ThemeColor color, CartModel cart) {
     return showDialog(
         barrierDismissible: false,
         context: context,
@@ -233,223 +237,101 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return Consumer<CartModel>(builder: (context, CartModel cart, child) {
-        return Consumer<TableModel>(builder: (context, TableModel tableModel, child) {
-          this.tableModel = tableModel;
-          return Center(
-            child: SingleChildScrollView(
-              child: AlertDialog(
-                title: Text(
-                    AppLocalizations.of(context)!.translate('adjust_quantity')),
-                content: Column(
-                  children: [
-                    // quantity input
-                    Container(
-                      width: 400,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // quantity input remove button
-                          Container(
-                            decoration: BoxDecoration(
-                              color: color.backgroundColor,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: IconButton(
-                              icon: Icon(Icons.remove, color: Colors.white),
-                              onPressed: () {
-                                if(simpleIntInput >= 1){
-                                  setState(() {
-                                    simpleIntInput -= 1;
-                                    quantityController.text = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
-                                    simpleIntInput = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
-                                  });
-                                } else{
-                                  setState(() {
-                                    simpleIntInput = 0;
-                                    quantityController.text =  widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
-                                    simpleIntInput = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
-                                  });
-                                }
-                              },
-                            ),
-                          ),
-                          SizedBox(width: 10),
-                          // quantity input text field
-                          Container(
-                            width: 273,
-                            child: TextField(
-                              autofocus: widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? true : false,
-                              controller: quantityController,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))]
-                                  : <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-                              textAlign: TextAlign.center,
-                              decoration: InputDecoration(
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: color.backgroundColor),
-                                ),
-                              ),
-                              onChanged: (value) => setState(() {
-                                try {
-                                  simpleIntInput = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse(value.replaceAll(',', '')): int.parse(value.replaceAll(',', ''));
-                                } catch (e) {
-                                  simpleIntInput = 0;
-                                }
-                              }),
-                              onSubmitted: (value) {
-                                () async {
-                                  if(simpleIntInput != 0 && simpleIntInput != 0.00){
-                                    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-                                    String dateTime = dateFormat.format(DateTime.now());
-                                    final prefs = await SharedPreferences.getInstance();
-                                    final String? pos_user = prefs.getString('pos_pin_user');
-                                    Map<String, dynamic> userMap = json.decode(pos_user!);
-                                    User userData = User.fromJson(userMap);
-
-                                    if(simpleIntInput > widget.cartItem.quantity!){
-                                      Fluttertoast.showToast(
-                                          backgroundColor: Color(0xFFFF0000),
-                                          msg:
-                                          AppLocalizations.of(context)!.translate('quantity_invalid'));
-                                    } else {
-                                      if(userData.edit_price_without_pin != 1) {
-                                        await showSecondDialog(context, color, cart);
-                                        Navigator.of(context).pop();
-                                      } else {
-                                        await callUpdateCart(userData, dateTime, cart);
-                                        Navigator.of(context).pop();
-                                        Navigator.of(context).pop();
-                                      }
-                                    }
-                                  } else{ //no changes
-                                    Navigator.of(context).pop();
-                                    Navigator.of(context).pop();
-                                  }
-                                }();
-                              },
-                            ),
-                          ),
-                          SizedBox(width: 10),
-                          // quantity input add button
-                          Container(
-                            decoration: BoxDecoration(
-                              color: color.backgroundColor,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: IconButton(
-                              icon: Icon(Icons.add, color: Colors.white), // Set the icon color to white.
-                              onPressed: () {
-                                if(simpleIntInput+1 < widget.cartItem.quantity!){
-                                  setState(() {
-                                    simpleIntInput += 1;
-                                    quantityController.text = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
-                                    simpleIntInput =  widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
-                                  });
-                                } else{
-                                  setState(() {
-                                    simpleIntInput = widget.cartItem.quantity!;
-                                    quantityController.text = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
-                                    simpleIntInput = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
-                                  });
-                                }
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 30),
-                    Container(
-                      // Customize your Container's properties here
-                      child: Center(
-                        child: Text(
-                            AppLocalizations.of(context)!.translate('change_quantity_to')+' ${getFinalQuantity()}'),
-                      ),
-                    ),
-                  ],
-                ),
-                actions: <Widget>[
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                    height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: color.backgroundColor,
-                      ),
-                      child: Text(
-                        AppLocalizations.of(context)!.translate('close'),
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          isButtonDisabled = true;
-                        });
-                        Navigator.of(context).pop();
-                        setState(() {
-                          isButtonDisabled = false;
-                        });
-                      },
-                    ),
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                    height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: color.buttonColor,
-                      ),
-                      child: Text(
-                        AppLocalizations.of(context)!.translate('yes'),
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      onPressed: isButtonDisabled
-                          ? null
-                          : () async {
-                        setState(() {
-                          isButtonDisabled = true;
-                        });
-                        if(simpleIntInput != 0 && simpleIntInput != 0.00){
-                          DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-                          String dateTime = dateFormat.format(DateTime.now());
-                          final prefs = await SharedPreferences.getInstance();
-                          final String? pos_user = prefs.getString('pos_pin_user');
-                          Map<String, dynamic> userMap = json.decode(pos_user!);
-                          User userData = User.fromJson(userMap);
-
-                          if(simpleIntInput > widget.cartItem.quantity!){
-                            Fluttertoast.showToast(
-                                backgroundColor: Color(0xFFFF0000),
-                                msg:
-                                AppLocalizations.of(context)!.translate('quantity_invalid'));
-                            setState(() {
-                              isButtonDisabled = false;
-                            });
-                          } else {
-                            if(userData.edit_price_without_pin != 1) {
-                              await showSecondDialog(context, color, cart);
-                              Navigator.of(context).pop();
-                            } else {
-                              await callUpdateCart(userData, dateTime, cart);
-                              Navigator.of(context).pop();
-                              Navigator.of(context).pop();
-                            }
-                          }
-                        } else{ //no changes
-                          Navigator.of(context).pop();
-                          Navigator.of(context).pop();
-                        }
-                      },
-                    ),
-                  ),
-                ],
-              ),
+    color = context.watch<ThemeColor>();
+    return AlertDialog(
+      title: Text(AppLocalizations.of(context)!.translate('adjust_quantity')),
+      content: SizedBox(
+        width: 350,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            //reason input
+            ReasonInputWidget(reasonCallBack: reasonCallBack),
+            // quantity input
+            QuantityInputWidget(cartItemList: [widget.cartItem], qtyCallBack: qtyCallBack)
+          ],
+        ),
+      ),
+      actions: <Widget>[
+        SizedBox(
+          width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: color.backgroundColor,
             ),
-          );
-        });
-      });
+            child: Text(
+              AppLocalizations.of(context)!.translate('close'),
+              style: TextStyle(color: Colors.white),
+            ),
+            onPressed: () {
+              setState(() {
+                isButtonDisabled = true;
+              });
+              Navigator.of(context).pop();
+              setState(() {
+                isButtonDisabled = false;
+              });
+            },
+          ),
+        ),
+        SizedBox(
+          width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: color.buttonColor,
+            ),
+            child: Text(
+              AppLocalizations.of(context)!.translate('yes'),
+              style: TextStyle(color: Colors.white),
+            ),
+            onPressed: isButtonDisabled ? null : cancelOnPressed,
+          ),
+        ),
+      ],
+    );
+  }
+
+  qtyCallBack(num qty){
+    simpleIntInput = qty;
+    print("qty input: $simpleIntInput");
+  }
+
+  reasonCallBack(String reason){
+    this.reason = reason;
+  }
+
+  cancelOnPressed() async {
+    setState(() {
+      isButtonDisabled = true;
     });
+    if(simpleIntInput != 0 && simpleIntInput != 0.00){
+      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+      String dateTime = dateFormat.format(DateTime.now());
+      final prefs = await SharedPreferences.getInstance();
+      final String? pos_user = prefs.getString('pos_pin_user');
+      Map<String, dynamic> userMap = json.decode(pos_user!);
+      User userData = User.fromJson(userMap);
+
+      if(simpleIntInput > widget.cartItem.quantity!){
+        Fluttertoast.showToast(
+            backgroundColor: Color(0xFFFF0000),
+            msg: AppLocalizations.of(context)!.translate('quantity_invalid'));
+        setState(() {
+          isButtonDisabled = false;
+        });
+      } else {
+        if(userData.edit_price_without_pin != 1) {
+          await showSecondDialog(context, color, cart);
+        } else {
+          await callUpdateCart(userData, dateTime, cart);
+          Navigator.of(context).pop();
+        }
+      }
+    } else{ //no changes
+      Navigator.of(context).pop();
+    }
   }
 
   getFinalQuantity() {
@@ -466,38 +348,29 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
 
   readCartItemInfo() async {
     //get cart item order cache
-    List<OrderCache> cacheData = await PosDatabase.instance
-        .readSpecificOrderCache(widget.cartItem.order_cache_sqlite_id!);
+    List<OrderCache> cacheData = await PosDatabase.instance.readSpecificOrderCache(widget.cartItem.order_cache_sqlite_id!);
     cartCacheList = List.from(cacheData);
 
     if (widget.currentPage != 'other order') {
       //get table use order cache
-      List<OrderCache> tableCacheData = await PosDatabase.instance
-          .readTableOrderCache(cacheData[0].table_use_key!);
+      List<OrderCache> tableCacheData = await PosDatabase.instance.readTableOrderCache(cacheData[0].table_use_key!);
       cartTableCacheList = List.from(tableCacheData);
 
       //get table use detail
-      List<TableUseDetail> tableDetailData = await PosDatabase.instance
-          .readAllTableUseDetail(cacheData[0].table_use_sqlite_id!);
+      List<TableUseDetail> tableDetailData = await PosDatabase.instance.readAllTableUseDetail(cacheData[0].table_use_sqlite_id!);
       cartTableUseDetail = List.from(tableDetailData);
     }
 
     //get cart item order cache order detail
-    List<OrderDetail> orderDetailData = await PosDatabase.instance
-        .readTableOrderDetail(widget.cartItem.order_cache_key!);
+    List<OrderDetail> orderDetailData = await PosDatabase.instance.readTableOrderDetail(widget.cartItem.order_cache_key!);
     cartOrderDetailList = List.from(orderDetailData);
 
-    OrderDetail cartItemOrderDetail = await PosDatabase.instance
-        .readSpecificOrderDetailByLocalId(
-        int.parse(widget.cartItem.order_detail_sqlite_id!));
+    OrderDetail cartItemOrderDetail = await PosDatabase.instance.readSpecificOrderDetailByLocalId(int.parse(widget.cartItem.order_detail_sqlite_id!));
     orderDetail = cartItemOrderDetail;
 
     //get modifier detail length
-    List<OrderModifierDetail> orderModData = await PosDatabase.instance
-        .readOrderModifierDetail(widget.cartItem.order_detail_sqlite_id!);
+    List<OrderModifierDetail> orderModData = await PosDatabase.instance.readOrderModifierDetail(widget.cartItem.order_detail_sqlite_id!);
     cartOrderModDetailList = List.from(orderModData);
-
-    _isLoaded = true;
   }
 
   Future<Future<Object?>> openLogOutDialog() async {
@@ -523,15 +396,9 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   }
 
   readAdminData(String pin, CartModel cart) async {
-    List<String> _posTableValue = [];
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final String? pos_user = prefs.getString('pos_pin_user');
-      Map userObject = json.decode(pos_user!);
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
-
-      //List<User> userData = await PosDatabase.instance.readSpecificUserWithRole(pin);
       User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
       if (userData != null) {
         if(userData.edit_price_without_pin == 1) {
@@ -556,37 +423,33 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
 
   callUpdateCart(User userData, String dateTime, CartModel cart) async {
     List<String> _posTableValue = [];
-    if (simpleIntInput == widget.cartItem.quantity) {
-      if (cartTableCacheList.length <= 1 &&
-          cartOrderDetailList.length > 1) {
-        await callDeleteOrderDetail(userData, dateTime, cart);
-      } else if (cartTableCacheList.length > 1 &&
-          cartOrderDetailList.length <= 1) {
-        await callDeletePartialOrder(userData, dateTime, cart);
-      } else if (cartTableCacheList.length > 1 &&
-          cartOrderDetailList.length > 1) {
-        await callDeleteOrderDetail(userData, dateTime, cart);
-      } else if (widget.currentPage == 'other order' &&
-          cartOrderDetailList.length > 1) {
-        await callDeleteOrderDetail(userData, dateTime, cart);
+    if (simpleIntInput == widget.cartItem.quantity || (widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c')) {
+      if (cartTableCacheList.length <= 1 && cartOrderDetailList.length > 1) {
+        await callDeleteOrderDetail(userData, dateTime);
+
+      } else if (cartTableCacheList.length > 1 && cartOrderDetailList.length <= 1) {
+        await callDeletePartialOrder(userData, dateTime);
+
+      } else if (cartTableCacheList.length > 1 && cartOrderDetailList.length > 1) {
+        await callDeleteOrderDetail(userData, dateTime);
+
+      } else if (widget.currentPage == 'other order' && cartOrderDetailList.length > 1) {
+        await callDeleteOrderDetail(userData, dateTime);
+
       } else {
-        await callDeleteAllOrder(userData,
-            cartCacheList[0].table_use_sqlite_id!, dateTime, cart);
+        await callDeleteAllOrder(userData, cartCacheList[0].table_use_sqlite_id!, dateTime);
         if (widget.currentPage != 'other order') {
           for (int i = 0; i < cartTableUseDetail.length; i++) {
             //update all table to unused
-            PosTable posTableData = await updatePosTableStatus(
-                int.parse(cartTableUseDetail[i].table_sqlite_id!),
-                0,
-                dateTime);
+            PosTable posTableData = await updatePosTableStatus(int.parse(cartTableUseDetail[i].table_sqlite_id!), 0, dateTime);
             _posTableValue.add(jsonEncode(posTableData));
           }
           table_value = _posTableValue.toString();
         }
       }
     } else {
-      await createOrderDetailCancel(userData, dateTime, cart);
-      await updateOrderDetailQuantity(dateTime, cart);
+      await createOrderDetailCancel(userData, dateTime, false);
+      await updateOrderDetailQuantity(dateTime);
       print('update order detail quantity & create order detail cancel');
     }
     callPrinter(dateTime, cart);
@@ -596,13 +459,12 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     cart.removeAllTable();
     cart.removeAllCartItem();
     cart.removePromotion();
-    syncAllToCloud();
+    // syncAllToCloud();
   }
 
   callPrinter(String dateTime, CartModel cart) async {
     if(AppSettingModel.instance.autoPrintCancelReceipt!){
-      int printStatus = await PrintReceipt().printCancelReceipt(
-          printerList, widget.cartItem.order_cache_sqlite_id!, dateTime);
+      int printStatus = await PrintReceipt().printCancelReceipt(printerList, widget.cartItem.order_cache_sqlite_id!, dateTime);
       if (printStatus == 1) {
         Fluttertoast.showToast(
             backgroundColor: Colors.red,
@@ -667,17 +529,15 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     return data;
   }
 
-  createOrderDetailCancel(User user, String dateTime, CartModel cart) async {
+  createOrderDetailCancel(User user, String dateTime, bool cancelAllQty) async {
     List<String> _value = [];
-    OrderDetail data = await PosDatabase.instance
-        .readSpecificOrderDetailByLocalId(
-        int.parse(widget.cartItem.order_detail_sqlite_id!));
+    OrderDetail data = await PosDatabase.instance.readSpecificOrderDetailByLocalId(int.parse(widget.cartItem.order_detail_sqlite_id!));
     OrderDetailCancel object = OrderDetailCancel(
       order_detail_cancel_id: 0,
       order_detail_cancel_key: '',
       order_detail_sqlite_id: widget.cartItem.order_detail_sqlite_id,
       order_detail_key: data.order_detail_key,
-      quantity: simpleIntInput.toString(),
+      quantity: cancelAllQty ? data.quantity! : simpleIntInput.toString(),
       cancel_by: user.name,
       cancel_by_user_id: user.user_id.toString(),
       settlement_sqlite_id: '',
@@ -688,10 +548,8 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       updated_at: '',
       soft_delete: '',
     );
-    OrderDetailCancel orderDetailCancel =
-    await PosDatabase.instance.insertSqliteOrderDetailCancel(object);
-    OrderDetailCancel updateData =
-    await insertOrderDetailCancelKey(orderDetailCancel, dateTime);
+    OrderDetailCancel orderDetailCancel = await PosDatabase.instance.insertSqliteOrderDetailCancel(object);
+    OrderDetailCancel updateData = await insertOrderDetailCancelKey(orderDetailCancel, dateTime);
     _value.add(jsonEncode(updateData));
     order_detail_cancel_value = _value.toString();
     //syncOrderDetailCancelToCloud(_value.toString());
@@ -708,23 +566,34 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   //   }
   // }
 
-  updateOrderDetailQuantity(String dateTime, CartModel cart) async {
-    List<String> _value = [];
+  String getTotalQty(){
     num totalQty = 0;
+    if(widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c'){
+      if(simpleIntInput != 0){
+        totalQty = 0;
+      }
+    } else {
+      totalQty = widget.cartItem.quantity! - simpleIntInput;
+    }
+    print("total qty: ${totalQty}");
+    return totalQty.toString();
+  }
+
+  updateOrderDetailQuantity(String dateTime) async {
+    List<String> _value = [];
     try{
-      totalQty = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse((widget.cartItem.quantity! - simpleIntInput).toStringAsFixed(2)): widget.cartItem.quantity! - simpleIntInput;
       OrderDetail orderDetailObject = OrderDetail(
         updated_at: dateTime,
         sync_status: orderDetail!.sync_status == 0 ? 0 : 2,
         status: 0,
-        quantity: totalQty.toString(),
+        quantity: getTotalQty(),
         order_detail_sqlite_id: int.parse(widget.cartItem.order_detail_sqlite_id!),
         branch_link_product_sqlite_id: widget.cartItem.branch_link_product_sqlite_id,
       );
       num data = await PosDatabase.instance.updateOrderDetailQuantity(orderDetailObject);
       if (data == 1) {
         OrderDetail detailData = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
-        await updateOrderCacheSubtotal(detailData.order_cache_sqlite_id!, detailData.price, simpleIntInput, dateTime);
+        await updateOrderCacheSubtotal(detailData.order_cache_sqlite_id!, detailData.price!, simpleIntInput, dateTime);
         if(orderDetailObject.branch_link_product_sqlite_id != null && orderDetailObject.branch_link_product_sqlite_id != ''){
           await updateProductStock(orderDetailObject.branch_link_product_sqlite_id!, simpleIntInput, dateTime);
         }
@@ -736,19 +605,28 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     }
   }
 
-  updateOrderCacheSubtotal(String orderCacheLocalId, price, quantity, String dateTime) async {
+  String getSubtotal(double totalAmount, String price, num quantity){
     double subtotal = 0.0;
+    if(widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c'){
+      subtotal = totalAmount - double.parse(price);
+    } else {
+      subtotal = totalAmount - double.parse(price) * quantity;
+    }
+    print("subtotal: ${subtotal.toStringAsFixed(2)}");
+    return subtotal.toStringAsFixed(2);
+  }
+
+  updateOrderCacheSubtotal(String orderCacheLocalId, String price, num quantity, String dateTime) async {
     OrderCache data = await PosDatabase.instance.readSpecificOrderCacheByLocalId(int.parse(orderCacheLocalId));
-    subtotal = double.parse(data.total_amount!) - double.parse(price) * quantity;
     OrderCache orderCache = OrderCache(
         order_cache_sqlite_id: data.order_cache_sqlite_id,
-        total_amount: subtotal.toStringAsFixed(2),
+        total_amount: getSubtotal(double.parse(data.total_amount!), price, quantity),
         sync_status: data.sync_status == 0 ? 0 : 2,
         updated_at: dateTime);
     int status = await PosDatabase.instance.updateOrderCacheSubtotal(orderCache);
-    if (status == 1) {
-      getOrderCacheValue(orderCache);
-    }
+    // if (status == 1) {
+    //   getOrderCacheValue(orderCache);
+    // }
   }
 
   // syncUpdatedPosTableToCloud(String posTableValue) async {
@@ -764,9 +642,9 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   //   }
   // }
 
-  callDeleteOrderDetail(User user, String dateTime, CartModel cart) async {
-    await createOrderDetailCancel(user, dateTime, cart);
-    await updateOrderDetailQuantity(dateTime, cart);
+  callDeleteOrderDetail(User user, String dateTime) async {
+    await createOrderDetailCancel(user, dateTime, true);
+    await updateOrderDetailQuantity(dateTime);
     List<String> _value = [];
     OrderDetail orderDetailObject = OrderDetail(
       updated_at: dateTime,
@@ -820,11 +698,11 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
             updateStock = 0;
           }
         }
-        if (updateStock == 1) {
-          List<BranchLinkProduct> updatedData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
-          _value.add(jsonEncode(updatedData[0]));
-          branch_link_product_value = _value.toString();
-        }
+        // if (updateStock == 1) {
+        //   List<BranchLinkProduct> updatedData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+        //   _value.add(jsonEncode(updatedData[0]));
+        //   branch_link_product_value = _value.toString();
+        // }
       }
     }catch(e){
       print("adjust stock dialog update stock error: $e");
@@ -859,20 +737,18 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   //   }
   // }
 
-  callDeleteAllOrder(User user, String currentTableUseId, String dateTime,
-      CartModel cartModel) async {
+  callDeleteAllOrder(User user, String currentTableUseId, String dateTime) async {
     print('delete all order called');
     if (widget.currentPage != 'other_order') {
       await deleteCurrentTableUseDetail(currentTableUseId, dateTime);
       await deleteCurrentTableUseId(int.parse(currentTableUseId), dateTime);
     }
-    await callDeleteOrderDetail(user, dateTime, cartModel);
+    await callDeleteOrderDetail(user, dateTime);
     await deleteCurrentOrderCache(user, dateTime);
   }
 
-  callDeletePartialOrder(
-      User user, String dateTime, CartModel cartModel) async {
-    await callDeleteOrderDetail(user, dateTime, cartModel);
+  callDeletePartialOrder(User user, String dateTime) async {
+    await callDeleteOrderDetail(user, dateTime);
     await deleteCurrentOrderCache(user, dateTime);
   }
 

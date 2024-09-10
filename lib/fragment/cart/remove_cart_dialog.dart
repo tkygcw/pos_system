@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
-import 'package:pos_system/fragment/cart/adjust_quantity.dart';
+import 'package:pos_system/fragment/product_cancel/adjust_quantity.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/object/cart_product.dart';
@@ -293,9 +293,8 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                     AppLocalizations.of(context)!.translate('yes'),
                     style: TextStyle(color: Colors.white),
                   ),
-                  onPressed: isButtonDisabled
-                      ? null
-                      : () async {
+                  onPressed: isButtonDisabled ? null : () async {
+                    Navigator.of(context).pop();
                     setState(() {
                       isButtonDisabled = true;
                     });
@@ -304,24 +303,23 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                       if (cart.cartNotifierItem.isEmpty) {
                         cart.removeAllTable();
                       }
-                      Navigator.of(context).pop();
                     } else {
-                      if(widget.cartItem!.quantity == 1 || widget.cartItem!.quantity! is double ){
-                        DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-                        String dateTime = dateFormat.format(DateTime.now());
-                        final prefs = await SharedPreferences.getInstance();
-                        final String? pos_user = prefs.getString('pos_pin_user');
-                        Map<String, dynamic> userMap = json.decode(pos_user!);
-                        User userData = User.fromJson(userMap);
-                        if(userData.edit_price_without_pin != 1) {
-                          showSecondDialog(context, color, cart);
-                        } else {
-                          callUpdateCart(userData, dateTime, cart);
-                          Navigator.of(context).pop();
-                        }
-                      } else {
-                        openDialog(cartItem: widget.cartItem, currentPage: widget.currentPage);
-                      }
+                      openDialog(cartItem: widget.cartItem, currentPage: widget.currentPage);
+                      // if(widget.cartItem!.quantity == 1 || widget.cartItem!.quantity! is double ){
+                      //   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+                      //   String dateTime = dateFormat.format(DateTime.now());
+                      //   final prefs = await SharedPreferences.getInstance();
+                      //   final String? pos_user = prefs.getString('pos_pin_user');
+                      //   Map<String, dynamic> userMap = json.decode(pos_user!);
+                      //   User userData = User.fromJson(userMap);
+                      //   if(userData.edit_price_without_pin != 1) {
+                      //     showSecondDialog(context, color, cart);
+                      //   } else {
+                      //     callUpdateCart(userData, dateTime, cart);
+                      //   }
+                      // } else {
+                      //   openDialog(cartItem: widget.cartItem, currentPage: widget.currentPage);
+                      // }
                     }
                     setState(() {
                       isButtonDisabled = false;
