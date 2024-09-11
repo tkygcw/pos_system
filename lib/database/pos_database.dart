@@ -75,7 +75,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 23, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 24, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -484,6 +484,9 @@ class PosDatabase {
             await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
           }
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
+        }break;
+        case 23: {
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
         }
       }
     }
@@ -597,6 +600,7 @@ class PosDatabase {
            ${OrderFields.refund_key} $textType,
            ${OrderFields.settlement_sqlite_id} $textType,
            ${OrderFields.settlement_key} $textType,
+           ${OrderFields.ipay_trans_id} $textType,
            ${OrderFields.sync_status} $integerType,
            ${OrderFields.created_at} $textType, 
            ${OrderFields.updated_at} $textType, 
@@ -1758,8 +1762,8 @@ class PosDatabase {
           'INSERT INTO $tableOrder(order_id, order_number, order_queue, company_id, customer_id, dining_id, dining_name, '
               'branch_link_promotion_id, payment_link_company_id, branch_id, branch_link_tax_id, '
               'subtotal, amount, rounding, final_amount, close_by, payment_status, payment_received, payment_change, order_key, '
-              'refund_sqlite_id, refund_key, settlement_sqlite_id, settlement_key, sync_status, created_at, updated_at, soft_delete) '
-              'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+              'refund_sqlite_id, refund_key, settlement_sqlite_id, settlement_key, ipay_trans_id, sync_status, created_at, updated_at, soft_delete) '
+              'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
           [
             data.order_id,
             data.order_number,
@@ -1785,6 +1789,7 @@ class PosDatabase {
             data.refund_key,
             data.settlement_sqlite_id,
             data.settlement_key,
+            data.ipay_trans_id,
             data.sync_status,
             data.created_at,
             data.updated_at,
@@ -6471,8 +6476,8 @@ class PosDatabase {
 */
   Future<int> updateOrderPaymentStatus(Order data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableOrder SET payment_status = ?, sync_status = ?,  updated_at = ?, soft_delete = ? WHERE order_sqlite_id = ?',
-        [1, data.sync_status, data.updated_at, data.soft_delete, data.order_sqlite_id]);
+    return await db.rawUpdate('UPDATE $tableOrder SET payment_status = ?, ipay_trans_id = ?, sync_status = ?,  updated_at = ?, soft_delete = ? WHERE order_sqlite_id = ?',
+        [1, data.ipay_trans_id, data.sync_status, data.updated_at, data.soft_delete, data.order_sqlite_id]);
   }
 
 /*

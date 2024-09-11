@@ -1,13 +1,15 @@
 import 'dart:convert';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml2json/xml2json.dart';
 
 
 class Api {
   final myTransformer = Xml2Json();
-
   static var domain = 'https://payment.ipay88.com.my/';
   static Uri gateway = Uri.parse(domain + 'ePayment/WebService/MHGatewayService/GatewayService.svc?WSDL');
+  static Uri refundGateway = Uri.parse(domain + 'ePayment/WebService/VoidAPI/VoidFunction.asmx');
+  late Map<String, dynamic> result;
 
   /*
   * create user
@@ -90,9 +92,6 @@ class Api {
           "Content-Type": "text/xml;charset=UTF-8",
           "SOAPAction": "https://www.mobile88.com/IGatewayService/EntryPageFunctionality",
           "Host": "payment.ipay88.com.my",
-
-
-          //"Accept": "text/xml"
         },
         body: xmlstring);
 
@@ -101,18 +100,66 @@ class Api {
     var jsonXml = myTransformer.toBadgerfish(useLocalNameForNodes: true);
     Map xmlObject = jsonDecode(jsonXml);
     var errorDesc = xmlObject['Envelope']['Body']['EntryPageFunctionalityResponse']['EntryPageFunctionalityResult']['ErrDesc']['\$'];
+    var transId = xmlObject['Envelope']['Body']['EntryPageFunctionalityResponse']['EntryPageFunctionalityResult']['TransId']['\$'];
 
-
-
-
-// Use the xml package's 'parse' method to parse the response.
-//     xml.XmlDocument parsedXml = xml.parse(rawXmlResponse);
-//     Fluttertoast.showToast(msg: 'result');
     print("DATAResult: " + response.body);
     print('json format xml: ${jsonXml}');
     print('json in body: ${xmlObject['Envelope']['Body']['EntryPageFunctionalityResponse']['EntryPageFunctionalityResult']['ErrDesc']['\$']}');
+    if(errorDesc != null){
+      result = {
+        'status': '0',
+        'data': errorDesc
+      };
+    } else {
+      result = {
+        'status': '1',
+        'data': transId
+      };
+    }
 
-    return errorDesc;
+    return result;
+  }
+
+  refundPayment(String merchantCode, String transId, String amount, String currency, String signature) async {
+    print("mer code: $merchantCode");
+    print("trans id: $transId");
+    print("amount: $amount");
+    print("currency: $currency");
+    print("signature: $signature");
+    String xmlRequestString = '<?xml version="1.0" encoding="utf-8"?>'
+        '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
+        'xmlns:xsd="http://www.w3.org/2001/XMLSchema"'
+        'xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">'
+        '<soap:Body>'
+        '<VoidTransaction xmlns="htps://www.mobile88.com">'
+        '<merchantcode>$merchantCode</merchantcode>'
+        '<cctransid>$transId</cctransid>'
+        '<amount>${double.parse(amount)}</amount>'
+        '<currency>$currency</currency>'
+        '<signature>$signature</signature>'
+        '</VoidTransaction>'
+        '</soap:Body>'
+        '</soap:Envelope>';
+
+    http.Response response = await http.post(
+        refundGateway,
+        headers: {
+          "Accept-Encoding": "gzip,deflate",
+          "Content-Type": "text/xml;charset=UTF-8",
+          "SOAPAction": "htps://www.mobile88.com/VoidTransaction",
+          "Host": "payment.ipay88.com.my",
+        },
+        body: xmlRequestString);
+    print("res body: ${response.body}");
+    myTransformer.parse(response.body);
+    var jsonXml = myTransformer.toBadgerfish(useLocalNameForNodes: true);
+    Map xmlObject = jsonDecode(jsonXml);
+
+    FLog.debug(
+      className: "ipay_api",
+      text: "refund response",
+      exception: xmlObject.toString(),
+    );
   }
 
 }

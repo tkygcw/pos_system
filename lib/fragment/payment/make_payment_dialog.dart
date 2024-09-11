@@ -1243,13 +1243,25 @@ class _MakePaymentState extends State<MakePayment> {
         assetsAudioPlayer.open(
           Audio("audio/scan_sound.mp3"),
         );
-        var api = await paymentApi();
-        if (api == 0) {
-          openPaymentSuccessDialog(widget.dining_id,
-              isCashMethod: false, diningName: widget.dining_name);
+        Map<String, dynamic> apiRes = await paymentApi();
+        if (apiRes['status'] == '1') {
+          assetsAudioPlayer.open(
+            Audio("audio/payment_success.mp3"),
+          );
+          print("transID: ${apiRes['data']}");
+          //pass trans id from api res to payment success dialog
+          openPaymentSuccessDialog(widget.dining_id, isCashMethod: false, diningName: widget.dining_name, ipayTransId: apiRes['data']);
         } else {
+          assetsAudioPlayer.open(
+            Audio("audio/error_sound.mp3"),
+          );
           Fluttertoast.showToast(
-              backgroundColor: Color(0xFFFF0000), msg: "${api}");
+              backgroundColor: Color(0xFFFF0000), msg: "${apiRes['data']}");
+          FLog.error(
+            className: "make_payment_dialog",
+            text: "paymentApi return error",
+            exception: "ipay API res: ${apiRes['data']}",
+          );
           Navigator.pop(context);
         }
       });
@@ -1273,7 +1285,7 @@ class _MakePaymentState extends State<MakePayment> {
 //     double eval = exp.evaluate(EvaluationType.REAL, cm);
 //     answer = eval.toString();
 //   }
-  Future<Future<Object?>> openPaymentSuccessDialog(String dining_id, {required isCashMethod, required String diningName}) async {
+  Future<Future<Object?>> openPaymentSuccessDialog(String dining_id, {required isCashMethod, required String diningName, String? ipayTransId}) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -1292,6 +1304,7 @@ class _MakePaymentState extends State<MakePayment> {
                 orderKey: orderKey!,
                 change: change,
                 dining_name: diningName,
+                ipayTransId: ipayTransId,
               ),
             ),
           );
@@ -1635,6 +1648,7 @@ class _MakePaymentState extends State<MakePayment> {
             refund_key: '',
             settlement_sqlite_id: '',
             settlement_key: '',
+            ipay_trans_id: '',
             sync_status: 0,
             created_at: dateTime,
             updated_at: '',
@@ -1965,22 +1979,7 @@ class _MakePaymentState extends State<MakePayment> {
               '',
               result!.code!,
               ''));
-      if (response != null) {
-        assetsAudioPlayer.open(
-          Audio("audio/error_sound.mp3"),
-        );
-        FLog.error(
-          className: "make_payment_dialog",
-          text: "paymentApi error",
-          exception: "ipay API res: ${response}",
-        );
-        return response;
-      } else {
-        assetsAudioPlayer.open(
-          Audio("audio/payment_success.mp3"),
-        );
-        return 0;
-      }
+      return response;
     }catch(e){
       assetsAudioPlayer.open(
         Audio("audio/error_sound.mp3"),
@@ -1990,7 +1989,10 @@ class _MakePaymentState extends State<MakePayment> {
         text: "paymentApi error",
         exception: "$e",
       );
-      return e;
+      return {
+        'status': '0',
+        'data': e
+      };
     }
   }
 

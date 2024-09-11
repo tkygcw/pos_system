@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/fragment/payment/ipay_api.dart';
 import 'package:pos_system/object/refund.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -41,6 +42,7 @@ class _RefundDialogState extends State<RefundDialog> {
   String? refund_value, order_value, cash_record_value;
   bool _submitted = false;
   bool isButtonDisabled = false, isLogOut = false;
+  late SharedPreferences prefs;
 
 
   String? get errorPassword {
@@ -167,6 +169,15 @@ class _RefundDialogState extends State<RefundDialog> {
     );
   }
 
+  @override
+  void initState() {
+    getPrefs();
+    super.initState();
+  }
+
+  getPrefs() async {
+    prefs = await SharedPreferences.getInstance();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -232,7 +243,7 @@ class _RefundDialogState extends State<RefundDialog> {
     await createRefund(userData);
     await updateOrderPaymentStatus();
     await createRefundedCashRecord(userData);
-    await syncAllToCloud();
+    // await syncAllToCloud();
     if(this.isLogOut == true){
       openLogOutDialog();
       return;
@@ -323,9 +334,27 @@ class _RefundDialogState extends State<RefundDialog> {
 
   updateOrderPaymentStatus() async {
     try{
+      final String? branch = prefs.getString('branch');
+      Map branchObject = json.decode(branch!);
       List<String> _value = [];
       String dateTime = dateFormat.format(DateTime.now());
       Order checkData = await PosDatabase.instance.readSpecificOrder(widget.order.order_sqlite_id!);
+      if(checkData.ipay_trans_id != ''){
+        String refundAmt = checkData.final_amount!;
+        await Api().refundPayment(
+            branchObject['ipay_merchant_code'],
+            checkData.ipay_trans_id!,
+            refundAmt,
+            'MYR',
+            signature(
+              branchObject['ipay_merchant_key'],
+              branchObject['ipay_merchant_code'],
+              checkData.ipay_trans_id!,
+              refundAmt,
+              'MYR'
+            ),
+        );
+      }
       Order _orderObject = Order(
           refund_sqlite_id: this.refundLocalId,
           refund_key: this.refundKey,
@@ -348,6 +377,17 @@ class _RefundDialogState extends State<RefundDialog> {
         exception: "$e",
       );
     }
+  }
+
+  signature(String merchant_key, String merchant_code, String transId, String amount, String currency) {
+    var ipayAmount = double.parse(amount) * 100;
+    var signature = utf8.encode(merchant_key +
+        merchant_code +
+        transId +
+        ipayAmount.toStringAsFixed(0) +
+        currency
+    );
+    return sha1.convert(signature).toString();
   }
 
   // syncUpdatedOrderToCloud(String value) async {
