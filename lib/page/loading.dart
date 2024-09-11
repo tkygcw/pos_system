@@ -288,6 +288,7 @@ getAppSettingLocal() async {
         product_sort_by: 0,
         dynamic_qr_default_exp_after_hour: 1,
         variant_item_sort_by: 0,
+        required_cancel_reason: 0,
         sync_status: 0,
         created_at: dateTime,
         updated_at: ''
@@ -325,6 +326,7 @@ syncAppSettingFromCloud(AppSetting item) async {
     product_sort_by: item.product_sort_by,
     dynamic_qr_default_exp_after_hour: item.dynamic_qr_default_exp_after_hour,
     variant_item_sort_by: item.variant_item_sort_by,
+    required_cancel_reason: 0, //item.required_cancel_reason,
     sync_status: 1,
     created_at: item.created_at,
     updated_at: item.updated_at,
@@ -2376,6 +2378,7 @@ getAllOrderDetailCancel() async {
             quantity: responseJson[i]['quantity'],
             cancel_by: responseJson[i]['cancel_by'],
             cancel_by_user_id: responseJson[i]['cancel_by_user_id'],
+            cancel_reason: responseJson[i]['cancel_reason'] ?? '',
             settlement_sqlite_id: responseJson[i]['settlement_key'] != '' ? settlement?.settlement_sqlite_id.toString() : '',
             settlement_key: responseJson[i]['settlement_key'],
             status: responseJson[i]['status'],

@@ -75,7 +75,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 23, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 24, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -484,7 +484,11 @@ class PosDatabase {
             await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
           }
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
-        }
+        }break;
+        case 23: {
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.required_cancel_reason} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableOrderDetailCancel ADD ${OrderDetailCancelFields.cancel_reason} $textType DEFAULT '' ");
+        }break;
       }
     }
   }
@@ -1103,6 +1107,7 @@ class PosDatabase {
           ${AppSettingFields.product_sort_by} $integerType,
           ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType,
           ${AppSettingFields.variant_item_sort_by} $integerType,
+          ${AppSettingFields.required_cancel_reason} $integerType,
           ${AppSettingFields.sync_status} $integerType,
           ${AppSettingFields.created_at} $textType,
           ${AppSettingFields.updated_at} $textType)''');
@@ -1179,6 +1184,7 @@ class PosDatabase {
           ${OrderDetailCancelFields.quantity} $textType,
           ${OrderDetailCancelFields.cancel_by} $textType,
           ${OrderDetailCancelFields.cancel_by_user_id} $textType,
+          ${OrderDetailCancelFields.cancel_reason} $textType,
           ${OrderDetailCancelFields.settlement_sqlite_id} $textType,
           ${OrderDetailCancelFields.settlement_key} $textType,
           ${OrderDetailCancelFields.status} $integerType,
@@ -2463,8 +2469,8 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableOrderDetailCancel(order_detail_cancel_id, order_detail_cancel_key, order_detail_sqlite_id, order_detail_key, '
-        'quantity, cancel_by, cancel_by_user_id, settlement_sqlite_id, settlement_key, status, sync_status, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'quantity, cancel_by, cancel_by_user_id, cancel_reason, settlement_sqlite_id, settlement_key, status, sync_status, created_at, updated_at, soft_delete) '
+        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.order_detail_cancel_id,
           data.order_detail_cancel_key,
@@ -2473,6 +2479,7 @@ class PosDatabase {
           data.quantity,
           data.cancel_by,
           data.cancel_by_user_id,
+          data.cancel_reason,
           data.settlement_sqlite_id,
           data.settlement_key,
           data.status,
@@ -6356,6 +6363,14 @@ class PosDatabase {
   Future<int> updateVariantItemSortBySettings(AppSetting data) async {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableAppSetting SET variant_item_sort_by = ?, sync_status = ?, updated_at = ?', [data.variant_item_sort_by, 2, data.updated_at]);
+  }
+
+/*
+  update required cancel reason Setting
+*/
+  Future<int> updateRequiredCancelReasonSettings(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET required_cancel_reason = ?, sync_status = ?, updated_at = ?', [data.required_cancel_reason, 2, data.updated_at]);
   }
 
 /*

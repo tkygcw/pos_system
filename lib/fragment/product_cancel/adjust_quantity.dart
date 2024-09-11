@@ -69,7 +69,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   bool isButtonDisabled = false;
   bool isButtonDisabled2 = false;
   bool willPop = true;
-  bool restock  = false;
+  bool restock = false;
 
   late TableModel tableModel;
   late CartModel cart;
@@ -246,7 +246,10 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             //reason input
-            ReasonInputWidget(reasonCallBack: reasonCallBack),
+            Visibility(
+              visible: AppSettingModel.instance.required_cancel_reason!,
+              child: ReasonInputWidget(reasonCallBack: reasonCallBack),
+            ),
             // quantity input
             QuantityInputWidget(
               cartItemList: [widget.cartItem],
@@ -589,14 +592,14 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
         sync_status: orderDetail!.sync_status == 0 ? 0 : 2,
         status: 0,
         quantity: getTotalQty(),
-        order_detail_sqlite_id: int.parse(widget.cartItem.order_detail_sqlite_id!),
-        branch_link_product_sqlite_id: widget.cartItem.branch_link_product_sqlite_id,
+        order_detail_sqlite_id: orderDetail!.order_detail_sqlite_id!,
+        branch_link_product_sqlite_id: orderDetail!.branch_link_product_sqlite_id,
       );
       num data = await PosDatabase.instance.updateOrderDetailQuantity(orderDetailObject);
       if (data == 1) {
         OrderDetail detailData = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
         await updateOrderCacheSubtotal(detailData.order_cache_sqlite_id!, detailData.price!, simpleIntInput, dateTime);
-        if(orderDetailObject.branch_link_product_sqlite_id != null && orderDetailObject.branch_link_product_sqlite_id != ''){
+        if(restock){
           await updateProductStock(orderDetailObject.branch_link_product_sqlite_id!, simpleIntInput, dateTime);
         }
         _value.add(jsonEncode(detailData.syncJson()));
