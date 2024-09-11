@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -63,6 +64,7 @@ class MakePayment extends StatefulWidget {
 }
 
 class _MakePaymentState extends State<MakePayment> {
+  final assetsAudioPlayer = AssetsAudioPlayer();
   final inputController = TextEditingController();
   final ScrollController _controller = ScrollController();
   late StreamController streamController;
@@ -1238,6 +1240,9 @@ class _MakePaymentState extends State<MakePayment> {
         //   openLogOutDialog();
         //   return;
         // }
+        assetsAudioPlayer.open(
+          Audio("audio/scan_sound.mp3"),
+        );
         var api = await paymentApi();
         if (api == 0) {
           openPaymentSuccessDialog(widget.dining_id,
@@ -1944,7 +1949,7 @@ class _MakePaymentState extends State<MakePayment> {
           branchObject['name'],
           branchObject['email'],
           branchObject['phone'],
-          'taylor',
+          'remark',
           result!.code!,
           '',
           '',
@@ -1961,11 +1966,25 @@ class _MakePaymentState extends State<MakePayment> {
               result!.code!,
               ''));
       if (response != null) {
+        assetsAudioPlayer.open(
+          Audio("audio/error_sound.mp3"),
+        );
+        FLog.error(
+          className: "make_payment_dialog",
+          text: "paymentApi error",
+          exception: "ipay API res: ${response}",
+        );
         return response;
       } else {
+        assetsAudioPlayer.open(
+          Audio("audio/payment_success.mp3"),
+        );
         return 0;
       }
     }catch(e){
+      assetsAudioPlayer.open(
+        Audio("audio/error_sound.mp3"),
+      );
       FLog.error(
         className: "make_payment_dialog",
         text: "paymentApi error",
