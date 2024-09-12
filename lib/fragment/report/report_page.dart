@@ -6,6 +6,7 @@ import 'package:page_transition/page_transition.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/report/attedance_report.dart';
 import 'package:pos_system/fragment/report/cancel_modifier_report.dart';
+import 'package:pos_system/fragment/report/cancel_record_report.dart';
 import 'package:pos_system/fragment/report/cancellation_report.dart';
 import 'package:pos_system/fragment/report/cash_record_report.dart';
 import 'package:pos_system/fragment/report/category_report.dart';
@@ -156,7 +157,7 @@ class _ReportPageState extends State<ReportPage> {
                     Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 25, color: Colors.black)),
                     Spacer(),
                     Visibility(
-                      visible: currentPage != 13 && currentPage != 14 ? true : false,
+                      visible: currentPage != 14 && currentPage != 15 ? true : false,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
@@ -187,7 +188,7 @@ class _ReportPageState extends State<ReportPage> {
                     ),
                     SizedBox(width: 25),
                     Visibility(
-                      visible: currentPage != 14 ? true : false,
+                      visible: currentPage != 15 ? true : false,
                       child: Container(
                         child: IconButton(
                           icon: Icon(Icons.print),
@@ -205,7 +206,7 @@ class _ReportPageState extends State<ReportPage> {
                       ),
                     ),
                     Visibility(
-                      visible: currentPage != 1 && currentPage != 5 && currentPage != 10 && currentPage != 11 && currentPage != 13 && currentPage != 14  ? true : false,
+                      visible: currentPage != 1 && currentPage != 5 && currentPage != 11 && currentPage != 12 && currentPage != 14 && currentPage != 15  ? true : false,
                       child: Container(
                         child: IconButton(
                           icon: Icon(Icons.receipt),
@@ -333,6 +334,10 @@ class _ReportPageState extends State<ReportPage> {
                         SideNavigationBarItem(
                           icon: Icons.no_food,
                           label: AppLocalizations.of(context)!.translate('cancel_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.no_food,
+                          label: 'cancel record',
                         ),
                         SideNavigationBarItem(
                           icon: Icons.no_food,
@@ -499,7 +504,7 @@ class _ReportPageState extends State<ReportPage> {
                     Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 25, color: Colors.black)),
                     Spacer(),
                     Visibility(
-                      visible: currentPage != 13 ? true : false,
+                      visible: currentPage != 14 ? true : false,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
@@ -530,7 +535,7 @@ class _ReportPageState extends State<ReportPage> {
                     ),
                     SizedBox(width: 10),
                     Visibility(
-                      visible: currentPage != 13 ? true : false,
+                      visible: currentPage != 14 ? true : false,
                       child: IconButton(
                         icon: Icon(Icons.print),
                         color: color.backgroundColor,
@@ -546,7 +551,7 @@ class _ReportPageState extends State<ReportPage> {
                       ),
                     ),
                     Visibility(
-                      visible: currentPage != 1 && currentPage != 5 && currentPage != 10 && currentPage != 11 && currentPage != 13  ? true : false,
+                      visible: currentPage != 1 && currentPage != 5 && currentPage != 11 && currentPage != 12 && currentPage != 14  ? true : false,
                       child: Container(
                         child: IconButton(
                           icon: Icon(Icons.receipt),
@@ -840,16 +845,16 @@ class _ReportPageState extends State<ReportPage> {
       case 6: {
         await receipt.printReceipt(layout: CancellationReceiptLayout());
       }break;
-      case 7: {
+      case 8: {
         await receipt.printReceipt(layout: CancelledModReceiptLayout());
       }break;
-      case 8: {
+      case 9: {
         await receipt.printReceipt(layout: DiningReceiptLayout());
       }break;
-      case 9: {
+      case 10: {
         await receipt.printReceipt(layout: PaymentReceiptLayout());
       }break;
-      case 12: {
+      case 13: {
         await receipt.printReceipt(layout: StaffReceiptLayout());
       }break;
     }
@@ -872,49 +877,52 @@ class _ReportPageState extends State<ReportPage> {
   preload(){
     views.addAll([
       Container(
-        child: ReportOverview(),
+        child: ReportOverview(),//0
       ),
       Container(
-        child: DailySalesReport(),
+        child: DailySalesReport(),//1
       ),
       Container(
-        child: ProductReport(),
+        child: ProductReport(),//2
       ),
       Container(
-        child: CategoryReport(),
+        child: CategoryReport(),//3
       ),
       Container(
-        child: ModifierReport(),
+        child: ModifierReport(),//4
       ),
       Container(
-        child: ProductEditedReport(),
+        child: ProductEditedReport(),//5
       ),
       Container(
-        child: CancellationReport(),
+        child: CancellationReport(),//6
       ),
       Container(
-        child: CancelModifierReport(),
+        child: CancelRecordReport(),//7
       ),
       Container(
-        child: DiningReport(),
+        child: CancelModifierReport(),//8
       ),
       Container(
-        child: PaymentReport(),
+        child: DiningReport(),//9
       ),
       Container(
-        child: RefundReport(),
+        child: PaymentReport(),//10
       ),
       Container(
-        child: CashRecordReport(),
+        child: RefundReport(),//11
       ),
       Container(
-        child: StaffSalesReport(),
+        child: CashRecordReport(),//12
       ),
       Container(
-        child: AttendanceReport(),
+        child: StaffSalesReport(),//13
       ),
       Container(
-        child: TransferRecord(),
+        child: AttendanceReport(),//14
+      ),
+      Container(
+        child: TransferRecord(),//15
       ),
     ]);
   }

@@ -23,6 +23,7 @@ import '../../object/cart_product.dart';
 import '../../object/order_cache.dart';
 import '../../object/order_detail.dart';
 import '../../object/order_modifier_detail.dart';
+import '../custom_toastification.dart';
 import '../printing_layout/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../object/table.dart';
@@ -312,6 +313,13 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     setState(() {
       isButtonDisabled = true;
     });
+    if(AppSettingModel.instance.required_cancel_reason! == true && reason == ''){
+      CustomToastification.showToastification(context: context, title: "Cancel reason is required");
+      setState(() {
+        isButtonDisabled = false;
+      });
+      return;
+    }
     if(simpleIntInput != 0 && simpleIntInput != 0.00){
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
@@ -545,6 +553,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       quantity: cancelAllQty ? data.quantity! : simpleIntInput.toString(),
       cancel_by: user.name,
       cancel_by_user_id: user.user_id.toString(),
+      cancel_reason: reason,
       settlement_sqlite_id: '',
       settlement_key: '',
       status: 0,
@@ -592,8 +601,8 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
         sync_status: orderDetail!.sync_status == 0 ? 0 : 2,
         status: 0,
         quantity: getTotalQty(),
-        order_detail_sqlite_id: orderDetail!.order_detail_sqlite_id!,
-        branch_link_product_sqlite_id: orderDetail!.branch_link_product_sqlite_id,
+        order_detail_sqlite_id: int.parse(widget.cartItem.order_detail_sqlite_id!),
+        branch_link_product_sqlite_id: widget.cartItem.branch_link_product_sqlite_id,
       );
       num data = await PosDatabase.instance.updateOrderDetailQuantity(orderDetailObject);
       if (data == 1) {

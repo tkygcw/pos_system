@@ -1,6 +1,3 @@
-import 'package:http/http.dart';
-import 'dart:convert';
-
 import 'package:intl/intl.dart';
 import 'package:pos_system/object/attendance.dart';
 import 'package:pos_system/object/cash_record.dart';
@@ -11,6 +8,7 @@ import 'package:pos_system/object/settlement.dart';
 import 'package:pos_system/object/settlement_link_payment.dart';
 import 'package:pos_system/object/transfer_owner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:collection/collection.dart';
 
 import '../database/pos_database.dart';
 import 'branch_link_tax.dart';
@@ -75,6 +73,32 @@ class ReportObject{
       this.dateOrderDetailCancelList,
       this.dateTransferList,
       this.dateAttendance});
+
+  Future<List<OrderDetailCancel>> getAllOrderDetailCancel({currentStDate, currentEdDate}) async {
+    await getPrefData();
+    DateTime _startDate = DateTime.parse(currentStDate);
+    DateTime _endDate = DateTime.parse(currentEdDate);
+    //convert time to string
+    DateTime addEndDate = addDays(date: _endDate);
+    String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
+    String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
+    print('string start date: ${stringStDate}');
+    print('string end date: ${stringEdDate}');
+    List<OrderDetailCancel> orderDetailCancel = [];
+
+    if(_isChecked) {
+      // orderDetailData = await PosDatabase.instance.readAllCancelledCategoryWithOrderDetail2WithOB(stringStDate, stringEdDate);
+    } else {
+      orderDetailCancel = await PosDatabase.instance.readOrderDetailCancel(stringStDate, stringEdDate);
+    }
+    if(orderDetailCancel.isNotEmpty){
+      List<int> quantityList = orderDetailCancel.map((e) => int.parse(e.quantity!)).toList();
+      List<double> amountList = orderDetailCancel.map((e) => double.parse(e.price!)).toList();
+      orderDetailCancel.first.total_item = quantityList.sum;
+      orderDetailCancel.first.total_amount = amountList.sum;
+    }
+    return orderDetailCancel;
+  }
 
   Future<List<Order>> getAllUserSales({currentStDate, currentEdDate}) async {
     await getPrefData();

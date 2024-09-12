@@ -11,6 +11,9 @@ class ReasonInputWidget extends StatefulWidget {
 }
 
 class _ReasonInputWidgetState extends State<ReasonInputWidget> {
+  TextEditingController reasonController = TextEditingController();
+  bool doneEdit = false;
+
   @override
   Widget build(BuildContext context) {
     ThemeColor color = context.watch<ThemeColor>();
@@ -24,11 +27,21 @@ class _ReasonInputWidgetState extends State<ReasonInputWidget> {
             child: Text("Enter reason", style: TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold),),
           ),
           TextField(
+            controller: reasonController,
             decoration: InputDecoration(
-              focusedBorder: OutlineInputBorder(
+              errorText: doneEdit && reasonController.text == ''? 'reason required' : null,
+              border: OutlineInputBorder(
                 borderSide: BorderSide(color: color.backgroundColor),
               ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: color.backgroundColor),
+              )
             ),
+            onSubmitted: (value){
+              setState(() {
+                doneEdit = true;
+              });
+            },
             onChanged: (value) => widget.reasonCallBack(value)
           ),
         ],

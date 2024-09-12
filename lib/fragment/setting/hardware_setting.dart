@@ -188,7 +188,11 @@ class _HardwareSettingState extends State<HardwareSetting> {
       }
 
       if(appSetting.variant_item_sort_by != null){
-        variantSelectedValue = appSetting.variant_item_sort_by!;
+        variantSelectedValue = appSetting.variant_item_sort_by;
+      }
+
+      if(appSetting.required_cancel_reason == 1) {
+        requiredReason = true;
       }
     }
   }

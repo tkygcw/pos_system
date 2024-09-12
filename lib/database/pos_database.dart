@@ -4512,6 +4512,19 @@ class PosDatabase {
 */
 
 /*
+  read all order detail cancel
+*/
+  Future<List<OrderDetailCancel>> readOrderDetailCancel(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.product_name, b.product_variant_name, b.price '
+            'FROM $tableOrderDetailCancel AS a JOIN $tableOrderDetail AS b ON a.order_detail_key = b.order_detail_key '
+            'WHERE a.soft_delete = ? AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? ORDER BY a.created_at DESC',
+        ['', date1, date2]);
+    return result.map((json) => OrderDetailCancel.fromJson(json)).toList();
+  }
+
+/*
   read all order group by user wiht OB
 */
   Future<List<Order>> readStaffSalesWithOB(String date1, String date2) async {

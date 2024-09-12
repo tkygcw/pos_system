@@ -56,6 +56,10 @@ class OrderDetailCancel{
   String? updated_at;
   String? soft_delete;
   num? total_item;
+  num? total_amount;
+  String? product_name;
+  String? product_variant_name;
+  String? price;
 
   OrderDetailCancel(
       {this.order_detail_sqlite_id,
@@ -74,7 +78,11 @@ class OrderDetailCancel{
         this.created_at,
         this.updated_at,
         this.soft_delete,
-        this.total_item
+        this.total_item,
+        this.total_amount,
+        this.product_name,
+        this.product_variant_name,
+        this.price
       });
 
   OrderDetailCancel copy({
@@ -131,7 +139,10 @@ class OrderDetailCancel{
     created_at: json[OrderDetailCancelFields.created_at] as String?,
     updated_at: json[OrderDetailCancelFields.updated_at] as String?,
     soft_delete: json[OrderDetailCancelFields.soft_delete] as String?,
-    total_item: json['total_item'] as num?
+    total_item: json['total_item'] as num?,
+    product_name: json['product_name'] as String?,
+    product_variant_name: json['product_variant_name'] as String?,
+    price: json['price'] as String?
   );
 
   Map<String, Object?> toJson() => {
