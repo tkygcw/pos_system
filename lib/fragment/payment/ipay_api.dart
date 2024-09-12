@@ -134,7 +134,7 @@ class Api {
         '<VoidTransaction xmlns="htps://www.mobile88.com">'
         '<merchantcode>$merchantCode</merchantcode>'
         '<cctransid>$transId</cctransid>'
-        '<amount>${double.parse(amount)}</amount>'
+        '<amount>$amount</amount>'
         '<currency>$currency</currency>'
         '<signature>$signature</signature>'
         '</VoidTransaction>'

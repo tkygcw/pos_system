@@ -381,12 +381,14 @@ class _RefundDialogState extends State<RefundDialog> {
 
   signature(String merchant_key, String merchant_code, String transId, String amount, String currency) {
     var ipayAmount = double.parse(amount) * 100;
+    print("ipay amt: ${ipayAmount.toStringAsFixed(0)}");
     var signature = utf8.encode(merchant_key +
         merchant_code +
         transId +
         ipayAmount.toStringAsFixed(0) +
         currency
     );
+    print("sig bfr hash: ${ipayAmount.toStringAsFixed(0)}");
     return sha1.convert(signature).toString();
   }
 
