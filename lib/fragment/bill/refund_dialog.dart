@@ -41,7 +41,7 @@ class _RefundDialogState extends State<RefundDialog> {
   String refundKey = '';
   String? refund_value, order_value, cash_record_value;
   bool _submitted = false;
-  bool isButtonDisabled = false, isLogOut = false;
+  bool isButtonDisabled = false, isLogOut = false, canPop = true;
   late SharedPreferences prefs;
 
 
@@ -115,6 +115,7 @@ class _RefundDialogState extends State<RefundDialog> {
                           child: TextField(
                             autofocus: true,
                             onSubmitted: (input){
+                              canPop = false;
                               _submit(context);
                             },
                             obscureText: true,
@@ -157,6 +158,7 @@ class _RefundDialogState extends State<RefundDialog> {
                   TextButton(
                     child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
                     onPressed: isButtonDisabled ? null : () async {
+                      canPop = false;
                       _submit(context);
                     },
                   ),
@@ -182,36 +184,42 @@ class _RefundDialogState extends State<RefundDialog> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return AlertDialog(
-        title: Text(AppLocalizations.of(context)!.translate('refund_desc')),
-        content: Container(
-          child: Text('${AppLocalizations.of(context)?.translate('refund_desc')}'),
+      return PopScope(
+        canPop: canPop,
+        child: AlertDialog(
+          title: Text(AppLocalizations.of(context)!.translate('refund_desc')),
+          content: Container(
+            child: Text('${AppLocalizations.of(context)?.translate('refund_desc')}'),
+          ),
+          actions: [
+            TextButton(
+              child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+              onPressed: () async  {
+                // await showSecondDialog(context, color);
+                final prefs = await SharedPreferences.getInstance();
+                final String? pos_user = prefs.getString('pos_pin_user');
+                Map<String, dynamic> userMap = json.decode(pos_user!);
+                User userData = User.fromJson(userMap);
+                if(userData.refund_permission != 1) {
+                  await showSecondDialog(context, color);
+                } else {
+                  canPop = false;
+                  await callRefund(userData);
+                  if(mounted){
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  }
+                }
+              },
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          TextButton(
-            child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-            onPressed: () async  {
-              // await showSecondDialog(context, color);
-              final prefs = await SharedPreferences.getInstance();
-              final String? pos_user = prefs.getString('pos_pin_user');
-              Map<String, dynamic> userMap = json.decode(pos_user!);
-              User userData = User.fromJson(userMap);
-              if(userData.refund_permission != 1) {
-                await showSecondDialog(context, color);
-              } else {
-                await callRefund(userData);
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-              }
-            },
-          ),
-        ],
       );
     });
   }
@@ -337,11 +345,12 @@ class _RefundDialogState extends State<RefundDialog> {
       final String? branch = prefs.getString('branch');
       Map branchObject = json.decode(branch!);
       List<String> _value = [];
+      String response = '0';
       String dateTime = dateFormat.format(DateTime.now());
       Order checkData = await PosDatabase.instance.readSpecificOrder(widget.order.order_sqlite_id!);
       if(checkData.ipay_trans_id != ''){
         String refundAmt = checkData.final_amount!;
-        await Api().refundPayment(
+        response = await Api().refundPayment(
             branchObject['ipay_merchant_code'],
             checkData.ipay_trans_id!,
             refundAmt,
@@ -355,21 +364,29 @@ class _RefundDialogState extends State<RefundDialog> {
             ),
         );
       }
-      Order _orderObject = Order(
-          refund_sqlite_id: this.refundLocalId,
-          refund_key: this.refundKey,
-          sync_status: checkData.sync_status == 0 ? 0 : 2,
-          updated_at: dateTime,
-          order_sqlite_id: checkData.order_sqlite_id
-      );
-      int status = await PosDatabase.instance.updateOrderPaymentRefundStatus(_orderObject);
-      if(status == 1){
-        Order orderData = await PosDatabase.instance.readSpecificOrder(_orderObject.order_sqlite_id!);
-        _value.add(jsonEncode(orderData));
+      if(response == '0' || response == '9999'){
+        Order _orderObject = Order(
+            refund_sqlite_id: this.refundLocalId,
+            refund_key: this.refundKey,
+            sync_status: checkData.sync_status == 0 ? 0 : 2,
+            updated_at: dateTime,
+            order_sqlite_id: checkData.order_sqlite_id
+        );
+        int status = await PosDatabase.instance.updateOrderPaymentRefundStatus(_orderObject);
+        if(status == 1){
+          Order orderData = await PosDatabase.instance.readSpecificOrder(_orderObject.order_sqlite_id!);
+          _value.add(jsonEncode(orderData));
+        }
+        order_value = _value.toString();
+        //sync to cloud
+        //syncUpdatedOrderToCloud(_value.toString());
+      } else {
+        FLog.error(
+          className: "refund_dialog",
+          text: "ipay API error",
+          exception: "$response",
+        );
       }
-      order_value = _value.toString();
-      //sync to cloud
-      //syncUpdatedOrderToCloud(_value.toString());
     } catch(e){
       FLog.error(
         className: "refund_dialog",
@@ -388,8 +405,10 @@ class _RefundDialogState extends State<RefundDialog> {
         ipayAmount.toStringAsFixed(0) +
         currency
     );
-    print("sig bfr hash: ${ipayAmount.toStringAsFixed(0)}");
-    return sha1.convert(signature).toString();
+    print("sig bfr hash: ${merchant_key + merchant_code + transId + ipayAmount.toStringAsFixed(0) + currency}");
+    print("sig utf8: ${signature}");
+    print("sig: ${base64Encode(sha1.convert(signature).bytes)}");
+    return base64Encode(sha1.convert(signature).bytes);
   }
 
   // syncUpdatedOrderToCloud(String value) async {

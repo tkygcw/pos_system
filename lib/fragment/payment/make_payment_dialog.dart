@@ -251,12 +251,13 @@ class _MakePaymentState extends State<MakePayment> {
           }
           return LayoutBuilder(builder: (context, constraints) {
             if (constraints.maxWidth > 900 && constraints.maxHeight > 500) {
-              return WillPopScope(
-                  onWillPop: () async {
+              return PopScope(
+                  canPop: willPop,
+                  onPopInvokedWithResult: (result,_){
                     if (notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true) {
                       reInitSecondDisplay(isWillPop: true);
                     }
-                    return willPop;
+                    willPop = result;
                   },
                   child: MediaQuery(
                     data: MediaQuery.of(context).copyWith(viewInsets: EdgeInsets.zero),
@@ -1248,7 +1249,6 @@ class _MakePaymentState extends State<MakePayment> {
           assetsAudioPlayer.open(
             Audio("audio/payment_success.mp3"),
           );
-          print("transID: ${apiRes['data']}");
           //pass trans id from api res to payment success dialog
           openPaymentSuccessDialog(widget.dining_id, isCashMethod: false, diningName: widget.dining_name, ipayTransId: apiRes['data']);
         } else {
