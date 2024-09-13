@@ -461,7 +461,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
         }
       }
     } else {
-      await createOrderDetailCancel(userData, dateTime, false);
+      await createOrderDetailCancel(userData, dateTime);
       await updateOrderDetailQuantity(dateTime);
       print('update order detail quantity & create order detail cancel');
     }
@@ -542,7 +542,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     return data;
   }
 
-  createOrderDetailCancel(User user, String dateTime, bool cancelAllQty) async {
+  createOrderDetailCancel(User user, String dateTime) async {
     List<String> _value = [];
     OrderDetail data = await PosDatabase.instance.readSpecificOrderDetailByLocalId(int.parse(widget.cartItem.order_detail_sqlite_id!));
     OrderDetailCancel object = OrderDetailCancel(
@@ -550,7 +550,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       order_detail_cancel_key: '',
       order_detail_sqlite_id: widget.cartItem.order_detail_sqlite_id,
       order_detail_key: data.order_detail_key,
-      quantity: cancelAllQty ? data.quantity! : simpleIntInput.toString(),
+      quantity: simpleIntInput.toString(),
       cancel_by: user.name,
       cancel_by_user_id: user.user_id.toString(),
       cancel_reason: reason,
@@ -657,7 +657,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   // }
 
   callDeleteOrderDetail(User user, String dateTime) async {
-    await createOrderDetailCancel(user, dateTime, true);
+    await createOrderDetailCancel(user, dateTime);
     await updateOrderDetailQuantity(dateTime);
     List<String> _value = [];
     OrderDetail orderDetailObject = OrderDetail(
