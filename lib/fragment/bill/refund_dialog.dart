@@ -42,6 +42,7 @@ class _RefundDialogState extends State<RefundDialog> {
   String? refund_value, order_value, cash_record_value;
   bool _submitted = false;
   bool isButtonDisabled = false, isLogOut = false, canPop = true;
+  int tapCount = 0;
   late SharedPreferences prefs;
 
 
@@ -59,15 +60,18 @@ class _RefundDialogState extends State<RefundDialog> {
       // Disable the button after it has been pressed
       setState(() {
         isButtonDisabled = true;
+        canPop = false;
       });
       await readAdminData(adminPosPinController.text);
       print("button disable");
       setState(() {
         isButtonDisabled = false;
+        canPop = true;
       });
     } else {
       setState(() {
         isButtonDisabled = false;
+        canPop = true;
       });
     }
   }
@@ -100,69 +104,73 @@ class _RefundDialogState extends State<RefundDialog> {
       context: context,
       builder: (BuildContext context) {
         return StatefulBuilder(builder: (context, StateSetter setState){
-          return Center(
-            child: SingleChildScrollView(
-              child: AlertDialog(
-                title: Text(AppLocalizations.of(context)!.translate('enter_admin_pin')),
-                content: SizedBox(
-                  height: 100.0,
-                  width: 350.0,
-                  child: ValueListenableBuilder(
-                      valueListenable: adminPosPinController,
-                      builder: (context, TextEditingValue value, __) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: TextField(
-                            autofocus: true,
-                            onSubmitted: (input){
-                              canPop = false;
-                              _submit(context);
-                            },
-                            obscureText: true,
-                            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
-                            controller: adminPosPinController,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              errorText: _submitted
-                                  ? errorPassword == null
-                                  ? errorPassword
-                                  : AppLocalizations.of(context)
-                                  ?.translate(errorPassword!)
-                                  : null,
-                              border: OutlineInputBorder(
-                                borderSide:
-                                BorderSide(color: color.backgroundColor),
+          return PopScope(
+            onPopInvokedWithResult: (result, _) {
+              adminPosPinController.text = '';
+            },
+            child: Center(
+              child: SingleChildScrollView(
+                child: AlertDialog(
+                  title: Text(AppLocalizations.of(context)!.translate('enter_admin_pin')),
+                  content: SizedBox(
+                    height: 100.0,
+                    width: 350.0,
+                    child: ValueListenableBuilder(
+                        valueListenable: adminPosPinController,
+                        builder: (context, TextEditingValue value, __) {
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TextField(
+                              autofocus: true,
+                              onSubmitted: (input){
+                                _submit(context);
+                              },
+                              obscureText: true,
+                              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
+                              controller: adminPosPinController,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                errorText: _submitted
+                                    ? errorPassword == null
+                                    ? errorPassword
+                                    : AppLocalizations.of(context)
+                                    ?.translate(errorPassword!)
+                                    : null,
+                                border: OutlineInputBorder(
+                                  borderSide:
+                                  BorderSide(color: color.backgroundColor),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide:
+                                  BorderSide(color: color.backgroundColor),
+                                ),
+                                labelText: "PIN",
                               ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                BorderSide(color: color.backgroundColor),
-                              ),
-                              labelText: "PIN",
                             ),
-                          ),
-                        );
-                      }),
+                          );
+                        }),
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                      onPressed: isButtonDisabled ? null : () {
+                        // Disable the button after it has been pressed
+                        setState(() {
+                          adminPosPinController.text = '';
+                          isButtonDisabled = true;
+                        });
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    TextButton(
+                      child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                      onPressed: isButtonDisabled ? null : () async {
+                        _submit(context);
+                      },
+                    ),
+                  ],
                 ),
-                actions: <Widget>[
-                  TextButton(
-                    child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                    onPressed: isButtonDisabled ? null : () {
-                      // Disable the button after it has been pressed
-                      setState(() {
-                        isButtonDisabled = true;
-                      });
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  TextButton(
-                    child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                    onPressed: isButtonDisabled ? null : () async {
-                      canPop = false;
-                      _submit(context);
-                    },
-                  ),
-                ],
               ),
             ),
           );
@@ -209,11 +217,16 @@ class _RefundDialogState extends State<RefundDialog> {
                 if(userData.refund_permission != 1) {
                   await showSecondDialog(context, color);
                 } else {
-                  canPop = false;
-                  await callRefund(userData);
-                  if(mounted){
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
+                  tapCount++;
+                  if(tapCount == 1){
+                    setState(() {
+                      canPop = false;
+                    });
+                    await callRefund(userData);
+                    if(mounted){
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop();
+                    }
                   }
                 }
               },
@@ -396,18 +409,14 @@ class _RefundDialogState extends State<RefundDialog> {
     }
   }
 
-  signature(String merchant_key, String merchant_code, String transId, String amount, String currency) {
+  String signature(String merchant_key, String merchant_code, String transId, String amount, String currency) {
     var ipayAmount = double.parse(amount) * 100;
-    print("ipay amt: ${ipayAmount.toStringAsFixed(0)}");
     var signature = utf8.encode(merchant_key +
         merchant_code +
         transId +
         ipayAmount.toStringAsFixed(0) +
         currency
     );
-    print("sig bfr hash: ${merchant_key + merchant_code + transId + ipayAmount.toStringAsFixed(0) + currency}");
-    print("sig utf8: ${signature}");
-    print("sig: ${base64Encode(sha1.convert(signature).bytes)}");
     return base64Encode(sha1.convert(signature).bytes);
   }
 

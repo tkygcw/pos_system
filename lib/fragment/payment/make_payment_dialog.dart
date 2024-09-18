@@ -1138,7 +1138,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                       alignment: Alignment.center,
                                                       child: ElevatedButton(
                                                         style: ButtonStyle(
-                                                            backgroundColor: MaterialStateProperty.all(color.buttonColor),),
+                                                            backgroundColor: WidgetStateProperty.all(color.buttonColor),),
                                                         onPressed: () async {
                                                           setState(() {
                                                             scanning = true;
@@ -1954,10 +1954,8 @@ class _MakePaymentState extends State<MakePayment> {
           branchObject['ipay_merchant_code'],
           branchObject['ipay_merchant_key'],
           336,
-          orderId!,
+          orderKey!,
           Utils.formatPaymentAmount(double.parse(finalAmount)),
-          // '1.00',
-          //need to change to finalAmount, every 1000 add 1,000
           'MYR',
           'ipay',
           branchObject['name'],
@@ -1972,7 +1970,7 @@ class _MakePaymentState extends State<MakePayment> {
           signature256(
               branchObject['ipay_merchant_key'],
               branchObject['ipay_merchant_code'],
-              orderId!,
+              orderKey!,
               finalAmount,
               //need to change to finalAmount
               'MYR',

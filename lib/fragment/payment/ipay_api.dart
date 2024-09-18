@@ -144,7 +144,6 @@ class Api {
             "Host": "payment.ipay88.com.my",
           },
           body: xmlRequestString);
-      print("res body: ${response.body}");
       myTransformer.parse(response.body);
       var jsonXml = myTransformer.toBadgerfish(useLocalNameForNodes: true);
       Map xmlObject = jsonDecode(jsonXml);
