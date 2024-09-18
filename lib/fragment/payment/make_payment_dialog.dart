@@ -1231,6 +1231,7 @@ class _MakePaymentState extends State<MakePayment> {
       });
       p1.scannedDataStream.listen((scanData) async {
         setState(() {
+          isButtonDisable = true;
           result = scanData;
           print('result:${result?.code}');
         });
