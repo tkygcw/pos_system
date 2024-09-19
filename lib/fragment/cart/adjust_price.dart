@@ -286,74 +286,91 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
                   ],
                 ),
                 actions: <Widget>[
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                    height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: color.backgroundColor,
-                      ),
-                      child: Text(
-                        AppLocalizations.of(context)!.translate('close'),
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      onPressed: isButtonDisabled
-                          ? null
-                          : () {
-                        setState(() {
-                          isButtonDisabled = true;
-                        });
-                        Navigator.of(context).pop();
-                        // if(mounted) {
-                        //   setState(() {
-                        //     isButtonDisabled = false;
-                        //   });
-                        // }
-                      },
-                    ),
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                    height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: color.buttonColor,
-                      ),
-                      child: Text(
-                        AppLocalizations.of(context)!.translate('yes'),
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      onPressed: isButtonDisabled || isYesButtonDisabled
-                          ? null
-                          : () async {
-                        if(priceController.text.isNotEmpty) {
-                          if (double.parse(priceController.text).toStringAsFixed(2) != double.parse(widget.cartItem.price!).toStringAsFixed(2)) {
-                            DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-                            String dateTime = dateFormat.format(DateTime.now());
-                            final prefs = await SharedPreferences.getInstance();
-                            final String? pos_user = prefs.getString('pos_pin_user');
-                            Map<String, dynamic> userMap = json.decode(pos_user!);
-                            User userData = User.fromJson(userMap);
-
-                            if(userData.edit_price_without_pin != 1) {
-                              await showSecondDialog(context, color, cart);
-                            } else {
-                              await callUpdateCart(userData, dateTime, cart);
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                              ? MediaQuery.of(context).size.height / 12
+                              : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+                              : MediaQuery.of(context).size.height / 20,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: color.backgroundColor,
+                            ),
+                            child: Text(
+                              AppLocalizations.of(context)!.translate('close'),
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            onPressed: isButtonDisabled
+                                ? null
+                                : () {
+                              setState(() {
+                                isButtonDisabled = true;
+                              });
                               Navigator.of(context).pop();
-                            }
-                          } else {
-                            //no changes
-                            print("Price Adjust: no changes");
-                            setState(() {
-                              isButtonDisabled = true;
-                            });
-                            Navigator.of(context).pop();
-                          }
-                        } else {
-                          priceController.text = "";
-                        }
-                      },
-                    ),
+                              // if(mounted) {
+                              //   setState(() {
+                              //     isButtonDisabled = false;
+                              //   });
+                              // }
+                            },
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        flex: 1,
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                              ? MediaQuery.of(context).size.height / 12
+                              : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+                              : MediaQuery.of(context).size.height / 20,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: color.buttonColor,
+                            ),
+                            child: Text(
+                              AppLocalizations.of(context)!.translate('yes'),
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            onPressed: isButtonDisabled || isYesButtonDisabled
+                                ? null
+                                : () async {
+                              if(priceController.text.isNotEmpty) {
+                                if (double.parse(priceController.text).toStringAsFixed(2) != double.parse(widget.cartItem.price!).toStringAsFixed(2)) {
+                                  DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+                                  String dateTime = dateFormat.format(DateTime.now());
+                                  final prefs = await SharedPreferences.getInstance();
+                                  final String? pos_user = prefs.getString('pos_pin_user');
+                                  Map<String, dynamic> userMap = json.decode(pos_user!);
+                                  User userData = User.fromJson(userMap);
+
+                                  if(userData.edit_price_without_pin != 1) {
+                                    await showSecondDialog(context, color, cart);
+                                  } else {
+                                    await callUpdateCart(userData, dateTime, cart);
+                                    Navigator.of(context).pop();
+                                  }
+                                } else {
+                                  //no changes
+                                  print("Price Adjust: no changes");
+                                  setState(() {
+                                    isButtonDisabled = true;
+                                  });
+                                  Navigator.of(context).pop();
+                                }
+                              } else {
+                                priceController.text = "";
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

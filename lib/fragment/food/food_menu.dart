@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -89,9 +90,16 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
             appBar: AppBar(
               automaticallyImplyLeading: false,
               elevation: 0,
-              title: Text(AppLocalizations.of(context)!.translate('menu'),
-                style: TextStyle(fontSize: 25, color: color.backgroundColor),
+              leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : IconButton(
+                icon: Icon(Icons.menu, color: color.buttonColor),
+                onPressed: () {
+                  isCollapsedNotifier.value = !isCollapsedNotifier.value;
+                },
               ),
+              title: Text(AppLocalizations.of(context)!.translate('menu'),
+                style: TextStyle(fontSize: 20, color: color.backgroundColor),
+              ),
+              centerTitle: false,
               actions: [
                 IconButton(
                   color: color.buttonColor,
@@ -188,7 +196,9 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
           categoryTabContent.add(GridView.count(
               shrinkWrap: true,
               //MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.height
-              crossAxisCount: MediaQuery.of(MyApp.navigatorKey.currentContext!).size.height > 500 && MediaQuery.of(MyApp.navigatorKey.currentContext!).size.width > 900 ? 5 : 3,
+              crossAxisCount: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 5
+                  : MediaQuery.of(MyApp.navigatorKey.currentContext!).size.height > 500 && MediaQuery.of(MyApp.navigatorKey.currentContext!).size.width > 500 ? 4
+                    : 3,
               children: List.generate(data.length, (index) {
                 return Card(
                   child: Container(
@@ -243,7 +253,9 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
           categoryTabContent.add(GridView.count(
               shrinkWrap: true,
               padding: const EdgeInsets.all(10),
-              crossAxisCount: MediaQuery.of(MyApp.navigatorKey.currentContext!).size.height > 500 ? 5 : 3,
+              crossAxisCount: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 5
+                : MediaQuery.of(MyApp.navigatorKey.currentContext!).size.height > 500 && MediaQuery.of(MyApp.navigatorKey.currentContext!).size.width > 500 ? 4
+                  : 3,
               children: List.generate(data.length, (index) {
                 return Card(
                   child: Container(

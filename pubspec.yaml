@@ -39,7 +39,9 @@ dependencies:
   google_fonts: ^4.0.3
   devicelocale: ^0.6.0
   provider: ^6.0.5
-  collapsible_sidebar: ^2.0.3+3
+  collapsible_sidebar:
+    git:
+      url: https://github.com/tkygcw/flutter_collapsible_sidebar.git
   quantity_input: ^1.0.2
   grouped_list: ^5.1.2
   side_navigation: ^1.0.4

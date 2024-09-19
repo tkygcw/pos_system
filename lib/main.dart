@@ -41,6 +41,7 @@ final asyncQ = AsyncQueue.autoStart();
 DisplayManager displayManager = DisplayManager();
 AppLanguage appLanguage = AppLanguage();
 final snackBarKey = GlobalKey<ScaffoldMessengerState>();
+bool isCartExpanded = false;
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
 

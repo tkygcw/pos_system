@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/database/pos_database.dart';
@@ -136,7 +137,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
               getOrderList(model: tableModel);
             }
             return Scaffold(
-              appBar: AppBar(
+              appBar: MediaQuery.of(context).orientation == Orientation.landscape ? AppBar(
                 automaticallyImplyLeading: false,
                 elevation: 0,
                 title: Text(AppLocalizations.of(context)!.translate('other_order'), style: TextStyle(fontSize: 25)),
@@ -183,6 +184,64 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                           .toList(),
                     ),
                   ),
+                ],
+              ) :
+              AppBar(
+                automaticallyImplyLeading: false,
+                elevation: 0,
+                leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : IconButton(
+                  icon: Icon(Icons.menu, color: color.buttonColor),
+                  onPressed: () {
+                    isCollapsedNotifier.value = !isCollapsedNotifier.value;
+                  },
+                ),
+                title: Text(AppLocalizations.of(context)!.translate('other_order'),
+                  style: TextStyle(fontSize: 20, color: color.backgroundColor),
+                ),
+                centerTitle: false,
+                actions: [
+                  Container(
+                    width: MediaQuery.of(context).size.height / 7,
+                    padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                    child: DropdownButton<String>(
+                      onChanged: (String? value) {
+                        setState(() {
+                          selectDiningOption = value!;
+                        });
+                        cart.removeAllCartItem();
+                        cart.removeAllTable();
+                        getOrderList();
+                      },
+                      menuMaxHeight: 250,
+                      value: selectDiningOption,
+                      // Hide the default underline
+                      underline: Container(),
+                      icon: Icon(
+                        Icons.arrow_drop_down,
+                        color: color.backgroundColor,
+                      ),
+                      isExpanded: true,
+                      // The list of options
+                      items: list
+                          .map((e) => DropdownMenuItem(
+                        value: e,
+                        child: Container(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            AppLocalizations.of(context)!.translate(getDiningOption(e)),
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                      ))
+                          .toList(),
+                      // Customize the selected item
+                      selectedItemBuilder: (BuildContext context) => list
+                          .map((e) => Center(
+                        child: Text(AppLocalizations.of(context)!.translate(getDiningOption(e))),
+                      ))
+                          .toList(),
+                    ),
+                  )
                 ],
               ),
               resizeToAvoidBottomInset: false,
@@ -243,7 +302,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                             //openViewOrderDialog(orderCacheList[index]);
                           },
                           child: Padding(
-                            padding: const EdgeInsets.all(16.0),
+                            padding: MediaQuery.of(context).orientation == Orientation.landscape || MediaQuery.of(context).size.width > 500 ? const EdgeInsets.all(16.0) : EdgeInsets.fromLTRB(0, 16, 0, 16),
                             child: ListTile(
                                 leading:
                                 orderCacheList[index].dining_name == 'Take Away'
@@ -265,22 +324,22 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                                 ),
                                 trailing: Text(
                                   '#'+orderCacheList[index].batch_id.toString(),
-                                  style: TextStyle(fontSize: 20),
+                                  style: TextStyle(fontSize: MediaQuery.of(context).orientation == Orientation.landscape || MediaQuery.of(context).size.width > 500 ? 20 : 15),
                                 ),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(AppLocalizations.of(context)!.translate('order_by')+': ' + orderCacheList[index].order_by!,
-                                      style: TextStyle(fontSize: 14),
+                                      style: TextStyle(fontSize: MediaQuery.of(context).orientation == Orientation.landscape || MediaQuery.of(context).size.width > 500 ? 14 : 13),
                                     ),
                                     Text(AppLocalizations.of(context)!.translate('order_at')+': ' + Utils.formatDate(orderCacheList[index].created_at!),
-                                      style: TextStyle(fontSize: 14),
+                                      style: TextStyle(fontSize: MediaQuery.of(context).orientation == Orientation.landscape || MediaQuery.of(context).size.width > 500 ? 14 : 13),
                                     ),
                                   ],
                                 ),
                                 title: Text(
                                   "${Utils.convertTo2Dec(orderCacheList[index].total_amount!,)}",
-                                  style: TextStyle(fontSize: 20),
+                                  style: TextStyle(fontSize: MediaQuery.of(context).orientation == Orientation.landscape || MediaQuery.of(context).size.width > 500 ? 20 : 18),
                                 )),
                           ),
                         ),

@@ -533,9 +533,11 @@ class CartPageState extends State<CartPage> {
                                   ),
                                   SizedBox(height: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 10 : 5),
                                   Container(
-                                    height: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
-                                        ? widget.currentPage == 'menu' || widget.currentPage == 'table'
+                                    height: MediaQuery.of(context).size.height > 500
+                                        ? widget.currentPage == 'menu' || widget.currentPage == 'table' || widget.currentPage == 'other_order' || widget.currentPage == 'bill'
+                                        ? MediaQuery.of(context).orientation == Orientation.landscape
                                         ? 130
+                                        : 100
                                         : null
                                         : 25,
                                     child: ListView(
@@ -803,10 +805,15 @@ class CartPageState extends State<CartPage> {
                                                       : widget.currentPage == 'table' || widget.currentPage == 'other_order'
                                                       ? Text(AppLocalizations.of(context)!.translate('pay') + ' (RM ${this.finalAmount})')
                                                       : Text(AppLocalizations.of(context)!.translate('print_receipt'))
+                                                  // mobile
                                                       : widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
+                                                      ? MediaQuery.of(context).orientation == Orientation.landscape
                                                       ? Text(AppLocalizations.of(context)!.translate('place_order'))
+                                                      : Text(AppLocalizations.of(context)!.translate('place_order') + '\n (RM ${this.finalAmount})')
                                                       : widget.currentPage == 'table' || widget.currentPage == 'other_order'
+                                                      ? MediaQuery.of(context).orientation == Orientation.landscape
                                                       ? Text(AppLocalizations.of(context)!.translate('pay'))
+                                                      : Text(AppLocalizations.of(context)!.translate('pay') + ' (RM ${this.finalAmount})')
                                                       : Text(AppLocalizations.of(context)!.translate('print_receipt')))),
                                         ),
                                         Visibility(
@@ -1946,7 +1953,8 @@ class CartPageState extends State<CartPage> {
           );
         },
         transitionDuration: Duration(milliseconds: 200),
-        barrierDismissible: false,
+        barrierDismissible: true,
+        barrierLabel: 'Dismiss',
         context: context,
         pageBuilder: (context, animation1, animation2) {
           // ignore: null_check_always_fails
@@ -2173,13 +2181,15 @@ class CartPageState extends State<CartPage> {
       branchLinkDiningIdList.add(data[i].dining_id!);
     }
     if (serverCall == null) {
-      if (data.any((item) => item.name == 'Dine in')) {
-        cart.selectedOption = 'Dine in';
-      } else {
-        cart.selectedOption = "Take Away";
-      }
-      if (!controller.isClosed) {
-        controller.sink.add('refresh');
+      if(cart.selectedOptionId == '') {
+        if (data.any((item) => item.name == 'Dine in')) {
+          cart.selectedOption = 'Dine in';
+        } else {
+          cart.selectedOption = "Take Away";
+        }
+        if (!controller.isClosed) {
+          controller.sink.add('refresh');
+        }
       }
     }
     //cart.selectedOption = diningList.first.name;

@@ -1,6 +1,8 @@
+import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/bill/refund_dialog.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/object/cart_payment.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
@@ -240,7 +242,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
             } else {
               ///mobile layout
               return Scaffold(
-                  appBar: AppBar(
+                  appBar: MediaQuery.of(context).orientation == Orientation.landscape ? AppBar(
                     primary: false,
                     elevation: 0,
                     automaticallyImplyLeading: false,
@@ -307,6 +309,61 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                         ),
                       ),
                     ],
+                  ) :
+                  AppBar(
+                    automaticallyImplyLeading: false,
+                    elevation: 0,
+                    leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : IconButton(
+                      icon: Icon(Icons.menu, color: color.buttonColor),
+                      onPressed: () {
+                        isCollapsedNotifier.value = !isCollapsedNotifier.value;
+                      },
+                    ),
+                    title: Text(AppLocalizations.of(context)!.translate('receipt'),
+                      style: TextStyle(fontSize: 20, color: color.backgroundColor),
+                    ),
+                    centerTitle: false,
+                    actions: [
+                      Container(
+                        width: MediaQuery.of(context).size.height / 7,
+                        padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                        child: DropdownButton<String>(
+                          onChanged: (String? value) {
+                            setState(() {
+                              selectedOption = value!;
+                              getOrder();
+                              cart.initialLoad();
+                              //readCashRecord();
+                            });
+                            //getCashRecord();
+                          },
+                          menuMaxHeight: 300,
+                          value: selectedOption,
+                          // Hide the default underline
+                          underline: Container(),
+                          icon: Icon(
+                            Icons.arrow_drop_down,
+                            color: color.backgroundColor,
+                          ),
+                          isExpanded: true,
+                          // The list of options
+                          items: optionList
+                              .map((e) => DropdownMenuItem(
+                            value: e,
+                            child: Container(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                e,
+                                style: TextStyle(fontSize: 18),
+                              ),
+                            ),
+                          ))
+                              .toList(),
+                          // Customize the selected item
+                          selectedItemBuilder: (BuildContext context) => optionList.map((e) => Center(child: Text(e))).toList(),
+                        ),
+                      )
+                    ],
                   ),
                   resizeToAvoidBottomInset: false,
                   body: _isLoaded
@@ -364,6 +421,10 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                                     paidOrderList[index].isSelected = false;
                                     cart.initialLoad();
                                   }
+                                  setState(() {
+                                    isCartExpanded = !isCartExpanded;
+                                    paidOrderList[index].isSelected = false;
+                                  });
                                 },
                                 onLongPress: paidOrderList[index].payment_status == 1
                                     ? () {

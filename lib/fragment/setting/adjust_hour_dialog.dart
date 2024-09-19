@@ -39,86 +39,106 @@ class _AdjustHourDialogState extends State<AdjustHourDialog> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // quantity input remove button
-              Container(
-                decoration: BoxDecoration(
-                  color: color.backgroundColor,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: IconButton(
-                  icon: Icon(Icons.remove, color: Colors.white), // Set the icon color to white.
-                  onPressed: () {
-                    if(int.parse(hourController.text) != 1){
-                      hourController.text = (int.parse(hourController.text) - 1).toString();
-                    }
-                  },
+              Expanded(
+                flex: 1,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: color.backgroundColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: IconButton(
+                    icon: Icon(Icons.remove, color: Colors.white), // Set the icon color to white.
+                    onPressed: () {
+                      if(int.parse(hourController.text) != 1){
+                        hourController.text = (int.parse(hourController.text) - 1).toString();
+                      }
+                    },
+                  ),
                 ),
               ),
               SizedBox(width: 10),
               // quantity input text field
-              Container(
-                width: 200,
-                child: TextField(
-                  readOnly: true,
-                  controller: hourController,
-                  textAlign: TextAlign.center,
-                  decoration: InputDecoration(
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: color.backgroundColor),
+              Expanded(
+                flex: 4,
+                child: Container(
+                  width: 200,
+                  child: TextField(
+                    readOnly: true,
+                    controller: hourController,
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: color.backgroundColor),
+                      ),
                     ),
                   ),
                 ),
               ),
               SizedBox(width: 10),
               // quantity input add button
-              Container(
-                decoration: BoxDecoration(
-                  color: color.backgroundColor,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: IconButton(
-                  icon: Icon(Icons.add, color: Colors.white),
-                  onPressed: () {
-                    if(int.parse(hourController.text) != 12){
-                      hourController.text = (int.parse(hourController.text) + 1).toString();
-                    }
-                  },
+              Expanded(
+                flex: 1,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: color.backgroundColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: IconButton(
+                    icon: Icon(Icons.add, color: Colors.white),
+                    onPressed: () {
+                      if(int.parse(hourController.text) != 12){
+                        hourController.text = (int.parse(hourController.text) + 1).toString();
+                      }
+                    },
+                  ),
                 ),
               ),
             ],
           ),
         ),
         actions: [
-          SizedBox(
-            width: 200,
-            height: 60,
-            child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: color.buttonColor
+          Row(
+            children: [
+              Expanded(
+                flex: 1,
+                child: SizedBox(
+                  width: 200,
+                  height: 60,
+                  child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red
+                      ),
+                      onPressed: () {
+                        tapCount++;
+                        if(tapCount == 1){
+                          Navigator.of(context).pop();
+                        }
+                      },
+                      child: Text(AppLocalizations.of(context)!.translate('close'))),
                 ),
-                onPressed: () async {
-                  tapCount++;
-                  if(tapCount == 1){
-                    await updateAppSetting();
-                    AppSettingModel.instance.setDynamicQrDefaultExpAfterHour(int.parse(hourController.text));
-                    Navigator.of(context).pop();
-                  }
-                },
-                child: Text(AppLocalizations.of(context)!.translate('update'))),
-          ),
-          SizedBox(
-            width: 200,
-            height: 60,
-            child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                flex: 1,
+                child: SizedBox(
+                  width: 200,
+                  height: 60,
+                  child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: color.buttonColor
+                      ),
+                      onPressed: () async {
+                        tapCount++;
+                        if(tapCount == 1){
+                          await updateAppSetting();
+                          AppSettingModel.instance.setDynamicQrDefaultExpAfterHour(int.parse(hourController.text));
+                          Navigator.of(context).pop();
+                        }
+                      },
+                      child: Text(AppLocalizations.of(context)!.translate('update'))),
                 ),
-                onPressed: () {
-                  tapCount++;
-                  if(tapCount == 1){
-                    Navigator.of(context).pop();
-                  }
-                },
-                child: Text(AppLocalizations.of(context)!.translate('close'))),
+              ),
+            ],
           ),
         ],
       );

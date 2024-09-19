@@ -87,12 +87,17 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
   void _openMainColorPicker() async {
     _openDialog(
       AppLocalizations.of(context)!.translate('background_color_picker'),
-      MaterialColorPicker(
-        colors: fullMaterialColors,
-        selectedColor: color.backgroundColor,
-        allowShades: false,
-        onMainColorChange: (color) =>
-            setState(() => this.color.backgroundColor = color as Color),
+      Container(
+        width: MediaQuery.of(context).size.width * 0.5,
+        height: MediaQuery.of(context).size.height * 0.5,
+        child: MaterialColorPicker(
+          circleSize: MediaQuery.of(context).orientation == Orientation.landscape ? 75 : 55,
+          colors: fullMaterialColors,
+          selectedColor: color.backgroundColor,
+          allowShades: false,
+          onMainColorChange: (color) =>
+              setState(() => this.color.backgroundColor = color as Color),
+        ),
       ),
     );
   }
@@ -100,11 +105,16 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
   void _openButtonColorPicker() async {
     _openDialog(
       AppLocalizations.of(context)!.translate('button_color_picker'),
-      MaterialColorPicker(
-        colors: fullMaterialColors,
-        selectedColor: color.buttonColor,
-        allowShades: false,
-        onMainColorChange: (color) => setState(() => this.color.buttonColor = color as Color),
+      Container(
+        width: MediaQuery.of(context).size.width * 0.5,
+        height: MediaQuery.of(context).size.height * 0.5,
+        child: MaterialColorPicker(
+          circleSize: MediaQuery.of(context).orientation == Orientation.landscape ? 75 : 55,
+          colors: fullMaterialColors,
+          selectedColor: color.buttonColor,
+          allowShades: false,
+          onMainColorChange: (color) => setState(() => this.color.buttonColor = color as Color),
+        ),
       ),
     );
   }
@@ -112,11 +122,16 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
   void _openIconColorPicker() async {
     _openDialog(
       AppLocalizations.of(context)!.translate('icon_color_picker'),
-      MaterialColorPicker(
-        colors: fullMaterialColors,
-        selectedColor: color.iconColor,
-        allowShades: false,
-        onMainColorChange: (color) => setState(() => this.color.iconColor = color as Color),
+      Container(
+        width: MediaQuery.of(context).size.width * 0.5,
+        height: MediaQuery.of(context).size.height * 0.5,
+        child: MaterialColorPicker(
+          circleSize: MediaQuery.of(context).orientation == Orientation.landscape ? 75 : 55,
+          colors: fullMaterialColors,
+          selectedColor: color.iconColor,
+          allowShades: false,
+          onMainColorChange: (color) => setState(() => this.color.iconColor = color as Color),
+        ),
       ),
     );
   }
@@ -127,6 +142,20 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
       this.color = color;
       return Consumer<AppSettingModel>(builder: (context, AppSettingModel appSettingModel, child) {
         return Scaffold(
+            appBar:  MediaQuery.of(context).orientation == Orientation.portrait ? AppBar(
+              elevation: 1,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back_ios, color: color.buttonColor),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              backgroundColor: Colors.white,
+              title: Text(AppLocalizations.of(context)!.translate('app_device_setting'),
+                  style: TextStyle(fontSize: 20, color: color.backgroundColor)),
+              centerTitle: false,
+            )
+                : null,
             body: StreamBuilder(
               stream: controller.appDeviceStream,
               builder: (context, snapshot){
@@ -155,6 +184,7 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                                 ),
                               ),
                             ),
+                            onTap: _openMainColorPicker,
                           ),
                           ListTile(
                             title: Text(AppLocalizations.of(context)!.translate('change_button_color')),
@@ -176,6 +206,7 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                                 ),
                               ),
                             ),
+                            onTap: _openButtonColorPicker,
                           ),
                           ListTile(
                             title: Text(AppLocalizations.of(context)!.translate('change_icon_color')),
@@ -197,6 +228,7 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                                 ),
                               ),
                             ),
+                            onTap: _openIconColorPicker,
                           ),
                           Divider(
                             color: Colors.grey,

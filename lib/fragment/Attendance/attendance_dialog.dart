@@ -84,56 +84,60 @@ class _AttendanceDialogState extends State<AttendanceDialog> {
                     ),
                   ],
                 ),
-                content: Card(
-                  elevation: 0,
-                  child: Container(
-                    height: MediaQuery.of(context).size.height / 2.5,
-                    width: MediaQuery.of(context).size.width / 2.5,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                            child: ListView.builder(
-                              padding: EdgeInsets.zero,
-                              shrinkWrap: false,
-                              itemCount: users.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                bool isClockin = users[index].clock_in_at != null && users[index].clock_in_at != '' ? true : false;
-                                Color? tileColor = isClockin ? Colors.blue[50] : Colors.red[50];
-                                Color fontColor = isClockin ? Colors.blue : Colors.red;
-                                IconData iconData = Icons.account_circle;
-                  
-                                return ListTile(
-                                  tileColor: tileColor,
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 0),
-                                  title: Text(
-                                    "${users[index].name}",
-                                    style: TextStyle(
-                                      color: fontColor,
-                                      fontSize: 16.0,
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                  leading: Icon(
-                                    iconData,
-                                    color: fontColor,
-                                  ),
-                                  trailing: Text(isClockin ? getDuration(users[index].clock_in_at!) : ''),
-                                  onTap: () async {
-                                    if(users[index].clock_in_at == null) {
-                                      setState(() {
-                                        users[index].clock_in_at = '';
-                                      });
-                                    }
-                                    await showSecondDialog(context, color, users[index].user_id!, users[index].clock_in_at!);
+                content: Column(
+                  children: [
+                    Card(
+                      elevation: 0,
+                      child: Container(
+                        height: MediaQuery.of(context).size.height / 2.5,
+                        width: MediaQuery.of(context).size.width / 2.5,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                                child: ListView.builder(
+                                  padding: EdgeInsets.zero,
+                                  shrinkWrap: false,
+                                  itemCount: users.length,
+                                  itemBuilder: (BuildContext context, int index) {
+                                    bool isClockin = users[index].clock_in_at != null && users[index].clock_in_at != '' ? true : false;
+                                    Color? tileColor = isClockin ? Colors.blue[50] : Colors.red[50];
+                                    Color fontColor = isClockin ? Colors.blue : Colors.red;
+                                    IconData iconData = Icons.account_circle;
+
+                                    return ListTile(
+                                      tileColor: tileColor,
+                                      contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 0),
+                                      title: Text(
+                                        "${users[index].name}",
+                                        style: TextStyle(
+                                          color: fontColor,
+                                          fontSize: 16.0,
+                                          fontWeight: FontWeight.normal,
+                                        ),
+                                      ),
+                                      leading: Icon(
+                                        iconData,
+                                        color: fontColor,
+                                      ),
+                                      trailing: Text(isClockin ? getDuration(users[index].clock_in_at!) : ''),
+                                      onTap: () async {
+                                        if(users[index].clock_in_at == null) {
+                                          setState(() {
+                                            users[index].clock_in_at = '';
+                                          });
+                                        }
+                                        await showSecondDialog(context, color, users[index].user_id!, users[index].clock_in_at!);
+                                      },
+                                    );
                                   },
-                                );
-                              },
-                            )
+                                )
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
                 actions: <Widget>[
                   SizedBox(
@@ -165,105 +169,112 @@ class _AttendanceDialogState extends State<AttendanceDialog> {
               );
             } else {
               ///mobile layout
-              return SingleChildScrollView(
-                physics: NeverScrollableScrollPhysics(),
-                child: AlertDialog(
-                  titlePadding: EdgeInsets.fromLTRB(24, 12, 24, 0),
-                  contentPadding: EdgeInsets.fromLTRB(18, 10, 18, 0),
-                  title: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(AppLocalizations.of(context)!.translate('clock_in_out')),
-                      Container(
-                        padding: EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          color: Colors.grey[200],
-                        ),
-                        child: Text(
-                          DateFormat('dd/MM/yyyy - hh:mm:ss a').format(currentTime),
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+              return Center(
+                child: SingleChildScrollView(
+                  physics: NeverScrollableScrollPhysics(),
+                  child: AlertDialog(
+                    titlePadding: EdgeInsets.fromLTRB(24, 12, 24, 0),
+                    contentPadding: EdgeInsets.fromLTRB(18, 10, 18, 0),
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(AppLocalizations.of(context)!.translate('clock_in_out')),
+                        Container(
+                          padding: EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.grey[200],
                           ),
+                          child: Text(
+                            MediaQuery.of(context).size.width > 500 ?
+                            DateFormat('dd/MM/yyyy - hh:mm:ss a').format(currentTime)
+                            : DateFormat('hh:mm:ss a').format(currentTime),
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    content: Card(
+                      elevation: 0,
+                      child: Container(
+                        height: MediaQuery.of(context).size.height / 2,
+                        width: MediaQuery.of(context).size.width,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                                child: ListView.builder(
+                                  padding: EdgeInsets.zero,
+                                  shrinkWrap: false,
+                                  itemCount: users.length,
+                                  itemBuilder: (BuildContext context, int index) {
+                                    bool isClockin = users[index].clock_in_at != null && users[index].clock_in_at != '' ? true : false;
+                                    Color? tileColor = isClockin ? Colors.blue[50] : Colors.red[50];
+                                    Color fontColor = isClockin ? Colors.blue : Colors.red;
+                                    IconData iconData = Icons.account_circle;
+
+                                    return ListTile(
+                                      tileColor: tileColor,
+                                      contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 0),
+                                      title: Text(
+                                        "${users[index].name}",
+                                        style: TextStyle(
+                                          color: fontColor,
+                                          fontSize: 16.0,
+                                          fontWeight: FontWeight.normal,
+                                        ),
+                                      ),
+                                      leading: MediaQuery.of(context).size.width > 500 ? Icon(
+                                        iconData,
+                                        color: fontColor,
+                                      ) : null,
+                                      trailing: Text(isClockin ? getDuration(users[index].clock_in_at!) : ''),
+                                      onTap: () async {
+                                        if(users[index].clock_in_at == null) {
+                                          setState(() {
+                                            users[index].clock_in_at = '';
+                                          });
+                                        }
+                                        await showSecondDialog(context, color, users[index].user_id!, users[index].clock_in_at!);
+                                      },
+                                    );
+                                  },
+                                )
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    actions: <Widget>[
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                        height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                            ? MediaQuery.of(context).size.height / 12
+                            : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+                            : MediaQuery.of(context).size.height / 20,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: color.backgroundColor,
+                          ),
+                          child: Text(
+                            AppLocalizations.of(context)!.translate('close'),
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          onPressed: isButtonDisabled
+                              ? null
+                              : () {
+                            setState(() {
+                              isButtonDisabled = true;
+                            });
+                            Navigator.of(context).pop();
+                          },
                         ),
                       ),
                     ],
                   ),
-                  content: Card(
-                    elevation: 0,
-                    child: Container(
-                      height: MediaQuery.of(context).size.height / 2,
-                      width: MediaQuery.of(context).size.width / 2,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                              child: ListView.builder(
-                                padding: EdgeInsets.zero,
-                                shrinkWrap: false,
-                                itemCount: users.length,
-                                itemBuilder: (BuildContext context, int index) {
-                                  bool isClockin = users[index].clock_in_at != null && users[index].clock_in_at != '' ? true : false;
-                                  Color? tileColor = isClockin ? Colors.blue[50] : Colors.red[50];
-                                  Color fontColor = isClockin ? Colors.blue : Colors.red;
-                                  IconData iconData = Icons.account_circle;
-
-                                  return ListTile(
-                                    tileColor: tileColor,
-                                    contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 0),
-                                    title: Text(
-                                      "${users[index].name}",
-                                      style: TextStyle(
-                                        color: fontColor,
-                                        fontSize: 16.0,
-                                        fontWeight: FontWeight.normal,
-                                      ),
-                                    ),
-                                    leading: Icon(
-                                      iconData,
-                                      color: fontColor,
-                                    ),
-                                    trailing: Text(isClockin ? getDuration(users[index].clock_in_at!) : ''),
-                                    onTap: () async {
-                                      if(users[index].clock_in_at == null) {
-                                        setState(() {
-                                          users[index].clock_in_at = '';
-                                        });
-                                      }
-                                      await showSecondDialog(context, color, users[index].user_id!, users[index].clock_in_at!);
-                                    },
-                                  );
-                                },
-                              )
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  actions: <Widget>[
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: color.backgroundColor,
-                        ),
-                        child: Text(
-                          AppLocalizations.of(context)!.translate('close'),
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        onPressed: isButtonDisabled
-                            ? null
-                            : () {
-                          setState(() {
-                            isButtonDisabled = true;
-                          });
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ),
-                  ],
                 ),
               );
             }
@@ -338,52 +349,67 @@ class _AttendanceDialogState extends State<AttendanceDialog> {
                         }),
                   ),
                   actions: <Widget>[
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: color.backgroundColor,
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: SizedBox(
+                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                                ? MediaQuery.of(context).size.height / 12
+                                : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+                                : MediaQuery.of(context).size.height / 20,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: color.backgroundColor,
+                              ),
+                              child: Text(
+                                AppLocalizations.of(context)!.translate('close'),
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onPressed: isButtonDisabled
+                                  ? null
+                                  : () {
+                                setState(() {
+                                  adminPosPinController.clear();
+                                  isButtonDisabled = true;
+                                });
+                                Navigator.of(context).pop();
+                                setState(() {
+                                  isButtonDisabled = false;
+                                });
+                              },
+                            ),
+                          ),
                         ),
-                        child: Text(
-                          AppLocalizations.of(context)!.translate('close'),
-                          style: TextStyle(color: Colors.white),
+                        SizedBox(width: 10),
+                        Expanded(
+                          flex: 1,
+                          child: SizedBox(
+                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                                ? MediaQuery.of(context).size.height / 12
+                                : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+                                : MediaQuery.of(context).size.height / 20,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: color.buttonColor,
+                              ),
+                              child: Text(
+                                AppLocalizations.of(context)!.translate('yes'),
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onPressed: isButtonDisabled
+                                  ? null
+                                  : () async {
+                                // setState(() {
+                                //   isButtonDisabled = true;
+                                //   willPop = false;
+                                // });
+                                _submit(context, user_id, clockInTime);
+                              },
+                            ),
+                          ),
                         ),
-                        onPressed: isButtonDisabled
-                            ? null
-                            : () {
-                          setState(() {
-                            adminPosPinController.clear();
-                            isButtonDisabled = true;
-                          });
-                          Navigator.of(context).pop();
-                          setState(() {
-                            isButtonDisabled = false;
-                          });
-                        },
-                      ),
-                    ),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: color.buttonColor,
-                        ),
-                        child: Text(
-                          AppLocalizations.of(context)!.translate('yes'),
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        onPressed: isButtonDisabled
-                            ? null
-                            : () async {
-                          // setState(() {
-                          //   isButtonDisabled = true;
-                          //   willPop = false;
-                          // });
-                          _submit(context, user_id, clockInTime);
-                        },
-                      ),
+                      ],
                     ),
                   ],
                 ),

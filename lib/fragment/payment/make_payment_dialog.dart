@@ -763,28 +763,427 @@ class _MakePaymentState extends State<MakePayment> {
                         height: MediaQuery.of(context).size.height / 1.5,
                         width: 650,
                         // height: 250,
-                        child: Row(
+                        child: MediaQuery.of(context).orientation == Orientation.landscape ? Row(
                           children: [
                             Expanded(
                                 child: SingleChildScrollView(
-                              child: Column(
-                                children: [
-                                  Container(
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                        _appSettingModel.table_order == 0 ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
-                                            : AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 20)),
+                                  child: Column(
+                                    children: [
+                                      Container(
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                            _appSettingModel.table_order == 0 ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
+                                                : AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 20)),
+                                      ),
+                                      Container(
+                                        //margin: EdgeInsets.all(25),
+                                        child: Card(
+                                          elevation: 5,
+                                          child: Column(
+                                            children: [
+                                              ListView.builder(
+                                                  shrinkWrap: true,
+                                                  physics: NeverScrollableScrollPhysics(),
+                                                  itemCount: itemList.length,
+                                                  padding: EdgeInsets.only(top: 10),
+                                                  itemBuilder: (context, index) {
+                                                    return ListTile(
+                                                      onTap: null,
+                                                      isThreeLine: true,
+                                                      title: RichText(
+                                                        text: TextSpan(
+                                                          children: <TextSpan>[
+                                                            TextSpan(
+                                                              text: '${itemList[index].product_name!} (${itemList[index].price!}/${itemList[index].per_quantity_unit!}${itemList[index].unit! == 'each' || itemList[index].unit! == 'each_c' ? 'each' : itemList[index].unit!})\n',
+                                                              style: TextStyle(
+                                                                  fontSize: 15,
+                                                                  color: color.backgroundColor,
+                                                                  fontWeight: FontWeight.bold),
+                                                            ),
+                                                            TextSpan(
+                                                                text: "RM" + itemList[index].price!,
+                                                                style: TextStyle(
+                                                                  fontSize: 15,
+                                                                  color: color.backgroundColor,
+                                                                )),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      subtitle: Text(getVariant(itemList[index]) +
+                                                          getModifier(itemList[index]) +
+                                                          getRemark(itemList[index]),
+                                                          style: TextStyle(fontSize: 12)),
+                                                      trailing: Container(
+                                                        child: FittedBox(
+                                                          child: Row(
+                                                            children: [
+                                                              Text('x${itemList[index].quantity.toString()}',
+                                                                style: TextStyle(
+                                                                    color: color.backgroundColor,
+                                                                    fontWeight: FontWeight.bold),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  }),
+                                              SizedBox(height: 5),
+                                              Divider(
+                                                color: Colors.grey,
+                                                height: 1,
+                                                thickness: 1,
+                                                indent: 20,
+                                                endIndent: 20,
+                                              ),
+                                              SizedBox(height: 5),
+                                              Container(
+                                                constraints: new BoxConstraints(
+                                                    maxHeight: MediaQuery.of(context).size.height / 2),
+                                                // height: MediaQuery.of(context).size.height < 700 && cart.selectedOption == 'Dine in' ? 190
+                                                //         : MediaQuery.of(context).size.height < 700 && cart.selectedOption == 'Take Away' ? 180
+                                                //         : 200,
+                                                child: ListView(
+                                                  controller: _controller,
+                                                  padding: EdgeInsets.only(
+                                                      left: 5, right: 5),
+                                                  physics: ClampingScrollPhysics(),
+                                                  children: [
+                                                    ListTile(
+                                                      title: Text('Subtotal', style: TextStyle(fontSize: 14)),
+                                                      trailing: Text('${total.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
+                                                      visualDensity: VisualDensity(vertical: -4),
+                                                      dense: true,
+                                                    ),
+                                                    Visibility(
+                                                      visible: hasSelectedPromo
+                                                          ? true
+                                                          : false,
+                                                      child: ListTile(
+                                                        title: SingleChildScrollView(
+                                                          scrollDirection: Axis.horizontal,
+                                                          child: Row(
+                                                            children: [
+                                                              Text('${allPromo} (${selectedPromoRate})', style: TextStyle(fontSize: 14)),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        trailing: Text('-${selectedPromo.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
+                                                        visualDensity: VisualDensity(vertical: -4),
+                                                        dense: true,
+                                                      ),
+                                                    ),
+                                                    Visibility(
+                                                        visible: hasPromo == true ? true : false,
+                                                        child: ListView.builder(
+                                                            physics: NeverScrollableScrollPhysics(),
+                                                            padding: EdgeInsets.zero,
+                                                            shrinkWrap: true,
+                                                            itemCount: autoApplyPromotionList.length,
+                                                            itemBuilder: (context, index) {
+                                                              return ListTile(
+                                                                  title: Text('${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})',
+                                                                      style: TextStyle(fontSize: 14)),
+                                                                  visualDensity: VisualDensity(vertical: -4),
+                                                                  dense: true,
+                                                                  trailing: Text('-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}',
+                                                                      style: TextStyle(fontSize: 14)));
+                                                            })),
+                                                    ListView.builder(
+                                                        shrinkWrap: true,
+                                                        padding: EdgeInsets.zero,
+                                                        physics: NeverScrollableScrollPhysics(),
+                                                        itemCount: taxList.length,
+                                                        itemBuilder: (context, index) {
+                                                          return ListTile(
+                                                            title: Text('${taxList[index].name}(${taxList[index].tax_rate}%)'),
+                                                            trailing: Text('${taxList[index].tax_amount?.toStringAsFixed(2)}'),
+                                                            visualDensity: VisualDensity(vertical: -4),
+                                                            dense: true,
+                                                          );
+                                                        }),
+                                                    ListTile(
+                                                      title: Text('Total', style: TextStyle(fontSize: 14)),
+                                                      trailing: Text('${totalAmount.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
+                                                      visualDensity: VisualDensity(vertical: -4),
+                                                      dense: true,
+                                                    ),
+                                                    ListTile(
+                                                      title: Text('Rounding',
+                                                          style: TextStyle(fontSize: 14)),
+                                                      trailing: Text(
+                                                          '${rounding.toStringAsFixed(2)}',
+                                                          style: TextStyle(fontSize: 14)),
+                                                      visualDensity: VisualDensity(vertical: -4),
+                                                      dense: true,
+                                                    ),
+                                                    ListTile(
+                                                      visualDensity: VisualDensity(vertical: -4),
+                                                      title: Text('Final Amount',
+                                                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                                      trailing: Text("${finalAmount}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                                      dense: true,
+                                                    ),
+                                                  ],
+                                                  shrinkWrap: true,
+                                                ),
+                                              ),
+                                              SizedBox(height: 10),
+                                              Divider(
+                                                color: Colors.grey,
+                                                height: 1,
+                                                thickness: 1,
+                                                indent: 20,
+                                                endIndent: 20,
+                                              ),
+                                              SizedBox(height: 10),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Container(
-                                    //margin: EdgeInsets.all(25),
-                                    child: Card(
-                                      elevation: 5,
+                                )),
+                            Container(
+                              margin: EdgeInsets.fromLTRB(5, 0, 5, 0),
+                              height: 200,
+                              child: VerticalDivider(
+                                  color: Colors.grey, thickness: 1),
+                            ),
+                            Expanded(
+                              child: widget.type == 0
+                                  ? Container(
+                                child: Column(
+                                  children: [
+                                    Text("Total: ${finalAmount}",
+                                        style: TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold)),
+                                    SizedBox(height: 10),
+                                    Container(
+                                      margin: EdgeInsets.only(bottom: 10),
+                                      alignment: Alignment.centerLeft,
+                                      child: Text('Change: ${change}'),
+                                    ),
+                                    Expanded(
+                                      flex: 2,
                                       child: Column(
                                         children: [
-                                          ListView.builder(
+                                          Container(
+                                            margin: EdgeInsets.only(
+                                                bottom: 10),
+                                            child: ValueListenableBuilder(
+                                                valueListenable: inputController,
+                                                builder: (context, TextEditingValue value, __) {
+                                                  return Container(
+                                                    child: TextField(
+                                                      onChanged: (value) {
+                                                        calcChange(value);
+                                                      },
+                                                      keyboardType: TextInputType.number,
+                                                      textAlign: TextAlign.right,
+                                                      enabled: MediaQuery.of(context).size.height > 500 ? false : true,
+                                                      maxLines: 1,
+                                                      controller: inputController,
+                                                      decoration: InputDecoration(
+                                                        border: OutlineInputBorder(
+                                                            borderSide: BorderSide(color: color.backgroundColor)),
+                                                        focusedBorder: OutlineInputBorder(
+                                                          borderSide: BorderSide(color: color.backgroundColor),
+                                                        ),
+                                                      ),
+                                                      style: TextStyle(fontSize: 40),
+                                                    ),
+                                                  );
+                                                }),
+                                          ),
+                                          Expanded(
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                ElevatedButton(
+                                                    style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                                                    onPressed: isButtonDisable || itemList.isEmpty ? null : () async {
+                                                      if (double.parse(inputController.text) >= double.parse(finalAmount)) {
+                                                        setState(() {
+                                                          isButtonDisable = true;
+                                                        });
+                                                        await callCreateOrder(inputController.text, orderChange: change);
+                                                        if (this.isLogOut == true) {
+                                                          openLogOutDialog();
+                                                          return;
+                                                        }
+                                                        openPaymentSuccessDialog(widget.dining_id, isCashMethod: true, diningName: widget.dining_name);
+                                                      } else {
+                                                        Fluttertoast.showToast(
+                                                            backgroundColor: Color(0xFFFF0000),
+                                                            msg: AppLocalizations.of(context)!.translate('insufficient_balance'));
+                                                        setState(() {
+                                                          inputController.text = '0.00';
+                                                        });
+                                                      }
+                                                    },
+                                                    child: Text(AppLocalizations.of(context)!.translate('make_payment'))),
+                                                SizedBox(
+                                                  width: 10,
+                                                ),
+                                                ElevatedButton(
+                                                    style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                                                    onPressed: () {
+                                                      inputController.clear();
+                                                      setState(() {
+                                                        change = '0.00';
+                                                      });
+                                                    },
+                                                    child: Text(AppLocalizations.of(context)!.translate('clear'))),
+                                              ],
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ), // GridView.builder
+                              )
+                                  : widget.type == 1
+                                  ? Container(
+                                child: Column(
+                                  children: [
+                                    Text('Total: ${finalAmount}',
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    Spacer(),
+                                    Container(
+                                      height: 150,
+                                      //margin: EdgeInsets.only(bottom: 10),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(16.0),
+                                        child:
+                                        ///***If you have exported images you must have to copy those images in assets/images directory.
+                                        Image(image: AssetImage("drawable/duitNow.jpg")),
+                                      ),
+                                    ),
+                                    Spacer(),
+                                    Container(
+                                      child: ElevatedButton.icon(
+                                        style: ButtonStyle(
+                                            backgroundColor: MaterialStateProperty.all(Colors.green),
+                                            padding: MaterialStateProperty.all(EdgeInsets.all(10))
+                                        ),
+                                        onPressed: isButtonDisable || itemList.isEmpty ? null : () async {
+                                          setState(() {
+                                            // willPop = false;
+                                            isButtonDisable = true;
+                                          });
+                                          await callCreateOrder(finalAmount);
+                                          if (this.isLogOut == true) {
+                                            openLogOutDialog();
+                                            return;
+                                          }
+                                          openPaymentSuccessDialog(
+                                              widget.dining_id,
+                                              isCashMethod: false,
+                                              diningName: widget.dining_name);
+                                        },
+                                        icon: Icon(Icons.call_received),
+                                        label: Text(
+                                            AppLocalizations.of(context)!.translate('payment_received'),
+                                            style: TextStyle(fontSize: 16)),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                                  : widget.type == 2
+                                  ? Container(
+                                child: Column(
+                                  children: [
+                                    Visibility(
+                                      visible: scanning ? false : true,
+                                      child: Container(
+                                          alignment: Alignment.center,
+                                          margin: EdgeInsets.only(bottom: 10),
+                                          child: Text('Total: ${finalAmount}',
+                                              style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold))),
+                                    ),
+                                    Expanded(
+                                      child: Container(
+                                        height: scanning == false ? 150 : 240,
+                                        margin: EdgeInsets.only(bottom: 10),
+                                        child: scanning == false ?
+                                        ClipRRect(
+                                          child: Image(
+                                            image: AssetImage("drawable/TNG.jpg"),
+                                          ),
+                                        ) :
+                                        Container(
+                                          child: _buildQrViewMobile(context),
+                                        ),
+                                      ),
+                                    ),
+                                    Visibility(
+                                      visible: scanning ? false : true,
+                                      child: Container(
+                                        alignment: Alignment.center,
+                                        child: ElevatedButton(
+                                          style: ButtonStyle(
+                                            backgroundColor: MaterialStateProperty.all(color.buttonColor),),
+                                          onPressed: () async {
+                                            setState(() {
+                                              scanning = true;
+                                            });
+                                            //await controller?.resumeCamera();
+                                            await controller?.scannedDataStream;
+                                            await callCreateOrder(finalAmount);
+                                            if (this.isLogOut == true) {
+                                              openLogOutDialog();
+                                              return;
+                                            }
+                                          },
+                                          child: Text(
+                                              AppLocalizations.of(context)!.translate('scan_qr'),
+                                              style: TextStyle(fontSize: 20)),
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              )
+                                  : Container(),
+                            )
+                          ],
+                        ) :
+                        Column(
+                          children: [
+                            Expanded(
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        _appSettingModel.table_order == 0
+                                            ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
+                                            : AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20,
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      child: Card(
+                                        elevation: 5,
+                                        child: Column(
+                                          children: [
+                                            ListView.builder(
                                               shrinkWrap: true,
                                               physics: NeverScrollableScrollPhysics(),
                                               itemCount: itemList.length,
@@ -799,100 +1198,105 @@ class _MakePaymentState extends State<MakePayment> {
                                                         TextSpan(
                                                           text: '${itemList[index].product_name!} (${itemList[index].price!}/${itemList[index].per_quantity_unit!}${itemList[index].unit! == 'each' || itemList[index].unit! == 'each_c' ? 'each' : itemList[index].unit!})\n',
                                                           style: TextStyle(
-                                                              fontSize: 15,
-                                                              color: color.backgroundColor,
-                                                              fontWeight: FontWeight.bold),
+                                                            fontSize: 15,
+                                                            color: color.backgroundColor,
+                                                            fontWeight: FontWeight.bold,
+                                                          ),
                                                         ),
                                                         TextSpan(
-                                                            text: "RM" + itemList[index].price!,
-                                                            style: TextStyle(
-                                                              fontSize: 15,
-                                                              color: color.backgroundColor,
-                                                            )),
+                                                          text: "RM" + itemList[index].price!,
+                                                          style: TextStyle(
+                                                            fontSize: 15,
+                                                            color: color.backgroundColor,
+                                                          ),
+                                                        ),
                                                       ],
                                                     ),
                                                   ),
-                                                  subtitle: Text(getVariant(itemList[index]) +
-                                                          getModifier(itemList[index]) +
-                                                          getRemark(itemList[index]),
-                                                      style: TextStyle(fontSize: 12)),
+                                                  subtitle: Text(
+                                                    getVariant(itemList[index]) +
+                                                        getModifier(itemList[index]) +
+                                                        getRemark(itemList[index]),
+                                                    style: TextStyle(fontSize: 12),
+                                                  ),
                                                   trailing: Container(
                                                     child: FittedBox(
                                                       child: Row(
                                                         children: [
-                                                          Text('x${itemList[index].quantity.toString()}',
+                                                          Text(
+                                                            'x${itemList[index].quantity.toString()}',
                                                             style: TextStyle(
-                                                                color: color.backgroundColor,
-                                                                fontWeight: FontWeight.bold),
+                                                              color: color.backgroundColor,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
                                                           ),
                                                         ],
                                                       ),
                                                     ),
                                                   ),
                                                 );
-                                              }),
-                                          SizedBox(height: 5),
-                                          Divider(
-                                            color: Colors.grey,
-                                            height: 1,
-                                            thickness: 1,
-                                            indent: 20,
-                                            endIndent: 20,
-                                          ),
-                                          SizedBox(height: 5),
-                                          Container(
-                                            constraints: new BoxConstraints(
-                                                maxHeight: MediaQuery.of(context).size.height / 2),
-                                            // height: MediaQuery.of(context).size.height < 700 && cart.selectedOption == 'Dine in' ? 190
-                                            //         : MediaQuery.of(context).size.height < 700 && cart.selectedOption == 'Take Away' ? 180
-                                            //         : 200,
-                                            child: ListView(
-                                              controller: _controller,
-                                              padding: EdgeInsets.only(
-                                                  left: 5, right: 5),
-                                              physics: ClampingScrollPhysics(),
-                                              children: [
-                                                ListTile(
-                                                  title: Text('Subtotal', style: TextStyle(fontSize: 14)),
-                                                  trailing: Text('${total.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
-                                                  visualDensity: VisualDensity(vertical: -4),
-                                                  dense: true,
-                                                ),
-                                                Visibility(
-                                                  visible: hasSelectedPromo
-                                                      ? true
-                                                      : false,
-                                                  child: ListTile(
-                                                    title: SingleChildScrollView(
-                                                      scrollDirection: Axis.horizontal,
-                                                      child: Row(
-                                                        children: [
-                                                          Text('${allPromo} (${selectedPromoRate})', style: TextStyle(fontSize: 14)),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                    trailing: Text('-${selectedPromo.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
+                                              },
+                                            ),
+                                            SizedBox(height: 5),
+                                            Divider(
+                                              color: Colors.grey,
+                                              height: 1,
+                                              thickness: 1,
+                                              indent: 20,
+                                              endIndent: 20,
+                                            ),
+                                            SizedBox(height: 5),
+                                            Container(
+                                              constraints: BoxConstraints(
+                                                maxHeight: MediaQuery.of(context).size.height / 2,
+                                              ),
+                                              child: ListView(
+                                                controller: _controller,
+                                                padding: EdgeInsets.only(left: 5, right: 5),
+                                                physics: ClampingScrollPhysics(),
+                                                children: [
+                                                  ListTile(
+                                                    title: Text('Subtotal', style: TextStyle(fontSize: 14)),
+                                                    trailing: Text('${total.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
                                                     visualDensity: VisualDensity(vertical: -4),
                                                     dense: true,
                                                   ),
-                                                ),
-                                                Visibility(
+                                                  Visibility(
+                                                    visible: hasSelectedPromo ? true : false,
+                                                    child: ListTile(
+                                                      title: SingleChildScrollView(
+                                                        scrollDirection: Axis.horizontal,
+                                                        child: Row(
+                                                          children: [
+                                                            Text('${allPromo} (${selectedPromoRate})', style: TextStyle(fontSize: 14)),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      trailing: Text('-${selectedPromo.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
+                                                      visualDensity: VisualDensity(vertical: -4),
+                                                      dense: true,
+                                                    ),
+                                                  ),
+                                                  Visibility(
                                                     visible: hasPromo == true ? true : false,
                                                     child: ListView.builder(
-                                                        physics: NeverScrollableScrollPhysics(),
-                                                        padding: EdgeInsets.zero,
-                                                        shrinkWrap: true,
-                                                        itemCount: autoApplyPromotionList.length,
-                                                        itemBuilder: (context, index) {
-                                                          return ListTile(
-                                                              title: Text('${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})',
-                                                                  style: TextStyle(fontSize: 14)),
-                                                              visualDensity: VisualDensity(vertical: -4),
-                                                              dense: true,
-                                                              trailing: Text('-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}',
-                                                                  style: TextStyle(fontSize: 14)));
-                                                        })),
-                                                ListView.builder(
+                                                      physics: NeverScrollableScrollPhysics(),
+                                                      padding: EdgeInsets.zero,
+                                                      shrinkWrap: true,
+                                                      itemCount: autoApplyPromotionList.length,
+                                                      itemBuilder: (context, index) {
+                                                        return ListTile(
+                                                          title: Text('${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})',
+                                                              style: TextStyle(fontSize: 14)),
+                                                          visualDensity: VisualDensity(vertical: -4),
+                                                          dense: true,
+                                                          trailing: Text('-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}',
+                                                              style: TextStyle(fontSize: 14)),
+                                                        );
+                                                      },
+                                                    ),
+                                                  ),
+                                                  ListView.builder(
                                                     shrinkWrap: true,
                                                     padding: EdgeInsets.zero,
                                                     physics: NeverScrollableScrollPhysics(),
@@ -904,109 +1308,105 @@ class _MakePaymentState extends State<MakePayment> {
                                                         visualDensity: VisualDensity(vertical: -4),
                                                         dense: true,
                                                       );
-                                                    }),
-                                                ListTile(
-                                                  title: Text('Total', style: TextStyle(fontSize: 14)),
-                                                  trailing: Text('${totalAmount.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
-                                                  visualDensity: VisualDensity(vertical: -4),
-                                                  dense: true,
-                                                ),
-                                                ListTile(
-                                                  title: Text('Rounding',
-                                                      style: TextStyle(fontSize: 14)),
-                                                  trailing: Text(
-                                                      '${rounding.toStringAsFixed(2)}',
-                                                      style: TextStyle(fontSize: 14)),
-                                                  visualDensity: VisualDensity(vertical: -4),
-                                                  dense: true,
-                                                ),
-                                                ListTile(
-                                                  visualDensity: VisualDensity(vertical: -4),
-                                                  title: Text('Final Amount',
-                                                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                                  trailing: Text("${finalAmount}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                                  dense: true,
-                                                ),
-                                              ],
-                                              shrinkWrap: true,
+                                                    },
+                                                  ),
+                                                  ListTile(
+                                                    title: Text('Total', style: TextStyle(fontSize: 14)),
+                                                    trailing: Text('${totalAmount.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
+                                                    visualDensity: VisualDensity(vertical: -4),
+                                                    dense: true,
+                                                  ),
+                                                  ListTile(
+                                                    title: Text('Rounding', style: TextStyle(fontSize: 14)),
+                                                    trailing: Text('${rounding.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
+                                                    visualDensity: VisualDensity(vertical: -4),
+                                                    dense: true,
+                                                  ),
+                                                  ListTile(
+                                                    visualDensity: VisualDensity(vertical: -4),
+                                                    title: Text('Final Amount', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                                    trailing: Text("${finalAmount}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                                    dense: true,
+                                                  ),
+                                                ],
+                                                shrinkWrap: true,
+                                              ),
                                             ),
-                                          ),
-                                          SizedBox(height: 10),
-                                          Divider(
-                                            color: Colors.grey,
-                                            height: 1,
-                                            thickness: 1,
-                                            indent: 20,
-                                            endIndent: 20,
-                                          ),
-                                          SizedBox(height: 10),
-                                        ],
+                                            SizedBox(height: 10),
+                                            Divider(
+                                              color: Colors.grey,
+                                              height: 1,
+                                              thickness: 1,
+                                              indent: 20,
+                                              endIndent: 20,
+                                            ),
+                                            SizedBox(height: 10),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            )),
-                            Container(
-                              margin: EdgeInsets.fromLTRB(5, 0, 5, 0),
-                              height: 200,
-                              child: VerticalDivider(
-                                  color: Colors.grey, thickness: 1),
-                            ),
-                            Expanded(
-                              child: widget.type == 0
-                                  ? Container(
-                                      child: Column(
-                                        children: [
-                                          Text("Total: ${finalAmount}",
-                                              style: TextStyle(
-                                                  fontSize: 24,
-                                                  fontWeight: FontWeight.bold)),
-                                          SizedBox(height: 10),
-                                          Container(
-                                            margin: EdgeInsets.only(bottom: 10),
-                                            alignment: Alignment.centerLeft,
-                                            child: Text('Change: ${change}'),
-                                          ),
-                                          Expanded(
-                                            flex: 2,
-                                            child: Column(
-                                              children: [
-                                                Container(
-                                                  margin: EdgeInsets.only(
-                                                      bottom: 10),
-                                                  child: ValueListenableBuilder(
-                                                      valueListenable: inputController,
-                                                      builder: (context, TextEditingValue value, __) {
-                                                        return Container(
-                                                          child: TextField(
-                                                            onChanged: (value) {
-                                                              calcChange(value);
-                                                            },
-                                                            keyboardType: TextInputType.number,
-                                                            textAlign: TextAlign.right,
-                                                            enabled: MediaQuery.of(context).size.height > 500 ? false : true,
-                                                            maxLines: 1,
-                                                            controller: inputController,
-                                                            decoration: InputDecoration(
-                                                              border: OutlineInputBorder(
-                                                                  borderSide: BorderSide(color: color.backgroundColor)),
-                                                              focusedBorder: OutlineInputBorder(
-                                                                borderSide: BorderSide(color: color.backgroundColor),
+                                    Container(
+                                      padding: EdgeInsets.only(top: 20),
+                                      height: 300,
+                                      child: widget.type == 0
+                                          ? Container(
+                                        child: Column(
+                                          children: [
+                                            Text("Total: ${finalAmount}", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                                            SizedBox(height: 10),
+                                            Container(
+                                              margin: EdgeInsets.only(bottom: 10),
+                                              alignment: Alignment.centerLeft,
+                                              child: Text('Change: ${change}'),
+                                            ),
+                                            Expanded(
+                                              flex: 2,
+                                              child: Column(
+                                                children: [
+                                                  GestureDetector(
+                                                    behavior: HitTestBehavior.opaque,
+                                                    onTap: () {
+                                                      FocusScopeNode currentFocus = FocusScope.of(context);
+
+                                                      if (!currentFocus.hasPrimaryFocus &&
+                                                          currentFocus.focusedChild != null) {
+                                                        FocusScope.of(context).unfocus();
+                                                      }
+                                                    },
+                                                    child: Container(
+                                                      margin: EdgeInsets.only(bottom: 10),
+                                                      child: ValueListenableBuilder(
+                                                        valueListenable: inputController,
+                                                        builder: (context, TextEditingValue value, __) {
+                                                          return Container(
+                                                            child: TextField(
+                                                              onChanged: (value) {
+                                                                calcChange(value);
+                                                              },
+                                                              keyboardType: TextInputType.number,
+                                                              textAlign: TextAlign.right,
+                                                              maxLines: 1,
+                                                              controller: inputController,
+                                                              decoration: InputDecoration(
+                                                                border: OutlineInputBorder(borderSide: BorderSide(color: color.backgroundColor)),
+                                                                focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: color.backgroundColor)),
                                                               ),
+                                                              style: TextStyle(fontSize: 40),
                                                             ),
-                                                            style: TextStyle(fontSize: 40),
-                                                          ),
-                                                        );
-                                                      }),
-                                                ),
-                                                Expanded(
-                                                  child: Row(
-                                                    mainAxisAlignment: MainAxisAlignment.center,
-                                                    children: [
-                                                      ElevatedButton(
+                                                          );
+                                                        },
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    child: Row(
+                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      children: [
+                                                        ElevatedButton(
                                                           style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                                                          onPressed: isButtonDisable || itemList.isEmpty ? null : () async {
+                                                          onPressed: isButtonDisable || itemList.isEmpty
+                                                              ? null
+                                                              : () async {
                                                             if (double.parse(inputController.text) >= double.parse(finalAmount)) {
                                                               setState(() {
                                                                 isButtonDisable = true;
@@ -1019,18 +1419,18 @@ class _MakePaymentState extends State<MakePayment> {
                                                               openPaymentSuccessDialog(widget.dining_id, isCashMethod: true, diningName: widget.dining_name);
                                                             } else {
                                                               Fluttertoast.showToast(
-                                                                  backgroundColor: Color(0xFFFF0000),
-                                                                  msg: AppLocalizations.of(context)!.translate('insufficient_balance'));
+                                                                backgroundColor: Color(0xFFFF0000),
+                                                                msg: AppLocalizations.of(context)!.translate('insufficient_balance'),
+                                                              );
                                                               setState(() {
                                                                 inputController.text = '0.00';
                                                               });
                                                             }
                                                           },
-                                                          child: Text(AppLocalizations.of(context)!.translate('make_payment'))),
-                                                      SizedBox(
-                                                        width: 10,
-                                                      ),
-                                                      ElevatedButton(
+                                                          child: Text(AppLocalizations.of(context)!.translate('make_payment')),
+                                                        ),
+                                                        SizedBox(width: 10),
+                                                        ElevatedButton(
                                                           style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                                                           onPressed: () {
                                                             inputController.clear();
@@ -1038,128 +1438,117 @@ class _MakePaymentState extends State<MakePayment> {
                                                               change = '0.00';
                                                             });
                                                           },
-                                                          child: Text(AppLocalizations.of(context)!.translate('clear'))),
-                                                    ],
+                                                          child: Text(AppLocalizations.of(context)!.translate('clear')),
+                                                        ),
+                                                      ],
+                                                    ),
                                                   ),
-                                                )
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ), // GridView.builder
-                                    )
-                                  : widget.type == 1
-                                      ? Container(
-                                          child: Column(
-                                            children: [
-                                              Text('Total: ${finalAmount}',
-                                                style: TextStyle(
-                                                    fontSize: 20,
-                                                    fontWeight: FontWeight.bold),
+                                                ],
                                               ),
-                                              Spacer(),
-                                              Container(
-                                                height: 150,
-                                                //margin: EdgeInsets.only(bottom: 10),
-                                                child: ClipRRect(
-                                                  borderRadius: BorderRadius.circular(16.0),
-                                                  child:
-                                                  ///***If you have exported images you must have to copy those images in assets/images directory.
-                                                  Image(image: AssetImage("drawable/duitNow.jpg")),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                          : widget.type == 1
+                                          ? Container(
+                                        child: Column(
+                                          children: [
+                                            Text('Total: ${finalAmount}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                            Spacer(),
+                                            Container(
+                                              height: 150,
+                                              child: ClipRRect(
+                                                borderRadius: BorderRadius.circular(16.0),
+                                                child: Image(image: AssetImage("drawable/duitNow.jpg")),
+                                              ),
+                                            ),
+                                            Spacer(),
+                                            Container(
+                                              child: ElevatedButton.icon(
+                                                style: ButtonStyle(
+                                                  backgroundColor: MaterialStateProperty.all(Colors.green),
+                                                  padding: MaterialStateProperty.all(EdgeInsets.all(10)),
+                                                ),
+                                                onPressed: isButtonDisable || itemList.isEmpty
+                                                    ? null
+                                                    : () async {
+                                                  setState(() {
+                                                    isButtonDisable = true;
+                                                  });
+                                                  await callCreateOrder(finalAmount);
+                                                  if (this.isLogOut == true) {
+                                                    openLogOutDialog();
+                                                    return;
+                                                  }
+                                                  openPaymentSuccessDialog(widget.dining_id, isCashMethod: false, diningName: widget.dining_name);
+                                                },
+                                                icon: Icon(Icons.call_received),
+                                                label: Text(AppLocalizations.of(context)!.translate('payment_received'), style: TextStyle(fontSize: 16)),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                          : widget.type == 2
+                                          ? Container(
+                                        child: Column(
+                                          children: [
+                                            Visibility(
+                                              visible: scanning ? false : true,
+                                              child: Container(
+                                                alignment: Alignment.center,
+                                                margin: EdgeInsets.only(bottom: 10),
+                                                child: Text('Total: ${finalAmount}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: Container(
+                                                height: scanning == false ? 150 : 240,
+                                                margin: EdgeInsets.only(bottom: 10),
+                                                child: scanning == false
+                                                    ? ClipRRect(
+                                                  child: Image(image: AssetImage("drawable/TNG.jpg")),
+                                                )
+                                                    : Container(
+                                                  child: _buildQrViewMobile(context),
                                                 ),
                                               ),
-                                              Spacer(),
-                                              Container(
-                                                child: ElevatedButton.icon(
+                                            ),
+                                            Visibility(
+                                              visible: scanning ? false : true,
+                                              child: Container(
+                                                alignment: Alignment.center,
+                                                child: ElevatedButton(
                                                   style: ButtonStyle(
-                                                      backgroundColor: MaterialStateProperty.all(Colors.green),
-                                                      padding: MaterialStateProperty.all(EdgeInsets.all(10))
+                                                    backgroundColor: MaterialStateProperty.all(color.buttonColor),
                                                   ),
-                                                  onPressed: isButtonDisable || itemList.isEmpty ? null : () async {
+                                                  onPressed: () async {
                                                     setState(() {
-                                                      // willPop = false;
-                                                      isButtonDisable = true;
+                                                      scanning = true;
                                                     });
+                                                    await controller?.scannedDataStream;
                                                     await callCreateOrder(finalAmount);
                                                     if (this.isLogOut == true) {
                                                       openLogOutDialog();
                                                       return;
                                                     }
-                                                    openPaymentSuccessDialog(
-                                                        widget.dining_id,
-                                                        isCashMethod: false,
-                                                        diningName: widget.dining_name);
                                                   },
-                                                  icon: Icon(Icons.call_received),
-                                                  label: Text(
-                                                      AppLocalizations.of(context)!.translate('payment_received'),
-                                                      style: TextStyle(fontSize: 16)),
+                                                  child: Text(AppLocalizations.of(context)!.translate('scan_qr'), style: TextStyle(fontSize: 20)),
                                                 ),
                                               ),
-                                            ],
-                                          ),
-                                        )
-                                      : widget.type == 2
-                                          ? Container(
-                                              child: Column(
-                                                children: [
-                                                  Visibility(
-                                                    visible: scanning ? false : true,
-                                                    child: Container(
-                                                        alignment: Alignment.center,
-                                                        margin: EdgeInsets.only(bottom: 10),
-                                                        child: Text('Total: ${finalAmount}',
-                                                            style: TextStyle(
-                                                                fontSize: 20,
-                                                                fontWeight: FontWeight.bold))),
-                                                  ),
-                                                  Expanded(
-                                                    child: Container(
-                                                      height: scanning == false ? 150 : 240,
-                                                      margin: EdgeInsets.only(bottom: 10),
-                                                      child: scanning == false ?
-                                                      ClipRRect(
-                                                        child: Image(
-                                                          image: AssetImage("drawable/TNG.jpg"),
-                                                        ),
-                                                      ) :
-                                                      Container(
-                                                        child: _buildQrViewMobile(context),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  Visibility(
-                                                    visible: scanning ? false : true,
-                                                    child: Container(
-                                                      alignment: Alignment.center,
-                                                      child: ElevatedButton(
-                                                        style: ButtonStyle(
-                                                            backgroundColor: MaterialStateProperty.all(color.buttonColor),),
-                                                        onPressed: () async {
-                                                          setState(() {
-                                                            scanning = true;
-                                                          });
-                                                          //await controller?.resumeCamera();
-                                                          await controller?.scannedDataStream;
-                                                          await callCreateOrder(finalAmount);
-                                                          if (this.isLogOut == true) {
-                                                            openLogOutDialog();
-                                                            return;
-                                                          }
-                                                        },
-                                                        child: Text(
-                                                            AppLocalizations.of(context)!.translate('scan_qr'),
-                                                            style: TextStyle(fontSize: 20)),
-                                                      ),
-                                                    ),
-                                                  )
-                                                ],
-                                              ),
-                                            )
+                                            ),
+                                          ],
+                                        ),
+                                      )
                                           : Container(),
-                            )
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ),
                           ],
-                        )),
+                        )
+                    ),
                   ),
                 ),
               );

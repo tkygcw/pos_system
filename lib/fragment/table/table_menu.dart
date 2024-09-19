@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:collection/collection.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
@@ -183,43 +184,34 @@ class _TableMenuState extends State<TableMenu> {
                 // floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
               );
             } else {
+              //mobile
               return Scaffold(
+                  appBar: AppBar(
+                    automaticallyImplyLeading: false,
+                    elevation: 0,
+                    leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : IconButton(
+                      icon: Icon(Icons.menu, color: color.buttonColor),
+                      onPressed: () {
+                        isCollapsedNotifier.value = !isCollapsedNotifier.value;
+                      },
+                    ),
+                    title: Text(AppLocalizations.of(context)!.translate('table'),
+                      style: TextStyle(fontSize: 20, color: color.backgroundColor),
+                    ),
+                    centerTitle: false,
+                  ),
                   body: isLoaded ? Container(
                     child: Column(
                       children: [
-                        Padding(
-                          padding: EdgeInsets.fromLTRB(11, 15, 11, 4),
-                          child: Row(
-                            children: [
-                              Text(
-                                AppLocalizations.of(context)!.translate('table'),
-                                style: TextStyle(fontSize: 25),
-                              ),
-                              SizedBox(width: 50),
-                              Expanded(
-                                child: TextField(
-                                  onChanged: (value) {
-                                    searchTable(value);
-                                  },
-                                  decoration: InputDecoration(
-                                    isDense: true,
-                                    border: InputBorder.none,
-                                    labelText: AppLocalizations.of(context)!.translate('search'),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: const BorderSide(color: Colors.grey, width: 2.0),
-                                      borderRadius: BorderRadius.circular(25.0),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: 20),
+                        // SizedBox(height: 20),
                         Expanded(
                           child: GridView.count(
                             shrinkWrap: true,
-                            crossAxisCount: 3,
+                            crossAxisCount: MediaQuery.of(context).orientation == Orientation.landscape ?
+                              screenSize.width > 900 && screenSize.height > 500 ? 5
+                                : 3
+                                : screenSize.height > 500 && screenSize.width > 500 ? 4
+                                : 3,
                             children: List.generate(
                               //this is the total number of cards
                                 tableList.length, (index) {
@@ -324,7 +316,12 @@ class _TableMenuState extends State<TableMenu> {
                                         Container(
                                             alignment: Alignment.center,
                                             child: Text(tableList[index].number!)),
-
+                                        Visibility(
+                                          visible: MediaQuery.of(context).orientation == Orientation.landscape ? false : true,
+                                          child: Container(
+                                              alignment: Alignment.bottomCenter,
+                                              child: Text("RM ${tableList[index].total_amount ?? '0.00'}")),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -348,7 +345,11 @@ class _TableMenuState extends State<TableMenu> {
     return Expanded(
       child: GridView.count(
         shrinkWrap: true,
-        crossAxisCount: MediaQuery.of(context).size.height > 500 ? 5 : 3,
+        crossAxisCount: MediaQuery.of(context).orientation == Orientation.landscape ?
+          MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? 5
+            : 3
+            : MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 500 ? 4
+            : 3,
         children: List.generate(
           //this is the total number of cards
             tableList.length, (index) {

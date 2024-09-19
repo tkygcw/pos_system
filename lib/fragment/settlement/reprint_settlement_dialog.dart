@@ -74,6 +74,14 @@ class _ReprintSettlementDialogState extends State<ReprintSettlementDialog> {
               return CustomProgressBar();
             }
           }),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: Text(AppLocalizations.of(context)!.translate('close')),
+        ),
+      ],
     );
   }
 

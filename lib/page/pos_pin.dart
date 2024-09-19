@@ -57,6 +57,12 @@ class _PosPinPageState extends State<PosPinPage> {
     super.initState();
     //readAllPrinters();
     preload();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     bindSocket();
     checkVersion();
     checkSubscription();
@@ -64,12 +70,6 @@ class _PosPinPageState extends State<PosPinPage> {
 
   @override
   dispose() {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
     super.dispose();
   }
 
@@ -578,6 +578,7 @@ class _PosPinPageState extends State<PosPinPage> {
 */
 
   userCheck(String pos_pin) async {
+    final orientation = MediaQuery.of(context).orientation;
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     User? user = await PosDatabase.instance.verifyPosPin(pos_pin, branch_id.toString());
@@ -603,6 +604,19 @@ class _PosPinPageState extends State<PosPinPage> {
         //   openLogOutDialog();
         //   return;
         // }
+
+        if (orientation == Orientation.portrait) {
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.portraitUp,
+            DeviceOrientation.portraitDown
+          ]);
+        } else {
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight
+          ]);
+        }
+
         Navigator.push(
           context,
           PageTransition(

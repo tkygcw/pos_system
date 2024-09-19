@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/fragment/setting/device_setting.dart';
@@ -226,7 +227,7 @@ class _SettingMenuState extends State<SettingMenu> {
           );
         } else {
           ///mobile layout
-          return Padding(
+          return MediaQuery.of(context).orientation == Orientation.landscape ? Padding(
             padding: EdgeInsets.fromLTRB(0, 0, 8, 15),
             child: this.isLoaded ?
             Scaffold(
@@ -295,7 +296,7 @@ class _SettingMenuState extends State<SettingMenu> {
                           label: AppLocalizations.of(context)!.translate('general_setting'),
                         ),
                         SideNavigationBarItem(
-                          icon: Icons.devices,
+                          icon: Icons.shopping_cart,
                           label: AppLocalizations.of(context)!.translate('order_setting'),
                         ),
                         SideNavigationBarItem(
@@ -337,8 +338,169 @@ class _SettingMenuState extends State<SettingMenu> {
                       child: views.elementAt(selectedIndex),
                   )
                 ],
-              ),
-            ) : CustomProgressBar(),
+              )
+            )
+            : CustomProgressBar(),
+          ) : Padding(
+            padding: EdgeInsets.all(0),
+              child: this.isLoaded ?
+              Scaffold(
+                resizeToAvoidBottomInset: false,
+                appBar: AppBar(
+                  automaticallyImplyLeading: false,
+                  leading: IconButton(
+                    icon: Icon(Icons.menu, color: color.buttonColor),
+                    onPressed: () {
+                      isCollapsedNotifier.value = !isCollapsedNotifier.value;
+                    },
+                  ),
+                  title: Text(AppLocalizations.of(context)!.translate('setting'),
+                      style: TextStyle(fontSize: 20, color: color.backgroundColor)),
+                  centerTitle: false,
+                  backgroundColor: Color(0xffFAFAFA),
+                  elevation: 1,
+                ),
+                body: ListView(
+                  padding: EdgeInsets.zero,
+                  children: <Widget>[
+                    ListTile(
+                      leading: Icon(Icons.devices),
+                      title: Text(AppLocalizations.of(context)!.translate('general_setting')),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => views.elementAt(0),
+                          ),
+                        );
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.shopping_cart),
+                      title: Text(AppLocalizations.of(context)!.translate('order_setting')),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => views.elementAt(1),
+                          ),
+                        );
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.print),
+                      title: Text(AppLocalizations.of(context)!.translate('printer_setting')),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => views.elementAt(2),
+                          ),
+                        );
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.receipt),
+                      title: Text(AppLocalizations.of(context)!.translate('receipt_setting')),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => views.elementAt(3),
+                          ),
+                        );
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.table_restaurant),
+                      title: Text(AppLocalizations.of(context)!.translate('table_setting')),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => views.elementAt(4),
+                          ),
+                        );
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.settings),
+                      title: Text(AppLocalizations.of(context)!.translate('app_device_setting')),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => views.elementAt(5),
+                          ),
+                        );
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.sync),
+                      title: Text(AppLocalizations.of(context)!.translate('data_processing')),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => views.elementAt(6),
+                          ),
+                        );
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.devices_other),
+                      title: Text(AppLocalizations.of(context)!.translate("device_setting")),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => views.elementAt(7),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                bottomNavigationBar: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(userEmail),
+                    ElevatedButton(
+                      onPressed: () async {
+                        openAttendanceDialog();
+                      },
+                      child: Text('${AppLocalizations.of(context)?.translate('clock_in_out')}'),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: color.backgroundColor,
+                      ),
+                      onPressed: () async {
+                        bool _hasInternetAccess = await Domain().isHostReachable();
+                        if (cashRecordList.isEmpty) {
+                          if (_hasInternetAccess) {
+                            notificationModel.setTimer(true);
+                            toPosPinPage();
+                          } else {
+                            Fluttertoast.showToast(
+                              backgroundColor: Colors.red,
+                              msg: "${AppLocalizations.of(context)?.translate('check_internet_connection')}",
+                            );
+                          }
+                        } else {
+                          Fluttertoast.showToast(
+                            backgroundColor: Colors.red,
+                            msg: "${AppLocalizations.of(context)?.translate('log_out_settlement')}",
+                          );
+                        }
+                      },
+                      child: Text(AppLocalizations.of(context)!.translate('close_counter')),
+                    ),
+                  ],
+                ),
+              )
+              : CustomProgressBar(),
           );
         }
       });
