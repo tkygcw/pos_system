@@ -75,7 +75,6 @@ class LoadingPage extends StatefulWidget {
 }
 
 class _LoadingPageState extends State<LoadingPage> {
-
   @override
   void initState() {
     // TODO: implement initState
@@ -125,7 +124,7 @@ class _LoadingPageState extends State<LoadingPage> {
       await getModifierItem();
       await getBranchLinkModifier();
       // await getSale();
-    
+
       await getTransferOwner();
       await clearCloudSyncRecord();
       await getAllReceipt();
@@ -167,7 +166,7 @@ class _LoadingPageState extends State<LoadingPage> {
         final String? user = prefs.getString('user');
         Map userObject = json.decode(user!);
         Map data = await Domain().getCashRecordOBAfterDate(userObject['company_id'], branch_id.toString(), retrieveDate);
-        
+
         if (data['status'] == '1') {
           List responseJson = data['data'];
           dataRetrieveDate = responseJson.first['created_at'];
@@ -329,6 +328,7 @@ getAppSettingLocal() async {
         print_cancel_receipt: 1,
         product_sort_by: 0,
         dynamic_qr_default_exp_after_hour: 1,
+        variant_item_sort_by: 0,
         sync_status: 0,
         created_at: dateTime,
         updated_at: ''
@@ -365,6 +365,7 @@ syncAppSettingFromCloud(AppSetting item) async {
     print_cancel_receipt: item.print_cancel_receipt,
     product_sort_by: item.product_sort_by,
     dynamic_qr_default_exp_after_hour: item.dynamic_qr_default_exp_after_hour,
+    variant_item_sort_by: item.variant_item_sort_by,
     sync_status: 1,
     created_at: item.created_at,
     updated_at: item.updated_at,
@@ -530,6 +531,8 @@ createReceiptLayout80() async {
         promotion_detail_status: 0,
         paper_size: '80',
         status: 1,
+        show_product_sku: 0,
+        show_branch_tel: 1,
         sync_status: 0,
         created_at: dateTime,
         updated_at: '',
@@ -616,6 +619,8 @@ createReceiptLayout58() async {
         promotion_detail_status: 0,
         paper_size: '58',
         status: 1,
+        show_product_sku: 0,
+        show_branch_tel: 1,
         sync_status: 0,
         created_at: dateTime,
         updated_at: '',
@@ -820,7 +825,7 @@ getAllSettlement() async {
     final String? dataRetrieveDate = prefs.getString('dataRetrieveDate');
     Map userObject = json.decode(user!);
     Map data;
-    
+
     if(dataRetrieveDate != '') {
       if(dataRetrieveDate == 'all')
         data = await Domain().getSettlement(userObject['company_id'], branch_id.toString());
@@ -843,6 +848,7 @@ getAllSettlement() async {
               total_refund_amount: item.total_refund_amount,
               total_discount: item.total_discount,
               total_cancellation: item.total_cancellation,
+              total_charge: item.total_charge,
               total_tax: item.total_tax,
               settlement_by_user_id: item.settlement_by_user_id,
               settlement_by: item.settlement_by,
@@ -1787,7 +1793,7 @@ getAllTableUseDetail() async {
         data = await Domain().getAllTableUseDetail(branch_id.toString());
       else
         data = await Domain().getAllTableUseDetailAfterDate(branch_id.toString(), dataRetrieveDate);
-        
+
       if (data['status'] == '1') {
         List responseJson = data['table_use'];
         for (var i = 0; i < responseJson.length; i++) {
@@ -2074,7 +2080,7 @@ getSettlementLinkPayment() async {
         data = await Domain().getSettlementLinkPayment(userObject['company_id'], branch_id.toString());
       else
         data = await Domain().getSettlementLinkPaymentAfterDate(userObject['company_id'], branch_id.toString(), dataRetrieveDate);
-      
+
       if (data['status'] == '1') {
         List responseJson = data['settlement'];
         for (var i = 0; i < responseJson.length; i++) {
@@ -2134,7 +2140,7 @@ getAllOrder() async {
         data = await Domain().getAllOrder(userObject['company_id'], branch_id.toString());
       else
         data = await Domain().getAllOrderAfterDate(userObject['company_id'], branch_id.toString(), dataRetrieveDate);
-      
+
       if (data['status'] == '1') {
         List responseJson = data['order'];
         for (var i = 0; i < responseJson.length; i++) {
@@ -2275,6 +2281,7 @@ getAllOrderTaxDetail() async {
               order_id: orderData != null ? orderData.order_id.toString() : '',
               order_key: responseJson[i]['order_key'],
               tax_name: responseJson[i]['tax_name'],
+              type: responseJson[i]['type'],
               rate: responseJson[i]['rate'],
               tax_id: responseJson[i]['tax_id'],
               branch_link_tax_id: responseJson[i]['branch_link_tax_id'],
@@ -2322,7 +2329,7 @@ getAllOrderCache() async {
         data = await Domain().getAllOrderCache(userObject['company_id'], branch_id.toString());
       else
         data = await Domain().getAllOrderCacheAfterDate(userObject['company_id'], branch_id.toString(), dataRetrieveDate);
-        
+
       if (data['status'] == '1') {
         List responseJson = data['order'];
         for (var i = 0; i < responseJson.length; i++) {
@@ -2439,6 +2446,7 @@ getAllOrderDetail() async {
               status: responseJson[i]['status'],
               unit: responseJson[i]['unit'],
               per_quantity_unit: responseJson[i]['per_quantity_unit'],
+              product_sku: responseJson[i]['product_sku'],
               sync_status: 1,
               created_at: responseJson[i]['created_at'],
               updated_at: responseJson[i]['updated_at'],
@@ -2612,7 +2620,7 @@ getCashRecord() async {
         data = await Domain().getCashRecord(userObject['company_id'], branch_id.toString());
       else
         data = await Domain().getCashRecordAfterDate(userObject['company_id'], branch_id.toString(), dataRetrieveDate);
-      
+
       if (data['status'] == '1') {
         List responseJson = data['data'];
         for (var i = 0; i < responseJson.length; i++) {

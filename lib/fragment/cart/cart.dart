@@ -51,7 +51,7 @@ import '../../object/app_setting.dart';
 import '../../object/cart_payment.dart';
 import '../../object/cash_record.dart';
 import '../../object/order_modifier_detail.dart';
-import '../../object/print_receipt.dart';
+import '../printing_layout/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../object/table.dart';
 import '../../object/tax.dart';
@@ -760,17 +760,48 @@ class CartPageState extends State<CartPage> {
                                                       }
                                                     } else if (widget.currentPage == 'table') {
                                                       if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
-                                                        if (cart.selectedTable.length > 1) {
-                                                          if (await confirm(
-                                                            context,
-                                                            title: Text('${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
-                                                            content: Text('${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
-                                                            textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                                                            textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
-                                                          )) {
+                                                        if (_isSettlement == true) {
+                                                          showDialog(
+                                                              barrierDismissible: false,
+                                                              context: context,
+                                                              builder: (BuildContext context) {
+                                                                return PopScope(
+                                                                    canPop: false,
+                                                                    child: CashDialog(isCashIn: true, callBack: () {}, isCashOut: false, isNewDay: true));
+                                                              });
+                                                          _isSettlement = false;
+                                                        } else {
+                                                          if (cart.selectedTable.length > 1) {
+                                                            if (await confirm(
+                                                              context,
+                                                              title: Text('${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
+                                                              content: Text('${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
+                                                              textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                                                              textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                                                            )) {
+                                                              paymentAddToCart(cart);
+                                                              return openPaymentSelect(cart);
+                                                            }
+                                                          } else {
                                                             paymentAddToCart(cart);
-                                                            return openPaymentSelect(cart);
+                                                            openPaymentSelect(cart);
                                                           }
+                                                        }
+                                                      } else {
+                                                        Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                                      }
+                                                    } else if (widget.currentPage == 'other_order') {
+                                                      if (cart.cartNotifierItem.isNotEmpty) {
+                                                        if (_isSettlement == true) {
+                                                          showDialog(
+                                                              barrierDismissible: false,
+                                                              context: context,
+                                                              builder: (BuildContext context) {
+                                                                return PopScope(
+                                                                    canPop: false,
+                                                                    child: CashDialog(isCashIn: true, callBack: () {}, isCashOut: false, isNewDay: true));
+                                                              });
+                                                          _isSettlement = false;
                                                         } else {
                                                           paymentAddToCart(cart);
                                                           openPaymentSelect(cart);
@@ -778,19 +809,24 @@ class CartPageState extends State<CartPage> {
                                                       } else {
                                                         Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                                       }
-                                                    } else if (widget.currentPage == 'other_order') {
-                                                      if (cart.cartNotifierItem.isNotEmpty) {
-                                                        paymentAddToCart(cart);
-                                                        openPaymentSelect(cart);
-                                                      } else {
-                                                        Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
-                                                      }
                                                     } else {
                                                       if (cart.cartNotifierItem.isNotEmpty) {
-                                                        int printStatus = await printReceipt.printCartReceiptList(printerList, cart, this.localOrderId);
-                                                        checkPrinterStatus(printStatus);
-                                                        cart.initialLoad();
-                                                        cart.changInit(true);
+                                                        if (_isSettlement == true) {
+                                                          showDialog(
+                                                              barrierDismissible: false,
+                                                              context: context,
+                                                              builder: (BuildContext context) {
+                                                                return PopScope(
+                                                                    canPop: false,
+                                                                    child: CashDialog(isCashIn: true, callBack: () {}, isCashOut: false, isNewDay: true));
+                                                              });
+                                                          _isSettlement = false;
+                                                        } else {
+                                                          int printStatus = await printReceipt.printCartReceiptList(printerList, cart, this.localOrderId);
+                                                          checkPrinterStatus(printStatus);
+                                                          cart.initialLoad();
+                                                          cart.changInit(true);
+                                                        }
                                                       } else {
                                                         Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                                       }
@@ -3165,6 +3201,7 @@ class CartPageState extends State<CartPage> {
           sync_status: 0,
           unit: newOrderDetailList[j].unit,
           per_quantity_unit: newOrderDetailList[j].per_quantity_unit,
+          product_sku: newOrderDetailList[j].product_sku,
           created_at: dateTime,
           updated_at: '',
           soft_delete: '');

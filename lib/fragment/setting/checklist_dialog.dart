@@ -17,7 +17,7 @@ import '../../database/pos_database.dart';
 import '../../enumClass/receipt_dialog_enum.dart';
 import '../../main.dart';
 import '../../notifier/theme_color.dart';
-import '../../object/print_receipt.dart';
+import '../printing_layout/print_receipt.dart';
 import '../../translation/AppLocalizations.dart';
 import '../../utils/Utils.dart';
 import '../logout_dialog.dart';
@@ -41,7 +41,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
   String checklistView = "80";
   String? checklist_value;
   double? fontSize, otherFontSize;
-  bool isButtonDisabled = false, submitted = false, checkListShowPrice = false, checkListItemSeparator = false;
+  bool isButtonDisabled = false, submitted = false, checkListShowPrice = false, checkListItemSeparator = false, showSKU = false ;
   List<Printer> cashierPrinter = [];
 
   @override
@@ -85,7 +85,6 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
   readChecklistLayout() async {
     try{
       Checklist? data = await PosDatabase.instance.readSpecificChecklist(checklistView);
-      print("data: $data");
       if(data != null){
         checklist = data;
         productFontSize = data.product_name_font_size == 0 ? ReceiptDialogEnum.big : ReceiptDialogEnum.small;
@@ -94,14 +93,16 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
         otherFontSize = data.other_font_size == 0 ? 20 : 14;
         checkListShowPrice = data.check_list_show_price == 0 ? false : true;
         checkListItemSeparator = data.check_list_show_separator == 0 ? false : true;
+        showSKU = data.show_product_sku == 0 ? false : true;
       } else {
         checklist = null;
-        productFontSize = ReceiptDialogEnum.small;
-        fontSize = 14;
+        productFontSize = ReceiptDialogEnum.big;
+        fontSize = 20;
         variantAddonFontSize = ReceiptDialogEnum.small;
         otherFontSize = 14;
         checkListShowPrice = false;
         checkListItemSeparator = false;
+        showSKU = false;
       }
     } catch(e){
       print("read check list layout error: $e");
@@ -122,7 +123,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return LayoutBuilder(builder: (context,  constraints) {
-        if(constraints.maxWidth > 800){
+        if(constraints.maxWidth > 900 && constraints.maxHeight > 500){
           return AlertDialog(
             title: Text(AppLocalizations.of(context)!.translate('check_list_layout')),
             content: StreamBuilder(
@@ -139,7 +140,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                                 alignment: Alignment.topLeft,
                                 child: SegmentedButton(
                                   style: ButtonStyle(
-                                      side: MaterialStateProperty.all(
+                                      side: WidgetStateProperty.all(
                                         BorderSide.lerp(BorderSide(
                                           style: BorderStyle.solid,
                                           color: Colors.blueGrey,
@@ -253,7 +254,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                                 alignment: Alignment.topLeft,
                                 child: SegmentedButton(
                                   style: ButtonStyle(
-                                      side: MaterialStateProperty.all(
+                                      side: WidgetStateProperty.all(
                                         BorderSide.lerp(BorderSide(
                                           style: BorderStyle.solid,
                                           color: Colors.blueGrey,
@@ -363,6 +364,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
           other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : 1,
           check_list_show_price: checkListShowPrice == true ? 1: 0,
           check_list_show_separator: checkListItemSeparator == true ? 1: 0,
+          show_product_sku: showSKU ? 1 : 0,
           sync_status: checkData.sync_status == 0 ? 0 : 2,
           updated_at: dateTime,
           checklist_sqlite_id: checklist!.checklist_sqlite_id,
@@ -401,6 +403,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
         check_list_show_price: checkListShowPrice == true ? 1 : 0,
         check_list_show_separator: checkListItemSeparator == true ? 1 : 0,
         paper_size: checklistView,
+        show_product_sku: showSKU ? 1 : 0,
         sync_status: 0,
         created_at: dateTime,
         updated_at: '',
@@ -452,7 +455,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
     } else {
       await createChecklist();
     }
-    await syncAllToCloud();
+    // await syncAllToCloud();
     closeDialog(context);
 
   }
@@ -463,7 +466,8 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
       other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : 1,
       check_list_show_price: checkListShowPrice == true ? 1: 0,
       check_list_show_separator: checkListItemSeparator == true ? 1: 0,
-      paper_size: checklistView
+      paper_size: checklistView,
+      show_product_sku: showSKU ? 1 : 0
     );
   }
 
@@ -554,6 +558,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                       children: [
                         Text("1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: defaultFontSize)),
                         SizedBox(width: 30),
+                        Visibility(visible: showSKU, child: Text("SKU001 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
                         Text("Product 1 ${checkListShowPrice ? "(6.90/each)" : ''}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
                       ],
                     ),
@@ -573,7 +578,12 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                           children: [
                             Padding(
                               padding: EdgeInsets.only(top: 5),
-                              child: Text("Product 2 ${checkListShowPrice ? "(8.80/each)" : ''}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                              child: Row(
+                                children: [
+                                  Visibility(visible: showSKU, child: Text("SKU002 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
+                                  Text("Product 2 ${checkListShowPrice ? "(8.80/each)" : ''}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                ],
+                              )
                             ),
                             Text("**Remark", style: TextStyle(fontSize: otherFontSize)),
                           ],
@@ -596,7 +606,12 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                           children: [
                             Padding(
                               padding: EdgeInsets.only(top: 5),
-                              child: Text("Product 3 ${checkListShowPrice ? "(3.50/each)" : ''}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                              child: Row(
+                                children: [
+                                  Visibility(visible: showSKU, child: Text("SKU003 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
+                                  Text("Product 3 ${checkListShowPrice ? "(3.50/each)" : ''}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                ],
+                              ),
                             ),
                             Text("(big | small)", style: TextStyle(fontSize: otherFontSize)),
                           ],
@@ -619,7 +634,12 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                           children: [
                             Padding(
                               padding: EdgeInsets.only(top: 5),
-                              child: Text("Product 4 ${checkListShowPrice ? "(15.90/each)" : ''}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                              child: Row(
+                                children: [
+                                  Visibility(visible: showSKU, child: Text("SKU004 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
+                                  Text("Product 4 ${checkListShowPrice ? "(15.90/each)" : ''}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                ],
+                              ),
                             ),
                             Text("+add-on1", style: TextStyle(fontSize: otherFontSize)),
                           ],
@@ -640,7 +660,12 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("Product 5 ${checkListShowPrice ? "(10.90/each)" : ''}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                            Row(
+                              children: [
+                                Visibility(visible: showSKU, child: Text("SKU005 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
+                                Text("Product 5 ${checkListShowPrice ? "(10.90/each)" : ''}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                              ],
+                            ),
                             Text("(big | small)", style: TextStyle(fontSize: otherFontSize)),
                             Text("+add-on2", style: TextStyle(fontSize: otherFontSize))
                           ],
@@ -665,7 +690,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
             RadioListTile<ReceiptDialogEnum?>(
               value: ReceiptDialogEnum.big,
               groupValue: productFontSize,
-              onChanged: (value) async  {
+              onChanged: (value) {
                 productFontSize = value;
                 fontSize = 20.0;
                 actionController.sink.add("switch");
@@ -676,7 +701,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
             RadioListTile<ReceiptDialogEnum?>(
               value: ReceiptDialogEnum.small,
               groupValue: productFontSize,
-              onChanged: (value) async  {
+              onChanged: (value) {
                 productFontSize = value;
                 fontSize = 14.0;
                 actionController.sink.add("switch");
@@ -691,7 +716,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
             RadioListTile<ReceiptDialogEnum?>(
               value: ReceiptDialogEnum.big,
               groupValue: variantAddonFontSize,
-              onChanged: (value) async  {
+              onChanged: (value) {
                 variantAddonFontSize = value;
                 otherFontSize = 20.0;
                 actionController.sink.add("switch");
@@ -702,7 +727,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
             RadioListTile<ReceiptDialogEnum?>(
               value: ReceiptDialogEnum.small,
               groupValue: variantAddonFontSize,
-              onChanged: (value) async  {
+              onChanged: (value) {
                 variantAddonFontSize = value;
                 otherFontSize = 14.0;
                 actionController.sink.add("switch");
@@ -720,7 +745,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
               trailing: Switch(
                 value: checkListShowPrice,
                 activeColor: color.backgroundColor,
-                onChanged: (value) async {
+                onChanged: (value) {
                   checkListShowPrice = value;
                   actionController.sink.add("switch");
                 },
@@ -732,8 +757,20 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
               trailing: Switch(
                 value: checkListItemSeparator,
                 activeColor: color.backgroundColor,
-                onChanged: (value) async {
+                onChanged: (value) {
                   checkListItemSeparator = value;
+                  actionController.sink.add("switch");
+                },
+              ),
+            ),
+            ListTile(
+              title: Text(AppLocalizations.of(context)!.translate('show_product_sku')),
+              subtitle: Text(AppLocalizations.of(context)!.translate('show_product_sku_desc')),
+              trailing: Switch(
+                value: showSKU,
+                activeColor: color.backgroundColor,
+                onChanged: (value) {
+                  showSKU = value;
                   actionController.sink.add("switch");
                 },
               ),
@@ -775,6 +812,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                     children: [
                       Text("1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: defaultFontSize)),
                       SizedBox(width: 30),
+                      Visibility(visible: showSKU, child: Text("SKU001 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
                       Text("Product 1 ${checkListShowPrice ? "(6.90/each)" : ''}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
                     ],
                   ),
@@ -794,7 +832,12 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                         children: [
                           Padding(
                             padding: EdgeInsets.only(top: 5),
-                            child: Text("Product 2 ${checkListShowPrice ? "(8.80/each)" : ''}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                            child: Row(
+                              children: [
+                                Visibility(visible: showSKU, child: Text("SKU002 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
+                                Text("Product 2 ${checkListShowPrice ? "(8.80/each)" : ''}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                              ],
+                            ),
                           ),
                           Text("**Remark", style: TextStyle(fontSize: otherFontSize)),
                         ],
@@ -817,7 +860,12 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                         children: [
                           Padding(
                             padding: EdgeInsets.only(top: 5),
-                            child: Text("Product 3 ${checkListShowPrice ? "(3.50/each)" : ''}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                            child: Row(
+                              children: [
+                                Visibility(visible: showSKU, child: Text("SKU003 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
+                                Text("Product 3 ${checkListShowPrice ? "(3.50/each)" : ''}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                              ],
+                            ),
                           ),
                           Text("(big | small)", style: TextStyle(fontSize: otherFontSize)),
                         ],
@@ -840,7 +888,12 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                         children: [
                           Padding(
                             padding: EdgeInsets.only(top: 5),
-                            child: Text("Product 4 ${checkListShowPrice ? "(15.90/each)" : ''}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                            child: Row(
+                              children: [
+                                Visibility(visible: showSKU, child: Text("SKU004 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
+                                Text("Product 4 ${checkListShowPrice ? "(15.90/each)" : ''}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                              ],
+                            ),
                           ),
                           Text("+add-on1", style: TextStyle(fontSize: otherFontSize)),
                         ],
@@ -861,7 +914,12 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("Product 5 ${checkListShowPrice ? "(10.90/each)" : ''}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                          Row(
+                            children: [
+                              Visibility(visible: showSKU, child: Text("SKU005 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
+                              Text("Product 5 ${checkListShowPrice ? "(10.90/each)" : ''}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                            ],
+                          ),
                           Text("(big | small)", style: TextStyle(fontSize: otherFontSize)),
                           Text("+add-on2", style: TextStyle(fontSize: otherFontSize))
                         ],
@@ -959,6 +1017,18 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                 },
               ),
             ),
+            ListTile(
+              title: Text(AppLocalizations.of(context)!.translate('show_product_sku')),
+              subtitle: Text(AppLocalizations.of(context)!.translate('show_product_sku_desc')),
+              trailing: Switch(
+                value: showSKU,
+                activeColor: color.backgroundColor,
+                onChanged: (value) {
+                  showSKU = value;
+                  actionController.sink.add("switch");
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -1047,6 +1117,18 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
           },
         ),
       ),
+      ListTile(
+        title: Text(AppLocalizations.of(context)!.translate('show_product_sku')),
+        subtitle: Text(AppLocalizations.of(context)!.translate('show_product_sku_desc')),
+        trailing: Switch(
+          value: showSKU,
+          activeColor: color.backgroundColor,
+          onChanged: (value) {
+            showSKU = value;
+            actionController.sink.add("switch");
+          },
+        ),
+      ),
     ],
   );
 
@@ -1128,6 +1210,18 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
           activeColor: color.backgroundColor,
           onChanged: (value) async {
             checkListItemSeparator = value;
+            actionController.sink.add("switch");
+          },
+        ),
+      ),
+      ListTile(
+        title: Text(AppLocalizations.of(context)!.translate('show_product_sku')),
+        subtitle: Text(AppLocalizations.of(context)!.translate('show_product_sku_desc')),
+        trailing: Switch(
+          value: showSKU,
+          activeColor: color.backgroundColor,
+          onChanged: (value) {
+            showSKU = value;
             actionController.sink.add("switch");
           },
         ),
