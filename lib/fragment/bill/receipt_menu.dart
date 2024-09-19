@@ -436,21 +436,24 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                           trailing: Icon(Icons.navigate_next),
                         )
                       ),
-                      Card(
-                          elevation: 5,
-                          child: ListTile(
-                            leading: CircleAvatar(
-                                backgroundColor: Colors.grey.shade200,
-                                child: Icon(
-                                  Icons.edit,
-                                  color: Colors.grey,
-                                )),
-                            title: Text(AppLocalizations.of(context)!.translate('edit_payment_method')),
-                            onTap: (){
-                              openPaymentSelect(order: order);
-                            },
-                            trailing: Icon(Icons.navigate_next),
-                          )
+                      Visibility(
+                        visible: order.ipay_trans_id != '' ?  false : true,
+                        child: Card(
+                            elevation: 5,
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                  backgroundColor: Colors.grey.shade200,
+                                  child: Icon(
+                                    Icons.edit,
+                                    color: Colors.grey,
+                                  )),
+                              title: Text(AppLocalizations.of(context)!.translate('edit_payment_method')),
+                              onTap: (){
+                                openPaymentSelect(order: order);
+                              },
+                              trailing: Icon(Icons.navigate_next),
+                            )
+                        ),
                       ),
                     ]
                   ),
