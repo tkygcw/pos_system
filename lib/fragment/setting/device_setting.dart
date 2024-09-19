@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/second_device/other_device.dart';
@@ -69,6 +70,12 @@ class _DeviceSettingState extends State<DeviceSetting> {
                                     },
                             );
                           }),
+                          ElevatedButton(
+                              onPressed: (){
+                                PosFirestore.instance.readDataFromCloud();
+                              },
+                              child: Text("Firestore"),
+                          )
                         ],
                       );
                     })
