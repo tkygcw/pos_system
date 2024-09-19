@@ -217,7 +217,7 @@ class MyApp extends StatelessWidget {
                 ),
               )),
           routes: {
-            '/loading': (context) => LoadingPage(),
+            '/loading': (context) => LoadingPage(selectedDays: 0,),
             '/': (context) => LoginPage(),
             'presentation': (context) => SecondDisplay(),
           },

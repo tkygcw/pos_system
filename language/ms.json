@@ -199,6 +199,8 @@
   "disable_table_order_desc": "Perisian akan dimulakan semula secara automatik, klik 'Ya' untuk meneruskan",
   "discount": "Diskaun",
   "discount_invalid": "Diskaun Tidak Sah!",
+  "do_not_download_order_data": "Jangan muat turun data pesanan",
+  "download_order_data_from_cloud": "Muat turun data pesanan dari awan?",
   "dynamic_qr": "QR dinamik",
   "dynamic_qr_error": "Tarikh-masa luput QR mesti lebih dari tarikh-masa sekarang",
   "dynamic_qr_layout": "Reka letak QR dinamik",

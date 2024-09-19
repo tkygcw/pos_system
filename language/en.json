@@ -199,6 +199,8 @@
   "disable_table_order_desc": "You will be redirected to pos pin page, Click 'Yes' to proceed.",
   "discount": "Discount",
   "discount_invalid": "Discount Invalid",
+  "do_not_download_order_data": "Do not download order data",
+  "download_order_data_from_cloud": "Download order data from cloud?",
   "dynamic_qr": "Dynamic QR",
   "dynamic_qr_error": "QR expired datetime must after current datetime",
   "dynamic_qr_layout": "Dynamic QR layout",

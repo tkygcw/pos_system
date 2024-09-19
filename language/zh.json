@@ -199,6 +199,8 @@
   "disable_table_order_desc": "软件将自动重启，单击“是”继续",
   "discount": "折扣",
   "discount_invalid": "折扣无效!",
+  "do_not_download_order_data": "不获取订单数据",
+  "download_order_data_from_cloud": "是否从云端获取订单数据?",
   "dynamic_qr": "动态QR",
   "dynamic_qr_error": "QR过期日期时间必须晚于当前日期时间",
   "dynamic_qr_layout": "动态QR布局",
