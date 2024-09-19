@@ -269,7 +269,7 @@ class _CancelRecordReportState extends State<CancelRecordReport> {
         DataCell(Text('')),
         DataCell(Text('')),
         DataCell(Text(data.isEmpty ? '0' : data.first.total_item.toString())),
-        DataCell(Text(data.isEmpty ? '0.00' : data.first.total_amount!.toStringAsFixed(2))),
+        DataCell(Text(data.isEmpty ? '0.00' : '')),
       ],
     ));
     if(data.isNotEmpty){
@@ -283,7 +283,7 @@ class _CancelRecordReportState extends State<CancelRecordReport> {
               DataCell(Text(data[i].cancel_by!)),
               DataCell(Text(data[i].cancel_reason!)),
               DataCell(Text(data[i].quantity!)),
-              DataCell(Text(data[i].price!)),
+              DataCell(Text(data[i].price!.toStringAsFixed(2))),
             ],
           ),
         ]);

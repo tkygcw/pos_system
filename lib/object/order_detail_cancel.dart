@@ -59,7 +59,7 @@ class OrderDetailCancel{
   num? total_amount;
   String? product_name;
   String? product_variant_name;
-  String? price;
+  num? price;
 
   OrderDetailCancel(
       {this.order_detail_sqlite_id,
@@ -142,7 +142,7 @@ class OrderDetailCancel{
     total_item: json['total_item'] as num?,
     product_name: json['product_name'] as String?,
     product_variant_name: json['product_variant_name'] as String?,
-    price: json['price'] as String?
+    price: json['price'] as num?
   );
 
   Map<String, Object?> toJson() => {

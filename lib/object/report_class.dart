@@ -93,9 +93,9 @@ class ReportObject{
     }
     if(orderDetailCancel.isNotEmpty){
       List<int> quantityList = orderDetailCancel.map((e) => int.parse(e.quantity!)).toList();
-      List<double> amountList = orderDetailCancel.map((e) => double.parse(e.price!)).toList();
+      // List<double> amountList = orderDetailCancel.map((e) => double.parse(e.price!)).toList();
       orderDetailCancel.first.total_item = quantityList.sum;
-      orderDetailCancel.first.total_amount = amountList.sum;
+      // orderDetailCancel.first.total_amount = amountList.sum;
     }
     return orderDetailCancel;
   }
