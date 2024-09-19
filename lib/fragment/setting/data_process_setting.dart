@@ -47,7 +47,7 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Scaffold(
-        appBar:  MediaQuery.of(context).orientation == Orientation.portrait ? AppBar(
+        appBar:  MediaQuery.of(context).size.width < 800 && MediaQuery.of(context).orientation == Orientation.portrait ? AppBar(
           elevation: 1,
           leading: IconButton(
             icon: Icon(Icons.arrow_back_ios, color: color.buttonColor),

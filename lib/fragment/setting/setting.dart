@@ -114,7 +114,7 @@ class _SettingMenuState extends State<SettingMenu> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return LayoutBuilder(builder: (context,  constraints) {
-        if(constraints.maxWidth > 800){
+        if(MediaQuery.of(context).size.width > 800){
           return Padding(
             padding: EdgeInsets.fromLTRB(8, 10, 8, 8),
             child: this.isLoaded ?
@@ -122,6 +122,12 @@ class _SettingMenuState extends State<SettingMenu> {
               resizeToAvoidBottomInset: false,
               appBar: AppBar(
                 automaticallyImplyLeading: false,
+                leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : IconButton(
+                  icon: Icon(Icons.menu, color: color.buttonColor),
+                  onPressed: () {
+                    isCollapsedNotifier.value = !isCollapsedNotifier.value;
+                  },
+                ),
                 title: Text(AppLocalizations.of(context)!.translate('setting'),
                     style: TextStyle(fontSize: 25, color: Colors.black)),
                 backgroundColor: Color(0xffFAFAFA),

@@ -326,6 +326,7 @@ class _SetupPageState extends State<SetupPage> {
 
   showDaysSelectionDialog(BuildContext context) async {
     await showDialog<int>(
+      barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
         int tempSelectedDays = selectedDays;

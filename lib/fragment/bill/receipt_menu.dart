@@ -81,6 +81,12 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                     primary: false,
                     elevation: 0,
                     automaticallyImplyLeading: false,
+                    leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : IconButton(
+                      icon: Icon(Icons.menu, color: color.buttonColor),
+                      onPressed: () {
+                        isCollapsedNotifier.value = !isCollapsedNotifier.value;
+                      },
+                    ),
                     title: Text(
                       AppLocalizations.of(context)!.translate('receipt'),
                       style: TextStyle(fontSize: 25),

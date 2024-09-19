@@ -42,7 +42,7 @@ class _DeviceSettingState extends State<DeviceSetting> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               return Scaffold(
-                appBar:  MediaQuery.of(context).orientation == Orientation.portrait ? AppBar(
+                appBar:  MediaQuery.of(context).size.width < 800 && MediaQuery.of(context).orientation == Orientation.portrait ? AppBar(
                   elevation: 1,
                   leading: IconButton(
                     icon: Icon(Icons.arrow_back_ios, color: color.buttonColor),
