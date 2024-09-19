@@ -1,16 +1,20 @@
 import 'dart:async';
 
 import 'package:app_settings/app_settings.dart';
+import 'package:confirm_dialog/confirm_dialog.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/controller/controllerObject.dart';
 import 'package:pos_system/fragment/logout_dialog.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/object/app_setting.dart';
+import 'package:pos_system/page/pos_pin.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/translation/language_setting.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../notifier/theme_color.dart';
 
 class FeaturesSetting extends StatefulWidget {
@@ -30,10 +34,19 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
   late Color _buttonColor;
   late Color _iconColor;
   List<AppSetting> appSettingList = [];
+  late SharedPreferences prefs;
+  bool isLoaded = false;
+  final List<String> orientationOption = [
+    'auto',
+    'landscape',
+    'portrait'
+  ];
+  int? orientation = 0;
 
   @override
   void initState() {
     super.initState();
+    getPrefData();
     streamController = controller.appDeviceController;
     actionStream = actionController.stream.asBroadcastStream();
     listenAction();
@@ -160,10 +173,79 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
               stream: controller.appDeviceStream,
               builder: (context, snapshot){
                 if(snapshot.hasData){
-                  return SingleChildScrollView(
+                  return isLoaded ? SingleChildScrollView(
                     child: Container(
                       child: Column(
                         children: [
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('screen_orientation')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('screen_orientation_desc')),
+                            trailing: SizedBox(
+                              width: MediaQuery.of(context).orientation == Orientation.landscape ? 200 : 150,
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton2(
+                                  isExpanded: true,
+                                  buttonStyleData: ButtonStyleData(
+                                    height: 55,
+                                    padding: const EdgeInsets.only(left: 14, right: 14),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: Border.all(
+                                        color: Colors.black26,
+                                      ),
+                                    ),
+                                  ),
+                                  dropdownStyleData: DropdownStyleData(
+                                    maxHeight: 200,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      color: Colors.grey.shade100,
+                                    ),
+                                    scrollbarTheme: ScrollbarThemeData(
+                                        thickness: WidgetStateProperty.all(5),
+                                        mainAxisMargin: 20,
+                                        crossAxisMargin: 5
+                                    ),
+                                  ),
+                                  items: orientationOption.asMap().entries.map((orientationValue) => DropdownMenuItem<int>(
+                                    value: orientationValue.key,
+                                    child: Text(
+                                      AppLocalizations.of(context)!.translate(orientationValue.value),
+                                      overflow: TextOverflow.visible,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  )).toList(),
+                                  value: orientation,
+                                  onChanged: (int? newValue) async{
+                                    if (orientation != newValue) {
+                                      if (await confirm(
+                                        context,
+                                        title: Text('${AppLocalizations.of(context)?.translate('screen_orientation')}'),
+                                        content: Text('${AppLocalizations.of(context)?.translate('to_pos_pin')}'),
+                                        textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                                        textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                                      )) {
+                                        orientation = newValue;
+                                        prefs.setInt('orientation', orientation!);
+                                        Navigator.of(context).pushAndRemoveUntil(
+                                          MaterialPageRoute(
+                                            builder: (BuildContext context) => PosPinPage(),
+                                          ),
+                                              (Route route) => false,
+                                        );
+                                        setState(() {
+
+                                        });
+                                      }
+                                      // actionController.sink.add("switch");
+                                    }
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
                           ListTile(
                             title: Text(AppLocalizations.of(context)!.translate('change_background_color')),
                             subtitle: Text(AppLocalizations.of(context)!.translate('main_color_for_the_appearance_of_app')),
@@ -293,7 +375,7 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                         ],
                       ),
                     ),
-                  );
+                  ) : CustomProgressBar();
                 } else {
                   return CustomProgressBar();
                 }
@@ -345,5 +427,26 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
           // ignore: null_check_always_fails
           return null!;
         });
+  }
+
+  getPrefData() async {
+    try {
+      prefs = await SharedPreferences.getInstance();
+      if(prefs.getInt('orientation') != null) {
+        orientation = prefs.getInt('orientation');
+      } else {
+        orientation = 0;
+        prefs.setInt('orientation', orientation!);
+      }
+      print("orientation value = $orientation");
+      setState(() {
+        isLoaded = true;
+      });
+    } catch (e) {
+      orientation = 0;
+      setState(() {
+        isLoaded = true;
+      });
+    }
   }
 }

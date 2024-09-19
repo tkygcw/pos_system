@@ -96,6 +96,8 @@ class ServerAction {
           var data9 = await PosDatabase.instance.readAllTaxLinkDining();
           var data10 = await getBranchPromotionData();
           var data11 = appLanguage.appLocal.languageCode;
+          var data12 = await PosDatabase.instance.readAllSubscription();
+
           print("data2 length: ${data2.length}");
            objectData = {
              'tb_categories': data,
@@ -108,7 +110,8 @@ class ServerAction {
              'tb_branch_link_dining_option': data8,
              'taxLinkDiningList': data9,
              'branchPromotionList': data10,
-             'app_language_code': data11
+             'app_language_code': data11,
+             'subscription_data': data12
           };
           result = {'status': '1', 'action': '1', 'data': objectData};
         }

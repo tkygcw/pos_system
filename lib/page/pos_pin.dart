@@ -56,13 +56,8 @@ class _PosPinPageState extends State<PosPinPage> {
   void initState() {
     super.initState();
     //readAllPrinters();
+    setScreenLayout();
     preload();
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
     bindSocket();
     checkVersion();
     checkSubscription();
@@ -71,6 +66,31 @@ class _PosPinPageState extends State<PosPinPage> {
   @override
   dispose() {
     super.dispose();
+  }
+
+  setScreenLayout() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? orientation = prefs.getInt('orientation');
+    if(orientation == null || orientation == 0) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeRight,
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+    } else {
+      if (orientation == 1) {
+        SystemChrome.setPreferredOrientations([
+          DeviceOrientation.landscapeLeft,
+          DeviceOrientation.landscapeRight
+        ]);
+      } else {
+        SystemChrome.setPreferredOrientations([
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown
+        ]);
+      }
+    }
   }
 
   preload() async {
@@ -578,11 +598,37 @@ class _PosPinPageState extends State<PosPinPage> {
 */
 
   userCheck(String pos_pin) async {
-    final orientation = MediaQuery.of(context).orientation;
     final prefs = await SharedPreferences.getInstance();
+    final int? orientation = prefs.getInt('orientation');
     final int? branch_id = prefs.getInt('branch_id');
     User? user = await PosDatabase.instance.verifyPosPin(pos_pin, branch_id.toString());
     if (user != '' && user != null) {
+      if(orientation == null || orientation == 0) {
+        if (MediaQuery.of(context).orientation == Orientation.portrait) {
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.portraitUp,
+            DeviceOrientation.portraitDown
+          ]);
+        } else {
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight
+          ]);
+        }
+      } else {
+        if (orientation == 1) {
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight
+          ]);
+        } else {
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.portraitUp,
+            DeviceOrientation.portraitDown
+          ]);
+        }
+      }
+
       if (await settlementCheck(user) == true) {
         // if(this.isLogOut == true){
         //   openLogOutDialog();
@@ -604,18 +650,6 @@ class _PosPinPageState extends State<PosPinPage> {
         //   openLogOutDialog();
         //   return;
         // }
-
-        if (orientation == Orientation.portrait) {
-          SystemChrome.setPreferredOrientations([
-            DeviceOrientation.portraitUp,
-            DeviceOrientation.portraitDown
-          ]);
-        } else {
-          SystemChrome.setPreferredOrientations([
-            DeviceOrientation.landscapeLeft,
-            DeviceOrientation.landscapeRight
-          ]);
-        }
 
         Navigator.push(
           context,
