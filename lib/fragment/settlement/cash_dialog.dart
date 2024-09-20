@@ -298,8 +298,8 @@ class _CashDialogState extends State<CashDialog> {
                           ? Text(AppLocalizations.of(context)!.translate('cash_in'))
                           : Text(AppLocalizations.of(context)!.translate('cash_out')),
                   content: Container(
-                    height: widget.isNewDay ? MediaQuery.of(context).size.height / 3 : 150,
-                    width: widget.isNewDay ? MediaQuery.of(context).size.height / 1 : MediaQuery.of(context).size.width / 2,
+
+                    width: MediaQuery.of(context).size.width,
                     child: SingleChildScrollView(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -373,16 +373,15 @@ class _CashDialogState extends State<CashDialog> {
                                 height: MediaQuery.of(context).size.height / 9,
                                 child: Row(
                                   children: [
-                                    Container(child: Text(AppLocalizations.of(context)!.translate('last_settlement_opening_balance')+': ${amount}')),
-                                    Spacer(),
-                                    Container(
-                                        child: ElevatedButton(
-                                      child: Text('${AppLocalizations.of(context)?.translate('add')}'),
-                                      onPressed: () {
+                                    Text(AppLocalizations.of(context)!.translate('last_settlement_opening_balance')+': '),
+                                    ChoiceChip(
+                                      label: Text(' $amount '),
+                                      selected: true,
+                                      elevation: 5,
+                                      onSelected: (chipSelected) {
                                         amountController.text = amount;
                                       },
-                                      style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                                    ))
+                                    ),
                                   ],
                                 )),
                           )

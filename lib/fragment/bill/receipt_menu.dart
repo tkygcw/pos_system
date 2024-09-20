@@ -228,6 +228,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                                 showSecondDialog(context, color,
                                   order: paidOrderList[index],
                                   orderCacheList: orderCacheList,
+                                  cart: cart,
                                 );
                               }
                                   : null,
@@ -437,6 +438,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                                   showSecondDialog(context, color,
                                     order: paidOrderList[index],
                                     orderCacheList: orderCacheList,
+                                    cart: cart,
                                   );
                                 }
                                     : null,
@@ -473,7 +475,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
     else return 'refunded';
   }
 
-  Future showSecondDialog(BuildContext context, ThemeColor color, {required Order order, required List<OrderCache> orderCacheList}) {
+  Future showSecondDialog(BuildContext context, ThemeColor color, {required Order order, required List<OrderCache> orderCacheList, required CartModel cart}) {
     return showDialog(
         barrierDismissible: false,
         context: context,
@@ -498,7 +500,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                               )),
                           title: Text(AppLocalizations.of(context)!.translate('refund')),
                           onTap: (){
-                            openRefundDialog(order, orderCacheList);
+                            openRefundDialog(order, orderCacheList, cart);
                           },
                           trailing: Icon(Icons.navigate_next),
                         )
@@ -559,7 +561,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
         });
   }
 
-  Future<Future<Object?>> openRefundDialog(Order order, List<OrderCache> orderCacheList) async {
+  Future<Future<Object?>> openRefundDialog(Order order, List<OrderCache> orderCacheList, CartModel cart) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -568,7 +570,10 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: RefundDialog(callBack: () => getOrder(), order: order, orderCacheList: orderCacheList),
+              child: RefundDialog(callBack: () {
+                getOrder();
+                cart.initialLoad();
+              }, order: order, orderCacheList: orderCacheList),
             ),
           );
         },

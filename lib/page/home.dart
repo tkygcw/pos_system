@@ -437,41 +437,62 @@ class _HomePageState extends State<HomePage> {
       CollapsibleItem(
         text: AppLocalizations.of(context)!.translate('menu'),
         icon: Icons.add_shopping_cart,
-        onPressed: () => setState(() => currentPage = 'menu'),
+        onPressed: () => setState(() {
+          currentPage = 'menu';
+          isCollapsedNotifier.value = !isCollapsedNotifier.value;
+        }),
         isSelected: currentPage == 'menu',
       ),
       if (isLoad && _appSettingModel.table_order == 1)
         CollapsibleItem(
           text: AppLocalizations.of(context)!.translate('table'),
           icon: Icons.table_restaurant,
-          onPressed: () => setState(() => currentPage = 'table'),
+          onPressed: () => setState(() {
+            currentPage = 'table';
+            isCollapsedNotifier.value = !isCollapsedNotifier.value;
+          }),
         ),
       if (isLoad && _appSettingModel.table_order == 1)
         CollapsibleItem(
           text: AppLocalizations.of(context)!.translate('qr_order'),
           icon: Icons.qr_code_2,
           badgeCount: qr_length,
-          onPressed: () => setState(() => currentPage = 'qr_order'),
+          onPressed: () => setState(() {
+            currentPage = 'qr_order';
+            isCollapsedNotifier.value = !isCollapsedNotifier.value;
+          }),
         ),
       CollapsibleItem(
         text: AppLocalizations.of(context)!.translate('other_order'),
         icon: Icons.shopping_cart_sharp,
-        onPressed: () => setState(() => currentPage = 'other_order'),
+        onPressed: () => setState(() {
+          currentPage = 'other_order';
+          isCollapsedNotifier.value = !isCollapsedNotifier.value;
+        }),
       ),
       CollapsibleItem(
         text: AppLocalizations.of(context)!.translate('bill'),
         icon: Icons.receipt_long,
-        onPressed: () => setState(() => currentPage = 'bill'),
+        onPressed: () => setState(() {
+          currentPage = 'bill';
+          isCollapsedNotifier.value = !isCollapsedNotifier.value;
+        }),
       ),
       CollapsibleItem(
         text: AppLocalizations.of(context)!.translate('counter'),
         icon: Icons.point_of_sale,
-        onPressed: () => setState(() => currentPage = 'settlement'),
+        onPressed: () => setState(() {
+          currentPage = 'settlement';
+          isCollapsedNotifier.value = !isCollapsedNotifier.value;
+        }),
       ),
       CollapsibleItem(
         text: AppLocalizations.of(context)!.translate('report'),
         icon: Icons.insert_chart,
-        onPressed: () => setState(() => currentPage = 'report'),
+        onPressed: () => setState(() {
+          currentPage = 'report';
+          isCollapsedNotifier.value = !isCollapsedNotifier.value;
+        }),
       ),
       // CollapsibleItem(
       //   text: AppLocalizations.of(context)!.translate('product'),
@@ -481,7 +502,10 @@ class _HomePageState extends State<HomePage> {
       CollapsibleItem(
         text: AppLocalizations.of(context)!.translate('setting'),
         icon: Icons.settings,
-        onPressed: () => setState(() => currentPage = 'setting'),
+        onPressed: () => setState(() {
+          currentPage = 'setting';
+          isCollapsedNotifier.value = !isCollapsedNotifier.value;
+        }),
       ),
     ];
   }

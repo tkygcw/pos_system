@@ -5,6 +5,7 @@ import 'package:f_logs/model/flog/flog.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/fragment/cart/cart.dart';
 import 'package:pos_system/fragment/product/product_order_dialog.dart';
+import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/order_detail.dart';
@@ -185,7 +186,7 @@ class ServerAction {
             CartModel cart = CartModel();
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam['cart']);
-            if(cart.selectedOption == 'Dine in'){
+            if(cart.selectedOption == 'Dine in' && AppSettingModel.instance.table_order != 0){
               PlaceNewDineInOrder order = PlaceNewDineInOrder();
               Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
               if(cartItem != null){

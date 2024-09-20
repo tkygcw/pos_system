@@ -122,7 +122,8 @@ class _DeviceSettingState extends State<DeviceSetting> {
           );
         },
         transitionDuration: Duration(milliseconds: 200),
-        barrierDismissible: false,
+        barrierDismissible: true,
+        barrierLabel: 'connected_device',
         context: context,
         pageBuilder: (context, animation1, animation2) {
           // ignore: null_check_always_fails
