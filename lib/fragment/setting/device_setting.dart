@@ -75,6 +75,54 @@ class _DeviceSettingState extends State<DeviceSetting> {
                                 PosFirestore.instance.readDataFromCloud();
                               },
                               child: Text("Firestore"),
+                          ),
+                          ElevatedButton(
+                            onPressed: (){
+                              PosFirestore.instance.addProductFromLocalId();
+                            },
+                            child: Text("add product"),
+                          ),
+                          ElevatedButton(
+                            onPressed: (){
+                              PosFirestore.instance.addProductFromLocalIdWithSpecificId();
+                            },
+                            child: Text("add product with specific local id"),
+                          ),
+                          ElevatedButton(
+                            onPressed: (){
+                              PosFirestore.instance.updateSpecificProduct('1');
+                            },
+                            child: Text("update"),
+                          ),
+                          ElevatedButton(
+                            onPressed: (){
+                              PosFirestore.instance.deleteSpecificProduct('1');
+                            },
+                            child: Text("delete"),
+                          ),
+                          ElevatedButton(
+                            onPressed: (){
+                              PosFirestore.instance.realtimeUpdate();
+                            },
+                            child: Text("reatime"),
+                          ),
+                          ElevatedButton(
+                            onPressed: (){
+                              PosFirestore.instance.offline();
+                            },
+                            child: Text("offline task"),
+                          ),
+                          ElevatedButton(
+                            onPressed: (){
+                              PosFirestore.instance.online();
+                            },
+                            child: Text("online task"),
+                          ),
+                          ElevatedButton(
+                            onPressed: (){
+                              PosFirestore.instance.readFullOrderCache();
+                            },
+                            child: Text("get order cache"),
                           )
                         ],
                       );

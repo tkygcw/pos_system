@@ -1,4 +1,4 @@
-String? tableProduct = 'tb_product ';
+String? tableProduct = 'tb_product';
 
 class ProductFields {
   static List<String> values = [
