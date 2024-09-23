@@ -502,6 +502,7 @@ class ReportObject{
 
   getAllPaymentData({currentStDate, currentEdDate}) async {
     await getPrefData();
+
     datePayment = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
@@ -867,7 +868,7 @@ class ReportObject{
 
       }
       for (int j = 0; j < dateOrderList!.length; j++) {
-        if(dateOrderList![j].payment_status == 1){
+        if(dateOrderList![j].payment_status == 1 || dateOrderList![j].payment_status == 3){
           sumAllOrderTotal(dateOrderList![j].final_amount!);
         }
       }

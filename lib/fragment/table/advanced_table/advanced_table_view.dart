@@ -85,7 +85,8 @@ class _AdvancedTableViewState extends State<AdvancedTableView> {
           }
         },
         child: Card(
-          color: widget.table.isSelected ? Colors.grey[300] : Colors.white,
+          color: widget.table.status == 1 && widget.table.order_key != '' && widget.table.order_key != null ? Color(0xFFFFB3B3)
+            :widget.table.isSelected ? Colors.grey[300] : Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(4.0),
           ),
@@ -162,15 +163,19 @@ class _AdvancedTableViewState extends State<AdvancedTableView> {
   }
 
   fontColor({required PosTable posTable}) {
-    if (posTable.status == 1) {
-      Color fontColor = Colors.black;
-      Color backgroundColor = toColor(posTable.card_color!);
-      if (backgroundColor.computeLuminance() > 0.5) {
-        fontColor = Colors.black;
-      } else {
-        fontColor = Colors.white;
+    try {
+      if (posTable.status == 1) {
+        Color fontColor = Colors.black;
+        Color backgroundColor = toColor(posTable.card_color!);
+        if (backgroundColor.computeLuminance() > 0.5) {
+          fontColor = Colors.black;
+        } else {
+          fontColor = Colors.white;
+        }
+        return fontColor;
       }
-      return fontColor;
+    } catch(e) {
+      return Colors.black;
     }
   }
 }

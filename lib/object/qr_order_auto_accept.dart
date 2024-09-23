@@ -48,6 +48,7 @@ class QrOrderAutoAccept {
   bool hasNoStockProduct = false, hasNotAvailableProduct = false, tableInUsed = false;
   bool isButtonDisabled = false, isLogOut = false;
   bool willPop = true;
+  bool paymentNotComplete = false;
   // late TableModel tableModel;
 
   // late FailPrintModel _failPrintModel;
@@ -250,9 +251,12 @@ class QrOrderAutoAccept {
 
   autoAcceptQrOrder(OrderCache qrOrderCacheList, List<OrderDetail> orderDetailList, int index) async {
     try {
+      await checkTablePaymentSplit(qrOrderCacheList.qr_order_table_sqlite_id!);
       await checkOrderDetailStock();
       print('available check: ${hasNotAvailableProduct}');
-      if (hasNoStockProduct) {
+      if(paymentNotComplete) {
+
+      } else if (hasNoStockProduct) {
         Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
       } else if(hasNotAvailableProduct){
         Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
@@ -711,6 +715,19 @@ class QrOrderAutoAccept {
     } catch (e) {
       Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('update_table_error')+" ${e}");
       print("update table error: $e");
+    }
+  }
+
+  checkTablePaymentSplit(String tableLocalId) async {
+    List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableLocalId.toString());
+    List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificInUsedTableUseDetail(int.parse(tableLocalId));
+    if (tableUseDetailData.isNotEmpty){
+      List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
+      if(data.isNotEmpty){
+        if(data[0].order_key != ''){
+          paymentNotComplete = true;
+        }
+      }
     }
   }
 

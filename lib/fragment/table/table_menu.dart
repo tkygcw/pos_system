@@ -12,7 +12,9 @@ import 'package:pos_system/fragment/table/table_dialog.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/categories.dart';
+import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
+import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/page/progress_bar.dart';
@@ -67,6 +69,7 @@ class _TableMenuState extends State<TableMenu> {
   bool productDetailLoaded = false;
   bool editingMode = false, isButtonDisable = false, onTapDisable = false;
   String qrOrderStatus = '0';
+  String orderKey = '';
   late SharedPreferences prefs;
 
   @override
@@ -217,16 +220,16 @@ class _TableMenuState extends State<TableMenu> {
                                 tableList.length, (index) {
                               // tableList[index].seats == 2;
                               return Card(
-                                color: Colors.white,
+                                color: tableList[index].status == 1 && tableList[index].order_key != null ? Color(0xFFFFB3B3) : Colors.white,
                                 shape: tableList[index].isSelected
                                     ? new RoundedRectangleBorder(
                                     side: new BorderSide(
-                                        color: color.backgroundColor, width: 3.0),
+                                        color: tableList[index].order_key != null ? Colors.red : color.backgroundColor, width: 3.0),
                                     borderRadius:
                                     BorderRadius.circular(4.0))
                                     : new RoundedRectangleBorder(
                                     side: new BorderSide(
-                                        color: Colors.white, width: 3.0),
+                                        color: tableList[index].status == 1 && tableList[index].order_key != null ? Color(0xFFFFB3B3) : Colors.white, width: 3.0),
                                     borderRadius:
                                     BorderRadius.circular(4.0)),
                                 elevation: 5,
@@ -240,7 +243,11 @@ class _TableMenuState extends State<TableMenu> {
                                     if (tableList[index].status != 1) {
                                       //openAddTableDialog(tableList[index]);
                                     } else {
-                                      openChangeTableDialog(tableList[index], cart);
+                                      if(tableList[index].order_key == null) {
+                                        openChangeTableDialog(tableList[index], cart);
+                                      } else {
+                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
+                                      }
                                     }
                                   },
                                   onTap: onTapDisable ? null : () {
@@ -355,10 +362,13 @@ class _TableMenuState extends State<TableMenu> {
             tableList.length, (index) {
           // tableList[index].seats == 2;
           return Card(
-            color: tableList[index].status != 0 && MediaQuery.of(context).size.height < 500 ? toColor(tableList[index].card_color!) : Colors.white,
+            color: tableList[index].status != 0 && MediaQuery.of(context).size.height < 500 ? toColor(tableList[index].card_color!) :
+              tableList[index].status == 1 && tableList[index].order_key != null ? Color(0xFFFFB3B3) : Colors.white,
             shape: tableList[index].isSelected
-                ? new RoundedRectangleBorder(side: new BorderSide(color: color.backgroundColor, width: 3.0), borderRadius: BorderRadius.circular(4.0))
-                : new RoundedRectangleBorder(side: new BorderSide(color: Colors.white, width: 3.0), borderRadius: BorderRadius.circular(4.0)),
+                ? new RoundedRectangleBorder(side: new BorderSide(color: tableList[index].order_key != null ? Colors.red : color.backgroundColor, width: 3.0), borderRadius: BorderRadius.circular(4.0))
+                : new RoundedRectangleBorder(side: new BorderSide(
+                  color: tableList[index].status == 1 && tableList[index].order_key != null ? Color(0xFFFFB3B3) : Colors.white, width: 3.0
+                ), borderRadius: BorderRadius.circular(4.0)),
             elevation: 5,
             child: InkWell(
               splashColor: Colors.blue.withAlpha(30),
@@ -370,7 +380,11 @@ class _TableMenuState extends State<TableMenu> {
                 if (tableList[index].status != 1) {
                   //openAddTableDialog(tableList[index]);
                 } else {
-                  openChangeTableDialog(tableList[index], cart);
+                  if(tableList[index].order_key == null) {
+                    openChangeTableDialog(tableList[index], cart);
+                  } else {
+                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
+                  }
                 }
               },
               onTap: onTapDisable ? null : () {
@@ -637,14 +651,39 @@ class _TableMenuState extends State<TableMenu> {
               if (tableList[index].status == 1) {
                 // table in use (colored)
                 for (int i = 0; i < tableList.length; i++) {
-                  if (tableList[index].group == tableList[i].group) {
+                  if (tableList[index].group == tableList[i].group || ((tableList[index].order_key == tableList[i].order_key) && tableList[index].order_key != null)) {
                     if (tableList[i].isSelected == false) {
-                      tableList[i].isSelected = true;
+                      if(tableList[i].order_key == null) {
+                        for (int j = 0; j < tableList.length; j++) {
+                          //reset all using table to un-select (table status == 1)
+                          if (tableList[j].isSelected == true && tableList[j].order_key != null) {
+                            tableList[j].isSelected = false;
+                            cart.removeSpecificGroupList(tableList[j].group!);
+                            cart.removeAllCartItem();
+                            cart.removePromotion();
+                            cart.removeSpecificTable(tableList[j]);
+                          }
+                        }
+                        tableList[i].isSelected = true;
+                      } else {
+                        for (int j = 0; j < tableList.length; j++) {
+                          //reset all using table to un-select (table status == 1)
+                          if (tableList[j].isSelected == true && tableList[j].group != tableList[index].group && tableList[index].order_key != tableList[j].order_key) {
+                            tableList[j].isSelected = false;
+                            cart.removeSpecificGroupList(tableList[j].group!);
+                            cart.removeAllCartItem();
+                            cart.removePromotion();
+                            cart.removeSpecificTable(tableList[j]);
+                          }
+                        }
+                        tableList[i].isSelected = true;
+                      }
                     } else if (tableList[i].isSelected == true) {
                       if (tableList[index].group == tableList[i].group) {
                         setState(() {
                           //removeFromCart(cart, tableList[index]);
                           tableList[i].isSelected = false;
+                          cart.removeSpecificGroupList(tableList[i].group!);
                           //print('table list: ${tableList[i].number}');
                           //cart.removeSpecificTable(tableList[i]);
                         });
@@ -652,9 +691,36 @@ class _TableMenuState extends State<TableMenu> {
                         setState(() {
                           //removeFromCart(cart, tableList[index]);
                           tableList[i].isSelected = false;
+                          cart.removeSpecificGroupList(tableList[i].group!);
                           //cart.removeSpecificTable(tableList[index]);
                         });
                       }
+                    }
+                    if (tableList[i].status == 1 && tableList[i].isSelected == true) {
+                      // if(!groupList.contains(tableList[i].group)) {
+                      if(!cart.groupList.contains(tableList[i].group)) {
+                        await readSpecificTableDetail(tableList[i]);
+                        //await readSpecificTableDetail(tableList[index]);
+                        List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificInUsedTableUseDetail(tableList[i].table_sqlite_id!);
+                        if (tableUseDetailData.isNotEmpty){
+                          List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
+                          if(data.isNotEmpty){
+                            if(data[0].order_key != ''){
+                              orderKey = data[0].order_key!;
+                            } else {
+                              orderKey = '';
+                            }
+                          }
+                        }
+                        addToCart(cart, tableList[i]);
+                        cart.addToGroupList(tableList[i].group!);
+                        // groupList.add(tableList[i].group!);
+                      }
+                    } else {
+                      await readSpecificTableDetail(tableList[i]);
+                      removeFromCart(cart, tableList[i]);
+                      cart.removeSpecificGroupList(tableList[i].group!);
+                      cart.removeCartOrderCache(orderCacheList);
                     }
                   }
                 }
@@ -663,6 +729,7 @@ class _TableMenuState extends State<TableMenu> {
                   //reset all using table to un-select (table status == 1)
                   if (tableList[j].status == 1) {
                     tableList[j].isSelected = false;
+                    cart.removeSpecificGroupList(tableList[j].group!);
                     cart.removeAllCartItem();
                     cart.removePromotion();
                     cart.removeSpecificTable(tableList[j]);
@@ -670,19 +737,18 @@ class _TableMenuState extends State<TableMenu> {
                 }
                 Fluttertoast.showToast(backgroundColor: Color(0xFF07F107), msg: AppLocalizations.of(context)!.translate('table_not_in_use'));
               }
-              if (tableList[index].status == 1 && tableList[index].isSelected == true) {
-                //await readSpecificTableDetail(tableList[index]);
-                addToCart(cart, tableList[index]);
-              } else {
-                cart.removeCartOrderCache(orderCacheList);
-                removeFromCart(cart, tableList[index]);
-              }
+
             }
           } else {
             if (tableList[index].status != 1) {
               //openEditTableDialog(tableList[index]);
-            } else
-              Fluttertoast.showToast(backgroundColor: Color(0xFF07F107), msg: AppLocalizations.of(context)!.translate('table_is_used'));
+            } else {
+              if(tableList[index].order_key == null) {
+                openChangeTableDialog(tableList[index], cart);
+              } else {
+                Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
+              }
+            }
           }
           setState(() {
             tapCount = 0;
@@ -921,6 +987,9 @@ class _TableMenuState extends State<TableMenu> {
   }
 
   readAllTableGroup() async {
+    priceSST = 0.0;
+    priceServeTax = 0.0;
+
     bool hasTableInUse = tableList.any((item) => item.status == 1);
     if(hasTableInUse){
       for (int i = 0; i < tableList.length; i++) {
@@ -934,6 +1003,19 @@ class _TableMenuState extends State<TableMenu> {
               tableList[i].card_color = data[0].card_color;
               for(int j = 0; j < data.length; j++){
                 tableAmount += double.parse(data[j].total_amount!);
+              }
+              if(data[0].order_key != ''){
+                double amountPaid = 0;
+                List<OrderPaymentSplit> orderSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(data[0].order_key!);
+
+                for(int k = 0; k < orderSplit.length; k++){
+                  amountPaid += double.parse(orderSplit[k].amount!);
+                }
+                List<Order> orderData = await PosDatabase.instance.readSpecificOrderByOrderKey(data[0].order_key!);
+                tableAmount = double.parse(orderData[0].final_amount!);
+
+                tableAmount -= amountPaid;
+                tableList[i].order_key = data[0].order_key!;
               }
               tableList[i].total_amount = tableAmount.toStringAsFixed(2);
             }
@@ -1079,7 +1161,8 @@ class _TableMenuState extends State<TableMenu> {
           allow_ticket: orderDetailList[i].allow_ticket,
           ticket_count: orderDetailList[i].ticket_count,
           ticket_exp: orderDetailList[i].ticket_exp,
-          product_sku: orderDetailList[i].product_sku
+          product_sku: orderDetailList[i].product_sku,
+          order_key: orderKey,
         );
         cartItemList.add(value);
       }
@@ -1174,13 +1257,21 @@ class _TableMenuState extends State<TableMenu> {
                     }
                   }
                   else if (action == 'on_double_tap') {
-                    openChangeTableDialog(tableList[i], cart);
+                    if(tableList[i].order_key == null) {
+                      openChangeTableDialog(tableList[i], cart);
+                    } else {
+                      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
+                    }
                   }
 
                   else if (action == 'on_long_press'){
-                    if(qrOrderStatus == '0'){
-                      selectedTable = [tableList[i]];
-                      openChooseQRDialog(selectedTable);
+                    if(tableList[i].order_key == null) {
+                      if(qrOrderStatus == '0'){
+                        selectedTable = [tableList[i]];
+                        openChooseQRDialog(selectedTable);
+                      }
+                    } else {
+                      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
                     }
                   }
                 },

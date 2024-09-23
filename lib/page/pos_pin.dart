@@ -217,7 +217,7 @@ class _PosPinPageState extends State<PosPinPage> {
                       SizedBox(height: 10),
                       Expanded(
                           child: Text(
-                          '${AppLocalizations.of(context)!.translate('subscription_is_about_to_expire_desc')}${DateFormat('dd/MM/yyyy').format(subscriptionEndDate)})',
+                          '${AppLocalizations.of(context)!.translate('subscription_is_about_to_expire_desc')} (${DateFormat('dd/MM/yyyy').format(subscriptionEndDate)})',
                             style: TextStyle(
                               fontSize: 16,
                             ),

@@ -50,7 +50,7 @@ class Domain {
   static Uri attendance = Uri.parse(domain + 'mobile-api/attendance/index.php');
   static Uri dynamic_qr = Uri.parse(domain + 'mobile-api/dynamic_qr/index.php');
   static Uri table_dynamic = Uri.parse(domain + 'mobile-api/table_dynamic/index.php');
-
+  static Uri order_payment_split = Uri.parse(domain + 'mobile-api/order_payment_split/index.php');
 
   /**
   * insert table dynamic qr
@@ -230,6 +230,21 @@ class Domain {
         'getAllAttendanceAfterDate': '1',
         'branch_id': branch_id,
         'date_from': date_from,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get all order payment split
+  * */
+  getAllOrderPaymentSplit(branch_id) async {
+    try {
+      var response = await http.post(Domain.order_payment_split, body: {
+        'getAllOrderPaymentSplit': '1',
+        'branch_id': branch_id,
       });
       return jsonDecode(response.body);
     } catch (error) {
@@ -511,6 +526,7 @@ class Domain {
         checklist_value,
         kitchen_list_value,
         attendance_value,
+        order_payment_split_value,
         dynamic_qr_value
       }) async {
     try {
@@ -546,6 +562,7 @@ class Domain {
         'tb_checklist_create': checklist_value != null ? checklist_value : [].toString(),
         'tb_kitchen_list_create': kitchen_list_value != null ? kitchen_list_value : [].toString(),
         'tb_attendance_create': attendance_value != null ? attendance_value : [].toString(),
+        'tb_order_payment_split_create': order_payment_split_value != null ? order_payment_split_value : [].toString(),
         'tb_dynamic_qr_create': dynamic_qr_value != null ? dynamic_qr_value : [].toString()
       }).timeout(Duration(seconds: isManualSync != null ? 120 : isSync != null ? 25 : 15), onTimeout: () => throw TimeoutException("Time out"));
       print('response in domain: ${jsonDecode(response.body)}');

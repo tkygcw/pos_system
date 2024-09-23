@@ -25,6 +25,7 @@ class cartProductItem{
    String? order_cache_key;
    String? category_sqlite_id;
    Color? refColor = Colors.black;
+   String? order_key;
    String? order_detail_sqlite_id;
    int? sequence = 0;
    bool? isRefund;
@@ -69,6 +70,7 @@ class cartProductItem{
          this.first_cache_batch,
          this.first_cache_order_by,
          this.refColor,
+         this.order_key,
          this.orderModifierDetail,
          this.unit,
          this.per_quantity_unit,
@@ -114,6 +116,7 @@ class cartProductItem{
          first_cache_batch: json['first_cache_batch'] as String?,
          first_cache_order_by: json['first_cache_order_by'] as String?,
          refColor: json['refColor'] as Color?,
+         order_key: json['order_key'] as String?,
          orderModifierDetail: orderModifierDetailList,
          unit: json['unit'] as String?,
          per_quantity_unit: json['per_quantity_unit'] as String?,
@@ -151,6 +154,7 @@ class cartProductItem{
      'first_cache_batch': first_cache_batch,
      'first_cache_order_by': first_cache_order_by,
      'refColor': null,
+     'order_key': order_key,
      'orderModifierDetail': orderModifierDetail,
      'unit': unit,
      'per_quantity_unit': per_quantity_unit,

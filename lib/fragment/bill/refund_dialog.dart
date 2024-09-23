@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/refund.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -399,27 +400,57 @@ class _RefundDialogState extends State<RefundDialog> {
       List<String> _value = [];
       Map logInUser = json.decode(login_user!);
 
-      CashRecord cashRecordObject = CashRecord(
-          cash_record_id: 0,
-          cash_record_key: '',
-          company_id: logInUser['company_id'].toString(),
-          branch_id: branch_id.toString(),
-          remark: widget.order.generateOrderNumber(),
-          amount: widget.order.final_amount,
-          payment_name: '',
-          payment_type_id: widget.order.payment_type,
-          type: 4,
-          user_id: user.user_id.toString(),
-          settlement_key: '',
-          settlement_date: '',
-          sync_status: 0,
-          created_at: dateTime,
-          updated_at: '',
-          soft_delete: '');
-      CashRecord data = await PosDatabase.instance.insertSqliteCashRecord(cashRecordObject);
-      CashRecord updatedData = await insertCashRecordKey(data, dateTime);
-      _value.add(jsonEncode(updatedData));
-      cash_record_value = _value.toString();
+      print("widget.order.payment_type: ${widget.order.payment_type}");
+
+      if(widget.order.payment_link_company_id != '0') {
+        CashRecord cashRecordObject = CashRecord(
+            cash_record_id: 0,
+            cash_record_key: '',
+            company_id: logInUser['company_id'].toString(),
+            branch_id: branch_id.toString(),
+            remark: widget.order.generateOrderNumber(),
+            amount: widget.order.final_amount,
+            payment_name: '',
+            payment_type_id: widget.order.payment_type,
+            type: 4,
+            user_id: user.user_id.toString(),
+            settlement_key: '',
+            settlement_date: '',
+            sync_status: 0,
+            created_at: dateTime,
+            updated_at: '',
+            soft_delete: '');
+        CashRecord data = await PosDatabase.instance.insertSqliteCashRecord(cashRecordObject);
+        CashRecord updatedData = await insertCashRecordKey(data, dateTime);
+        _value.add(jsonEncode(updatedData));
+        cash_record_value = _value.toString();
+      } else {
+        List<OrderPaymentSplit> orderPaymentSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(widget.order.order_key!);
+        for(int i = 0; i<orderPaymentSplit.length; i++){
+          print("orderPaymentSplit data $i: ${jsonEncode(orderPaymentSplit)}");
+          CashRecord cashRecordObject = CashRecord(
+              cash_record_id: 0,
+              cash_record_key: '',
+              company_id: logInUser['company_id'].toString(),
+              branch_id: branch_id.toString(),
+              remark: widget.order.generateOrderNumber(),
+              amount: orderPaymentSplit[i].amount,
+              payment_name: '',
+              payment_type_id: orderPaymentSplit[i].payment_type_id,
+              type: 4,
+              user_id: user.user_id.toString(),
+              settlement_key: '',
+              settlement_date: '',
+              sync_status: 0,
+              created_at: dateTime,
+              updated_at: '',
+              soft_delete: '');
+          CashRecord data = await PosDatabase.instance.insertSqliteCashRecord(cashRecordObject);
+          CashRecord updatedData = await insertCashRecordKey(data, dateTime);
+          _value.add(jsonEncode(updatedData));
+          cash_record_value = _value.toString();
+        }
+      }
       //sync to cloud
       //syncCashRecordToCloud(_value.toString());
     } catch(e) {

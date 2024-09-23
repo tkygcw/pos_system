@@ -9,6 +9,7 @@ import 'package:pos_system/object/branch_link_tax.dart';
 import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
+import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/report_class.dart';
@@ -771,9 +772,19 @@ class _ReportOverviewState extends State<ReportOverview> {
       for (int j = 0; j < paymentList.length; j++) {
         for (int i = 0; i < dateOrderList.length; i++) {
           if (dateOrderList[i].payment_status == 1) {
+            print("paymentList[j].payment_link_company_id: ${paymentList[j].payment_link_company_id}");
+            print("dateOrderList[i].payment_link_company_id!: ${dateOrderList[i].payment_link_company_id!}");
             if (paymentList[j].payment_link_company_id == int.parse(dateOrderList[i].payment_link_company_id!)) {
               paymentList[j].total_bill++;
               paymentList[j].totalAmount += double.parse(dateOrderList[i].final_amount!);
+            } else if (int.parse(dateOrderList[i].payment_link_company_id!) == 0) {
+              List<OrderPaymentSplit> orderPaymentSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(dateOrderList[i].order_key!);
+              for(int k = 0; k < orderPaymentSplit.length; k++) {
+                if (paymentList[j].payment_link_company_id == int.parse(orderPaymentSplit[k].payment_link_company_id!)) {
+                  paymentList[j].total_bill++;
+                  paymentList[j].totalAmount += double.parse(orderPaymentSplit[k].payment_received!);
+                }
+              }
             }
           }
         }
