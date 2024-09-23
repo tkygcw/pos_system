@@ -1,16 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/qr_order.dart';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 
+import '../fragment/custom_snackbar.dart';
+import '../main.dart';
 import '../object/branch_link_product.dart';
 import '../object/categories.dart';
 import '../object/order_cache.dart';
 import '../object/order_detail.dart';
 import '../object/order_modifier_detail.dart';
+import '../translation/AppLocalizations.dart';
 
 class PosFirestore{
   static final PosFirestore instance = PosFirestore.init();
+  static final BuildContext context = MyApp.navigatorKey.currentContext!;
   static FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   PosFirestore.init();
@@ -53,17 +59,20 @@ class PosFirestore{
   }
 
   readFullOrderCache() async {
-    Query orderCache = firestore.collection("tb_qr_order_cache").where("branch_id", isEqualTo: '3');
-    orderCache.get().then((querySnapshot) async {
-        print("Successfully completed");
-        for (var docSnapshot in querySnapshot.docs) {
-          print('${docSnapshot.id} => ${docSnapshot.data()}');
-          OrderCache localData = await insertLocalOrderCache(docSnapshot.data() as Map<String, dynamic>);
-          readOrderDetail(docSnapshot.reference, localData);
-        }
-      },
-      onError: (e) => print("Error completing: $e"),
-    );
+    try{
+      Query orderCache = firestore.collection("tb_qr_order_cache")
+          .where("branch_id", isEqualTo: '3').where("soft_delete", isEqualTo: '').where("accepted", isEqualTo: 1);
+      var querySnapshot = await orderCache.get();
+      print("doc length: ${querySnapshot.docs.length}");
+      for (var docSnapshot in querySnapshot.docs) {
+        print('${docSnapshot.id} => ${docSnapshot.data()}');
+        OrderCache localData = await insertLocalOrderCache(docSnapshot.data() as Map<String, dynamic>);
+        updateOrderCacheSyncStatus(docSnapshot.reference);
+        readOrderDetail(docSnapshot.reference, localData);
+      }
+    }catch(e){
+      print("readFullOrderCache error: $e");
+    }
   }
 
   Future<OrderCache>insertLocalOrderCache(Map<String, dynamic> data) async {
@@ -98,17 +107,13 @@ class PosFirestore{
     return await PosDatabase.instance.insertSqLiteOrderCache(orderCache);
   }
 
-  readOrderDetail(DocumentReference parentDoc, OrderCache localOrderCache){
-    parentDoc.collection("tb_order_detail").get().then((querySnapshot) async {
-      print("Successfully completed");
-      for (var docSnapshot in querySnapshot.docs) {
-        print('${docSnapshot.id} => ${docSnapshot.data()}');
-        OrderDetail orderDetail = await insertLocalOrderDetail(docSnapshot.data(), localOrderCache);
-        readOrderModDetail(docSnapshot.reference, orderDetail);
-      }
-    },
-      onError: (e) => print("Error completing: $e"),
-    );
+  readOrderDetail(DocumentReference parentDoc, OrderCache localOrderCache) async {
+    var querySnapshot = await parentDoc.collection("tb_order_detail").get();
+    for (var docSnapshot in querySnapshot.docs) {
+      print('${docSnapshot.id} => ${docSnapshot.data()}');
+      OrderDetail orderDetail = await insertLocalOrderDetail(docSnapshot.data(), localOrderCache);
+      readOrderModDetail(docSnapshot.reference, orderDetail);
+    }
   }
 
   Future<OrderDetail>insertLocalOrderDetail(Map<String, dynamic> data, OrderCache localOrderCache) async {
@@ -152,17 +157,19 @@ class PosFirestore{
     return await PosDatabase.instance.insertSqliteOrderDetail(orderDetail);
   }
 
-  readOrderModDetail(DocumentReference parentDoc, OrderDetail orderDetail) {
-    parentDoc.collection("tb_order_modifier_detail").get().then((querySnapshot) async {
-      print("Successfully completed");
-      for (var docSnapshot in querySnapshot.docs){
-        print('${docSnapshot.id} => ${docSnapshot.data()}');
-        await insertLocalOrderModifierDetail(docSnapshot.data(), orderDetail);
-      }
-      List<OrderCache> data = await PosDatabase.instance.readNotAcceptedQROrderCache();
-      QrOrder.instance.qrOrderCacheList.addAll(data);
-    },
-      onError: (e) => print("Error completing: $e"),
+  readOrderModDetail(DocumentReference parentDoc, OrderDetail orderDetail) async {
+    final querySnapshot = await parentDoc.collection("tb_order_modifier_detail").get();
+    for (var docSnapshot in querySnapshot.docs){
+      print('${docSnapshot.id} => ${docSnapshot.data()}');
+      await insertLocalOrderModifierDetail(docSnapshot.data(), orderDetail);
+    }
+    QrOrder.instance.getAllNotAcceptedQrOrder();
+    CustomSnackBar.instance.showSnackBar(
+        title: "${AppLocalizations.of(context)?.translate('qr_order')}",
+        description: "${AppLocalizations.of(context)?.translate('new_qr_order_received')}",
+        contentType: ContentType.success,
+        playSound: true,
+        playtime: 2
     );
   }
 
@@ -183,6 +190,66 @@ class PosFirestore{
         soft_delete: ''
     );
     return await PosDatabase.instance.insertSqliteOrderModifierDetail(modifierDetail);
+  }
+
+  updateOrderCacheSyncStatus(DocumentReference docRef) async {
+    await firestore.runTransaction((transaction) async {
+      var docSnapshot = await transaction.get(docRef);
+      if (docSnapshot.exists) {
+        transaction.update(docRef, {"sync_status": 1});
+      }
+    }, timeout: Duration(seconds: 2), maxAttempts: 2);
+  }
+
+  updateOrderCacheAcceptStatus(String key, OrderCache updatedOrderCache) async {
+    Map<String, dynamic> jsonMap = {
+      'soft_delete': updatedOrderCache.soft_delete ?? '',
+      'updated_at': updatedOrderCache.updated_at,
+      'accepted': updatedOrderCache.accepted ?? 1,
+    };
+    int status = 0;
+    final querySnapshot = await firestore.collection('tb_qr_order_cache').where('order_cache_key', isEqualTo: key.toString()).get();
+    try{
+      await firestore.runTransaction((transaction) async {
+        print("querySnapshot length: ${querySnapshot.docs.length}");
+        for (QueryDocumentSnapshot doc in querySnapshot.docs) {
+          DocumentReference docRef = doc.reference;
+          var docSnapshot = await transaction.get(docRef);
+          if (docSnapshot.exists) {
+            print("inside called!!");
+            transaction.update(docRef, jsonMap);
+            status = 1;
+          }
+        }
+      }, timeout: Duration(seconds: 2), maxAttempts: 2);
+    }catch(e){
+      print("updateOrderCacheAcceptStatus error: $e");
+      status = 0;
+    }
+    return status;
+  }
+
+  realtimeQROrder(BuildContext context){
+    final docRef = firestore.collection('tb_qr_order_cache').where("branch_id", isEqualTo: '3');//change to user branch later
+    docRef.snapshots(includeMetadataChanges: true).listen((event) async {
+      for (var changes in event.docChanges) {
+        final source = (event.metadata.isFromCache) ? "local cache" : "server";
+        switch (changes.type) {
+          case DocumentChangeType.added:
+            print("New product from $source: ${changes.doc.data()}");
+            readFullOrderCache();
+            break;
+          case DocumentChangeType.modified:
+            print("Modified product from $source: ${changes.doc.data()}");
+            break;
+          case DocumentChangeType.removed:
+            print("Removed product from $source: ${changes.doc.data()}");
+            break;
+        }
+      }
+    },
+      onError: (error) => print("Listen failed: $error"),
+    );
   }
 
   realtimeUpdate(){

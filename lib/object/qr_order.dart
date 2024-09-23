@@ -156,8 +156,11 @@ class QrOrder extends ChangeNotifier {
           }
         }
       }
-      List<OrderCache> data = await PosDatabase.instance.readNotAcceptedQROrderCache();
-      qrOrderCacheList = data;
+      if(localSetting!.qr_order_auto_accept == 1){
+        asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
+        return;
+      }
+      await getAllNotAcceptedQrOrder();
       CustomSnackBar.instance.showSnackBar(
           title: "${AppLocalizations.of(context)?.translate('qr_order')}",
           description: "${AppLocalizations.of(context)?.translate('new_qr_order_received')}",
@@ -165,11 +168,6 @@ class QrOrder extends ChangeNotifier {
           playSound: true,
           playtime: 2
       );
-      if(localSetting!.qr_order_auto_accept == 1){
-        asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
-        return;
-      }
-      notifyListeners();
     }
   }
 

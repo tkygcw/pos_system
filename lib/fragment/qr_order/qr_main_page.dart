@@ -19,6 +19,7 @@ import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../database/pos_firestore.dart';
 import '../../notifier/theme_color.dart';
 
 class QrMainPage extends StatefulWidget {
@@ -90,11 +91,12 @@ class _QrMainPageState extends State<QrMainPage> {
               style: TextStyle(color: Colors.white),
             ),
             onPressed: () async {
-              if(qrOrder.count == 0){
-                qrOrder.count = 1;
-                await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
-                qrOrder.count = 0;
-              }
+              await PosFirestore.instance.readFullOrderCache();
+              // if(qrOrder.count == 0){
+              //   qrOrder.count = 1;
+              //   await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
+              //   qrOrder.count = 0;
+              // }
             },
           ),
           SizedBox(width: 10),
@@ -194,7 +196,7 @@ class _QrMainPageState extends State<QrMainPage> {
               await checkOrderDetail(qrOrderCacheList[index].order_cache_sqlite_id!, index);
               //pop stock adjust dialog
               openAdjustStockDialog(orderDetailList, qrOrderCacheList[index].order_cache_sqlite_id!,
-                  qrOrderCacheList[index].qr_order_table_sqlite_id!, qrOrderCacheList[index].batch_id!);
+                  qrOrderCacheList[index].qr_order_table_sqlite_id!, qrOrderCacheList[index].batch_id!, qrOrderCacheList[index]);
             },
           ),
         );
@@ -202,7 +204,7 @@ class _QrMainPageState extends State<QrMainPage> {
     );
   }
 
-  openAdjustStockDialog(List<OrderDetail> orderDetail, int localId, String tableLocalId, String batchNumber) async {
+  openAdjustStockDialog(List<OrderDetail> orderDetail, int localId, String tableLocalId, String batchNumber, OrderCache orderCache) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -216,8 +218,8 @@ class _QrMainPageState extends State<QrMainPage> {
                 tableLocalId: tableLocalId,
                 orderCacheLocalId: localId,
                 callBack: () => QrOrder.instance.getAllNotAcceptedQrOrder(),
-                orderCacheList: qrOrderCacheList,
                 currentBatch: batchNumber,
+                currentOrderCache: orderCache,
               ),
             ),
           );

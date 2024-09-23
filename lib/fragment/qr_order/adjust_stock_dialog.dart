@@ -8,6 +8,7 @@ import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
@@ -36,8 +37,8 @@ class AdjustStockDialog extends StatefulWidget {
   final int orderCacheLocalId;
   final String tableLocalId;
   final String currentBatch;
-  final List<OrderCache> orderCacheList;
   final List<OrderDetail> orderDetailList;
+  final OrderCache? currentOrderCache;
   final Function() callBack;
 
   const AdjustStockDialog(
@@ -46,7 +47,7 @@ class AdjustStockDialog extends StatefulWidget {
         required this.orderCacheLocalId,
         required this.callBack,
         required this.tableLocalId,
-        required this.orderCacheList, required this.currentBatch})
+        required this.currentBatch, this.currentOrderCache})
       : super(key: key);
 
   @override
@@ -1304,6 +1305,8 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
           sync_status: 2,
           accepted: 2,
           order_cache_sqlite_id: orderCacheLocalId);
+      int status = await PosFirestore.instance.updateOrderCacheAcceptStatus(widget.currentOrderCache!.order_cache_key!, orderCache);
+      print("reject status: $status");
       int rejectOrderCache = await PosDatabase.instance.updateOrderCacheAccept(orderCache);
       OrderCache updatedCache = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCache.order_cache_sqlite_id!);
       _value.add(jsonEncode(updatedCache));
