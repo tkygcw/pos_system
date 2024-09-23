@@ -245,6 +245,8 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                                             inProgress = true;
                                           });
                                           await dataZip(3);
+                                          FLog.clearLogs();
+                                          logs.clear();
                                           if(mounted){
                                             setState(() {
                                               inProgress = false;
@@ -322,8 +324,8 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       SizedBox(
-                                        width: MediaQuery.of(context).size.width / 4,
-                                        height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
+                                        width: 300,
+                                        height: MediaQuery.of(context).size.height / 16,
                                         child: ElevatedButton(
                                           onPressed: () async {
                                             setState(() {
@@ -342,8 +344,8 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                                       ),
                                       SizedBox(height: 15),
                                       SizedBox(
-                                        width: MediaQuery.of(context).size.width / 4,
-                                        height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
+                                        width: 300,
+                                        height: MediaQuery.of(context).size.height / 16,
                                         child: ElevatedButton(
                                           onPressed: () async {
                                             setState(() {
@@ -362,8 +364,8 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                                       ),
                                       SizedBox(height: 15),
                                       SizedBox(
-                                        width: MediaQuery.of(context).size.width / 4,
-                                        height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
+                                        width: 300,
+                                        height: MediaQuery.of(context).size.height / 16,
                                         child: ElevatedButton(
                                           onPressed: () async {
                                             Navigator.pop(context);

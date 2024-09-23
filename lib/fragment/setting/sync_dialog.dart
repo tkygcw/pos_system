@@ -68,7 +68,7 @@ class _SyncDialogState extends State<SyncDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       content: Container(
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height / 2),
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height / 3),
         child: StreamBuilder(
             stream: contentStream,
             builder: (context, snapshot){
@@ -87,17 +87,6 @@ class _SyncDialogState extends State<SyncDialog> {
                         shape: CircleBorder(),
                         padding: EdgeInsets.all(20)
                       ),
-                    ),
-                    SizedBox(height: 20),
-                    ElevatedButton.icon(
-                      onPressed: isButtonDisable ? null : () {
-                        actionController.sink.add("close");
-                      },
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent
-                      ),
-                      label: Text(AppLocalizations.of(context)!.translate('close')),
-                      icon: Icon(Icons.close),
                     ),
                   ],
                 );
@@ -129,17 +118,6 @@ class _SyncDialogState extends State<SyncDialog> {
                           label: Text(AppLocalizations.of(context)!.translate('retry')),
                           icon: Icon(Icons.refresh),
                         ),
-                        SizedBox(width: 10),
-                        ElevatedButton.icon(
-                          onPressed: isButtonDisable ? null : () {
-                            actionController.sink.add("close");
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.redAccent
-                          ),
-                          label: Text(AppLocalizations.of(context)!.translate('close')),
-                          icon: Icon(Icons.close),
-                        ),
                       ],
                     )
                   ],
@@ -149,6 +127,18 @@ class _SyncDialogState extends State<SyncDialog> {
               }
             }),
       ),
+      actions: [
+        ElevatedButton.icon(
+          onPressed: isButtonDisable ? null : () {
+            actionController.sink.add("close");
+          },
+          style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent
+          ),
+          label: Text(AppLocalizations.of(context)!.translate('close')),
+          icon: Icon(Icons.close),
+        ),
+      ],
     );
   }
 
