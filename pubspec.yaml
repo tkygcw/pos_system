@@ -150,6 +150,7 @@ flutter:
     - language/
     - drawable/
     - audio/
+    - shorebird.yaml
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
