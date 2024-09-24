@@ -25,7 +25,6 @@ import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
-import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
@@ -179,10 +178,10 @@ class _LoadingPageState extends State<LoadingPage> {
     } catch(e) {
       print("getDateRetrieveDate error: $e");
       FLog.error(
-      className: "loading",
-      text: "getDateRetrieveDate error",
-      exception: e,
-    );
+        className: "loading",
+        text: "getDateRetrieveDate error",
+        exception: e,
+      );
     }
   }
 }
@@ -314,25 +313,25 @@ getAppSettingLocal() async {
     // local app setting not exists, create local
     if (!isLocalAppSettingExisted!) {
       AppSetting appSetting = AppSetting(
-        branch_id: branch_id.toString(),
-        open_cash_drawer: 1,
-        show_second_display: 0,
-        direct_payment: 0,
-        print_checklist: 1,
-        print_receipt: 1,
-        show_sku: 0,
-        qr_order_auto_accept: 0,
-        enable_numbering: 0,
-        starting_number: 0,
-        table_order: 1,
-        show_product_desc: 0,
-        print_cancel_receipt: 1,
-        product_sort_by: 0,
-        dynamic_qr_default_exp_after_hour: 1,
-        variant_item_sort_by: 0,
-        sync_status: 0,
-        created_at: dateTime,
-        updated_at: ''
+          branch_id: branch_id.toString(),
+          open_cash_drawer: 1,
+          show_second_display: 0,
+          direct_payment: 0,
+          print_checklist: 1,
+          print_receipt: 1,
+          show_sku: 0,
+          qr_order_auto_accept: 0,
+          enable_numbering: 0,
+          starting_number: 0,
+          table_order: 1,
+          show_product_desc: 0,
+          print_cancel_receipt: 1,
+          product_sort_by: 0,
+          dynamic_qr_default_exp_after_hour: 1,
+          variant_item_sort_by: 0,
+          sync_status: 0,
+          created_at: dateTime,
+          updated_at: ''
       );
       AppSetting data = await PosDatabase.instance.insertSqliteSetting(appSetting);
     }
@@ -346,7 +345,7 @@ getAppSettingLocal() async {
   }
 }
 
-  /*
+/*
   create app setting
 */
 syncAppSettingFromCloud(AppSetting item) async {
@@ -1743,32 +1742,32 @@ getAllTableUse() async {
         data = await Domain().getAllTableUseAfterDate(branch_id.toString(), dataRetrieveDate);
 
       if (data['status'] == '1') {
-      List responseJson = data['table_use'];
-      for (var i = 0; i < responseJson.length; i++) {
-        TableUse item = TableUse.fromJson(responseJson[i]);
-        try {
-          TableUse user = await PosDatabase.instance.insertTableUse(TableUse(
-            table_use_id: item.table_use_id,
-            table_use_key: item.table_use_key,
-            branch_id: item.branch_id,
-            order_cache_key: item.order_cache_key,
-            card_color: item.card_color,
-            status: item.status,
-            sync_status: 1,
-            created_at: item.created_at,
-            updated_at: item.updated_at,
-            soft_delete: item.soft_delete,
-          ));
-        } catch(e) {
-          FLog.error(
-            className: "loading",
-            text: "getAllTableUse error",
-            exception: "$e\n${item.toJson()}",
-          );
+        List responseJson = data['table_use'];
+        for (var i = 0; i < responseJson.length; i++) {
+          TableUse item = TableUse.fromJson(responseJson[i]);
+          try {
+            TableUse user = await PosDatabase.instance.insertTableUse(TableUse(
+              table_use_id: item.table_use_id,
+              table_use_key: item.table_use_key,
+              branch_id: item.branch_id,
+              order_cache_key: item.order_cache_key,
+              card_color: item.card_color,
+              status: item.status,
+              sync_status: 1,
+              created_at: item.created_at,
+              updated_at: item.updated_at,
+              soft_delete: item.soft_delete,
+            ));
+          } catch(e) {
+            FLog.error(
+              className: "loading",
+              text: "getAllTableUse error",
+              exception: "$e\n${item.toJson()}",
+            );
+          }
         }
+        getAllTableUseDetail();
       }
-      getAllTableUseDetail();
-    }
     }
   } catch(e) {
     FLog.error(
@@ -2168,7 +2167,6 @@ getAllOrder() async {
                 final_amount: responseJson[i]['final_amount'],
                 close_by: responseJson[i]['close_by'],
                 payment_status: responseJson[i]['payment_status'],
-                payment_split: responseJson[i]['payment_split'],
                 payment_received: responseJson[i]['payment_received'],
                 payment_change: responseJson[i]['payment_change'],
                 order_key: responseJson[i]['order_key'],
@@ -2190,7 +2188,6 @@ getAllOrder() async {
         }
         getAllOrderPromotionDetail();
         getAllOrderTaxDetail();
-        getAllOrderPaymentSplit();
         getAllRefund();
       }
     }
@@ -2315,50 +2312,6 @@ getAllOrderTaxDetail() async {
 }
 
 /*
-  save order payment split to database
-*/
-getAllOrderPaymentSplit() async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    Map data = await Domain().getAllOrderPaymentSplit(branch_id.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['data'];
-      for (var i = 0; i < responseJson.length; i++) {
-        try {
-          OrderPaymentSplit orderObject = await PosDatabase.instance.insertSqliteOrderPaymentSplit(OrderPaymentSplit(
-              order_payment_split_id: responseJson[i]['order_payment_split_id'],
-              order_payment_split_key: responseJson[i]['order_payment_split_key'],
-              branch_id: responseJson[i]['branch_id'],
-              payment_link_company_id: responseJson[i]['payment_link_company_id'],
-              amount: responseJson[i]['amount'],
-              payment_received: responseJson[i]['payment_received'],
-              payment_change: responseJson[i]['payment_change'],
-              order_key: responseJson[i]['order_key'],
-              sync_status: 1,
-              created_at: responseJson[i]['created_at'],
-              updated_at: responseJson[i]['updated_at'],
-              soft_delete: responseJson[i]['soft_delete']
-          ));
-        } catch(e) {
-          FLog.error(
-            className: "loading",
-            text: "order payment split insert failed (order_payment_split_id: ${responseJson[i]['order_payment_split_id']})",
-            exception: "$e\n${responseJson[i].toJson()}",
-          );
-        }
-      }
-    }
-  } catch(e) {
-    FLog.error(
-      className: "loading",
-      text: "getAllOrderPaymentSplit error",
-      exception: e,
-    );
-  }
-}
-
-/*
   save order cache to database
 */
 getAllOrderCache() async {
@@ -2393,52 +2346,52 @@ getAllOrderCache() async {
             tableUseLocalId = '';
           }
 
-        if (cloudData.order_key != '' && cloudData.order_key != null) {
-          // print("order key in order cache sync: ${cloudData.order_key}");
-          Order? orderData = await PosDatabase.instance.readOrderSqliteID(cloudData.order_key!);
-          orderLocalId =  orderData != null ? orderData.order_sqlite_id.toString() : '';
-        } else {
-          orderLocalId = '';
+          if (cloudData.order_key != '' && cloudData.order_key != null) {
+            // print("order key in order cache sync: ${cloudData.order_key}");
+            Order? orderData = await PosDatabase.instance.readOrderSqliteID(cloudData.order_key!);
+            orderLocalId =  orderData != null ? orderData.order_sqlite_id.toString() : '';
+          } else {
+            orderLocalId = '';
+          }
+          try {
+            OrderCache data = await PosDatabase.instance.insertOrderCache(OrderCache(
+              order_cache_id: cloudData.order_cache_id,
+              order_cache_key: cloudData.order_cache_key,
+              order_queue: cloudData.order_queue,
+              company_id: cloudData.company_id,
+              branch_id: cloudData.branch_id,
+              order_detail_id: '',
+              table_use_sqlite_id: tableUseLocalId,
+              table_use_key: cloudData.table_use_key != '' && cloudData.table_use_key != null ? cloudData.table_use_key : '',
+              batch_id: cloudData.batch_id,
+              dining_id: cloudData.dining_id,
+              order_sqlite_id: orderLocalId,
+              order_key: cloudData.order_key != '' && cloudData.order_key != null ? cloudData.order_key : '',
+              order_by: cloudData.order_by != '' ? cloudData.order_by : '',
+              order_by_user_id: cloudData.order_by_user_id,
+              cancel_by: cloudData.cancel_by != '' ? cloudData.cancel_by : '',
+              cancel_by_user_id: cloudData.cancel_by_user_id != '' ? cloudData.cancel_by_user_id : '',
+              customer_id: cloudData.customer_id,
+              total_amount: cloudData.total_amount != '' ? cloudData.total_amount : '',
+              qr_order: cloudData.qr_order,
+              qr_order_table_sqlite_id: '',
+              qr_order_table_id: responseJson[i]['table_id'],
+              accepted: cloudData.accepted,
+              sync_status: 1,
+              created_at: cloudData.created_at,
+              updated_at: cloudData.updated_at,
+              soft_delete: cloudData.soft_delete,
+            ));
+          } catch(e) {
+            FLog.error(
+              className: "loading",
+              text: "order cache insert failed (order_cache_id: ${cloudData.order_cache_id})",
+              exception: "$e\n${cloudData.toJson()}",
+            );
+          }
         }
-        try {
-          OrderCache data = await PosDatabase.instance.insertOrderCache(OrderCache(
-            order_cache_id: cloudData.order_cache_id,
-            order_cache_key: cloudData.order_cache_key,
-            order_queue: cloudData.order_queue,
-            company_id: cloudData.company_id,
-            branch_id: cloudData.branch_id,
-            order_detail_id: '',
-            table_use_sqlite_id: tableUseLocalId,
-            table_use_key: cloudData.table_use_key != '' && cloudData.table_use_key != null ? cloudData.table_use_key : '',
-            batch_id: cloudData.batch_id,
-            dining_id: cloudData.dining_id,
-            order_sqlite_id: orderLocalId,
-            order_key: cloudData.order_key != '' && cloudData.order_key != null ? cloudData.order_key : '',
-            order_by: cloudData.order_by != '' ? cloudData.order_by : '',
-            order_by_user_id: cloudData.order_by_user_id,
-            cancel_by: cloudData.cancel_by != '' ? cloudData.cancel_by : '',
-            cancel_by_user_id: cloudData.cancel_by_user_id != '' ? cloudData.cancel_by_user_id : '',
-            customer_id: cloudData.customer_id,
-            total_amount: cloudData.total_amount != '' ? cloudData.total_amount : '',
-            qr_order: cloudData.qr_order,
-            qr_order_table_sqlite_id: '',
-            qr_order_table_id: responseJson[i]['table_id'],
-            accepted: cloudData.accepted,
-            sync_status: 1,
-            payment_status: cloudData.payment_status,
-            created_at: cloudData.created_at,
-            updated_at: cloudData.updated_at,
-            soft_delete: cloudData.soft_delete,
-          ));
-        } catch(e) {
-          FLog.error(
-            className: "loading",
-            text: "order cache insert failed (order_cache_id: ${cloudData.order_cache_id})",
-            exception: "$e\n${cloudData.toJson()}",
-          );
-        }
+        getAllOrderDetail();
       }
-      getAllOrderDetail();
     }
   } catch(e) {
     FLog.error(

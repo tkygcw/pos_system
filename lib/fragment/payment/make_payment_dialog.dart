@@ -1484,7 +1484,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                           openLogOutDialog();
                                                           return;
                                                         }
-                                                        openPaymentSuccessDialog(widget.dining_id, isCashMethod: true, diningName: widget.dining_name);
+                                                        openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: true, diningName: widget.dining_name);
                                                       } else {
                                                         Fluttertoast.showToast(
                                                             backgroundColor: Color(0xFFFF0000),
@@ -1555,6 +1555,7 @@ class _MakePaymentState extends State<MakePayment> {
                                           }
                                           openPaymentSuccessDialog(
                                               widget.dining_id,
+                                              split_payment,
                                               isCashMethod: false,
                                               diningName: widget.dining_name);
                                         },
@@ -1884,7 +1885,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                 openLogOutDialog();
                                                                 return;
                                                               }
-                                                              openPaymentSuccessDialog(widget.dining_id, isCashMethod: true, diningName: widget.dining_name);
+                                                              openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: true, diningName: widget.dining_name);
                                                             } else {
                                                               Fluttertoast.showToast(
                                                                 backgroundColor: Color(0xFFFF0000),
@@ -1948,7 +1949,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                     openLogOutDialog();
                                                     return;
                                                   }
-                                                  openPaymentSuccessDialog(widget.dining_id, isCashMethod: false, diningName: widget.dining_name);
+                                                  openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
                                                 },
                                                 icon: Icon(Icons.call_received),
                                                 label: Text(AppLocalizations.of(context)!.translate('payment_received'), style: TextStyle(fontSize: 16)),
