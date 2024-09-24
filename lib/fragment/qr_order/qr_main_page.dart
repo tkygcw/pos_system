@@ -32,7 +32,7 @@ class QrMainPage extends StatefulWidget {
 class _QrMainPageState extends State<QrMainPage> {
   List<OrderCache> qrOrderCacheList = [];
   List<OrderDetail> orderDetailList = [], noStockOrderDetailList = [];
-  bool _isLoaded = false, hasNoStockProduct = false, hasAccess = true;
+  bool hasNoStockProduct = false, hasAccess = true;
 
   @override
   void initState() {
@@ -73,7 +73,7 @@ class _QrMainPageState extends State<QrMainPage> {
   }
 
   AppBar QrAppBar(BuildContext context, ThemeColor color) {
-    return MediaQuery.of(context).orientation == Orientation.landscape ? AppBar(
+    return MediaQuery.of(context).orientation == Orientation.landscape && MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? AppBar(
       primary: false,
       elevation: 0,
       automaticallyImplyLeading: false,
@@ -127,11 +127,14 @@ class _QrMainPageState extends State<QrMainPage> {
     ) : AppBar(
       automaticallyImplyLeading: false,
       elevation: 0,
-      leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : IconButton(
-        icon: Icon(Icons.menu, color: color.buttonColor),
-        onPressed: () {
-          isCollapsedNotifier.value = !isCollapsedNotifier.value;
-        },
+      leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: GestureDetector(
+          onTap: () {
+            isCollapsedNotifier.value = !isCollapsedNotifier.value;
+          },
+          child: Image.asset('drawable/logo.png'),
+        ),
       ),
       title: Text(AppLocalizations.of(context)!.translate('qr_order'),
         style: TextStyle(fontSize: 20, color: color.backgroundColor),

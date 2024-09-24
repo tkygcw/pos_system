@@ -38,7 +38,6 @@ import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/page/loading_dialog.dart';
 import 'package:pos_system/page/progress_bar.dart';
-import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -778,6 +777,7 @@ class CartPageState extends State<CartPage> {
                                                           if (cart.cartNotifierItem.isNotEmpty) {
                                                             openLoadingDialogBox();
                                                             asyncQ.addJob((_) async => await callCreateNewNotDineOrder(cart, appSettingModel));
+                                                            isCartExpanded = !isCartExpanded;
                                                           } else {
                                                             Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                                           }
@@ -1860,7 +1860,6 @@ class CartPageState extends State<CartPage> {
   }
 
   getDiningTax(CartModel cart) async {
-    final prefs = await SharedPreferences.getInstance();
     try {
       //get dining option data
       List<DiningOption> data = await PosDatabase.instance.checkSelectedOption(cart.selectedOption);
@@ -2403,6 +2402,7 @@ class CartPageState extends State<CartPage> {
         //   return;
         // }
         asyncQ.addJob((_) => printKitchenList());
+        isCartExpanded = !isCartExpanded;
         // printKitchenList();
       } else {
         cart.removeAllCartItem();
@@ -2470,6 +2470,7 @@ class CartPageState extends State<CartPage> {
           //   return;
           // }
           asyncQ.addJob((_) => printKitchenList());
+          isCartExpanded = !isCartExpanded;
           // printKitchenList();
         } else {
           Navigator.of(context).pop();
@@ -2733,7 +2734,6 @@ class CartPageState extends State<CartPage> {
     int tempColor = 0;
     int matchColor = 0;
     int diff = 0;
-    int count = 0;
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     List<TableUse> data = await PosDatabase.instance.readAllTableUseId(branch_id!);
@@ -3676,7 +3676,6 @@ class CartPageState extends State<CartPage> {
   }
 
   readAllOrderCache() async {
-    final prefs = await SharedPreferences.getInstance();
     List<OrderCache> data = await PosDatabase.instance.readAllOrderCache();
     orderCacheList = data;
   }

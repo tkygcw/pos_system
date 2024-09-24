@@ -80,6 +80,7 @@ class _SettlementPageState extends State<SettlementPage> {
                 AppLocalizations.of(context)!.translate('counter'),
                 style: TextStyle(fontSize: 25),
               ),
+              centerTitle: false,
               actions: [
                 Container(
                   margin: EdgeInsets.only(right: 10),
@@ -423,11 +424,14 @@ class _SettlementPageState extends State<SettlementPage> {
             appBar: AppBar(
               automaticallyImplyLeading: false,
               elevation: 0,
-              leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : IconButton(
-                icon: Icon(Icons.menu, color: color.buttonColor),
-                onPressed: () {
-                  isCollapsedNotifier.value = !isCollapsedNotifier.value;
-                },
+              leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: GestureDetector(
+                  onTap: () {
+                    isCollapsedNotifier.value = !isCollapsedNotifier.value;
+                  },
+                  child: Image.asset('drawable/logo.png'),
+                ),
               ),
               title: Text(
                 AppLocalizations.of(context)!.translate('counter'),
@@ -932,7 +936,7 @@ class _SettlementPageState extends State<SettlementPage> {
       barrierLabel: 'Dismiss',
       context: context,
       builder: (_) => ReprintSettlementDialog(),
-    );;
+    );
   }
 
   Future<Future<Object?>> openSettlementHistoryDialog() async {

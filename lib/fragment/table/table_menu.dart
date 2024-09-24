@@ -159,7 +159,7 @@ class _TableMenuState extends State<TableMenu> {
                 Column(
                   children: [
                     Padding(
-                      padding: EdgeInsets.fromLTRB(11, 15, 11, 4),
+                      padding: EdgeInsets.fromLTRB(11, 4, 11, 4),
                       child: TableMenuAppBar(context, color, cart),
                     ),
                     SizedBox(height: 20),
@@ -192,11 +192,14 @@ class _TableMenuState extends State<TableMenu> {
                   appBar: AppBar(
                     automaticallyImplyLeading: false,
                     elevation: 0,
-                    leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : IconButton(
-                      icon: Icon(Icons.menu, color: color.buttonColor),
-                      onPressed: () {
-                        isCollapsedNotifier.value = !isCollapsedNotifier.value;
-                      },
+                    leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: GestureDetector(
+                        onTap: () {
+                          isCollapsedNotifier.value = !isCollapsedNotifier.value;
+                        },
+                        child: Image.asset('drawable/logo.png'),
+                      ),
                     ),
                     title: Text(AppLocalizations.of(context)!.translate('table'),
                       style: TextStyle(fontSize: 20, color: color.backgroundColor),

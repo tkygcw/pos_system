@@ -90,14 +90,19 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
             appBar: AppBar(
               automaticallyImplyLeading: false,
               elevation: 0,
-              leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : IconButton(
-                icon: Icon(Icons.menu, color: color.buttonColor),
-                onPressed: () {
-                  isCollapsedNotifier.value = !isCollapsedNotifier.value;
-                },
+              leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: GestureDetector(
+                  onTap: () {
+                    isCollapsedNotifier.value = !isCollapsedNotifier.value;
+                  },
+                  child: Image.asset('drawable/logo.png'),
+                ),
               ),
               title: Text(AppLocalizations.of(context)!.translate('menu'),
-                style: TextStyle(fontSize: 20, color: color.backgroundColor),
+                style: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                    ? TextStyle(fontSize: 25, color: Colors.black)
+                    : TextStyle(fontSize: 20, color: color.backgroundColor),
               ),
               centerTitle: false,
               actions: [
