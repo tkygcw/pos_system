@@ -153,7 +153,7 @@ class _DeviceRegisterState extends State<DeviceRegister> {
   }
 
   getBranchDevice() async {
-    Map data = await Domain().getBranchDevice(widget.selectedBranch!.branchID.toString());
+    Map data = await Domain().getBranchDevice(widget.selectedBranch!.branch_id.toString());
     if (data['status'] == '1') {
       setState(() {
         List responseJson = data['device'];

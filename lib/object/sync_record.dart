@@ -498,7 +498,7 @@ class SyncRecord {
     final prefs = await SharedPreferences.getInstance();
     try{
       int data = await PosDatabase.instance.updateBranch(branchData);
-      Branch? branch = await PosDatabase.instance.readSpecificBranch(branchData.branchID!);
+      Branch? branch = await PosDatabase.instance.readSpecificBranch(branchData.branch_id!);
       await prefs.setString('branch', json.encode(branch!));
       if(data == 1){
         isComplete = true;

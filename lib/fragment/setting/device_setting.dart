@@ -10,6 +10,7 @@ import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../firebase_sync/sync_to_firebase.dart';
 import '../../translation/AppLocalizations.dart';
 
 class DeviceSetting extends StatefulWidget {
@@ -72,9 +73,9 @@ class _DeviceSettingState extends State<DeviceSetting> {
                           }),
                           ElevatedButton(
                               onPressed: (){
-                                PosFirestore.instance.readDataFromCloud();
+                                SyncToFirebase.instance.syncToFirebase();
                               },
-                              child: Text("Firestore"),
+                              child: Text("get branch"),
                           ),
                           ElevatedButton(
                             onPressed: (){
@@ -123,7 +124,13 @@ class _DeviceSettingState extends State<DeviceSetting> {
                               PosFirestore.instance.readFullOrderCache();
                             },
                             child: Text("get order cache"),
-                          )
+                          ),
+                          ElevatedButton(
+                            onPressed: (){
+                              PosFirestore.instance.transferDatabaseData();
+                            },
+                            child: Text("transfer data"),
+                          ),
                         ],
                       );
                     })

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/qr_order.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
@@ -13,6 +14,7 @@ import '../object/order_cache.dart';
 import '../object/order_detail.dart';
 import '../object/order_modifier_detail.dart';
 import '../translation/AppLocalizations.dart';
+import 'domain.dart';
 
 class PosFirestore{
   static final PosFirestore instance = PosFirestore.init();
@@ -22,6 +24,19 @@ class PosFirestore{
   PosFirestore.init();
 
   FirebaseFirestore get firestore => _firestore;
+
+  Future<Branch?> readCurrentBranch(String branch_id) async {
+    var snapshot = await firestore.collection(tableBranch!).doc(branch_id).get();
+    if(snapshot.data() != null){
+      return Branch.fromJson(snapshot.data()!);
+    } else {
+      return null;
+    }
+  }
+
+  insertBranch(Branch branch) async {
+    await firestore.collection(tableBranch!).doc(branch.branch_id.toString()).set(branch.toJson());
+  }
 
   readDataFromCloud() async {
     await firestore.collection(tableProduct!).get().then((event) {
@@ -42,6 +57,34 @@ class PosFirestore{
     List<Product> products = await PosDatabase.instance.readAllProduct();
     final docRef = firestore.collection(tableProduct!).doc(products.first.product_sqlite_id.toString());
     await docRef.set(products.first.toJson());
+  }
+
+  transferDatabaseData() async {
+    try{
+      Map res = await Domain().transferDatabaseData('tb_customer_link_branch');
+      print("res length: ${res['data'].length}");
+      List data = res['data'];
+      int chunkSize = 20;
+      int total = data.length;
+      int totalChunkBreak = 0;
+      for (int i = 0; i < total; i += chunkSize) {
+        // Take a chunk of 'chunkSize' elements, starting from index 'i'
+        List<dynamic> chunk = data.sublist(i, i + chunkSize > total ? total : i + chunkSize);
+        for(int j = 0; j < chunk.length; j++){
+          try{
+            await firestore.collection("tb_customer_link_branch").doc(chunk[j]['id'].toString()).set(chunk[j]);
+          }catch(e){
+            break;
+          }
+
+        }
+        // Process the chunk
+        totalChunkBreak += chunk.length;
+      }
+      print("total chunk processed: ${totalChunkBreak}");
+    }catch(e){
+      print("transferDatabaseData error: ${e}");
+    }
   }
 
   updateSpecificProduct(String id){

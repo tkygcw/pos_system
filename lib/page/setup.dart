@@ -270,7 +270,7 @@ class _SetupPageState extends State<SetupPage> {
 
   savePref() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('branch_id', selectedBranch!.branchID!);
+    await prefs.setInt('branch_id', selectedBranch!.branch_id!);
     await prefs.setInt('device_id', selectedDevice!.deviceID!);
     await prefs.setString("branch", json.encode(selectedBranch!));
     String userEmail = jsonDecode(prefs.getString('user') ?? '')['email'] ?? '';
@@ -286,14 +286,14 @@ class _SetupPageState extends State<SetupPage> {
       print("update branch token called");
       await PosDatabase.instance.updateBranchNotificationToken(Branch(
           notification_token: this.token,
-          branchID: selectedBranch!.branchID
+          branch_id: selectedBranch!.branch_id
       ));
 /*
       ------------------------sync to cloud--------------------------------
 */
       bool _hasInternetAccess = await Domain().isHostReachable();
       if(_hasInternetAccess){
-        Map response = await Domain().updateBranchNotificationToken(this.token, selectedBranch!.branchID);
+        Map response = await Domain().updateBranchNotificationToken(this.token, selectedBranch!.branch_id);
         if (response['status'] == '1') {
           Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => LoadingPage()));
         } else {

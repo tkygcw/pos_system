@@ -50,7 +50,27 @@ class Domain {
   static Uri attendance = Uri.parse(domain + 'mobile-api/attendance/index.php');
   static Uri dynamic_qr = Uri.parse(domain + 'mobile-api/dynamic_qr/index.php');
   static Uri table_dynamic = Uri.parse(domain + 'mobile-api/table_dynamic/index.php');
+  //for transfer data use only
+  static Uri import_firebase = Uri.parse(domain + 'mobile-api/import_firebase/index.php');
 
+
+  transferDatabaseData(String tb_name) async {
+    try {
+      var response = await http.post(Domain.import_firebase, body: {
+        'import_firebase': '1',
+        'tb_name': tb_name
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      FLog.error(
+        className: "domain",
+        text: "transfer db data failed",
+        exception: "$error",
+      );
+      Fluttertoast.showToast(msg: error.toString());
+      return {'status': '2'};
+    }
+  }
 
   /**
   * insert table dynamic qr

@@ -75,7 +75,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 23, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 24, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -484,6 +484,9 @@ class PosDatabase {
             await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
           }
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
+        }break;
+        case 23: {
+          await db.execute("ALTER TABLE $tableBranch RENAME branchID to branch_id");
         }
       }
     }
@@ -871,7 +874,7 @@ class PosDatabase {
     create branch table
 */
     await db.execute('''CREATE TABLE $tableBranch (
-           ${BranchFields.branchID} $idType,
+           ${BranchFields.branch_id} $idType,
            ${BranchFields.branch_url} $textType,
            ${BranchFields.name} $textType,
            ${BranchFields.address} $textType,
@@ -2750,7 +2753,7 @@ class PosDatabase {
 */
   Future<Branch?> readBranchName(String branch_id) async {
     final db = await instance.database;
-    final maps = await db.query(tableBranch!, columns: BranchFields.values, where: '${BranchFields.branchID} = ?', whereArgs: [branch_id]);
+    final maps = await db.query(tableBranch!, columns: BranchFields.values, where: '${BranchFields.branch_id} = ?', whereArgs: [branch_id]);
     if (maps.isNotEmpty) {
       return Branch.fromJson(maps.first);
     }
@@ -6220,7 +6223,7 @@ class PosDatabase {
   Future<int> updateBranch(Branch data) async {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableBranch SET name = ?, address = ?, phone = ?, email = ?, qr_order_status = ?, sub_pos_status = ?, attendance_status = ? WHERE branchID = ? ',
-        [data.name, data.address, data.phone, data.email, data.qr_order_status, data.sub_pos_status, data.attendance_status, data.branchID]);
+        [data.name, data.address, data.phone, data.email, data.qr_order_status, data.sub_pos_status, data.attendance_status, data.branch_id]);
   }
 
 /*
@@ -6507,7 +6510,7 @@ class PosDatabase {
 */
   Future<int> updateBranchNotificationToken(Branch data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableBranch SET notification_token = ? WHERE branchID = ?', [data.notification_token, data.branchID]);
+    return await db.rawUpdate('UPDATE $tableBranch SET notification_token = ? WHERE branchID = ?', [data.notification_token, data.branch_id]);
   }
 
 /*
@@ -8594,6 +8597,19 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery('SELECT * FROM $tablePosTable WHERE soft_delete = ? AND table_id = ?', ['', table_id]);
     return jsonEncode(result);
+  }
+
+/*
+  ----------------------Firebase sync query--------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
+/*
+  read all not yet sync to cloud updated order cache
+*/
+  Future<Branch> readLocalBranch() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableBranch');
+    return Branch.fromJson(result.first);
   }
 
   // Future<List<Categories>> readAllNotes() async {
