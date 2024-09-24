@@ -75,17 +75,20 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
             getOrder(model: cart);
           }
           return LayoutBuilder(builder: (context, constraints) {
-            if (constraints.maxWidth > 800) {
+            if (MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500) {
               return Scaffold(
                   appBar: AppBar(
                     primary: false,
                     elevation: 0,
                     automaticallyImplyLeading: false,
-                    leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : IconButton(
-                      icon: Icon(Icons.menu, color: color.buttonColor),
-                      onPressed: () {
-                        isCollapsedNotifier.value = !isCollapsedNotifier.value;
-                      },
+                    leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: GestureDetector(
+                        onTap: () {
+                          isCollapsedNotifier.value = !isCollapsedNotifier.value;
+                        },
+                        child: Image.asset('drawable/logo.png'),
+                      ),
                     ),
                     title: Text(
                       AppLocalizations.of(context)!.translate('receipt'),
@@ -255,7 +258,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                     automaticallyImplyLeading: false,
                     title: Text(
                       AppLocalizations.of(context)!.translate('receipt'),
-                      style: TextStyle(fontSize: 25),
+                      style: TextStyle(fontSize: 20, color: color.backgroundColor),
                     ),
                     actions: [
                       Container(
@@ -320,11 +323,14 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                   AppBar(
                     automaticallyImplyLeading: false,
                     elevation: 0,
-                    leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : IconButton(
-                      icon: Icon(Icons.menu, color: color.buttonColor),
-                      onPressed: () {
-                        isCollapsedNotifier.value = !isCollapsedNotifier.value;
-                      },
+                    leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: GestureDetector(
+                        onTap: () {
+                          isCollapsedNotifier.value = !isCollapsedNotifier.value;
+                        },
+                        child: Image.asset('drawable/logo.png'),
+                      ),
                     ),
                     title: Text(AppLocalizations.of(context)!.translate('receipt'),
                       style: TextStyle(fontSize: 20, color: color.backgroundColor),

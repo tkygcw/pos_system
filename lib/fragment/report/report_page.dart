@@ -497,7 +497,7 @@ class _ReportPageState extends State<ReportPage> {
                 automaticallyImplyLeading: false,
                 title: Row(
                   children: [
-                    Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 25, color: Colors.black)),
+                    Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 20, color: color.backgroundColor)),
                     Spacer(),
                     Visibility(
                       visible: currentPage != 13 ? true : false,
@@ -624,11 +624,14 @@ class _ReportPageState extends State<ReportPage> {
               ) :
               AppBar(
                 automaticallyImplyLeading: false,
-                leading: IconButton(
-                  icon: Icon(Icons.menu, color: color.buttonColor),
-                  onPressed: () {
-                    isCollapsedNotifier.value = !isCollapsedNotifier.value;
-                  },
+                leading: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      isCollapsedNotifier.value = !isCollapsedNotifier.value;
+                    },
+                    child: Image.asset('drawable/logo.png'),
+                  ),
                 ),
                 title: Row(
                   children: [

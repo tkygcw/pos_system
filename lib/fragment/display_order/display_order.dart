@@ -10,7 +10,6 @@ import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/dining_option.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/table.dart';
-import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
@@ -137,10 +136,11 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
               getOrderList(model: tableModel);
             }
             return Scaffold(
-              appBar: MediaQuery.of(context).orientation == Orientation.landscape ? AppBar(
+              appBar: MediaQuery.of(context).orientation == Orientation.landscape && MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? AppBar(
                 automaticallyImplyLeading: false,
                 elevation: 0,
                 title: Text(AppLocalizations.of(context)!.translate('other_order'), style: TextStyle(fontSize: 25)),
+                centerTitle: false,
                 actions: [
                   Container(
                     width: MediaQuery.of(context).size.height / 3,
@@ -189,11 +189,14 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
               AppBar(
                 automaticallyImplyLeading: false,
                 elevation: 0,
-                leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : IconButton(
-                  icon: Icon(Icons.menu, color: color.buttonColor),
-                  onPressed: () {
-                    isCollapsedNotifier.value = !isCollapsedNotifier.value;
-                  },
+                leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      isCollapsedNotifier.value = !isCollapsedNotifier.value;
+                    },
+                    child: Image.asset('drawable/logo.png'),
+                  ),
                 ),
                 title: Text(AppLocalizations.of(context)!.translate('other_order'),
                   style: TextStyle(fontSize: 20, color: color.backgroundColor),
