@@ -2424,6 +2424,7 @@ getAllOrderCache() async {
               qr_order_table_id: responseJson[i]['table_id'],
               accepted: cloudData.accepted,
               sync_status: 1,
+              payment_status: cloudData.payment_status,
               created_at: cloudData.created_at,
               updated_at: cloudData.updated_at,
               soft_delete: cloudData.soft_delete,
