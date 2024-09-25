@@ -4757,7 +4757,6 @@ class PosDatabase {
   Future<List<OrderDetail>> readAllCancelledOrderDetailWithCategory2(String category_name, String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-      //CASE WHEN b.unit != ? OR b.unit != ? THEN 1 ELSE b.quantity END
         'SELECT a.created_at, a.product_name, a.product_variant_name, a.unit, b.cancel_by, SUM(b.quantity * a.price + 0.0) AS gross_price, '
             'SUM(b.quantity * a.original_price + 0.0) AS net_sales, '
             'SUM(CASE WHEN a.unit != ? AND a.unit != ? THEN a.per_quantity_unit * b.quantity ELSE b.quantity END) AS item_sum, '
@@ -4776,7 +4775,6 @@ class PosDatabase {
   Future<List<OrderDetail>> readAllCancelledOrderDetailWithCategory2WithOB(String category_name, String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-      //CASE WHEN b.unit != ? OR b.unit != ? THEN 1 ELSE b.quantity END
         'SELECT a.created_at, a.product_name, a.product_variant_name, a.unit, b.cancel_by, SUM(b.quantity * a.price + 0.0) AS gross_price, '
             'SUM(b.quantity * a.original_price + 0.0) AS net_sales, '
             'SUM(CASE WHEN a.unit != ? AND a.unit != ? THEN a.per_quantity_unit * b.quantity ELSE b.quantity END) AS item_sum, '
@@ -5036,7 +5034,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT b.*, SUM(b.original_price * b.quantity + 0.0) AS category_net_sales, SUM(b.price * b.quantity + 0.0) AS category_gross_sales, '
-            'SUM(CASE WHEN b.unit != ? OR b.unit != ? THEN 1 ELSE b.quantity END) AS category_item_sum '
+            'SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN 1 ELSE b.quantity END) AS category_item_sum '
             'FROM $tableOrderDetail AS b JOIN $tableOrderCache AS c ON b.order_cache_sqlite_id = c.order_cache_sqlite_id '
             'JOIN $tableOrder AS d ON c.order_sqlite_id = d.order_sqlite_id JOIN $tableCashRecord AS e on d.settlement_key = e.settlement_key AND e.remark = ?'
             'WHERE b.soft_delete = ? AND c.soft_delete = ? AND c.accepted = ? AND c.cancel_by = ? AND d.soft_delete = ? AND b.status = ? AND d.payment_status = ? '
@@ -5410,7 +5408,7 @@ class PosDatabase {
   Future<OrderDetailCancel?> sumAllNotSettlementCancelItemQuantity() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT SUM(CASE WHEN b.unit != ? OR b.unit != ? THEN 1 ELSE a.quantity END) AS total_item '
+        'SELECT SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN 1 ELSE a.quantity END) AS total_item '
             'FROM $tableOrderDetailCancel AS a JOIN $tableOrderDetail AS b ON a.order_detail_key = b.order_detail_key '
             'WHERE a.soft_delete = ? AND a.settlement_key = ? ',
         ['each', '', '', '']);
