@@ -15,13 +15,13 @@ class StaffSalesReport extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0, right: 8.0, left: 8.0),
       child: Scaffold(
-        appBar: buildAppBar(),
+        appBar: buildAppBar(context),
         body: _ReportPart(),
       ),
     );
   }
 
-  AppBar buildAppBar() {
+  AppBar buildAppBar(BuildContext context) {
     return AppBar(
       automaticallyImplyLeading: false,
       elevation: 0.0,
@@ -32,7 +32,8 @@ class StaffSalesReport extends StatelessWidget {
               width: 1
           )
       ),
-      title: Text("Staff Sales Report", style: TextStyle(fontSize: 25, color: Colors.black)),
+      title: Text(AppLocalizations.of(context)!.translate('staff_sales_report'), style: TextStyle(fontSize: 25, color: Colors.black)),
+      centerTitle: false,
     );
   }
 }

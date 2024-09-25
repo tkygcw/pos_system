@@ -59,8 +59,16 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
               Visibility(
                 visible: logs.length >= 1,
                 child: SizedBox(
-                  width: MediaQuery.of(context).size.width / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 10 : 8),
-                  height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 20 : 12),
+                  width: constraints.maxWidth > 900 && constraints.maxHeight > 500
+                      ? MediaQuery.of(context).size.width / 10
+                      : MediaQuery.of(context).orientation == Orientation.landscape
+                      ? MediaQuery.of(context).size.width / 6
+                      : MediaQuery.of(context).size.width / 4,
+                  height: constraints.maxWidth > 900 && constraints.maxHeight > 500
+                      ? MediaQuery.of(context).size.height / 20
+                      : MediaQuery.of(context).orientation == Orientation.landscape
+                      ? MediaQuery.of(context).size.height / 12
+                      : MediaQuery.of(context).size.height / 26,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.zero,
@@ -117,10 +125,10 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                         fontWeight: FontWeight.normal,
                       ),
                     ),
-                    leading: Icon(
+                    leading: constraints.maxWidth > 900 && constraints.maxHeight > 500 || MediaQuery.of(context).orientation == Orientation.landscape ? Icon(
                       iconData,
                       color: fontColor,
-                    ),
+                    ) : null,
                     onTap: () {
                       setState(() {
                         logs[reversedIndex].isTapped = !logs[reversedIndex].isTapped;
@@ -143,122 +151,258 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
             ),
           ),
           actions: [
-            SizedBox(
-              width: MediaQuery.of(context).size.width / 4,
-              height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                onPressed: isButtonDisabled
-                    ? null
-                    : () {
-                  setState(() {
-                    isButtonDisabled = true;
-                  });
-                  closeDialog(context);
-                },
-              ),
-            ),
-            SizedBox(
-              width: MediaQuery.of(context).size.width / 4,
-              height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                child: Text(AppLocalizations.of(context)!.translate('export')),
-                onPressed: isButtonDisabled
-                    ? null
-                    : () async {
+            constraints.maxWidth > 900 && constraints.maxHeight > 500 ? Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                SizedBox(
+                  width: MediaQuery.of(context).size.width / 4,
+                  height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                    child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                    onPressed: isButtonDisabled
+                        ? null
+                        : () {
+                      setState(() {
+                        isButtonDisabled = true;
+                      });
+                      closeDialog(context);
+                    },
+                  ),
+                ),
+                SizedBox(width: 10),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width / 4,
+                  height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                    child: Text(AppLocalizations.of(context)!.translate('export')),
+                    onPressed: isButtonDisabled
+                        ? null
+                        : () async {
 
-                  setState(() {
-                    isButtonDisabled = true;
-                  });
-                  await showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return StatefulBuilder(builder: (context, StateSetter setState) {
-                        return Container(
-                          child: AlertDialog(
-                            title: Text(AppLocalizations.of(context)!.translate('choose_an_option')),
-                            content: !inProgress ? Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  width: MediaQuery.of(context).size.width / 4,
-                                  height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
-                                  child: ElevatedButton(
-                                    onPressed: () async {
-                                      setState(() {
-                                        inProgress = true;
-                                      });
-                                      await dataZip(1);
-                                      if(mounted){
-                                        setState(() {
-                                          inProgress = false;
-                                        });
-                                      }
-                                      Navigator.pop(context);
-                                    },
-                                    child: Text(AppLocalizations.of(context)!.translate('db_export')),
-                                  ),
-                                ),
-                                SizedBox(height: 15),
-                                SizedBox(
-                                  width: MediaQuery.of(context).size.width / 4,
-                                  height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
-                                  child: ElevatedButton(
-                                    onPressed: () async {
-                                      setState(() {
-                                        inProgress = true;
-                                      });
-                                      await dataZip(2);
-                                      if(mounted){
-                                        setState(() {
-                                          inProgress = false;
-                                        });
-                                      }
-                                      Navigator.pop(context);
-                                    },
-                                    child: Text(AppLocalizations.of(context)!.translate('db_sync')),
-                                  ),
-                                ),
-                                SizedBox(height: 15),
-                                SizedBox(
-                                  width: MediaQuery.of(context).size.width / 4,
-                                  height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
-                                  child: ElevatedButton(
-                                    onPressed: () async {
-                                      Navigator.pop(context);
-                                      // await showSecondDialog(context, color);
-                                      setState(() {
-                                        inProgress = true;
-                                      });
-                                      await dataZip(3);
-                                      if(mounted){
-                                        setState(() {
-                                          inProgress = false;
-                                        });
-                                      }
-                                      Navigator.of(context).pop();
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: Text(AppLocalizations.of(context)!.translate('debug')),
-                                  ),
-                                ),
-                              ],
-                            )
-                                : Container(
-                                height: 200,
-                                child: CustomProgressBar()),
-                          ),
-                        );
+                      setState(() {
+                        isButtonDisabled = true;
+                      });
+                      await showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return StatefulBuilder(builder: (context, StateSetter setState) {
+                            return Container(
+                              child: AlertDialog(
+                                title: Text(AppLocalizations.of(context)!.translate('choose_an_option')),
+                                content: !inProgress ? Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(
+                                      width: MediaQuery.of(context).size.width / 4,
+                                      height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
+                                      child: ElevatedButton(
+                                        onPressed: () async {
+                                          setState(() {
+                                            inProgress = true;
+                                          });
+                                          await dataZip(1);
+                                          if(mounted){
+                                            setState(() {
+                                              inProgress = false;
+                                            });
+                                          }
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text(AppLocalizations.of(context)!.translate('db_export')),
+                                      ),
+                                    ),
+                                    SizedBox(height: 15),
+                                    SizedBox(
+                                      width: MediaQuery.of(context).size.width / 4,
+                                      height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
+                                      child: ElevatedButton(
+                                        onPressed: () async {
+                                          setState(() {
+                                            inProgress = true;
+                                          });
+                                          await dataZip(2);
+                                          if(mounted){
+                                            setState(() {
+                                              inProgress = false;
+                                            });
+                                          }
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text(AppLocalizations.of(context)!.translate('db_sync')),
+                                      ),
+                                    ),
+                                    SizedBox(height: 15),
+                                    SizedBox(
+                                      width: MediaQuery.of(context).size.width / 4,
+                                      height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
+                                      child: ElevatedButton(
+                                        onPressed: () async {
+                                          Navigator.pop(context);
+                                          // await showSecondDialog(context, color);
+                                          setState(() {
+                                            inProgress = true;
+                                          });
+                                          await dataZip(3);
+                                          FLog.clearLogs();
+                                          logs.clear();
+                                          if(mounted){
+                                            setState(() {
+                                              inProgress = false;
+                                            });
+                                          }
+                                          Navigator.of(context).pop();
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Text(AppLocalizations.of(context)!.translate('debug')),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                                    : Container(
+                                    height: 200,
+                                    child: CustomProgressBar()),
+                              ),
+                            );
+                          });
+                        },
+                      );
+                      setState(() {
+                        isButtonDisabled = false;
                       });
                     },
-                  );
-                  setState(() {
-                    isButtonDisabled = false;
-                  });
-                },
-              ),
+                  ),
+                ),
+              ],
+            ) :
+            Row(
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: SizedBox(
+                    width: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width / 2.5 : MediaQuery.of(context).size.width / 3,
+                    height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10 : MediaQuery.of(context).size.height / 20,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                      child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                      onPressed: isButtonDisabled
+                          ? null
+                          : () {
+                        setState(() {
+                          isButtonDisabled = true;
+                        });
+                        closeDialog(context);
+                      },
+                    ),
+                  ),
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                  flex: 1,
+                  child: SizedBox(
+                    width: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width / 2.5 : MediaQuery.of(context).size.width / 3,
+                    height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10 : MediaQuery.of(context).size.height / 20,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                      child: Text(AppLocalizations.of(context)!.translate('export')),
+                      onPressed: isButtonDisabled
+                          ? null
+                          : () async {
+
+                        setState(() {
+                          isButtonDisabled = true;
+                        });
+                        await showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return StatefulBuilder(builder: (context, StateSetter setState) {
+                              return Container(
+                                child: AlertDialog(
+                                  title: Text(AppLocalizations.of(context)!.translate('choose_an_option')),
+                                  content: !inProgress ? Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      SizedBox(
+                                        width: 300,
+                                        height: MediaQuery.of(context).size.height / 16,
+                                        child: ElevatedButton(
+                                          onPressed: () async {
+                                            setState(() {
+                                              inProgress = true;
+                                            });
+                                            await dataZip(1);
+                                            if(mounted){
+                                              setState(() {
+                                                inProgress = false;
+                                              });
+                                            }
+                                            Navigator.pop(context);
+                                          },
+                                          child: Text(AppLocalizations.of(context)!.translate('db_export')),
+                                        ),
+                                      ),
+                                      SizedBox(height: 15),
+                                      SizedBox(
+                                        width: 300,
+                                        height: MediaQuery.of(context).size.height / 16,
+                                        child: ElevatedButton(
+                                          onPressed: () async {
+                                            setState(() {
+                                              inProgress = true;
+                                            });
+                                            await dataZip(2);
+                                            if(mounted){
+                                              setState(() {
+                                                inProgress = false;
+                                              });
+                                            }
+                                            Navigator.pop(context);
+                                          },
+                                          child: Text(AppLocalizations.of(context)!.translate('db_sync')),
+                                        ),
+                                      ),
+                                      SizedBox(height: 15),
+                                      SizedBox(
+                                        width: 300,
+                                        height: MediaQuery.of(context).size.height / 16,
+                                        child: ElevatedButton(
+                                          onPressed: () async {
+                                            Navigator.pop(context);
+                                            // await showSecondDialog(context, color);
+                                            setState(() {
+                                              inProgress = true;
+                                            });
+                                            await dataZip(3);
+                                            if(mounted){
+                                              setState(() {
+                                                inProgress = false;
+                                              });
+                                            }
+                                            Navigator.of(context).pop();
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text(AppLocalizations.of(context)!.translate('debug')),
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                      : Container(
+                                      height: 200,
+                                      child: CustomProgressBar()),
+                                ),
+                              );
+                            });
+                          },
+                        );
+                        setState(() {
+                          isButtonDisabled = false;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         );
@@ -487,7 +631,7 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                           backgroundColor: color.backgroundColor,
                         ),
                         child: Text(
-                          AppLocalizations.of(context)!.translate('close'),
+                          AppLocalizations.of(context)!.translate('yes'),
                           style: TextStyle(color: Colors.white),
                         ),
                         onPressed: isButtonDisabled

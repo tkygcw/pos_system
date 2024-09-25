@@ -398,7 +398,7 @@ abstract class PlaceOrder {
   }
 
   Future<void> insertOrderCacheKeyIntoTableUse(CartModel cart, OrderCache orderCache, String dateTime) async {
-    if (cart.selectedOption == "Dine in") {
+    if (cart.selectedOption == "Dine in" && AppSettingModel.instance.table_order == 1) {
       List<TableUse> checkTableUse = await PosDatabase.instance.readSpecificTableUseId(int.parse(orderCache.table_use_sqlite_id!));
       TableUse tableUseObject = TableUse(
           order_cache_key: orderCacheKey,
@@ -614,7 +614,10 @@ class PlaceNewDineInOrder extends PlaceOrder {
       await createTableUseDetail(cart);
       await createOrderCache(cart, orderBy, orderByUserId);
       await createOrderDetail(cart);
-      await updatePosTable(cart);
+      if(cart.selectedOption == 'Dine in' && AppSettingModel.instance.table_order == 1) {
+        await updatePosTable(cart);
+      }
+
       //print check list
       await printCheckList(orderBy);
       List<cartProductItem> ticketProduct = cart.cartNotifierItem.where((e) => e.allow_ticket == 1).toList();
@@ -635,7 +638,10 @@ class PlaceNewDineInOrder extends PlaceOrder {
       objectData = {
         'tb_branch_link_product': branchLinkProductList,
       };
-      TableModel.instance.changeContent(true);
+      if(AppSettingModel.instance.table_order == 1) {
+        TableModel.instance.changeContent(true);
+      }
+
       return {'status': '1', 'data': objectData};
     } else {
       // throw Exception("Contain table in-used");
@@ -668,16 +674,23 @@ class PlaceNewDineInOrder extends PlaceOrder {
       //   batch = await batchChecking();
       // }
       //check selected table is in use or not
-      for (int i = 0; i < cart.selectedTable.length; i++) {
-        List<TableUseDetail> useDetail = await PosDatabase.instance.readSpecificTableUseDetail(cart.selectedTable[i].table_sqlite_id!);
-        if (useDetail.isNotEmpty) {
-          _tableUseId = useDetail[0].table_use_sqlite_id!;
-        } else {
-          _tableUseId = this.localTableUseId;
+      if (cart.selectedOption == 'Dine in' && AppSettingModel.instance.table_order != 0) {
+        for (int i = 0; i < cart.selectedTable.length; i++) {
+          List<TableUseDetail> useDetail = await PosDatabase.instance.readSpecificTableUseDetail(cart.selectedTable[i].table_sqlite_id!);
+          if(AppSettingModel.instance.table_order == 1) {
+            if (useDetail.isNotEmpty) {
+              _tableUseId = useDetail[0].table_use_sqlite_id!;
+            } else {
+              _tableUseId = this.localTableUseId;
+            }
+          } else {
+            _tableUseId = this.localTableUseId;
+          }
         }
+        List<TableUse> tableUseData = await PosDatabase.instance.readSpecificTableUseId(int.parse(_tableUseId));
+        _tableUse = tableUseData;
       }
-      List<TableUse> tableUseData = await PosDatabase.instance.readSpecificTableUseId(int.parse(_tableUseId));
-      _tableUse = tableUseData;
+
       // if (cart.selectedOption == 'Dine in') {
       //   for (int i = 0; i < cart.selectedTable.length; i++) {
       //     List<TableUseDetail> useDetail = await PosDatabase.instance.readSpecificTableUseDetail(cart.selectedTable[i].table_sqlite_id!);

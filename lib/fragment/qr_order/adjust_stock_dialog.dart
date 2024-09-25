@@ -396,14 +396,37 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
             } else {
               ///mobile layout
               return AlertDialog(
-                title: Text(AppLocalizations.of(context)!.translate('order_detail'),
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                titlePadding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+                contentPadding: EdgeInsets.all(16),
+                title: Row(
+                  children: [
+                    Text(AppLocalizations.of(context)!.translate('order_detail'),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Spacer(),
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                        onPressed: (){
+                          if(removeDetailList.isNotEmpty){
+                            if(mounted){
+                              setState(() {
+                                widget.orderDetailList.addAll(removeDetailList);
+                                removeDetailList.clear();
+                              });
+                              Fluttertoast.showToast(msg: "${AppLocalizations.of(context)?.translate('content_reset_success')}", backgroundColor: Colors.green);
+                            }
+                          } else {
+                            Fluttertoast.showToast(msg: "${AppLocalizations.of(context)?.translate('content_already_reset')}", backgroundColor: Colors.red);
+                          }
+                        },
+                        icon: Icon(Icons.refresh))
+                  ],
                 ),
                 content: Container(
-                  //height: MediaQuery.of(context).size.height,
+                  height: MediaQuery.of(context).size.height/2,
                   width: MediaQuery.of(context).size.width,
                   child: ListView.builder(
                       padding: EdgeInsets.zero,
@@ -413,7 +436,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                         return Dismissible(
                           background: Container(
                             color: Colors.red,
-                            padding: EdgeInsets.only(left: 25.0),
+                            padding: EdgeInsets.only(left: 15.0),
                             child: Row(
                               children: [
                                 Icon(Icons.delete, color: Colors.white),
@@ -438,7 +461,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                           child: Card(
                             elevation: 5,
                             child: Container(
-                              margin: EdgeInsets.all(10),
+                              margin: EdgeInsets.only(top: 5),
                               child: Column(children: [
                                 ListTile(
                                   onTap: null,
@@ -448,9 +471,9 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                       children: <TextSpan>[
                                         TextSpan(
                                             text: "${widget.orderDetailList[index].productName}" + "\n",
-                                            style: TextStyle(fontSize: 14, color: Colors.black)),
+                                            style: TextStyle(fontSize: 13, color: Colors.black)),
                                         TextSpan(
-                                            text: "RM ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 13, color: Colors.black)),
+                                            text: "RM ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 12, color: Colors.black)),
                                       ],
                                     ),
                                   ),
@@ -459,14 +482,14 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                     children: [
                                       Visibility(
                                         visible: widget.orderDetailList[index].product_variant_name != '' ? true : false,
-                                        child: Text("+${widget.orderDetailList[index].product_variant_name}"),
+                                        child: Text("+${widget.orderDetailList[index].product_variant_name}", style: TextStyle(fontSize: 12)),
                                       ),
                                       //modifier
                                       Visibility(
                                         visible: getOrderDetailModifier(widget.orderDetailList[index]) != '' ? true : false,
-                                        child: Text("${getOrderDetailModifier(widget.orderDetailList[index])}"),
+                                        child: Text("${getOrderDetailModifier(widget.orderDetailList[index])}", style: TextStyle(fontSize: 12)),
                                       ),
-                                      widget.orderDetailList[index].remark != '' ? Text("*${widget.orderDetailList[index].remark}") : Text('')
+                                      widget.orderDetailList[index].remark != '' ? Text("*${widget.orderDetailList[index].remark}", style: TextStyle(fontSize: 12)) : Text('')
                                     ],
                                   ),
                                   trailing: Container(
@@ -480,7 +503,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                                   hoverColor: Colors.transparent,
                                                   icon: Icon(
                                                     Icons.remove,
-                                                    size: 40,
+                                                    size: 20,
                                                   ),
                                                   onPressed: () {
                                                     print('qty remove');
@@ -498,18 +521,15 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                                       });
                                                     }
                                                   }),
-                                              Padding(
-                                                padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                                child: Text(
-                                                  '${widget.orderDetailList[index].quantity}',
-                                                  style: TextStyle(color: Colors.black, fontSize: 30),
-                                                ),
+                                              Text(
+                                                '${widget.orderDetailList[index].quantity}',
+                                                style: TextStyle(color: Colors.black, fontSize: 16),
                                               ),
                                               IconButton(
                                                   hoverColor: Colors.transparent,
                                                   icon: Icon(
                                                     Icons.add,
-                                                    size: 40,
+                                                    size: 20,
                                                   ),
                                                   onPressed: () {
                                                     if(int.tryParse(widget.orderDetailList[index].available_stock!) != null){
@@ -535,7 +555,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                           ),
                                           Visibility(
                                               visible: widget.orderDetailList[index].available_stock != '' ? true : false,
-                                              child: Text(AppLocalizations.of(context)!.translate('available_stock')+': ${widget.orderDetailList[index].available_stock}')
+                                              child: Text(AppLocalizations.of(context)!.translate('stock')+': ${widget.orderDetailList[index].available_stock}', style: TextStyle(fontSize: 13))
                                           )
                                         ],
                                       ),
@@ -549,94 +569,106 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                       }),
                 ),
                 actions: <Widget>[
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width / 3.6,
-                    height: MediaQuery.of(context).size.height / 8,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: color.backgroundColor,
-                      ),
-                      child: Text(AppLocalizations.of(context)!.translate('close')),
-                      onPressed: isCancelButtonDisabled
-                          ? null
-                          : () {
-                        // Disable the button after it has been pressed
-                        setState(() {
-                          isCancelButtonDisabled = true;
-                        });
-                        enableCancelButton();
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width / 3.6,
-                    height: MediaQuery.of(context).size.height / 8,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.redAccent,
-                      ),
-                      child: Text(AppLocalizations.of(context)!.translate('reject')),
-                      onPressed: isButtonDisabled
-                          ? null
-                          : () async {
-                        // Disable the button after it has been pressed
-                        setState(() {
-                          isButtonDisabled = true;
-                        });
-                        await callRejectOrder();
-                        syncToCloudFunction();
-                      },
-                    ),
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width / 3.6,
-                    height: MediaQuery.of(context).size.height / 8,
-                    child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: color.buttonColor,
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: SizedBox(
+                          height: MediaQuery.of(context).size.height / 18,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: color.backgroundColor,
+                            ),
+                            child: Text(AppLocalizations.of(context)!.translate('close')),
+                            onPressed: isCancelButtonDisabled
+                                ? null
+                                : () {
+                              // Disable the button after it has been pressed
+                              setState(() {
+                                isCancelButtonDisabled = true;
+                              });
+                              enableCancelButton();
+                              Navigator.of(context).pop();
+                            },
+                          ),
                         ),
-                        child: Text(AppLocalizations.of(context)!.translate('add')),
-                        onPressed: isButtonDisabled || widget.orderDetailList.isEmpty ? null : () async {
-                          asyncQ.addJob((_) async {
-                            await checkOrderDetailStock();
-                            if (hasNoStockProduct) {
-                              Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
-                            } else if (hasNotAvailableProduct){
-                              Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
-                            } else {
+                      ),
+                      SizedBox(width: 5),
+                      Expanded(
+                        flex: 1,
+                        child: SizedBox(
+                          height: MediaQuery.of(context).size.height / 18,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.redAccent,
+                            ),
+                            child: Text(AppLocalizations.of(context)!.translate('reject')),
+                            onPressed: isButtonDisabled
+                                ? null
+                                : () async {
                               // Disable the button after it has been pressed
                               setState(() {
                                 isButtonDisabled = true;
                               });
-                              if (removeDetailList.isNotEmpty) {
-                                await removeOrderDetail();
+                              await callRejectOrder();
+                              syncToCloudFunction();
+                            },
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 5),
+                      Expanded(
+                        flex: 1,
+                        child: SizedBox(
+                          height: MediaQuery.of(context).size.height / 18,
+                          child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: color.buttonColor,
+                              ),
+                              child: Text(AppLocalizations.of(context)!.translate('add')),
+                              onPressed: isButtonDisabled || widget.orderDetailList.isEmpty ? null : () async {
+                                asyncQ.addJob((_) async {
+                                  await checkOrderDetailStock();
+                                  if (hasNoStockProduct) {
+                                    Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
+                                  } else if (hasNotAvailableProduct){
+                                    Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
+                                  } else {
+                                    // Disable the button after it has been pressed
+                                    setState(() {
+                                      isButtonDisabled = true;
+                                    });
+                                    if (removeDetailList.isNotEmpty) {
+                                      await removeOrderDetail();
+                                    }
+                                    if (widget.tableLocalId != '') {
+                                      await checkTable();
+                                      if (tableInUsed == true) {
+                                        await updateOrderDetail();
+                                        await updateOrderCache();
+                                        await updateProductStock();
+                                      } else {
+                                        await callNewOrder();
+                                        await updateProductStock();
+                                      }
+                                    } else {
+                                      await callOtherOrder();
+                                    }
+                                    if(_appSettingModel.autoPrintChecklist == true){
+                                      await printCheckList();
+                                    }
+                                    printProductTicket(widget.orderCacheLocalId);
+                                    // syncToCloudFunction();
+                                    widget.callBack();
+                                    Navigator.of(context).pop();
+                                    await callPrinter();
+                                  }
+                                });
                               }
-                              if (widget.tableLocalId != '') {
-                                await checkTable();
-                                if (tableInUsed == true) {
-                                  await updateOrderDetail();
-                                  await updateOrderCache();
-                                  await updateProductStock();
-                                } else {
-                                  await callNewOrder();
-                                  await updateProductStock();
-                                }
-                              } else {
-                                await callOtherOrder();
-                              }
-                              if(_appSettingModel.autoPrintChecklist == true){
-                                await printCheckList();
-                              }
-                              printProductTicket(widget.orderCacheLocalId);
-                              // syncToCloudFunction();
-                              widget.callBack();
-                              Navigator.of(context).pop();
-                              await callPrinter();
-                            }
-                          });
-                        }
-                    ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               );

@@ -173,8 +173,8 @@ class CartDialogState extends State<CartDialog> {
                       Visibility(
                         visible: checkIsSelected(),
                         child: SizedBox(
-                          width: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? MediaQuery.of(context).size.width / 10 : MediaQuery.of(context).size.width / 8,
-                          height: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? MediaQuery.of(context).size.height / 20 : MediaQuery.of(context).size.height / 12,
+                          width: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width / 10 : MediaQuery.of(context).size.width / 5,
+                          height: MediaQuery.of(context).orientation == Orientation.landscape  ? MediaQuery.of(context).size.height / 20 : MediaQuery.of(context).size.height / 25,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               padding: EdgeInsets.zero,
@@ -202,13 +202,15 @@ class CartDialogState extends State<CartDialog> {
                       ? !showAdvanced
                         ? Container(
                             // height: 650,
-                            width: MediaQuery.of(context).size.width / 2,
+                            height: MediaQuery.of(context).orientation == Orientation.landscape ? 650 : MediaQuery.of(context).size.height / 3,
+                            width: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width / 2 : MediaQuery.of(context).size.width,
                             child: ReorderableGridView.count(
                               padding: EdgeInsets.zero,
                               shrinkWrap: true,
-                              crossAxisSpacing: 10,
-                              mainAxisSpacing: 10,
-                              crossAxisCount: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 4 : 3,
+                              crossAxisSpacing: MediaQuery.of(context).orientation == Orientation.landscape ? 10 : 0,
+                              mainAxisSpacing: MediaQuery.of(context).orientation == Orientation.landscape ? 10 : 0,
+                              crossAxisCount: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height > 500 ? 4 : 3
+                                  : MediaQuery.of(context).size.width < 530 ? 3 : 4,
                               children: tableList.asMap().map((index, posTable) => MapEntry(index, tableItem(cart, color, index))).values.toList(),
                               onReorder: (int oldIndex, int newIndex) {
                                 if (oldIndex != newIndex) {
@@ -259,7 +261,7 @@ class CartDialogState extends State<CartDialog> {
                       children: [
                         Expanded(
                           child: SizedBox(
-                            height: MediaQuery.of(context).size.height / 12,
+                            height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 20,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: color.backgroundColor,
@@ -279,7 +281,7 @@ class CartDialogState extends State<CartDialog> {
                         SizedBox(width: 20),
                         Expanded(
                           child: SizedBox(
-                            height: MediaQuery.of(context).size.height / 12,
+                            height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 20,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: color.buttonColor,
@@ -466,13 +468,19 @@ class CartDialogState extends State<CartDialog> {
                               Colors.white,
                               borderRadius: BorderRadius.circular(5.0)
                           ),
-                          child: MediaQuery.of(context).size.height > 500 ? Text(
+                          child: MediaQuery.of(context).size.height > 500 ?
+                          MediaQuery.of(context).orientation == Orientation.landscape ?
+                          Text(
                             "Group: ${tableList[index].group}",
                             style: TextStyle(fontSize: 18, color: fontColor(posTable: tableList[index])),
                           ) : Text(
                             "${tableList[index].group}",
                             style: TextStyle(fontSize: 14, color: fontColor(posTable: tableList[index])),
+                          ) : Text(
+                            "${tableList[index].group}",
+                            style: TextStyle(fontSize: 14, color: fontColor(posTable: tableList[index])),
                           ),
+
                         ),
                         Spacer(),
                         Visibility(

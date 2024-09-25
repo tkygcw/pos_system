@@ -37,7 +37,6 @@ import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/page/loading_dialog.dart';
 import 'package:pos_system/page/progress_bar.dart';
-import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -533,9 +532,11 @@ class CartPageState extends State<CartPage> {
                                   ),
                                   SizedBox(height: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 10 : 5),
                                   Container(
-                                    height: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
-                                        ? widget.currentPage == 'menu' || widget.currentPage == 'table'
+                                    height: MediaQuery.of(context).size.height > 500
+                                        ? widget.currentPage == 'menu' || widget.currentPage == 'table' || widget.currentPage == 'other_order' || widget.currentPage == 'bill'
+                                        ? MediaQuery.of(context).orientation == Orientation.landscape
                                         ? 130
+                                        : 100
                                         : null
                                         : 25,
                                     child: ListView(
@@ -753,6 +754,7 @@ class CartPageState extends State<CartPage> {
                                                           if (cart.cartNotifierItem.isNotEmpty) {
                                                             openLoadingDialogBox();
                                                             asyncQ.addJob((_) async => await callCreateNewNotDineOrder(cart, appSettingModel));
+                                                            isCartExpanded = !isCartExpanded;
                                                           } else {
                                                             Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                                           }
@@ -839,10 +841,15 @@ class CartPageState extends State<CartPage> {
                                                       : widget.currentPage == 'table' || widget.currentPage == 'other_order'
                                                       ? Text(AppLocalizations.of(context)!.translate('pay') + ' (RM ${this.finalAmount})')
                                                       : Text(AppLocalizations.of(context)!.translate('print_receipt'))
+                                                  // mobile
                                                       : widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
+                                                      ? MediaQuery.of(context).orientation == Orientation.landscape
                                                       ? Text(AppLocalizations.of(context)!.translate('place_order'))
+                                                      : Text(AppLocalizations.of(context)!.translate('place_order') + '\n (RM ${this.finalAmount})')
                                                       : widget.currentPage == 'table' || widget.currentPage == 'other_order'
+                                                      ? MediaQuery.of(context).orientation == Orientation.landscape
                                                       ? Text(AppLocalizations.of(context)!.translate('pay'))
+                                                      : Text(AppLocalizations.of(context)!.translate('pay') + ' (RM ${this.finalAmount})')
                                                       : Text(AppLocalizations.of(context)!.translate('print_receipt')))),
                                         ),
                                         Visibility(
@@ -1812,7 +1819,6 @@ class CartPageState extends State<CartPage> {
   }
 
   getDiningTax(CartModel cart) async {
-    final prefs = await SharedPreferences.getInstance();
     try {
       //get dining option data
       List<DiningOption> data = await PosDatabase.instance.checkSelectedOption(cart.selectedOption);
@@ -1982,7 +1988,8 @@ class CartPageState extends State<CartPage> {
           );
         },
         transitionDuration: Duration(milliseconds: 200),
-        barrierDismissible: false,
+        barrierDismissible: true,
+        barrierLabel: 'Dismiss',
         context: context,
         pageBuilder: (context, animation1, animation2) {
           // ignore: null_check_always_fails
@@ -2209,13 +2216,15 @@ class CartPageState extends State<CartPage> {
       branchLinkDiningIdList.add(data[i].dining_id!);
     }
     if (serverCall == null) {
-      if (data.any((item) => item.name == 'Dine in')) {
-        cart.selectedOption = 'Dine in';
-      } else {
-        cart.selectedOption = "Take Away";
-      }
-      if (!controller.isClosed) {
-        controller.sink.add('refresh');
+      if(cart.selectedOptionId == '') {
+        if (data.any((item) => item.name == 'Dine in')) {
+          cart.selectedOption = 'Dine in';
+        } else {
+          cart.selectedOption = "Take Away";
+        }
+        if (!controller.isClosed) {
+          controller.sink.add('refresh');
+        }
       }
     }
     //cart.selectedOption = diningList.first.name;
@@ -2309,6 +2318,7 @@ class CartPageState extends State<CartPage> {
         //   return;
         // }
         asyncQ.addJob((_) => printKitchenList());
+        isCartExpanded = !isCartExpanded;
         // printKitchenList();
       } else {
         cart.removeAllCartItem();
@@ -2376,6 +2386,7 @@ class CartPageState extends State<CartPage> {
           //   return;
           // }
           asyncQ.addJob((_) => printKitchenList());
+          isCartExpanded = !isCartExpanded;
           // printKitchenList();
         } else {
           Navigator.of(context).pop();
@@ -2639,7 +2650,6 @@ class CartPageState extends State<CartPage> {
     int tempColor = 0;
     int matchColor = 0;
     int diff = 0;
-    int count = 0;
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     List<TableUse> data = await PosDatabase.instance.readAllTableUseId(branch_id!);
@@ -3581,7 +3591,6 @@ class CartPageState extends State<CartPage> {
   }
 
   readAllOrderCache() async {
-    final prefs = await SharedPreferences.getInstance();
     List<OrderCache> data = await PosDatabase.instance.readAllOrderCache();
     orderCacheList = data;
   }

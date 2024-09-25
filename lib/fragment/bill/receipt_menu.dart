@@ -1,6 +1,8 @@
+import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/bill/refund_dialog.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/object/cart_payment.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
@@ -73,12 +75,21 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
             getOrder(model: cart);
           }
           return LayoutBuilder(builder: (context, constraints) {
-            if (constraints.maxWidth > 800) {
+            if (MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500) {
               return Scaffold(
                   appBar: AppBar(
                     primary: false,
                     elevation: 0,
                     automaticallyImplyLeading: false,
+                    leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: GestureDetector(
+                        onTap: () {
+                          isCollapsedNotifier.value = !isCollapsedNotifier.value;
+                        },
+                        child: Image.asset('drawable/logo.png'),
+                      ),
+                    ),
                     title: Text(
                       AppLocalizations.of(context)!.translate('receipt'),
                       style: TextStyle(fontSize: 25),
@@ -220,6 +231,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                                 showSecondDialog(context, color,
                                   order: paidOrderList[index],
                                   orderCacheList: orderCacheList,
+                                  cart: cart,
                                 );
                               }
                                   : null,
@@ -240,13 +252,13 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
             } else {
               ///mobile layout
               return Scaffold(
-                  appBar: AppBar(
+                  appBar: MediaQuery.of(context).orientation == Orientation.landscape ? AppBar(
                     primary: false,
                     elevation: 0,
                     automaticallyImplyLeading: false,
                     title: Text(
                       AppLocalizations.of(context)!.translate('receipt'),
-                      style: TextStyle(fontSize: 25),
+                      style: TextStyle(fontSize: 20, color: color.backgroundColor),
                     ),
                     actions: [
                       Container(
@@ -307,6 +319,64 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                         ),
                       ),
                     ],
+                  ) :
+                  AppBar(
+                    automaticallyImplyLeading: false,
+                    elevation: 0,
+                    leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: GestureDetector(
+                        onTap: () {
+                          isCollapsedNotifier.value = !isCollapsedNotifier.value;
+                        },
+                        child: Image.asset('drawable/logo.png'),
+                      ),
+                    ),
+                    title: Text(AppLocalizations.of(context)!.translate('receipt'),
+                      style: TextStyle(fontSize: 20, color: color.backgroundColor),
+                    ),
+                    centerTitle: false,
+                    actions: [
+                      Container(
+                        width: MediaQuery.of(context).size.height / 7,
+                        padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                        child: DropdownButton<String>(
+                          onChanged: (String? value) {
+                            setState(() {
+                              selectedOption = value!;
+                              getOrder();
+                              cart.initialLoad();
+                              //readCashRecord();
+                            });
+                            //getCashRecord();
+                          },
+                          menuMaxHeight: 300,
+                          value: selectedOption,
+                          // Hide the default underline
+                          underline: Container(),
+                          icon: Icon(
+                            Icons.arrow_drop_down,
+                            color: color.backgroundColor,
+                          ),
+                          isExpanded: true,
+                          // The list of options
+                          items: optionList
+                              .map((e) => DropdownMenuItem(
+                            value: e,
+                            child: Container(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                e,
+                                style: TextStyle(fontSize: 18),
+                              ),
+                            ),
+                          ))
+                              .toList(),
+                          // Customize the selected item
+                          selectedItemBuilder: (BuildContext context) => optionList.map((e) => Center(child: Text(e))).toList(),
+                        ),
+                      )
+                    ],
                   ),
                   resizeToAvoidBottomInset: false,
                   body: _isLoaded
@@ -364,12 +434,17 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                                     paidOrderList[index].isSelected = false;
                                     cart.initialLoad();
                                   }
+                                  setState(() {
+                                    isCartExpanded = !isCartExpanded;
+                                    paidOrderList[index].isSelected = false;
+                                  });
                                 },
                                 onLongPress: paidOrderList[index].payment_status == 1
                                     ? () {
                                   showSecondDialog(context, color,
                                     order: paidOrderList[index],
                                     orderCacheList: orderCacheList,
+                                    cart: cart,
                                   );
                                 }
                                     : null,
@@ -406,7 +481,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
     else return 'refunded';
   }
 
-  Future showSecondDialog(BuildContext context, ThemeColor color, {required Order order, required List<OrderCache> orderCacheList}) {
+  Future showSecondDialog(BuildContext context, ThemeColor color, {required Order order, required List<OrderCache> orderCacheList, required CartModel cart}) {
     return showDialog(
         barrierDismissible: false,
         context: context,
@@ -431,7 +506,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                               )),
                           title: Text(AppLocalizations.of(context)!.translate('refund')),
                           onTap: (){
-                            openRefundDialog(order, orderCacheList);
+                            openRefundDialog(order, orderCacheList, cart);
                           },
                           trailing: Icon(Icons.navigate_next),
                         )
@@ -492,7 +567,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
         });
   }
 
-  Future<Future<Object?>> openRefundDialog(Order order, List<OrderCache> orderCacheList) async {
+  Future<Future<Object?>> openRefundDialog(Order order, List<OrderCache> orderCacheList, CartModel cart) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -501,7 +576,10 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: RefundDialog(callBack: () => getOrder(), order: order, orderCacheList: orderCacheList),
+              child: RefundDialog(callBack: () {
+                getOrder();
+                cart.initialLoad();
+              }, order: order, orderCacheList: orderCacheList),
             ),
           );
         },

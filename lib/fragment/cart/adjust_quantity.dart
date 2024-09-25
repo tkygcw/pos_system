@@ -171,56 +171,73 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                           }),
                     ),
                     actions: <Widget>[
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                        height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: color.backgroundColor,
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 1,
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                              height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                                  ? MediaQuery.of(context).size.height / 12
+                                  : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+                                  : MediaQuery.of(context).size.height / 20,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: color.backgroundColor,
+                                ),
+                                child: Text(
+                                  AppLocalizations.of(context)!.translate('close'),
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                onPressed: isButtonDisabled2
+                                    ? null
+                                    : () {
+                                  setState(() {
+                                    isButtonDisabled2 = true;
+                                  });
+                                  Navigator.of(context).pop();
+                                  setState(() {
+                                    isButtonDisabled2 = false;
+                                  });
+                                },
+                              ),
+                            ),
                           ),
-                          child: Text(
-                            AppLocalizations.of(context)!.translate('close'),
-                            style: TextStyle(color: Colors.white),
+                          SizedBox(width: 10),
+                          Expanded(
+                            flex: 1,
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                              height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                                  ? MediaQuery.of(context).size.height / 12
+                                  : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+                                  : MediaQuery.of(context).size.height / 20,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: color.buttonColor,
+                                ),
+                                child: Text(
+                                  AppLocalizations.of(context)!.translate('yes'),
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                onPressed: isButtonDisabled2
+                                    ? null
+                                    : () async {
+                                  setState(() {
+                                    isButtonDisabled2 = true;
+                                    willPop = false;
+                                  });
+                                  _submit(context, cart);
+                                  if(mounted){
+                                    setState(() {
+                                      isButtonDisabled = false;
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
                           ),
-                          onPressed: isButtonDisabled2
-                              ? null
-                              : () {
-                            setState(() {
-                              isButtonDisabled2 = true;
-                            });
-                            Navigator.of(context).pop();
-                            setState(() {
-                              isButtonDisabled2 = false;
-                            });
-                          },
-                        ),
-                      ),
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                        height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: color.buttonColor,
-                          ),
-                          child: Text(
-                            AppLocalizations.of(context)!.translate('yes'),
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          onPressed: isButtonDisabled2
-                              ? null
-                              : () async {
-                            setState(() {
-                              isButtonDisabled2 = true;
-                              willPop = false;
-                            });
-                            _submit(context, cart);
-                            if(mounted){
-                              setState(() {
-                                isButtonDisabled = false;
-                              });
-                            }
-                          },
-                        ),
+                        ],
                       ),
                     ],
                   ),
@@ -245,116 +262,124 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                 content: Column(
                   children: [
                     // quantity input
-                    Container(
+                    SizedBox(
                       width: 400,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           // quantity input remove button
-                          Container(
-                            decoration: BoxDecoration(
-                              color: color.backgroundColor,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: IconButton(
-                              icon: Icon(Icons.remove, color: Colors.white),
-                              onPressed: () {
-                                if(simpleIntInput >= 1){
-                                  setState(() {
-                                    simpleIntInput -= 1;
-                                    quantityController.text = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
-                                    simpleIntInput = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
-                                  });
-                                } else{
-                                  setState(() {
-                                    simpleIntInput = 0;
-                                    quantityController.text =  widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
-                                    simpleIntInput = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
-                                  });
-                                }
-                              },
+                          Expanded(
+                            flex: 1,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: color.backgroundColor,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: IconButton(
+                                icon: Icon(Icons.remove, color: Colors.white),
+                                onPressed: () {
+                                  if(simpleIntInput >= 1){
+                                    setState(() {
+                                      simpleIntInput -= 1;
+                                      quantityController.text = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
+                                      simpleIntInput = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
+                                    });
+                                  } else{
+                                    setState(() {
+                                      simpleIntInput = 0;
+                                      quantityController.text =  widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
+                                      simpleIntInput = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
+                                    });
+                                  }
+                                },
+                              ),
                             ),
                           ),
                           SizedBox(width: 10),
                           // quantity input text field
-                          Container(
-                            width: 273,
-                            child: TextField(
-                              autofocus: widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? true : false,
-                              controller: quantityController,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))]
-                                  : <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-                              textAlign: TextAlign.center,
-                              decoration: InputDecoration(
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: color.backgroundColor),
+                          Expanded(
+                            flex: 4,
+                            child: SizedBox(
+                              child: TextField(
+                                autofocus: widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? true : false,
+                                controller: quantityController,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))]
+                                    : <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+                                textAlign: TextAlign.center,
+                                decoration: InputDecoration(
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: color.backgroundColor),
+                                  ),
                                 ),
-                              ),
-                              onChanged: (value) => setState(() {
-                                try {
-                                  simpleIntInput = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse(value.replaceAll(',', '')): int.parse(value.replaceAll(',', ''));
-                                } catch (e) {
-                                  simpleIntInput = 0;
-                                }
-                              }),
-                              onSubmitted: (value) {
-                                () async {
-                                  if(simpleIntInput != 0 && simpleIntInput != 0.00){
-                                    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-                                    String dateTime = dateFormat.format(DateTime.now());
-                                    final prefs = await SharedPreferences.getInstance();
-                                    final String? pos_user = prefs.getString('pos_pin_user');
-                                    Map<String, dynamic> userMap = json.decode(pos_user!);
-                                    User userData = User.fromJson(userMap);
-
-                                    if(simpleIntInput > widget.cartItem.quantity!){
-                                      Fluttertoast.showToast(
-                                          backgroundColor: Color(0xFFFF0000),
-                                          msg:
-                                          AppLocalizations.of(context)!.translate('quantity_invalid'));
-                                    } else {
-                                      if(userData.edit_price_without_pin != 1) {
-                                        await showSecondDialog(context, color, cart);
-                                        Navigator.of(context).pop();
-                                      } else {
-                                        await callUpdateCart(userData, dateTime, cart);
-                                        Navigator.of(context).pop();
-                                        Navigator.of(context).pop();
-                                      }
-                                    }
-                                  } else{ //no changes
-                                    Navigator.of(context).pop();
-                                    Navigator.of(context).pop();
+                                onChanged: (value) => setState(() {
+                                  try {
+                                    simpleIntInput = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse(value.replaceAll(',', '')): int.parse(value.replaceAll(',', ''));
+                                  } catch (e) {
+                                    simpleIntInput = 0;
                                   }
-                                }();
-                              },
+                                }),
+                                onSubmitted: (value) {
+                                  () async {
+                                    if(simpleIntInput != 0 && simpleIntInput != 0.00){
+                                      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+                                      String dateTime = dateFormat.format(DateTime.now());
+                                      final prefs = await SharedPreferences.getInstance();
+                                      final String? pos_user = prefs.getString('pos_pin_user');
+                                      Map<String, dynamic> userMap = json.decode(pos_user!);
+                                      User userData = User.fromJson(userMap);
+
+                                      if(simpleIntInput > widget.cartItem.quantity!){
+                                        Fluttertoast.showToast(
+                                            backgroundColor: Color(0xFFFF0000),
+                                            msg:
+                                            AppLocalizations.of(context)!.translate('quantity_invalid'));
+                                      } else {
+                                        if(userData.edit_price_without_pin != 1) {
+                                          await showSecondDialog(context, color, cart);
+                                          Navigator.of(context).pop();
+                                        } else {
+                                          await callUpdateCart(userData, dateTime, cart);
+                                          Navigator.of(context).pop();
+                                          Navigator.of(context).pop();
+                                        }
+                                      }
+                                    } else{ //no changes
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pop();
+                                    }
+                                  }();
+                                },
+                              ),
                             ),
                           ),
                           SizedBox(width: 10),
                           // quantity input add button
-                          Container(
-                            decoration: BoxDecoration(
-                              color: color.backgroundColor,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: IconButton(
-                              icon: Icon(Icons.add, color: Colors.white), // Set the icon color to white.
-                              onPressed: () {
-                                if(simpleIntInput+1 < widget.cartItem.quantity!){
-                                  setState(() {
-                                    simpleIntInput += 1;
-                                    quantityController.text = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
-                                    simpleIntInput =  widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
-                                  });
-                                } else{
-                                  setState(() {
-                                    simpleIntInput = widget.cartItem.quantity!;
-                                    quantityController.text = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
-                                    simpleIntInput = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
-                                  });
-                                }
-                              },
+                          Expanded(
+                            flex: 1,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: color.backgroundColor,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: IconButton(
+                                icon: Icon(Icons.add, color: Colors.white), // Set the icon color to white.
+                                onPressed: () {
+                                  if(simpleIntInput+1 < widget.cartItem.quantity!){
+                                    setState(() {
+                                      simpleIntInput += 1;
+                                      quantityController.text = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
+                                      simpleIntInput =  widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
+                                    });
+                                  } else{
+                                    setState(() {
+                                      simpleIntInput = widget.cartItem.quantity!;
+                                      quantityController.text = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
+                                      simpleIntInput = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
+                                    });
+                                  }
+                                },
+                              ),
                             ),
                           ),
                         ],
@@ -371,77 +396,94 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                   ],
                 ),
                 actions: <Widget>[
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                    height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: color.backgroundColor,
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                              ? MediaQuery.of(context).size.height / 12
+                              : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+                              : MediaQuery.of(context).size.height / 20,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: color.backgroundColor,
+                            ),
+                            child: Text(
+                              AppLocalizations.of(context)!.translate('close'),
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                isButtonDisabled = true;
+                              });
+                              Navigator.of(context).pop();
+                              setState(() {
+                                isButtonDisabled = false;
+                              });
+                            },
+                          ),
+                        ),
                       ),
-                      child: Text(
-                        AppLocalizations.of(context)!.translate('close'),
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          isButtonDisabled = true;
-                        });
-                        Navigator.of(context).pop();
-                        setState(() {
-                          isButtonDisabled = false;
-                        });
-                      },
-                    ),
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                    height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: color.buttonColor,
-                      ),
-                      child: Text(
-                        AppLocalizations.of(context)!.translate('yes'),
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      onPressed: isButtonDisabled
-                          ? null
-                          : () async {
-                        setState(() {
-                          isButtonDisabled = true;
-                        });
-                        if(simpleIntInput != 0 && simpleIntInput != 0.00){
-                          DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-                          String dateTime = dateFormat.format(DateTime.now());
-                          final prefs = await SharedPreferences.getInstance();
-                          final String? pos_user = prefs.getString('pos_pin_user');
-                          Map<String, dynamic> userMap = json.decode(pos_user!);
-                          User userData = User.fromJson(userMap);
+                      SizedBox(width: 10),
+                      Expanded(
+                        flex: 1,
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                              ? MediaQuery.of(context).size.height / 12
+                              : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+                              : MediaQuery.of(context).size.height / 20,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: color.buttonColor,
+                            ),
+                            child: Text(
+                              AppLocalizations.of(context)!.translate('yes'),
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            onPressed: isButtonDisabled
+                                ? null
+                                : () async {
+                              setState(() {
+                                isButtonDisabled = true;
+                              });
+                              if(simpleIntInput != 0 && simpleIntInput != 0.00){
+                                DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+                                String dateTime = dateFormat.format(DateTime.now());
+                                final prefs = await SharedPreferences.getInstance();
+                                final String? pos_user = prefs.getString('pos_pin_user');
+                                Map<String, dynamic> userMap = json.decode(pos_user!);
+                                User userData = User.fromJson(userMap);
 
-                          if(simpleIntInput > widget.cartItem.quantity!){
-                            Fluttertoast.showToast(
-                                backgroundColor: Color(0xFFFF0000),
-                                msg:
-                                AppLocalizations.of(context)!.translate('quantity_invalid'));
-                            setState(() {
-                              isButtonDisabled = false;
-                            });
-                          } else {
-                            if(userData.edit_price_without_pin != 1) {
-                              await showSecondDialog(context, color, cart);
-                              Navigator.of(context).pop();
-                            } else {
-                              await callUpdateCart(userData, dateTime, cart);
-                              Navigator.of(context).pop();
-                              Navigator.of(context).pop();
-                            }
-                          }
-                        } else{ //no changes
-                          Navigator.of(context).pop();
-                          Navigator.of(context).pop();
-                        }
-                      },
-                    ),
+                                if(simpleIntInput > widget.cartItem.quantity!){
+                                  Fluttertoast.showToast(
+                                      backgroundColor: Color(0xFFFF0000),
+                                      msg:
+                                      AppLocalizations.of(context)!.translate('quantity_invalid'));
+                                  setState(() {
+                                    isButtonDisabled = false;
+                                  });
+                                } else {
+                                  if(userData.edit_price_without_pin != 1) {
+                                    await showSecondDialog(context, color, cart);
+                                    Navigator.of(context).pop();
+                                  } else {
+                                    await callUpdateCart(userData, dateTime, cart);
+                                    Navigator.of(context).pop();
+                                    Navigator.of(context).pop();
+                                  }
+                                }
+                              } else{ //no changes
+                                Navigator.of(context).pop();
+                                Navigator.of(context).pop();
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
