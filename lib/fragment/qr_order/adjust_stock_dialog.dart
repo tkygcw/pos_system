@@ -918,7 +918,10 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
         batch_id: tableInUsed ? this.batchNo : currentBatch,
         table_use_key: this.tableUseKey,
         table_use_sqlite_id: this.localTableUseId,
+        order_cache_key: widget.currentOrderCache!.order_cache_key,
         order_cache_sqlite_id: widget.orderCacheLocalId);
+    int firestore = await PosFirestore.instance.acceptOrderCache(orderCache);
+    print("accept status: $firestore");
     int status = await PosDatabase.instance.updateQrOrderCache(orderCache);
     if (status == 1) {
       //await acceptOrder(orderCache.order_cache_sqlite_id!);
@@ -1225,6 +1228,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     hasNoStockProduct = false;
     hasNotAvailableProduct = false;
     for (int i = 0; i < orderDetailList.length; i++) {
+      print("id: ${orderDetailList[i].branch_link_product_sqlite_id!}");
       BranchLinkProduct? data = await PosDatabase.instance.readSpecificAvailableBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
       if(data != null){
         orderDetailList[i].allow_ticket = data.allow_ticket;
@@ -1305,7 +1309,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
           sync_status: 2,
           accepted: 2,
           order_cache_sqlite_id: orderCacheLocalId);
-      int status = await PosFirestore.instance.updateOrderCacheAcceptStatus(widget.currentOrderCache!.order_cache_key!, orderCache);
+      int status = await PosFirestore.instance.rejectOrderCache(widget.currentOrderCache!.order_cache_key!, orderCache);
       print("reject status: $status");
       int rejectOrderCache = await PosDatabase.instance.updateOrderCacheAccept(orderCache);
       OrderCache updatedCache = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCache.order_cache_sqlite_id!);

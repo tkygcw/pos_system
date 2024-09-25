@@ -7,6 +7,8 @@ import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:pos_system/database/pos_firestore.dart';
+import 'package:pos_system/firebase_sync/sync_to_firebase.dart';
 import 'package:pos_system/fragment/setting/sync_dialog.dart';
 import 'package:pos_system/fragment/subscription_expired.dart';
 import 'package:pos_system/fragment/update_dialog.dart';
@@ -56,6 +58,7 @@ class _PosPinPageState extends State<PosPinPage> {
   void initState() {
     super.initState();
     //readAllPrinters();
+    listenQROrder();
     preload();
     bindSocket();
     checkVersion();
@@ -73,12 +76,19 @@ class _PosPinPageState extends State<PosPinPage> {
     super.dispose();
   }
 
+  listenQROrder() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    PosFirestore.instance.realtimeQROrder(context, branch_id.toString());
+  }
+
   preload() async {
-    syncRecord.syncFromCloud();
+    await syncRecord.syncFromCloud();
     if(notificationModel.syncCountStarted == false){
       startTimers();
     }
     await readAllPrinters();
+    SyncToFirebase.instance.syncToFirebase();
   }
 
 /*

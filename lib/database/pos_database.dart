@@ -2074,7 +2074,7 @@ class PosDatabase {
   Future<Branch> insertBranch(Branch data) async {
     final db = await instance.database;
     final id = await db.insert(tableBranch!, data.toJson());
-    return data.copy(branchID: id);
+    return data.copy(branch_id: id);
   }
 
 /*
@@ -5722,7 +5722,7 @@ class PosDatabase {
 */
   Future<Branch?> readSpecificBranch(int id) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT branchID as branch_id, * FROM $tableBranch WHERE branchID = ?', [id]);
+    final result = await db.rawQuery('SELECT branch_id, * FROM $tableBranch WHERE branch_id = ?', [id]);
     if (result.isNotEmpty) {
       return Branch.fromJson(result.first);
     } else {
@@ -6222,7 +6222,7 @@ class PosDatabase {
 */
   Future<int> updateBranch(Branch data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableBranch SET name = ?, address = ?, phone = ?, email = ?, qr_order_status = ?, sub_pos_status = ?, attendance_status = ? WHERE branchID = ? ',
+    return await db.rawUpdate('UPDATE $tableBranch SET name = ?, address = ?, phone = ?, email = ?, qr_order_status = ?, sub_pos_status = ?, attendance_status = ? WHERE branch_id = ? ',
         [data.name, data.address, data.phone, data.email, data.qr_order_status, data.sub_pos_status, data.attendance_status, data.branch_id]);
   }
 
@@ -6510,7 +6510,7 @@ class PosDatabase {
 */
   Future<int> updateBranchNotificationToken(Branch data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableBranch SET notification_token = ? WHERE branchID = ?', [data.notification_token, data.branch_id]);
+    return await db.rawUpdate('UPDATE $tableBranch SET notification_token = ? WHERE branch_id = ?', [data.notification_token, data.branch_id]);
   }
 
 /*
@@ -7191,6 +7191,14 @@ class PosDatabase {
   Future<int> deletePaidOrderCache(OrderCache data) async {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableOrderCache SET soft_delete = ? WHERE order_cache_sqlite_id = ?', [data.soft_delete, data.order_cache_sqlite_id]);
+  }
+
+/*
+  Soft-delete Order cache
+*/
+  Future<int> softDeleteOrderCache(OrderCache data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableOrderCache SET soft_delete = ? WHERE order_cache_key = ?', [data.soft_delete, data.order_cache_key]);
   }
 
 /*
@@ -8604,12 +8612,133 @@ class PosDatabase {
 */
 
 /*
-  read all not yet sync to cloud updated order cache
+  read local branch
 */
-  Future<Branch> readLocalBranch() async {
+  Future<Branch?> readLocalBranch() async {
     final db = await instance.database;
     final result = await db.rawQuery('SELECT * FROM $tableBranch');
-    return Branch.fromJson(result.first);
+    if(result.isNotEmpty){
+      return Branch.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read local branch link dining option
+*/
+  Future<List<BranchLinkDining>> readLocalBranchLinkDining() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableBranchLinkDining WHERE soft_delete = ?', ['']);
+    return result.map((json) => BranchLinkDining.fromJson(json)).toList();
+  }
+
+/*
+  read local branch link modifier
+*/
+  Future<List<BranchLinkModifier>> readLocalBranchLinkModifier() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableBranchLinkModifier WHERE soft_delete = ?', ['']);
+    return result.map((json) => BranchLinkModifier.fromJson(json)).toList();
+  }
+
+/*
+  read local branch link product
+*/
+  Future<List<BranchLinkProduct>> readLocalBranchLinkProduct() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableBranchLinkProduct WHERE soft_delete = ?', ['']);
+    return result.map((json) => BranchLinkProduct.fromJson(json)).toList();
+  }
+
+/*
+  read local branch link promotion
+*/
+  Future<List<BranchLinkPromotion>> readLocalBranchLinkPromotion() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableBranchLinkPromotion WHERE soft_delete = ?', ['']);
+    return result.map((json) => BranchLinkPromotion.fromJson(json)).toList();
+  }
+
+/*
+  read local branch link tax
+*/
+  Future<List<BranchLinkTax>> readLocalBranchLinkTax() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableBranchLinkTax WHERE soft_delete = ?', ['']);
+    return result.map((json) => BranchLinkTax.fromJson(json)).toList();
+  }
+
+/*
+  read local dining option
+*/
+  Future<List<DiningOption>> readLocalDiningOption() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableDiningOption WHERE soft_delete = ?', ['']);
+    return result.map((json) => DiningOption.fromJson(json)).toList();
+  }
+
+/*
+  read local modifier group
+*/
+  Future<List<ModifierGroup>> readLocalModifierGroup() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableModifierGroup WHERE soft_delete = ?', ['']);
+    return result.map((json) => ModifierGroup.fromJson(json)).toList();
+  }
+
+/*
+  read local modifier item
+*/
+  Future<List<ModifierItem>> readLocalModifierItem() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableModifierItem WHERE soft_delete = ?', ['']);
+    return result.map((json) => ModifierItem.fromJson(json)).toList();
+  }
+
+/*
+  read local modifier link product
+*/
+  Future<List<ModifierLinkProduct>> readLocalModifierLinkProduct() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableModifierLinkProduct WHERE soft_delete = ?', ['']);
+    return result.map((json) => ModifierLinkProduct.fromJson(json)).toList();
+  }
+
+/*
+  read local product
+*/
+  Future<List<Product>> readLocalProduct() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableProduct WHERE soft_delete = ?', ['']);
+    return result.map((json) => Product.fromJson(json)).toList();
+  }
+
+/*
+  read local product variant
+*/
+  Future<List<ProductVariant>> readLocalProductVariant() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableProductVariant WHERE soft_delete = ?', ['']);
+    return result.map((json) => ProductVariant.fromJson(json)).toList();
+  }
+
+/*
+  read local product variant detail
+*/
+  Future<List<ProductVariantDetail>> readLocalProductVariantDetail() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableProductVariantDetail WHERE soft_delete = ?', ['']);
+    return result.map((json) => ProductVariantDetail.fromJson(json)).toList();
+  }
+
+/*
+  read local restaurant table
+*/
+  Future<List<PosTable>> readLocalPosTable() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tablePosTable WHERE soft_delete = ?', ['']);
+    return result.map((json) => PosTable.fromJson(json)).toList();
   }
 
   // Future<List<Categories>> readAllNotes() async {

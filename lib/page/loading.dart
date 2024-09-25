@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/object/attendance.dart';
 import 'package:pos_system/object/bill.dart';
 import 'package:pos_system/object/branch_link_dining_option.dart';
@@ -839,6 +840,7 @@ getAllTable() async {
       for (var i = 0; i < responseJson.length; i++) {
         try {
           PosTable table = await PosDatabase.instance.insertPosTable(PosTable.fromJson(responseJson[i]));
+          PosFirestore.instance.insertPosTable(table);
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1041,6 +1043,7 @@ getAllProduct() async {
               created_at: productItem.created_at,
               updated_at: productItem.updated_at,
               soft_delete: productItem.soft_delete));
+          PosFirestore.instance.insertProduct(data);
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1077,6 +1080,7 @@ getAllDiningOption() async {
       for (var i = 0; i < responseJson.length; i++) {
         try {
           DiningOption data = await PosDatabase.instance.insertDiningOption(DiningOption.fromJson(responseJson[i]));
+          PosFirestore.instance.insertDiningOption(data);
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1108,6 +1112,7 @@ getBranchLinkDiningOption() async {
       for (var i = 0; i < responseJson.length; i++) {
         try {
           BranchLinkDining data = await PosDatabase.instance.insertBranchLinkDining(BranchLinkDining.fromJson(responseJson[i]));
+          PosFirestore.instance.insertBranchLinkDining(data);
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1171,6 +1176,7 @@ getBranchLinkTax() async {
       for (var i = 0; i < responseJson.length; i++) {
         try {
           BranchLinkTax data = await PosDatabase.instance.insertBranchLinkTax(BranchLinkTax.fromJson(responseJson[i]));
+          PosFirestore.instance.insertBranchLinkTax(data);
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1265,6 +1271,7 @@ getBranchLinkPromotion() async {
       for (var i = 0; i < responseJson.length; i++) {
         try {
           BranchLinkPromotion data = await PosDatabase.instance.insertBranchLinkPromotion(BranchLinkPromotion.fromJson(responseJson[i]));
+          PosFirestore.instance.insertBranchLinkPromotion(data);
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1516,6 +1523,7 @@ getModifierGroup() async {
       for (var i = 0; i < responseJson.length; i++) {
         try {
           ModifierGroup data = await PosDatabase.instance.insertModifierGroup(ModifierGroup.fromJson(responseJson[i]));
+          PosFirestore.instance.insertModifierGroup(data);
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1548,6 +1556,7 @@ getModifierItem() async {
       for (var i = 0; i < responseJson.length; i++) {
         try {
           ModifierItem data = await PosDatabase.instance.insertModifierItem(ModifierItem.fromJson(responseJson[i]));
+          PosFirestore.instance.insertModifierItem(data);
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1579,6 +1588,7 @@ getBranchLinkModifier() async {
       for (var i = 0; i < responseJson.length; i++) {
         try {
           BranchLinkModifier data = await PosDatabase.instance.insertBranchLinkModifier(BranchLinkModifier.fromJson(responseJson[i]));
+          PosFirestore.instance.insertBranchLinkModifier(data);
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1632,6 +1642,7 @@ getBranchLinkProduct() async {
               created_at: branchLinkProductData.created_at,
               updated_at: branchLinkProductData.updated_at,
               soft_delete: branchLinkProductData.soft_delete));
+          PosFirestore.instance.insertBranchLinkProduct(data);
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1768,6 +1779,7 @@ getModifierLinkProduct() async {
             updated_at: modData.updated_at,
             soft_delete: modData.soft_delete,
           ));
+          PosFirestore.instance.insertModifierLinkProduct(data);
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1908,6 +1920,7 @@ getProductVariant() async {
               created_at: productVariantItem.created_at,
               updated_at: productVariantItem.updated_at,
               soft_delete: productVariantItem.soft_delete));
+          PosFirestore.instance.insertProductVariant(data);
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1956,6 +1969,7 @@ getProductVariantDetail() async {
               created_at: productVariantDetailItem.created_at,
               updated_at: productVariantDetailItem.updated_at,
               soft_delete: productVariantDetailItem.soft_delete));
+          PosFirestore.instance.insertProductVariantDetail(data);
         } catch(e) {
           FLog.error(
             className: "loading",

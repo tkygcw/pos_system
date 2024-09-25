@@ -1,4 +1,4 @@
-String? tablePosTable = 'tb_table ';
+String? tablePosTable = 'tb_table';
 
 class PosTableFields {
   static List<String> values = [

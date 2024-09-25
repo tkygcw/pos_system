@@ -121,12 +121,6 @@ class _DeviceSettingState extends State<DeviceSetting> {
                           ),
                           ElevatedButton(
                             onPressed: (){
-                              PosFirestore.instance.readFullOrderCache();
-                            },
-                            child: Text("get order cache"),
-                          ),
-                          ElevatedButton(
-                            onPressed: (){
                               PosFirestore.instance.transferDatabaseData();
                             },
                             child: Text("transfer data"),

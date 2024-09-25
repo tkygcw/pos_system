@@ -59,8 +59,8 @@ class Branch {
       this.attendance_status
       });
 
-  Branch copy({int? branchID, String? name}) => Branch(
-    branch_id: branchID ?? this.branch_id,
+  Branch copy({int? branch_id, String? name}) => Branch(
+    branch_id: branch_id ?? this.branch_id,
     branch_url: branch_url ?? this.branch_url,
     name: name ?? this.name,
     address: address ?? this.address,
@@ -76,7 +76,7 @@ class Branch {
 
   factory Branch.fromJson(Map<String, dynamic> json) {
     return Branch(
-      branch_id: json['branch_id'] ?? json['branchID'],
+      branch_id: json['branch_id'],
       branch_url: json['branch_url'],
       name: json['name'] as String,
       address: json['address'] as String,

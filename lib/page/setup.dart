@@ -7,6 +7,8 @@ import 'package:f_logs/model/flog/flog.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:pos_system/database/pos_firestore.dart';
+import 'package:pos_system/firebase_sync/sync_to_firebase.dart';
 import 'package:pos_system/fragment/choose_branch.dart';
 import 'package:pos_system/fragment/device_register/device_register.dart';
 import 'package:pos_system/object/branch.dart';
@@ -266,6 +268,7 @@ class _SetupPageState extends State<SetupPage> {
       await PosDatabase.instance.insertBranch(selectedBranch!);
       Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => LoadingPage()));
     }
+    SyncToFirebase.instance.checkBranchInFirestore(selectedBranch!.branch_id.toString());
   }
 
   savePref() async {

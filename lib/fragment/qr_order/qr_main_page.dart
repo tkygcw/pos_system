@@ -33,6 +33,7 @@ class _QrMainPageState extends State<QrMainPage> {
   List<OrderCache> qrOrderCacheList = [];
   List<OrderDetail> orderDetailList = [], noStockOrderDetailList = [];
   bool _isLoaded = false, hasNoStockProduct = false, hasAccess = true;
+  late final String branch_id;
 
   @override
   void initState() {
@@ -91,7 +92,7 @@ class _QrMainPageState extends State<QrMainPage> {
               style: TextStyle(color: Colors.white),
             ),
             onPressed: () async {
-              await PosFirestore.instance.readFullOrderCache();
+              await PosFirestore.instance.readAllNotAcceptedOrderCache(branch_id);
               // if(qrOrder.count == 0){
               //   qrOrder.count = 1;
               //   await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
@@ -257,6 +258,7 @@ class _QrMainPageState extends State<QrMainPage> {
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
     Map branchObject = json.decode(branch!);
+    branch_id = branchObject['branch_id'].toString();
     if(branchObject['qr_order_status'] == '1'){
       setState(() {
         hasAccess = false;
@@ -269,6 +271,7 @@ class _QrMainPageState extends State<QrMainPage> {
       List<OrderDetail> detailData = await PosDatabase.instance.readAllOrderDetailByOrderCache(orderCacheLocalId);
       orderDetailList = detailData;
       for (int i = 0; i < orderDetailList.length; i++) {
+        print("blp id: ${orderDetailList[i].branch_link_product_sqlite_id}");
         orderDetailList[i].tableNumber.add(qrOrderCacheList[index].table_number!);
         List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
         List<OrderModifierDetail> modDetailData = await PosDatabase.instance.readOrderModifierDetail(orderDetailList[i].order_detail_sqlite_id.toString());
