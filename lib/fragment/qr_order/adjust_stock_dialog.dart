@@ -944,10 +944,14 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
             price: _orderDetail[i].price,
             quantity: _orderDetail[i].quantity,
             order_detail_key: _orderDetail[i].order_detail_key,
+            order_cache_key: _orderDetail[i].order_cache_key,
             order_detail_sqlite_id: _orderDetail[i].order_detail_sqlite_id
         );
         print('order detail${i}: ${orderDetailObj.quantity}');
         newSubtotal += double.parse(orderDetailObj.price!) * int.parse(orderDetailObj.quantity!);
+        //update firestore order detail
+        int firestore = await PosFirestore.instance.updateOrderDetail(orderDetailObj);
+        print("accept status: $firestore");
         //update order detail
         int status = await PosDatabase.instance.updateOrderDetailQuantity(orderDetailObj);
         if(status == 1){
@@ -1228,7 +1232,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     hasNoStockProduct = false;
     hasNotAvailableProduct = false;
     for (int i = 0; i < orderDetailList.length; i++) {
-      print("id: ${orderDetailList[i].branch_link_product_sqlite_id!}");
+      print("blp id in adj stock dialog: ${orderDetailList[i].branch_link_product_sqlite_id!}");
       BranchLinkProduct? data = await PosDatabase.instance.readSpecificAvailableBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
       if(data != null){
         orderDetailList[i].allow_ticket = data.allow_ticket;
@@ -1308,8 +1312,9 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
           order_by_user_id: '',
           sync_status: 2,
           accepted: 2,
+          order_cache_key: widget.currentOrderCache!.order_cache_key!,
           order_cache_sqlite_id: orderCacheLocalId);
-      int status = await PosFirestore.instance.rejectOrderCache(widget.currentOrderCache!.order_cache_key!, orderCache);
+      int status = await PosFirestore.instance.rejectOrderCache(orderCache);
       print("reject status: $status");
       int rejectOrderCache = await PosDatabase.instance.updateOrderCacheAccept(orderCache);
       OrderCache updatedCache = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCache.order_cache_sqlite_id!);

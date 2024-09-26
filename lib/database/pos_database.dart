@@ -5687,11 +5687,14 @@ class PosDatabase {
 /*
   read category by cloud id
 */
-  Future<Categories> readSpecificCategoryByCloudId(String id) async {
+  Future<Categories?> readSpecificCategoryByCloudId(String id) async {
     final db = await instance.database;
     final result = await db.rawQuery('SELECT * FROM $tableCategories WHERE category_id = ?', [id]);
-
-    return Categories.fromJson(result.first);
+    if(result.isNotEmpty){
+      return Categories.fromJson(result.first);
+    } else {
+      return null;
+    }
   }
 
 /*

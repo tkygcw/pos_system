@@ -58,7 +58,6 @@ class _PosPinPageState extends State<PosPinPage> {
   void initState() {
     super.initState();
     //readAllPrinters();
-    listenQROrder();
     preload();
     bindSocket();
     checkVersion();
@@ -89,6 +88,7 @@ class _PosPinPageState extends State<PosPinPage> {
     }
     await readAllPrinters();
     SyncToFirebase.instance.syncToFirebase();
+    listenQROrder();
   }
 
 /*

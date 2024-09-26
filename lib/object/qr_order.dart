@@ -95,8 +95,8 @@ class QrOrder extends ChangeNotifier {
           await PosDatabase.instance.readSpecificBranchLinkProductByCloudId(response['data'][i]['order_detail'][j]['branch_link_product_id'].toString());
           print('category id: ${response['data'][i]['order_detail'][j]['category_id'].toString()}');
           if(response['data'][i]['order_detail'][j]['category_id'].toString() != '0'){
-            Categories catData = await PosDatabase.instance.readSpecificCategoryByCloudId(response['data'][i]['order_detail'][j]['category_id'].toString());
-            categoryLocalId = catData.category_sqlite_id.toString();
+            Categories? catData = await PosDatabase.instance.readSpecificCategoryByCloudId(response['data'][i]['order_detail'][j]['category_id'].toString());
+            categoryLocalId = catData!.category_sqlite_id.toString();
           } else {
             categoryLocalId = '0';
           }
