@@ -314,25 +314,25 @@ getAppSettingLocal() async {
     // local app setting not exists, create local
     if (!isLocalAppSettingExisted!) {
       AppSetting appSetting = AppSetting(
-          branch_id: branch_id.toString(),
-          open_cash_drawer: 1,
-          show_second_display: 0,
-          direct_payment: 0,
-          print_checklist: 1,
-          print_receipt: 1,
-          show_sku: 0,
-          qr_order_auto_accept: 0,
-          enable_numbering: 0,
-          starting_number: 0,
-          table_order: 1,
-          show_product_desc: 0,
-          print_cancel_receipt: 1,
-          product_sort_by: 0,
-          dynamic_qr_default_exp_after_hour: 1,
-          variant_item_sort_by: 0,
-          sync_status: 0,
-          created_at: dateTime,
-          updated_at: ''
+        branch_id: branch_id.toString(),
+        open_cash_drawer: 1,
+        show_second_display: 0,
+        direct_payment: 0,
+        print_checklist: 1,
+        print_receipt: 1,
+        show_sku: 0,
+        qr_order_auto_accept: 0,
+        enable_numbering: 0,
+        starting_number: 0,
+        table_order: 1,
+        show_product_desc: 0,
+        print_cancel_receipt: 1,
+        product_sort_by: 0,
+        dynamic_qr_default_exp_after_hour: 1,
+        variant_item_sort_by: 0,
+        sync_status: 0,
+        created_at: dateTime,
+        updated_at: ''
       );
       AppSetting data = await PosDatabase.instance.insertSqliteSetting(appSetting);
     }
@@ -2168,7 +2168,6 @@ getAllOrder() async {
                 final_amount: responseJson[i]['final_amount'],
                 close_by: responseJson[i]['close_by'],
                 payment_status: responseJson[i]['payment_status'],
-                payment_split: responseJson[i]['payment_split'],
                 payment_received: responseJson[i]['payment_received'],
                 payment_change: responseJson[i]['payment_change'],
                 order_key: responseJson[i]['order_key'],
@@ -2304,7 +2303,6 @@ getAllOrderTaxDetail() async {
         }
       }
     }
-
   } catch(e) {
     FLog.error(
       className: "loading",

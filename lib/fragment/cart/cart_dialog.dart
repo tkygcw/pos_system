@@ -519,7 +519,6 @@ class CartDialogState extends State<CartDialog> {
                             "${tableList[index].group}",
                             style: TextStyle(fontSize: 14, color: fontColor(posTable: tableList[index])),
                           ),
-
                         ),
                         Spacer(),
                         Visibility(
