@@ -3378,7 +3378,7 @@ class _MakePaymentState extends State<MakePayment> {
             Audio("audio/payment_success.mp3"),
           );
           //pass trans id from api res to payment success dialog
-          openPaymentSuccessDialog(widget.dining_id, isCashMethod: false, diningName: widget.dining_name, ipayTransId: apiRes['data']);
+          openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name, ipayTransId: apiRes['data']);
         } else {
           assetsAudioPlayer.open(
             Audio("audio/error_sound.mp3"),
@@ -3413,7 +3413,7 @@ class _MakePaymentState extends State<MakePayment> {
 //     double eval = exp.evaluate(EvaluationType.REAL, cm);
 //     answer = eval.toString();
 //   }
-  Future<Future<Object?>> openPaymentSuccessDialog(String dining_id, {required isCashMethod, required String diningName, String? ipayTransId}) async {
+  Future<Future<Object?>> openPaymentSuccessDialog(String dining_id, bool splitPayment, {required isCashMethod, required String diningName, String? ipayTransId}) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -4208,6 +4208,11 @@ class _MakePaymentState extends State<MakePayment> {
 */
 
   paymentApi() async {
+    print("payment api final amount: ${finalAmount}");
+    print("payment api orderKey: ${orderKey}");
+    print("payment api name: ${branchObject['name']}");
+    print("payment api email: ${branchObject['email']}");
+    print("payment api phone: ${branchObject['phone']}");
     try{
       var response = await Api().sendPayment(
           branchObject['ipay_merchant_code'],
