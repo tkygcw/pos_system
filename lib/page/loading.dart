@@ -2168,6 +2168,7 @@ getAllOrder() async {
                 final_amount: responseJson[i]['final_amount'],
                 close_by: responseJson[i]['close_by'],
                 payment_status: responseJson[i]['payment_status'],
+                payment_split: responseJson[i]['payment_split'],
                 payment_received: responseJson[i]['payment_received'],
                 payment_change: responseJson[i]['payment_change'],
                 order_key: responseJson[i]['order_key'],
