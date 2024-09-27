@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/object/order_payment_split.dart';
+import 'package:pos_system/fragment/payment/ipay_api.dart';
 import 'package:pos_system/object/refund.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -41,7 +42,9 @@ class _RefundDialogState extends State<RefundDialog> {
   String refundKey = '';
   String? refund_value, order_value, cash_record_value;
   bool _submitted = false;
-  bool isButtonDisabled = false, isLogOut = false;
+  bool isButtonDisabled = false, isLogOut = false, canPop = true;
+  int tapCount = 0;
+  late SharedPreferences prefs;
 
 
   String? get errorPassword {
@@ -58,15 +61,18 @@ class _RefundDialogState extends State<RefundDialog> {
       // Disable the button after it has been pressed
       setState(() {
         isButtonDisabled = true;
+        canPop = false;
       });
       await readAdminData(adminPosPinController.text);
       print("button disable");
       setState(() {
         isButtonDisabled = false;
+        canPop = true;
       });
     } else {
       setState(() {
         isButtonDisabled = false;
+        canPop = true;
       });
     }
   }
@@ -99,67 +105,73 @@ class _RefundDialogState extends State<RefundDialog> {
       context: context,
       builder: (BuildContext context) {
         return StatefulBuilder(builder: (context, StateSetter setState){
-          return Center(
-            child: SingleChildScrollView(
-              child: AlertDialog(
-                title: Text(AppLocalizations.of(context)!.translate('enter_admin_pin')),
-                content: SizedBox(
-                  height: 100.0,
-                  width: 350.0,
-                  child: ValueListenableBuilder(
-                      valueListenable: adminPosPinController,
-                      builder: (context, TextEditingValue value, __) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: TextField(
-                            autofocus: true,
-                            onSubmitted: (input){
-                              _submit(context);
-                            },
-                            obscureText: true,
-                            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
-                            controller: adminPosPinController,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              errorText: _submitted
-                                  ? errorPassword == null
-                                  ? errorPassword
-                                  : AppLocalizations.of(context)
-                                  ?.translate(errorPassword!)
-                                  : null,
-                              border: OutlineInputBorder(
-                                borderSide:
-                                BorderSide(color: color.backgroundColor),
+          return PopScope(
+            onPopInvokedWithResult: (result, _) {
+              adminPosPinController.text = '';
+            },
+            child: Center(
+              child: SingleChildScrollView(
+                child: AlertDialog(
+                  title: Text(AppLocalizations.of(context)!.translate('enter_admin_pin')),
+                  content: SizedBox(
+                    height: 100.0,
+                    width: 350.0,
+                    child: ValueListenableBuilder(
+                        valueListenable: adminPosPinController,
+                        builder: (context, TextEditingValue value, __) {
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TextField(
+                              autofocus: true,
+                              onSubmitted: (input){
+                                _submit(context);
+                              },
+                              obscureText: true,
+                              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
+                              controller: adminPosPinController,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                errorText: _submitted
+                                    ? errorPassword == null
+                                    ? errorPassword
+                                    : AppLocalizations.of(context)
+                                    ?.translate(errorPassword!)
+                                    : null,
+                                border: OutlineInputBorder(
+                                  borderSide:
+                                  BorderSide(color: color.backgroundColor),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide:
+                                  BorderSide(color: color.backgroundColor),
+                                ),
+                                labelText: "PIN",
                               ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                BorderSide(color: color.backgroundColor),
-                              ),
-                              labelText: "PIN",
                             ),
-                          ),
-                        );
-                      }),
+                          );
+                        }),
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                      onPressed: isButtonDisabled ? null : () {
+                        // Disable the button after it has been pressed
+                        setState(() {
+                          adminPosPinController.text = '';
+                          isButtonDisabled = true;
+                        });
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    TextButton(
+                      child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                      onPressed: isButtonDisabled ? null : () async {
+                        _submit(context);
+                      },
+                    ),
+                  ],
                 ),
-                actions: <Widget>[
-                  TextButton(
-                    child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                    onPressed: isButtonDisabled ? null : () {
-                      // Disable the button after it has been pressed
-                      setState(() {
-                        isButtonDisabled = true;
-                      });
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  TextButton(
-                    child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                    onPressed: isButtonDisabled ? null : () async {
-                      _submit(context);
-                    },
-                  ),
-                ],
               ),
             ),
           );
@@ -168,40 +180,60 @@ class _RefundDialogState extends State<RefundDialog> {
     );
   }
 
+  @override
+  void initState() {
+    getPrefs();
+    super.initState();
+  }
+
+  getPrefs() async {
+    prefs = await SharedPreferences.getInstance();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return AlertDialog(
-        title: Text(AppLocalizations.of(context)!.translate('refund_desc')),
-        content: Container(
-          child: Text('${AppLocalizations.of(context)?.translate('refund_desc')}'),
+      return PopScope(
+        canPop: canPop,
+        child: AlertDialog(
+          title: Text(AppLocalizations.of(context)!.translate('refund_desc')),
+          content: Container(
+            child: Text('${AppLocalizations.of(context)?.translate('refund_desc')}'),
+          ),
+          actions: [
+            TextButton(
+              child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+              onPressed: () async  {
+                // await showSecondDialog(context, color);
+                final prefs = await SharedPreferences.getInstance();
+                final String? pos_user = prefs.getString('pos_pin_user');
+                Map<String, dynamic> userMap = json.decode(pos_user!);
+                User userData = User.fromJson(userMap);
+                if(userData.refund_permission != 1) {
+                  await showSecondDialog(context, color);
+                } else {
+                  tapCount++;
+                  if(tapCount == 1){
+                    setState(() {
+                      canPop = false;
+                    });
+                    await callRefund(userData);
+                    if(mounted){
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop();
+                    }
+                  }
+                }
+              },
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          TextButton(
-            child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-            onPressed: () async  {
-              // await showSecondDialog(context, color);
-              final prefs = await SharedPreferences.getInstance();
-              final String? pos_user = prefs.getString('pos_pin_user');
-              Map<String, dynamic> userMap = json.decode(pos_user!);
-              User userData = User.fromJson(userMap);
-              if(userData.refund_permission != 1) {
-                await showSecondDialog(context, color);
-              } else {
-                await callRefund(userData);
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-              }
-            },
-          ),
-        ],
       );
     });
   }
@@ -233,7 +265,7 @@ class _RefundDialogState extends State<RefundDialog> {
     await createRefund(userData);
     await updateOrderPaymentStatus();
     await createRefundedCashRecord(userData);
-    await syncAllToCloud();
+    // await syncAllToCloud();
     if(this.isLogOut == true){
       openLogOutDialog();
       return;
@@ -324,24 +356,51 @@ class _RefundDialogState extends State<RefundDialog> {
 
   updateOrderPaymentStatus() async {
     try{
+      final String? branch = prefs.getString('branch');
+      Map branchObject = json.decode(branch!);
       List<String> _value = [];
+      String response = '0';
       String dateTime = dateFormat.format(DateTime.now());
       Order checkData = await PosDatabase.instance.readSpecificOrder(widget.order.order_sqlite_id!);
-      Order _orderObject = Order(
-          refund_sqlite_id: this.refundLocalId,
-          refund_key: this.refundKey,
-          sync_status: checkData.sync_status == 0 ? 0 : 2,
-          updated_at: dateTime,
-          order_sqlite_id: checkData.order_sqlite_id
-      );
-      int status = await PosDatabase.instance.updateOrderPaymentRefundStatus(_orderObject);
-      if(status == 1){
-        Order orderData = await PosDatabase.instance.readSpecificOrder(_orderObject.order_sqlite_id!);
-        _value.add(jsonEncode(orderData));
+      if(checkData.ipay_trans_id != ''){
+        String refundAmt = checkData.final_amount!;
+        response = await Api().refundPayment(
+            branchObject['ipay_merchant_code'],
+            checkData.ipay_trans_id!,
+            refundAmt,
+            'MYR',
+            signature(
+              branchObject['ipay_merchant_key'],
+              branchObject['ipay_merchant_code'],
+              checkData.ipay_trans_id!,
+              refundAmt,
+              'MYR'
+            ),
+        );
       }
-      order_value = _value.toString();
-      //sync to cloud
-      //syncUpdatedOrderToCloud(_value.toString());
+      if(response == '0' || response == '9999'){
+        Order _orderObject = Order(
+            refund_sqlite_id: this.refundLocalId,
+            refund_key: this.refundKey,
+            sync_status: checkData.sync_status == 0 ? 0 : 2,
+            updated_at: dateTime,
+            order_sqlite_id: checkData.order_sqlite_id
+        );
+        int status = await PosDatabase.instance.updateOrderPaymentRefundStatus(_orderObject);
+        if(status == 1){
+          Order orderData = await PosDatabase.instance.readSpecificOrder(_orderObject.order_sqlite_id!);
+          _value.add(jsonEncode(orderData));
+        }
+        order_value = _value.toString();
+        //sync to cloud
+        //syncUpdatedOrderToCloud(_value.toString());
+      } else {
+        FLog.error(
+          className: "refund_dialog",
+          text: "ipay API error",
+          exception: "$response",
+        );
+      }
     } catch(e){
       FLog.error(
         className: "refund_dialog",
@@ -349,6 +408,17 @@ class _RefundDialogState extends State<RefundDialog> {
         exception: "$e",
       );
     }
+  }
+
+  String signature(String merchant_key, String merchant_code, String transId, String amount, String currency) {
+    var ipayAmount = double.parse(amount) * 100;
+    var signature = utf8.encode(merchant_key +
+        merchant_code +
+        transId +
+        ipayAmount.toStringAsFixed(0) +
+        currency
+    );
+    return base64Encode(sha1.convert(signature).bytes);
   }
 
   // syncUpdatedOrderToCloud(String value) async {

@@ -293,6 +293,23 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
           //new 23
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
+          //new 24
+          await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
+          ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
+          ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
+          ${OrderPaymentSplitFields.order_payment_split_key} $textType,
+          ${OrderPaymentSplitFields.branch_id} $textType,
+          ${OrderPaymentSplitFields.payment_link_company_id} $textType,
+          ${OrderPaymentSplitFields.amount} $textType,
+          ${OrderPaymentSplitFields.payment_received} $textType,
+          ${OrderPaymentSplitFields.payment_change} $textType,
+          ${OrderPaymentSplitFields.order_key} $textType,
+          ${OrderPaymentSplitFields.sync_status} $integerType,
+          ${OrderPaymentSplitFields.created_at} $textType,
+          ${OrderPaymentSplitFields.updated_at} $textType,
+          ${OrderPaymentSplitFields.soft_delete} $textType)''');
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
         }break;
         case 16: {
           await db.execute('''CREATE TABLE $tableAttendance(
@@ -343,6 +360,23 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
           //new 23
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
+          //new 24
+          await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
+          ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
+          ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
+          ${OrderPaymentSplitFields.order_payment_split_key} $textType,
+          ${OrderPaymentSplitFields.branch_id} $textType,
+          ${OrderPaymentSplitFields.payment_link_company_id} $textType,
+          ${OrderPaymentSplitFields.amount} $textType,
+          ${OrderPaymentSplitFields.payment_received} $textType,
+          ${OrderPaymentSplitFields.payment_change} $textType,
+          ${OrderPaymentSplitFields.order_key} $textType,
+          ${OrderPaymentSplitFields.sync_status} $integerType,
+          ${OrderPaymentSplitFields.created_at} $textType,
+          ${OrderPaymentSplitFields.updated_at} $textType,
+          ${OrderPaymentSplitFields.soft_delete} $textType)''');
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
         }break;
         case 17: {
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
@@ -379,6 +413,23 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
           //new 23
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
+          //new 24
+          await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
+          ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
+          ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
+          ${OrderPaymentSplitFields.order_payment_split_key} $textType,
+          ${OrderPaymentSplitFields.branch_id} $textType,
+          ${OrderPaymentSplitFields.payment_link_company_id} $textType,
+          ${OrderPaymentSplitFields.amount} $textType,
+          ${OrderPaymentSplitFields.payment_received} $textType,
+          ${OrderPaymentSplitFields.payment_change} $textType,
+          ${OrderPaymentSplitFields.order_key} $textType,
+          ${OrderPaymentSplitFields.sync_status} $integerType,
+          ${OrderPaymentSplitFields.created_at} $textType,
+          ${OrderPaymentSplitFields.updated_at} $textType,
+          ${OrderPaymentSplitFields.soft_delete} $textType)''');
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
         }break;
         case 18: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
@@ -411,6 +462,23 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
           //new 23
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
+          //new 24
+          await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
+          ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
+          ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
+          ${OrderPaymentSplitFields.order_payment_split_key} $textType,
+          ${OrderPaymentSplitFields.branch_id} $textType,
+          ${OrderPaymentSplitFields.payment_link_company_id} $textType,
+          ${OrderPaymentSplitFields.amount} $textType,
+          ${OrderPaymentSplitFields.payment_received} $textType,
+          ${OrderPaymentSplitFields.payment_change} $textType,
+          ${OrderPaymentSplitFields.order_key} $textType,
+          ${OrderPaymentSplitFields.sync_status} $integerType,
+          ${OrderPaymentSplitFields.created_at} $textType,
+          ${OrderPaymentSplitFields.updated_at} $textType,
+          ${OrderPaymentSplitFields.soft_delete} $textType)''');
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
         }break;
         case 19: {
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
@@ -439,6 +507,23 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
           //new 23
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
+          //new 24
+          await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
+          ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
+          ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
+          ${OrderPaymentSplitFields.order_payment_split_key} $textType,
+          ${OrderPaymentSplitFields.branch_id} $textType,
+          ${OrderPaymentSplitFields.payment_link_company_id} $textType,
+          ${OrderPaymentSplitFields.amount} $textType,
+          ${OrderPaymentSplitFields.payment_received} $textType,
+          ${OrderPaymentSplitFields.payment_change} $textType,
+          ${OrderPaymentSplitFields.order_key} $textType,
+          ${OrderPaymentSplitFields.sync_status} $integerType,
+          ${OrderPaymentSplitFields.created_at} $textType,
+          ${OrderPaymentSplitFields.updated_at} $textType,
+          ${OrderPaymentSplitFields.soft_delete} $textType)''');
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
         }break;
         case 20: {
           await db.execute('''CREATE TABLE $tableDynamicQR(
@@ -465,6 +550,23 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
           //new 23
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
+          //new 24
+          await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
+          ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
+          ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
+          ${OrderPaymentSplitFields.order_payment_split_key} $textType,
+          ${OrderPaymentSplitFields.branch_id} $textType,
+          ${OrderPaymentSplitFields.payment_link_company_id} $textType,
+          ${OrderPaymentSplitFields.amount} $textType,
+          ${OrderPaymentSplitFields.payment_received} $textType,
+          ${OrderPaymentSplitFields.payment_change} $textType,
+          ${OrderPaymentSplitFields.order_key} $textType,
+          ${OrderPaymentSplitFields.sync_status} $integerType,
+          ${OrderPaymentSplitFields.created_at} $textType,
+          ${OrderPaymentSplitFields.updated_at} $textType,
+          ${OrderPaymentSplitFields.soft_delete} $textType)''');
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
         }break;
         case 21: {
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
@@ -477,6 +579,23 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
           //new 23
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
+          //new 24
+          await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
+          ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
+          ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
+          ${OrderPaymentSplitFields.order_payment_split_key} $textType,
+          ${OrderPaymentSplitFields.branch_id} $textType,
+          ${OrderPaymentSplitFields.payment_link_company_id} $textType,
+          ${OrderPaymentSplitFields.amount} $textType,
+          ${OrderPaymentSplitFields.payment_received} $textType,
+          ${OrderPaymentSplitFields.payment_change} $textType,
+          ${OrderPaymentSplitFields.order_key} $textType,
+          ${OrderPaymentSplitFields.sync_status} $integerType,
+          ${OrderPaymentSplitFields.created_at} $textType,
+          ${OrderPaymentSplitFields.updated_at} $textType,
+          ${OrderPaymentSplitFields.soft_delete} $textType)''');
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
         }break;
         case 22: {
           if(defaultTargetPlatform == TargetPlatform.iOS){
@@ -485,6 +604,23 @@ class PosDatabase {
             await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
           }
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
+          //new 24
+          await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
+          ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
+          ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
+          ${OrderPaymentSplitFields.order_payment_split_key} $textType,
+          ${OrderPaymentSplitFields.branch_id} $textType,
+          ${OrderPaymentSplitFields.payment_link_company_id} $textType,
+          ${OrderPaymentSplitFields.amount} $textType,
+          ${OrderPaymentSplitFields.payment_received} $textType,
+          ${OrderPaymentSplitFields.payment_change} $textType,
+          ${OrderPaymentSplitFields.order_key} $textType,
+          ${OrderPaymentSplitFields.sync_status} $integerType,
+          ${OrderPaymentSplitFields.created_at} $textType,
+          ${OrderPaymentSplitFields.updated_at} $textType,
+          ${OrderPaymentSplitFields.soft_delete} $textType)''');
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
         }break;
         case 23: {
           await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
@@ -502,7 +638,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.updated_at} $textType,
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderFields.payment_status} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
         }break;
       }
     }
@@ -617,6 +753,7 @@ class PosDatabase {
            ${OrderFields.refund_key} $textType,
            ${OrderFields.settlement_sqlite_id} $textType,
            ${OrderFields.settlement_key} $textType,
+           ${OrderFields.ipay_trans_id} $textType,
            ${OrderFields.sync_status} $integerType,
            ${OrderFields.created_at} $textType, 
            ${OrderFields.updated_at} $textType, 
@@ -1797,8 +1934,8 @@ class PosDatabase {
           'INSERT INTO $tableOrder(order_id, order_number, order_queue, company_id, customer_id, dining_id, dining_name, '
               'branch_link_promotion_id, payment_link_company_id, branch_id, branch_link_tax_id, '
               'subtotal, amount, rounding, final_amount, close_by, payment_status, payment_split, payment_received, payment_change, order_key, '
-              'refund_sqlite_id, refund_key, settlement_sqlite_id, settlement_key, sync_status, created_at, updated_at, soft_delete) '
-              'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+              'refund_sqlite_id, refund_key, settlement_sqlite_id, settlement_key, ipay_trans_id, sync_status, created_at, updated_at, soft_delete) '
+              'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
           [
             data.order_id,
             data.order_number,
@@ -1825,6 +1962,7 @@ class PosDatabase {
             data.refund_key,
             data.settlement_sqlite_id,
             data.settlement_key,
+            data.ipay_trans_id,
             data.sync_status,
             data.created_at,
             data.updated_at,
@@ -6624,8 +6762,8 @@ class PosDatabase {
 */
   Future<int> updateOrderPaymentStatus(Order data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableOrder SET payment_status = ?, sync_status = ?,  updated_at = ?, soft_delete = ? WHERE order_sqlite_id = ?',
-        [1, data.sync_status, data.updated_at, data.soft_delete, data.order_sqlite_id]);
+    return await db.rawUpdate('UPDATE $tableOrder SET payment_status = ?, ipay_trans_id = ?, sync_status = ?,  updated_at = ?, soft_delete = ? WHERE order_sqlite_id = ?',
+        [1, data.ipay_trans_id, data.sync_status, data.updated_at, data.soft_delete, data.order_sqlite_id]);
   }
 
 /*

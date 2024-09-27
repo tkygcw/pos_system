@@ -40,6 +40,7 @@ class PaymentSuccessDialog extends StatefulWidget {
   final String dining_name;
   final String? change;
   final bool? split_payment;
+  final String? ipayTransId;
 
   const PaymentSuccessDialog(
       {Key? key,
@@ -50,6 +51,7 @@ class PaymentSuccessDialog extends StatefulWidget {
       required this.dining_id,
       required this.orderKey,
       this.change,
+      this.ipayTransId,
       required this.isCashMethod,
       required this.dining_name,
       required this.split_payment})
@@ -484,12 +486,12 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
         soft_delete: '',
         sync_status: checkData.sync_status == 0 ? 0 : 2,
         updated_at: dateTime,
+        ipay_trans_id: widget.ipayTransId ?? '',
         order_sqlite_id: int.parse(widget.orderId));
 
     int updatedData = await PosDatabase.instance.updateOrderPaymentStatus(orderObject);
     if (updatedData == 1) {
-      Order orderData = await PosDatabase.instance
-          .readSpecificOrder(int.parse(widget.orderId));
+      Order orderData = await PosDatabase.instance.readSpecificOrder(int.parse(widget.orderId));
       _value.add(jsonEncode(orderData));
     }
     order_value = _value.toString();

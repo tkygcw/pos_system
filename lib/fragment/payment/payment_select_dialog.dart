@@ -337,7 +337,11 @@ class _PaymentSelectState extends State<PaymentSelect> {
   readPaymentMethod() async {
     //read available payment method
     List<PaymentLinkCompany> data = await PosDatabase.instance.readPaymentMethods();
-    PaymentLists = List.from(data);
+    if(widget.currentOrder == null){
+      PaymentLists = List.from(data);
+    } else {
+      PaymentLists = data.where((e) => e.type != 2).toList();
+    }
     setState(() {
       isload = true;
     });

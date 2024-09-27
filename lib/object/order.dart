@@ -30,6 +30,7 @@ class OrderFields {
     refund_key,
     settlement_sqlite_id,
     settlement_key,
+    ipay_trans_id,
     sync_status,
     created_at,
     updated_at,
@@ -62,6 +63,7 @@ class OrderFields {
   static String refund_key = 'refund_key';
   static String settlement_sqlite_id = 'settlement_sqlite_id';
   static String settlement_key = 'settlement_key';
+  static String ipay_trans_id = 'ipay_trans_id';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -95,6 +97,7 @@ class Order {
   String? refund_key;
   String? settlement_sqlite_id;
   String? settlement_key;
+  String? ipay_trans_id;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -149,6 +152,7 @@ class Order {
         this.refund_key,
         this.settlement_sqlite_id,
         this.settlement_key,
+        this.ipay_trans_id,
         this.sync_status,
         this.created_at,
         this.updated_at,
@@ -196,6 +200,7 @@ class Order {
     String? refund_key,
     String? settlement_sqlite_id,
     String? settlement_key,
+    String? ipay_trans_id,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -228,6 +233,7 @@ class Order {
           refund_key: refund_key ?? this.refund_key,
           settlement_sqlite_id: settlement_sqlite_id ?? this.settlement_sqlite_id,
           settlement_key: settlement_key ?? this.settlement_key,
+          ipay_trans_id: ipay_trans_id ?? this.ipay_trans_id,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -262,6 +268,7 @@ class Order {
       refund_key: json[OrderFields.refund_key] as String?,
       settlement_sqlite_id: json[OrderFields.settlement_sqlite_id] as String?,
       settlement_key: json[OrderFields.settlement_key] as String?,
+      ipay_trans_id: json[OrderFields.ipay_trans_id] as String?,
       sync_status: json[OrderFields.sync_status] as int?,
       created_at: json[OrderFields.created_at] as String?,
       updated_at: json[OrderFields.updated_at] as String?,
@@ -309,6 +316,7 @@ class Order {
     OrderFields.refund_key: refund_key,
     OrderFields.settlement_sqlite_id: settlement_sqlite_id,
     OrderFields.settlement_key: settlement_key,
+    OrderFields.ipay_trans_id: ipay_trans_id,
     OrderFields.sync_status: sync_status,
     OrderFields.created_at: created_at,
     OrderFields.updated_at: updated_at,

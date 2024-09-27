@@ -2176,6 +2176,7 @@ getAllOrder() async {
                 refund_key: responseJson[i]['refund_key'],
                 settlement_sqlite_id: settlement != null ? settlement.settlement_sqlite_id.toString() : '',
                 settlement_key: responseJson[i]['settlement_key'],
+                ipay_trans_id: responseJson[i]['ipay_trans_id'] ?? '',
                 sync_status: 1,
                 created_at: responseJson[i]['created_at'],
                 updated_at: responseJson[i]['updated_at'],

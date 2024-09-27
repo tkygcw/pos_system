@@ -513,7 +513,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                         )
                       ),
                       Visibility(
-                        visible: order.payment_split != 0 ? false : true,
+                        visible: order.ipay_trans_id != '' && order.payment_split != 0 ?  false : true,
                         child: Card(
                             elevation: 5,
                             child: ListTile(

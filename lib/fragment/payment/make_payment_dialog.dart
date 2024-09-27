@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -67,6 +68,7 @@ class MakePayment extends StatefulWidget {
 }
 
 class _MakePaymentState extends State<MakePayment> {
+  final assetsAudioPlayer = AssetsAudioPlayer();
   final inputController = TextEditingController();
   final ScrollController _controller = ScrollController();
   late StreamController streamController;
@@ -266,12 +268,13 @@ class _MakePaymentState extends State<MakePayment> {
           }
           return LayoutBuilder(builder: (context, constraints) {
             if (constraints.maxWidth > 900 && constraints.maxHeight > 500) {
-              return WillPopScope(
-                  onWillPop: () async {
+              return PopScope(
+                  canPop: willPop,
+                  onPopInvokedWithResult: (result,_){
                     if (notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true) {
                       reInitSecondDisplay(isWillPop: true);
                     }
-                    return willPop;
+                    willPop = result;
                   },
                   child: MediaQuery(
                     data: MediaQuery.of(context).copyWith(viewInsets: EdgeInsets.zero),
@@ -3349,32 +3352,54 @@ class _MakePaymentState extends State<MakePayment> {
   }
 
   void _onQRViewCreated(QRViewController p1) {
-    setState(() {
-      this.controller = p1;
-    });
-
-    p1.scannedDataStream.listen((scanData) async {
+    try{
       setState(() {
-        result = scanData;
-        print('result:${result?.code}');
+        this.controller = p1;
       });
-      p1.pauseCamera();
-
-      await checkDeviceLogin();
-      if (this.isLogOut == true) {
-        openLogOutDialog();
-        return;
-      }
-      var api = await paymentApi();
-      if (api == 0) {
-        openPaymentSuccessDialog(widget.dining_id, split_payment,
-            isCashMethod: false, diningName: widget.dining_name);
-      } else {
-        Fluttertoast.showToast(
-            backgroundColor: Color(0xFFFF0000), msg: "${api}");
-        Navigator.pop(context);
-      }
-    });
+      p1.scannedDataStream.listen((scanData) async {
+        setState(() {
+          isButtonDisable = true;
+          result = scanData;
+          print('result:${result?.code}');
+        });
+        p1.pauseCamera();
+        //check login value
+        // await checkDeviceLogin();
+        // if (this.isLogOut == true) {
+        //   openLogOutDialog();
+        //   return;
+        // }
+        assetsAudioPlayer.open(
+          Audio("audio/scan_sound.mp3"),
+        );
+        Map<String, dynamic> apiRes = await paymentApi();
+        if (apiRes['status'] == '1') {
+          assetsAudioPlayer.open(
+            Audio("audio/payment_success.mp3"),
+          );
+          //pass trans id from api res to payment success dialog
+          openPaymentSuccessDialog(widget.dining_id, isCashMethod: false, diningName: widget.dining_name, ipayTransId: apiRes['data']);
+        } else {
+          assetsAudioPlayer.open(
+            Audio("audio/error_sound.mp3"),
+          );
+          Fluttertoast.showToast(
+              backgroundColor: Color(0xFFFF0000), msg: "${apiRes['data']}");
+          FLog.error(
+            className: "make_payment_dialog",
+            text: "paymentApi return error",
+            exception: "ipay API res: ${apiRes['data']}",
+          );
+          Navigator.pop(context);
+        }
+      });
+    }catch(e){
+      FLog.error(
+        className: "make_payment_dialog",
+        text: "_onQRViewCreated error",
+        exception: "$e",
+      );
+    }
   }
 
 // function to calculate the input operation
@@ -3388,7 +3413,7 @@ class _MakePaymentState extends State<MakePayment> {
 //     double eval = exp.evaluate(EvaluationType.REAL, cm);
 //     answer = eval.toString();
 //   }
-  Future<Future<Object?>> openPaymentSuccessDialog(String dining_id, bool splitPayment, {required isCashMethod, required String diningName}) async {
+  Future<Future<Object?>> openPaymentSuccessDialog(String dining_id, {required isCashMethod, required String diningName, String? ipayTransId}) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -3407,6 +3432,7 @@ class _MakePaymentState extends State<MakePayment> {
                 orderKey: orderKey!,
                 change: change,
                 dining_name: diningName,
+                ipayTransId: ipayTransId,
                 split_payment: splitPayment,
               ),
             ),
@@ -3809,6 +3835,7 @@ class _MakePaymentState extends State<MakePayment> {
             refund_key: '',
             settlement_sqlite_id: '',
             settlement_key: '',
+            ipay_trans_id: '',
             sync_status: 0,
             created_at: dateTime,
             updated_at: '',
@@ -4181,39 +4208,48 @@ class _MakePaymentState extends State<MakePayment> {
 */
 
   paymentApi() async {
-    var response = await Api().sendPayment(
-        branchObject['ipay_merchant_code'],
-        branchObject['ipay_merchant_key'],
-        336,
-        orderId!,
-        Utils.formatPaymentAmount(double.parse(finalAmount)),
-        // '1.00',
-        //need to change to finalAmount, every 1000 add 1,000
-        'MYR',
-        'ipay',
-        branchObject['name'],
-        branchObject['email'],
-        branchObject['phone'],
-        'taylor',
-        result!.code!,
-        '',
-        '',
-        '',
-        '',
-        signature256(
-            branchObject['ipay_merchant_key'],
-            branchObject['ipay_merchant_code'],
-            orderId!,
-            finalAmount,
-            //need to change to finalAmount
-            'MYR',
-            '',
-            result!.code!,
-            ''));
-    if (response != null) {
+    try{
+      var response = await Api().sendPayment(
+          branchObject['ipay_merchant_code'],
+          branchObject['ipay_merchant_key'],
+          336,
+          orderKey!,
+          Utils.formatPaymentAmount(double.parse(finalAmount)),
+          'MYR',
+          'ipay',
+          branchObject['name'],
+          branchObject['email'],
+          branchObject['phone'],
+          'remark',
+          result!.code!,
+          '',
+          '',
+          '',
+          '',
+          signature256(
+              branchObject['ipay_merchant_key'],
+              branchObject['ipay_merchant_code'],
+              orderKey!,
+              finalAmount,
+              //need to change to finalAmount
+              'MYR',
+              '',
+              result!.code!,
+              ''));
       return response;
-    } else {
-      return 0;
+    }catch(e){
+      assetsAudioPlayer.open(
+        Audio("audio/error_sound.mp3"),
+      );
+      FLog.error(
+        className: "make_payment_dialog",
+        text: "paymentApi error",
+        exception: "$e",
+      );
+      return {
+        'status': '0',
+        'data': e
+      };
     }
   }
 
