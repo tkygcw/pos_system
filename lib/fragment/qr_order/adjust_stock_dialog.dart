@@ -21,6 +21,7 @@ import 'package:crypto/crypto.dart';
 
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
+import '../../firebase_sync/qr_order_sync.dart';
 import '../../main.dart';
 import '../../notifier/fail_print_notifier.dart';
 import '../../object/branch_link_product.dart';
@@ -55,6 +56,7 @@ class AdjustStockDialog extends StatefulWidget {
 }
 
 class _AdjustStockDialogState extends State<AdjustStockDialog> {
+  FirestoreQROrderSync firestoreQrOrderSync = FirestoreQROrderSync.instance;
   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
   List<OrderDetail> orderDetailList = [], noStockOrderDetailList = [], removeDetailList = [];
   List<Printer> printerList = [];
@@ -816,6 +818,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                   daily_limit: _totalStockQty.toString(),
                   branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
               updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
+              PosFirestore.instance.updateBranchLinkProductDailyLimit(object);
             }break;
             case '2' :{
               _totalStockQty = int.parse(checkData[0].stock_quantity!) - int.parse(orderDetailList[i].quantity!);
@@ -825,6 +828,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                   stock_quantity: _totalStockQty.toString(),
                   branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
               updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+              PosFirestore.instance.updateBranchLinkProductStock(object);
             }break;
             default: {
               updateStock = 0;
@@ -920,7 +924,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
         table_use_sqlite_id: this.localTableUseId,
         order_cache_key: widget.currentOrderCache!.order_cache_key,
         order_cache_sqlite_id: widget.orderCacheLocalId);
-    int firestore = await PosFirestore.instance.acceptOrderCache(orderCache);
+    int firestore = await firestoreQrOrderSync.acceptOrderCache(orderCache);
     print("accept status: $firestore");
     int status = await PosDatabase.instance.updateQrOrderCache(orderCache);
     if (status == 1) {
@@ -950,7 +954,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
         print('order detail${i}: ${orderDetailObj.quantity}');
         newSubtotal += double.parse(orderDetailObj.price!) * int.parse(orderDetailObj.quantity!);
         //update firestore order detail
-        int firestore = await PosFirestore.instance.updateOrderDetail(orderDetailObj);
+        int firestore = await firestoreQrOrderSync.updateOrderDetail(orderDetailObj);
         print("accept status: $firestore");
         //update order detail
         int status = await PosDatabase.instance.updateOrderDetailQuantity(orderDetailObj);
@@ -1314,7 +1318,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
           accepted: 2,
           order_cache_key: widget.currentOrderCache!.order_cache_key!,
           order_cache_sqlite_id: orderCacheLocalId);
-      int status = await PosFirestore.instance.rejectOrderCache(orderCache);
+      int status = await firestoreQrOrderSync.rejectOrderCache(orderCache);
       print("reject status: $status");
       int rejectOrderCache = await PosDatabase.instance.updateOrderCacheAccept(orderCache);
       OrderCache updatedCache = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCache.order_cache_sqlite_id!);

@@ -8,6 +8,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:pos_system/database/pos_firestore.dart';
+import 'package:pos_system/firebase_sync/qr_order_sync.dart';
 import 'package:pos_system/firebase_sync/sync_to_firebase.dart';
 import 'package:pos_system/fragment/setting/sync_dialog.dart';
 import 'package:pos_system/fragment/subscription_expired.dart';
@@ -78,7 +79,7 @@ class _PosPinPageState extends State<PosPinPage> {
   listenQROrder() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    PosFirestore.instance.realtimeQROrder(context, branch_id.toString());
+    FirestoreQROrderSync.instance.realtimeQROrder(branch_id.toString());
   }
 
   preload() async {

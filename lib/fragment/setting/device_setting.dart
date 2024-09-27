@@ -90,8 +90,9 @@ class _DeviceSettingState extends State<DeviceSetting> {
                             child: Text("add product with specific local id"),
                           ),
                           ElevatedButton(
-                            onPressed: (){
-                              PosFirestore.instance.updateSpecificProduct('1');
+                            onPressed: () async{
+                              await PosFirestore.instance.updateSpecificProduct('8YVaYTf2HXVjnxyT3oW9');
+                              print("done update");
                             },
                             child: Text("update"),
                           ),

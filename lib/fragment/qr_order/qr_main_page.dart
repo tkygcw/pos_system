@@ -6,6 +6,7 @@ import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/firebase_sync/qr_order_sync.dart';
 import 'package:pos_system/fragment/qr_order/adjust_stock_dialog.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/branch_link_product.dart';
@@ -92,7 +93,7 @@ class _QrMainPageState extends State<QrMainPage> {
               style: TextStyle(color: Colors.white),
             ),
             onPressed: () async {
-              await PosFirestore.instance.readAllNotAcceptedOrderCache(branch_id);
+              await FirestoreQROrderSync.instance.readAllNotAcceptedOrderCache(branch_id);
               // if(qrOrder.count == 0){
               //   qrOrder.count = 1;
               //   await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
