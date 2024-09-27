@@ -253,6 +253,22 @@ class Domain {
   }
 
   /*
+  * get all order payment split after date
+  * */
+  getAllOrderPaymentSplitAfterDate(branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.order_payment_split, body: {
+        'getAllOrderPaymentSplitAfterDate': '1',
+        'branch_id': branch_id,
+        'date_from': date_from,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get all table_use
   * */
   getAllTableUse(branch_id) async {

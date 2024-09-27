@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
+import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
+import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -365,11 +367,13 @@ class CartDialogState extends State<CartDialog> {
       key: Key(index.toString()),
       child: Card(
         elevation: 5,
-        shape: tableList[index].status == 1 && tableList[index].order_key != '' ? new RoundedRectangleBorder(side: new BorderSide(color: Color(0xFFFFB3B3), width: 3.0), borderRadius: BorderRadius.circular(4.0))
+        shape: tableList[index].status == 1 && tableList[index].order_key != '' && tableList[index].order_key != null
+            ? new RoundedRectangleBorder(side: new BorderSide(color: Color(0xFFFFB3B3), width: 3.0), borderRadius: BorderRadius.circular(4.0))
         : tableList[index].isSelected
             ? new RoundedRectangleBorder(side: new BorderSide(color: color.backgroundColor, width: 3.0), borderRadius: BorderRadius.circular(4.0))
             : new RoundedRectangleBorder(side: new BorderSide(color: Colors.white, width: 3.0), borderRadius: BorderRadius.circular(4.0)),
-        color: tableList[index].status == 1 && tableList[index].order_key != '' ? Color(0xFFFFB3B3) : Colors.white,
+        color: tableList[index].status == 1 && tableList[index].order_key != '' && tableList[index].order_key != null
+            ? Color(0xFFFFB3B3) : Colors.white,
         child: InkWell(
           splashColor: Colors.blue.withAlpha(30),
           onDoubleTap: () {
@@ -388,28 +392,54 @@ class CartDialogState extends State<CartDialog> {
           onTap: () async {
             //check selected table is in use or not
             if (tableList[index].status == 1) {
-              // table in use (colored)
-              for (int i = 0; i < tableList.length; i++) {
-                //check all group
-                if (tableList[index].group == tableList[i].group) {
-                  if (tableList[i].isSelected == false) {
-                    if(tableList[i].order_key == '') {
-                      setState(() {
-                        tableList[i].isSelected = true;
-                      });
+              if(tableList[index].order_key == null) {
+                if (await confirm(
+                  context,
+                  title: Text('${AppLocalizations.of(context)?.translate('order_data_corrupted')}'),
+                  content: Text('${AppLocalizations.of(context)?.translate('order_data_corrupted_desc')} ${tableList[index].number}'),
+                  textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                  textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                )) {
+                  await resetTableStatus(tableList[index]);
+                  setState(() {
+                    for (int j = 0; j < tableList.length; j++) {
+                      tableList[j].isSelected = false;
+                    }
+                  });
+                  readAllTable();
+
+                } else {
+                  setState(() {
+                    tableList[index].isSelected = false;
+                  });
+                }
+              }
+              else if(tableList[index].order_key == '') {
+                // table in use (colored)
+                for (int i = 0; i < tableList.length; i++) {
+                  //check all group
+                  if (tableList[index].group == tableList[i].group && tableList[index].order_key != null) {
+                    if (tableList[i].isSelected == false) {
+                      if(tableList[i].order_key == '') {
+                        setState(() {
+                          tableList[i].isSelected = true;
+                        });
+                      } else {
+                        Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
+                      }
                     } else {
-                      Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
+                      setState(() {
+                        tableList[i].isSelected = false;
+                      });
                     }
                   } else {
                     setState(() {
                       tableList[i].isSelected = false;
                     });
                   }
-                } else {
-                  setState(() {
-                    tableList[i].isSelected = false;
-                  });
                 }
+              } else {
+                Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
               }
             } else {
               //table not in use (white)
@@ -481,14 +511,10 @@ class CartDialogState extends State<CartDialog> {
                               Colors.white,
                               borderRadius: BorderRadius.circular(5.0)
                           ),
-                          child: MediaQuery.of(context).size.height > 500 ?
-                          MediaQuery.of(context).orientation == Orientation.landscape ?
+                          child: MediaQuery.of(context).size.width > 700 ?
                           Text(
                             "Group: ${tableList[index].group}",
                             style: TextStyle(fontSize: 18, color: fontColor(posTable: tableList[index])),
-                          ) : Text(
-                            "${tableList[index].group}",
-                            style: TextStyle(fontSize: 14, color: fontColor(posTable: tableList[index])),
                           ) : Text(
                             "${tableList[index].group}",
                             style: TextStyle(fontSize: 14, color: fontColor(posTable: tableList[index])),
@@ -536,6 +562,51 @@ class CartDialogState extends State<CartDialog> {
     );
   }
 // end of changes
+
+  resetTableStatus(PosTable posTable) async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    await resetTableUseDetail(dateTime, posTable);
+    await resetTableUse(dateTime, posTable);
+    PosTable data = PosTable(
+        status: 0,
+        table_use_detail_key: '',
+        table_use_key: '',
+        updated_at: dateTime,
+        table_sqlite_id: posTable.table_sqlite_id
+    );
+    await PosDatabase.instance.resetPosTable(data);
+  }
+
+  resetTableUseDetail(String dateTime, PosTable posTable) async {
+    TableUseDetail? tableUseDetailData = await PosDatabase.instance.readTableUseDetailByKey(posTable.table_use_detail_key!);
+    if(tableUseDetailData != null){
+      TableUseDetail detailObject = TableUseDetail(
+          status: 1,
+          soft_delete: dateTime,
+          sync_status: tableUseDetailData.sync_status == 0 ? 0 : 2,
+          table_use_detail_key: posTable.table_use_detail_key
+      );
+      await PosDatabase.instance.deleteTableUseDetailByKey(detailObject);
+    }
+  }
+
+  resetTableUse(String dateTime, PosTable posTable) async {
+    List<TableUseDetail> checkData = await PosDatabase.instance.readTableUseDetailByTableUseKey(posTable.table_use_key!);
+    //check is current table is merged table or not
+    if(checkData.isEmpty){
+      TableUse? tableUseData = await PosDatabase.instance.readSpecificTableUseByKey2(posTable.table_use_key!);
+      if(tableUseData != null){
+        TableUse object = TableUse(
+            status: 1,
+            soft_delete: dateTime,
+            sync_status: tableUseData.sync_status == 0 ? 0 : 2,
+            table_use_key: posTable.table_use_key
+        );
+        await PosDatabase.instance.deleteTableUseByKey(object);
+      }
+    }
+  }
 
   Future<Future<Object?>> openChangeTableDialog(PosTable posTable, {printerList}) async {
     return showGeneralDialog(

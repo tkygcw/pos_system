@@ -364,6 +364,8 @@
   "order_already_placed": "order already placed!",
   "order_at": "Order at",
   "order_by": "Order by",
+  "order_data_corrupted": "Order data corrupted",
+  "order_data_corrupted_desc": "Order data are missing or corrupted. Would you like to reset table",
   "order_detail": "Order detail",
   "order_no": "Order No",
   "order_numbering": "Order Number",

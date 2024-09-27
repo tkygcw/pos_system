@@ -777,7 +777,6 @@ class CartPageState extends State<CartPage> {
                                                           if (cart.cartNotifierItem.isNotEmpty) {
                                                             openLoadingDialogBox();
                                                             asyncQ.addJob((_) async => await callCreateNewNotDineOrder(cart, appSettingModel));
-                                                            isCartExpanded = !isCartExpanded;
                                                           } else {
                                                             Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                                           }
@@ -2065,6 +2064,7 @@ class CartPageState extends State<CartPage> {
               child: ReprintDialog(
                 printerList: printerList,
                 cart: cart,
+                orderKey: orderKey,
                 parentContext: this.widget.parentContext!,
                 currentPage: this.widget.currentPage,
               ),
@@ -2539,6 +2539,7 @@ class CartPageState extends State<CartPage> {
       //   return;
       // }
       asyncQ.addJob((_) => printKitchenList());
+      isCartExpanded = !isCartExpanded;
       // printKitchenList();
     } catch(e) {
       FLog.error(

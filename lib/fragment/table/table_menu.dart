@@ -3,9 +3,11 @@ import 'dart:convert';
 
 import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:collection/collection.dart';
+import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl/intl.dart';
 import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/fragment/table/table_change_dialog.dart';
 import 'package:pos_system/fragment/table/table_dialog.dart';
@@ -16,6 +18,7 @@ import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/table.dart';
+import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
@@ -71,6 +74,7 @@ class _TableMenuState extends State<TableMenu> {
   String qrOrderStatus = '0';
   String orderKey = '';
   late SharedPreferences prefs;
+  late TableModel tableModel;
 
   @override
   void initState() {
@@ -141,6 +145,7 @@ class _TableMenuState extends State<TableMenu> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<CartModel>(builder: (context, CartModel cart, child) {
         return Consumer<TableModel>(builder: (context, TableModel tableModel, child) {
+          this.tableModel = tableModel;
           return Consumer<NotificationModel>(builder: (context, NotificationModel notificationModel, child) {
             if(notificationModel.contentLoaded == true){
               notificationModel.resetContentLoaded();
@@ -732,7 +737,7 @@ class _TableMenuState extends State<TableMenu> {
                   //reset all using table to un-select (table status == 1)
                   if (tableList[j].status == 1) {
                     tableList[j].isSelected = false;
-                    cart.removeSpecificGroupList(tableList[j].group!);
+                    cart.removeAllGroupList();
                     cart.removeAllCartItem();
                     cart.removePromotion();
                     cart.removeSpecificTable(tableList[j]);
@@ -769,6 +774,27 @@ class _TableMenuState extends State<TableMenu> {
             onTapDisable = false;
             Navigator.of(context).pop();
           });
+          if (await confirm(
+            context,
+            title: Text('${AppLocalizations.of(context)?.translate('order_data_corrupted')}'),
+            content: Text('${AppLocalizations.of(context)?.translate('order_data_corrupted_desc')} ${tableList[index].number}'),
+            textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+            textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+          )) {
+            await resetTableStatus(tableList[index]);
+            setState(() {
+              for (int j = 0; j < tableList.length; j++) {
+                tableList[j].isSelected = false;
+              }
+              cart.initialLoad();
+              tableModel.changeContent(true);
+            });
+
+          } else {
+            setState(() {
+              tableList[index].isSelected = false;
+            });
+          }
         }
       });
     }catch(e){
@@ -782,6 +808,51 @@ class _TableMenuState extends State<TableMenu> {
         onTapDisable = false;
         Navigator.of(context).pop();
       });
+    }
+  }
+
+  resetTableStatus(PosTable posTable) async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    await resetTableUseDetail(dateTime, posTable);
+    await resetTableUse(dateTime, posTable);
+    PosTable data = PosTable(
+        status: 0,
+        table_use_detail_key: '',
+        table_use_key: '',
+        updated_at: dateTime,
+        table_sqlite_id: posTable.table_sqlite_id
+    );
+    await PosDatabase.instance.resetPosTable(data);
+  }
+
+  resetTableUseDetail(String dateTime, PosTable posTable) async {
+    TableUseDetail? tableUseDetailData = await PosDatabase.instance.readTableUseDetailByKey(posTable.table_use_detail_key!);
+    if(tableUseDetailData != null){
+      TableUseDetail detailObject = TableUseDetail(
+          status: 1,
+          soft_delete: dateTime,
+          sync_status: tableUseDetailData.sync_status == 0 ? 0 : 2,
+          table_use_detail_key: posTable.table_use_detail_key
+      );
+      await PosDatabase.instance.deleteTableUseDetailByKey(detailObject);
+    }
+  }
+
+  resetTableUse(String dateTime, PosTable posTable) async {
+    List<TableUseDetail> checkData = await PosDatabase.instance.readTableUseDetailByTableUseKey(posTable.table_use_key!);
+    //check is current table is merged table or not
+    if(checkData.isEmpty){
+      TableUse? tableUseData = await PosDatabase.instance.readSpecificTableUseByKey2(posTable.table_use_key!);
+      if(tableUseData != null){
+        TableUse object = TableUse(
+            status: 1,
+            soft_delete: dateTime,
+            sync_status: tableUseData.sync_status == 0 ? 0 : 2,
+            table_use_key: posTable.table_use_key
+        );
+        await PosDatabase.instance.deleteTableUseByKey(object);
+      }
     }
   }
 

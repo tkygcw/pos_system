@@ -282,148 +282,6 @@ class _MakePaymentState extends State<MakePayment> {
                           SizedBox(
                             width: 20,
                           ),
-                          Visibility(
-                            // visible: getTotalOrderCache(selectedTableList) == 1,
-                            visible: true,
-                            child: SizedBox(
-                              width: MediaQuery.of(context).size.width / 10,
-                              height: MediaQuery.of(context).size.height / 20,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  backgroundColor: Color(0xff0d5060),
-                                ),
-                                child: Text(!split_payment ? AppLocalizations.of(context)!.translate('split_payment')
-                                  : AppLocalizations.of(context)!.translate('split_payment_cancel'),
-                                  style: TextStyle(color: Colors.white,),
-                                ),
-                                onPressed: () async {
-                                  split_payment = !split_payment;
-                                  paymentSplitDialog = true;
-                                  splitAmountController.clear();
-                                  if(!split_payment) {
-                                    paymentSplitDialog = false;
-                                  }
-
-                                  splitAmountController.text.isEmpty && paymentSplitDialog? await showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        title: Text(AppLocalizations.of(context)!.translate('split_payment_amount')),
-                                        content: SizedBox(
-                                          height: 75.0,
-                                          width: 350.0,
-                                          child: ValueListenableBuilder(
-                                            valueListenable: splitAmountController,
-                                            builder: (context, TextEditingValue value, __) {
-                                              return Padding(
-                                                padding: const EdgeInsets.all(8.0),
-                                                child: TextField(
-                                                  autofocus: true,
-                                                  onSubmitted: (input) {
-                                                    if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
-                                                        double.parse(splitAmountController.text) < double.parse(finalAmount)){
-                                                      finalAmount = splitAmountController.text;
-                                                      setState(() {
-                                                        isButtonDisabled = true;
-                                                        willPop = false;
-                                                        Navigator.of(context).pop();
-                                                      });
-                                                    } else {
-                                                      Fluttertoast.showToast(
-                                                          backgroundColor: Color(0xFFFF0000),
-                                                          msg: AppLocalizations.of(context)!.translate('invalid_input'));
-                                                      splitAmountController.clear();
-                                                    }
-                                                  },
-                                                  controller: splitAmountController,
-                                                  keyboardType: TextInputType.number,
-                                                  inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
-                                                  decoration: InputDecoration(
-                                                    border: OutlineInputBorder(
-                                                      borderSide: BorderSide(color: color.backgroundColor),
-                                                    ),
-                                                    focusedBorder: OutlineInputBorder(
-                                                      borderSide: BorderSide(color: color.backgroundColor),
-                                                    ),
-                                                    labelText: AppLocalizations.of(context)!.translate('amount'),
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                        actions: <Widget>[
-                                          SizedBox(
-                                            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                            child: ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: color.backgroundColor,
-                                              ),
-                                              child: Text(
-                                                AppLocalizations.of(context)!.translate('close'),
-                                                style: TextStyle(color: Colors.white),
-                                              ),
-                                              onPressed: isButtonDisabled
-                                                  ? null
-                                                  : () {
-                                                setState(() {
-                                                  isButtonDisabled = true;
-                                                  splitAmountController.clear();
-                                                  split_payment = !split_payment;
-                                                });
-                                                Navigator.of(context).pop();
-                                                if (mounted) {
-                                                  setState(() {
-                                                    isButtonDisabled = false;
-                                                  });
-                                                }
-                                              },
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                            child: ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: color.buttonColor,
-                                              ),
-                                              child: Text(
-                                                AppLocalizations.of(context)!.translate('yes'),
-                                                style: TextStyle(color: Colors.white),
-                                              ),
-                                              onPressed: isButtonDisabled
-                                                  ? null
-                                                  : () async {
-                                                if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
-                                                    double.parse(splitAmountController.text) < double.parse(finalAmount)){
-                                                  finalAmount = splitAmountController.text;
-                                                  setState(() {
-                                                    isButtonDisabled = true;
-                                                    willPop = false;
-                                                    Navigator.of(context).pop();
-                                                  });
-                                                } else {
-                                                  Fluttertoast.showToast(
-                                                      backgroundColor: Color(0xFFFF0000),
-                                                      msg: AppLocalizations.of(context)!.translate('invalid_input'));
-                                                  splitAmountController.clear();
-                                                }
-                                              },
-                                            ),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  ) : null;
-                                  setState(() {
-                                    isButtonDisabled = false;
-                                  });
-                                },
-                              ),
-                            ),
-                          ),
                           Spacer(),
                           IconButton(
                             onPressed: isButtonDisable
@@ -644,10 +502,11 @@ class _MakePaymentState extends State<MakePayment> {
                               Expanded(
                                 child: _type == 0
                                       ? Container(
+                                  /// cash
                                           margin: EdgeInsets.fromLTRB(30, 0, 25, 0),
                                           //height: MediaQuery.of(context).size.height / 1,
                                           child: Column(
-                                            //mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisAlignment: MainAxisAlignment.center,
                                             children: [
                                               Container(
                                                 child: Text('RM${finalAmount}',
@@ -755,22 +614,24 @@ class _MakePaymentState extends State<MakePayment> {
                                                   mainAxisAlignment:
                                                       MainAxisAlignment.center,
                                                   children: [
-                                                    Container(child: SizedBox(
-                                                      height: 70,
-                                                      width: 150,
-                                                      child:
-                                                          ElevatedButton.icon(
-                                                              onPressed: isButtonDisable || itemList.isEmpty ? null : () async => makePayment(),
-                                                              style: ElevatedButton.styleFrom(
-                                                                backgroundColor: color.backgroundColor,
-                                                                elevation: 5,
-                                                              ),
-                                                              icon: Icon(Icons.payments, size: 24),
-                                                              label: Text(
-                                                                AppLocalizations.of(context)!.translate('make_payment'),
-                                                                style: TextStyle(fontSize: 20),
-                                                              )),
-                                                    )),
+                                                    Container(
+                                                        child: SizedBox(
+                                                          height: 70,
+                                                          width: 150,
+                                                          child:
+                                                              ElevatedButton.icon(
+                                                                  onPressed: isButtonDisable || itemList.isEmpty ? null : () async => makePayment(),
+                                                                  style: ElevatedButton.styleFrom(
+                                                                    backgroundColor: color.backgroundColor,
+                                                                    elevation: 5,
+                                                                  ),
+                                                                  icon: Icon(Icons.payments, size: 24),
+                                                                  label: Text(
+                                                                    AppLocalizations.of(context)!.translate('make_payment'),
+                                                                    style: TextStyle(fontSize: 20),
+                                                                  )),
+                                                        )
+                                                    ),
                                                     SizedBox(
                                                       width: 10,
                                                     ),
@@ -791,6 +652,148 @@ class _MakePaymentState extends State<MakePayment> {
                                                             style: TextStyle(fontSize: 20)),
                                                       ),
                                                     ),
+                                                    SizedBox(
+                                                      width: 10,
+                                                    ),
+                                                    SizedBox(
+                                                      height: 70,
+                                                      width: 150,
+                                                      child:
+                                                      ElevatedButton.icon(
+                                                          onPressed: () async {
+                                                            split_payment = !split_payment;
+                                                            paymentSplitDialog = true;
+                                                            splitAmountController.clear();
+                                                            if(!split_payment) {
+                                                              paymentSplitDialog = false;
+                                                            }
+
+                                                            splitAmountController.text.isEmpty && paymentSplitDialog? await showDialog(
+                                                              context: context,
+                                                              builder: (BuildContext context) {
+                                                                return AlertDialog(
+                                                                  title: Text(AppLocalizations.of(context)!.translate('split_payment_amount')),
+                                                                  content: SizedBox(
+                                                                    height: 75.0,
+                                                                    width: 350.0,
+                                                                    child: ValueListenableBuilder(
+                                                                      valueListenable: splitAmountController,
+                                                                      builder: (context, TextEditingValue value, __) {
+                                                                        return Padding(
+                                                                          padding: const EdgeInsets.all(8.0),
+                                                                          child: TextField(
+                                                                            autofocus: true,
+                                                                            onSubmitted: (input) {
+                                                                              if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                                  double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                                finalAmount = splitAmountController.text;
+                                                                                setState(() {
+                                                                                  isButtonDisabled = true;
+                                                                                  willPop = false;
+                                                                                  Navigator.of(context).pop();
+                                                                                });
+                                                                              } else {
+                                                                                Fluttertoast.showToast(
+                                                                                    backgroundColor: Color(0xFFFF0000),
+                                                                                    msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                                splitAmountController.clear();
+                                                                              }
+                                                                            },
+                                                                            controller: splitAmountController,
+                                                                            keyboardType: TextInputType.number,
+                                                                            inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
+                                                                            decoration: InputDecoration(
+                                                                              border: OutlineInputBorder(
+                                                                                borderSide: BorderSide(color: color.backgroundColor),
+                                                                              ),
+                                                                              focusedBorder: OutlineInputBorder(
+                                                                                borderSide: BorderSide(color: color.backgroundColor),
+                                                                              ),
+                                                                              labelText: AppLocalizations.of(context)!.translate('amount'),
+                                                                            ),
+                                                                          ),
+                                                                        );
+                                                                      },
+                                                                    ),
+                                                                  ),
+                                                                  actions: <Widget>[
+                                                                    SizedBox(
+                                                                      width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                                      child: ElevatedButton(
+                                                                        style: ElevatedButton.styleFrom(
+                                                                          backgroundColor: color.backgroundColor,
+                                                                        ),
+                                                                        child: Text(
+                                                                          AppLocalizations.of(context)!.translate('close'),
+                                                                          style: TextStyle(color: Colors.white),
+                                                                        ),
+                                                                        onPressed: isButtonDisabled
+                                                                            ? null
+                                                                            : () {
+                                                                          setState(() {
+                                                                            isButtonDisabled = true;
+                                                                            splitAmountController.clear();
+                                                                            split_payment = !split_payment;
+                                                                          });
+                                                                          Navigator.of(context).pop();
+                                                                          if (mounted) {
+                                                                            setState(() {
+                                                                              isButtonDisabled = false;
+                                                                            });
+                                                                          }
+                                                                        },
+                                                                      ),
+                                                                    ),
+                                                                    SizedBox(
+                                                                      width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                                      child: ElevatedButton(
+                                                                        style: ElevatedButton.styleFrom(
+                                                                          backgroundColor: color.buttonColor,
+                                                                        ),
+                                                                        child: Text(
+                                                                          AppLocalizations.of(context)!.translate('yes'),
+                                                                          style: TextStyle(color: Colors.white),
+                                                                        ),
+                                                                        onPressed: isButtonDisabled
+                                                                            ? null
+                                                                            : () async {
+                                                                          if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                              double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                            finalAmount = splitAmountController.text;
+                                                                            setState(() {
+                                                                              isButtonDisabled = true;
+                                                                              willPop = false;
+                                                                              Navigator.of(context).pop();
+                                                                            });
+                                                                          } else {
+                                                                            Fluttertoast.showToast(
+                                                                                backgroundColor: Color(0xFFFF0000),
+                                                                                msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                            splitAmountController.clear();
+                                                                          }
+                                                                        },
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                );
+                                                              },
+                                                            ) : null;
+                                                            setState(() {
+                                                              isButtonDisabled = false;
+                                                            });
+                                                          },
+                                                          style: ElevatedButton.styleFrom(
+                                                            backgroundColor: Colors.blue,
+                                                            elevation: 5,
+                                                          ),
+                                                          icon: Icon(Icons.payments_outlined, size: 24),
+                                                          label: Text(!split_payment ? AppLocalizations.of(context)!.translate('split_payment')
+                                                              : AppLocalizations.of(context)!.translate('split_payment_cancel'),
+                                                            style: TextStyle(fontSize: 20),
+                                                          )),
+                                                    )
                                                   ],
                                                 ),
                                               ),
@@ -850,7 +853,7 @@ class _MakePaymentState extends State<MakePayment> {
                                           ), // GridView.builder
                                         )
                                       : _type == 1 ?
-                                          ///card payment
+                                          /// card, ewallet
                                           Column(
                                             mainAxisAlignment: MainAxisAlignment.center,
                                             children: [
@@ -890,6 +893,143 @@ class _MakePaymentState extends State<MakePayment> {
                                                   label: Text(
                                                       AppLocalizations.of(context)!.translate('payment_received'),
                                                       style: TextStyle(fontSize: 20)),
+                                                ),
+                                              ),
+                                              SizedBox(height: 10),
+                                              Container(
+                                                child: ElevatedButton.icon(
+                                                  style: ButtonStyle(
+                                                      backgroundColor: MaterialStateProperty.all(Colors.blue),
+                                                      padding: MaterialStateProperty.all(EdgeInsets.all(20))),
+                                                  onPressed: () async {
+                                                    split_payment = !split_payment;
+                                                    paymentSplitDialog = true;
+                                                    splitAmountController.clear();
+                                                    if(!split_payment) {
+                                                      paymentSplitDialog = false;
+                                                    }
+
+                                                    splitAmountController.text.isEmpty && paymentSplitDialog? await showDialog(
+                                                      context: context,
+                                                      builder: (BuildContext context) {
+                                                        return AlertDialog(
+                                                          title: Text(AppLocalizations.of(context)!.translate('split_payment_amount')),
+                                                          content: SizedBox(
+                                                            height: 75.0,
+                                                            width: 350.0,
+                                                            child: ValueListenableBuilder(
+                                                              valueListenable: splitAmountController,
+                                                              builder: (context, TextEditingValue value, __) {
+                                                                return Padding(
+                                                                  padding: const EdgeInsets.all(8.0),
+                                                                  child: TextField(
+                                                                    autofocus: true,
+                                                                    onSubmitted: (input) {
+                                                                      if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                          double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                        finalAmount = splitAmountController.text;
+                                                                        setState(() {
+                                                                          isButtonDisabled = true;
+                                                                          willPop = false;
+                                                                          Navigator.of(context).pop();
+                                                                        });
+                                                                      } else {
+                                                                        Fluttertoast.showToast(
+                                                                            backgroundColor: Color(0xFFFF0000),
+                                                                            msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                        splitAmountController.clear();
+                                                                      }
+                                                                    },
+                                                                    controller: splitAmountController,
+                                                                    keyboardType: TextInputType.number,
+                                                                    inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
+                                                                    decoration: InputDecoration(
+                                                                      border: OutlineInputBorder(
+                                                                        borderSide: BorderSide(color: color.backgroundColor),
+                                                                      ),
+                                                                      focusedBorder: OutlineInputBorder(
+                                                                        borderSide: BorderSide(color: color.backgroundColor),
+                                                                      ),
+                                                                      labelText: AppLocalizations.of(context)!.translate('amount'),
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              },
+                                                            ),
+                                                          ),
+                                                          actions: <Widget>[
+                                                            SizedBox(
+                                                              width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                              height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                              child: ElevatedButton(
+                                                                style: ElevatedButton.styleFrom(
+                                                                  backgroundColor: color.backgroundColor,
+                                                                ),
+                                                                child: Text(
+                                                                  AppLocalizations.of(context)!.translate('close'),
+                                                                  style: TextStyle(color: Colors.white),
+                                                                ),
+                                                                onPressed: isButtonDisabled
+                                                                    ? null
+                                                                    : () {
+                                                                  setState(() {
+                                                                    isButtonDisabled = true;
+                                                                    splitAmountController.clear();
+                                                                    split_payment = !split_payment;
+                                                                  });
+                                                                  Navigator.of(context).pop();
+                                                                  if (mounted) {
+                                                                    setState(() {
+                                                                      isButtonDisabled = false;
+                                                                    });
+                                                                  }
+                                                                },
+                                                              ),
+                                                            ),
+                                                            SizedBox(
+                                                              width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                              height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                              child: ElevatedButton(
+                                                                style: ElevatedButton.styleFrom(
+                                                                  backgroundColor: color.buttonColor,
+                                                                ),
+                                                                child: Text(
+                                                                  AppLocalizations.of(context)!.translate('yes'),
+                                                                  style: TextStyle(color: Colors.white),
+                                                                ),
+                                                                onPressed: isButtonDisabled
+                                                                    ? null
+                                                                    : () async {
+                                                                  if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                      double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                    finalAmount = splitAmountController.text;
+                                                                    setState(() {
+                                                                      isButtonDisabled = true;
+                                                                      willPop = false;
+                                                                      Navigator.of(context).pop();
+                                                                    });
+                                                                  } else {
+                                                                    Fluttertoast.showToast(
+                                                                        backgroundColor: Color(0xFFFF0000),
+                                                                        msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                    splitAmountController.clear();
+                                                                  }
+                                                                },
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        );
+                                                      },
+                                                    ) : null;
+                                                    setState(() {
+                                                    isButtonDisabled = false;
+                                                    });
+                                                  },
+                                                  icon: Icon(Icons.payments_outlined),
+                                                  label: Text(!split_payment ? AppLocalizations.of(context)!.translate('split_payment')
+                                                          : AppLocalizations.of(context)!.translate('split_payment_cancel'),
+                                                      style: TextStyle(fontSize: 20)
+                                                  ),
                                                 ),
                                               ),
                                               Visibility(
@@ -947,7 +1087,9 @@ class _MakePaymentState extends State<MakePayment> {
                                             ],
                                           )
                                           : _type == 2
+                                /// qr scan
                                               ? Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
                                                 children: [
                                                   Container(
                                                     margin: EdgeInsets.all(25),
@@ -963,8 +1105,8 @@ class _MakePaymentState extends State<MakePayment> {
                                                       ),
                                                     ) :
                                                     Container(
-                                                      height: 300,
-                                                      width: 300,
+                                                      height: 250,
+                                                      width: 250,
                                                       // margin: EdgeInsets.all(25),
                                                       child: _buildQrView(context),
                                                     ),
@@ -977,34 +1119,170 @@ class _MakePaymentState extends State<MakePayment> {
                                                             fontSize: 40,
                                                             fontWeight: FontWeight.bold)),
                                                   ),
-                                                  Container(
-                                                    margin: EdgeInsets.all(20),
-                                                    alignment: Alignment.center,
-                                                    child: ElevatedButton(
-                                                      style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor, padding: EdgeInsets.fromLTRB(20, 14, 20, 14)),
-                                                      onPressed: () async {
-                                                        setState(() {
-                                                          willPop = false;
-                                                          scanning = true;
-                                                        });
-                                                        //await controller?.resumeCamera();
-                                                        await controller?.scannedDataStream;
-                                                        await callCreateOrder(finalAmount);
-                                                        if (this.isLogOut == true) {
-                                                          openLogOutDialog();
-                                                          return;
-                                                        }
-                                                      },
-                                                      child: Text(
-                                                          scanning == false ?
-                                                          AppLocalizations.of(context)!.translate('scan_qr') :
-                                                          AppLocalizations.of(context)!.translate('scanning'),
-                                                          style: TextStyle(fontSize: 24)),
-                                                    ),
+                                                  SizedBox(height: 10),
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
+                                                      ElevatedButton.icon(
+                                                        style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor, padding: EdgeInsets.fromLTRB(20, 14, 20, 14)),
+                                                        onPressed: () async {
+                                                          setState(() {
+                                                            willPop = false;
+                                                            scanning = !scanning;
+                                                          });
+                                                          //await controller?.resumeCamera();
+                                                          await controller?.scannedDataStream;
+                                                          await callCreateOrder(finalAmount);
+                                                          if (this.isLogOut == true) {
+                                                            openLogOutDialog();
+                                                            return;
+                                                          }
+                                                        },
+                                                        icon: Icon(Icons.qr_code_scanner, size: 24),
+                                                        label: Text(
+                                                            scanning == false ?
+                                                            AppLocalizations.of(context)!.translate('scan_qr') :
+                                                            AppLocalizations.of(context)!.translate('cancel'),
+                                                            style: TextStyle(fontSize: 24)),
+                                                      ),
+                                                      SizedBox(width: 10),
+                                                      ElevatedButton.icon(
+                                                        style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, padding: EdgeInsets.fromLTRB(20, 14, 20, 14)),
+                                                        onPressed: () async {
+                                                          split_payment = !split_payment;
+                                                          paymentSplitDialog = true;
+                                                          splitAmountController.clear();
+                                                          if(!split_payment) {
+                                                            paymentSplitDialog = false;
+                                                          }
+
+                                                          splitAmountController.text.isEmpty && paymentSplitDialog? await showDialog(
+                                                            context: context,
+                                                            builder: (BuildContext context) {
+                                                              return AlertDialog(
+                                                                title: Text(AppLocalizations.of(context)!.translate('split_payment_amount')),
+                                                                content: SizedBox(
+                                                                  height: 75.0,
+                                                                  width: 350.0,
+                                                                  child: ValueListenableBuilder(
+                                                                    valueListenable: splitAmountController,
+                                                                    builder: (context, TextEditingValue value, __) {
+                                                                      return Padding(
+                                                                        padding: const EdgeInsets.all(8.0),
+                                                                        child: TextField(
+                                                                          autofocus: true,
+                                                                          onSubmitted: (input) {
+                                                                            if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                                double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                              finalAmount = splitAmountController.text;
+                                                                              setState(() {
+                                                                                isButtonDisabled = true;
+                                                                                willPop = false;
+                                                                                Navigator.of(context).pop();
+                                                                              });
+                                                                            } else {
+                                                                              Fluttertoast.showToast(
+                                                                                  backgroundColor: Color(0xFFFF0000),
+                                                                                  msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                              splitAmountController.clear();
+                                                                            }
+                                                                          },
+                                                                          controller: splitAmountController,
+                                                                          keyboardType: TextInputType.number,
+                                                                          inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
+                                                                          decoration: InputDecoration(
+                                                                            border: OutlineInputBorder(
+                                                                              borderSide: BorderSide(color: color.backgroundColor),
+                                                                            ),
+                                                                            focusedBorder: OutlineInputBorder(
+                                                                              borderSide: BorderSide(color: color.backgroundColor),
+                                                                            ),
+                                                                            labelText: AppLocalizations.of(context)!.translate('amount'),
+                                                                          ),
+                                                                        ),
+                                                                      );
+                                                                    },
+                                                                  ),
+                                                                ),
+                                                                actions: <Widget>[
+                                                                  SizedBox(
+                                                                    width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                                    height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                                    child: ElevatedButton(
+                                                                      style: ElevatedButton.styleFrom(
+                                                                        backgroundColor: color.backgroundColor,
+                                                                      ),
+                                                                      child: Text(
+                                                                        AppLocalizations.of(context)!.translate('close'),
+                                                                        style: TextStyle(color: Colors.white),
+                                                                      ),
+                                                                      onPressed: isButtonDisabled
+                                                                          ? null
+                                                                          : () {
+                                                                        setState(() {
+                                                                          isButtonDisabled = true;
+                                                                          splitAmountController.clear();
+                                                                          split_payment = !split_payment;
+                                                                        });
+                                                                        Navigator.of(context).pop();
+                                                                        if (mounted) {
+                                                                          setState(() {
+                                                                            isButtonDisabled = false;
+                                                                          });
+                                                                        }
+                                                                      },
+                                                                    ),
+                                                                  ),
+                                                                  SizedBox(
+                                                                    width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                                    height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                                    child: ElevatedButton(
+                                                                      style: ElevatedButton.styleFrom(
+                                                                        backgroundColor: color.buttonColor,
+                                                                      ),
+                                                                      child: Text(
+                                                                        AppLocalizations.of(context)!.translate('yes'),
+                                                                        style: TextStyle(color: Colors.white),
+                                                                      ),
+                                                                      onPressed: isButtonDisabled
+                                                                          ? null
+                                                                          : () async {
+                                                                        if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                            double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                          finalAmount = splitAmountController.text;
+                                                                          setState(() {
+                                                                            isButtonDisabled = true;
+                                                                            willPop = false;
+                                                                            Navigator.of(context).pop();
+                                                                          });
+                                                                        } else {
+                                                                          Fluttertoast.showToast(
+                                                                              backgroundColor: Color(0xFFFF0000),
+                                                                              msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                          splitAmountController.clear();
+                                                                        }
+                                                                      },
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              );
+                                                            },
+                                                          ) : null;
+                                                          setState(() {
+                                                            isButtonDisabled = false;
+                                                          });
+                                                        },
+                                                        icon: Icon(Icons.payments_outlined, size: 24),
+                                                        label: Text(!split_payment ? AppLocalizations.of(context)!.translate('split_payment')
+                                                            : AppLocalizations.of(context)!.translate('split_payment_cancel'),
+                                                            style: TextStyle(fontSize: 24)),
+                                                      ),
+                                                    ],
                                                   ),
                                                   Visibility(
                                                     visible: split_payment,
                                                     child: isload ? Container(
+                                                      margin: EdgeInsets.only(top: 20),
                                                       height: 100,
                                                       child: Center(
                                                         child: ListView(
@@ -1074,141 +1352,6 @@ class _MakePaymentState extends State<MakePayment> {
                     title: Row(
                       children: [
                         Text(AppLocalizations.of(context)!.translate('payment_detail')),
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width / 6,
-                          height: MediaQuery.of(context).size.height / 14,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              backgroundColor: Color(0xff0d5060),
-                            ),
-                            child: Text(!split_payment ? AppLocalizations.of(context)!.translate('split_payment')
-                                : AppLocalizations.of(context)!.translate('split_payment_cancel'),
-                              style: TextStyle(color: Colors.white,),
-                            ),
-                            onPressed: () async {
-                              split_payment = !split_payment;
-                              paymentSplitDialog = true;
-                              splitAmountController.clear();
-                              if(!split_payment) {
-                                paymentSplitDialog = false;
-                              }
-
-                              splitAmountController.text.isEmpty && paymentSplitDialog? await showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: Text(AppLocalizations.of(context)!.translate('split_payment_amount')),
-                                    content: SizedBox(
-                                      height: 75.0,
-                                      width: 350.0,
-                                      child: ValueListenableBuilder(
-                                        valueListenable: splitAmountController,
-                                        builder: (context, TextEditingValue value, __) {
-                                          return Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: TextField(
-                                              autofocus: true,
-                                              onSubmitted: (input) {
-                                                if(double.parse(splitAmountController.text) < double.parse(finalAmount)){
-                                                  finalAmount = splitAmountController.text;
-                                                  setState(() {
-                                                    isButtonDisabled = true;
-                                                    willPop = false;
-                                                    Navigator.of(context).pop();
-                                                  });
-                                                } else {
-                                                  Fluttertoast.showToast(
-                                                      backgroundColor: Color(0xFFFF0000),
-                                                      msg: AppLocalizations.of(context)!.translate('invalid_input'));
-                                                  splitAmountController.clear();
-                                                }
-                                              },
-                                              controller: splitAmountController,
-                                              keyboardType: TextInputType.number,
-                                              decoration: InputDecoration(
-                                                border: OutlineInputBorder(
-                                                  borderSide: BorderSide(color: color.backgroundColor),
-                                                ),
-                                                focusedBorder: OutlineInputBorder(
-                                                  borderSide: BorderSide(color: color.backgroundColor),
-                                                ),
-                                                labelText: AppLocalizations.of(context)!.translate('amount'),
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                    actions: <Widget>[
-                                      SizedBox(
-                                        width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                        height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                        child: ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: color.backgroundColor,
-                                          ),
-                                          child: Text(
-                                            AppLocalizations.of(context)!.translate('close'),
-                                            style: TextStyle(color: Colors.white),
-                                          ),
-                                          onPressed: isButtonDisabled
-                                              ? null
-                                              : () {
-                                            setState(() {
-                                              isButtonDisabled = true;
-                                              splitAmountController.clear();
-                                              split_payment = !split_payment;
-                                            });
-                                            Navigator.of(context).pop();
-                                            if (mounted) {
-                                              setState(() {
-                                                isButtonDisabled = false;
-                                              });
-                                            }
-                                          },
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                        height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                        child: ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: color.buttonColor,
-                                          ),
-                                          child: Text(
-                                            AppLocalizations.of(context)!.translate('yes'),
-                                            style: TextStyle(color: Colors.white),
-                                          ),
-                                          onPressed: isButtonDisabled
-                                              ? null
-                                              : () async {
-                                            if(double.parse(splitAmountController.text) < double.parse(finalAmount)){
-                                              finalAmount = splitAmountController.text;
-                                              setState(() {
-                                                isButtonDisabled = true;
-                                                willPop = false;
-                                                Navigator.of(context).pop();
-                                              });
-                                            } else {
-                                              Fluttertoast.showToast(
-                                                  backgroundColor: Color(0xFFFF0000),
-                                                  msg: AppLocalizations.of(context)!.translate('invalid_input'));
-                                              splitAmountController.clear();
-                                            }
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ) : null;
-                              setState(() {
-                                isButtonDisabled = false;
-                              });
-                            },
-                          ),
-                        ),
                         Spacer(),
                         IconButton(
                           padding: EdgeInsets.zero,
@@ -1423,208 +1566,772 @@ class _MakePaymentState extends State<MakePayment> {
                             ),
                             Expanded(
                               child: _type == 0
-                                  ? Container(
-                                child: Column(
-                                  children: [
-                                    Text("Total: ${finalAmount}",
-                                        style: TextStyle(
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.bold)),
-                                    SizedBox(height: 10),
-                                    Container(
-                                      margin: EdgeInsets.only(bottom: 10),
-                                      alignment: Alignment.centerLeft,
-                                      child: Text('Change: ${change}'),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
+                              /// cash
+                                  ? SingleChildScrollView(
+                                    child: Container(
+                                      height: split_payment ? 350 : 250,
                                       child: Column(
                                         children: [
-                                          Container(
-                                            margin: EdgeInsets.only(
-                                                bottom: 10),
-                                            child: ValueListenableBuilder(
-                                                valueListenable: inputController,
-                                                builder: (context, TextEditingValue value, __) {
-                                                  return Container(
-                                                    child: TextField(
-                                                      onChanged: (value) {
-                                                        calcChange(value);
+                                      Text("Total: ${finalAmount}",
+                                          style: TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold)),
+                                      SizedBox(height: 10),
+                                      Container(
+                                        margin: EdgeInsets.only(bottom: 10),
+                                        alignment: Alignment.centerLeft,
+                                        child: Text('Change: ${change}'),
+                                      ),
+                                      Expanded(
+                                        flex: 2,
+                                        child: Column(
+                                          children: [
+                                            Container(
+                                              margin: EdgeInsets.only(
+                                                  bottom: 10),
+                                              child: ValueListenableBuilder(
+                                                  valueListenable: inputController,
+                                                  builder: (context, TextEditingValue value, __) {
+                                                    return Container(
+                                                      child: TextField(
+                                                        onChanged: (value) {
+                                                          calcChange(value);
+                                                        },
+                                                        keyboardType: TextInputType.number,
+                                                        textAlign: TextAlign.right,
+                                                        enabled: MediaQuery.of(context).size.height > 500 ? false : true,
+                                                        maxLines: 1,
+                                                        controller: inputController,
+                                                        decoration: InputDecoration(
+                                                          border: OutlineInputBorder(
+                                                              borderSide: BorderSide(color: color.backgroundColor)),
+                                                          focusedBorder: OutlineInputBorder(
+                                                            borderSide: BorderSide(color: color.backgroundColor),
+                                                          ),
+                                                        ),
+                                                        style: TextStyle(fontSize: 30),
+                                                      ),
+                                                    );
+                                                  }),
+                                            ),
+                                            Expanded(
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  ElevatedButton.icon(
+                                                      style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                                                      onPressed: isButtonDisable || itemList.isEmpty ? null : () async {
+                                                        if (double.parse(inputController.text) >= double.parse(finalAmount)) {
+                                                          setState(() {
+                                                            isButtonDisable = true;
+                                                          });
+                                                          await callCreateOrder(inputController.text, orderChange: change);
+                                                          if (this.isLogOut == true) {
+                                                            openLogOutDialog();
+                                                            return;
+                                                          }
+                                                          openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: true, diningName: widget.dining_name);
+                                                        } else {
+                                                          Fluttertoast.showToast(
+                                                              backgroundColor: Color(0xFFFF0000),
+                                                              msg: AppLocalizations.of(context)!.translate('insufficient_balance'));
+                                                          setState(() {
+                                                            inputController.text = '0.00';
+                                                          });
+                                                        }
                                                       },
-                                                      keyboardType: TextInputType.number,
-                                                      textAlign: TextAlign.right,
-                                                      enabled: MediaQuery.of(context).size.height > 500 ? false : true,
-                                                      maxLines: 1,
-                                                      controller: inputController,
-                                                      decoration: InputDecoration(
-                                                        border: OutlineInputBorder(
-                                                            borderSide: BorderSide(color: color.backgroundColor)),
-                                                        focusedBorder: OutlineInputBorder(
-                                                          borderSide: BorderSide(color: color.backgroundColor),
+                                                      icon: Icon(Icons.payments, size: 20),
+                                                      label: Text(AppLocalizations.of(context)!.translate('make_payment'))),
+                                                  SizedBox(
+                                                    width: 10,
+                                                  ),
+                                                  ElevatedButton.icon(
+                                                      style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
+                                                      onPressed: () {
+                                                        inputController.clear();
+                                                        setState(() {
+                                                          change = '0.00';
+                                                        });
+                                                      },
+                                                      icon: Icon(Icons.backspace, size: 20),
+                                                      label: Text(AppLocalizations.of(context)!.translate('clear'))),
+                                                ],
+                                              ),
+                                            ),
+                                            ElevatedButton.icon(
+                                                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                                                onPressed: () async {
+                                                  split_payment = !split_payment;
+                                                  paymentSplitDialog = true;
+                                                  splitAmountController.clear();
+                                                  if(!split_payment) {
+                                                    paymentSplitDialog = false;
+                                                  }
+
+                                                  splitAmountController.text.isEmpty && paymentSplitDialog? await showDialog(
+                                                    context: context,
+                                                    builder: (BuildContext context) {
+                                                      return AlertDialog(
+                                                        title: Text(AppLocalizations.of(context)!.translate('split_payment_amount')),
+                                                        content: SizedBox(
+                                                          height: 75.0,
+                                                          width: 350.0,
+                                                          child: ValueListenableBuilder(
+                                                            valueListenable: splitAmountController,
+                                                            builder: (context, TextEditingValue value, __) {
+                                                              return Padding(
+                                                                padding: const EdgeInsets.all(8.0),
+                                                                child: TextField(
+                                                                  autofocus: true,
+                                                                  onSubmitted: (input) {
+                                                                    if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                        double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                      finalAmount = splitAmountController.text;
+                                                                      setState(() {
+                                                                        isButtonDisabled = true;
+                                                                        willPop = false;
+                                                                        Navigator.of(context).pop();
+                                                                      });
+                                                                    } else {
+                                                                      Fluttertoast.showToast(
+                                                                          backgroundColor: Color(0xFFFF0000),
+                                                                          msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                      splitAmountController.clear();
+                                                                    }
+                                                                  },
+                                                                  controller: splitAmountController,
+                                                                  keyboardType: TextInputType.number,
+                                                                  inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
+                                                                  decoration: InputDecoration(
+                                                                    border: OutlineInputBorder(
+                                                                      borderSide: BorderSide(color: color.backgroundColor),
+                                                                    ),
+                                                                    focusedBorder: OutlineInputBorder(
+                                                                      borderSide: BorderSide(color: color.backgroundColor),
+                                                                    ),
+                                                                    labelText: AppLocalizations.of(context)!.translate('amount'),
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            },
+                                                          ),
+                                                        ),
+                                                        actions: <Widget>[
+                                                          SizedBox(
+                                                            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                            child: ElevatedButton(
+                                                              style: ElevatedButton.styleFrom(
+                                                                backgroundColor: color.backgroundColor,
+                                                              ),
+                                                              child: Text(
+                                                                AppLocalizations.of(context)!.translate('close'),
+                                                                style: TextStyle(color: Colors.white),
+                                                              ),
+                                                              onPressed: isButtonDisabled
+                                                                  ? null
+                                                                  : () {
+                                                                setState(() {
+                                                                  isButtonDisabled = true;
+                                                                  splitAmountController.clear();
+                                                                  split_payment = !split_payment;
+                                                                });
+                                                                Navigator.of(context).pop();
+                                                                if (mounted) {
+                                                                  setState(() {
+                                                                    isButtonDisabled = false;
+                                                                  });
+                                                                }
+                                                              },
+                                                            ),
+                                                          ),
+                                                          SizedBox(
+                                                            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                            child: ElevatedButton(
+                                                              style: ElevatedButton.styleFrom(
+                                                                backgroundColor: color.buttonColor,
+                                                              ),
+                                                              child: Text(
+                                                                AppLocalizations.of(context)!.translate('yes'),
+                                                                style: TextStyle(color: Colors.white),
+                                                              ),
+                                                              onPressed: isButtonDisabled
+                                                                  ? null
+                                                                  : () async {
+                                                                if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                    double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                  finalAmount = splitAmountController.text;
+                                                                  setState(() {
+                                                                    isButtonDisabled = true;
+                                                                    willPop = false;
+                                                                    Navigator.of(context).pop();
+                                                                  });
+                                                                } else {
+                                                                  Fluttertoast.showToast(
+                                                                      backgroundColor: Color(0xFFFF0000),
+                                                                      msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                  splitAmountController.clear();
+                                                                }
+                                                              },
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  ) : null;
+                                                  setState(() {
+                                                    isButtonDisabled = false;
+                                                  });
+                                                },
+                                                icon: Icon(Icons.payments_outlined, size: 20),
+                                                label: Text(!split_payment ? AppLocalizations.of(context)!.translate('split_payment')
+                                                    : AppLocalizations.of(context)!.translate('split_payment_cancel'))
+                                            ),
+                                            Visibility(
+                                              visible: split_payment,
+                                              child: isload ? Container(
+                                                padding: EdgeInsets.only(top: 20),
+                                                height: 100,
+                                                child: Center(
+                                                  child: ListView(
+                                                      shrinkWrap: true,
+                                                      scrollDirection: Axis.horizontal,
+                                                      children: List.generate(PaymentLists.length, (index) {
+                                                        return GestureDetector(
+                                                          onTap: () async {
+                                                            setState(() {
+                                                              _type = PaymentLists[index].type!;
+                                                              order_split_payment_link_company_id = PaymentLists[index].payment_link_company_id!.toString();
+                                                            });
+                                                          },
+                                                          child: Card(
+                                                            elevation: 5,
+                                                            color: Colors.white,
+                                                            shape: RoundedRectangleBorder(
+                                                              borderRadius: BorderRadius.circular(16.0),
+                                                            ),
+                                                            child: Container(
+                                                              height: MediaQuery.of(context).size.height / 4,
+                                                              width: 100,
+                                                              child: Stack(
+                                                                alignment: Alignment.center,
+                                                                children: [
+                                                                  Text(
+                                                                    '${PaymentLists[index].name}',
+                                                                    textAlign: TextAlign.center,
+                                                                    overflow: TextOverflow.clip,
+                                                                    style: TextStyle(
+                                                                      fontWeight: FontWeight.w700,
+                                                                      fontStyle: FontStyle.normal,
+                                                                      fontSize: 15,
+                                                                      color: Colors.blueGrey,
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        );
+                                                      })
+                                                  ),
+                                                ),
+                                              )
+                                                  : CustomProgressBar(),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                      ), // GridView.builder
+                                    ),
+                                  )
+                                  : _type == 1
+                              /// card, ewallet
+                                  ? SingleChildScrollView(
+                                    child: Container(
+                                      child: Column(
+                                        children: [
+                                          Text('Total: ${finalAmount}',
+                                            style: TextStyle(
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          Container(
+                                            height: 150,
+                                            //margin: EdgeInsets.only(bottom: 10),
+                                            margin: EdgeInsets.all(10),
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.circular(16.0),
+                                              child:
+                                              ///***If you have exported images you must have to copy those images in assets/images directory.
+                                              Image(image: AssetImage("drawable/duitNow.jpg")),
+                                            ),
+                                          ),
+                                          Container(
+                                            child: ElevatedButton.icon(
+                                              style: ButtonStyle(
+                                                  backgroundColor: MaterialStateProperty.all(Colors.green),
+                                              ),
+                                              onPressed: isButtonDisable || itemList.isEmpty ? null : () async {
+                                                setState(() {
+                                                  // willPop = false;
+                                                  isButtonDisable = true;
+                                                });
+                                                await callCreateOrder(finalAmount);
+                                                if (this.isLogOut == true) {
+                                                  openLogOutDialog();
+                                                  return;
+                                                }
+                                                openPaymentSuccessDialog(
+                                                    widget.dining_id,
+                                                    split_payment,
+                                                    isCashMethod: false,
+                                                    diningName: widget.dining_name);
+                                              },
+                                              icon: Icon(Icons.call_received, size: 20),
+                                              label: Text(
+                                                  AppLocalizations.of(context)!.translate('payment_received'),
+                                                  style: TextStyle(fontSize: 14)),
+                                            ),
+                                          ),
+                                          Container(
+                                            child: ElevatedButton.icon(
+                                              style: ButtonStyle(
+                                                  backgroundColor: WidgetStateProperty.all(Colors.blue),
+                                              ),
+                                              onPressed: () async {
+                                                split_payment = !split_payment;
+                                                paymentSplitDialog = true;
+                                                splitAmountController.clear();
+                                                if(!split_payment) {
+                                                  paymentSplitDialog = false;
+                                                }
+
+                                                splitAmountController.text.isEmpty && paymentSplitDialog? await showDialog(
+                                                  context: context,
+                                                  builder: (BuildContext context) {
+                                                    return AlertDialog(
+                                                      title: Text(AppLocalizations.of(context)!.translate('split_payment_amount')),
+                                                      content: SizedBox(
+                                                        height: 75.0,
+                                                        width: 350.0,
+                                                        child: ValueListenableBuilder(
+                                                          valueListenable: splitAmountController,
+                                                          builder: (context, TextEditingValue value, __) {
+                                                            return Padding(
+                                                              padding: const EdgeInsets.all(8.0),
+                                                              child: TextField(
+                                                                autofocus: true,
+                                                                onSubmitted: (input) {
+                                                                  if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                      double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                    finalAmount = splitAmountController.text;
+                                                                    setState(() {
+                                                                      isButtonDisabled = true;
+                                                                      willPop = false;
+                                                                      Navigator.of(context).pop();
+                                                                    });
+                                                                  } else {
+                                                                    Fluttertoast.showToast(
+                                                                        backgroundColor: Color(0xFFFF0000),
+                                                                        msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                    splitAmountController.clear();
+                                                                  }
+                                                                },
+                                                                controller: splitAmountController,
+                                                                keyboardType: TextInputType.number,
+                                                                inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
+                                                                decoration: InputDecoration(
+                                                                  border: OutlineInputBorder(
+                                                                    borderSide: BorderSide(color: color.backgroundColor),
+                                                                  ),
+                                                                  focusedBorder: OutlineInputBorder(
+                                                                    borderSide: BorderSide(color: color.backgroundColor),
+                                                                  ),
+                                                                  labelText: AppLocalizations.of(context)!.translate('amount'),
+                                                                ),
+                                                              ),
+                                                            );
+                                                          },
                                                         ),
                                                       ),
-                                                      style: TextStyle(fontSize: 40),
-                                                    ),
-                                                  );
-                                                }),
-                                          ),
-                                          Expanded(
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                ElevatedButton(
-                                                    style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                                                    onPressed: isButtonDisable || itemList.isEmpty ? null : () async {
-                                                      if (double.parse(inputController.text) >= double.parse(finalAmount)) {
-                                                        setState(() {
-                                                          isButtonDisable = true;
-                                                        });
-                                                        await callCreateOrder(inputController.text, orderChange: change);
-                                                        if (this.isLogOut == true) {
-                                                          openLogOutDialog();
-                                                          return;
-                                                        }
-                                                        openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: true, diningName: widget.dining_name);
-                                                      } else {
-                                                        Fluttertoast.showToast(
-                                                            backgroundColor: Color(0xFFFF0000),
-                                                            msg: AppLocalizations.of(context)!.translate('insufficient_balance'));
-                                                        setState(() {
-                                                          inputController.text = '0.00';
-                                                        });
-                                                      }
-                                                    },
-                                                    child: Text(AppLocalizations.of(context)!.translate('make_payment'))),
-                                                SizedBox(
-                                                  width: 10,
-                                                ),
-                                                ElevatedButton(
-                                                    style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                                                    onPressed: () {
-                                                      inputController.clear();
-                                                      setState(() {
-                                                        change = '0.00';
-                                                      });
-                                                    },
-                                                    child: Text(AppLocalizations.of(context)!.translate('clear'))),
-                                              ],
+                                                      actions: <Widget>[
+                                                        SizedBox(
+                                                          width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                          child: ElevatedButton(
+                                                            style: ElevatedButton.styleFrom(
+                                                              backgroundColor: color.backgroundColor,
+                                                            ),
+                                                            child: Text(
+                                                              AppLocalizations.of(context)!.translate('close'),
+                                                              style: TextStyle(color: Colors.white),
+                                                            ),
+                                                            onPressed: isButtonDisabled
+                                                                ? null
+                                                                : () {
+                                                              setState(() {
+                                                                isButtonDisabled = true;
+                                                                splitAmountController.clear();
+                                                                split_payment = !split_payment;
+                                                              });
+                                                              Navigator.of(context).pop();
+                                                              if (mounted) {
+                                                                setState(() {
+                                                                  isButtonDisabled = false;
+                                                                });
+                                                              }
+                                                            },
+                                                          ),
+                                                        ),
+                                                        SizedBox(
+                                                          width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                          child: ElevatedButton(
+                                                            style: ElevatedButton.styleFrom(
+                                                              backgroundColor: color.buttonColor,
+                                                            ),
+                                                            child: Text(
+                                                              AppLocalizations.of(context)!.translate('yes'),
+                                                              style: TextStyle(color: Colors.white),
+                                                            ),
+                                                            onPressed: isButtonDisabled
+                                                                ? null
+                                                                : () async {
+                                                              if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                  double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                finalAmount = splitAmountController.text;
+                                                                setState(() {
+                                                                  isButtonDisabled = true;
+                                                                  willPop = false;
+                                                                  Navigator.of(context).pop();
+                                                                });
+                                                              } else {
+                                                                Fluttertoast.showToast(
+                                                                    backgroundColor: Color(0xFFFF0000),
+                                                                    msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                splitAmountController.clear();
+                                                              }
+                                                            },
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                ) : null;
+                                                setState(() {
+                                                  isButtonDisabled = false;
+                                                });
+                                              },
+                                              icon: Icon(Icons.payments_outlined, size: 20),
+                                              label: Text(!split_payment ? AppLocalizations.of(context)!.translate('split_payment')
+                                                  : AppLocalizations.of(context)!.translate('split_payment_cancel'),
+                                                  style: TextStyle(fontSize: 14)
+                                              ),
                                             ),
+                                          ),
+                                          Visibility(
+                                            visible: split_payment,
+                                            child: isload ? Container(
+                                              padding: EdgeInsets.only(top: 20),
+                                              height: 100,
+                                              child: Center(
+                                                child: ListView(
+                                                    shrinkWrap: true,
+                                                    // crossAxisCount: 5,
+                                                    scrollDirection: Axis.horizontal,
+                                                    children: List.generate(PaymentLists.length, (index) {
+                                                      return GestureDetector(
+                                                        onTap: () async {
+                                                          setState(() {
+                                                            _type = PaymentLists[index].type!;
+                                                            order_split_payment_link_company_id = PaymentLists[index].payment_link_company_id!.toString();
+                                                          });
+                                                        },
+                                                        child: Card(
+                                                          elevation: 5,
+                                                          color: Colors.white,
+                                                          shape: RoundedRectangleBorder(
+                                                            borderRadius: BorderRadius.circular(16.0),
+                                                          ),
+                                                          child: Container(
+                                                            height: MediaQuery.of(context).size.height / 4,
+                                                            width: 100,
+                                                            child: Stack(
+                                                              alignment: Alignment.center,
+                                                              children: [
+                                                                Text(
+                                                                  '${PaymentLists[index].name}',
+                                                                  textAlign: TextAlign.center,
+                                                                  overflow: TextOverflow.clip,
+                                                                  style: TextStyle(
+                                                                    fontWeight: FontWeight.w700,
+                                                                    fontStyle: FontStyle.normal,
+                                                                    fontSize: 15,
+                                                                    color: Colors.blueGrey,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      );
+                                                    })
+                                                ),
+                                              ),
+                                            )
+                                                : CustomProgressBar(),
                                           )
                                         ],
                                       ),
                                     ),
-                                  ],
-                                ), // GridView.builder
-                              )
-                                  : _type == 1
-                                  ? Container(
-                                child: Column(
-                                  children: [
-                                    Text('Total: ${finalAmount}',
-                                      style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    Spacer(),
-                                    Container(
-                                      height: 150,
-                                      //margin: EdgeInsets.only(bottom: 10),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(16.0),
-                                        child:
-                                        ///***If you have exported images you must have to copy those images in assets/images directory.
-                                        Image(image: AssetImage("drawable/duitNow.jpg")),
-                                      ),
-                                    ),
-                                    Spacer(),
-                                    Container(
-                                      child: ElevatedButton.icon(
-                                        style: ButtonStyle(
-                                            backgroundColor: MaterialStateProperty.all(Colors.green),
-                                            padding: MaterialStateProperty.all(EdgeInsets.all(10))
-                                        ),
-                                        onPressed: isButtonDisable || itemList.isEmpty ? null : () async {
-                                          setState(() {
-                                            // willPop = false;
-                                            isButtonDisable = true;
-                                          });
-                                          await callCreateOrder(finalAmount);
-                                          if (this.isLogOut == true) {
-                                            openLogOutDialog();
-                                            return;
-                                          }
-                                          openPaymentSuccessDialog(
-                                              widget.dining_id,
-                                              split_payment,
-                                              isCashMethod: false,
-                                              diningName: widget.dining_name);
-                                        },
-                                        icon: Icon(Icons.call_received),
-                                        label: Text(
-                                            AppLocalizations.of(context)!.translate('payment_received'),
-                                            style: TextStyle(fontSize: 16)),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
+                                  )
                                   : _type == 2
-                                  ? Container(
-                                child: Column(
-                                  children: [
-                                    Visibility(
-                                      visible: scanning ? false : true,
-                                      child: Container(
+                              /// qr scan
+                                  ? SingleChildScrollView(
+                                    child: Container(
+                                      height: split_payment ? 350 : 250,
+                                      child: Column(
+                                        children: [
+                                      Container(
                                           alignment: Alignment.center,
                                           margin: EdgeInsets.only(bottom: 10),
                                           child: Text('Total: ${finalAmount}',
                                               style: TextStyle(
                                                   fontSize: 20,
                                                   fontWeight: FontWeight.bold))),
-                                    ),
-                                    Expanded(
-                                      child: Container(
-                                        height: scanning == false ? 150 : 240,
-                                        margin: EdgeInsets.only(bottom: 10),
-                                        child: scanning == false ?
-                                        ClipRRect(
-                                          child: Image(
-                                            image: AssetImage("drawable/TNG.jpg"),
+                                      Expanded(
+                                        child: Container(
+                                          height: scanning == false ? 150 : 200,
+                                          margin: EdgeInsets.only(bottom: 10),
+                                          child: scanning == false ?
+                                          ClipRRect(
+                                            child: Image(
+                                              image: AssetImage("drawable/TNG.jpg"),
+                                            ),
+                                          ) :
+                                          Container(
+                                            width: 170,
+                                            child: _buildQrViewMobile(context),
                                           ),
-                                        ) :
-                                        Container(
-                                          child: _buildQrViewMobile(context),
                                         ),
+                                      ),
+                                      Container(
+                                        alignment: Alignment.center,
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            ElevatedButton.icon(
+                                              style: ButtonStyle(
+                                                backgroundColor: MaterialStateProperty.all(color.buttonColor),),
+                                              onPressed: () async {
+                                                setState(() {
+                                                  scanning = !scanning;
+                                                });
+                                                //await controller?.resumeCamera();
+                                                await controller?.scannedDataStream;
+                                                await callCreateOrder(finalAmount);
+                                                if (this.isLogOut == true) {
+                                                  openLogOutDialog();
+                                                  return;
+                                                }
+                                              },
+                                              icon: Icon(Icons.qr_code_scanner, size: 20),
+                                              label: Text(scanning ? AppLocalizations.of(context)!.translate('cancel') : AppLocalizations.of(context)!.translate('scan_qr'),
+                                                  style: TextStyle(fontSize: 16)),
+                                            ),
+                                            SizedBox(width: 10),
+                                            ElevatedButton.icon(
+                                              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                                              onPressed: () async {
+                                                split_payment = !split_payment;
+                                                paymentSplitDialog = true;
+                                                splitAmountController.clear();
+                                                if(!split_payment) {
+                                                  paymentSplitDialog = false;
+                                                }
+
+                                                splitAmountController.text.isEmpty && paymentSplitDialog? await showDialog(
+                                                  context: context,
+                                                  builder: (BuildContext context) {
+                                                    return AlertDialog(
+                                                      title: Text(AppLocalizations.of(context)!.translate('split_payment_amount')),
+                                                      content: SizedBox(
+                                                        height: 75.0,
+                                                        width: 350.0,
+                                                        child: ValueListenableBuilder(
+                                                          valueListenable: splitAmountController,
+                                                          builder: (context, TextEditingValue value, __) {
+                                                            return Padding(
+                                                              padding: const EdgeInsets.all(8.0),
+                                                              child: TextField(
+                                                                autofocus: true,
+                                                                onSubmitted: (input) {
+                                                                  if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                      double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                    finalAmount = splitAmountController.text;
+                                                                    setState(() {
+                                                                      isButtonDisabled = true;
+                                                                      willPop = false;
+                                                                      Navigator.of(context).pop();
+                                                                    });
+                                                                  } else {
+                                                                    Fluttertoast.showToast(
+                                                                        backgroundColor: Color(0xFFFF0000),
+                                                                        msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                    splitAmountController.clear();
+                                                                  }
+                                                                },
+                                                                controller: splitAmountController,
+                                                                keyboardType: TextInputType.number,
+                                                                inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
+                                                                decoration: InputDecoration(
+                                                                  border: OutlineInputBorder(
+                                                                    borderSide: BorderSide(color: color.backgroundColor),
+                                                                  ),
+                                                                  focusedBorder: OutlineInputBorder(
+                                                                    borderSide: BorderSide(color: color.backgroundColor),
+                                                                  ),
+                                                                  labelText: AppLocalizations.of(context)!.translate('amount'),
+                                                                ),
+                                                              ),
+                                                            );
+                                                          },
+                                                        ),
+                                                      ),
+                                                      actions: <Widget>[
+                                                        SizedBox(
+                                                          width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                          child: ElevatedButton(
+                                                            style: ElevatedButton.styleFrom(
+                                                              backgroundColor: color.backgroundColor,
+                                                            ),
+                                                            child: Text(
+                                                              AppLocalizations.of(context)!.translate('close'),
+                                                              style: TextStyle(color: Colors.white),
+                                                            ),
+                                                            onPressed: isButtonDisabled
+                                                                ? null
+                                                                : () {
+                                                              setState(() {
+                                                                isButtonDisabled = true;
+                                                                splitAmountController.clear();
+                                                                split_payment = !split_payment;
+                                                              });
+                                                              Navigator.of(context).pop();
+                                                              if (mounted) {
+                                                                setState(() {
+                                                                  isButtonDisabled = false;
+                                                                });
+                                                              }
+                                                            },
+                                                          ),
+                                                        ),
+                                                        SizedBox(
+                                                          width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                          child: ElevatedButton(
+                                                            style: ElevatedButton.styleFrom(
+                                                              backgroundColor: color.buttonColor,
+                                                            ),
+                                                            child: Text(
+                                                              AppLocalizations.of(context)!.translate('yes'),
+                                                              style: TextStyle(color: Colors.white),
+                                                            ),
+                                                            onPressed: isButtonDisabled
+                                                                ? null
+                                                                : () async {
+                                                              if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                  double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                finalAmount = splitAmountController.text;
+                                                                setState(() {
+                                                                  isButtonDisabled = true;
+                                                                  willPop = false;
+                                                                  Navigator.of(context).pop();
+                                                                });
+                                                              } else {
+                                                                Fluttertoast.showToast(
+                                                                    backgroundColor: Color(0xFFFF0000),
+                                                                    msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                splitAmountController.clear();
+                                                              }
+                                                            },
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                ) : null;
+                                                setState(() {
+                                                  isButtonDisabled = false;
+                                                });
+                                              },
+                                              icon: Icon(Icons.payments_outlined, size: 20),
+                                              label: Text(!split_payment ? AppLocalizations.of(context)!.translate('split_payment')
+                                                  : AppLocalizations.of(context)!.translate('split_payment_cancel'),
+                                                  style: TextStyle(fontSize: 16)),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                      Visibility(
+                                        visible: split_payment,
+                                        child: isload ? Container(
+                                          padding: EdgeInsets.only(top: 20),
+                                          height: 100,
+                                          child: Center(
+                                            child: ListView(
+                                                shrinkWrap: true,
+                                                // crossAxisCount: 5,
+                                                scrollDirection: Axis.horizontal,
+                                                children: List.generate(PaymentLists.length, (index) {
+                                                  return GestureDetector(
+                                                    onTap: () async {
+                                                      setState(() {
+                                                        _type = PaymentLists[index].type!;
+                                                        order_split_payment_link_company_id = PaymentLists[index].payment_link_company_id!.toString();
+                                                      });
+                                                    },
+                                                    child: Card(
+                                                      elevation: 5,
+                                                      color: Colors.white,
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(16.0),
+                                                      ),
+                                                      child: Container(
+                                                        height: MediaQuery.of(context).size.height / 4,
+                                                        width: 100,
+                                                        child: Stack(
+                                                          alignment: Alignment.center,
+                                                          children: [
+                                                            Text(
+                                                              '${PaymentLists[index].name}',
+                                                              textAlign: TextAlign.center,
+                                                              overflow: TextOverflow.clip,
+                                                              style: TextStyle(
+                                                                fontWeight: FontWeight.w700,
+                                                                fontStyle: FontStyle.normal,
+                                                                fontSize: 15,
+                                                                color: Colors.blueGrey,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  );
+                                                })
+                                            ),
+                                          ),
+                                        )
+                                            : CustomProgressBar(),
+                                      )
+                                    ],
                                       ),
                                     ),
-                                    Visibility(
-                                      visible: scanning ? false : true,
-                                      child: Container(
-                                        alignment: Alignment.center,
-                                        child: ElevatedButton(
-                                          style: ButtonStyle(
-                                            backgroundColor: MaterialStateProperty.all(color.buttonColor),),
-                                          onPressed: () async {
-                                            setState(() {
-                                              scanning = true;
-                                            });
-                                            //await controller?.resumeCamera();
-                                            await controller?.scannedDataStream;
-                                            await callCreateOrder(finalAmount);
-                                            if (this.isLogOut == true) {
-                                              openLogOutDialog();
-                                              return;
-                                            }
-                                          },
-                                          child: Text(
-                                              AppLocalizations.of(context)!.translate('scan_qr'),
-                                              style: TextStyle(fontSize: 20)),
-                                        ),
-                                      ),
-                                    )
-                                  ],
-                                ),
-                              )
+                                  )
                                   : Container(),
                             )
                           ],
@@ -1815,10 +2522,11 @@ class _MakePaymentState extends State<MakePayment> {
                                       ),
                                     ),
                                     Container(
-                                      padding: EdgeInsets.only(top: 20),
-                                      height: 300,
+                                      padding: EdgeInsets.only(top: 40, bottom: 20),
                                       child: _type == 0
+                                      /// cash
                                           ? Container(
+                                        height: split_payment ? 350 : 250,
                                         child: Column(
                                           children: [
                                             Text("Total: ${finalAmount}", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
@@ -1860,7 +2568,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                 border: OutlineInputBorder(borderSide: BorderSide(color: color.backgroundColor)),
                                                                 focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: color.backgroundColor)),
                                                               ),
-                                                              style: TextStyle(fontSize: 40),
+                                                              style: TextStyle(fontSize: 30),
                                                             ),
                                                           );
                                                         },
@@ -1871,8 +2579,10 @@ class _MakePaymentState extends State<MakePayment> {
                                                     child: Row(
                                                       mainAxisAlignment: MainAxisAlignment.center,
                                                       children: [
-                                                        ElevatedButton(
-                                                          style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                                                        ElevatedButton.icon(
+                                                          style: ElevatedButton.styleFrom(
+                                                              backgroundColor: color.backgroundColor,
+                                                          ),
                                                           onPressed: isButtonDisable || itemList.isEmpty
                                                               ? null
                                                               : () async {
@@ -1896,42 +2606,228 @@ class _MakePaymentState extends State<MakePayment> {
                                                               });
                                                             }
                                                           },
-                                                          child: Text(AppLocalizations.of(context)!.translate('make_payment')),
+                                                          icon: Icon(Icons.payments, size: 20),
+                                                          label: Text(AppLocalizations.of(context)!.translate('make_payment')),
                                                         ),
                                                         SizedBox(width: 10),
-                                                        ElevatedButton(
-                                                          style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                                                        ElevatedButton.icon(
+                                                          style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
                                                           onPressed: () {
                                                             inputController.clear();
                                                             setState(() {
                                                               change = '0.00';
                                                             });
                                                           },
-                                                          child: Text(AppLocalizations.of(context)!.translate('clear')),
+                                                          icon: Icon(Icons.backspace, size: 20),
+                                                          label: Text(AppLocalizations.of(context)!.translate('clear')),
                                                         ),
                                                       ],
                                                     ),
                                                   ),
+                                                  ElevatedButton.icon(
+                                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                                                    onPressed: () async {
+                                                      split_payment = !split_payment;
+                                                      paymentSplitDialog = true;
+                                                      splitAmountController.clear();
+                                                      if(!split_payment) {
+                                                        paymentSplitDialog = false;
+                                                      }
+
+                                                      splitAmountController.text.isEmpty && paymentSplitDialog? await showDialog(
+                                                        context: context,
+                                                        builder: (BuildContext context) {
+                                                          return AlertDialog(
+                                                            title: Text(AppLocalizations.of(context)!.translate('split_payment_amount')),
+                                                            content: SizedBox(
+                                                              height: 75.0,
+                                                              width: 350.0,
+                                                              child: ValueListenableBuilder(
+                                                                valueListenable: splitAmountController,
+                                                                builder: (context, TextEditingValue value, __) {
+                                                                  return Padding(
+                                                                    padding: const EdgeInsets.all(8.0),
+                                                                    child: TextField(
+                                                                      autofocus: true,
+                                                                      onSubmitted: (input) {
+                                                                        if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                            double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                          finalAmount = splitAmountController.text;
+                                                                          setState(() {
+                                                                            isButtonDisabled = true;
+                                                                            willPop = false;
+                                                                            Navigator.of(context).pop();
+                                                                          });
+                                                                        } else {
+                                                                          Fluttertoast.showToast(
+                                                                              backgroundColor: Color(0xFFFF0000),
+                                                                              msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                          splitAmountController.clear();
+                                                                        }
+                                                                      },
+                                                                      controller: splitAmountController,
+                                                                      keyboardType: TextInputType.number,
+                                                                      inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
+                                                                      decoration: InputDecoration(
+                                                                        border: OutlineInputBorder(
+                                                                          borderSide: BorderSide(color: color.backgroundColor),
+                                                                        ),
+                                                                        focusedBorder: OutlineInputBorder(
+                                                                          borderSide: BorderSide(color: color.backgroundColor),
+                                                                        ),
+                                                                        labelText: AppLocalizations.of(context)!.translate('amount'),
+                                                                      ),
+                                                                    ),
+                                                                  );
+                                                                },
+                                                              ),
+                                                            ),
+                                                            actions: <Widget>[
+                                                              SizedBox(
+                                                                width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                                height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                                child: ElevatedButton(
+                                                                  style: ElevatedButton.styleFrom(
+                                                                    backgroundColor: color.backgroundColor,
+                                                                  ),
+                                                                  child: Text(
+                                                                    AppLocalizations.of(context)!.translate('close'),
+                                                                    style: TextStyle(color: Colors.white),
+                                                                  ),
+                                                                  onPressed: isButtonDisabled
+                                                                      ? null
+                                                                      : () {
+                                                                    setState(() {
+                                                                      isButtonDisabled = true;
+                                                                      splitAmountController.clear();
+                                                                      split_payment = !split_payment;
+                                                                    });
+                                                                    Navigator.of(context).pop();
+                                                                    if (mounted) {
+                                                                      setState(() {
+                                                                        isButtonDisabled = false;
+                                                                      });
+                                                                    }
+                                                                  },
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                                height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                                child: ElevatedButton(
+                                                                  style: ElevatedButton.styleFrom(
+                                                                    backgroundColor: color.buttonColor,
+                                                                  ),
+                                                                  child: Text(
+                                                                    AppLocalizations.of(context)!.translate('yes'),
+                                                                    style: TextStyle(color: Colors.white),
+                                                                  ),
+                                                                  onPressed: isButtonDisabled
+                                                                      ? null
+                                                                      : () async {
+                                                                    if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                        double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                      finalAmount = splitAmountController.text;
+                                                                      setState(() {
+                                                                        isButtonDisabled = true;
+                                                                        willPop = false;
+                                                                        Navigator.of(context).pop();
+                                                                      });
+                                                                    } else {
+                                                                      Fluttertoast.showToast(
+                                                                          backgroundColor: Color(0xFFFF0000),
+                                                                          msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                      splitAmountController.clear();
+                                                                    }
+                                                                  },
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          );
+                                                        },
+                                                      ) : null;
+                                                      setState(() {
+                                                        isButtonDisabled = false;
+                                                      });
+                                                    },
+                                                    icon: Icon(Icons.payments_outlined, size: 20),
+                                                    label: Text(!split_payment ? AppLocalizations.of(context)!.translate('split_payment')
+                                                        : AppLocalizations.of(context)!.translate('split_payment_cancel')),
+                                                  ),
                                                 ],
                                               ),
                                             ),
+                                            Visibility(
+                                              visible: split_payment,
+                                              child: isload ? Container(
+                                                padding: EdgeInsets.only(top: 20),
+                                                height: 100,
+                                                child: Center(
+                                                  child: ListView(
+                                                      shrinkWrap: true,
+                                                      // crossAxisCount: 5,
+                                                      scrollDirection: Axis.horizontal,
+                                                      children: List.generate(PaymentLists.length, (index) {
+                                                        return GestureDetector(
+                                                          onTap: () async {
+                                                            setState(() {
+                                                              _type = PaymentLists[index].type!;
+                                                              order_split_payment_link_company_id = PaymentLists[index].payment_link_company_id!.toString();
+                                                            });
+                                                          },
+                                                          child: Card(
+                                                            elevation: 5,
+                                                            color: Colors.white,
+                                                            shape: RoundedRectangleBorder(
+                                                              borderRadius: BorderRadius.circular(16.0),
+                                                            ),
+                                                            child: Container(
+                                                              height: MediaQuery.of(context).size.height / 4,
+                                                              width: 100,
+                                                              child: Stack(
+                                                                alignment: Alignment.center,
+                                                                children: [
+                                                                  Text(
+                                                                    '${PaymentLists[index].name}',
+                                                                    textAlign: TextAlign.center,
+                                                                    overflow: TextOverflow.clip,
+                                                                    style: TextStyle(
+                                                                      fontWeight: FontWeight.w700,
+                                                                      fontStyle: FontStyle.normal,
+                                                                      fontSize: 15,
+                                                                      color: Colors.blueGrey,
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        );
+                                                      })
+                                                  ),
+                                                ),
+                                              )
+                                                  : CustomProgressBar(),
+                                            )
                                           ],
                                         ),
                                       )
                                           : _type == 1
+                                      /// card, ewallet
                                           ? Container(
+                                        height: split_payment ? 420 : 320,
+                                        padding: EdgeInsets.only(bottom: 10),
                                         child: Column(
                                           children: [
                                             Text('Total: ${finalAmount}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                                            Spacer(),
                                             Container(
                                               height: 150,
+                                              margin: EdgeInsets.only(bottom: 10, top: 10),
                                               child: ClipRRect(
                                                 borderRadius: BorderRadius.circular(16.0),
                                                 child: Image(image: AssetImage("drawable/duitNow.jpg")),
                                               ),
                                             ),
-                                            Spacer(),
                                             Container(
                                               child: ElevatedButton.icon(
                                                 style: ButtonStyle(
@@ -1951,61 +2847,429 @@ class _MakePaymentState extends State<MakePayment> {
                                                   }
                                                   openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
                                                 },
-                                                icon: Icon(Icons.call_received),
+                                                icon: Icon(Icons.call_received, size: 20),
                                                 label: Text(AppLocalizations.of(context)!.translate('payment_received'), style: TextStyle(fontSize: 16)),
                                               ),
                                             ),
+                                            SizedBox(height: 10),
+                                            Container(
+                                              child: ElevatedButton.icon(
+                                                style: ButtonStyle(
+                                                    backgroundColor: WidgetStateProperty.all(Colors.blue),
+                                                    padding: WidgetStateProperty.all(EdgeInsets.all(10))),
+                                                onPressed: () async {
+                                                  split_payment = !split_payment;
+                                                  paymentSplitDialog = true;
+                                                  splitAmountController.clear();
+                                                  if(!split_payment) {
+                                                    paymentSplitDialog = false;
+                                                  }
+
+                                                  splitAmountController.text.isEmpty && paymentSplitDialog? await showDialog(
+                                                    context: context,
+                                                    builder: (BuildContext context) {
+                                                      return AlertDialog(
+                                                        title: Text(AppLocalizations.of(context)!.translate('split_payment_amount')),
+                                                        content: SizedBox(
+                                                          height: 75.0,
+                                                          width: 350.0,
+                                                          child: ValueListenableBuilder(
+                                                            valueListenable: splitAmountController,
+                                                            builder: (context, TextEditingValue value, __) {
+                                                              return Padding(
+                                                                padding: const EdgeInsets.all(8.0),
+                                                                child: TextField(
+                                                                  autofocus: true,
+                                                                  onSubmitted: (input) {
+                                                                    if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                        double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                      finalAmount = splitAmountController.text;
+                                                                      setState(() {
+                                                                        isButtonDisabled = true;
+                                                                        willPop = false;
+                                                                        Navigator.of(context).pop();
+                                                                      });
+                                                                    } else {
+                                                                      Fluttertoast.showToast(
+                                                                          backgroundColor: Color(0xFFFF0000),
+                                                                          msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                      splitAmountController.clear();
+                                                                    }
+                                                                  },
+                                                                  controller: splitAmountController,
+                                                                  keyboardType: TextInputType.number,
+                                                                  inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
+                                                                  decoration: InputDecoration(
+                                                                    border: OutlineInputBorder(
+                                                                      borderSide: BorderSide(color: color.backgroundColor),
+                                                                    ),
+                                                                    focusedBorder: OutlineInputBorder(
+                                                                      borderSide: BorderSide(color: color.backgroundColor),
+                                                                    ),
+                                                                    labelText: AppLocalizations.of(context)!.translate('amount'),
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            },
+                                                          ),
+                                                        ),
+                                                        actions: <Widget>[
+                                                          SizedBox(
+                                                            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                            child: ElevatedButton(
+                                                              style: ElevatedButton.styleFrom(
+                                                                backgroundColor: color.backgroundColor,
+                                                              ),
+                                                              child: Text(
+                                                                AppLocalizations.of(context)!.translate('close'),
+                                                                style: TextStyle(color: Colors.white),
+                                                              ),
+                                                              onPressed: isButtonDisabled
+                                                                  ? null
+                                                                  : () {
+                                                                setState(() {
+                                                                  isButtonDisabled = true;
+                                                                  splitAmountController.clear();
+                                                                  split_payment = !split_payment;
+                                                                });
+                                                                Navigator.of(context).pop();
+                                                                if (mounted) {
+                                                                  setState(() {
+                                                                    isButtonDisabled = false;
+                                                                  });
+                                                                }
+                                                              },
+                                                            ),
+                                                          ),
+                                                          SizedBox(
+                                                            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                            child: ElevatedButton(
+                                                              style: ElevatedButton.styleFrom(
+                                                                backgroundColor: color.buttonColor,
+                                                              ),
+                                                              child: Text(
+                                                                AppLocalizations.of(context)!.translate('yes'),
+                                                                style: TextStyle(color: Colors.white),
+                                                              ),
+                                                              onPressed: isButtonDisabled
+                                                                  ? null
+                                                                  : () async {
+                                                                if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                    double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                  finalAmount = splitAmountController.text;
+                                                                  setState(() {
+                                                                    isButtonDisabled = true;
+                                                                    willPop = false;
+                                                                    Navigator.of(context).pop();
+                                                                  });
+                                                                } else {
+                                                                  Fluttertoast.showToast(
+                                                                      backgroundColor: Color(0xFFFF0000),
+                                                                      msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                  splitAmountController.clear();
+                                                                }
+                                                              },
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  ) : null;
+                                                  setState(() {
+                                                    isButtonDisabled = false;
+                                                  });
+                                                },
+                                                icon: Icon(Icons.payments_outlined, size: 20),
+                                                label: Text(!split_payment ? AppLocalizations.of(context)!.translate('split_payment')
+                                                    : AppLocalizations.of(context)!.translate('split_payment_cancel'),
+                                                    style: TextStyle(fontSize: 16)
+                                                ),
+                                              ),
+                                            ),
+                                            Visibility(
+                                              visible: split_payment,
+                                              child: isload ? Container(
+                                                padding: EdgeInsets.only(top: 20),
+                                                height: 100,
+                                                child: Center(
+                                                  child: ListView(
+                                                      shrinkWrap: true,
+                                                      // crossAxisCount: 5,
+                                                      scrollDirection: Axis.horizontal,
+                                                      children: List.generate(PaymentLists.length, (index) {
+                                                        return GestureDetector(
+                                                          onTap: () async {
+                                                            setState(() {
+                                                              _type = PaymentLists[index].type!;
+                                                              order_split_payment_link_company_id = PaymentLists[index].payment_link_company_id!.toString();
+                                                            });
+                                                          },
+                                                          child: Card(
+                                                            elevation: 5,
+                                                            color: Colors.white,
+                                                            shape: RoundedRectangleBorder(
+                                                              borderRadius: BorderRadius.circular(16.0),
+                                                            ),
+                                                            child: Container(
+                                                              height: MediaQuery.of(context).size.height / 4,
+                                                              width: 100,
+                                                              child: Stack(
+                                                                alignment: Alignment.center,
+                                                                children: [
+                                                                  Text(
+                                                                    '${PaymentLists[index].name}',
+                                                                    textAlign: TextAlign.center,
+                                                                    overflow: TextOverflow.clip,
+                                                                    style: TextStyle(
+                                                                      fontWeight: FontWeight.w700,
+                                                                      fontStyle: FontStyle.normal,
+                                                                      fontSize: 15,
+                                                                      color: Colors.blueGrey,
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        );
+                                                      })
+                                                  ),
+                                                ),
+                                              )
+                                                  : CustomProgressBar(),
+                                            )
                                           ],
                                         ),
                                       )
                                           : _type == 2
+                                      /// qr scan
                                           ? Container(
+                                        height: split_payment ? 400 : 330,
                                         child: Column(
                                           children: [
-                                            Visibility(
-                                              visible: scanning ? false : true,
-                                              child: Container(
-                                                alignment: Alignment.center,
-                                                margin: EdgeInsets.only(bottom: 10),
-                                                child: Text('Total: ${finalAmount}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                                              ),
+                                            Container(
+                                              alignment: Alignment.center,
+                                              margin: EdgeInsets.only(bottom: 10),
+                                              child: Text('Total: ${finalAmount}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                                             ),
                                             Expanded(
                                               child: Container(
-                                                height: scanning == false ? 150 : 240,
+                                                // height: scanning == false ? 150 : 240,
                                                 margin: EdgeInsets.only(bottom: 10),
                                                 child: scanning == false
                                                     ? ClipRRect(
                                                   child: Image(image: AssetImage("drawable/TNG.jpg")),
                                                 )
                                                     : Container(
+                                                  width: 200,
                                                   child: _buildQrViewMobile(context),
                                                 ),
                                               ),
                                             ),
-                                            Visibility(
-                                              visible: scanning ? false : true,
-                                              child: Container(
-                                                alignment: Alignment.center,
-                                                child: ElevatedButton(
-                                                  style: ButtonStyle(
-                                                    backgroundColor: MaterialStateProperty.all(color.buttonColor),
-                                                  ),
-                                                  onPressed: () async {
-                                                    setState(() {
-                                                      scanning = true;
-                                                    });
-                                                    await controller?.scannedDataStream;
-                                                    await callCreateOrder(finalAmount);
-                                                    if (this.isLogOut == true) {
-                                                      openLogOutDialog();
-                                                      return;
-                                                    }
-                                                  },
-                                                  child: Text(AppLocalizations.of(context)!.translate('scan_qr'), style: TextStyle(fontSize: 20)),
-                                                ),
+                                            ElevatedButton.icon(
+                                              style: ButtonStyle(
+                                                backgroundColor: MaterialStateProperty.all(color.buttonColor),
                                               ),
+                                              onPressed: () async {
+                                                setState(() {
+                                                  scanning = !scanning;
+                                                });
+                                                await controller?.scannedDataStream;
+                                                await callCreateOrder(finalAmount);
+                                                if (this.isLogOut == true) {
+                                                  openLogOutDialog();
+                                                  return;
+                                                }
+                                              },
+                                              icon: Icon(Icons.qr_code_scanner, size: 20),
+                                              label: Text(scanning ? AppLocalizations.of(context)!.translate('cancel') : AppLocalizations.of(context)!.translate('scan_qr'),
+                                                  style: TextStyle(fontSize: 16)),
                                             ),
+                                            ElevatedButton.icon(
+                                              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                                              onPressed: () async {
+                                                split_payment = !split_payment;
+                                                paymentSplitDialog = true;
+                                                splitAmountController.clear();
+                                                if(!split_payment) {
+                                                  paymentSplitDialog = false;
+                                                }
+
+                                                splitAmountController.text.isEmpty && paymentSplitDialog? await showDialog(
+                                                  context: context,
+                                                  builder: (BuildContext context) {
+                                                    return AlertDialog(
+                                                      title: Text(AppLocalizations.of(context)!.translate('split_payment_amount')),
+                                                      content: SizedBox(
+                                                        height: 75.0,
+                                                        width: 350.0,
+                                                        child: ValueListenableBuilder(
+                                                          valueListenable: splitAmountController,
+                                                          builder: (context, TextEditingValue value, __) {
+                                                            return Padding(
+                                                              padding: const EdgeInsets.all(8.0),
+                                                              child: TextField(
+                                                                autofocus: true,
+                                                                onSubmitted: (input) {
+                                                                  if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                      double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                    finalAmount = splitAmountController.text;
+                                                                    setState(() {
+                                                                      isButtonDisabled = true;
+                                                                      willPop = false;
+                                                                      Navigator.of(context).pop();
+                                                                    });
+                                                                  } else {
+                                                                    Fluttertoast.showToast(
+                                                                        backgroundColor: Color(0xFFFF0000),
+                                                                        msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                    splitAmountController.clear();
+                                                                  }
+                                                                },
+                                                                controller: splitAmountController,
+                                                                keyboardType: TextInputType.number,
+                                                                inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
+                                                                decoration: InputDecoration(
+                                                                  border: OutlineInputBorder(
+                                                                    borderSide: BorderSide(color: color.backgroundColor),
+                                                                  ),
+                                                                  focusedBorder: OutlineInputBorder(
+                                                                    borderSide: BorderSide(color: color.backgroundColor),
+                                                                  ),
+                                                                  labelText: AppLocalizations.of(context)!.translate('amount'),
+                                                                ),
+                                                              ),
+                                                            );
+                                                          },
+                                                        ),
+                                                      ),
+                                                      actions: <Widget>[
+                                                        SizedBox(
+                                                          width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                          child: ElevatedButton(
+                                                            style: ElevatedButton.styleFrom(
+                                                              backgroundColor: color.backgroundColor,
+                                                            ),
+                                                            child: Text(
+                                                              AppLocalizations.of(context)!.translate('close'),
+                                                              style: TextStyle(color: Colors.white),
+                                                            ),
+                                                            onPressed: isButtonDisabled
+                                                                ? null
+                                                                : () {
+                                                              setState(() {
+                                                                isButtonDisabled = true;
+                                                                splitAmountController.clear();
+                                                                split_payment = !split_payment;
+                                                              });
+                                                              Navigator.of(context).pop();
+                                                              if (mounted) {
+                                                                setState(() {
+                                                                  isButtonDisabled = false;
+                                                                });
+                                                              }
+                                                            },
+                                                          ),
+                                                        ),
+                                                        SizedBox(
+                                                          width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                          child: ElevatedButton(
+                                                            style: ElevatedButton.styleFrom(
+                                                              backgroundColor: color.buttonColor,
+                                                            ),
+                                                            child: Text(
+                                                              AppLocalizations.of(context)!.translate('yes'),
+                                                              style: TextStyle(color: Colors.white),
+                                                            ),
+                                                            onPressed: isButtonDisabled
+                                                                ? null
+                                                                : () async {
+                                                              if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                  double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                finalAmount = splitAmountController.text;
+                                                                setState(() {
+                                                                  isButtonDisabled = true;
+                                                                  willPop = false;
+                                                                  Navigator.of(context).pop();
+                                                                });
+                                                              } else {
+                                                                Fluttertoast.showToast(
+                                                                    backgroundColor: Color(0xFFFF0000),
+                                                                    msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                splitAmountController.clear();
+                                                              }
+                                                            },
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                ) : null;
+                                                setState(() {
+                                                  isButtonDisabled = false;
+                                                });
+                                              },
+                                              icon: Icon(Icons.payments_outlined, size: 20),
+                                              label: Text(!split_payment ? AppLocalizations.of(context)!.translate('split_payment')
+                                                  : AppLocalizations.of(context)!.translate('split_payment_cancel'),
+                                                  style: TextStyle(fontSize: 16)),
+                                            ),
+                                            Visibility(
+                                              visible: split_payment,
+                                              child: isload ? Container(
+                                                padding: EdgeInsets.only(top: 20),
+                                                height: 100,
+                                                child: Center(
+                                                  child: ListView(
+                                                      shrinkWrap: true,
+                                                      // crossAxisCount: 5,
+                                                      scrollDirection: Axis.horizontal,
+                                                      children: List.generate(PaymentLists.length, (index) {
+                                                        return GestureDetector(
+                                                          onTap: () async {
+                                                            setState(() {
+                                                              _type = PaymentLists[index].type!;
+                                                              order_split_payment_link_company_id = PaymentLists[index].payment_link_company_id!.toString();
+                                                            });
+                                                          },
+                                                          child: Card(
+                                                            elevation: 5,
+                                                            color: Colors.white,
+                                                            shape: RoundedRectangleBorder(
+                                                              borderRadius: BorderRadius.circular(16.0),
+                                                            ),
+                                                            child: Container(
+                                                              height: MediaQuery.of(context).size.height / 4,
+                                                              width: 100,
+                                                              child: Stack(
+                                                                alignment: Alignment.center,
+                                                                children: [
+                                                                  Text(
+                                                                    '${PaymentLists[index].name}',
+                                                                    textAlign: TextAlign.center,
+                                                                    overflow: TextOverflow.clip,
+                                                                    style: TextStyle(
+                                                                      fontWeight: FontWeight.w700,
+                                                                      fontStyle: FontStyle.normal,
+                                                                      fontSize: 15,
+                                                                      color: Colors.blueGrey,
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        );
+                                                      })
+                                                  ),
+                                                ),
+                                              )
+                                                  : CustomProgressBar(),
+                                            )
                                           ],
                                         ),
                                       )

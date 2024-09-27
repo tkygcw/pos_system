@@ -364,6 +364,8 @@
   "order_already_placed": "Pesanan telah ditempatkan!",
   "order_at": "Pesanan di",
   "order_by": "Dipesan oleh",
+  "order_data_corrupted": "Data pesanan rosak",
+  "order_data_corrupted_desc": "Data pesanan tiada atau rosak. Adakah anda ingin menetapkan semula meja",
   "order_detail": "Butiran pesanan",
   "order_no": "Order No",
   "order_numbering": "Penomboran Pesanan",
