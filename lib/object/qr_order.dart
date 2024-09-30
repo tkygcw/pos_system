@@ -156,11 +156,11 @@ class QrOrder extends ChangeNotifier {
           }
         }
       }
+      await getAllNotAcceptedQrOrder();
       if(localSetting!.qr_order_auto_accept == 1){
         asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
         return;
       }
-      await getAllNotAcceptedQrOrder();
       CustomSnackBar.instance.showSnackBar(
           title: "${AppLocalizations.of(context)?.translate('qr_order')}",
           description: "${AppLocalizations.of(context)?.translate('new_qr_order_received')}",

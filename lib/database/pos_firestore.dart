@@ -91,7 +91,8 @@ class PosFirestore {
         BranchLinkProductFields.updated_at: branchProduct.updated_at,
         BranchLinkProductFields.daily_limit: branchProduct.daily_limit,
       };
-      final docRef = await firestore.collection(tableBranchLinkProduct!).doc(branchProduct.branch_link_product_id.toString());
+      print("blp id: ${branchProduct.branch_link_product_id!.toString()}");
+      final docRef = await firestore.collection(tableBranchLinkProduct!).doc(branchProduct.branch_link_product_id!.toString());
       batch.update(docRef, jsonMap);
       batch.commit();
       status = 1;
@@ -110,7 +111,8 @@ class PosFirestore {
         BranchLinkProductFields.updated_at: branchProduct.updated_at,
         BranchLinkProductFields.stock_quantity: branchProduct.stock_quantity,
       };
-      final docRef = await firestore.collection(tableBranchLinkProduct!).doc(branchProduct.branch_link_product_id.toString());
+      print("blp id: ${branchProduct.branch_link_product_id!.toString()}");
+      final docRef = await firestore.collection(tableBranchLinkProduct!).doc(branchProduct.branch_link_product_id!.toString());
       batch.update(docRef, jsonMap);
       batch.commit();
       status = 1;
@@ -153,7 +155,7 @@ class PosFirestore {
 
   transferDatabaseData() async {
     try{
-      Map res = await Domain().transferDatabaseData('tb_table_dynamic');
+      Map res = await Domain().transferDatabaseData('tb_branch_link_product');
       print("res length: ${res['data'].length}");
       List data = res['data'];
       int chunkSize = 20;
@@ -164,7 +166,7 @@ class PosFirestore {
         List<dynamic> chunk = data.sublist(i, i + chunkSize > total ? total : i + chunkSize);
         for(int j = 0; j < chunk.length; j++){
           try{
-            await firestore.collection("tb_table_dynamic").doc(chunk[j]['table_dynamic_id'].toString()).set(chunk[j]);
+            await firestore.collection("tb_branch_link_product").doc(chunk[j]['branch_link_product_id'].toString()).set(chunk[j]);
           }catch(e){
             break;
           }

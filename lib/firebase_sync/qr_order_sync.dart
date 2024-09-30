@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:pos_system/database/pos_firestore.dart';
+import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 
@@ -14,18 +15,19 @@ import '../object/order_cache.dart';
 import '../object/order_detail.dart';
 import '../object/order_modifier_detail.dart';
 import '../object/qr_order.dart';
+import '../object/qr_order_auto_accept.dart';
 import '../translation/AppLocalizations.dart';
 
 class FirestoreQROrderSync {
   static final FirestoreQROrderSync instance = FirestoreQROrderSync._init();
   static final firestore = PosFirestore.instance.firestore;
   static final BuildContext context = MyApp.navigatorKey.currentContext!;
-  final _tableQrOrderCache = 'tb_qr_order_cache';
+  final _tb_qr_order_cache = 'tb_qr_order_cache';
 
   FirestoreQROrderSync._init();
 
   realtimeQROrder(String branch_id) {
-    final docRef = firestore.collection(_tableQrOrderCache)
+    final docRef = firestore.collection(_tb_qr_order_cache)
         .where(OrderCacheFields.branch_id, isEqualTo: branch_id)
         .where(OrderCacheFields.soft_delete, isEqualTo: '')
         .where(OrderCacheFields.accepted, isEqualTo: 1)
@@ -54,7 +56,7 @@ class FirestoreQROrderSync {
 
   Future<void> readAllNotAcceptedOrderCache(String branch_id) async {
     try{
-      Query orderCache = firestore.collection(_tableQrOrderCache)
+      Query orderCache = firestore.collection(_tb_qr_order_cache)
           .where(OrderCacheFields.branch_id, isEqualTo: branch_id)
           .where(OrderCacheFields.soft_delete, isEqualTo: '')
           .where(OrderCacheFields.accepted, isEqualTo: 1)
@@ -93,40 +95,29 @@ class FirestoreQROrderSync {
     try{
       var querySnapshot = await parentDoc.collection(tableOrderDetail!).get();
       print("order detail doc length: ${querySnapshot.docs.length}");
-      for (var docSnapshot in querySnapshot.docs) {
-        updateDocSyncStatus(docSnapshot.reference);
-        OrderDetail? orderDetail = await insertLocalOrderDetail(docSnapshot.data(), localOrderCache);
-        if(orderDetail != null){
-          readOrderModDetail(docSnapshot.reference, orderDetail);
-          return;
-        } else {
-          break;
-        }
-      }
-    }catch(e){
-      FLog.error(
-        className: "firebase_sync/qr_order_sync",
-        text: "readOrderDetail error",
-        exception: "Error: $e, order_cache_key: ${localOrderCache.order_cache_key}",
-      );
-    }
-    await softDeleteLocalOrderCache(localOrderCache.order_cache_key!);
-  }
-
-  Future<void> readOrderModDetail(DocumentReference parentDoc, OrderDetail orderDetail) async {
-    try{
-      final querySnapshot = await parentDoc.collection(tableOrderModifierDetail!).get();
       if(querySnapshot.docs.isNotEmpty){
-        for (var docSnapshot in querySnapshot.docs){
-          print('${docSnapshot.id} => ${docSnapshot.data()}');
+        for (var docSnapshot in querySnapshot.docs) {
           updateDocSyncStatus(docSnapshot.reference);
-          OrderModifierDetail? modDetail= await insertLocalOrderModifierDetail(docSnapshot.data(), orderDetail);
-          print("mod detail: ${modDetail}");
-          if(modDetail == null) {
-            throw Exception("insertLocalOrderModifierDetail error");
+          OrderDetail? orderDetail = await insertLocalOrderDetail(docSnapshot.data(), localOrderCache);
+          if(orderDetail != null){
+            final modDetailQuerySnapshot = await docSnapshot.reference.collection(tableOrderModifierDetail!).get();
+            print("modDetailQuerySnapshot: ${modDetailQuerySnapshot.docs.length}");
+            if(modDetailQuerySnapshot.docs.isNotEmpty){
+              OrderModifierDetail? modDetail = await readOrderModDetail(modDetailQuerySnapshot, orderDetail);
+              if(modDetail == null){
+                throw Exception("readOrderModDetail error: order_cache_key: ${localOrderCache.order_cache_key}, order_detail_key: ${docSnapshot.id}");
+              }
+            }
+          } else {
+            throw Exception("insertLocalOrderDetail error: order_cache_key: ${localOrderCache.order_cache_key}, order_detail_key: ${docSnapshot.id}");
           }
         }
         QrOrder.instance.getAllNotAcceptedQrOrder();
+        print("auto accept status: ${AppSettingModel.instance.qr_order_auto_accept}");
+        if(AppSettingModel.instance.qr_order_auto_accept == true){
+          asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
+          return;
+        }
         CustomSnackBar.instance.showSnackBar(
             title: "${AppLocalizations.of(context)?.translate('qr_order')}",
             description: "${AppLocalizations.of(context)?.translate('new_qr_order_received')}",
@@ -134,15 +125,32 @@ class FirestoreQROrderSync {
             playSound: true,
             playtime: 2
         );
+      } else {
+        throw Exception("order detail collection is empty: order_cache_key: ${localOrderCache.order_cache_key}");
       }
     }catch(e){
       FLog.error(
         className: "firebase_sync/qr_order_sync",
-        text: "readOrderModDetail error",
-        exception: "Error: $e, order_cache_key: ${orderDetail.order_cache_key}",
+        text: "readOrderDetail error",
+        exception: e
       );
-      await softDeleteLocalOrderCache(orderDetail.order_cache_key!);
+      await softDeleteLocalOrderCache(localOrderCache.order_cache_key!);
     }
+  }
+
+  Future<OrderModifierDetail?> readOrderModDetail(QuerySnapshot<Map<String, dynamic>> querySnapshot, OrderDetail orderDetail) async {
+    OrderModifierDetail? orderModDetail;
+    try{
+      for (var docSnapshot in querySnapshot.docs){
+        print('${docSnapshot.id} => ${docSnapshot.data()}');
+        updateDocSyncStatus(docSnapshot.reference);
+        OrderModifierDetail? modDetail= await insertLocalOrderModifierDetail(docSnapshot.data(), orderDetail);
+        orderModDetail = modDetail;
+      }
+    }catch(e){
+      orderModDetail = null;
+    }
+    return orderModDetail;
   }
 
   Future<OrderCache?> insertLocalOrderCache(Map<String, dynamic> data) async {
@@ -200,19 +208,19 @@ class FirestoreQROrderSync {
       if(branchLinkProductData != null && categoryLocalId != null){
         OrderDetail insertData = OrderDetail(
           order_detail_id: 0,
-          order_detail_key: data['order_detail_key'],
+          order_detail_key: data['order_detail_key']!,
           order_cache_sqlite_id: localOrderCache.order_cache_sqlite_id.toString(),
-          order_cache_key: data['order_cache_key'].toString(),
+          order_cache_key: data['order_cache_key']!,
           branch_link_product_sqlite_id: branchLinkProductData.branch_link_product_sqlite_id.toString(),
           category_sqlite_id: categoryLocalId,
-          category_name: data['category_name'],
-          productName: data['product_name'],
-          has_variant: data['has_variant'],
-          product_variant_name: data['product_variant_name'],
-          price: data['price'],
-          original_price: data['original_price'],
-          quantity: data['quantity'],
-          remark: data['remark'],
+          category_name: data['category_name']!,
+          productName: data['product_name']!,
+          has_variant: data['has_variant']!,
+          product_variant_name: data['product_variant_name']!,
+          price: data['price']!,
+          original_price: data['original_price']!,
+          quantity: data['quantity']!,
+          remark: data['remark']!,
           account: '',
           edited_by: '',
           edited_by_user_id: '',
@@ -223,18 +231,20 @@ class FirestoreQROrderSync {
           per_quantity_unit: '',
           product_sku: data['product_sku'] ?? '',
           sync_status: 1,
-          created_at: data['created_at'],
+          created_at: data['created_at']!,
           updated_at: '',
           soft_delete: '',
         );
         orderDetail = await PosDatabase.instance.insertSqliteOrderDetail(insertData);
+      } else {
+        throw Exception("branch_link_product or category local id not found");
       }
     }catch(e){
       orderDetail = null;
       FLog.error(
-        className: "pos_firestore",
-        text: "insertLocalOrderDetail error",
-        exception: "Error: $e, order_cache_key: ${localOrderCache.order_cache_key}, order_detail_key: ${data['order_detail_key']}",
+          className: "firebase_sync/qr_order_sync",
+          text: "insertLocalOrderDetail error",
+          exception: e
       );
     }
     return orderDetail;
@@ -248,7 +258,7 @@ class FirestoreQROrderSync {
           order_modifier_detail_key: data['order_modifier_detail_key']!,
           order_detail_sqlite_id: orderDetail.order_detail_sqlite_id.toString(),
           order_detail_id: '0',
-          order_detail_key: data['order_detail_key'],
+          order_detail_key: data['order_detail_key']!,
           mod_item_id: data['mod_item_id']!,
           mod_name: data['name']!,
           mod_price: data['price']!,
@@ -258,12 +268,12 @@ class FirestoreQROrderSync {
           updated_at: '',
           soft_delete: ''
       );
-      orderModifierDetail =  await PosDatabase.instance.insertSqliteOrderModifierDetail(modifierDetail);
+      orderModifierDetail = await PosDatabase.instance.insertSqliteOrderModifierDetail(modifierDetail);
     }catch(e){
       FLog.error(
-        className: "pos_firestore",
-        text: "insertLocalOrderModifierDetail error",
-        exception: "Error: $e, order_cache_key: ${orderDetail.order_cache_key}",
+          className: "firebase_sync/qr_order_sync",
+          text: "insertLocalOrderModifierDetail error",
+          exception: '$e, order mode detail key: ${data['order_modifier_detail_key']}'
       );
       orderModifierDetail = null;
     }
@@ -296,7 +306,7 @@ class FirestoreQROrderSync {
         OrderCacheFields.batch_id: updatedOrderCache.batch_id,
         OrderCacheFields.table_use_key: updatedOrderCache.table_use_key ?? ''
       };
-      final docRef = await firestore.collection(_tableQrOrderCache).doc(updatedOrderCache.order_cache_key);
+      final docRef = await firestore.collection(_tb_qr_order_cache).doc(updatedOrderCache.order_cache_key);
       batch.update(docRef, jsonMap);
       batch.commit();
       status = 1;
@@ -320,7 +330,7 @@ class FirestoreQROrderSync {
         OrderCacheFields.updated_at: updatedOrderCache.updated_at,
         OrderCacheFields.accepted: updatedOrderCache.accepted ?? 1,
       };
-      final docRef = await firestore.collection(_tableQrOrderCache).doc(updatedOrderCache.order_cache_key);
+      final docRef = await firestore.collection(_tb_qr_order_cache).doc(updatedOrderCache.order_cache_key);
       batch.update(docRef, jsonMap);
       batch.commit();
       status = 1;
@@ -344,7 +354,7 @@ class FirestoreQROrderSync {
         'price': orderDetail.price,
         'quantity': orderDetail.quantity,
       };
-      final docRef = await firestore.collection(_tableQrOrderCache).doc(orderDetail.order_cache_key)
+      final docRef = await firestore.collection(_tb_qr_order_cache).doc(orderDetail.order_cache_key)
           .collection(tableOrderDetail!).doc(orderDetail.order_detail_key);
       batch.update(docRef, jsonMap);
       batch.commit();
@@ -354,6 +364,33 @@ class FirestoreQROrderSync {
         className: "firebase_sync/qr_order_sync",
         text: "updateOrderDetail error",
         exception: "Error: $e, order_cache_key: ${orderDetail.order_cache_key}",
+      );
+      status = 0;
+    }
+    return status;
+  }
+
+  Future<int> removeOrderDetail(OrderDetail orderDetail) async {
+    int status = 0;
+    try{
+      final batch = firestore.batch();
+      Map<String, dynamic> jsonMap = {
+        OrderDetailFields.updated_at: orderDetail.updated_at,
+        OrderDetailFields.status: orderDetail.status,
+      };
+      print("order detail status: ${orderDetail.status}");
+      print("order detail key: ${orderDetail.order_detail_key}");
+      print("order cache key: ${orderDetail.order_cache_key}");
+      final docRef = await firestore.collection(_tb_qr_order_cache).doc(orderDetail.order_cache_key)
+          .collection(tableOrderDetail!).doc(orderDetail.order_detail_key);
+      batch.update(docRef, jsonMap);
+      batch.commit();
+      status = 1;
+    }catch(e){
+      FLog.error(
+        className: "firebase_sync/qr_order_sync",
+        text: "removeOrderDetail error",
+        exception: "Error: $e, order_cache_key: ${orderDetail.order_cache_key}, order_detail_key: ${orderDetail.order_detail_key}",
       );
       status = 0;
     }

@@ -816,6 +816,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                   updated_at: dateTime,
                   sync_status: 2,
                   daily_limit: _totalStockQty.toString(),
+                  branch_link_product_id: orderDetailList[i].branch_link_product_id,
                   branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
               updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
               PosFirestore.instance.updateBranchLinkProductDailyLimit(object);
@@ -826,6 +827,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                   updated_at: dateTime,
                   sync_status: 2,
                   stock_quantity: _totalStockQty.toString(),
+                  branch_link_product_id: orderDetailList[i].branch_link_product_id,
                   branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
               updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
               PosFirestore.instance.updateBranchLinkProductStock(object);
@@ -1186,9 +1188,13 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
         status: 2,
         cancel_by: '',
         cancel_by_user_id: '',
+        order_cache_key: removeDetailList[i].order_cache_key,
         order_detail_key: removeDetailList[i].order_detail_key,
         order_detail_sqlite_id: removeDetailList[i].order_detail_sqlite_id,
       );
+      //update firestore order detail
+      int status = await firestoreQrOrderSync.removeOrderDetail(orderDetail);
+      print("update status: $status");
       int deleteOrderDetail = await PosDatabase.instance.updateOrderDetailStatus(orderDetail);
       if (deleteOrderDetail == 1) {
         OrderDetail data = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetail.order_detail_sqlite_id!);

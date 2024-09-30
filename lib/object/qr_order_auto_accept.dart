@@ -31,11 +31,14 @@ import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../database/pos_firestore.dart';
+import '../firebase_sync/qr_order_sync.dart';
 import '../fragment/custom_snackbar.dart';
 import '../notifier/cart_notifier.dart';
 import '../utils/Utils.dart';
 
 class QrOrderAutoAccept {
+  FirestoreQROrderSync firestoreQrOrderSync = FirestoreQROrderSync.instance;
   BuildContext context = MyApp.navigatorKey.currentContext!;
   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
   List<Printer> printerList = [];
@@ -195,6 +198,7 @@ class QrOrderAutoAccept {
 
   getAllNotAcceptedQrOrder() async {
     qrOrderCacheList.addAll(QrOrder.instance.qrOrderCacheList);
+    print("qr order cache length: ${qrOrderCacheList.length}");
     if (qrOrderCacheList.isNotEmpty) {
       for (int i = 0; i < qrOrderCacheList.length; i++) {
         if (qrOrderCacheList[i].qr_order_table_id != '') {
@@ -227,6 +231,7 @@ class QrOrderAutoAccept {
 
       orderDetailList[i].orderModifierDetail = modDetailData;
       if(data.isNotEmpty){
+        orderDetailList[i].branch_link_product_id = data[0].branch_link_product_id;
         orderDetailList[i].allow_ticket = data[0].allow_ticket;
         orderDetailList[i].ticket_count = data[0].ticket_count;
         orderDetailList[i].ticket_exp = data[0].ticket_exp;
@@ -268,7 +273,7 @@ class QrOrderAutoAccept {
               return;
             } else {
               await updateOrderDetail();
-              await updateOrderCache(qrOrderCacheList.batch_id!, qrOrderCacheList.order_cache_sqlite_id!);
+              await updateOrderCache(qrOrderCacheList);
               await updateProductStock();
             }
           } else {
@@ -411,7 +416,7 @@ class QrOrderAutoAccept {
     }
   }
 
-  updateOrderCache(String currentBatch, int order_cache_sqlite_id) async {
+  updateOrderCache(OrderCache selectedOrderCache) async {
     List<String> _value = [];
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
@@ -422,10 +427,13 @@ class QrOrderAutoAccept {
         order_by_user_id: '',
         accepted: 0,
         total_amount: newSubtotal.toStringAsFixed(2),
-        batch_id: tableInUsed ? this.batchNo : currentBatch,
+        batch_id: tableInUsed ? this.batchNo : selectedOrderCache.batch_id,
         table_use_key: this.tableUseKey,
         table_use_sqlite_id: this.localTableUseId,
-        order_cache_sqlite_id: order_cache_sqlite_id);
+        order_cache_key: selectedOrderCache.order_cache_key,
+        order_cache_sqlite_id: selectedOrderCache.order_cache_sqlite_id);
+    int firestore = await firestoreQrOrderSync.acceptOrderCache(orderCache);
+    print("accept status: $firestore");
     int status = await PosDatabase.instance.updateQrOrderCache(orderCache);
     if (status == 1) {
       OrderCache updatedCache = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCache.order_cache_sqlite_id!);
@@ -451,8 +459,10 @@ class QrOrderAutoAccept {
                   updated_at: dateTime,
                   sync_status: 2,
                   daily_limit: _totalStockQty.toString(),
+                  branch_link_product_id: orderDetailList[i].branch_link_product_id,
                   branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
               updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
+              PosFirestore.instance.updateBranchLinkProductDailyLimit(object);
             }break;
             case '2' :{
               _totalStockQty = int.parse(checkData[0].stock_quantity!) - int.parse(orderDetailList[i].quantity!);
@@ -460,8 +470,10 @@ class QrOrderAutoAccept {
                   updated_at: dateTime,
                   sync_status: 2,
                   stock_quantity: _totalStockQty.toString(),
+                  branch_link_product_id: orderDetailList[i].branch_link_product_id,
                   branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
               updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+              PosFirestore.instance.updateBranchLinkProductStock(object);
             }break;
             default: {
               updateStock = 0;
@@ -496,7 +508,7 @@ class QrOrderAutoAccept {
     await createTableUseID();
     await createTableUseDetail(qrOrderCacheList.qr_order_table_sqlite_id!);
     await updateOrderDetail();
-    await updateOrderCache(qrOrderCacheList.batch_id!, qrOrderCacheList.order_cache_sqlite_id!);
+    await updateOrderCache(qrOrderCacheList);
     await updatePosTable(qrOrderCacheList.qr_order_table_sqlite_id!);
   }
 
