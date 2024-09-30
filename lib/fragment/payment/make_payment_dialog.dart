@@ -720,64 +720,75 @@ class _MakePaymentState extends State<MakePayment> {
                                                                     ),
                                                                   ),
                                                                   actions: <Widget>[
-                                                                    SizedBox(
-                                                                      width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                                                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                                                      child: ElevatedButton(
-                                                                        style: ElevatedButton.styleFrom(
-                                                                          backgroundColor: color.backgroundColor,
+                                                                    Row(
+                                                                      children: [
+                                                                        Expanded(
+                                                                          flex: 1,
+                                                                          child: SizedBox(
+                                                                            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                                            child: ElevatedButton(
+                                                                              style: ElevatedButton.styleFrom(
+                                                                                backgroundColor: color.backgroundColor,
+                                                                              ),
+                                                                              child: Text(
+                                                                                AppLocalizations.of(context)!.translate('close'),
+                                                                                style: TextStyle(color: Colors.white),
+                                                                              ),
+                                                                              onPressed: isButtonDisabled
+                                                                                  ? null
+                                                                                  : () {
+                                                                                setState(() {
+                                                                                  isButtonDisabled = true;
+                                                                                  splitAmountController.clear();
+                                                                                  split_payment = !split_payment;
+                                                                                });
+                                                                                Navigator.of(context).pop();
+                                                                                if (mounted) {
+                                                                                  setState(() {
+                                                                                    isButtonDisabled = false;
+                                                                                  });
+                                                                                }
+                                                                              },
+                                                                            ),
+                                                                          ),
                                                                         ),
-                                                                        child: Text(
-                                                                          AppLocalizations.of(context)!.translate('close'),
-                                                                          style: TextStyle(color: Colors.white),
-                                                                        ),
-                                                                        onPressed: isButtonDisabled
-                                                                            ? null
-                                                                            : () {
-                                                                          setState(() {
-                                                                            isButtonDisabled = true;
-                                                                            splitAmountController.clear();
-                                                                            split_payment = !split_payment;
-                                                                          });
-                                                                          Navigator.of(context).pop();
-                                                                          if (mounted) {
-                                                                            setState(() {
-                                                                              isButtonDisabled = false;
-                                                                            });
-                                                                          }
-                                                                        },
-                                                                      ),
-                                                                    ),
-                                                                    SizedBox(
-                                                                      width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                                                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                                                      child: ElevatedButton(
-                                                                        style: ElevatedButton.styleFrom(
-                                                                          backgroundColor: color.buttonColor,
-                                                                        ),
-                                                                        child: Text(
-                                                                          AppLocalizations.of(context)!.translate('yes'),
-                                                                          style: TextStyle(color: Colors.white),
-                                                                        ),
-                                                                        onPressed: isButtonDisabled
-                                                                            ? null
-                                                                            : () async {
-                                                                          if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
-                                                                              double.parse(splitAmountController.text) < double.parse(finalAmount)){
-                                                                            finalAmount = splitAmountController.text;
-                                                                            setState(() {
-                                                                              isButtonDisabled = true;
-                                                                              willPop = false;
-                                                                              Navigator.of(context).pop();
-                                                                            });
-                                                                          } else {
-                                                                            Fluttertoast.showToast(
-                                                                                backgroundColor: Color(0xFFFF0000),
-                                                                                msg: AppLocalizations.of(context)!.translate('invalid_input'));
-                                                                            splitAmountController.clear();
-                                                                          }
-                                                                        },
-                                                                      ),
+                                                                        SizedBox(width: 10),
+                                                                        Expanded(
+                                                                          flex: 1,
+                                                                          child: SizedBox(
+                                                                            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                                            child: ElevatedButton(
+                                                                              style: ElevatedButton.styleFrom(
+                                                                                backgroundColor: color.buttonColor,
+                                                                              ),
+                                                                              child: Text(
+                                                                                AppLocalizations.of(context)!.translate('yes'),
+                                                                                style: TextStyle(color: Colors.white),
+                                                                              ),
+                                                                              onPressed: isButtonDisabled
+                                                                                  ? null
+                                                                                  : () async {
+                                                                                if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                                    double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                                  finalAmount = splitAmountController.text;
+                                                                                  setState(() {
+                                                                                    isButtonDisabled = true;
+                                                                                    willPop = false;
+                                                                                    Navigator.of(context).pop();
+                                                                                  });
+                                                                                } else {
+                                                                                  Fluttertoast.showToast(
+                                                                                      backgroundColor: Color(0xFFFF0000),
+                                                                                      msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                                  splitAmountController.clear();
+                                                                                }
+                                                                              },
+                                                                            ),
+                                                                          ),
+                                                                        )
+                                                                      ],
                                                                     ),
                                                                   ],
                                                                 );
@@ -961,65 +972,76 @@ class _MakePaymentState extends State<MakePayment> {
                                                             ),
                                                           ),
                                                           actions: <Widget>[
-                                                            SizedBox(
-                                                              width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                                              height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                                              child: ElevatedButton(
-                                                                style: ElevatedButton.styleFrom(
-                                                                  backgroundColor: color.backgroundColor,
+                                                            Row(
+                                                              children: [
+                                                                Expanded(
+                                                                  flex: 1,
+                                                                  child: SizedBox(
+                                                                    width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                                    height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                                    child: ElevatedButton(
+                                                                      style: ElevatedButton.styleFrom(
+                                                                        backgroundColor: color.backgroundColor,
+                                                                      ),
+                                                                      child: Text(
+                                                                        AppLocalizations.of(context)!.translate('close'),
+                                                                        style: TextStyle(color: Colors.white),
+                                                                      ),
+                                                                      onPressed: isButtonDisabled
+                                                                          ? null
+                                                                          : () {
+                                                                        setState(() {
+                                                                          isButtonDisabled = true;
+                                                                          splitAmountController.clear();
+                                                                          split_payment = !split_payment;
+                                                                        });
+                                                                        Navigator.of(context).pop();
+                                                                        if (mounted) {
+                                                                          setState(() {
+                                                                            isButtonDisabled = false;
+                                                                          });
+                                                                        }
+                                                                      },
+                                                                    ),
+                                                                  ),
                                                                 ),
-                                                                child: Text(
-                                                                  AppLocalizations.of(context)!.translate('close'),
-                                                                  style: TextStyle(color: Colors.white),
-                                                                ),
-                                                                onPressed: isButtonDisabled
-                                                                    ? null
-                                                                    : () {
-                                                                  setState(() {
-                                                                    isButtonDisabled = true;
-                                                                    splitAmountController.clear();
-                                                                    split_payment = !split_payment;
-                                                                  });
-                                                                  Navigator.of(context).pop();
-                                                                  if (mounted) {
-                                                                    setState(() {
-                                                                      isButtonDisabled = false;
-                                                                    });
-                                                                  }
-                                                                },
-                                                              ),
-                                                            ),
-                                                            SizedBox(
-                                                              width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                                              height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                                              child: ElevatedButton(
-                                                                style: ElevatedButton.styleFrom(
-                                                                  backgroundColor: color.buttonColor,
-                                                                ),
-                                                                child: Text(
-                                                                  AppLocalizations.of(context)!.translate('yes'),
-                                                                  style: TextStyle(color: Colors.white),
-                                                                ),
-                                                                onPressed: isButtonDisabled
-                                                                    ? null
-                                                                    : () async {
-                                                                  if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
-                                                                      double.parse(splitAmountController.text) < double.parse(finalAmount)){
-                                                                    finalAmount = splitAmountController.text;
-                                                                    setState(() {
-                                                                      isButtonDisabled = true;
-                                                                      willPop = false;
-                                                                      Navigator.of(context).pop();
-                                                                    });
-                                                                  } else {
-                                                                    Fluttertoast.showToast(
-                                                                        backgroundColor: Color(0xFFFF0000),
-                                                                        msg: AppLocalizations.of(context)!.translate('invalid_input'));
-                                                                    splitAmountController.clear();
-                                                                  }
-                                                                },
-                                                              ),
-                                                            ),
+                                                                SizedBox(width: 10),
+                                                                Expanded(
+                                                                  flex: 1,
+                                                                  child: SizedBox(
+                                                                    width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                                    height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                                    child: ElevatedButton(
+                                                                      style: ElevatedButton.styleFrom(
+                                                                        backgroundColor: color.buttonColor,
+                                                                      ),
+                                                                      child: Text(
+                                                                        AppLocalizations.of(context)!.translate('yes'),
+                                                                        style: TextStyle(color: Colors.white),
+                                                                      ),
+                                                                      onPressed: isButtonDisabled
+                                                                          ? null
+                                                                          : () async {
+                                                                        if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                            double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                          finalAmount = splitAmountController.text;
+                                                                          setState(() {
+                                                                            isButtonDisabled = true;
+                                                                            willPop = false;
+                                                                            Navigator.of(context).pop();
+                                                                          });
+                                                                        } else {
+                                                                          Fluttertoast.showToast(
+                                                                              backgroundColor: Color(0xFFFF0000),
+                                                                              msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                          splitAmountController.clear();
+                                                                        }
+                                                                      },
+                                                                    ),
+                                                                  ),
+                                                                )
+                                                              ],
+                                                            )
                                                           ],
                                                         );
                                                       },
@@ -1135,7 +1157,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                           });
                                                           //await controller?.resumeCamera();
                                                           await controller?.scannedDataStream;
-                                                          await callCreateOrder(finalAmount);
+                                                          // await callCreateOrder(finalAmount);
                                                           if (this.isLogOut == true) {
                                                             openLogOutDialog();
                                                             return;
@@ -1208,65 +1230,76 @@ class _MakePaymentState extends State<MakePayment> {
                                                                   ),
                                                                 ),
                                                                 actions: <Widget>[
-                                                                  SizedBox(
-                                                                    width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                                                    height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                                                    child: ElevatedButton(
-                                                                      style: ElevatedButton.styleFrom(
-                                                                        backgroundColor: color.backgroundColor,
+                                                                  Row(
+                                                                    children: [
+                                                                      Expanded(
+                                                                        flex: 1,
+                                                                        child: SizedBox(
+                                                                          width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                                          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                                          child: ElevatedButton(
+                                                                            style: ElevatedButton.styleFrom(
+                                                                              backgroundColor: color.backgroundColor,
+                                                                            ),
+                                                                            child: Text(
+                                                                              AppLocalizations.of(context)!.translate('close'),
+                                                                              style: TextStyle(color: Colors.white),
+                                                                            ),
+                                                                            onPressed: isButtonDisabled
+                                                                                ? null
+                                                                                : () {
+                                                                              setState(() {
+                                                                                isButtonDisabled = true;
+                                                                                splitAmountController.clear();
+                                                                                split_payment = !split_payment;
+                                                                              });
+                                                                              Navigator.of(context).pop();
+                                                                              if (mounted) {
+                                                                                setState(() {
+                                                                                  isButtonDisabled = false;
+                                                                                });
+                                                                              }
+                                                                            },
+                                                                          ),
+                                                                        ),
                                                                       ),
-                                                                      child: Text(
-                                                                        AppLocalizations.of(context)!.translate('close'),
-                                                                        style: TextStyle(color: Colors.white),
-                                                                      ),
-                                                                      onPressed: isButtonDisabled
-                                                                          ? null
-                                                                          : () {
-                                                                        setState(() {
-                                                                          isButtonDisabled = true;
-                                                                          splitAmountController.clear();
-                                                                          split_payment = !split_payment;
-                                                                        });
-                                                                        Navigator.of(context).pop();
-                                                                        if (mounted) {
-                                                                          setState(() {
-                                                                            isButtonDisabled = false;
-                                                                          });
-                                                                        }
-                                                                      },
-                                                                    ),
-                                                                  ),
-                                                                  SizedBox(
-                                                                    width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                                                    height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                                                    child: ElevatedButton(
-                                                                      style: ElevatedButton.styleFrom(
-                                                                        backgroundColor: color.buttonColor,
-                                                                      ),
-                                                                      child: Text(
-                                                                        AppLocalizations.of(context)!.translate('yes'),
-                                                                        style: TextStyle(color: Colors.white),
-                                                                      ),
-                                                                      onPressed: isButtonDisabled
-                                                                          ? null
-                                                                          : () async {
-                                                                        if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
-                                                                            double.parse(splitAmountController.text) < double.parse(finalAmount)){
-                                                                          finalAmount = splitAmountController.text;
-                                                                          setState(() {
-                                                                            isButtonDisabled = true;
-                                                                            willPop = false;
-                                                                            Navigator.of(context).pop();
-                                                                          });
-                                                                        } else {
-                                                                          Fluttertoast.showToast(
-                                                                              backgroundColor: Color(0xFFFF0000),
-                                                                              msg: AppLocalizations.of(context)!.translate('invalid_input'));
-                                                                          splitAmountController.clear();
-                                                                        }
-                                                                      },
-                                                                    ),
-                                                                  ),
+                                                                      SizedBox(width: 10),
+                                                                      Expanded(
+                                                                        flex: 1,
+                                                                        child: SizedBox(
+                                                                          width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                                          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                                          child: ElevatedButton(
+                                                                            style: ElevatedButton.styleFrom(
+                                                                              backgroundColor: color.buttonColor,
+                                                                            ),
+                                                                            child: Text(
+                                                                              AppLocalizations.of(context)!.translate('yes'),
+                                                                              style: TextStyle(color: Colors.white),
+                                                                            ),
+                                                                            onPressed: isButtonDisabled
+                                                                                ? null
+                                                                                : () async {
+                                                                              if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                                  double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                                finalAmount = splitAmountController.text;
+                                                                                setState(() {
+                                                                                  isButtonDisabled = true;
+                                                                                  willPop = false;
+                                                                                  Navigator.of(context).pop();
+                                                                                });
+                                                                              } else {
+                                                                                Fluttertoast.showToast(
+                                                                                    backgroundColor: Color(0xFFFF0000),
+                                                                                    msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                                splitAmountController.clear();
+                                                                              }
+                                                                            },
+                                                                          ),
+                                                                        ),
+                                                                      )
+                                                                    ],
+                                                                  )
                                                                 ],
                                                               );
                                                             },
@@ -1720,65 +1753,76 @@ class _MakePaymentState extends State<MakePayment> {
                                                           ),
                                                         ),
                                                         actions: <Widget>[
-                                                          SizedBox(
-                                                            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                                            child: ElevatedButton(
-                                                              style: ElevatedButton.styleFrom(
-                                                                backgroundColor: color.backgroundColor,
+                                                          Row(
+                                                            children: [
+                                                              Expanded(
+                                                                flex: 1,
+                                                                child: SizedBox(
+                                                                  width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                                  height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                                  child: ElevatedButton(
+                                                                    style: ElevatedButton.styleFrom(
+                                                                      backgroundColor: color.backgroundColor,
+                                                                    ),
+                                                                    child: Text(
+                                                                      AppLocalizations.of(context)!.translate('close'),
+                                                                      style: TextStyle(color: Colors.white),
+                                                                    ),
+                                                                    onPressed: isButtonDisabled
+                                                                        ? null
+                                                                        : () {
+                                                                      setState(() {
+                                                                        isButtonDisabled = true;
+                                                                        splitAmountController.clear();
+                                                                        split_payment = !split_payment;
+                                                                      });
+                                                                      Navigator.of(context).pop();
+                                                                      if (mounted) {
+                                                                        setState(() {
+                                                                          isButtonDisabled = false;
+                                                                        });
+                                                                      }
+                                                                    },
+                                                                  ),
+                                                                ),
                                                               ),
-                                                              child: Text(
-                                                                AppLocalizations.of(context)!.translate('close'),
-                                                                style: TextStyle(color: Colors.white),
-                                                              ),
-                                                              onPressed: isButtonDisabled
-                                                                  ? null
-                                                                  : () {
-                                                                setState(() {
-                                                                  isButtonDisabled = true;
-                                                                  splitAmountController.clear();
-                                                                  split_payment = !split_payment;
-                                                                });
-                                                                Navigator.of(context).pop();
-                                                                if (mounted) {
-                                                                  setState(() {
-                                                                    isButtonDisabled = false;
-                                                                  });
-                                                                }
-                                                              },
-                                                            ),
-                                                          ),
-                                                          SizedBox(
-                                                            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                                            child: ElevatedButton(
-                                                              style: ElevatedButton.styleFrom(
-                                                                backgroundColor: color.buttonColor,
-                                                              ),
-                                                              child: Text(
-                                                                AppLocalizations.of(context)!.translate('yes'),
-                                                                style: TextStyle(color: Colors.white),
-                                                              ),
-                                                              onPressed: isButtonDisabled
-                                                                  ? null
-                                                                  : () async {
-                                                                if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
-                                                                    double.parse(splitAmountController.text) < double.parse(finalAmount)){
-                                                                  finalAmount = splitAmountController.text;
-                                                                  setState(() {
-                                                                    isButtonDisabled = true;
-                                                                    willPop = false;
-                                                                    Navigator.of(context).pop();
-                                                                  });
-                                                                } else {
-                                                                  Fluttertoast.showToast(
-                                                                      backgroundColor: Color(0xFFFF0000),
-                                                                      msg: AppLocalizations.of(context)!.translate('invalid_input'));
-                                                                  splitAmountController.clear();
-                                                                }
-                                                              },
-                                                            ),
-                                                          ),
+                                                              SizedBox(width: 10),
+                                                              Expanded(
+                                                                flex: 1,
+                                                                child: SizedBox(
+                                                                  width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                                  height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                                  child: ElevatedButton(
+                                                                    style: ElevatedButton.styleFrom(
+                                                                      backgroundColor: color.buttonColor,
+                                                                    ),
+                                                                    child: Text(
+                                                                      AppLocalizations.of(context)!.translate('yes'),
+                                                                      style: TextStyle(color: Colors.white),
+                                                                    ),
+                                                                    onPressed: isButtonDisabled
+                                                                        ? null
+                                                                        : () async {
+                                                                      if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                          double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                        finalAmount = splitAmountController.text;
+                                                                        setState(() {
+                                                                          isButtonDisabled = true;
+                                                                          willPop = false;
+                                                                          Navigator.of(context).pop();
+                                                                        });
+                                                                      } else {
+                                                                        Fluttertoast.showToast(
+                                                                            backgroundColor: Color(0xFFFF0000),
+                                                                            msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                        splitAmountController.clear();
+                                                                      }
+                                                                    },
+                                                                  ),
+                                                                ),
+                                                              )
+                                                            ],
+                                                          )
                                                         ],
                                                       );
                                                     },
@@ -1960,65 +2004,76 @@ class _MakePaymentState extends State<MakePayment> {
                                                         ),
                                                       ),
                                                       actions: <Widget>[
-                                                        SizedBox(
-                                                          width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                                          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                                          child: ElevatedButton(
-                                                            style: ElevatedButton.styleFrom(
-                                                              backgroundColor: color.backgroundColor,
+                                                        Row(
+                                                          children: [
+                                                            Expanded(
+                                                              flex: 1,
+                                                              child: SizedBox(
+                                                                width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                                height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                                child: ElevatedButton(
+                                                                  style: ElevatedButton.styleFrom(
+                                                                    backgroundColor: color.backgroundColor,
+                                                                  ),
+                                                                  child: Text(
+                                                                    AppLocalizations.of(context)!.translate('close'),
+                                                                    style: TextStyle(color: Colors.white),
+                                                                  ),
+                                                                  onPressed: isButtonDisabled
+                                                                      ? null
+                                                                      : () {
+                                                                    setState(() {
+                                                                      isButtonDisabled = true;
+                                                                      splitAmountController.clear();
+                                                                      split_payment = !split_payment;
+                                                                    });
+                                                                    Navigator.of(context).pop();
+                                                                    if (mounted) {
+                                                                      setState(() {
+                                                                        isButtonDisabled = false;
+                                                                      });
+                                                                    }
+                                                                  },
+                                                                ),
+                                                              ),
                                                             ),
-                                                            child: Text(
-                                                              AppLocalizations.of(context)!.translate('close'),
-                                                              style: TextStyle(color: Colors.white),
-                                                            ),
-                                                            onPressed: isButtonDisabled
-                                                                ? null
-                                                                : () {
-                                                              setState(() {
-                                                                isButtonDisabled = true;
-                                                                splitAmountController.clear();
-                                                                split_payment = !split_payment;
-                                                              });
-                                                              Navigator.of(context).pop();
-                                                              if (mounted) {
-                                                                setState(() {
-                                                                  isButtonDisabled = false;
-                                                                });
-                                                              }
-                                                            },
-                                                          ),
-                                                        ),
-                                                        SizedBox(
-                                                          width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                                          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                                          child: ElevatedButton(
-                                                            style: ElevatedButton.styleFrom(
-                                                              backgroundColor: color.buttonColor,
-                                                            ),
-                                                            child: Text(
-                                                              AppLocalizations.of(context)!.translate('yes'),
-                                                              style: TextStyle(color: Colors.white),
-                                                            ),
-                                                            onPressed: isButtonDisabled
-                                                                ? null
-                                                                : () async {
-                                                              if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
-                                                                  double.parse(splitAmountController.text) < double.parse(finalAmount)){
-                                                                finalAmount = splitAmountController.text;
-                                                                setState(() {
-                                                                  isButtonDisabled = true;
-                                                                  willPop = false;
-                                                                  Navigator.of(context).pop();
-                                                                });
-                                                              } else {
-                                                                Fluttertoast.showToast(
-                                                                    backgroundColor: Color(0xFFFF0000),
-                                                                    msg: AppLocalizations.of(context)!.translate('invalid_input'));
-                                                                splitAmountController.clear();
-                                                              }
-                                                            },
-                                                          ),
-                                                        ),
+                                                            SizedBox(width: 10),
+                                                            Expanded(
+                                                              flex: 1,
+                                                              child: SizedBox(
+                                                                width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                                height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                                child: ElevatedButton(
+                                                                  style: ElevatedButton.styleFrom(
+                                                                    backgroundColor: color.buttonColor,
+                                                                  ),
+                                                                  child: Text(
+                                                                    AppLocalizations.of(context)!.translate('yes'),
+                                                                    style: TextStyle(color: Colors.white),
+                                                                  ),
+                                                                  onPressed: isButtonDisabled
+                                                                      ? null
+                                                                      : () async {
+                                                                    if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                        double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                      finalAmount = splitAmountController.text;
+                                                                      setState(() {
+                                                                        isButtonDisabled = true;
+                                                                        willPop = false;
+                                                                        Navigator.of(context).pop();
+                                                                      });
+                                                                    } else {
+                                                                      Fluttertoast.showToast(
+                                                                          backgroundColor: Color(0xFFFF0000),
+                                                                          msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                      splitAmountController.clear();
+                                                                    }
+                                                                  },
+                                                                ),
+                                                              ),
+                                                            )
+                                                          ],
+                                                        )
                                                       ],
                                                     );
                                                   },
@@ -2134,7 +2189,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                 });
                                                 //await controller?.resumeCamera();
                                                 await controller?.scannedDataStream;
-                                                await callCreateOrder(finalAmount);
+                                                // await callCreateOrder(finalAmount);
                                                 if (this.isLogOut == true) {
                                                   openLogOutDialog();
                                                   return;
@@ -2204,65 +2259,76 @@ class _MakePaymentState extends State<MakePayment> {
                                                         ),
                                                       ),
                                                       actions: <Widget>[
-                                                        SizedBox(
-                                                          width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                                          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                                          child: ElevatedButton(
-                                                            style: ElevatedButton.styleFrom(
-                                                              backgroundColor: color.backgroundColor,
+                                                        Row(
+                                                          children: [
+                                                            Expanded(
+                                                              flex: 1,
+                                                              child: SizedBox(
+                                                                width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                                height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                                child: ElevatedButton(
+                                                                  style: ElevatedButton.styleFrom(
+                                                                    backgroundColor: color.backgroundColor,
+                                                                  ),
+                                                                  child: Text(
+                                                                    AppLocalizations.of(context)!.translate('close'),
+                                                                    style: TextStyle(color: Colors.white),
+                                                                  ),
+                                                                  onPressed: isButtonDisabled
+                                                                      ? null
+                                                                      : () {
+                                                                    setState(() {
+                                                                      isButtonDisabled = true;
+                                                                      splitAmountController.clear();
+                                                                      split_payment = !split_payment;
+                                                                    });
+                                                                    Navigator.of(context).pop();
+                                                                    if (mounted) {
+                                                                      setState(() {
+                                                                        isButtonDisabled = false;
+                                                                      });
+                                                                    }
+                                                                  },
+                                                                ),
+                                                              ),
                                                             ),
-                                                            child: Text(
-                                                              AppLocalizations.of(context)!.translate('close'),
-                                                              style: TextStyle(color: Colors.white),
-                                                            ),
-                                                            onPressed: isButtonDisabled
-                                                                ? null
-                                                                : () {
-                                                              setState(() {
-                                                                isButtonDisabled = true;
-                                                                splitAmountController.clear();
-                                                                split_payment = !split_payment;
-                                                              });
-                                                              Navigator.of(context).pop();
-                                                              if (mounted) {
-                                                                setState(() {
-                                                                  isButtonDisabled = false;
-                                                                });
-                                                              }
-                                                            },
-                                                          ),
-                                                        ),
-                                                        SizedBox(
-                                                          width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                                          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                                          child: ElevatedButton(
-                                                            style: ElevatedButton.styleFrom(
-                                                              backgroundColor: color.buttonColor,
-                                                            ),
-                                                            child: Text(
-                                                              AppLocalizations.of(context)!.translate('yes'),
-                                                              style: TextStyle(color: Colors.white),
-                                                            ),
-                                                            onPressed: isButtonDisabled
-                                                                ? null
-                                                                : () async {
-                                                              if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
-                                                                  double.parse(splitAmountController.text) < double.parse(finalAmount)){
-                                                                finalAmount = splitAmountController.text;
-                                                                setState(() {
-                                                                  isButtonDisabled = true;
-                                                                  willPop = false;
-                                                                  Navigator.of(context).pop();
-                                                                });
-                                                              } else {
-                                                                Fluttertoast.showToast(
-                                                                    backgroundColor: Color(0xFFFF0000),
-                                                                    msg: AppLocalizations.of(context)!.translate('invalid_input'));
-                                                                splitAmountController.clear();
-                                                              }
-                                                            },
-                                                          ),
-                                                        ),
+                                                            SizedBox(width: 10),
+                                                            Expanded(
+                                                              flex: 1,
+                                                              child: SizedBox(
+                                                                width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                                                                height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                                                                child: ElevatedButton(
+                                                                  style: ElevatedButton.styleFrom(
+                                                                    backgroundColor: color.buttonColor,
+                                                                  ),
+                                                                  child: Text(
+                                                                    AppLocalizations.of(context)!.translate('yes'),
+                                                                    style: TextStyle(color: Colors.white),
+                                                                  ),
+                                                                  onPressed: isButtonDisabled
+                                                                      ? null
+                                                                      : () async {
+                                                                    if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                        double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                      finalAmount = splitAmountController.text;
+                                                                      setState(() {
+                                                                        isButtonDisabled = true;
+                                                                        willPop = false;
+                                                                        Navigator.of(context).pop();
+                                                                      });
+                                                                    } else {
+                                                                      Fluttertoast.showToast(
+                                                                          backgroundColor: Color(0xFFFF0000),
+                                                                          msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                      splitAmountController.clear();
+                                                                    }
+                                                                  },
+                                                                ),
+                                                              ),
+                                                            )
+                                                          ],
+                                                        )
                                                       ],
                                                     );
                                                   },
@@ -2686,65 +2752,74 @@ class _MakePaymentState extends State<MakePayment> {
                                                               ),
                                                             ),
                                                             actions: <Widget>[
-                                                              SizedBox(
-                                                                width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                                                height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                                                child: ElevatedButton(
-                                                                  style: ElevatedButton.styleFrom(
-                                                                    backgroundColor: color.backgroundColor,
+                                                              Row(
+                                                                children: [
+                                                                  Expanded(
+                                                                    flex: 1,
+                                                                    child: SizedBox(
+                                                                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 20,
+                                                                      child: ElevatedButton(
+                                                                        style: ElevatedButton.styleFrom(
+                                                                          backgroundColor: color.backgroundColor,
+                                                                        ),
+                                                                        child: Text(
+                                                                          AppLocalizations.of(context)!.translate('close'),
+                                                                          style: TextStyle(color: Colors.white),
+                                                                        ),
+                                                                        onPressed: isButtonDisabled
+                                                                            ? null
+                                                                            : () {
+                                                                          setState(() {
+                                                                            isButtonDisabled = true;
+                                                                            splitAmountController.clear();
+                                                                            split_payment = !split_payment;
+                                                                          });
+                                                                          Navigator.of(context).pop();
+                                                                          if (mounted) {
+                                                                            setState(() {
+                                                                              isButtonDisabled = false;
+                                                                            });
+                                                                          }
+                                                                        },
+                                                                      ),
+                                                                    ),
                                                                   ),
-                                                                  child: Text(
-                                                                    AppLocalizations.of(context)!.translate('close'),
-                                                                    style: TextStyle(color: Colors.white),
-                                                                  ),
-                                                                  onPressed: isButtonDisabled
-                                                                      ? null
-                                                                      : () {
-                                                                    setState(() {
-                                                                      isButtonDisabled = true;
-                                                                      splitAmountController.clear();
-                                                                      split_payment = !split_payment;
-                                                                    });
-                                                                    Navigator.of(context).pop();
-                                                                    if (mounted) {
-                                                                      setState(() {
-                                                                        isButtonDisabled = false;
-                                                                      });
-                                                                    }
-                                                                  },
-                                                                ),
-                                                              ),
-                                                              SizedBox(
-                                                                width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                                                height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                                                child: ElevatedButton(
-                                                                  style: ElevatedButton.styleFrom(
-                                                                    backgroundColor: color.buttonColor,
-                                                                  ),
-                                                                  child: Text(
-                                                                    AppLocalizations.of(context)!.translate('yes'),
-                                                                    style: TextStyle(color: Colors.white),
-                                                                  ),
-                                                                  onPressed: isButtonDisabled
-                                                                      ? null
-                                                                      : () async {
-                                                                    if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
-                                                                        double.parse(splitAmountController.text) < double.parse(finalAmount)){
-                                                                      finalAmount = splitAmountController.text;
-                                                                      setState(() {
-                                                                        isButtonDisabled = true;
-                                                                        willPop = false;
-                                                                        Navigator.of(context).pop();
-                                                                      });
-                                                                    } else {
-                                                                      Fluttertoast.showToast(
-                                                                          backgroundColor: Color(0xFFFF0000),
-                                                                          msg: AppLocalizations.of(context)!.translate('invalid_input'));
-                                                                      splitAmountController.clear();
-                                                                    }
-                                                                  },
-                                                                ),
-                                                              ),
+                                                                  SizedBox(width: 10),
+                                                                  Expanded(
+                                                                    flex: 1,
+                                                                    child: SizedBox(
+                                                                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 20,
+                                                                      child: ElevatedButton(
+                                                                        style: ElevatedButton.styleFrom(
+                                                                          backgroundColor: color.buttonColor,
+                                                                        ),
+                                                                        child: Text(
+                                                                          AppLocalizations.of(context)!.translate('yes'),
+                                                                          style: TextStyle(color: Colors.white),
+                                                                        ),
+                                                                        onPressed: isButtonDisabled
+                                                                            ? null
+                                                                            : () async {
+                                                                          if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                              double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                            finalAmount = splitAmountController.text;
+                                                                            setState(() {
+                                                                              isButtonDisabled = true;
+                                                                              willPop = false;
+                                                                              Navigator.of(context).pop();
+                                                                            });
+                                                                          } else {
+                                                                            Fluttertoast.showToast(
+                                                                                backgroundColor: Color(0xFFFF0000),
+                                                                                msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                            splitAmountController.clear();
+                                                                          }
+                                                                        },
+                                                                      ),
+                                                                    ),
+                                                                  )
+                                                                ],
+                                                              )
                                                             ],
                                                           );
                                                         },
@@ -2917,65 +2992,74 @@ class _MakePaymentState extends State<MakePayment> {
                                                           ),
                                                         ),
                                                         actions: <Widget>[
-                                                          SizedBox(
-                                                            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                                            child: ElevatedButton(
-                                                              style: ElevatedButton.styleFrom(
-                                                                backgroundColor: color.backgroundColor,
+                                                          Row(
+                                                            children: [
+                                                              Expanded(
+                                                                flex: 1,
+                                                                child: SizedBox(
+                                                                  height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 20,
+                                                                  child: ElevatedButton(
+                                                                    style: ElevatedButton.styleFrom(
+                                                                      backgroundColor: color.backgroundColor,
+                                                                    ),
+                                                                    child: Text(
+                                                                      AppLocalizations.of(context)!.translate('close'),
+                                                                      style: TextStyle(color: Colors.white),
+                                                                    ),
+                                                                    onPressed: isButtonDisabled
+                                                                        ? null
+                                                                        : () {
+                                                                      setState(() {
+                                                                        isButtonDisabled = true;
+                                                                        splitAmountController.clear();
+                                                                        split_payment = !split_payment;
+                                                                      });
+                                                                      Navigator.of(context).pop();
+                                                                      if (mounted) {
+                                                                        setState(() {
+                                                                          isButtonDisabled = false;
+                                                                        });
+                                                                      }
+                                                                    },
+                                                                  ),
+                                                                ),
                                                               ),
-                                                              child: Text(
-                                                                AppLocalizations.of(context)!.translate('close'),
-                                                                style: TextStyle(color: Colors.white),
-                                                              ),
-                                                              onPressed: isButtonDisabled
-                                                                  ? null
-                                                                  : () {
-                                                                setState(() {
-                                                                  isButtonDisabled = true;
-                                                                  splitAmountController.clear();
-                                                                  split_payment = !split_payment;
-                                                                });
-                                                                Navigator.of(context).pop();
-                                                                if (mounted) {
-                                                                  setState(() {
-                                                                    isButtonDisabled = false;
-                                                                  });
-                                                                }
-                                                              },
-                                                            ),
-                                                          ),
-                                                          SizedBox(
-                                                            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                                            child: ElevatedButton(
-                                                              style: ElevatedButton.styleFrom(
-                                                                backgroundColor: color.buttonColor,
-                                                              ),
-                                                              child: Text(
-                                                                AppLocalizations.of(context)!.translate('yes'),
-                                                                style: TextStyle(color: Colors.white),
-                                                              ),
-                                                              onPressed: isButtonDisabled
-                                                                  ? null
-                                                                  : () async {
-                                                                if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
-                                                                    double.parse(splitAmountController.text) < double.parse(finalAmount)){
-                                                                  finalAmount = splitAmountController.text;
-                                                                  setState(() {
-                                                                    isButtonDisabled = true;
-                                                                    willPop = false;
-                                                                    Navigator.of(context).pop();
-                                                                  });
-                                                                } else {
-                                                                  Fluttertoast.showToast(
-                                                                      backgroundColor: Color(0xFFFF0000),
-                                                                      msg: AppLocalizations.of(context)!.translate('invalid_input'));
-                                                                  splitAmountController.clear();
-                                                                }
-                                                              },
-                                                            ),
-                                                          ),
+                                                              SizedBox(width: 10),
+                                                              Expanded(
+                                                                flex: 1,
+                                                                child: SizedBox(
+                                                                  height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 20,
+                                                                  child: ElevatedButton(
+                                                                    style: ElevatedButton.styleFrom(
+                                                                      backgroundColor: color.buttonColor,
+                                                                    ),
+                                                                    child: Text(
+                                                                      AppLocalizations.of(context)!.translate('yes'),
+                                                                      style: TextStyle(color: Colors.white),
+                                                                    ),
+                                                                    onPressed: isButtonDisabled
+                                                                        ? null
+                                                                        : () async {
+                                                                      if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                          double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                        finalAmount = splitAmountController.text;
+                                                                        setState(() {
+                                                                          isButtonDisabled = true;
+                                                                          willPop = false;
+                                                                          Navigator.of(context).pop();
+                                                                        });
+                                                                      } else {
+                                                                        Fluttertoast.showToast(
+                                                                            backgroundColor: Color(0xFFFF0000),
+                                                                            msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                        splitAmountController.clear();
+                                                                      }
+                                                                    },
+                                                                  ),
+                                                                ),
+                                                              )
+                                                            ],
+                                                          )
                                                         ],
                                                       );
                                                     },
@@ -3080,7 +3164,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                   scanning = !scanning;
                                                 });
                                                 await controller?.scannedDataStream;
-                                                await callCreateOrder(finalAmount);
+                                                // await callCreateOrder(finalAmount);
                                                 if (this.isLogOut == true) {
                                                   openLogOutDialog();
                                                   return;
@@ -3149,65 +3233,74 @@ class _MakePaymentState extends State<MakePayment> {
                                                         ),
                                                       ),
                                                       actions: <Widget>[
-                                                        SizedBox(
-                                                          width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                                          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                                          child: ElevatedButton(
-                                                            style: ElevatedButton.styleFrom(
-                                                              backgroundColor: color.backgroundColor,
+                                                        Row(
+                                                          children: [
+                                                            Expanded(
+                                                              flex: 1,
+                                                              child: SizedBox(
+                                                                height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 20,
+                                                                child: ElevatedButton(
+                                                                  style: ElevatedButton.styleFrom(
+                                                                    backgroundColor: color.backgroundColor,
+                                                                  ),
+                                                                  child: Text(
+                                                                    AppLocalizations.of(context)!.translate('close'),
+                                                                    style: TextStyle(color: Colors.white),
+                                                                  ),
+                                                                  onPressed: isButtonDisabled
+                                                                      ? null
+                                                                      : () {
+                                                                    setState(() {
+                                                                      isButtonDisabled = true;
+                                                                      splitAmountController.clear();
+                                                                      split_payment = !split_payment;
+                                                                    });
+                                                                    Navigator.of(context).pop();
+                                                                    if (mounted) {
+                                                                      setState(() {
+                                                                        isButtonDisabled = false;
+                                                                      });
+                                                                    }
+                                                                  },
+                                                                ),
+                                                              ),
                                                             ),
-                                                            child: Text(
-                                                              AppLocalizations.of(context)!.translate('close'),
-                                                              style: TextStyle(color: Colors.white),
-                                                            ),
-                                                            onPressed: isButtonDisabled
-                                                                ? null
-                                                                : () {
-                                                              setState(() {
-                                                                isButtonDisabled = true;
-                                                                splitAmountController.clear();
-                                                                split_payment = !split_payment;
-                                                              });
-                                                              Navigator.of(context).pop();
-                                                              if (mounted) {
-                                                                setState(() {
-                                                                  isButtonDisabled = false;
-                                                                });
-                                                              }
-                                                            },
-                                                          ),
-                                                        ),
-                                                        SizedBox(
-                                                          width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                                                          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                                                          child: ElevatedButton(
-                                                            style: ElevatedButton.styleFrom(
-                                                              backgroundColor: color.buttonColor,
-                                                            ),
-                                                            child: Text(
-                                                              AppLocalizations.of(context)!.translate('yes'),
-                                                              style: TextStyle(color: Colors.white),
-                                                            ),
-                                                            onPressed: isButtonDisabled
-                                                                ? null
-                                                                : () async {
-                                                              if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
-                                                                  double.parse(splitAmountController.text) < double.parse(finalAmount)){
-                                                                finalAmount = splitAmountController.text;
-                                                                setState(() {
-                                                                  isButtonDisabled = true;
-                                                                  willPop = false;
-                                                                  Navigator.of(context).pop();
-                                                                });
-                                                              } else {
-                                                                Fluttertoast.showToast(
-                                                                    backgroundColor: Color(0xFFFF0000),
-                                                                    msg: AppLocalizations.of(context)!.translate('invalid_input'));
-                                                                splitAmountController.clear();
-                                                              }
-                                                            },
-                                                          ),
-                                                        ),
+                                                            SizedBox(width: 10),
+                                                            Expanded(
+                                                              flex: 1,
+                                                              child: SizedBox(
+                                                                height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 20,
+                                                                child: ElevatedButton(
+                                                                  style: ElevatedButton.styleFrom(
+                                                                    backgroundColor: color.buttonColor,
+                                                                  ),
+                                                                  child: Text(
+                                                                    AppLocalizations.of(context)!.translate('yes'),
+                                                                    style: TextStyle(color: Colors.white),
+                                                                  ),
+                                                                  onPressed: isButtonDisabled
+                                                                      ? null
+                                                                      : () async {
+                                                                    if(splitAmountController.text != '' && double.parse(splitAmountController.text) != 0.0 &&
+                                                                        double.parse(splitAmountController.text) < double.parse(finalAmount)){
+                                                                      finalAmount = splitAmountController.text;
+                                                                      setState(() {
+                                                                        isButtonDisabled = true;
+                                                                        willPop = false;
+                                                                        Navigator.of(context).pop();
+                                                                      });
+                                                                    } else {
+                                                                      Fluttertoast.showToast(
+                                                                          backgroundColor: Color(0xFFFF0000),
+                                                                          msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                                                                      splitAmountController.clear();
+                                                                    }
+                                                                  },
+                                                                ),
+                                                              ),
+                                                            )
+                                                          ],
+                                                        )
                                                       ],
                                                     );
                                                   },
@@ -3374,6 +3467,7 @@ class _MakePaymentState extends State<MakePayment> {
         );
         Map<String, dynamic> apiRes = await paymentApi();
         if (apiRes['status'] == '1') {
+          await callCreateOrder(finalAmount, ipayTransId: apiRes['data']);
           assetsAudioPlayer.open(
             Audio("audio/payment_success.mp3"),
           );
@@ -3690,10 +3784,10 @@ class _MakePaymentState extends State<MakePayment> {
     streamController.add('refresh');
   }
 
-  callCreateOrder(String? paymentReceived, {orderChange}) async {
+  callCreateOrder(String? paymentReceived, {orderChange, String? ipayTransId}) async {
     OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(int.parse(orderCacheSqliteId));
     if(orderCacheData.order_key == null || orderCacheData.order_key == '') {
-      await createOrder(double.parse(paymentReceived!), orderChange);
+      await createOrder(double.parse(paymentReceived!), orderChange, ipayTransId: ipayTransId);
       await crateOrderTaxDetail();
       await createOrderPromotionDetail();
       //await syncAllToCloud();
@@ -3715,7 +3809,7 @@ class _MakePaymentState extends State<MakePayment> {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
       if(orderData.first.payment_split == 2){
-        await createOrderPaymentSplit(double.parse(paymentReceived!), orderChange, orderData[0].order_key!);
+        await createOrderPaymentSplit(double.parse(paymentReceived!), orderChange, orderData[0].order_key!, ipayTransId: ipayTransId);
         List<OrderPaymentSplit> orderSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(orderKey!);
         double newOrderAmount = 0.0;
         for(int k = 0; k < orderSplit.length; k++){
@@ -3792,7 +3886,7 @@ class _MakePaymentState extends State<MakePayment> {
     return -1;
   }
 
-  createOrder(double? paymentReceived, String? orderChange) async {
+  createOrder(double? paymentReceived, String? orderChange, {String? ipayTransId}) async {
     print('create order called');
     List<String> _value = [];
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
@@ -3835,7 +3929,7 @@ class _MakePaymentState extends State<MakePayment> {
             refund_key: '',
             settlement_sqlite_id: '',
             settlement_key: '',
-            ipay_trans_id: '',
+            ipay_trans_id: split_payment ? '' : ipayTransId ?? '',
             sync_status: 0,
             created_at: dateTime,
             updated_at: '',
@@ -3861,7 +3955,7 @@ class _MakePaymentState extends State<MakePayment> {
     }
   }
 
-  createOrderPaymentSplit(double? paymentReceived, String? orderChange, String tempOrderKey) async {
+  createOrderPaymentSplit(double? paymentReceived, String? orderChange, String tempOrderKey, {String? ipayTransId}) async {
     print('create order payment split called');
     List<String> _value = [];
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
@@ -3886,6 +3980,7 @@ class _MakePaymentState extends State<MakePayment> {
             payment_received: paymentReceived == null ? '' : paymentReceived.toStringAsFixed(2),
             payment_change: orderChange == null ? '0.00' : orderChange,
             order_key: tempOrderKey,
+            ipay_trans_id: ipayTransId ?? '',
             sync_status: 0,
             created_at: dateTime,
             updated_at: '',
@@ -4208,17 +4303,15 @@ class _MakePaymentState extends State<MakePayment> {
 */
 
   paymentApi() async {
-    print("payment api final amount: ${finalAmount}");
-    print("payment api orderKey: ${orderKey}");
-    print("payment api name: ${branchObject['name']}");
-    print("payment api email: ${branchObject['email']}");
-    print("payment api phone: ${branchObject['phone']}");
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    String refKey = branch_id.toString() + DateFormat('yyyyMMddHHmmss').format(DateTime.now());
     try{
       var response = await Api().sendPayment(
           branchObject['ipay_merchant_code'],
           branchObject['ipay_merchant_key'],
           336,
-          orderKey!,
+          refKey!,
           Utils.formatPaymentAmount(double.parse(finalAmount)),
           'MYR',
           'ipay',
@@ -4234,7 +4327,7 @@ class _MakePaymentState extends State<MakePayment> {
           signature256(
               branchObject['ipay_merchant_key'],
               branchObject['ipay_merchant_code'],
-              orderKey!,
+              refKey!,
               finalAmount,
               //need to change to finalAmount
               'MYR',

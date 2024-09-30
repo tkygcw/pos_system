@@ -304,6 +304,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.payment_received} $textType,
           ${OrderPaymentSplitFields.payment_change} $textType,
           ${OrderPaymentSplitFields.order_key} $textType,
+          ${OrderPaymentSplitFields.ipay_trans_id} $textType,
           ${OrderPaymentSplitFields.sync_status} $integerType,
           ${OrderPaymentSplitFields.created_at} $textType,
           ${OrderPaymentSplitFields.updated_at} $textType,
@@ -371,6 +372,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.payment_received} $textType,
           ${OrderPaymentSplitFields.payment_change} $textType,
           ${OrderPaymentSplitFields.order_key} $textType,
+          ${OrderPaymentSplitFields.ipay_trans_id} $textType,
           ${OrderPaymentSplitFields.sync_status} $integerType,
           ${OrderPaymentSplitFields.created_at} $textType,
           ${OrderPaymentSplitFields.updated_at} $textType,
@@ -424,6 +426,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.payment_received} $textType,
           ${OrderPaymentSplitFields.payment_change} $textType,
           ${OrderPaymentSplitFields.order_key} $textType,
+          ${OrderPaymentSplitFields.ipay_trans_id} $textType,
           ${OrderPaymentSplitFields.sync_status} $integerType,
           ${OrderPaymentSplitFields.created_at} $textType,
           ${OrderPaymentSplitFields.updated_at} $textType,
@@ -473,6 +476,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.payment_received} $textType,
           ${OrderPaymentSplitFields.payment_change} $textType,
           ${OrderPaymentSplitFields.order_key} $textType,
+          ${OrderPaymentSplitFields.ipay_trans_id} $textType,
           ${OrderPaymentSplitFields.sync_status} $integerType,
           ${OrderPaymentSplitFields.created_at} $textType,
           ${OrderPaymentSplitFields.updated_at} $textType,
@@ -518,6 +522,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.payment_received} $textType,
           ${OrderPaymentSplitFields.payment_change} $textType,
           ${OrderPaymentSplitFields.order_key} $textType,
+          ${OrderPaymentSplitFields.ipay_trans_id} $textType,
           ${OrderPaymentSplitFields.sync_status} $integerType,
           ${OrderPaymentSplitFields.created_at} $textType,
           ${OrderPaymentSplitFields.updated_at} $textType,
@@ -561,6 +566,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.payment_received} $textType,
           ${OrderPaymentSplitFields.payment_change} $textType,
           ${OrderPaymentSplitFields.order_key} $textType,
+          ${OrderPaymentSplitFields.ipay_trans_id} $textType,
           ${OrderPaymentSplitFields.sync_status} $integerType,
           ${OrderPaymentSplitFields.created_at} $textType,
           ${OrderPaymentSplitFields.updated_at} $textType,
@@ -590,6 +596,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.payment_received} $textType,
           ${OrderPaymentSplitFields.payment_change} $textType,
           ${OrderPaymentSplitFields.order_key} $textType,
+          ${OrderPaymentSplitFields.ipay_trans_id} $textType,
           ${OrderPaymentSplitFields.sync_status} $integerType,
           ${OrderPaymentSplitFields.created_at} $textType,
           ${OrderPaymentSplitFields.updated_at} $textType,
@@ -615,6 +622,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.payment_received} $textType,
           ${OrderPaymentSplitFields.payment_change} $textType,
           ${OrderPaymentSplitFields.order_key} $textType,
+          ${OrderPaymentSplitFields.ipay_trans_id} $textType,
           ${OrderPaymentSplitFields.sync_status} $integerType,
           ${OrderPaymentSplitFields.created_at} $textType,
           ${OrderPaymentSplitFields.updated_at} $textType,
@@ -633,6 +641,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.payment_received} $textType,
           ${OrderPaymentSplitFields.payment_change} $textType,
           ${OrderPaymentSplitFields.order_key} $textType,
+          ${OrderPaymentSplitFields.ipay_trans_id} $textType,
           ${OrderPaymentSplitFields.sync_status} $integerType,
           ${OrderPaymentSplitFields.created_at} $textType,
           ${OrderPaymentSplitFields.updated_at} $textType,
@@ -1427,6 +1436,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.payment_received} $textType,
           ${OrderPaymentSplitFields.payment_change} $textType,
           ${OrderPaymentSplitFields.order_key} $textType,
+          ${OrderPaymentSplitFields.ipay_trans_id} $textType,
           ${OrderPaymentSplitFields.sync_status} $integerType,
           ${OrderPaymentSplitFields.created_at} $textType,
           ${OrderPaymentSplitFields.updated_at} $textType,
@@ -2487,7 +2497,7 @@ class PosDatabase {
   }
 
 /*
-  crate order payment split into local(from local)
+  create order payment split into local(from local)
 */
   Future<OrderPaymentSplit> insertSqliteOrderPaymentSplit(OrderPaymentSplit data) async {
     final db = await instance.database;
@@ -6762,8 +6772,8 @@ class PosDatabase {
 */
   Future<int> updateOrderPaymentStatus(Order data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableOrder SET payment_status = ?, ipay_trans_id = ?, sync_status = ?,  updated_at = ?, soft_delete = ? WHERE order_sqlite_id = ?',
-        [1, data.ipay_trans_id, data.sync_status, data.updated_at, data.soft_delete, data.order_sqlite_id]);
+    return await db.rawUpdate('UPDATE $tableOrder SET payment_status = ?, sync_status = ?,  updated_at = ?, soft_delete = ? WHERE order_sqlite_id = ?',
+        [1, data.sync_status, data.updated_at, data.soft_delete, data.order_sqlite_id]);
   }
 
 /*
@@ -8199,9 +8209,9 @@ class PosDatabase {
 /*
   update order payment split sync status (from cloud)
 */
-  Future<int> updateOrderPaymentSplitSyncStatusFromCloud(String attendance_key) async {
+  Future<int> updateOrderPaymentSplitSyncStatusFromCloud(String order_payment_split_key) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableOrderPaymentSplit SET sync_status = ? WHERE order_payment_split_key = ?', [1, attendance_key]);
+    return await db.rawUpdate('UPDATE $tableOrderPaymentSplit SET sync_status = ? WHERE order_payment_split_key = ?', [1, order_payment_split_key]);
   }
 
 /*

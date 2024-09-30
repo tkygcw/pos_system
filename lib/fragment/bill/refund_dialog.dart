@@ -362,22 +362,45 @@ class _RefundDialogState extends State<RefundDialog> {
       String response = '0';
       String dateTime = dateFormat.format(DateTime.now());
       Order checkData = await PosDatabase.instance.readSpecificOrder(widget.order.order_sqlite_id!);
-      if(checkData.ipay_trans_id != ''){
-        String refundAmt = checkData.final_amount!;
-        response = await Api().refundPayment(
+      if(checkData.payment_split == 1) {
+        List<OrderPaymentSplit> orderSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(checkData.order_key!);
+        orderSplit.forEach((order) async {
+          if(order.ipay_trans_id != ''){
+            String refundAmt = order.payment_received!;
+            response = await Api().refundPayment(
+              branchObject['ipay_merchant_code'],
+              order.ipay_trans_id!,
+              refundAmt,
+              'MYR',
+              signature(
+                  branchObject['ipay_merchant_key'],
+                  branchObject['ipay_merchant_code'],
+                  order.ipay_trans_id!,
+                  refundAmt,
+                  'MYR'
+              ),
+            );
+          }
+        });
+      } else if(checkData.payment_split == 0) {
+        if(checkData.ipay_trans_id != ''){
+          String refundAmt = checkData.final_amount!;
+          response = await Api().refundPayment(
             branchObject['ipay_merchant_code'],
             checkData.ipay_trans_id!,
             refundAmt,
             'MYR',
             signature(
-              branchObject['ipay_merchant_key'],
-              branchObject['ipay_merchant_code'],
-              checkData.ipay_trans_id!,
-              refundAmt,
-              'MYR'
+                branchObject['ipay_merchant_key'],
+                branchObject['ipay_merchant_code'],
+                checkData.ipay_trans_id!,
+                refundAmt,
+                'MYR'
             ),
-        );
+          );
+        }
       }
+
       if(response == '0' || response == '9999'){
         Order _orderObject = Order(
             refund_sqlite_id: this.refundLocalId,

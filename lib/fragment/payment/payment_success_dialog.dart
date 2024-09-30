@@ -486,7 +486,6 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
         soft_delete: '',
         sync_status: checkData.sync_status == 0 ? 0 : 2,
         updated_at: dateTime,
-        ipay_trans_id: widget.ipayTransId ?? '',
         order_sqlite_id: int.parse(widget.orderId));
 
     int updatedData = await PosDatabase.instance.updateOrderPaymentStatus(orderObject);

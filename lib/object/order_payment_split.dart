@@ -11,6 +11,7 @@ class OrderPaymentSplitFields {
     payment_received,
     payment_change,
     order_key,
+    ipay_trans_id,
     sync_status,
     created_at,
     updated_at,
@@ -26,6 +27,7 @@ class OrderPaymentSplitFields {
   static String payment_received = 'payment_received';
   static String payment_change = 'payment_change';
   static String order_key = 'order_key';
+  static String ipay_trans_id = 'ipay_trans_id';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -43,6 +45,7 @@ class OrderPaymentSplit {
   String? payment_received;
   String? payment_change;
   String? order_key;
+  String? ipay_trans_id;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -60,6 +63,7 @@ class OrderPaymentSplit {
         this.payment_received,
         this.payment_change,
         this.order_key,
+        this.ipay_trans_id,
         this.sync_status,
         this.created_at,
         this.updated_at,
@@ -78,6 +82,7 @@ class OrderPaymentSplit {
     String? payment_received,
     String? payment_change,
     String? order_key,
+    String? ipay_trans_id,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -93,6 +98,7 @@ class OrderPaymentSplit {
           payment_received: payment_received ?? this.payment_received,
           payment_change: payment_change ?? this.payment_change,
           order_key: order_key ?? this.order_key,
+          ipay_trans_id: ipay_trans_id ?? this.ipay_trans_id,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -108,6 +114,7 @@ class OrderPaymentSplit {
     payment_received: json[OrderPaymentSplitFields.payment_received] as String?,
     payment_change: json[OrderPaymentSplitFields.payment_change] as String?,
     order_key: json[OrderPaymentSplitFields.order_key] as String?,
+    ipay_trans_id: json[OrderPaymentSplitFields.ipay_trans_id] as String?,
     sync_status: json[OrderPaymentSplitFields.sync_status] as int?,
     created_at: json[OrderPaymentSplitFields.created_at] as String?,
     updated_at: json[OrderPaymentSplitFields.updated_at] as String?,
@@ -126,6 +133,7 @@ class OrderPaymentSplit {
     OrderPaymentSplitFields.payment_received: payment_received,
     OrderPaymentSplitFields.payment_change: payment_change,
     OrderPaymentSplitFields.order_key: order_key,
+    OrderPaymentSplitFields.ipay_trans_id: ipay_trans_id,
     OrderPaymentSplitFields.sync_status: sync_status,
     OrderPaymentSplitFields.created_at: created_at,
     OrderPaymentSplitFields.updated_at: updated_at,

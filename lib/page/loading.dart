@@ -2343,6 +2343,7 @@ getAllOrderPaymentSplit() async {
                 payment_received: responseJson[i]['payment_received'],
                 payment_change: responseJson[i]['payment_change'],
                 order_key: responseJson[i]['order_key'],
+                ipay_trans_id: responseJson[i]['ipay_trans_id'],
                 sync_status: 1,
                 created_at: responseJson[i]['created_at'],
                 updated_at: responseJson[i]['updated_at'],
