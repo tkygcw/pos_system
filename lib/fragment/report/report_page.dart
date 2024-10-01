@@ -531,7 +531,7 @@ class _ReportPageState extends State<ReportPage> {
                     ),
                     SizedBox(width: 10),
                     Visibility(
-                      visible: currentPage != 13 ? true : false,
+                      visible: currentPage != 14 ? true : false,
                       child: IconButton(
                         icon: Icon(Icons.print),
                         color: color.backgroundColor,
@@ -547,7 +547,7 @@ class _ReportPageState extends State<ReportPage> {
                       ),
                     ),
                     Visibility(
-                      visible: currentPage != 1 && currentPage != 5 && currentPage != 10 && currentPage != 11 && currentPage != 13  ? true : false,
+                      visible: currentPage != 1 && currentPage != 5 && currentPage != 10 && currentPage != 11 && currentPage != 13 && currentPage != 14  ? true : false,
                       child: Container(
                         child: IconButton(
                           icon: Icon(Icons.receipt),
@@ -831,25 +831,28 @@ class _ReportPageState extends State<ReportPage> {
                       ),
                     ),
                   ),
-                  PopupMenuButton<String>(
-                    onSelected: handleClick,
-                    itemBuilder: (BuildContext context) {
-                      final List<String> choices = [];
-                      if (currentPage != 13) {
-                        choices.add('advanced');
+                  Visibility(
+                    visible: currentPage != 14,
+                    child: PopupMenuButton<String>(
+                      onSelected: handleClick,
+                      itemBuilder: (BuildContext context) {
+                        final List<String> choices = [];
+                        if (currentPage != 13) {
+                          choices.add('advanced');
+                        }
                         choices.add('pdf');
-                      }
-                      if (currentPage != 1 && currentPage != 5 && currentPage != 10 && currentPage != 11 && currentPage != 13) {
-                        choices.add('print');
-                      }
-                      return choices.map((String choice) {
-                        return PopupMenuItem<String>(
-                          value: choice,
-                          child: Text('${AppLocalizations.of(context)!.translate(choice)}${choice == 'advanced' ? _isChecked ? ' ON' : ' OFF' : ''}'),
-                        );
-                      }).toList();
-                    },
-                    icon: Icon(Icons.more_vert, color: color.backgroundColor,),
+                        if (currentPage != 1 && currentPage != 5 && currentPage != 10 && currentPage != 11 && currentPage != 13) {
+                          choices.add('print');
+                        }
+                        return choices.map((String choice) {
+                          return PopupMenuItem<String>(
+                            value: choice,
+                            child: Text('${AppLocalizations.of(context)!.translate(choice)}${choice == 'advanced' ? _isChecked ? ' ON' : ' OFF' : ''}'),
+                          );
+                        }).toList();
+                      },
+                      icon: Icon(Icons.more_vert, color: color.backgroundColor,),
+                    ),
                   ),
                 ],
               ),

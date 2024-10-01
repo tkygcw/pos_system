@@ -4049,6 +4049,15 @@ class PosDatabase {
     return result.map((json) => User.fromJson(json)).toList();
   }
 
+  /*
+  read specific user with user_id
+*/
+  Future<List<User>> readSpecificUserWithId(int user_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableUser WHERE soft_delete = ? AND user_id = ?', ['', user_id]);
+    return result.map((json) => User.fromJson(json)).toList();
+  }
+
 /*
   read specific user with pin
 */
@@ -5224,10 +5233,17 @@ class PosDatabase {
 /*
   read all attendance user group
 */
-  Future<List<Attendance>> readAllAttendanceGroup(String date1, String date2) async {
+  Future<List<Attendance>> readAllAttendanceGroup(String date1, String date2, selectedId) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT a.*, b.name, SUM(a.duration) AS totalDuration FROM $tableAttendance AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND SUBSTR(a.clock_in_at, 1, 10) >= ? AND '
-        'SUBSTR(a.clock_in_at, 1, 10) < ? GROUP BY a.user_id', ['', date1, date2]);
+    String query = 'SELECT a.*, b.name, SUM(a.duration) AS totalDuration FROM $tableAttendance AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND SUBSTR(a.clock_in_at, 1, 10) >= ? AND SUBSTR(a.clock_in_at, 1, 10) < ?';
+    List<dynamic> args = ['', date1, date2];
+
+    if (selectedId != 0) {
+      query += ' AND b.user_id = ?';
+      args.add(selectedId);
+    }
+    query += ' GROUP BY a.user_id';
+    final result = await db.rawQuery(query, args);
     return result.map((json) => Attendance.fromJson(json)).toList();
   }
 
