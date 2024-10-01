@@ -101,10 +101,10 @@ packages:
     dependency: "direct main"
     description:
       name: awesome_snackbar_content
-      sha256: a94407ad596ac4b2f925b032c11f390cd3b3e640a9799f4983b86be0bc17f62b
+      sha256: a99f229d5e9404c69d172d9a6256961743eb9bc68b0a7905185eacd206b27984
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.3"
+    version: "0.1.4"
   barcode:
     dependency: transitive
     description:
@@ -228,10 +228,11 @@ packages:
   collapsible_sidebar:
     dependency: "direct main"
     description:
-      name: collapsible_sidebar
-      sha256: cdaa339abbd14ded6c23ce7b4577767e444029be487659bfe97f4a88d8cb47d7
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: ac9db872eb4760ea37c92f2078e21b95bff2b163
+      url: "https://github.com/tkygcw/flutter_collapsible_sidebar.git"
+    source: git
     version: "2.0.7"
   collection:
     dependency: "direct main"
@@ -1223,10 +1224,10 @@ packages:
     dependency: transitive
     description:
       name: sembast
-      sha256: "481e0a4199015e0050ee4b42d59d51731b1fb324a1eea5c24557fa72335790b0"
+      sha256: "99f9d53ecdc75db1630797a8b9b2f2050ee5377e49f60f5f6e788431db04224d"
       url: "https://pub.dev"
     source: hosted
-    version: "3.7.3+2"
+    version: "3.7.3+3"
   shared_preferences:
     dependency: "direct main"
     description:

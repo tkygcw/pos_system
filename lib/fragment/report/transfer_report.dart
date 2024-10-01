@@ -111,9 +111,11 @@ class _TransferRecordState extends State<TransferRecord> {
                           children: [
                             Row(
                               children: [
-                                Container(
-                                  child: Text(AppLocalizations.of(context)!.translate('transfer_owner_report')+' (${deviceModel})',
-                                      style: TextStyle(fontSize: 25, color: Colors.black)),
+                                Expanded(
+                                  child: Container(
+                                    child: Text(AppLocalizations.of(context)!.translate('transfer_owner_report')+' (${deviceModel})',
+                                        style: TextStyle(fontSize: 25, color: Colors.black)),
+                                  ),
                                 ),
                               ],
                             ),

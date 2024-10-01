@@ -47,9 +47,6 @@ class _LanguageDialogState extends State<LanguageDialog> {
     return AlertDialog(
       title: Text(
         AppLocalizations.of(context)!.translate('language'),
-        style: GoogleFonts.cantoraOne(
-          textStyle: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 16),
-        ),
       ),
       content: SingleChildScrollView(
         child: Container(

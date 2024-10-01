@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
@@ -492,11 +493,11 @@ class _ReportPageState extends State<ReportPage> {
           if(reportPermission) {
             return Scaffold(
               resizeToAvoidBottomInset: false,
-              appBar: AppBar(
+              appBar: MediaQuery.of(context).orientation == Orientation.landscape ? AppBar(
                 automaticallyImplyLeading: false,
                 title: Row(
                   children: [
-                    Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 25, color: Colors.black)),
+                    Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 20, color: color.backgroundColor)),
                     Spacer(),
                     Visibility(
                       visible: currentPage != 13 ? true : false,
@@ -620,95 +621,321 @@ class _ReportPageState extends State<ReportPage> {
                 ),
                 backgroundColor: Color(0xffFAFAFA),
                 elevation: 0,
+              ) :
+              AppBar(
+                automaticallyImplyLeading: false,
+                leading: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      isCollapsedNotifier.value = !isCollapsedNotifier.value;
+                    },
+                    child: Image.asset('drawable/logo.png'),
+                  ),
+                ),
+                title: Row(
+                  children: [
+                    Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 20, color: color.backgroundColor)),
+                    Spacer(),
+                    Visibility(
+                      visible: false,
+                      // visible: currentPage != 13 ? true : false,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Checkbox(
+                            value: _isChecked,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                _isChecked = !_isChecked;
+                                prefs.setBool('reportBasedOnOB', _isChecked);
+                                reportModel.refresh();
+                              });
+                            },
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('report_calculate_based_on_opening_balance'));
+                            },
+                            child: Row(
+                              children: <Widget>[
+                                Text(AppLocalizations.of(context)!.translate('advanced')),
+                                SizedBox(width: 4),
+                                Icon(Icons.info, color: color.backgroundColor, size: 22,),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    Visibility(
+                      // visible: currentPage != 13 ? true : false,
+                      visible: false,
+                      child: IconButton(
+                        icon: Icon(Icons.print),
+                        color: color.backgroundColor,
+                        onPressed: (){
+                          Navigator.push(
+                            context,
+                            PageTransition(
+                              type: PageTransitionType.bottomToTop,
+                              child: PrintReportPage(currentPage: this.currentPage,),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    Visibility(
+                      // visible: currentPage != 1 && currentPage != 5 && currentPage != 10 && currentPage != 11 && currentPage != 13  ? true : false,
+                      visible: false,
+                      child: Container(
+                        child: IconButton(
+                          icon: Icon(Icons.receipt),
+                          color: color.backgroundColor,
+                          onPressed: receiptOnPressed,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: Color(0xffFAFAFA),
+                elevation: 0,
+                actions: [
+                  Visibility(
+                    visible: MediaQuery.of(context).size.width > 500 ? false : true,
+                    child: Container(
+                        margin: EdgeInsets.only(right: 10),
+                        child: IconButton(
+                          onPressed: () {
+                            showDialog(barrierDismissible: false, context: context, builder: (BuildContext context) {
+                              return WillPopScope(
+                                onWillPop: ()  async  {
+                                  dateTimeNow = dateFormat.format(DateTime.now());
+                                  _controller = new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
+                                  _dateRangePickerController.selectedRange = PickerDateRange(DateTime.now(), DateTime.now());
+                                  setState(() {
+                                    reportModel.setDateTime(currentStDate, currentEdDate);
+                                  });
+                                  return true;
+                                },
+                                child: AlertDialog(
+                                  title: Text(AppLocalizations.of(context)!.translate('select_a_date_range')),
+                                  titlePadding: EdgeInsets.fromLTRB(24, 12, 24, 0),
+                                  contentPadding: EdgeInsets.all(16),
+                                  content: Container(
+                                    height: 400,
+                                    width: 450,
+                                    child: Container(
+                                      child: Card(
+                                        elevation: 10,
+                                        child: SfDateRangePicker(
+                                          view: DateRangePickerView.month,
+                                          controller: _dateRangePickerController,
+                                          selectionMode: DateRangePickerSelectionMode.range,
+                                          allowViewNavigation: true,
+                                          showActionButtons: true,
+                                          showTodayButton: true,
+                                          onSelectionChanged: _onSelectionChanged,
+                                          maxDate: DateTime.now(),
+                                          confirmText: AppLocalizations.of(context)!.translate('ok'),
+                                          cancelText: AppLocalizations.of(context)!.translate('cancel'),
+                                          onSubmit: (object) {
+                                            _controller = _range != '' ?
+                                            new TextEditingController(text: '${_range}')
+                                                :
+                                            new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
+                                            setState(() {
+                                              reportModel.setDateTime(currentStDate, currentEdDate);
+                                            });
+                                            Navigator.of(context).pop();
+                                          },
+                                          onCancel: (){
+                                            Navigator.of(context).pop();
+                                          },
+
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            });
+                          },
+                          icon: Icon(Icons.calendar_month),
+                          color: color.backgroundColor,
+                        )
+                    ),
+                  ),
+                  Visibility(
+                    visible: MediaQuery.of(context).size.width > 500 ? true : false,
+                    child: Container(
+                      width: 230,
+                      height: 55,
+                      child: TextField(
+                        controller: _controller,
+                        decoration: InputDecoration(
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(4)),
+                              borderSide: BorderSide(width: 1,color: color.backgroundColor),
+                            ),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(Radius.circular(5.0)))
+                        ),
+                        style: TextStyle(color: Colors.black),
+                        readOnly: true,
+                        onTap: (){
+                          showDialog(context: context, builder: (BuildContext context) {
+                            return WillPopScope(
+                              onWillPop: () async {
+                                dateTimeNow = dateFormat.format(DateTime.now());
+                                _controller = TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
+                                _dateRangePickerController.selectedRange = PickerDateRange(DateTime.now(), DateTime.now());
+                                setState(() {
+                                  reportModel.setDateTime(currentStDate, currentEdDate);
+                                });
+                                return true;
+                              },
+                              child: AlertDialog(
+                                contentPadding: EdgeInsets.zero,
+                                content: Container(
+                                  height: MediaQuery.of(context).size.height,
+                                  width: MediaQuery.of(context).size.width,
+                                  child: SfDateRangePicker(
+                                    controller: _dateRangePickerController,
+                                    selectionMode: DateRangePickerSelectionMode.range,
+                                    allowViewNavigation: true,
+                                    showActionButtons: true,
+                                    showTodayButton: true,
+                                    onSelectionChanged: _onSelectionChanged,
+                                    maxDate: DateTime.now(),
+                                    onSubmit: (object) {
+                                      _controller = _range != '' ?
+                                      TextEditingController(text: '${_range}') :
+                                      TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
+                                      setState(() {
+                                        reportModel.setDateTime(currentStDate, currentEdDate);
+                                      });
+                                      Navigator.of(context).pop();
+                                    },
+                                    onCancel: (){
+                                      Navigator.of(context).pop();
+                                    },
+
+                                  ),
+                                ),
+                              ),
+                            );
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  PopupMenuButton<String>(
+                    onSelected: handleClick,
+                    itemBuilder: (BuildContext context) {
+                      final List<String> choices = [];
+                      if (currentPage != 13) {
+                        choices.add('advanced');
+                        choices.add('pdf');
+                      }
+                      if (currentPage != 1 && currentPage != 5 && currentPage != 10 && currentPage != 11 && currentPage != 13) {
+                        choices.add('print');
+                      }
+                      return choices.map((String choice) {
+                        return PopupMenuItem<String>(
+                          value: choice,
+                          child: Text('${AppLocalizations.of(context)!.translate(choice)}${choice == 'advanced' ? _isChecked ? ' ON' : ' OFF' : ''}'),
+                        );
+                      }).toList();
+                    },
+                    icon: Icon(Icons.more_vert, color: color.backgroundColor,),
+                  ),
+                ],
               ),
               body: Padding(
                 padding: EdgeInsets.fromLTRB(8, 10, 8, 8),
-                child: Row(
+                child: Column(
                   children: [
-                    SideNavigationBar(
-                      initiallyExpanded: false,
-                      expandable: false,
-                      theme: SideNavigationBarTheme(
-                        backgroundColor: Colors.white,
-                        togglerTheme: SideNavigationBarTogglerTheme.standard(),
-                        itemTheme: SideNavigationBarItemTheme(
-                          selectedItemColor: color.backgroundColor,
-                        ),
-                        dividerTheme: SideNavigationBarDividerTheme.standard(),
+                    Container(
+                      padding: EdgeInsets.only(left: 8),
+                      alignment: Alignment.centerLeft,
+                      child: DropdownButton<int>(
+                        value: selectedIndex,
+                        menuMaxHeight: 500,
+                        items: [
+                          DropdownMenuItem(
+                            value: 0,
+                            child: Text(AppLocalizations.of(context)!.translate('overview')),
+                          ),
+                          DropdownMenuItem(
+                            value: 1,
+                            child: Text(AppLocalizations.of(context)!.translate('daily_sales')),
+                          ),
+                          DropdownMenuItem(
+                            value: 2,
+                            child: Text(AppLocalizations.of(context)!.translate('product_report')),
+                          ),
+                          DropdownMenuItem(
+                            value: 3,
+                            child: Text(AppLocalizations.of(context)!.translate('category_report')),
+                          ),
+                          DropdownMenuItem(
+                            value: 4,
+                            child: Text(AppLocalizations.of(context)!.translate('modifier_report')),
+                          ),
+                          DropdownMenuItem(
+                            value: 5,
+                            child: Text(AppLocalizations.of(context)!.translate('edit_report')),
+                          ),
+                          DropdownMenuItem(
+                            value: 6,
+                            child: Text(AppLocalizations.of(context)!.translate('cancel_report')),
+                          ),
+                          DropdownMenuItem(
+                            value: 7,
+                            child: Text(AppLocalizations.of(context)!.translate('cancel_modifier_report')),
+                          ),
+                          DropdownMenuItem(
+                            value: 8,
+                            child: Text(AppLocalizations.of(context)!.translate('dining_report')),
+                          ),
+                          DropdownMenuItem(
+                            value: 9,
+                            child: Text(AppLocalizations.of(context)!.translate('payment_report')),
+                          ),
+                          DropdownMenuItem(
+                            value: 10,
+                            child: Text(AppLocalizations.of(context)!.translate('refund_report')),
+                          ),
+                          DropdownMenuItem(
+                            value: 11,
+                            child: Text(AppLocalizations.of(context)!.translate('cash_record_report')),
+                          ),
+                          DropdownMenuItem(
+                            value: 12,
+                            child: Text(AppLocalizations.of(context)!.translate('staff_sales_report')),
+                          ),
+                          DropdownMenuItem(
+                            value: 13,
+                            child: Text(AppLocalizations.of(context)!.translate('attendance_report')),
+                          ),
+                          DropdownMenuItem(
+                            value: 14,
+                            child: Text(AppLocalizations.of(context)!.translate('transfer_report')),
+                          ),
+                        ],
+                        onChanged: (int? newIndex) {
+                          setState(() {
+                            selectedIndex = newIndex!;
+                            currentPage = newIndex;
+                          });
+                        },
                       ),
-                      selectedIndex: selectedIndex,
-                      items: [
-                        SideNavigationBarItem(
-                          icon: Icons.view_comfy_alt,
-                          label: AppLocalizations.of(context)!.translate('overview'),
-                        ),
-                        SideNavigationBarItem(
-                          icon: Icons.list_alt,
-                          label: AppLocalizations.of(context)!.translate('daily_sales'),
-                        ),
-                        SideNavigationBarItem(
-                          icon: Icons.fastfood,
-                          label: AppLocalizations.of(context)!.translate('product_report'),
-                        ),
-                        SideNavigationBarItem(
-                          icon: Icons.fastfood,
-                          label: AppLocalizations.of(context)!.translate('category_report'),
-                        ),
-                        SideNavigationBarItem(
-                          icon: Icons.fastfood,
-                          label: AppLocalizations.of(context)!.translate('modifier_report'),
-                        ),
-                        SideNavigationBarItem(
-                          icon: Icons.fastfood,
-                          label: AppLocalizations.of(context)!.translate('edit_report'),
-                        ),
-                        SideNavigationBarItem(
-                          icon: Icons.no_food,
-                          label: AppLocalizations.of(context)!.translate('cancel_report'),
-                        ),
-                        SideNavigationBarItem(
-                          icon: Icons.no_food,
-                          label: AppLocalizations.of(context)!.translate('cancel_modifier_report'),
-                        ),
-                        SideNavigationBarItem(
-                          icon: Icons.local_dining,
-                          label: AppLocalizations.of(context)!.translate('dining_report'),
-                        ),
-                        SideNavigationBarItem(
-                          icon: Icons.payment,
-                          label: AppLocalizations.of(context)!.translate('payment_report'),
-                        ),
-                        SideNavigationBarItem(
-                          icon: Icons.refresh,
-                          label: AppLocalizations.of(context)!.translate('refund_report'),
-                        ),
-                        SideNavigationBarItem(
-                          icon: Icons.monetization_on,
-                          label: AppLocalizations.of(context)!.translate('cash_record_report'),
-                        ),
-                        SideNavigationBarItem(
-                          icon: Icons.person,
-                          label: AppLocalizations.of(context)!.translate('staff_sales_report'),
-                        ),
-                        SideNavigationBarItem(
-                          icon: Icons.person,
-                          label: AppLocalizations.of(context)!.translate('attendance_report'),
-                        ),
-                        SideNavigationBarItem(
-                          icon: Icons.compare_arrows,
-                          label: AppLocalizations.of(context)!.translate('transfer_report'),
-                        ),
-                      ],
-                      onTap: (index) {
-                        setState(() {
-                          currentPage = index;
-                          selectedIndex = index;
-                        });
-                      },
                     ),
                     Expanded(
                       child: views.elementAt(selectedIndex),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -821,6 +1048,29 @@ class _ReportPageState extends State<ReportPage> {
         }
       });
     });
+  }
+
+  Future<void> handleClick(String value) async {
+    switch (value) {
+      case 'advanced':
+        setState(() {
+          _isChecked = !_isChecked;
+          prefs.setBool('reportBasedOnOB', _isChecked);
+        });
+        break;
+      case 'pdf':
+        Navigator.push(
+          context,
+          PageTransition(
+            type: PageTransitionType.bottomToTop,
+            child: PrintReportPage(currentPage: this.currentPage,),
+          ),
+        );
+        break;
+      case 'print':
+        receiptOnPressed();
+        break;
+    }
   }
 
   receiptOnPressed() async {

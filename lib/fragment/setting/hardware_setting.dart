@@ -99,11 +99,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
           controller.refresh(streamController);
         }
         break;
-        case 'qr_order_auto_accept':{
-          await updateQrOrderAutoAcceptAppSetting();
-          controller.refresh(streamController);
-        }
-        break;
         case 'prod_sort_by':{
           await updateProductSortBySetting();
           controller.refresh(streamController);
@@ -166,12 +161,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
         this.showSKU = false;
       }
 
-      if(appSetting.qr_order_auto_accept == 1){
-        this.qrOrderAutoAccept = true;
-      } else {
-        this.qrOrderAutoAccept = false;
-      }
-
       if(appSetting.show_product_desc == 1){
         this.showProductDesc = true;
       } else {
@@ -188,11 +177,30 @@ class _HardwareSettingState extends State<HardwareSetting> {
     }
   }
 
+  isSmallScreenPortrait() {
+    if(MediaQuery.of(context).orientation == Orientation.portrait)
+    return MediaQuery.of(context).orientation == Orientation.portrait;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<AppSettingModel>(builder: (context, AppSettingModel appSettingModel, child) {
         return Scaffold(
+            appBar:  MediaQuery.of(context).size.width < 800 && MediaQuery.of(context).orientation == Orientation.portrait ? AppBar(
+                elevation: 1,
+                leading: IconButton(
+                  icon: Icon(Icons.arrow_back_ios, color: color.buttonColor),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                backgroundColor: Colors.white,
+                title: Text(AppLocalizations.of(context)!.translate('general_setting'),
+                    style: TextStyle(fontSize: 20, color: color.backgroundColor)),
+                centerTitle: false,
+            )
+            : null,
             body: StreamBuilder(
                 stream: controller.hardwareSettingStream,
                 builder: (context, snapshot){
@@ -282,13 +290,13 @@ class _HardwareSettingState extends State<HardwareSetting> {
                             title: Text(AppLocalizations.of(context)!.translate('product_sort_by')),
                             subtitle: Text(AppLocalizations.of(context)!.translate('product_sort_by_desc')),
                             trailing: SizedBox(
-                              width: 200,
+                              width: MediaQuery.of(context).orientation == Orientation.landscape ? 200 : 150,
                               child: DropdownButtonHideUnderline(
                                 child: DropdownButton2(
                                   isExpanded: true,
                                   buttonStyleData: ButtonStyleData(
                                     height: 55,
-                                    padding: const EdgeInsets.only(left: 14, right: 14),
+                                    // padding: const EdgeInsets.only(left: 14, right: 14),
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(5),
                                       border: Border.all(
@@ -332,13 +340,13 @@ class _HardwareSettingState extends State<HardwareSetting> {
                             title: Text(AppLocalizations.of(context)!.translate('variant_item_sort_by')),
                             subtitle: Text(AppLocalizations.of(context)!.translate('variant_item_sort_by_desc')),
                             trailing: SizedBox(
-                              width: 200,
+                              width: MediaQuery.of(context).orientation == Orientation.landscape ? 200 : 150,
                               child: DropdownButtonHideUnderline(
                                 child: DropdownButton2(
                                   isExpanded: true,
                                   buttonStyleData: ButtonStyleData(
                                     height: 55,
-                                    padding: const EdgeInsets.only(left: 14, right: 14),
+                                    // padding: const EdgeInsets.only(left: 14, right: 14),
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(5),
                                       border: Border.all(
@@ -378,35 +386,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
                               ),
                             ),
                           ),
-                          Divider(
-                            color: Colors.grey,
-                            height: 1,
-                            thickness: 1,
-                            indent: 20,
-                            endIndent: 20,
-                          ),
-                          ListTile(
-                            title: Text(AppLocalizations.of(context)!.translate('auto_accept_qr_order'), style: TextStyle(color: !hasQrAccess ? Colors.grey: null)),
-                            subtitle: Text(AppLocalizations.of(context)!.translate('auto_accept_qr_order_desc')),
-                            trailing: Switch(
-                              value: qrOrderAutoAccept,
-                              activeColor: color.backgroundColor,
-                              onChanged: hasQrAccess ? (value) {
-                                qrOrderAutoAccept = value;
-                                appSettingModel.setQrOrderAutoAcceptStatus(qrOrderAutoAccept);
-                                actionController.sink.add("qr_order_auto_accept");
-                              } : null
-                            ),
-                          ),
-                          ListTile(
-                            title: Text(AppLocalizations.of(context)!.translate('set_default_exp_after_hour'), style: TextStyle(color: !hasQrAccess ? Colors.grey: null)),
-                            subtitle: Text(AppLocalizations.of(context)!.translate('set_default_exp_after_hour_desc')),
-                            trailing: Text('${appSettingModel.dynamic_qr_default_exp_after_hour} ${AppLocalizations.of(context)!.translate('hours')}',
-                                style: TextStyle(color: !hasQrAccess ? Colors.grey : null, fontWeight: FontWeight.w500)),
-                            onTap: hasQrAccess ? (){
-                             openAdjustHourDialog(appSettingModel);
-                            } : null
-                          ),
                         ],
                       ),
                     );
@@ -419,28 +398,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
         );
       });
     });
-  }
-
-  Future<Future<Object?>> openAdjustHourDialog(AppSettingModel appSettingModel) async {
-    return showGeneralDialog(
-        barrierColor: Colors.black.withOpacity(0.5),
-        transitionBuilder: (context, a1, a2, widget) {
-          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
-          return Transform(
-            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
-            child: Opacity(
-                opacity: a1.value,
-                child: AdjustHourDialog(exp_hour: appSettingModel.dynamic_qr_default_exp_after_hour!)
-            ),
-          );
-        },
-        transitionDuration: Duration(milliseconds: 200),
-        barrierDismissible: false,
-        context: context,
-        pageBuilder: (context, animation1, animation2) {
-          // ignore: null_check_always_fails
-          return null!;
-        });
   }
 
   updateAppSetting() async {
@@ -481,17 +438,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
         updated_at: dateTime
     );
     int data = await PosDatabase.instance.updateShowSKUSettings(object);
-  }
-
-  updateQrOrderAutoAcceptAppSetting() async {
-    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-    String dateTime = dateFormat.format(DateTime.now());
-    AppSetting object = AppSetting(
-        qr_order_auto_accept: this.qrOrderAutoAccept == true ? 1 : 0,
-        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
-        updated_at: dateTime
-    );
-    int data = await PosDatabase.instance.updateQrOrderAutoAcceptSetting(object);
   }
 
   updateShowProDescAppSetting() async {

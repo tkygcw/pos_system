@@ -167,49 +167,68 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                         }),
                   ),
                   actions: <Widget>[
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: color.backgroundColor,
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                                ? MediaQuery.of(context).size.height / 12
+                                : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+                                : MediaQuery.of(context).size.height / 20
+                            ,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: color.backgroundColor,
+                              ),
+                              child: Text(
+                                AppLocalizations.of(context)!.translate('close'),
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onPressed: isButtonDisabled
+                                  ? null
+                                  : () {
+                                setState(() {
+                                  isButtonDisabled = true;
+                                });
+                                Navigator.of(context).pop();
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ),
                         ),
-                        child: Text(
-                          AppLocalizations.of(context)!.translate('close'),
-                          style: TextStyle(color: Colors.white),
+                        SizedBox(width: 10),
+                        Expanded(
+                          flex: 1,
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                                ? MediaQuery.of(context).size.height / 12
+                                : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+                                : MediaQuery.of(context).size.height / 20
+                            ,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: color.buttonColor,
+                              ),
+                              child: Text(
+                                AppLocalizations.of(context)!.translate('yes'),
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onPressed: isButtonDisabled
+                                  ? null
+                                  : () async {
+                                setState(() {
+                                  isButtonDisabled = true;
+                                  willPop = false;
+                                });
+                                _submit(context, cart);
+                              },
+                            ),
+                          ),
                         ),
-                        onPressed: isButtonDisabled
-                            ? null
-                            : () {
-                          setState(() {
-                            isButtonDisabled = true;
-                          });
-                          Navigator.of(context).pop();
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: color.buttonColor,
-                        ),
-                        child: Text(
-                          AppLocalizations.of(context)!.translate('yes'),
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        onPressed: isButtonDisabled
-                            ? null
-                            : () async {
-                          setState(() {
-                            isButtonDisabled = true;
-                            willPop = false;
-                          });
-                          _submit(context, cart);
-                        },
-                      ),
+                      ],
                     ),
                   ],
                 ),
@@ -253,83 +272,94 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
             title: Text(AppLocalizations.of(context)!.translate('confirm_remove_item')),
             content: Container(
               width: 400,
-              height: 50,
+              // height: 50,
               child: Text('${widget.cartItem!.product_name} ${AppLocalizations.of(context)?.translate('confirm_delete')}'),
             ),
             actions: <Widget>[
-              // TextButton(
-              //     child:
-              //     Text('${AppLocalizations.of(context)?.translate('no')}'),
-              //     onPressed: () {
-              //       Navigator.of(context).pop();
-              //     }),
-              SizedBox(
-                width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: color.backgroundColor,
-                  ),
-                  child: Text(
-                    AppLocalizations.of(context)!.translate('close'),
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onPressed: isButtonDisabled
-                      ? null
-                      : () {
-                    setState(() {
-                      isButtonDisabled = true;
-                    });
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: color.buttonColor,
-                  ),
-                  child: Text(
-                    AppLocalizations.of(context)!.translate('yes'),
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onPressed: isButtonDisabled
-                      ? null
-                      : () async {
-                    setState(() {
-                      isButtonDisabled = true;
-                    });
-                    if (widget.currentPage == 'menu') {
-                      cart.removeItem(widget.cartItem!);
-                      if (cart.cartNotifierItem.isEmpty) {
-                        cart.removeAllTable();
-                      }
-                      Navigator.of(context).pop();
-                    } else {
-                      if(widget.cartItem!.quantity == 1 || widget.cartItem!.quantity! is double ){
-                        DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-                        String dateTime = dateFormat.format(DateTime.now());
-                        final prefs = await SharedPreferences.getInstance();
-                        final String? pos_user = prefs.getString('pos_pin_user');
-                        Map<String, dynamic> userMap = json.decode(pos_user!);
-                        User userData = User.fromJson(userMap);
-                        if(userData.edit_price_without_pin != 1) {
-                          showSecondDialog(context, color, cart);
-                        } else {
-                          callUpdateCart(userData, dateTime, cart);
+              Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                          ? MediaQuery.of(context).size.height / 12
+                          : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+                          : MediaQuery.of(context).size.height / 20,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: color.backgroundColor,
+                        ),
+                        child: Text(
+                          AppLocalizations.of(context)!.translate('close'),
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onPressed: isButtonDisabled
+                            ? null
+                            : () {
+                          setState(() {
+                            isButtonDisabled = true;
+                          });
                           Navigator.of(context).pop();
-                        }
-                      } else {
-                        openDialog(cartItem: widget.cartItem, currentPage: widget.currentPage);
-                      }
-                    }
-                    setState(() {
-                      isButtonDisabled = false;
-                    });
-                  },
-                ),
+                        },
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    flex: 1,
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                          ? MediaQuery.of(context).size.height / 12
+                          : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+                          : MediaQuery.of(context).size.height / 20,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: color.buttonColor,
+                        ),
+                        child: Text(
+                          AppLocalizations.of(context)!.translate('yes'),
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onPressed: isButtonDisabled
+                            ? null
+                            : () async {
+                          setState(() {
+                            isButtonDisabled = true;
+                          });
+                          if (widget.currentPage == 'menu') {
+                            cart.removeItem(widget.cartItem!);
+                            if (cart.cartNotifierItem.isEmpty) {
+                              cart.removeAllTable();
+                            }
+                            Navigator.of(context).pop();
+                          } else {
+                            if(widget.cartItem!.quantity == 1 || widget.cartItem!.quantity! is double ){
+                              DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+                              String dateTime = dateFormat.format(DateTime.now());
+                              final prefs = await SharedPreferences.getInstance();
+                              final String? pos_user = prefs.getString('pos_pin_user');
+                              Map<String, dynamic> userMap = json.decode(pos_user!);
+                              User userData = User.fromJson(userMap);
+                              if(userData.edit_price_without_pin != 1) {
+                                showSecondDialog(context, color, cart);
+                              } else {
+                                callUpdateCart(userData, dateTime, cart);
+                                Navigator.of(context).pop();
+                              }
+                            } else {
+                              openDialog(cartItem: widget.cartItem, currentPage: widget.currentPage);
+                            }
+                          }
+                          setState(() {
+                            isButtonDisabled = false;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           );
@@ -438,8 +468,9 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
           // }
           Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(globalContext)!.translate('delete_successful'));
           tableModel.changeContent(true);
-          cart.removeAllTable();
-          cart.removeAllCartItem();
+          // cart.removeAllTable();
+          // cart.removeAllCartItem();
+          cart.removeItem(widget.cartItem!);
           cart.removePromotion();
 
           //sync to cloud

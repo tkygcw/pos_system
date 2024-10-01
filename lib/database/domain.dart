@@ -242,6 +242,22 @@ class Domain {
   }
 
   /*
+  * get all attendance after date
+  * */
+  getAllAttendanceAfterDate(branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.attendance, body: {
+        'getAllAttendanceAfterDate': '1',
+        'branch_id': branch_id,
+        'date_from': date_from,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get all table_use
   * */
   getAllTableUse(branch_id) async {
@@ -249,6 +265,22 @@ class Domain {
       var response = await http.post(Domain.table_use, body: {
         'getAllTableUse': '1',
         'branch_id': branch_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get all table_use after date
+  * */
+  getAllTableUseAfterDate(branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.table_use, body: {
+        'getAllTableUseAfterDate': '1',
+        'branch_id': branch_id,
+        'date_from': date_from,
       });
       return jsonDecode(response.body);
     } catch (error) {
@@ -336,6 +368,22 @@ class Domain {
   }
 
   /*
+  * get all table_use detail after date
+  * */
+  getAllTableUseDetailAfterDate(branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.table_use, body: {
+        'getAllTableUseDetailAfterDate': '1',
+        'branch_id': branch_id,
+        'date_from': date_from
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get transfer owner
   * */
   getTransferOwner(branch_id) async {
@@ -343,6 +391,22 @@ class Domain {
       var response = await http.post(Domain.transfer_owner, body: {
         'getTransferOwner': '1',
         'branch_id': branch_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get transfer owner after date
+  * */
+  getTransferOwnerAfterDate(branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.transfer_owner, body: {
+        'getTransferOwnerAfterDate': '1',
+        'branch_id': branch_id,
+        'date_from': date_from,
       });
       return jsonDecode(response.body);
     } catch (error) {
@@ -1389,6 +1453,19 @@ class Domain {
   }
 
   /*
+  * get refund after date
+  * */
+  getAllRefundAfterDate(company_id, branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.refund,
+          body: {'getAllRefundAfterDate': '1', 'company_id': company_id, 'branch_id': branch_id, 'date_from': date_from});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get modifier group name
   * */
   getModifierGroup(company_id) async {
@@ -1853,6 +1930,19 @@ class Domain {
   }
 
   /*
+  * get all order after
+  * */
+  getAllOrderAfterDate(company_id, branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.order,
+          body: {'getAllOrderAfterDate': '1', 'company_id': company_id, 'branch_id': branch_id, 'date_from': date_from});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get all order promotion detail
   * */
   getAllOrderPromotionDetail(company_id, branch_id) async {
@@ -1879,12 +1969,38 @@ class Domain {
   }
 
   /*
+  * get all order tax detail after date
+  * */
+  getAllOrderTaxDetailAfterDate(company_id, branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.order,
+          body: {'getAllOrderTaxDetailAfterDate': '1', 'company_id': company_id, 'branch_id': branch_id, 'date_from': date_from});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get all order cache
   * */
   getAllOrderCache(company_id, branch_id) async {
     try {
       var response = await http.post(Domain.order,
           body: {'getAllOrderCache': '1', 'company_id': company_id, 'branch_id': branch_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get all order cache after date
+  * */
+  getAllOrderCacheAfterDate(company_id, branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.order,
+          body: {'getAllOrderCacheAfterDate': '1', 'company_id': company_id, 'branch_id': branch_id, 'date_from': date_from});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -2094,6 +2210,19 @@ class Domain {
   }
 
   /*
+  * get settlement after date
+  * */
+  getSettlementAfterDate(company_id, branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.settlement,
+          body: {'getSettlementAfterDate': '1', 'company_id': company_id, 'branch_id': branch_id, 'date_from': date_from});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get settlement link payment
   * */
   getSettlementLinkPayment(company_id, branch_id) async {
@@ -2107,12 +2236,51 @@ class Domain {
   }
 
   /*
+  * get settlement link payment after date
+  * */
+  getSettlementLinkPaymentAfterDate(company_id, branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.settlement,
+          body: {'getAllSettlementLinkPaymentAfterDate': '1', 'company_id': company_id, 'branch_id': branch_id, 'date_from': date_from});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get cash record
   * */
   getCashRecord(company_id, branch_id) async {
     try {
       var response = await http.post(Domain.cash_record,
           body: {'getAllCashRecord': '1', 'company_id': company_id, 'branch_id': branch_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get cash record after date
+  * */
+  getCashRecordAfterDate(company_id, branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.cash_record,
+          body: {'getCashRecordAfterDate': '1', 'company_id': company_id, 'branch_id': branch_id, 'date_from': date_from});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get cash record opening balance after date
+  * */
+  getCashRecordOBAfterDate(company_id, branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.cash_record,
+          body: {'getCashRecordOBAfterDate': '1', 'company_id': company_id, 'branch_id': branch_id, 'date_from': date_from});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());

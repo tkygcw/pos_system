@@ -165,26 +165,20 @@ class _SelectTableDialogState extends State<SelectTableDialog> {
                               Navigator.of(context).pop("resetAllTable");
                             }
                           },
-                          icon: Icon(Icons.restart_alt),
+                          icon: MediaQuery.of(context).orientation == Orientation.landscape ? Icon(Icons.restart_alt) : null,
                           label: Text(AppLocalizations.of(context)!.translate('reset_all_table'))),
                     ),
                   ),
-                  Spacer(),
-                  IconButton(
-                      constraints: BoxConstraints(),
-                      color: Colors.redAccent,
-                      visualDensity: VisualDensity.comfortable,
-                      onPressed: (){
-                        Navigator.of(context).pop();
-                      },
-                      icon: Icon(Icons.close))
                 ],
               ),
+              titlePadding: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.width > 500 ? EdgeInsets.fromLTRB(24, 24, 24, 0) : EdgeInsets.fromLTRB(18, 12, 18, 0),
+              contentPadding: MediaQuery.of(context).size.height > 900 && MediaQuery.of(context).size.height > 500 ? EdgeInsets.fromLTRB(24, 16, 24, 5) : EdgeInsets.fromLTRB(18, 10, 18, 10),
               content: Container(
                 width: MediaQuery.of(context).size.width / 2,
+                height: MediaQuery.of(context).size.height / 2,
                 child: GridView.count(
                   shrinkWrap: true,
-                  crossAxisCount: 4,
+                  crossAxisCount: MediaQuery.of(context).orientation == Orientation.landscape ? 4 : 3,
                   children: List.generate(
                       tableList.length, (index) {
                     return Card(
@@ -266,6 +260,23 @@ class _SelectTableDialogState extends State<SelectTableDialog> {
                   }),
                 ),
               ),
+              actions: [
+                SizedBox(
+                  width: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width / 4 : MediaQuery.of(context).size.width / 3,
+                  height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 20,
+                  // width: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width / 2.5 : MediaQuery.of(context).size.width / 3,
+                  // height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10 : MediaQuery.of(context).size.height / 20,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                    ),
+                    child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ),
+              ],
             );
 
           } else {

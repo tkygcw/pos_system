@@ -47,6 +47,7 @@ class _CashRecordReportState extends State<CashRecordReport> {
               backgroundColor: Colors.transparent,
               title: Text(AppLocalizations.of(context)!.translate('cash_record_report'), style: TextStyle(fontSize: 25)),
               titleSpacing: 0.0,
+              centerTitle: false,
               automaticallyImplyLeading: false,
               bottom: PreferredSize(
                 preferredSize: Size.zero,

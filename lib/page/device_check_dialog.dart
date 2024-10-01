@@ -107,10 +107,13 @@ class _DeviceCheckDialogState extends State<DeviceCheckDialog> {
               TextButton(
                 child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
                 onPressed: isButtonDisabled ? null : () async {
-                  buttonTap++;
-                  if(buttonTap ==1){
-                    _submit(context);
-                  }
+                  setState(() {
+                    isButtonDisabled = true;
+                  });
+                  _submit(context);
+                  setState(() {
+                    isButtonDisabled = false;
+                  });
                 },
               ),
             ],

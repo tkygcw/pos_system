@@ -239,7 +239,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
           return AlertDialog(
             title: Text(AppLocalizations.of(context)!.translate('check_list_layout')),
             titlePadding: EdgeInsets.fromLTRB(24, 16, 24, 0),
-            contentPadding: EdgeInsets.fromLTRB(24, 16, 24, 5),
+            contentPadding: EdgeInsets.fromLTRB(24, 16, 24, 16),
             content: StreamBuilder(
                 stream: contentStream,
                 builder: (context, snapshot){
@@ -295,55 +295,72 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                 }
             ),
             actions: [
-              SizedBox(
-                width: MediaQuery.of(context).size.width / 4,
-                height: MediaQuery.of(context).size.height / 10,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: color.backgroundColor,
+              Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: SizedBox(
+                      width: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width / 2.5 : MediaQuery.of(context).size.width / 3,
+                      height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10 : MediaQuery.of(context).size.height / 20,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: color.backgroundColor,
+                        ),
+                        child: Text(MediaQuery.of(context).orientation == Orientation.landscape ?
+                        AppLocalizations.of(context)!.translate('test_print')
+                            : AppLocalizations.of(context)!.translate('test')),
+                        onPressed: () {
+                          if(cashierPrinter.isNotEmpty){
+                            testLayout();
+                            PrintReceipt().printTestPrintChecklist(cashierPrinter, testPrintLayout, testPrintLayout.paper_size!);
+                          } else {
+                            Fluttertoast.showToast(msg: "No cashier printer added");
+                          }
+                        },
+                      ),
+                    ),
                   ),
-                  child: Text(AppLocalizations.of(context)!.translate('test_print')),
-                  onPressed: () {
-                    if(cashierPrinter.isNotEmpty){
-                      testLayout();
-                      PrintReceipt().printTestPrintChecklist(cashierPrinter, testPrintLayout, testPrintLayout.paper_size!);
-                    } else {
-                      Fluttertoast.showToast(msg: "No cashier printer added");
-                    }
-                  },
-                ),
-              ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width / 4,
-                height: MediaQuery.of(context).size.height / 10,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent,
+                  SizedBox(width: 10),
+                  Expanded(
+                    flex: 1,
+                    child: SizedBox(
+                      width: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width / 2.5 : MediaQuery.of(context).size.width / 3,
+                      height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10 : MediaQuery.of(context).size.height / 20,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent,
+                        ),
+                        child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                        onPressed: isButtonDisabled ? null : () {
+                          setState(() {
+                            isButtonDisabled = true;
+                          });
+                          closeDialog(context);
+                        },
+                      ),
+                    ),
                   ),
-                  child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                  onPressed: isButtonDisabled ? null : () {
-                    setState(() {
-                      isButtonDisabled = true;
-                    });
-                    closeDialog(context);
-                  },
-                ),
-              ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width / 4,
-                height: MediaQuery.of(context).size.height / 10,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: color.backgroundColor,
+                  SizedBox(width: 10),
+                  Expanded(
+                    flex: 1,
+                    child: SizedBox(
+                      width: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width / 2.5 : MediaQuery.of(context).size.width / 3,
+                      height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10 : MediaQuery.of(context).size.height / 20,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: color.backgroundColor,
+                        ),
+                        child: Text(AppLocalizations.of(context)!.translate('update')),
+                        onPressed: isButtonDisabled ? null : () {
+                          setState(() {
+                            isButtonDisabled = true;
+                          });
+                          _submit(context);
+                        },
+                      ),
+                    ),
                   ),
-                  child: Text(AppLocalizations.of(context)!.translate('update')),
-                  onPressed: isButtonDisabled ? null : () {
-                    setState(() {
-                      isButtonDisabled = true;
-                    });
-                    _submit(context);
-                  },
-                ),
+                ],
               ),
             ],
           );

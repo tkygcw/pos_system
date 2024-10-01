@@ -47,6 +47,20 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Scaffold(
+        appBar:  MediaQuery.of(context).size.width < 800 && MediaQuery.of(context).orientation == Orientation.portrait ? AppBar(
+          elevation: 1,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios, color: color.buttonColor),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          backgroundColor: Colors.white,
+          title: Text(AppLocalizations.of(context)!.translate('data_processing'),
+              style: TextStyle(fontSize: 20, color: color.backgroundColor)),
+          centerTitle: false,
+        )
+            : null,
         body: SingleChildScrollView(
           child: Column(
             children: [
@@ -213,58 +227,73 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
                       child: CustomProgressBar()
                   ),
                   actions: <Widget>[
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: color.backgroundColor,
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: SizedBox(
+                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                                ? MediaQuery.of(context).size.height / 12
+                                : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+                                : MediaQuery.of(context).size.height / 20,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: color.backgroundColor,
+                              ),
+                              child: Text(
+                                AppLocalizations.of(context)!.translate('close'),
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onPressed: isButtonDisabled
+                                  ? null
+                                  : () {
+                                setState(() {
+                                  isButtonDisabled = true;
+                                });
+                                Navigator.of(context).pop();
+                                if(mounted){
+                                  setState(() {
+                                    isButtonDisabled = false;
+                                  });
+                                }
+                              },
+                            ),
+                          ),
                         ),
-                        child: Text(
-                          AppLocalizations.of(context)!.translate('close'),
-                          style: TextStyle(color: Colors.white),
+                        SizedBox(width: 10),
+                        Expanded(
+                          flex: 1,
+                          child: SizedBox(
+                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                                ? MediaQuery.of(context).size.height / 12
+                                : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+                                : MediaQuery.of(context).size.height / 20,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: color.buttonColor,
+                              ),
+                              child: Text(
+                                AppLocalizations.of(context)!.translate('yes'),
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onPressed: isButtonDisabled
+                                  ? null
+                                  : () async {
+                                setState(() {
+                                  isButtonDisabled = true;
+                                });
+                                _submit(context);
+                                if(mounted){
+                                  setState(() {
+                                    isButtonDisabled = false;
+                                    inProgress = false;
+                                  });
+                                }
+                              },
+                            ),
+                          ),
                         ),
-                        onPressed: isButtonDisabled
-                            ? null
-                            : () {
-                          setState(() {
-                            isButtonDisabled = true;
-                          });
-                          Navigator.of(context).pop();
-                          if(mounted){
-                            setState(() {
-                              isButtonDisabled = false;
-                            });
-                          }
-                        },
-                      ),
-                    ),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: color.buttonColor,
-                        ),
-                        child: Text(
-                          AppLocalizations.of(context)!.translate('yes'),
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        onPressed: isButtonDisabled
-                            ? null
-                            : () async {
-                          setState(() {
-                            isButtonDisabled = true;
-                          });
-                          _submit(context);
-                          if(mounted){
-                            setState(() {
-                              isButtonDisabled = false;
-                              inProgress = false;
-                            });
-                          }
-                        },
-                      ),
+                      ],
                     ),
                   ],
                 ),

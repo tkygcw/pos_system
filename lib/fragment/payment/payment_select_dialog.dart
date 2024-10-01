@@ -76,7 +76,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                   child: Container(
                     margin: EdgeInsets.all(2),
                     width: MediaQuery.of(context).size.width / 2,
-                    height: MediaQuery.of(context).size.height / 3,
+                    height: MediaQuery.of(context).size.height / 2,
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -128,40 +128,19 @@ class _PaymentSelectState extends State<PaymentSelect> {
                                     },
                                     child: Card(
                                       elevation: 5,
-                                      color: Colors.white,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(16.0),
                                       ),
-                                      child: Container(
-                                        height: MediaQuery.of(context).size.height / 3,
-                                        width: MediaQuery.of(context).size.width / 3,
-                                        child: Stack(
-                                          alignment: Alignment.center,
-                                          children: [
-                                            // ClipRRect(
-                                            //   borderRadius: BorderRadius.circular(16.0),
-                                            //   child:///***If you have exported images you must have to copy those images in assets/images directory.
-                                            //   Image(
-                                            //     image: AssetImage("drawable/payment_method.png"),
-                                            //     // NetworkImage(
-                                            //     //     "https://image.freepik.com/free-photo/close-up-people-training-with-ball_23-2149049821.jpg"),
-                                            //     height: MediaQuery.of(context).size.height,
-                                            //     width: MediaQuery.of(context).size.width,
-                                            //     fit: BoxFit.cover,
-                                            //   ),
-                                            // ),
-                                            Text(
-                                              '${PaymentLists[index].name}',
-                                              textAlign: TextAlign.start,
-                                              overflow: TextOverflow.clip,
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w700,
-                                                fontStyle: FontStyle.normal,
-                                                fontSize: 16,
-                                                color: Colors.blueGrey,
-                                              ),
-                                            ),
-                                          ],
+                                      child: Center(
+                                        child: Text('${PaymentLists[index].name}',
+                                          textAlign: TextAlign.center,
+                                          overflow: TextOverflow.clip,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                            fontStyle: FontStyle.normal,
+                                            fontSize: 16,
+                                            color: Colors.blueGrey,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -197,8 +176,11 @@ class _PaymentSelectState extends State<PaymentSelect> {
             onWillPop: () async => willPop,
             child: AlertDialog(
               title: Text(AppLocalizations.of(context)!.translate('select_payment_method')),
+              titlePadding: EdgeInsets.fromLTRB(24, 12, 24, 0),
+              contentPadding: EdgeInsets.fromLTRB(18, 10, 18, 0),
               content: isload ?
               Container(
+                height: MediaQuery.of(context).size.height / 1.7,
                   width: MediaQuery.of(context).size.width / 2,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,7 +194,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                         child: GridView.count(
                             padding: EdgeInsets.zero,
                             shrinkWrap: true,
-                            crossAxisCount: 3,
+                            crossAxisCount: MediaQuery.of(context).orientation == Orientation.landscape ? 4 : 2,
                             scrollDirection: Axis.vertical,
                             children: List.generate(PaymentLists.length, (index) {
                               return GestureDetector(
