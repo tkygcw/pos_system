@@ -93,11 +93,11 @@ class _QrMainPageState extends State<QrMainPage> {
             ),
             onPressed: () async {
               await FirestoreQROrderSync.instance.readAllNotAcceptedOrderCache(branch_id);
-              // if(qrOrder.count == 0){
-              //   qrOrder.count = 1;
-              //   await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
-              //   qrOrder.count = 0;
-              // }
+              if(qrOrder.count == 0){
+                qrOrder.count = 1;
+                await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
+                qrOrder.count = 0;
+              }
             },
           ),
           SizedBox(width: 10),
@@ -300,7 +300,6 @@ class _QrMainPageState extends State<QrMainPage> {
         text: "check order detail error",
         exception: e,
       );
-      print("check order detail error: ${e}");
     }
   }
 

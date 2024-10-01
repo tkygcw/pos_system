@@ -2,15 +2,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
+import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/second_device/other_device.dart';
 import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../firebase_sync/sync_to_firebase.dart';
 import '../../translation/AppLocalizations.dart';
 
 class DeviceSetting extends StatefulWidget {
@@ -37,115 +36,76 @@ class _DeviceSettingState extends State<DeviceSetting> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: checkStatus(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            return Scaffold(
-              resizeToAvoidBottomInset: false,
-              body: hasAccess
-                  ? Consumer<ConnectivityChangeNotifier>(builder: (context, connectivity, child) {
-                      return Column(
+    return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
+      return FutureBuilder(
+          future: checkStatus(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return Scaffold(
+                appBar:  MediaQuery.of(context).size.width < 800 && MediaQuery.of(context).orientation == Orientation.portrait ? AppBar(
+                  elevation: 1,
+                  leading: IconButton(
+                    icon: Icon(Icons.arrow_back_ios, color: color.buttonColor),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  backgroundColor: Colors.white,
+                  title: Text(AppLocalizations.of(context)!.translate('device_setting'),
+                      style: TextStyle(fontSize: 20, color: color.backgroundColor)),
+                  centerTitle: false,
+                )
+                    : null,
+                resizeToAvoidBottomInset: false,
+                body: hasAccess
+                    ? Consumer<ConnectivityChangeNotifier>(builder: (context, connectivity, child) {
+                  return Column(
+                    children: [
+                      BindIpWidget(),
+                      Divider(
+                        color: Colors.grey,
+                        height: 1,
+                        thickness: 1,
+                        indent: 20,
+                        endIndent: 20,
+                      ),
+                      Consumer<Server>(builder: (context, server, child) {
+                        return ListTile(
+                          title: Text(
+                              AppLocalizations.of(context)!.translate('connection_management')),
+                          subtitle: Text(
+                              '${AppLocalizations.of(context)?.translate('connected_device')}: ${server.clientList.length}'),
+                          trailing: Visibility(
+                              child: Icon(Icons.navigate_next),
+                              visible: server.clientList.isEmpty ? false : true),
+                          onTap: server.clientList.isEmpty
+                              ? null
+                              : () {
+                            openDeviceDialog(clientSocket: server.clientList);
+                          },
+                        );
+                      }),
+                    ],
+                  );
+                })
+                    : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Column(
                         children: [
-                          BindIpWidget(),
-                          Divider(
-                            color: Colors.grey,
-                            height: 1,
-                            thickness: 1,
-                            indent: 20,
-                            endIndent: 20,
-                          ),
-                          Consumer<Server>(builder: (context, server, child) {
-                            return ListTile(
-                              title: Text(
-                                  AppLocalizations.of(context)!.translate('connection_management')),
-                              subtitle: Text(
-                                  '${AppLocalizations.of(context)?.translate('connected_device')}: ${server.clientList.length}'),
-                              trailing: Visibility(
-                                  child: Icon(Icons.navigate_next),
-                                  visible: server.clientList.isEmpty ? false : true),
-                              onTap: server.clientList.isEmpty
-                                  ? null
-                                  : () {
-                                      openDeviceDialog(clientSocket: server.clientList);
-                                    },
-                            );
-                          }),
-                          ElevatedButton(
-                              onPressed: (){
-                                SyncToFirebase.instance.syncToFirebase();
-                              },
-                              child: Text("get branch"),
-                          ),
-                          ElevatedButton(
-                            onPressed: (){
-                              PosFirestore.instance.addProductFromLocalId();
-                            },
-                            child: Text("add product"),
-                          ),
-                          ElevatedButton(
-                            onPressed: (){
-                              PosFirestore.instance.addProductFromLocalIdWithSpecificId();
-                            },
-                            child: Text("add product with specific local id"),
-                          ),
-                          ElevatedButton(
-                            onPressed: () async{
-                              await PosFirestore.instance.updateSpecificProduct('8YVaYTf2HXVjnxyT3oW9');
-                              print("done update");
-                            },
-                            child: Text("update"),
-                          ),
-                          ElevatedButton(
-                            onPressed: (){
-                              PosFirestore.instance.deleteSpecificProduct('1');
-                            },
-                            child: Text("delete"),
-                          ),
-                          ElevatedButton(
-                            onPressed: (){
-                              PosFirestore.instance.realtimeUpdate();
-                            },
-                            child: Text("reatime"),
-                          ),
-                          ElevatedButton(
-                            onPressed: (){
-                              PosFirestore.instance.offline();
-                            },
-                            child: Text("offline task"),
-                          ),
-                          ElevatedButton(
-                            onPressed: (){
-                              PosFirestore.instance.online();
-                            },
-                            child: Text("online task"),
-                          ),
-                          ElevatedButton(
-                            onPressed: (){
-                              PosFirestore.instance.transferDatabaseData();
-                            },
-                            child: Text("transfer data"),
-                          ),
+                          Icon(Icons.lock),
+                          Text(
+                              AppLocalizations.of(context)!.translate('upgrade_to_use_sub_pos'))
                         ],
-                      );
-                    })
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                          Column(
-                            children: [
-                              Icon(Icons.lock),
-                              Text(
-                                  AppLocalizations.of(context)!.translate('upgrade_to_use_sub_pos'))
-                            ],
-                          )
-                        ]),
-            );
-          } else {
-            return CustomProgressBar();
-          }
-        });
+                      )
+                    ]),
+              );
+            } else {
+              return CustomProgressBar();
+            }
+          });
+    });
   }
 
   Future<Future<Object?>> openDeviceDialog({required List<Socket> clientSocket}) async {
@@ -162,7 +122,8 @@ class _DeviceSettingState extends State<DeviceSetting> {
           );
         },
         transitionDuration: Duration(milliseconds: 200),
-        barrierDismissible: false,
+        barrierDismissible: true,
+        barrierLabel: 'connected_device',
         context: context,
         pageBuilder: (context, animation1, animation2) {
           // ignore: null_check_always_fails
