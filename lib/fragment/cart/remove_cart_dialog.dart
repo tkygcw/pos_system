@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/fragment/cart/adjust_quantity.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
@@ -46,6 +47,7 @@ class CartRemoveDialog extends StatefulWidget {
 
 class _CartRemoveDialogState extends State<CartRemoveDialog> {
   BuildContext globalContext = MyApp.navigatorKey.currentContext!;
+  PosFirestore posFirestore = PosFirestore.instance;
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   final adminPosPinController = TextEditingController();
   bool _submitted = false;
@@ -531,6 +533,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
           sync_status: orderDetail!.sync_status == 0 ? 0 : 2,
           status: 0,
           quantity: '0',
+          branch_link_product_id: widget.cartItem!.branch_link_product_id,
           order_detail_sqlite_id: int.parse(widget.cartItem!.order_detail_sqlite_id!),
           branch_link_product_sqlite_id: widget.cartItem!.branch_link_product_sqlite_id);
 
@@ -538,7 +541,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
       if(data == 1){
         OrderDetail detailData = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
         if(orderDetailObject.branch_link_product_sqlite_id != null && orderDetailObject.branch_link_product_sqlite_id != ''){
-          await updateProductStock(orderDetailObject.branch_link_product_sqlite_id!, 1, dateTime);
+          await updateProductStock(orderDetailObject, 1, dateTime);
         }
         _value.add(jsonEncode(detailData.syncJson()));
       }
@@ -687,12 +690,12 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     }
   }
 
-  updateProductStock(String branch_link_product_sqlite_id, int quantity, String dateTime) async{
+  updateProductStock(OrderDetail orderDetail, int quantity, String dateTime) async{
     try{
       List<String> _value = [];
       int _totalStockQty = 0, updateStock = 0;
       BranchLinkProduct? object;
-      List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+      List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetail.branch_link_product_sqlite_id!);
       if(checkData.isNotEmpty){
         switch(checkData[0].stock_type){
           case '1': {
@@ -701,9 +704,11 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                 updated_at: dateTime,
                 sync_status: 2,
                 daily_limit: _totalStockQty.toString(),
-                branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id)
+                branch_link_product_id: orderDetail.branch_link_product_id,
+                branch_link_product_sqlite_id: int.parse(orderDetail.branch_link_product_sqlite_id!)
             );
             updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
+            posFirestore.updateBranchLinkProductDailyLimit(object);
           }break;
           case '2': {
             _totalStockQty = int.parse(checkData[0].stock_quantity!) + quantity;
@@ -711,9 +716,11 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                 updated_at: dateTime,
                 sync_status: 2,
                 stock_quantity: _totalStockQty.toString(),
-                branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id)
+                branch_link_product_id: orderDetail.branch_link_product_id,
+                branch_link_product_sqlite_id: int.parse(orderDetail.branch_link_product_sqlite_id!)
             );
             updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+            posFirestore.updateBranchLinkProductStock(object);
           }break;
           default: {
             updateStock = 0;
@@ -721,7 +728,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
           }
         }
         if(updateStock == 1){
-          List<BranchLinkProduct> updatedData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+          List<BranchLinkProduct> updatedData = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetail.branch_link_product_sqlite_id!);
           _value.add(jsonEncode(updatedData[0].toJson()));
         }
         branch_link_product_value = _value.toString();

@@ -8,6 +8,7 @@ import 'order_cache.dart';
 import 'order_modifier_detail.dart';
 
 class cartProductItem{
+   int? branch_link_product_id;
    String? branch_link_product_sqlite_id;
    String? product_name;
    String? category_id;
@@ -44,6 +45,7 @@ class cartProductItem{
 
    cartProductItem(
        {
+         this.branch_link_product_id,
          this.branch_link_product_sqlite_id,
          this.product_name,
          this.category_id,
@@ -76,7 +78,7 @@ class cartProductItem{
          this.allow_ticket,
          this.ticket_count,
          this.ticket_exp,
-         this.product_sku
+         this.product_sku,
        });
 
    static cartProductItem fromJson(Map<String, Object?> json) {
@@ -89,6 +91,7 @@ class cartProductItem{
      List<VariantGroup>? variantGroup = variantJson != null ? variantJson.map((tagJson) => VariantGroup.fromJson(tagJson)).toList() : null;
      List<OrderModifierDetail>? orderModifierDetailList = orderModDetail != null ? orderModDetail.map((tagJson) => OrderModifierDetail.fromJson(tagJson)).toList() : null;
      return cartProductItem(
+         branch_link_product_id: json['branch_link_product_id'] as int?,
          branch_link_product_sqlite_id: json['branch_link_product_sqlite_id'] as String?,
          product_name: json['product_name'] as String?,
          category_id: json['category_id'] as String?,
@@ -126,6 +129,7 @@ class cartProductItem{
    }
 
    Map<String, Object?> toJson() => {
+     'branch_link_product_id': branch_link_product_id,
      'branch_link_product_sqlite_id': branch_link_product_sqlite_id,
      'product_name': product_name,
      'category_id': category_id,

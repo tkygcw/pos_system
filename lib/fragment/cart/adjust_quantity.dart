@@ -13,6 +13,7 @@ import 'package:crypto/crypto.dart';
 
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
+import '../../database/pos_firestore.dart';
 import '../../notifier/app_setting_notifier.dart';
 import '../../notifier/cart_notifier.dart';
 import '../../notifier/table_notifier.dart';
@@ -44,6 +45,7 @@ class AdjustQuantityDialog extends StatefulWidget {
 }
 
 class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
+  PosFirestore posFirestore = PosFirestore.instance;
   BuildContext globalContext = MyApp.navigatorKey.currentContext!;
   num simpleIntInput = 0;
   late num currentQuantity;
@@ -719,6 +721,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
         status: 0,
         quantity: totalQty.toString(),
         order_detail_sqlite_id: int.parse(widget.cartItem.order_detail_sqlite_id!),
+        branch_link_product_id: widget.cartItem.branch_link_product_id,
         branch_link_product_sqlite_id: widget.cartItem.branch_link_product_sqlite_id,
       );
       num data = await PosDatabase.instance.updateOrderDetailQuantity(orderDetailObject);
@@ -726,7 +729,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
         OrderDetail detailData = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
         await updateOrderCacheSubtotal(detailData.order_cache_sqlite_id!, detailData.price, simpleIntInput, dateTime);
         if(orderDetailObject.branch_link_product_sqlite_id != null && orderDetailObject.branch_link_product_sqlite_id != ''){
-          await updateProductStock(orderDetailObject.branch_link_product_sqlite_id!, simpleIntInput, dateTime);
+          await updateProductStock(orderDetailObject, simpleIntInput, dateTime);
         }
         _value.add(jsonEncode(detailData.syncJson()));
       }
@@ -790,12 +793,12 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     //syncUpdatedOrderDetailToCloud(_value.toString());
   }
 
-  updateProductStock(String branch_link_product_sqlite_id, num quantity, String dateTime) async {
+  updateProductStock(OrderDetail orderDetail, num quantity, String dateTime) async {
     List<String> _value = [];
     num _totalStockQty = 0, updateStock = 0;
     BranchLinkProduct? object;
     try{
-      List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+      List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetail.branch_link_product_sqlite_id!);
       if(checkData.isNotEmpty){
         switch(checkData[0].stock_type){
           case '1': {
@@ -804,8 +807,10 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                 updated_at: dateTime,
                 sync_status: 2,
                 daily_limit: _totalStockQty.toString(),
-                branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
+                branch_link_product_id: orderDetail.branch_link_product_id,
+                branch_link_product_sqlite_id: int.parse(orderDetail.branch_link_product_sqlite_id!));
             updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
+            posFirestore.updateBranchLinkProductDailyLimit(object);
           }break;
           case'2': {
             _totalStockQty = int.parse(checkData[0].stock_quantity!) + quantity;
@@ -813,15 +818,17 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                 updated_at: dateTime,
                 sync_status: 2,
                 stock_quantity: _totalStockQty.toString(),
-                branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
+                branch_link_product_id: orderDetail.branch_link_product_id,
+                branch_link_product_sqlite_id: int.parse(orderDetail.branch_link_product_sqlite_id!));
             updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+            posFirestore.updateBranchLinkProductStock(object);
           }break;
           default: {
             updateStock = 0;
           }
         }
         if (updateStock == 1) {
-          List<BranchLinkProduct> updatedData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+          List<BranchLinkProduct> updatedData = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetail.branch_link_product_sqlite_id!);
           _value.add(jsonEncode(updatedData[0]));
           branch_link_product_value = _value.toString();
         }

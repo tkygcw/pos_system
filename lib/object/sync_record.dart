@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
+import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/attendance.dart';
 import 'package:pos_system/object/branch_link_promotion.dart';
@@ -41,6 +42,7 @@ import 'modifier_item.dart';
 import 'modifier_link_product.dart';
 
 class SyncRecord {
+  PosFirestore firestore = PosFirestore.instance;
   int count = 0;
 
   syncSubscriptionFromCloud() async {
@@ -103,11 +105,11 @@ class SyncRecord {
       final int? device_id = prefs.getInt('device_id');
       final String? login_value = prefs.getString('login_value');
       Map branchObject = json.decode(branch!);
-      print("branch id: ${branchObject['branchID']}");
+      print("branch id: ${branchObject['branch_id']}");
       print("device id: ${device_id.toString()}");
       print("login value: ${login_value.toString()}");
       ///get data
-      Map data = await Domain().getAllSyncRecord('${branchObject['branchID']}', device_id.toString(), login_value.toString());
+      Map data = await Domain().getAllSyncRecord('${branchObject['branch_id']}', device_id.toString(), login_value.toString());
       print('data: ${data}');
       List<int> syncRecordIdList = [];
       if (data['status'] == '1') {
@@ -495,6 +497,7 @@ class SyncRecord {
   callBranchQuery({data}) async {
     bool isComplete = false;
     Branch branchData = Branch.fromJson(data[0]);
+    firestore.insertBranch(branchData);
     final prefs = await SharedPreferences.getInstance();
     try{
       int data = await PosDatabase.instance.updateBranch(branchData);
@@ -514,6 +517,7 @@ class SyncRecord {
     bool isComplete = false;
     try{
       BranchLinkPromotion branchLinkPromotion = BranchLinkPromotion.fromJson(data[0]);
+      firestore.insertBranchLinkPromotion(branchLinkPromotion);
       if(method == '0'){
         BranchLinkPromotion? checkData = await PosDatabase.instance.checkSpecificBranchLinkPromotionId(branchLinkPromotion.branch_link_promotion_id!);
         if(checkData == null){
@@ -569,6 +573,7 @@ class SyncRecord {
     bool isComplete = false;
     try{
       PosTable posTable = PosTable.fromJson(data[0]);
+      firestore.insertPosTable(posTable);
       if(method == '0'){
         PosTable? checkData = await PosDatabase.instance.checkSpecificTableId(posTable.table_id!);
         if(checkData == null){
@@ -594,6 +599,7 @@ class SyncRecord {
   callBranchLinkDiningQuery({data, method}) async {
     bool isComplete = false;
     BranchLinkDining diningData = BranchLinkDining.fromJson(data[0]);
+    firestore.insertBranchLinkDining(diningData);
     try{
       if(method == '0'){
         BranchLinkDining data = await PosDatabase.instance.insertBranchLinkDining(diningData);
@@ -616,6 +622,7 @@ class SyncRecord {
   callDiningOptionQuery({data, method}) async {
     bool isComplete = false;
     DiningOption diningOption = DiningOption.fromJson(data[0]);
+    firestore.insertDiningOption(diningOption);
     if(method == '0'){
       DiningOption data = await PosDatabase.instance.insertDiningOption(diningOption);
       if(data.created_at != ''){
@@ -668,6 +675,7 @@ class SyncRecord {
   callBranchLinkTax({data, method}) async {
     bool isComplete = false;
     BranchLinkTax taxData = BranchLinkTax.fromJson(data[0]);
+    firestore.insertBranchLinkTax(taxData);
     try{
       if(method == '0'){
         BranchLinkTax? checkData = await PosDatabase.instance.checkSpecificBranchLinkTaxId(taxData.branch_link_tax_id!);
@@ -924,6 +932,7 @@ class SyncRecord {
     bool isComplete = false;
     try{
       BranchLinkModifier branchLinkModifierData = BranchLinkModifier.fromJson(data[0]);
+      firestore.insertBranchLinkModifier(branchLinkModifierData);
       if(method == '0'){
         //create
         BranchLinkModifier? checkData = await PosDatabase.instance.checkSpecificBranchLinkModifierId(branchLinkModifierData.branch_link_modifier_id!);
@@ -952,6 +961,7 @@ class SyncRecord {
     bool isComplete = false;
     try{
       ModifierItem modifierItemData = ModifierItem.fromJson(data[0]);
+      firestore.insertModifierItem(modifierItemData);
       if(method == '0'){
         //create
         ModifierItem? checkData = await PosDatabase.instance.checkSpecificModifierItemId(modifierItemData.mod_item_id!);
@@ -980,6 +990,7 @@ class SyncRecord {
     bool isComplete = false;
     try{
       ModifierGroup modifierGroupData = ModifierGroup.fromJson(data[0]);
+      firestore.insertModifierGroup(modifierGroupData);
       if(method == '0'){
         //create
         ModifierGroup? checkData = await PosDatabase.instance.checkSpecificModifierGroupId(modifierGroupData.mod_group_id!);
@@ -1030,6 +1041,7 @@ class SyncRecord {
           updated_at: branchLinkProductData.updated_at,
           soft_delete: branchLinkProductData.soft_delete
       );
+      firestore.insertBranchLinkProduct(object);
       if(method == '0'){
         //create
         BranchLinkProduct? checkData = await PosDatabase.instance.checkSpecificBranchLinkProductId(object.branch_link_product_id!);
@@ -1073,6 +1085,7 @@ class SyncRecord {
           updated_at: productVariantDetailItem.updated_at,
           soft_delete: productVariantDetailItem.soft_delete
       );
+      firestore.insertProductVariantDetail(object);
       if(method == '0'){
         //create
         ProductVariantDetail? checkData = await PosDatabase.instance.checkSpecificProductVariantDetailId(object.product_variant_detail_id!);
@@ -1118,6 +1131,7 @@ class SyncRecord {
           updated_at: productVariantItem.updated_at,
           soft_delete: productVariantItem.soft_delete
       );
+      firestore.insertProductVariant(object);
       if(method == '0'){
         //create
         ProductVariant? checkData = await PosDatabase.instance.checkSpecificProductVariantId(object.product_variant_id!);
@@ -1236,6 +1250,7 @@ class SyncRecord {
         updated_at: modData.updated_at,
         soft_delete: modData.soft_delete,
       );
+      firestore.insertModifierLinkProduct(object);
       if(method == '0'){
         //create
         ModifierLinkProduct? checkData = await PosDatabase.instance.checkSpecificModifierLinkProductId(object.modifier_link_product_id!);
@@ -1320,6 +1335,7 @@ class SyncRecord {
           updated_at: productItem.updated_at,
           soft_delete: productItem.soft_delete
       );
+      firestore.insertProduct(productObject);
       if(method == '0'){
         //create
         Product? checkData = await PosDatabase.instance.checkSpecificProductId(productItem.product_id!);

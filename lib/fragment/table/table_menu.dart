@@ -967,6 +967,7 @@ class _TableMenuState extends State<TableMenu> {
     for (int k = 0; k < orderDetailList.length; k++) {
       //Get data from branch link product
       List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
+      orderDetailList[k].branch_link_product_id = data.first.branch_link_product_id;
       orderDetailList[k].allow_ticket = data[0].allow_ticket;
       orderDetailList[k].ticket_count = data[0].ticket_count;
       orderDetailList[k].ticket_exp = data[0].ticket_exp;
@@ -1055,6 +1056,7 @@ class _TableMenuState extends State<TableMenu> {
       var detailLength = orderDetailList.length;
       for (int i = 0; i < detailLength; i++) {
         value = cartProductItem(
+          branch_link_product_id: orderDetailList[i].branch_link_product_id,
           branch_link_product_sqlite_id: orderDetailList[i].branch_link_product_sqlite_id!,
           product_name: orderDetailList[i].productName!,
           category_id: orderDetailList[i].product_category_id!,

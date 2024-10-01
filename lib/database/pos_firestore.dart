@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/branch.dart';
@@ -28,59 +29,59 @@ class PosFirestore {
   FirebaseFirestore get firestore => _firestore;
 
   insertBranch(Branch branch) async {
-    await firestore.collection(tableBranch!).doc(branch.branch_id.toString()).set(branch.toJson());
+    await firestore.collection(tableBranch!).doc(branch.branch_id.toString()).set(branch.toJson(), SetOptions(merge: true));
   }
 
   insertBranchLinkDining(BranchLinkDining data) async {
-    await firestore.collection(tableBranchLinkDining!).doc(data.branch_link_dining_id.toString()).set(data.toJson());
+    await firestore.collection(tableBranchLinkDining!).doc(data.branch_link_dining_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertBranchLinkModifier(BranchLinkModifier data) async {
-    await firestore.collection(tableBranchLinkModifier!).doc(data.branch_link_modifier_id.toString()).set(data.toJson());
+    await firestore.collection(tableBranchLinkModifier!).doc(data.branch_link_modifier_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertBranchLinkProduct(BranchLinkProduct data) async {
-    await firestore.collection(tableBranchLinkProduct!).doc(data.branch_link_product_id.toString()).set(data.toJson());
+    await firestore.collection(tableBranchLinkProduct!).doc(data.branch_link_product_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertBranchLinkPromotion(BranchLinkPromotion data) async {
-    await firestore.collection(tableBranchLinkPromotion!).doc(data.branch_link_promotion_id.toString()).set(data.toJson());
+    await firestore.collection(tableBranchLinkPromotion!).doc(data.branch_link_promotion_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertBranchLinkTax(BranchLinkTax data) async {
-    await firestore.collection(tableBranchLinkTax!).doc(data.branch_link_tax_id.toString()).set(data.toJson());
+    await firestore.collection(tableBranchLinkTax!).doc(data.branch_link_tax_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertDiningOption(DiningOption data) async {
-    await firestore.collection(tableDiningOption!).doc(data.dining_id.toString()).set(data.toJson());
+    await firestore.collection(tableDiningOption!).doc(data.dining_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertModifierGroup(ModifierGroup data) async {
-    await firestore.collection(tableModifierGroup!).doc(data.mod_group_id.toString()).set(data.toJson2());
+    await firestore.collection(tableModifierGroup!).doc(data.mod_group_id.toString()).set(data.toJson2(), SetOptions(merge: true));
   }
 
   insertModifierItem(ModifierItem data) async {
-    await firestore.collection(tableModifierItem!).doc(data.mod_item_id.toString()).set(data.toJson2());
+    await firestore.collection(tableModifierItem!).doc(data.mod_item_id.toString()).set(data.toJson2(), SetOptions(merge: true));
   }
 
   insertModifierLinkProduct(ModifierLinkProduct data) async {
-    await firestore.collection(tableModifierLinkProduct!).doc(data.modifier_link_product_id.toString()).set(data.toJson());
+    await firestore.collection(tableModifierLinkProduct!).doc(data.modifier_link_product_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertProduct(Product data) async {
-    await firestore.collection(tableProduct!).doc(data.product_id.toString()).set(data.toJson());
+    await firestore.collection(tableProduct!).doc(data.product_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertProductVariant(ProductVariant data) async {
-    await firestore.collection(tableProductVariant!).doc(data.product_variant_id.toString()).set(data.toJson());
+    await firestore.collection(tableProductVariant!).doc(data.product_variant_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertProductVariantDetail(ProductVariantDetail data) async {
-    await firestore.collection(tableProductVariantDetail!).doc(data.product_variant_detail_id.toString()).set(data.toJson());
+    await firestore.collection(tableProductVariantDetail!).doc(data.product_variant_detail_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertPosTable(PosTable data) async {
-    await firestore.collection(tablePosTable!).doc(data.table_id.toString()).set(data.toJson());
+    await firestore.collection(tablePosTable!).doc(data.table_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   Future<int> updateBranchLinkProductDailyLimit(BranchLinkProduct branchProduct) async {
@@ -91,13 +92,18 @@ class PosFirestore {
         BranchLinkProductFields.updated_at: branchProduct.updated_at,
         BranchLinkProductFields.daily_limit: branchProduct.daily_limit,
       };
-      print("blp id: ${branchProduct.branch_link_product_id!.toString()}");
-      final docRef = await firestore.collection(tableBranchLinkProduct!).doc(branchProduct.branch_link_product_id!.toString());
-      batch.update(docRef, jsonMap);
-      batch.commit();
-      status = 1;
+      final docSnapshot = await firestore.collection(tableBranchLinkProduct!).doc(branchProduct.branch_link_product_id!.toString()).get();
+      if(docSnapshot.exists){
+        batch.update(docSnapshot.reference, jsonMap);
+        batch.commit();
+        status = 1;
+      }
     }catch(e){
-      print("firestore update branch link product error: ${e}");
+      FLog.error(
+        className: "pos_firestore",
+        text: "updateBranchLinkProductDailyLimit error",
+        exception: e,
+      );
       status = 0;
     }
     return status;
@@ -111,13 +117,18 @@ class PosFirestore {
         BranchLinkProductFields.updated_at: branchProduct.updated_at,
         BranchLinkProductFields.stock_quantity: branchProduct.stock_quantity,
       };
-      print("blp id: ${branchProduct.branch_link_product_id!.toString()}");
-      final docRef = await firestore.collection(tableBranchLinkProduct!).doc(branchProduct.branch_link_product_id!.toString());
-      batch.update(docRef, jsonMap);
-      batch.commit();
-      status = 1;
+      final docSnapshot = await firestore.collection(tableBranchLinkProduct!).doc(branchProduct.branch_link_product_id!.toString()).get();
+      if(docSnapshot.exists){
+        batch.update(docSnapshot.reference, jsonMap);
+        batch.commit();
+        status = 1;
+      }
     }catch(e){
-      print("firestore update branch link product stock error: ${e}");
+      FLog.error(
+        className: "pos_firestore",
+        text: "updateBranchLinkProductStock error",
+        exception: e,
+      );
       status = 0;
     }
     return status;

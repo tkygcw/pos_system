@@ -20,7 +20,6 @@ import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../database/pos_firestore.dart';
 import '../../notifier/theme_color.dart';
 
 class QrMainPage extends StatefulWidget {
@@ -272,7 +271,6 @@ class _QrMainPageState extends State<QrMainPage> {
       List<OrderDetail> detailData = await PosDatabase.instance.readAllOrderDetailByOrderCache(orderCacheLocalId);
       orderDetailList = detailData;
       for (int i = 0; i < orderDetailList.length; i++) {
-        print("blp local id in qr main page: ${orderDetailList[i].branch_link_product_sqlite_id}");
         orderDetailList[i].tableNumber.add(qrOrderCacheList[index].table_number!);
         List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
         List<OrderModifierDetail> modDetailData = await PosDatabase.instance.readOrderModifierDetail(orderDetailList[i].order_detail_sqlite_id.toString());
@@ -295,7 +293,6 @@ class _QrMainPageState extends State<QrMainPage> {
           orderDetailList[i].available_stock = '';
         }
         orderDetailList[i].isRemove = false;
-        print("blp id in qr main page: ${orderDetailList[i].branch_link_product_id}");
       }
     }catch(e){
       FLog.error(
