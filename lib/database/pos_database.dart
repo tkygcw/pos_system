@@ -8,6 +8,7 @@ import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/branch_link_user.dart';
 import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/categories.dart';
+import 'package:pos_system/object/current_version.dart';
 import 'package:pos_system/object/customer.dart';
 import 'package:pos_system/object/dining_option.dart';
 import 'package:pos_system/object/kitchen_list.dart';
@@ -76,7 +77,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 24, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 25, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -648,6 +649,19 @@ class PosDatabase {
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
+        }break;
+        case 24: {
+          await db.execute('''CREATE TABLE $tableCurrentVersion(
+          ${CurrentVersionFields.current_version_sqlite_id} $idType,
+          ${CurrentVersionFields.current_version_id} $integerType,
+          ${CurrentVersionFields.branch_id} $textType,
+          ${CurrentVersionFields.current_version} $textType,
+          ${CurrentVersionFields.platform} $integerType,
+          ${CurrentVersionFields.source} $textType,
+          ${CurrentVersionFields.sync_status} $integerType,
+          ${CurrentVersionFields.created_at} $textType,
+          ${CurrentVersionFields.updated_at} $textType,
+          ${CurrentVersionFields.soft_delete} $textType)''');
         }break;
       }
     }
@@ -1441,6 +1455,21 @@ class PosDatabase {
           ${OrderPaymentSplitFields.created_at} $textType,
           ${OrderPaymentSplitFields.updated_at} $textType,
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
+
+/*
+    create current version table
+*/
+    await db.execute('''CREATE TABLE $tableCurrentVersion(
+          ${CurrentVersionFields.current_version_sqlite_id} $idType,
+          ${CurrentVersionFields.current_version_id} $integerType,
+          ${CurrentVersionFields.branch_id} $textType,
+          ${CurrentVersionFields.current_version} $textType,
+          ${CurrentVersionFields.platform} $integerType,
+          ${CurrentVersionFields.source} $textType,
+          ${CurrentVersionFields.sync_status} $integerType,
+          ${CurrentVersionFields.created_at} $textType,
+          ${CurrentVersionFields.updated_at} $textType,
+          ${CurrentVersionFields.soft_delete} $textType)''');
   }
 
 
@@ -4715,6 +4744,42 @@ class PosDatabase {
     } else {
       return null;
     }
+  }
+
+/*
+  --------------------Current Version part--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
+/*
+  add current version into local
+*/
+  Future<CurrentVersion> insertSqliteCurrentVersion(CurrentVersion data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableCurrentVersion!, data.toJson());
+    return data.copy(current_version_sqlite_id: id);
+  }
+
+/*
+  read current version
+*/
+  Future<CurrentVersion?> readCurrentVersion() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableCurrentVersion WHERE soft_delete = ?', ['']);
+    if (result.isNotEmpty) {
+      return CurrentVersion.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  update current version
+*/
+  Future<int> updateCurrentVersion(CurrentVersion data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableCurrentVersion SET current_version = ?, platform = ?, source = ?, sync_status = ?, updated_at = ? WHERE branch_id = ?',
+        [data.current_version, data.platform, data.source, data.sync_status, data.updated_at, data.branch_id]);
   }
 
 /*
@@ -8131,6 +8196,14 @@ class PosDatabase {
   Future<int> updateAppSettingSyncStatusFromCloud(String branch_id) async {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableAppSetting SET sync_status = ? WHERE branch_id = ?', [1, branch_id]);
+  }
+
+/*
+  update current version (from cloud)
+*/
+  Future<int> updateCurrentVersionSyncStatusFromCloud(String branch_id) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableCurrentVersion SET sync_status = ? WHERE branch_id = ?', [1, branch_id]);
   }
 
 /*

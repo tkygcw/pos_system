@@ -51,6 +51,7 @@ class Domain {
   static Uri dynamic_qr = Uri.parse(domain + 'mobile-api/dynamic_qr/index.php');
   static Uri table_dynamic = Uri.parse(domain + 'mobile-api/table_dynamic/index.php');
   static Uri order_payment_split = Uri.parse(domain + 'mobile-api/order_payment_split/index.php');
+  static Uri current_version = Uri.parse(domain + 'mobile-api/current_version/index.php');
 
   /**
   * insert table dynamic qr
@@ -2422,6 +2423,22 @@ class Domain {
         'image_name': image_name,
         'company_id': company_id,
       });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * insert current version
+  * */
+  insertCurrentVersionDay(data) async {
+    print("insertCurrentVersion called");
+    try {
+      var response = await http.post(Domain.current_version, body: {
+        'data': data,
+      });
+      print(jsonDecode(response.body));
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
