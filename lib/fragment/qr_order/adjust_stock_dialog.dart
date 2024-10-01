@@ -227,7 +227,6 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                                       size: 40,
                                                     ),
                                                     onPressed: () {
-                                                      print('qty remove');
                                                       int qty = int.parse(widget.orderDetailList[index].quantity!);
                                                       int totalQty = qty - 1;
                                                       if (totalQty <= 0) {
@@ -450,7 +449,6 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                           direction: DismissDirection.startToEnd,
                           confirmDismiss: (direction) async {
                             if (direction == DismissDirection.startToEnd) {
-                              print('detail remove');
                               if (mounted) {
                                 setState(() {
                                   widget.orderDetailList[index].isRemove = true;
@@ -509,7 +507,6 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                                     size: 20,
                                                   ),
                                                   onPressed: () {
-                                                    print('qty remove');
                                                     int qty = int.parse(widget.orderDetailList[index].quantity!);
                                                     int totalQty = qty - 1;
                                                     if (totalQty <= 0) {
@@ -985,7 +982,6 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
             order_cache_key: _orderDetail[i].order_cache_key,
             order_detail_sqlite_id: _orderDetail[i].order_detail_sqlite_id
         );
-        print('order detail${i}: ${orderDetailObj.quantity}');
         newSubtotal += double.parse(orderDetailObj.price!) * int.parse(orderDetailObj.quantity!);
         //update firestore order detail
         int firestore = await firestoreQrOrderSync.updateOrderDetail(orderDetailObj);

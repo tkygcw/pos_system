@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/branch_link_dining_option.dart';
 import 'package:pos_system/object/branch_link_modifier.dart';
 import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
+import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/dining_option.dart';
 import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/modifier_item.dart';
@@ -50,6 +50,10 @@ class PosFirestore {
 
   insertBranchLinkTax(BranchLinkTax data) async {
     await firestore.collection(tableBranchLinkTax!).doc(data.branch_link_tax_id.toString()).set(data.toJson(), SetOptions(merge: true));
+  }
+
+  insertCategory(Categories data) async {
+    await firestore.collection(tableCategories!).doc(data.category_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertDiningOption(DiningOption data) async {
@@ -143,27 +147,9 @@ class PosFirestore {
     }
   }
 
-  readDataFromCloud() async {
-    await firestore.collection(tableProduct!).get().then((event) {
-      for (var doc in event.docs) {
-        print("${doc.id} => ${doc.data()}");
-      }
-    });
-  }
-
-  addProductFromLocalId() async {
-    List<Product> products = await PosDatabase.instance.readAllProduct();
-    firestore.collection(tableProduct!).add(products.first.toJson()).then((DocumentReference doc) {
-      print('DocumentSnapshot added with ID: ${doc.id}');
-    });
-  }
-
-  addProductFromLocalIdWithSpecificId() async {
-    List<Product> products = await PosDatabase.instance.readAllProduct();
-    final docRef = firestore.collection(tableProduct!).doc(products.first.product_sqlite_id.toString());
-    await docRef.set(products.first.toJson());
-  }
-
+/*
+  for debug use only
+*/
   transferDatabaseData() async {
     try{
       Map res = await Domain().transferDatabaseData('tb_branch_link_product');
@@ -190,51 +176,6 @@ class PosFirestore {
     }catch(e){
       print("transferDatabaseData error: ${e}");
     }
-  }
-
-  updateSpecificProduct(String id) async {
-    print("updating...");
-    final batch = firestore.batch();
-    final docRef = firestore.collection("tb_qr_order_cache").doc(id);
-    batch.update(docRef, {"name": 'test'});
-    batch.commit();
-    // await firestore.runTransaction((transaction) async {
-    //   var docSnapshot = await transaction.get(docRef);
-    //   if (docSnapshot.exists) {
-    //     transaction.update(docRef, {"name": 'newNameTest4'});
-    //   }
-    // }, timeout: Duration(seconds: 2), maxAttempts: 2);
-    // final status = firestore.collection("tb_qr_order_cache").doc(id);
-    // await status.update({"name": 'newNameTest2'});
-  }
-
-  deleteSpecificProduct(String id){
-    firestore.collection(tableProduct!).doc(id).delete().then(
-          (doc) => print("Document deleted"),
-      onError: (e) => print("Error updating document $e"),
-    );
-  }
-
-  realtimeUpdate(){
-    final docRef = firestore.collection(tableProduct!).where("company", isEqualTo: '3');
-    docRef.snapshots(includeMetadataChanges: true).listen((event) {
-      for (var changes in event.docChanges) {
-        final source = (event.metadata.isFromCache) ? "local cache" : "server";
-        switch (changes.type) {
-          case DocumentChangeType.added:
-            print("New product from $source: ${changes.doc.data()}");
-            break;
-          case DocumentChangeType.modified:
-            print("Modified product from $source: ${changes.doc.data()}");
-            break;
-          case DocumentChangeType.removed:
-            print("Removed product from $source: ${changes.doc.data()}");
-            break;
-        }
-      }
-    },
-      onError: (error) => print("Listen failed: $error"),
-    );
   }
 
   offline(){

@@ -85,7 +85,6 @@ class PosDatabase {
     //get branch id pref
     final prefs = await SharedPreferences.getInstance();
     final String? branch_id = prefs.getInt('branch_id').toString();
-
     if (oldVersion < newVersion) {
       // you can execute drop table and create table
       switch (oldVersion) {
@@ -487,6 +486,8 @@ class PosDatabase {
         }break;
         case 23: {
           await db.execute("ALTER TABLE $tableBranch RENAME branchID to branch_id");
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.company_id} $textType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.show_in_qr} $integerType DEFAULT 1");
         }
       }
     }
@@ -728,7 +729,7 @@ class PosDatabase {
            ${ProductFields.has_variant} $integerType,${ProductFields.stock_type} $integerType, ${ProductFields.stock_quantity} $textType, ${ProductFields.available} $integerType,
            ${ProductFields.graphic_type} $textType, ${ProductFields.color} $textType, ${ProductFields.daily_limit} $textType, ${ProductFields.daily_limit_amount} $textType, 
            ${ProductFields.sync_status} $integerType, ${ProductFields.unit} $textType, ${ProductFields.per_quantity_unit} $textType, ${ProductFields.sequence_number} $textType, 
-           ${ProductFields.allow_ticket} $integerType, ${ProductFields.ticket_count} $integerType, ${ProductFields.ticket_exp} $textType, 
+           ${ProductFields.allow_ticket} $integerType, ${ProductFields.ticket_count} $integerType, ${ProductFields.ticket_exp} $textType, ${ProductFields.show_in_qr} $integerType, 
            ${ProductFields.created_at} $textType, ${ProductFields.updated_at} $textType, ${ProductFields.soft_delete} $textType)''');
 /*
     create product variant table
@@ -885,7 +886,8 @@ class PosDatabase {
            ${BranchFields.notification_token} $textType,
            ${BranchFields.qr_order_status} $textType,
            ${BranchFields.sub_pos_status} $integerType,
-           ${BranchFields.attendance_status} $integerType)''');
+           ${BranchFields.attendance_status} $integerType,
+           ${BranchFields.company_id} $textType,)''');
 
 /*
     create app color table
@@ -1520,7 +1522,8 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableProduct(product_id, category_id, category_sqlite_id, company_id, name, price, description, SKU, image, has_variant, stock_type, stock_quantity, available, graphic_type, color, daily_limit, daily_limit_amount, '
-            'sync_status, unit, per_quantity_unit, sequence_number, allow_ticket, ticket_count, ticket_exp, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'sync_status, unit, per_quantity_unit, sequence_number, allow_ticket, ticket_count, ticket_exp, show_in_qr, '
+            'created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.product_id,
           data.category_id,
@@ -1546,6 +1549,7 @@ class PosDatabase {
           data.allow_ticket,
           data.ticket_count,
           data.ticket_exp,
+          data.show_in_qr,
           data.created_at,
           data.updated_at,
           data.soft_delete
@@ -8668,6 +8672,15 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery('SELECT * FROM $tableBranchLinkTax WHERE soft_delete = ?', ['']);
     return result.map((json) => BranchLinkTax.fromJson(json)).toList();
+  }
+
+/*
+  read local categories
+*/
+  Future<List<Categories>> readLocalCategories() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableCategories WHERE soft_delete = ?', ['']);
+    return result.map((json) => Categories.fromJson(json)).toList();
   }
 
 /*

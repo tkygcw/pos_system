@@ -5,6 +5,7 @@ import 'package:pos_system/object/branch_link_dining_option.dart';
 import 'package:pos_system/object/branch_link_modifier.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
+import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/dining_option.dart';
 import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/modifier_item.dart';
@@ -52,6 +53,7 @@ class SyncToFirebase {
     syncModifierItem();
     syncModifierGroup();
     syncDiningOption();
+    syncCategories();
     syncBranchLinkTax();
     syncBranchLinkPromotion();
     syncBranchLinkProduct();
@@ -106,6 +108,13 @@ class SyncToFirebase {
     List<DiningOption> diningOption = await PosDatabase.instance.readLocalDiningOption();
     for(final option in diningOption){
       PosFirestore.instance.insertDiningOption(option);
+    }
+  }
+
+  syncCategories() async{
+    List<Categories> categories = await PosDatabase.instance.readLocalCategories();
+    for(final category in categories){
+      PosFirestore.instance.insertCategory(category);
     }
   }
 

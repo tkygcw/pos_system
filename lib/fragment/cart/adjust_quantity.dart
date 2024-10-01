@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/firebase_sync/qr_order_sync.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:provider/provider.dart';
@@ -46,6 +47,7 @@ class AdjustQuantityDialog extends StatefulWidget {
 
 class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   PosFirestore posFirestore = PosFirestore.instance;
+  FirestoreQROrderSync firestoreQROrderSync = FirestoreQROrderSync.instance;
   BuildContext globalContext = MyApp.navigatorKey.currentContext!;
   num simpleIntInput = 0;
   late num currentQuantity;
@@ -65,7 +67,6 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       table_value;
   OrderDetail? orderDetail;
   bool isLogOut = false;
-  bool _isLoaded = false;
   bool _submitted = false;
   bool isButtonDisabled = false;
   bool isButtonDisabled2 = false;
@@ -531,17 +532,13 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
         .readTableOrderDetail(widget.cartItem.order_cache_key!);
     cartOrderDetailList = List.from(orderDetailData);
 
-    OrderDetail cartItemOrderDetail = await PosDatabase.instance
-        .readSpecificOrderDetailByLocalId(
-        int.parse(widget.cartItem.order_detail_sqlite_id!));
+    OrderDetail cartItemOrderDetail = await PosDatabase.instance.readSpecificOrderDetailByLocalId(int.parse(widget.cartItem.order_detail_sqlite_id!));
     orderDetail = cartItemOrderDetail;
 
     //get modifier detail length
     List<OrderModifierDetail> orderModData = await PosDatabase.instance
         .readOrderModifierDetail(widget.cartItem.order_detail_sqlite_id!);
     cartOrderModDetailList = List.from(orderModData);
-
-    _isLoaded = true;
   }
 
   Future<Future<Object?>> openLogOutDialog() async {
@@ -755,17 +752,21 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   updateOrderDetailQuantity(String dateTime, CartModel cart) async {
     List<String> _value = [];
     num totalQty = 0;
+    OrderDetail cartOrderDetail = orderDetail!;
     try{
       totalQty = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse((widget.cartItem.quantity! - simpleIntInput).toStringAsFixed(2)): widget.cartItem.quantity! - simpleIntInput;
       OrderDetail orderDetailObject = OrderDetail(
         updated_at: dateTime,
-        sync_status: orderDetail!.sync_status == 0 ? 0 : 2,
+        sync_status: cartOrderDetail.sync_status == 0 ? 0 : 2,
         status: 0,
         quantity: totalQty.toString(),
+        order_cache_key: cartOrderDetail.order_cache_key,
+        order_detail_key: cartOrderDetail.order_detail_key,
         order_detail_sqlite_id: int.parse(widget.cartItem.order_detail_sqlite_id!),
         branch_link_product_id: widget.cartItem.branch_link_product_id,
         branch_link_product_sqlite_id: widget.cartItem.branch_link_product_sqlite_id,
       );
+      int status = await firestoreQROrderSync.updateOrderDetailQty(orderDetailObject);
       num data = await PosDatabase.instance.updateOrderDetailQuantity(orderDetailObject);
       if (data == 1) {
         OrderDetail detailData = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
@@ -787,9 +788,11 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     subtotal = double.parse(data.total_amount!) - double.parse(price) * quantity;
     OrderCache orderCache = OrderCache(
         order_cache_sqlite_id: data.order_cache_sqlite_id,
+        order_cache_key: data.order_cache_key,
         total_amount: subtotal.toStringAsFixed(2),
         sync_status: data.sync_status == 0 ? 0 : 2,
         updated_at: dateTime);
+    int firestore_status = await firestoreQROrderSync.updateOrderCacheTotalAmount(orderCache);
     int status = await PosDatabase.instance.updateOrderCacheSubtotal(orderCache);
     if (status == 1) {
       getOrderCacheValue(orderCache);
@@ -813,15 +816,18 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     await createOrderDetailCancel(user, dateTime, cart);
     await updateOrderDetailQuantity(dateTime, cart);
     List<String> _value = [];
+    OrderDetail orderDetail = this.orderDetail!;
     OrderDetail orderDetailObject = OrderDetail(
       updated_at: dateTime,
-      sync_status: orderDetail!.sync_status == 0 ? 0 : 2,
+      sync_status: orderDetail.sync_status == 0 ? 0 : 2,
       status: 1,
       cancel_by: user.name,
       cancel_by_user_id: user.user_id.toString(),
+      order_detail_key: orderDetail.order_detail_key,
+      order_cache_key: orderDetail.order_cache_key,
       order_detail_sqlite_id: int.parse(widget.cartItem.order_detail_sqlite_id!),
     );
-
+    int status = await firestoreQROrderSync.cancelOrderDetail(orderDetailObject);
     int deleteOrderDetailData =
     await PosDatabase.instance.updateOrderDetailStatus(orderDetailObject);
     if (deleteOrderDetailData == 1) {
@@ -951,12 +957,14 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     print('delete order cache called');
     List<String> _orderCacheValue = [];
     try {
+      OrderCache cartOrderCache = cartCacheList.first;
       OrderCache orderCacheObject = OrderCache(
-          sync_status: cartCacheList[0].sync_status == 0 ? 0 : 2,
+          sync_status: cartOrderCache.sync_status == 0 ? 0 : 2,
           cancel_by: user.name,
           cancel_by_user_id: user.user_id.toString(),
-          order_cache_sqlite_id:
-          int.parse(widget.cartItem.order_cache_sqlite_id!));
+          order_cache_key: cartOrderCache.order_cache_key,
+          order_cache_sqlite_id: int.parse(widget.cartItem.order_cache_sqlite_id!));
+      int firestore_status = await firestoreQROrderSync.cancelOrderCache(orderCacheObject);
       int deletedOrderCache =
       await PosDatabase.instance.cancelOrderCache(orderCacheObject);
       //sync to cloud

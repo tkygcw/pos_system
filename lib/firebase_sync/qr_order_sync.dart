@@ -401,4 +401,109 @@ class FirestoreQROrderSync {
     }
     return status;
   }
+
+  Future<int> updateOrderCacheTotalAmount(OrderCache orderCache) async {
+    int status = 0;
+    try{
+      final batch = firestore.batch();
+      Map<String, dynamic> jsonMap = {
+        OrderCacheFields.updated_at: orderCache.updated_at,
+        OrderCacheFields.total_amount: orderCache.total_amount,
+      };
+      final docSnapshot = await firestore.collection(_tb_qr_order_cache).doc(orderCache.order_cache_key).get();
+      if(docSnapshot.exists){
+        batch.update(docSnapshot.reference, jsonMap);
+        batch.commit();
+        status = 1;
+      }
+    }catch(e){
+      FLog.error(
+        className: "firebase_sync/qr_order_sync",
+        text: "updateOrderCacheTotalAmount error",
+        exception: "Error: $e, order_cache_key: ${orderCache.order_cache_key}",
+      );
+      status = 0;
+    }
+    return status;
+  }
+
+  Future<int> cancelOrderDetail(OrderDetail orderDetail) async {
+    int status = 0;
+    try{
+      final batch = firestore.batch();
+      Map<String, dynamic> jsonMap = {
+        OrderDetailFields.updated_at: orderDetail.updated_at,
+        OrderDetailFields.status: orderDetail.status,
+        OrderDetailFields.cancel_by: orderDetail.cancel_by,
+        OrderDetailFields.cancel_by_user_id: orderDetail.cancel_by_user_id,
+      };
+      final docSnapshot = await firestore.collection(_tb_qr_order_cache).doc(orderDetail.order_cache_key)
+          .collection(tableOrderDetail!).doc(orderDetail.order_detail_key).get();
+      if(docSnapshot.exists){
+        batch.update(docSnapshot.reference, jsonMap);
+        batch.commit();
+        status = 1;
+      }
+    }catch(e){
+      FLog.error(
+        className: "firebase_sync/qr_order_sync",
+        text: "cancelOrderDetail error",
+        exception: "Error: $e, order_cache_key: ${orderDetail.order_cache_key}",
+      );
+      status = 0;
+    }
+    return status;
+  }
+
+  Future<int> updateOrderDetailQty(OrderDetail orderDetail) async {
+    int status = 0;
+    try{
+      final batch = firestore.batch();
+      Map<String, dynamic> jsonMap = {
+        OrderDetailFields.updated_at: orderDetail.updated_at,
+        OrderDetailFields.quantity: orderDetail.quantity,
+      };
+      final docSnapshot = await firestore.collection(_tb_qr_order_cache).doc(orderDetail.order_cache_key)
+          .collection(tableOrderDetail!).doc(orderDetail.order_detail_key).get();
+      if(docSnapshot.exists){
+        batch.update(docSnapshot.reference, jsonMap);
+        batch.commit();
+        status = 1;
+      }
+    }catch(e){
+      FLog.error(
+        className: "firebase_sync/qr_order_sync",
+        text: "updateOrderDetailQty error",
+        exception: "Error: $e, order_cache_key: ${orderDetail.order_cache_key}",
+      );
+      status = 0;
+    }
+    return status;
+  }
+
+  Future<int> cancelOrderCache(OrderCache orderCache) async {
+    int status = 0;
+    try{
+      final batch = firestore.batch();
+      Map<String, dynamic> jsonMap = {
+        OrderCacheFields.updated_at: orderCache.updated_at,
+        OrderCacheFields.cancel_by: orderCache.cancel_by,
+        OrderCacheFields.cancel_by_user_id: orderCache.cancel_by_user_id,
+      };
+      final docSnapshot = await firestore.collection(_tb_qr_order_cache).doc(orderCache.order_cache_key).get();
+      if(docSnapshot.exists){
+        batch.update(docSnapshot.reference, jsonMap);
+        batch.commit();
+        status = 1;
+      }
+    }catch(e){
+      FLog.error(
+        className: "firebase_sync/qr_order_sync",
+        text: "cancelOrderCache error",
+        exception: "Error: $e, order_cache_key: ${orderCache.order_cache_key}",
+      );
+      status = 0;
+    }
+    return status;
+  }
 }

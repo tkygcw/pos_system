@@ -943,6 +943,7 @@ getAllCategory() async {
       for (var i = 0; i < responseJson.length; i++) {
         try {
           Categories data = await PosDatabase.instance.insertCategories(Categories.fromJson(responseJson[i]));
+          PosFirestore.instance.insertCategory(data);
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1102,6 +1103,7 @@ getAllProduct() async {
               allow_ticket: productItem.allow_ticket,
               ticket_count: productItem.ticket_count,
               ticket_exp: productItem.ticket_exp,
+              show_in_qr: productItem.show_in_qr ?? 1,
               sync_status: 1,
               created_at: productItem.created_at,
               updated_at: productItem.updated_at,

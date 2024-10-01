@@ -19,6 +19,7 @@ import 'package:crypto/crypto.dart';
 
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
+import '../../firebase_sync/qr_order_sync.dart';
 import '../../notifier/cart_notifier.dart';
 import '../../notifier/table_notifier.dart';
 import '../../notifier/theme_color.dart';
@@ -48,6 +49,7 @@ class CartRemoveDialog extends StatefulWidget {
 class _CartRemoveDialogState extends State<CartRemoveDialog> {
   BuildContext globalContext = MyApp.navigatorKey.currentContext!;
   PosFirestore posFirestore = PosFirestore.instance;
+  FirestoreQROrderSync firestoreQROrderSync = FirestoreQROrderSync.instance;
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   final adminPosPinController = TextEditingController();
   bool _submitted = false;
@@ -558,16 +560,20 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
 
   updateOrderDetailQuantity(String dateTime, CartModel cart) async {
     List<String> _value = [];
+    OrderDetail cartOrderDetail = orderDetail!;
     try{
       OrderDetail orderDetailObject = OrderDetail(
           updated_at: dateTime,
-          sync_status: orderDetail!.sync_status == 0 ? 0 : 2,
+          sync_status: cartOrderDetail.sync_status == 0 ? 0 : 2,
           status: 0,
           quantity: '0',
-          branch_link_product_id: widget.cartItem!.branch_link_product_id,
+          order_cache_key: cartOrderDetail.order_cache_key,
+          order_detail_key: cartOrderDetail.order_detail_key,
           order_detail_sqlite_id: int.parse(widget.cartItem!.order_detail_sqlite_id!),
+          branch_link_product_id: widget.cartItem!.branch_link_product_id,
           branch_link_product_sqlite_id: widget.cartItem!.branch_link_product_sqlite_id);
-
+      int status = await firestoreQROrderSync.updateOrderDetailQty(orderDetailObject);
+      print("updateOrderDetailQuantity status in remove cart dialog: $status");
       int data = await PosDatabase.instance.updateOrderDetailQuantity(orderDetailObject);
       if(data == 1){
         OrderDetail detailData = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
@@ -690,9 +696,11 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
         status: 1,
         cancel_by: user.name,
         cancel_by_user_id: user.user_id.toString(),
+        order_cache_key: orderDetail!.order_cache_key,
+        order_detail_key: orderDetail!.order_detail_key,
         order_detail_sqlite_id: int.parse(widget.cartItem!.order_detail_sqlite_id!),
     );
-
+    int status = await firestoreQROrderSync.cancelOrderDetail(orderDetailObject);
     int deleteOrderDetailData = await PosDatabase.instance.updateOrderDetailStatus(orderDetailObject);
     if(deleteOrderDetailData == 1){
       //sync to cloud
@@ -710,11 +718,13 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     OrderCache data = await PosDatabase.instance.readSpecificOrderCacheByLocalId(int.parse(orderCacheLocalId));
     subtotal = double.parse(data.total_amount!) - double.parse(price);
     OrderCache orderCache = OrderCache(
+      order_cache_key: data.order_cache_key,
       order_cache_sqlite_id: data.order_cache_sqlite_id,
       total_amount: subtotal.toStringAsFixed(2),
       sync_status: data.sync_status == 0 ? 0 : 2,
       updated_at: dateTime
     );
+    int firestore_status = await firestoreQROrderSync.updateOrderCacheTotalAmount(orderCache);
     int status = await PosDatabase.instance.updateOrderCacheSubtotal(orderCache);
     if(status == 1){
       await getOrderCacheValue(orderCache);
@@ -832,12 +842,15 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
 
   deleteCurrentOrderCache(User user, String dateTime) async {
     try {
+      OrderCache cartOrderCache = cartCacheList.first;
       OrderCache orderCacheObject = OrderCache(
-          sync_status: cartCacheList[0].sync_status == 0 ? 0 : 2,
+          sync_status: cartOrderCache.sync_status == 0 ? 0 : 2,
           cancel_by: user.name,
           cancel_by_user_id: user.user_id.toString(),
+          order_cache_key: cartOrderCache.order_cache_key,
           order_cache_sqlite_id: int.parse(widget.cartItem!.order_cache_sqlite_id!)
       );
+      int firestore_status = await firestoreQROrderSync.cancelOrderCache(orderCacheObject);
       int deletedOrderCache = await PosDatabase.instance.cancelOrderCache(orderCacheObject);
       //sync to cloud
       if(deletedOrderCache == 1){

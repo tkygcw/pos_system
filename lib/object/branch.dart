@@ -13,7 +13,8 @@ class BranchFields {
     notification_token,
     qr_order_status,
     sub_pos_status,
-    attendance_status
+    attendance_status,
+    company_id,
   ];
 
   static String branch_id = 'branch_id';
@@ -28,6 +29,7 @@ class BranchFields {
   static String qr_order_status = 'qr_order_status';
   static String sub_pos_status = 'sub_pos_status';
   static String attendance_status = 'attendance_status';
+  static String company_id = 'company_id';
 }
 
 class Branch {
@@ -43,6 +45,7 @@ class Branch {
   String? qr_order_status;
   int? sub_pos_status;
   int? attendance_status;
+  String? company_id;
 
   Branch(
       {this.branch_id,
@@ -56,7 +59,8 @@ class Branch {
       this.notification_token,
       this.qr_order_status,
       this.sub_pos_status,
-      this.attendance_status
+      this.attendance_status,
+      this.company_id
       });
 
   Branch copy({int? branch_id, String? name}) => Branch(
@@ -72,6 +76,7 @@ class Branch {
     qr_order_status: qr_order_status ?? this.qr_order_status,
     sub_pos_status: sub_pos_status ?? this.sub_pos_status,
     attendance_status: attendance_status ?? this.attendance_status,
+    company_id: company_id ?? this.company_id
   );
 
   factory Branch.fromJson(Map<String, dynamic> json) {
@@ -87,7 +92,8 @@ class Branch {
       notification_token: json['notification_token'] as String,
       qr_order_status: json['qr_order_status'] as String?,
       sub_pos_status: json['sub_pos_status'] as int?,
-      attendance_status: json['attendance_status'] as int?
+      attendance_status: json['attendance_status'] as int?,
+      company_id: json[BranchFields.company_id] as String?
     );
   }
 
@@ -103,6 +109,7 @@ class Branch {
     BranchFields.notification_token: notification_token,
     BranchFields.qr_order_status: qr_order_status,
     BranchFields.sub_pos_status: sub_pos_status,
-    BranchFields.attendance_status: attendance_status
+    BranchFields.attendance_status: attendance_status,
+    BranchFields.company_id: company_id
   };
 }
