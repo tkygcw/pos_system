@@ -4,12 +4,12 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/firebase_sync/sync_to_firebase.dart';
 import 'package:pos_system/fragment/setting/sync_dialog.dart';
 import 'package:pos_system/fragment/setting/system_log_dialog.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/subscription.dart';
 import 'package:pos_system/object/table.dart';
-import 'package:pos_system/page/loading.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/page/select_table_dialog.dart';
@@ -110,6 +110,13 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
                 trailing: Icon(Icons.sync),
                 onTap: () async {
                   openSyncDialog();
+                },
+              ),
+              ListTile(
+                title: Text(AppLocalizations.of(context)!.translate('sync_to_firestore')),
+                trailing: Icon(Icons.sync_alt),
+                onTap: () {
+                  SyncToFirebase.instance.sync();
                 },
               ),
               ListTile(

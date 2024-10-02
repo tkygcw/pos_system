@@ -568,6 +568,7 @@
   "sync_qr_order": "Penyegerakan pesanan QR",
   "sync_reset": "Tetapan semula penyegerakan",
   "sync_reset_success": "Tetapan semula penyegerakan berjaya",
+  "sync_to_firestore": "Penyegerakan firestore",
   "system_log": "Log Sistem",
   "system_log_empty_desc": "Tiada log sistem tersedia",
   "table": "Meja",

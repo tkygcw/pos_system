@@ -15,6 +15,8 @@ class BranchFields {
     sub_pos_status,
     attendance_status,
     company_id,
+    working_day,
+    working_time,
   ];
 
   static String branch_id = 'branch_id';
@@ -30,6 +32,8 @@ class BranchFields {
   static String sub_pos_status = 'sub_pos_status';
   static String attendance_status = 'attendance_status';
   static String company_id = 'company_id';
+  static String working_day = 'working_day';
+  static String working_time = 'working_time';
 }
 
 class Branch {
@@ -46,6 +50,8 @@ class Branch {
   int? sub_pos_status;
   int? attendance_status;
   String? company_id;
+  String? working_day;
+  String? working_time;
 
   Branch(
       {this.branch_id,
@@ -60,7 +66,9 @@ class Branch {
       this.qr_order_status,
       this.sub_pos_status,
       this.attendance_status,
-      this.company_id
+      this.company_id,
+      this.working_day,
+      this.working_time
       });
 
   Branch copy({int? branch_id, String? name}) => Branch(
@@ -76,7 +84,9 @@ class Branch {
     qr_order_status: qr_order_status ?? this.qr_order_status,
     sub_pos_status: sub_pos_status ?? this.sub_pos_status,
     attendance_status: attendance_status ?? this.attendance_status,
-    company_id: company_id ?? this.company_id
+    company_id: company_id ?? this.company_id,
+    working_day: working_day ?? this.working_day,
+    working_time: working_time ?? this.working_time
   );
 
   factory Branch.fromJson(Map<String, dynamic> json) {
@@ -93,7 +103,9 @@ class Branch {
       qr_order_status: json['qr_order_status'] as String?,
       sub_pos_status: json['sub_pos_status'] as int?,
       attendance_status: json['attendance_status'] as int?,
-      company_id: json[BranchFields.company_id] as String?
+      company_id: json[BranchFields.company_id] as String?,
+      working_day: json[BranchFields.working_day] as String?,
+      working_time: json[BranchFields.working_time] as String?
     );
   }
 
@@ -110,6 +122,8 @@ class Branch {
     BranchFields.qr_order_status: qr_order_status,
     BranchFields.sub_pos_status: sub_pos_status,
     BranchFields.attendance_status: attendance_status,
-    BranchFields.company_id: company_id
+    BranchFields.company_id: company_id,
+    BranchFields.working_day: working_day,
+    BranchFields.working_time: working_time
   };
 }

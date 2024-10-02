@@ -485,9 +485,16 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
         }break;
         case 23: {
+          final result = await db.rawQuery('SELECT company_id FROM $tableCategories WHERE soft_delete = ? LIMIT 1', ['']);
+          Categories catData = Categories.fromJson(result.first);
           await db.execute("ALTER TABLE $tableBranch RENAME branchID to branch_id");
-          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.company_id} $textType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.company_id} $textType DEFAULT ${catData.company_id}");
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.working_day} $textType DEFAULT '\[0, 0, 0, 0, 0, 0, 0\]' ");
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.working_time} $textType DEFAULT '\[\"00:00\", \"23:59\"\]' ");
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.show_in_qr} $integerType DEFAULT 1");
+          final branchResult = await db.rawQuery('SELECT * FROM $tableBranch LIMIT 1');
+          Branch branchData = Branch.fromJson(branchResult.first);
+          await prefs.setString("branch", json.encode(branchData));
         }
       }
     }
@@ -887,7 +894,9 @@ class PosDatabase {
            ${BranchFields.qr_order_status} $textType,
            ${BranchFields.sub_pos_status} $integerType,
            ${BranchFields.attendance_status} $integerType,
-           ${BranchFields.company_id} $textType,)''');
+           ${BranchFields.company_id} $textType,
+           ${BranchFields.working_day} $textType,
+           ${BranchFields.working_time} $textType)''');
 
 /*
     create app color table
@@ -1267,6 +1276,19 @@ class PosDatabase {
 /*
   ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+
+/*
+  reject/accept order cache
+*/
+  Future<int> updateworkingTime() async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableBranch SET working_time = ? WHERE branch_id = ?',
+        ['\[\"00:00\", \"23:59\"\]', '3']);
+  }
+
+
 
 /*
   add user to sqlite
@@ -8753,6 +8775,24 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery('SELECT * FROM $tablePosTable WHERE soft_delete = ?', ['']);
     return result.map((json) => PosTable.fromJson(json)).toList();
+  }
+
+/*
+  read local variant group
+*/
+  Future<List<VariantGroup>> readLocalVariantGroup() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableVariantGroup WHERE soft_delete = ?', ['']);
+    return result.map((json) => VariantGroup.fromJson(json)).toList();
+  }
+
+/*
+  read local variant item
+*/
+  Future<List<VariantItem>> readLocalVariantItem() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableVariantItem WHERE soft_delete = ?', ['']);
+    return result.map((json) => VariantItem.fromJson(json)).toList();
   }
 
   // Future<List<Categories>> readAllNotes() async {

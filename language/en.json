@@ -568,6 +568,7 @@
   "sync_qr_order": "Sync QR order",
   "sync_reset": "Sync reset",
   "sync_reset_success": "Sync reset success",
+  "sync_to_firestore": "Sync to firstore",
   "system_log": "System Log",
   "system_log_empty_desc": "There are currently no system logs available",
   "table": "Table",

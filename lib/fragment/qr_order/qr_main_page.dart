@@ -7,7 +7,9 @@ import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/firebase_sync/qr_order_sync.dart';
+import 'package:pos_system/firebase_sync/sync_to_firebase.dart';
 import 'package:pos_system/fragment/qr_order/adjust_stock_dialog.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/branch_link_product.dart';
@@ -83,6 +85,19 @@ class _QrMainPageState extends State<QrMainPage> {
         children: [
           Text(AppLocalizations.of(context)!.translate('qr_order'), style: TextStyle(fontSize: 25)),
           Spacer(),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: color.backgroundColor,
+            ),
+            icon: Icon(Icons.sync),
+            label: Text(
+              'offline mode',
+              style: TextStyle(color: Colors.white),
+            ),
+            onPressed: (){
+              PosFirestore.instance.offline();
+            },
+          ),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor: color.backgroundColor,

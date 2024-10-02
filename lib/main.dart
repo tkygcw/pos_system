@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:async_queue/async_queue.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/fail_print_notifier.dart';
 import 'package:pos_system/notifier/notification_notifier.dart';
@@ -46,11 +48,12 @@ bool isCartExpanded = false;
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
 
 Future<void> main() async {
-  //firebase method
   WidgetsFlutterBinding.ensureInitialized();
+  //firebase method
   await Firebase.initializeApp();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   setupNotificationChannel();
+  configFirestore();
 
   //check second screen
   getSecondScreen();
@@ -64,7 +67,6 @@ Future<void> main() async {
   //init lcd screen
   initLCDScreen();
 
-  WidgetsFlutterBinding.ensureInitialized();
   //create default app color
   await appLanguage.fetchLocale();
 
@@ -99,6 +101,13 @@ deviceDetect() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown
   ]);
+}
+
+configFirestore(){
+  PosFirestore.instance.firestore.settings = const Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  );
 }
 
 setupNotificationChannel() {

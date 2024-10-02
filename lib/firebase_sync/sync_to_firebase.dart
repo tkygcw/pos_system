@@ -13,6 +13,8 @@ import 'package:pos_system/object/modifier_link_product.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/product_variant.dart';
 import 'package:pos_system/object/table.dart';
+import 'package:pos_system/object/variant_group.dart';
+import 'package:pos_system/object/variant_item.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../object/branch_link_promotion.dart';
@@ -45,6 +47,8 @@ class SyncToFirebase {
   }
 
   sync(){
+    syncVariantItem();
+    syncVariantGroup();
     syncPosTable();
     syncProductVariantDetail();
     syncProductVariant();
@@ -164,6 +168,20 @@ class SyncToFirebase {
     List<PosTable> posTable = await PosDatabase.instance.readLocalPosTable();
     for(final table in posTable){
       PosFirestore.instance.insertPosTable(table);
+    }
+  }
+
+  syncVariantGroup() async {
+    List<VariantGroup> variantGroup = await PosDatabase.instance.readLocalVariantGroup();
+    for(final group in variantGroup){
+      PosFirestore.instance.insertVariantGroup(group);
+    }
+  }
+
+  syncVariantItem() async {
+    List<VariantItem> variantItem = await PosDatabase.instance.readLocalVariantItem();
+    for(final item in variantItem){
+      PosFirestore.instance.insertVariantItem(item);
     }
   }
 

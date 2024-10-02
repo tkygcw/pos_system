@@ -15,8 +15,10 @@ import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/product_variant.dart';
 import 'package:pos_system/object/product_variant_detail.dart';
 import 'package:pos_system/object/table.dart';
+import 'package:pos_system/object/variant_group.dart';
 import '../main.dart';
 import '../object/branch_link_product.dart';
+import '../object/variant_item.dart';
 import 'domain.dart';
 
 class PosFirestore {
@@ -88,6 +90,14 @@ class PosFirestore {
     await firestore.collection(tablePosTable!).doc(data.table_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
+  insertVariantGroup(VariantGroup data) async {
+    await firestore.collection(tableVariantGroup!).doc(data.variant_group_id.toString()).set(data.toInsertJson(), SetOptions(merge: true));
+  }
+
+  insertVariantItem(VariantItem data) async {
+    await firestore.collection(tableVariantItem!).doc(data.variant_item_id.toString()).set(data.toJson(), SetOptions(merge: true));
+  }
+
   Future<int> updateBranchLinkProductDailyLimit(BranchLinkProduct branchProduct) async {
     int status = 0;
     try{
@@ -96,12 +106,10 @@ class PosFirestore {
         BranchLinkProductFields.updated_at: branchProduct.updated_at,
         BranchLinkProductFields.daily_limit: branchProduct.daily_limit,
       };
-      final docSnapshot = await firestore.collection(tableBranchLinkProduct!).doc(branchProduct.branch_link_product_id!.toString()).get();
-      if(docSnapshot.exists){
-        batch.update(docSnapshot.reference, jsonMap);
-        batch.commit();
-        status = 1;
-      }
+      final docRef = await firestore.collection(tableBranchLinkProduct!).doc(branchProduct.branch_link_product_id!.toString());
+      batch.update(docRef, jsonMap);
+      batch.commit();
+      status = 1;
     }catch(e){
       FLog.error(
         className: "pos_firestore",
@@ -121,12 +129,10 @@ class PosFirestore {
         BranchLinkProductFields.updated_at: branchProduct.updated_at,
         BranchLinkProductFields.stock_quantity: branchProduct.stock_quantity,
       };
-      final docSnapshot = await firestore.collection(tableBranchLinkProduct!).doc(branchProduct.branch_link_product_id!.toString()).get();
-      if(docSnapshot.exists){
-        batch.update(docSnapshot.reference, jsonMap);
-        batch.commit();
-        status = 1;
-      }
+      final docRef = await firestore.collection(tableBranchLinkProduct!).doc(branchProduct.branch_link_product_id!.toString());
+      batch.update(docRef, jsonMap);
+      batch.commit();
+      status = 1;
     }catch(e){
       FLog.error(
         className: "pos_firestore",
@@ -180,7 +186,6 @@ class PosFirestore {
 
   offline(){
     print("im offline");
-    firestore.settings = const Settings(persistenceEnabled: true, cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,);
     firestore.disableNetwork();
   }
 

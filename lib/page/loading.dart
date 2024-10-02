@@ -1915,6 +1915,8 @@ getVariantGroup() async {
               created_at: variantData.created_at,
               updated_at: variantData.updated_at,
               soft_delete: variantData.soft_delete));
+          //insert firebase
+          PosFirestore.instance.insertVariantGroup(data);
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1960,6 +1962,8 @@ getVariantItem() async {
               created_at: variantItemData.created_at,
               updated_at: variantItemData.updated_at,
               soft_delete: variantItemData.soft_delete));
+          //insert firebase
+          PosFirestore.instance.insertVariantItem(data);
         } catch(e) {
           FLog.error(
             className: "loading",

@@ -1331,6 +1331,7 @@ class SyncRecord {
           allow_ticket: productItem.allow_ticket,
           ticket_count: productItem.ticket_count,
           ticket_exp: productItem.ticket_exp,
+          show_in_qr: productItem.show_in_qr ?? 1,
           created_at: productItem.created_at,
           updated_at: productItem.updated_at,
           soft_delete: productItem.soft_delete

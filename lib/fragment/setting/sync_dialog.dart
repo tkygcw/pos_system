@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
+import 'package:pos_system/firebase_sync/sync_to_firebase.dart';
 import 'package:pos_system/object/sync_to_cloud.dart';
 import 'package:pos_system/page/progress_bar.dart';
 
@@ -47,6 +48,7 @@ class _SyncDialogState extends State<SyncDialog> {
         case 'init':{
           await syncData();
           await syncToCloudChecking();
+          syncToFirestore();
         }
         break;
         case 'retry':{
@@ -140,6 +142,10 @@ class _SyncDialogState extends State<SyncDialog> {
         ),
       ],
     );
+  }
+
+  syncToFirestore(){
+    SyncToFirebase.instance.sync();
   }
 
   syncData() async {
