@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:lan_scanner/lan_scanner.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
@@ -8,6 +9,7 @@ import 'package:location/location.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:pos_system/notifier/printer_notifier.dart';
+import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:provider/provider.dart';
 
 import '../../notifier/theme_color.dart';
@@ -32,14 +34,19 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
   bool isLoad = false, isButtonDisable = false;
   String? wifiIP;
   Text? info;
+  List<BluetoothInfo> items = [];
+  bool connected = false;
+  bool bluetoothIsOn = false;
 
   @override
   initState() {
     super.initState();
     if (widget.type == 0) {
       _getDevicelist();
-    } else {
+    } else if (widget.type == 1) {
       checkPermission();
+    } else {
+      checkBluetooth();
     }
   }
 
@@ -88,6 +95,68 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
         await scan_network();
       }
     }
+  }
+
+  checkBluetooth() async {
+    bluetoothIsOn = await PrintBluetoothThermal.bluetoothEnabled;
+    if (!bluetoothIsOn) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('${AppLocalizations.of(context)?.translate('bluetooth_is_off')}'),
+            content: Text('${AppLocalizations.of(context)?.translate('bluetooth_is_off_desc')}'),
+            actions: <Widget>[
+              TextButton(
+                child: Text('${AppLocalizations.of(context)?.translate('cancel')}'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text('${AppLocalizations.of(context)?.translate('setting')}'),
+                onPressed: () {
+                  AppSettings.openAppSettings(type: AppSettingsType.bluetooth);
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      if (this.mounted) {
+        this.getBluetoots();
+        setState(() {
+          isLoad = false;
+        });
+      }
+    }
+  }
+
+  Future<void> getBluetoots() async {
+    setState(() {
+      isLoad = false;
+      items = [];
+    });
+    final List<BluetoothInfo> listResult = await PrintBluetoothThermal.pairedBluetooths;
+
+    setState(() {
+      items = listResult;
+      isLoad = true;
+    });
+  }
+
+  Future<void> connect(String mac) async {
+    setState(() {
+      connected = false;
+    });
+    final bool result = await PrintBluetoothThermal.connect(macPrinterAddress: mac);
+    if (result)
+      connected = true;
+    setState(() {
+    });
   }
 
   scan_network() async {
@@ -146,11 +215,21 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
         return AlertDialog(
           insetPadding: EdgeInsets.all(0),
           actionsPadding: EdgeInsets.zero,
+          titlePadding: EdgeInsets.fromLTRB(24, 12, 24, 0),
           title: Row(
             children: [
               Text(AppLocalizations.of(context)!.translate('device_list')),
               Spacer(),
-              Visibility(visible: widget.type != 0 && isLoad, child: Text(wifiIP.toString()))
+              Visibility(visible: widget.type == 1 && isLoad, child: Text(wifiIP.toString())),
+              Visibility(
+                visible: widget.type == 2,
+                child: TextButton(
+                  onPressed: () {
+                    checkBluetooth();
+                  },
+                  child: Text("${AppLocalizations.of(context)?.translate('refresh')}"),
+                ),
+              )
             ],
           ),
           content: isLoad
@@ -162,29 +241,57 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
                           scrollDirection: Axis.vertical,
                           children: _buildList(devices, printerModel),
                         )
-                      : ListView.builder(
-                          shrinkWrap: true,
-                          padding: EdgeInsets.zero,
-                          itemCount: ips.length,
-                          itemBuilder: (context, index) {
-                            return Card(
-                              elevation: 5,
-                              child: ListTile(
-                                onTap: isButtonDisable ? null : () {
-                                  setState(() {
-                                    isButtonDisable = true;
-                                  });
-                                  widget.callBack(jsonEncode(ips[index]));
-                                  Navigator.of(context).pop();
-                                },
-                                leading: Icon(
-                                  Icons.print,
-                                  color: Colors.black45,
+                      : widget.type == 1
+                        ? ListView.builder(
+                            shrinkWrap: true,
+                            padding: EdgeInsets.zero,
+                            itemCount: ips.length,
+                            itemBuilder: (context, index) {
+                              return Card(
+                                elevation: 5,
+                                child: ListTile(
+                                  onTap: isButtonDisable ? null : () {
+                                    setState(() {
+                                      isButtonDisable = true;
+                                    });
+                                    widget.callBack(jsonEncode(ips[index]));
+                                    Navigator.of(context).pop();
+                                  },
+                                  leading: Icon(
+                                    Icons.print,
+                                    color: Colors.black45,
+                                  ),
+                                  title: Text('${ips[index]}'),
                                 ),
-                                title: Text('${ips[index]}'),
+                              );
+                            })
+                      : items.isEmpty ? Center(child: Text(bluetoothIsOn ? "${AppLocalizations.of(context)?.translate('no_result_found')}" : "${AppLocalizations.of(context)?.translate('bluetooth_is_off')}"))
+                  : ListView.builder(
+                        shrinkWrap: true,
+                        padding: EdgeInsets.zero,
+                        itemCount: items.length,
+                        itemBuilder: (context, index) {
+                          return Card(
+                            elevation: 5,
+                            child: ListTile(
+                              onTap: () {
+                                String mac = items[index].macAdress;
+                                printerModel.removeAllPrinter();
+                                widget.callBack(jsonEncode(mac));
+                                Navigator.of(context).pop();
+                                this.connect(mac);
+                              },
+                              leading: Icon(
+                                Icons.bluetooth,
+                                color: Colors.black45,
                               ),
-                            );
-                          }))
+                              title: Text('${items[index].name}'),
+                              subtitle: Text("${items[index].macAdress}"),
+                            ),
+                          );
+                        },
+                      )
+              )
               : CircularPercentIndicator(
                   addAutomaticKeepAlive: false,
                   footer: Container(margin: EdgeInsets.only(top: 10), child: info),

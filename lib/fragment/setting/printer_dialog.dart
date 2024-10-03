@@ -16,6 +16,7 @@ import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/printer_link_category.dart';
 import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -79,7 +80,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
     }
 
     if (Platform.Platform.isIOS) {
-      _typeStatus = 1;
+      _typeStatus = widget.printerObject!.type != null ? widget.printerObject!.type! : 1;
     }
     super.initState();
   }
@@ -240,6 +241,21 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                         });
                                       },
                                     ),
+                                  ),
+                                  Expanded(
+                                    child: RadioListTile<int>(
+                                      activeColor: color.backgroundColor,
+                                      title: Text(AppLocalizations.of(context)!.translate('bluetooth'), style: TextStyle(fontSize: 15)),
+                                      value: 2,
+                                      groupValue: _typeStatus,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          this.printerValue.clear();
+                                          // printerModel.removeAllPrinter();
+                                          _typeStatus = value;
+                                        });
+                                      },
+                                    ),
                                   )
                                 ],
                               ),
@@ -255,7 +271,11 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                             openAddDeviceDialog(_typeStatus!);
                                           });
                                         } else {
-                                          manualAddDeviceDialog();
+                                          if(_typeStatus == 1){
+                                            manualAddDeviceDialog();
+                                          } else {
+                                            openAddDeviceDialog(_typeStatus!);
+                                          }
                                         }
                                       },
                                       child: Text(AppLocalizations.of(context)!.translate('add_new_device'))),
@@ -513,8 +533,10 @@ class _PrinterDialogState extends State<PrinterDialog> {
                         onPressed: () {
                           if (_typeStatus == 0) {
                             _print();
-                          } else {
+                          } else if (_typeStatus == 1){
                             _printLAN();
+                          } else {
+                            _printBluetooth();
                           }
                         },
                       ),
@@ -542,11 +564,14 @@ class _PrinterDialogState extends State<PrinterDialog> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                       child: _isUpdate ? Text('${AppLocalizations.of(context)?.translate('update')}') : Text(AppLocalizations.of(context)!.translate('add')),
-                      onPressed: isButtonDisabled ? null : () {
+                      onPressed: isButtonDisabled ? null : () async {
                         setState(() {
                           isButtonDisabled = true;
                         });
                         _submit(context);
+                        if(_isActive && _typeStatus == 2) {
+                          await bluetoothPrinterConnect(jsonDecode(printerValue[0]));
+                        }
                       },
                     ),
                   ),
@@ -643,6 +668,21 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                         });
                                       },
                                     ),
+                                  ),
+                                  Expanded(
+                                    child: RadioListTile<int>(
+                                      activeColor: color.backgroundColor,
+                                      title: Text(AppLocalizations.of(context)!.translate('bluetooth'), style: TextStyle(fontSize: 15)),
+                                      value: 2,
+                                      groupValue: _typeStatus,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          this.printerValue.clear();
+                                          // printerModel.removeAllPrinter();
+                                          _typeStatus = value;
+                                        });
+                                      },
+                                    ),
                                   )
                                 ],
                               ),
@@ -658,7 +698,11 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                             openAddDeviceDialog(_typeStatus!);
                                           });
                                         } else {
-                                          manualAddDeviceDialog();
+                                          if(_typeStatus == 1){
+                                            manualAddDeviceDialog();
+                                          } else {
+                                            openAddDeviceDialog(_typeStatus!);
+                                          }
                                         }
                                       },
                                       child: Text(AppLocalizations.of(context)!.translate('add_new_device'))),
@@ -915,8 +959,10 @@ class _PrinterDialogState extends State<PrinterDialog> {
                               onPressed: () {
                                 if (_typeStatus == 0) {
                                   _print();
-                                } else {
+                                } else if (_typeStatus == 1){
                                   _printLAN();
+                                } else {
+                                  _printBluetooth();
                                 }
                               },
                             ),
@@ -954,11 +1000,14 @@ class _PrinterDialogState extends State<PrinterDialog> {
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                             child: _isUpdate ? Text('${AppLocalizations.of(context)?.translate('update')}') : Text(AppLocalizations.of(context)!.translate('add')),
-                            onPressed: isButtonDisabled ? null : () {
+                            onPressed: isButtonDisabled ? null : () async {
                               setState(() {
                                 isButtonDisabled = true;
                               });
                               _submit(context);
+                              if(_isActive && _typeStatus == 2) {
+                                await bluetoothPrinterConnect(jsonDecode(printerValue[0]));
+                              }
                             },
                           ),
                         ),
@@ -1479,6 +1528,44 @@ class _PrinterDialogState extends State<PrinterDialog> {
   -------------------Printing part---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
+  _printBluetooth() async {
+    try {
+      var printerDetail = jsonDecode(printerValue[0]);
+      bool res = await bluetoothPrinterConnect(printerDetail);
+      if (_paperSize == 0) {
+        if (res) {
+          await PrintBluetoothThermal.writeBytes(await ReceiptLayout().testTicket80mm(true));
+        } else {
+          Fluttertoast.showToast(
+            backgroundColor: Color(0xFFFF0000),
+            msg: "${AppLocalizations.of(context)?.translate('bluetooth_printer_not_connect')}"
+          );
+        }
+      } else if (_paperSize == 1) {
+        if (res) {
+          await PrintBluetoothThermal.writeBytes(await ReceiptLayout().testTicket58mm(true));
+        } else {
+          Fluttertoast.showToast(
+              backgroundColor: Color(0xFFFF0000),
+              msg: "${AppLocalizations.of(context)?.translate('bluetooth_printer_not_connect')}"
+          );
+        }
+      } else {
+        if (res) {
+          await PrintBluetoothThermal.writeBytes(await ReceiptLayout().testTicket35mm(true));
+        } else {
+          Fluttertoast.showToast(
+              backgroundColor: Color(0xFFFF0000),
+              msg: "${AppLocalizations.of(context)?.translate('bluetooth_printer_not_connect')}"
+          );
+        }
+      }
+    } catch (e) {
+      print('error $e');
+      print('Bluetooth Printer Connection Error');
+    }
+  }
+
   _print() async {
     try {
       var printerDetail = jsonDecode(printerValue[0]);
@@ -1569,5 +1656,33 @@ class _PrinterDialogState extends State<PrinterDialog> {
             msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
       }
     }
+  }
+
+  static Future<bool> bluetoothPrinterConnect(String mac) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? lastBtConnection = prefs.getString('lastBtConnection');
+    bool result = false;
+    bool bluetoothIsOn = await PrintBluetoothThermal.bluetoothEnabled;
+
+    if(bluetoothIsOn) {
+      bool connectionStatus = await PrintBluetoothThermal.connectionStatus;
+      if (connectionStatus) {
+        if (lastBtConnection != mac) {
+          await PrintBluetoothThermal.disconnect;
+          result = await PrintBluetoothThermal.connect(macPrinterAddress: mac);
+          if(result) {
+            await prefs.setString('lastBtConnection', mac);
+          }
+        } else {
+          result = true;
+        }
+      } else {
+        result = await PrintBluetoothThermal.connect(macPrinterAddress: mac);
+        if(result) {
+          await prefs.setString('lastBtConnection', mac);
+        }
+      }
+    }
+    return result;
   }
 }

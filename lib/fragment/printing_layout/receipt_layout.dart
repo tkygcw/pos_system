@@ -83,6 +83,8 @@ class ReceiptLayout{
     var generator;
     if (isUSB) {
       lcdDisplay.openCashDrawer();
+      List<int> bytes = [];
+      return bytes;
     } else {
       generator = value;
       List<int> bytes = [];
@@ -1358,7 +1360,6 @@ class ReceiptLayout{
 */
   printLabel35mm(bool isUSB, int localId, int totalItem, int currentItem, {value, required OrderDetail orderDetail}) async {
     Receipt? receiptLayout = await PosDatabase.instance.readAllReceipt();
-    print("printLabel35mm called");
     DateTime dateTime = DateTime.now();
     String time = DateFormat('h:mm a').format(dateTime);
     await readOrderCache(localId);

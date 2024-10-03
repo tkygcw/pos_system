@@ -2579,11 +2579,8 @@ class CartPageState extends State<CartPage> {
 
   checkDirectPayment(AppSettingModel appSettingModel, cart) {
     if (appSettingModel.directPaymentStatus == true) {
-      print("11");
       paymentAddToCart(cart);
-      print("22");
       updateCartItem(cart);
-      print("33");
       openPaymentSelect(cart);
     } else {
       cart.removeAllCartItem();
