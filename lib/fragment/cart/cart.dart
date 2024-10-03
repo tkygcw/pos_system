@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/fragment/cart/adjust_price.dart';
 import 'package:pos_system/fragment/cart/cart_dialog.dart';
 import 'package:pos_system/fragment/cart/promotion_dialog.dart';
@@ -72,6 +73,7 @@ class CartPage extends StatefulWidget {
 }
 
 class CartPageState extends State<CartPage> {
+  final PosFirestore posFirestore = PosFirestore.instance;
   final ScrollController _scrollController = ScrollController();
   late StreamController controller;
   late AppSettingModel _appSettingModel;
@@ -3221,8 +3223,8 @@ class CartPageState extends State<CartPage> {
         OrderDetail orderDetailData = await PosDatabase.instance.insertSqliteOrderDetail(object);
         BranchLinkProduct? branchLinkProductData = await updateProductStock(
             orderDetailData.branch_link_product_sqlite_id.toString(),
+            newOrderDetailList[j].branch_link_product_id!,
             int.tryParse(orderDetailData.quantity!) != null ? int.parse(orderDetailData.quantity!): double.parse(orderDetailData.quantity!),
-            // int.parse(orderDetailData.quantity!),
             dateTime);
         if(branchLinkProductData != null){
           _branchLinkProductValue.add(jsonEncode(branchLinkProductData.toJson()));
@@ -3271,7 +3273,7 @@ class CartPageState extends State<CartPage> {
     }
   }
 
-  updateProductStock(String branch_link_product_sqlite_id, num quantity, String dateTime) async {
+  updateProductStock(String branch_link_product_sqlite_id, int branchLinkProductId, num quantity, String dateTime) async {
     print("update product stock called!!!");
     num _totalStockQty = 0, updateStock = 0;
     BranchLinkProduct? object;
@@ -3283,16 +3285,26 @@ class CartPageState extends State<CartPage> {
             {
               _totalStockQty = int.parse(checkData[0].daily_limit!) - quantity;
               object = BranchLinkProduct(
-                  updated_at: dateTime, sync_status: 2, daily_limit: _totalStockQty.toString(), branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
+                  updated_at: dateTime,
+                  sync_status: 2,
+                  daily_limit: _totalStockQty.toString(),
+                  branch_link_product_id: branchLinkProductId,
+                  branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
               updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
+              posFirestore.updateBranchLinkProductDailyLimit(object);
             }
             break;
           case '2':
             {
               _totalStockQty = int.parse(checkData[0].stock_quantity!) - quantity;
               object = BranchLinkProduct(
-                  updated_at: dateTime, sync_status: 2, stock_quantity: _totalStockQty.toString(), branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
+                  updated_at: dateTime,
+                  sync_status: 2,
+                  stock_quantity: _totalStockQty.toString(),
+                  branch_link_product_id: branchLinkProductId,
+                  branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
               updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+              posFirestore.updateBranchLinkProductStock(object);
             }
             break;
           default:

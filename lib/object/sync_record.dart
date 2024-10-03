@@ -62,9 +62,10 @@ class SyncRecord {
       final String? branch = prefs.getString('branch');
       final int? device_id = prefs.getInt('device_id');
       final String? login_value = prefs.getString('login_value');
-      Map branchObject = json.decode(branch!);
+      Map<String, dynamic> branchMap = json.decode(branch!);
+      Branch branchObject = Branch.fromJson(branchMap);
       ///get data
-      Map data = await Domain().getAllSyncRecord('${branchObject['branchID']}', device_id.toString(), login_value.toString());
+      Map data = await Domain().getAllSyncRecord('${branchObject.branch_id}', device_id.toString(), login_value.toString());
       List<int> syncRecordIdList = [];
       if (data['status'] == '1') {
         print('new subscription data to sync!');
@@ -78,7 +79,7 @@ class SyncRecord {
           }
         }
         //update sync record
-        await Domain().updateAllCloudSyncRecord('${branchObject['branchID']}', syncRecordIdList.toString());
+        await Domain().updateAllCloudSyncRecord('${branchObject.branch_id}', syncRecordIdList.toString());
         status = 0;
       } else if (data['status'] == '7'){
         status = 1;
@@ -104,12 +105,13 @@ class SyncRecord {
       final String? branch = prefs.getString('branch');
       final int? device_id = prefs.getInt('device_id');
       final String? login_value = prefs.getString('login_value');
-      Map branchObject = json.decode(branch!);
-      print("branch id: ${branchObject['branch_id']}");
+      Map<String, dynamic> branchMap = json.decode(branch!);
+      Branch branchObject = Branch.fromJson(branchMap);
+      print("branch id: ${branchObject.branch_id}");
       print("device id: ${device_id.toString()}");
       print("login value: ${login_value.toString()}");
       ///get data
-      Map data = await Domain().getAllSyncRecord('${branchObject['branch_id']}', device_id.toString(), login_value.toString());
+      Map data = await Domain().getAllSyncRecord(branchObject.branch_id!.toString(), device_id.toString(), login_value.toString());
       print('data: ${data}');
       List<int> syncRecordIdList = [];
       if (data['status'] == '1') {
@@ -308,7 +310,7 @@ class SyncRecord {
         }
         print('sync record length: ${syncRecordIdList.length}');
         //update sync record
-        await Domain().updateAllCloudSyncRecord('${branchObject['branchID']}', syncRecordIdList.toString());
+        await Domain().updateAllCloudSyncRecord(branchObject.branch_id!.toString(), syncRecordIdList.toString());
         notificationModel.setContentLoaded();
         notificationModel.setCartContentLoaded();
         status = 0;

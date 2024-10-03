@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/modifier_item.dart';
 import 'package:pos_system/object/variant_group.dart';
@@ -162,7 +163,7 @@ class cartProductItem{
      'allow_ticket': allow_ticket,
      'ticket_count': ticket_count,
      'ticket_exp': ticket_exp,
-     'product_sku': product_sku
+     'product_sku': product_sku,
    };
 
 }

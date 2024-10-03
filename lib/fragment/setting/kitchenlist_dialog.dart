@@ -17,6 +17,7 @@ import '../../database/pos_database.dart';
 import '../../enumClass/receipt_dialog_enum.dart';
 import '../../main.dart';
 import '../../notifier/theme_color.dart';
+import '../../object/branch.dart';
 import '../printing_layout/print_receipt.dart';
 import '../../translation/AppLocalizations.dart';
 import '../../utils/Utils.dart';
@@ -411,12 +412,13 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
       String dateTime = dateFormat.format(DateTime.now());
       final prefs = await SharedPreferences.getInstance();
       final String? branch = prefs.getString('branch');
-      var branchObject = json.decode(branch!);
+      Map<String, dynamic> branchMap = json.decode(branch!);
+      Branch branchObject = Branch.fromJson(branchMap);
 
       KitchenList data = await PosDatabase.instance.insertSqliteKitchenList(KitchenList(
         kitchen_list_id: 0,
         kitchen_list_key: '',
-        branch_id: branchObject['branchID'].toString(),
+        branch_id: branchObject.branch_id!.toString(),
         product_name_font_size: productFontSize == ReceiptDialogEnum.big ? 0 : 1,
         other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : 1,
         paper_size: kitchen_listView,

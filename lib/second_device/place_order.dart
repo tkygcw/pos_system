@@ -6,6 +6,7 @@ import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,6 +37,7 @@ import '../utils/Utils.dart';
 
 
 abstract class PlaceOrder {
+  final PosFirestore posFirestore = PosFirestore.instance;
   BuildContext context = MyApp.navigatorKey.currentContext!;
   PrintReceipt printReceipt = PrintReceipt();
   List<Printer> printerList = [];
@@ -463,6 +465,7 @@ abstract class PlaceOrder {
       OrderDetail orderDetailData = await PosDatabase.instance.insertSqliteOrderDetail(object);
       await updateProductStock(
           orderDetailData.branch_link_product_sqlite_id.toString(),
+          newOrderDetailList[j].branch_link_product_id!,
           int.tryParse(orderDetailData.quantity!) != null ? int.parse(orderDetailData.quantity!) : double.parse(orderDetailData.quantity!),
           dateTime);
 
@@ -498,7 +501,7 @@ abstract class PlaceOrder {
     return Utils.shortHashString(hashCode: md5Hash);
   }
 
-  Future<void> updateProductStock(String branch_link_product_sqlite_id, num quantity, String dateTime) async {
+  Future<void> updateProductStock(String branch_link_product_sqlite_id, int branchLinkProductId, num quantity, String dateTime) async {
     num _totalStockQty = 0, updateStock = 0;
     BranchLinkProduct? object;
     try {
@@ -509,16 +512,26 @@ abstract class PlaceOrder {
             {
               _totalStockQty = int.parse(checkData[0].daily_limit!) - quantity;
               object = BranchLinkProduct(
-                  updated_at: dateTime, sync_status: 2, daily_limit: _totalStockQty.toString(), branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
+                  updated_at: dateTime,
+                  sync_status: 2,
+                  daily_limit: _totalStockQty.toString(),
+                  branch_link_product_id: branchLinkProductId,
+                  branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
               updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
+              posFirestore.updateBranchLinkProductDailyLimit(object);
             }
             break;
           case '2':
             {
               _totalStockQty = int.parse(checkData[0].stock_quantity!) - quantity;
               object = BranchLinkProduct(
-                  updated_at: dateTime, sync_status: 2, stock_quantity: _totalStockQty.toString(), branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
+                  updated_at: dateTime,
+                  sync_status: 2,
+                  stock_quantity: _totalStockQty.toString(),
+                  branch_link_product_id: branchLinkProductId,
+                  branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
               updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+              posFirestore.updateBranchLinkProductStock(object);
             }
             break;
           default:

@@ -24,6 +24,7 @@ import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../notifier/theme_color.dart';
+import '../../object/branch.dart';
 
 class QrMainPage extends StatefulWidget {
   const QrMainPage({Key? key}) : super(key: key);
@@ -85,6 +86,19 @@ class _QrMainPageState extends State<QrMainPage> {
         children: [
           Text(AppLocalizations.of(context)!.translate('qr_order'), style: TextStyle(fontSize: 25)),
           Spacer(),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: color.backgroundColor,
+            ),
+            icon: Icon(Icons.sync),
+            label: Text(
+              'online mode',
+              style: TextStyle(color: Colors.white),
+            ),
+            onPressed: (){
+              PosFirestore.instance.online();
+            },
+          ),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor: color.backgroundColor,
@@ -328,9 +342,10 @@ class _QrMainPageState extends State<QrMainPage> {
   Future<void> checkStatus() async {
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
-    Map branchObject = json.decode(branch!);
-    branch_id = branchObject['branch_id'].toString();
-    if(branchObject['qr_order_status'] == '1'){
+    Map<String, dynamic> branchMap = json.decode(branch!);
+    Branch branchObject = Branch.fromJson(branchMap);
+    branch_id = branchObject.branch_id.toString();
+    if(branchObject.qr_order_status == '1'){
       setState(() {
         hasAccess = false;
       });

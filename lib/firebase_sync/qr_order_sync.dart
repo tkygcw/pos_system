@@ -306,10 +306,12 @@ class FirestoreQROrderSync {
         OrderCacheFields.batch_id: updatedOrderCache.batch_id,
         OrderCacheFields.table_use_key: updatedOrderCache.table_use_key ?? ''
       };
-      final docRef = await firestore.collection(_tb_qr_order_cache).doc(updatedOrderCache.order_cache_key);
-      batch.update(docRef, jsonMap);
-      batch.commit();
-      status = 1;
+      final docSnapshot = await firestore.collection(_tb_qr_order_cache).doc(updatedOrderCache.order_cache_key).get();
+      if(docSnapshot.exists){
+        batch.update(docSnapshot.reference, jsonMap);
+        batch.commit();
+        status = 1;
+      }
     }catch(e){
       FLog.error(
         className: "firebase_sync/qr_order_sync",
@@ -330,10 +332,12 @@ class FirestoreQROrderSync {
         OrderCacheFields.updated_at: updatedOrderCache.updated_at,
         OrderCacheFields.accepted: updatedOrderCache.accepted ?? 1,
       };
-      final docRef = await firestore.collection(_tb_qr_order_cache).doc(updatedOrderCache.order_cache_key);
-      batch.update(docRef, jsonMap);
-      batch.commit();
-      status = 1;
+      final docSnapshot = await firestore.collection(_tb_qr_order_cache).doc(updatedOrderCache.order_cache_key).get();
+      if(docSnapshot.exists){
+        batch.update(docSnapshot.reference, jsonMap);
+        batch.commit();
+        status = 1;
+      }
     }catch(e){
       FLog.error(
         className: "firebase_sync/qr_order_sync",
@@ -354,11 +358,13 @@ class FirestoreQROrderSync {
         'price': orderDetail.price,
         'quantity': orderDetail.quantity,
       };
-      final docRef = await firestore.collection(_tb_qr_order_cache).doc(orderDetail.order_cache_key)
-          .collection(tableOrderDetail!).doc(orderDetail.order_detail_key);
-      batch.update(docRef, jsonMap);
-      batch.commit();
-      status = 1;
+      final docSnapshot = await firestore.collection(_tb_qr_order_cache).doc(orderDetail.order_cache_key)
+          .collection(tableOrderDetail!).doc(orderDetail.order_detail_key).get();
+      if(docSnapshot.exists){
+        batch.update(docSnapshot.reference, jsonMap);
+        batch.commit();
+        status = 1;
+      }
     }catch(e){
       FLog.error(
         className: "firebase_sync/qr_order_sync",
@@ -378,11 +384,13 @@ class FirestoreQROrderSync {
         OrderDetailFields.updated_at: orderDetail.updated_at,
         OrderDetailFields.status: orderDetail.status,
       };
-      final docRef = await firestore.collection(_tb_qr_order_cache).doc(orderDetail.order_cache_key)
-          .collection(tableOrderDetail!).doc(orderDetail.order_detail_key);
-      batch.update(docRef, jsonMap);
-      batch.commit();
-      status = 1;
+      final docSnapshot = await firestore.collection(_tb_qr_order_cache).doc(orderDetail.order_cache_key)
+          .collection(tableOrderDetail!).doc(orderDetail.order_detail_key).get();
+      if(docSnapshot.exists){
+        batch.update(docSnapshot.reference, jsonMap);
+        batch.commit();
+        status = 1;
+      }
     }catch(e){
       FLog.error(
         className: "firebase_sync/qr_order_sync",
@@ -402,10 +410,12 @@ class FirestoreQROrderSync {
         OrderCacheFields.updated_at: orderCache.updated_at,
         OrderCacheFields.total_amount: orderCache.total_amount,
       };
-      final docRef = await firestore.collection(_tb_qr_order_cache).doc(orderCache.order_cache_key);
-      batch.update(docRef, jsonMap);
-      batch.commit();
-      status = 1;
+      final docSnapshot = await firestore.collection(_tb_qr_order_cache).doc(orderCache.order_cache_key).get();
+      if(docSnapshot.exists){
+        batch.update(docSnapshot.reference, jsonMap);
+        batch.commit();
+        status = 1;
+      }
     }catch(e){
       FLog.error(
         className: "firebase_sync/qr_order_sync",
@@ -427,11 +437,13 @@ class FirestoreQROrderSync {
         OrderDetailFields.cancel_by: orderDetail.cancel_by,
         OrderDetailFields.cancel_by_user_id: orderDetail.cancel_by_user_id,
       };
-      final docRef = await firestore.collection(_tb_qr_order_cache).doc(orderDetail.order_cache_key)
-          .collection(tableOrderDetail!).doc(orderDetail.order_detail_key);
-      batch.update(docRef, jsonMap);
-      batch.commit();
-      status = 1;
+      final docSnapshot = await firestore.collection(_tb_qr_order_cache).doc(orderDetail.order_cache_key)
+          .collection(tableOrderDetail!).doc(orderDetail.order_detail_key).get();
+      if(docSnapshot.exists){
+        batch.update(docSnapshot.reference, jsonMap);
+        batch.commit();
+        status = 1;
+      }
     }catch(e){
       FLog.error(
         className: "firebase_sync/qr_order_sync",
@@ -451,11 +463,13 @@ class FirestoreQROrderSync {
         OrderDetailFields.updated_at: orderDetail.updated_at,
         OrderDetailFields.quantity: orderDetail.quantity,
       };
-      final docRef = await firestore.collection(_tb_qr_order_cache).doc(orderDetail.order_cache_key)
-          .collection(tableOrderDetail!).doc(orderDetail.order_detail_key);
-      batch.update(docRef, jsonMap);
-      batch.commit();
-      status = 1;
+      final docSnapshot = await firestore.collection(_tb_qr_order_cache).doc(orderDetail.order_cache_key)
+          .collection(tableOrderDetail!).doc(orderDetail.order_detail_key).get();
+      if(docSnapshot.exists){
+        batch.update(docSnapshot.reference, jsonMap);
+        batch.commit();
+        status = 1;
+      }
     }catch(e){
       FLog.error(
         className: "firebase_sync/qr_order_sync",
@@ -476,10 +490,12 @@ class FirestoreQROrderSync {
         OrderCacheFields.cancel_by: orderCache.cancel_by,
         OrderCacheFields.cancel_by_user_id: orderCache.cancel_by_user_id,
       };
-      final docRef = await firestore.collection(_tb_qr_order_cache).doc(orderCache.order_cache_key);
-      batch.update(docRef, jsonMap);
-      batch.commit();
-      status = 1;
+      final docSnapshot = await firestore.collection(_tb_qr_order_cache).doc(orderCache.order_cache_key).get();
+      if(docSnapshot.exists){
+        batch.update(docSnapshot.reference, jsonMap);
+        batch.commit();
+        status = 1;
+      }
     }catch(e){
       FLog.error(
         className: "firebase_sync/qr_order_sync",
