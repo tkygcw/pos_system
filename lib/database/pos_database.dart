@@ -82,9 +82,8 @@ class PosDatabase {
     final idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
     final textType = 'TEXT NOT NULL';
     final integerType = 'INTEGER NOT NULL';
-    //get branch id pref
+    //get pref
     final prefs = await SharedPreferences.getInstance();
-    final String? branch_id = prefs.getInt('branch_id').toString();
     if (oldVersion < newVersion) {
       // you can execute drop table and create table
       switch (oldVersion) {
@@ -485,13 +484,14 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
         }break;
         case 23: {
-          final result = await db.rawQuery('SELECT company_id FROM $tableCategories WHERE soft_delete = ? LIMIT 1', ['']);
-          Categories catData = Categories.fromJson(result.first);
+          final result = await db.rawQuery('SELECT company_id FROM $tableProduct WHERE soft_delete = ? LIMIT 1', ['']);
+          Product productData = Product.fromJson(result.first);
           await db.execute("ALTER TABLE $tableBranch RENAME branchID to branch_id");
-          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.company_id} $textType DEFAULT ${catData.company_id}");
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.company_id} $textType DEFAULT ${productData.company_id}");
           await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.working_day} $textType DEFAULT '\[0, 0, 0, 0, 0, 0, 0\]' ");
           await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.working_time} $textType DEFAULT '\[\"00:00\", \"23:59\"\]' ");
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.show_in_qr} $integerType DEFAULT 1");
+          await db.execute("ALTER TABLE $tableDiningOption ADD ${DiningOptionFields.company_id} $textType DEFAULT '${productData.company_id}' ");
           final branchResult = await db.rawQuery('SELECT * FROM $tableBranch LIMIT 1');
           Branch branchData = Branch.fromJson(branchResult.first);
           await prefs.setString("branch", json.encode(branchData));
@@ -551,8 +551,14 @@ class PosDatabase {
 /*
     create dining option table
 */
-    await db.execute('''CREATE TABLE $tableDiningOption ( ${DiningOptionFields.dining_id} $idType, ${DiningOptionFields.name} $textType, 
-           ${DiningOptionFields.created_at} $textType, ${DiningOptionFields.updated_at} $textType, ${DiningOptionFields.soft_delete} $textType)''');
+    await db.execute(
+        '''CREATE TABLE $tableDiningOption (
+        ${DiningOptionFields.dining_id} $idType, 
+        ${DiningOptionFields.name} $textType, 
+        ${DiningOptionFields.company_id} $textType,
+        ${DiningOptionFields.created_at} $textType, 
+        ${DiningOptionFields.updated_at} $textType, 
+        ${DiningOptionFields.soft_delete} $textType)''');
 /*
     create modifier group table
 */

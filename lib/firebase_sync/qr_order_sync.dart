@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:f_logs/model/flog/flog.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:pos_system/database/pos_firestore.dart';
+import 'package:pos_system/fragment/custom_toastification.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import 'package:toastification/toastification.dart';
 
 import '../database/pos_database.dart';
 import '../fragment/custom_snackbar.dart';
@@ -97,6 +99,7 @@ class FirestoreQROrderSync {
       print("order detail doc length: ${querySnapshot.docs.length}");
       if(querySnapshot.docs.isNotEmpty){
         for (var docSnapshot in querySnapshot.docs) {
+          print("doc snapshot: ${docSnapshot.reference.id}");
           updateDocSyncStatus(docSnapshot.reference);
           OrderDetail? orderDetail = await insertLocalOrderDetail(docSnapshot.data(), localOrderCache);
           if(orderDetail != null){
@@ -118,13 +121,7 @@ class FirestoreQROrderSync {
           asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
           return;
         }
-        CustomSnackBar.instance.showSnackBar(
-            title: "${AppLocalizations.of(context)?.translate('qr_order')}",
-            description: "${AppLocalizations.of(context)?.translate('new_qr_order_received')}",
-            contentType: ContentType.success,
-            playSound: true,
-            playtime: 2
-        );
+        ShowQRToast.showToast(context);
       } else {
         throw Exception("order detail collection is empty: order_cache_key: ${localOrderCache.order_cache_key}");
       }

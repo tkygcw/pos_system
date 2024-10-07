@@ -17,6 +17,7 @@ import 'package:pos_system/fragment/cart/promotion_dialog.dart';
 import 'package:pos_system/fragment/cart/remove_cart_dialog.dart';
 import 'package:pos_system/fragment/cart/reprint_dialog.dart';
 import 'package:pos_system/fragment/cart/reprint_kitchen_list_dialog.dart';
+import 'package:pos_system/fragment/custom_toastification.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/fail_print_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
@@ -2600,12 +2601,7 @@ class CartPageState extends State<CartPage> {
         if (returnData.isNotEmpty) {
           _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
           if(mounted){
-            CustomSnackBar.instance.showSnackBar(
-                title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
-                description: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
-                contentType: ContentType.failure,
-                playSound: true,
-                playtime: 2);
+            ShowFailedPrintKitchenToast.showToast(context);
           }
         }
       } else {
