@@ -291,6 +291,8 @@
   "kitchen_list_setting": "厨房清单设置",
   "kitchen_list_show_price": "厨房清单显示价格",
   "kitchen_list_show_price_desc": "在打印厨房清单时显示产品单价",
+  "kitchen_list_show_total_amount": "厨房清单显示总金额",
+  "kitchen_list_show_total_amount_desc": "在打印厨房清单时显示总金额",
   "kitchen_printer_timeout": "厨房打印机超时",
   "lan": "局域网",
   "lan_printer_not_connect": "打印机未连接，请检查您的网络连接",

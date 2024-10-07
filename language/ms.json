@@ -291,6 +291,8 @@
   "kitchen_list_setting": "Tetapan senarai dapur",
   "kitchen_list_show_price": "Tunjukkan harga dalam penyenaraian dapur",
   "kitchen_list_show_price_desc": "Dayakan untuk menunjukkan harga unit item dalam senarai dapur",
+  "kitchen_list_show_total_amount": "Tunjukkan jumlah keseluruhan dalam senarai dapur",
+  "kitchen_list_show_total_amount_desc": "Dayakan untuk menunjukkan jumlah keseluruhan item dalam senarai dapur",
   "kitchen_printer_timeout": "Masa habis pencetak dapur",
   "lan": "LAN",
   "lan_printer_not_connect": "Pencetak LAN tidak disambungkan. Sila periksa sambungan rangkaian anda",

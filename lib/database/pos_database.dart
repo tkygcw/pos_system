@@ -75,7 +75,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 23, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 24, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -484,6 +484,9 @@ class PosDatabase {
             await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
           }
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
+        }break;
+        case 23: {
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
         }
       }
     }
@@ -1232,6 +1235,7 @@ class PosDatabase {
           ${KitchenListFields.kitchen_list_show_price} $integerType,
           ${KitchenListFields.print_combine_kitchen_list} $integerType,
           ${KitchenListFields.kitchen_list_item_separator} $integerType,
+          ${KitchenListFields.kitchen_list_show_total_amount} $integerType,
           ${KitchenListFields.show_product_sku} $integerType,
           ${KitchenListFields.sync_status} $integerType,
           ${KitchenListFields.created_at} $textType,
@@ -2536,15 +2540,16 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableKitchenList(soft_delete, updated_at, created_at, sync_status, show_product_sku, '
-            'kitchen_list_item_separator, print_combine_kitchen_list, kitchen_list_show_price, '
+            'kitchen_list_show_total_amount, kitchen_list_item_separator, print_combine_kitchen_list, kitchen_list_show_price, '
             'paper_size, other_font_size, product_name_font_size, branch_id, kitchen_list_key, kitchen_list_id) '
-            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           '',
           data.updated_at,
           data.created_at,
           data.sync_status,
           data.show_product_sku,
+          data.kitchen_list_show_total_amount,
           data.kitchen_list_item_separator,
           data.print_combine_kitchen_list,
           data.kitchen_list_show_price,
@@ -6656,9 +6661,9 @@ class PosDatabase {
 */
   Future<int> updateKitchenList(KitchenList data) async {
     final db = await instance.database;
-    return await db.rawUpdate("UPDATE $tableKitchenList SET updated_at = ?, sync_status = ?, show_product_sku = ?, kitchen_list_item_separator = ?, print_combine_kitchen_list = ?, "
-        "kitchen_list_show_price = ?, product_name_font_size = ?, other_font_size = ? WHERE kitchen_list_sqlite_id = ?",
-        [data.updated_at, data.sync_status, data.show_product_sku, data.kitchen_list_item_separator, data.print_combine_kitchen_list, data.kitchen_list_show_price, data.product_name_font_size, data.other_font_size, data.kitchen_list_sqlite_id]);
+    return await db.rawUpdate("UPDATE $tableKitchenList SET updated_at = ?, sync_status = ?, show_product_sku = ?, kitchen_list_show_total_amount = ?, kitchen_list_item_separator = ?, "
+        "print_combine_kitchen_list = ?, kitchen_list_show_price = ?, product_name_font_size = ?, other_font_size = ? WHERE kitchen_list_sqlite_id = ?",
+        [data.updated_at, data.sync_status, data.show_product_sku, data.kitchen_list_show_total_amount, data.kitchen_list_item_separator, data.print_combine_kitchen_list, data.kitchen_list_show_price, data.product_name_font_size, data.other_font_size, data.kitchen_list_sqlite_id]);
   }
 
 /*

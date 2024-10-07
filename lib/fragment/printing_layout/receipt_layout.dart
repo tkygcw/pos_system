@@ -803,6 +803,18 @@ class ReceiptLayout{
         ]);
       }
 
+      if(kitchen_list.kitchen_list_show_total_amount == 1) {
+        bytes += generator.reset();
+        bytes += generator.emptyLines(1);
+        bytes += generator.text('Total: RM 31.60',
+            styles: PosStyles(
+                align: PosAlign.right,
+                height: kitchen_list.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
+                width: kitchen_list.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2
+            )
+        );
+      }
+
       bytes += generator.feed(1);
       bytes += generator.cut(mode: PosCutMode.partial);
       return bytes;
@@ -941,6 +953,18 @@ class ReceiptLayout{
                   width: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
           ),
         ]);
+      }
+
+      if(kitchen_list.kitchen_list_show_total_amount == 1) {
+        bytes += generator.reset();
+        bytes += generator.emptyLines(1);
+        bytes += generator.text('Total: RM 31.60',
+            styles: PosStyles(
+                align: PosAlign.right,
+                height: kitchen_list.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
+                width: kitchen_list.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2
+            )
+        );
       }
 
       bytes += generator.feed(1);

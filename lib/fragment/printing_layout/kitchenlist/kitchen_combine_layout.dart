@@ -13,7 +13,7 @@ class CombineKitchenListLayout extends ReceiptLayout {
 /*
   combine kitchen layout 80mm
 */
-  printCombinedKitchenList80mm(bool isUSB, int localId, {value, required List<OrderDetail> orderDetailList, bool? isReprint}) async {
+  printCombinedKitchenList80mm(bool isUSB, int localId, {value, required List<OrderDetail> orderDetailList, bool? isReprint, double? combineListTotal}) async {
     List<cartProductItem> cartItemList = [];
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
@@ -150,6 +150,18 @@ class CombineKitchenListLayout extends ReceiptLayout {
         bytes += generator.emptyLines(1);
       }
 
+      if(combineListTotal != null) {
+        bytes += generator.reset();
+        bytes += generator.emptyLines(1);
+        bytes += generator.text('Total: RM ${combineListTotal.toStringAsFixed(2)}',
+            styles: PosStyles(
+                align: PosAlign.right,
+                height: kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
+                width: kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2
+            )
+        );
+      }
+
       bytes += generator.feed(1);
       bytes += generator.cut(mode: PosCutMode.partial);
       return bytes;
@@ -162,7 +174,7 @@ class CombineKitchenListLayout extends ReceiptLayout {
 /*
   combine kitchen layout 58mm
 */
-  printCombinedKitchenList58mm(bool isUSB, int localId, {value, required List<OrderDetail> orderDetailList, bool? isReprint}) async {
+  printCombinedKitchenList58mm(bool isUSB, int localId, {value, required List<OrderDetail> orderDetailList, bool? isReprint, double? combineListTotal}) async {
     List<cartProductItem> cartItemList = [];
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
@@ -298,6 +310,18 @@ class CombineKitchenListLayout extends ReceiptLayout {
           ]);
         }
         bytes += generator.emptyLines(1);
+      }
+
+      if(combineListTotal != null) {
+        bytes += generator.reset();
+        bytes += generator.emptyLines(1);
+        bytes += generator.text('Total: RM ${combineListTotal.toStringAsFixed(2)}',
+            styles: PosStyles(
+                align: PosAlign.right,
+                height: kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
+                width: kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2
+            )
+        );
       }
 
       bytes += generator.feed(1);
