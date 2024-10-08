@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/fragment/setting/qr_code_setting/qr_code_utils.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
@@ -11,7 +12,7 @@ import '../../utils/Utils.dart';
 class DynamicQrLayout {
   Future<List<int>> print80mmFormat(bool isUSB, {value, required PosTable posTable}) async {
     print("pos table url: ${posTable.qrOrderUrl}");
-    DynamicQR? layout = await PosDatabase.instance.readSpecificDynamicQRByPaperSize('80');
+    DynamicQR layout = await PosDatabase.instance.readSpecificDynamicQRByPaperSize('80') ?? QrCodeUtils.default80mmDynamicLayout;
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
     Map branchObject = json.decode(branch!);
@@ -40,16 +41,12 @@ class DynamicQrLayout {
       bytes += generator.hr();
       bytes += generator.text('Table No:${posTable.number}', containsChinese: true, styles: PosStyles(align: PosAlign.center, bold: true));
       bytes += generator.emptyLines(1);
-      if(layout != null){
-        if(layout.qr_code_size == 2){
-          bytes += generator.qrcode(posTable.qrOrderUrl, size: QRSize.Size6, cor: QRCorrection.H);
-        } else if (layout.qr_code_size == 1){
-          bytes += generator.qrcode(posTable.qrOrderUrl, size: QRSize.Size5, cor: QRCorrection.H);
-        } else {
-          bytes += generator.qrcode(posTable.qrOrderUrl, size: QRSize.Size4, cor: QRCorrection.H);
-        }
-      } else {
+      if(layout.qr_code_size == 2){
         bytes += generator.qrcode(posTable.qrOrderUrl, size: QRSize.Size6, cor: QRCorrection.H);
+      } else if (layout.qr_code_size == 1){
+        bytes += generator.qrcode(posTable.qrOrderUrl, size: QRSize.Size5, cor: QRCorrection.H);
+      } else {
+        bytes += generator.qrcode(posTable.qrOrderUrl, size: QRSize.Size4, cor: QRCorrection.H);
       }
       bytes += generator.emptyLines(1);
       if(posTable.dynamicQRExp != null){
@@ -59,6 +56,7 @@ class DynamicQrLayout {
         bytes += generator.text(Utils.formatReportDate(posTable.dynamicQRExp), containsChinese: true, styles: PosStyles(align: PosAlign.center));
       }
       bytes += generator.hr();
+      bytes += generator.text(layout.footer_text!, containsChinese: true, styles: PosStyles(align: PosAlign.center));
 
       bytes += generator.cut(mode: PosCutMode.partial);
       return bytes;
@@ -71,7 +69,7 @@ class DynamicQrLayout {
 
   Future<List<int>> print58mmFormat(bool isUSB, {value, required PosTable posTable}) async {
     print("pos table url: ${posTable.qrOrderUrl}");
-    DynamicQR? layout = await PosDatabase.instance.readSpecificDynamicQRByPaperSize('58');
+    DynamicQR layout = await PosDatabase.instance.readSpecificDynamicQRByPaperSize('58') ?? QrCodeUtils.default58mmDynamicLayout;
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
     Map branchObject = json.decode(branch!);
@@ -100,16 +98,12 @@ class DynamicQrLayout {
       bytes += generator.hr();
       bytes += generator.text('Table No:${posTable.number}', containsChinese: true, styles: PosStyles(align: PosAlign.center, bold: true));
       bytes += generator.emptyLines(1);
-      if(layout != null){
-        if(layout.qr_code_size == 2){
-          bytes += generator.qrcode(posTable.qrOrderUrl, size: QRSize.Size6, cor: QRCorrection.H);
-        } else if (layout.qr_code_size == 1){
-          bytes += generator.qrcode(posTable.qrOrderUrl, size: QRSize.Size5, cor: QRCorrection.H);
-        } else {
-          bytes += generator.qrcode(posTable.qrOrderUrl, size: QRSize.Size4, cor: QRCorrection.H);
-        }
-      } else {
+      if(layout.qr_code_size == 2){
         bytes += generator.qrcode(posTable.qrOrderUrl, size: QRSize.Size6, cor: QRCorrection.H);
+      } else if (layout.qr_code_size == 1){
+        bytes += generator.qrcode(posTable.qrOrderUrl, size: QRSize.Size5, cor: QRCorrection.H);
+      } else {
+        bytes += generator.qrcode(posTable.qrOrderUrl, size: QRSize.Size4, cor: QRCorrection.H);
       }
       bytes += generator.emptyLines(1);
       if(posTable.dynamicQRExp != null){
@@ -119,6 +113,7 @@ class DynamicQrLayout {
         bytes += generator.text(Utils.formatReportDate(posTable.dynamicQRExp), containsChinese: true, styles: PosStyles(align: PosAlign.center));
       }
       bytes += generator.hr();
+      bytes += generator.text(layout.footer_text!, containsChinese: true, styles: PosStyles(align: PosAlign.center));
 
       bytes += generator.cut(mode: PosCutMode.partial);
       return bytes;
