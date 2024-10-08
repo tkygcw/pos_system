@@ -225,7 +225,7 @@ class _PosPinPageState extends State<PosPinPage> {
     try {
       int isGms = 0;
       if(defaultTargetPlatform == TargetPlatform.android) {
-        print("gms2: ${GmsCheck().isGmsAvailable}");
+        await GmsCheck().checkGmsAvailability();
         isGms = GmsCheck().isGmsAvailable ? 1 : 0;
       }
 
