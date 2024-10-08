@@ -7,14 +7,13 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_firestore.dart';
+import 'package:pos_system/fragment/custom_toastification.dart';
 import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
-import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 
 import '../database/pos_database.dart';
-import '../fragment/custom_snackbar.dart';
 import '../main.dart';
 import '../notifier/app_setting_notifier.dart';
 import '../notifier/cart_notifier.dart';
@@ -223,45 +222,13 @@ abstract class PlaceOrder {
   printKitchenList(String address) async {
     try {
       final String batchId = DateTime.now().toString().replaceAll(RegExp(r'[^0-9]'), '');
-      String flushbarStatus = '';
       List<OrderDetail>? returnData = await printReceipt.printKitchenList(printerList, int.parse(this.orderCacheSqliteId));
       if(returnData != null){
         List<OrderDetail> updatedBatch = updateBatch(returnData, address, batchId);
         if (updatedBatch.isNotEmpty) {
           sendFailPrintOrderDetail(address: address, failList: updatedBatch);
           FailPrintModel.instance.addAllFailedOrderDetail(orderDetailList: updatedBatch);
-          CustomSnackBar.instance.showSnackBar(
-              title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
-              description: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
-              contentType: ContentType.failure,
-              playSound: true,
-              playtime: 2);
-          // playSound();
-          // Flushbar(
-          //   icon: Icon(Icons.error, size: 32, color: Colors.white),
-          //   shouldIconPulse: false,
-          //   title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
-          //   message: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
-          //   duration: Duration(seconds: 5),
-          //   backgroundColor: Colors.red,
-          //   messageColor: Colors.white,
-          //   flushbarPosition: FlushbarPosition.TOP,
-          //   maxWidth: 350,
-          //   margin: EdgeInsets.all(8),
-          //   borderRadius: BorderRadius.circular(8),
-          //   padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-          //   onTap: (flushbar) {
-          //     flushbar.dismiss(true);
-          //   },
-          //   onStatusChanged: (status) {
-          //     flushbarStatus = status.toString();
-          //   },
-          // )
-          //   ..show(context);
-          // Future.delayed(Duration(seconds: 3), () {
-          //   print("status change: ${flushbarStatus}");
-          //   if (flushbarStatus != "FlushbarStatus.IS_HIDING" && flushbarStatus != "FlushbarStatus.DISMISSED") playSound();
-          // });
+          ShowFailedPrintKitchenToast.showToast();
         }
       } else {
         //Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('no_printer_added')}");

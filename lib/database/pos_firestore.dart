@@ -25,6 +25,7 @@ class PosFirestore {
   static final PosFirestore instance = PosFirestore._init();
   static final BuildContext context = MyApp.navigatorKey.currentContext!;
   static FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  static final tb_table_dynamic = 'tb_table_dynamic';
 
   PosFirestore._init();
 
@@ -96,6 +97,10 @@ class PosFirestore {
 
   insertVariantItem(VariantItem data) async {
     await firestore.collection(tableVariantItem!).doc(data.variant_item_id.toString()).set(data.toJson(), SetOptions(merge: true));
+  }
+
+  insertTableDynamic(PosTable data) async {
+    await firestore.collection(tb_table_dynamic).doc().set(data.toTableDynamicJson(), SetOptions(merge: true));
   }
 
   Future<int> updateBranchLinkProductDailyLimit(BranchLinkProduct branchProduct) async {

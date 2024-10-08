@@ -386,7 +386,7 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
       reprintList.clear();
       checkSubPosOrderDetail(returnData);
       _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
-      ShowFailedPrintKitchenToast.showToast(context);
+      ShowFailedPrintKitchenToast.showToast();
     } else {
       reprintList.clear();
       _failPrintModel.removeAllFailedOrderDetail();

@@ -109,7 +109,7 @@ class QrOrderAutoAccept {
   failedPrintAlert() async {
     final _failPrintModel = Provider.of<FailPrintModel>(context, listen: false);
     if(_failPrintModel.failedPrintOrderDetail.length >= 1) {
-      ShowFailedPrintKitchenToast.showToast(context);
+      ShowFailedPrintKitchenToast.showToast();
     }
   }
 
@@ -239,6 +239,7 @@ class QrOrderAutoAccept {
           if (tableInUsed == true) {
             if(checkIsTableSelectedInPaymentCart(qrOrderCacheList.qr_order_table_sqlite_id!) == true){
               QrOrder.instance.getAllNotAcceptedQrOrder();
+              ShowQRToast.showToast();
               return;
             } else {
               await updateOrderDetail();

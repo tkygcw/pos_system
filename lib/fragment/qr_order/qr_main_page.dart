@@ -9,7 +9,6 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/firebase_sync/qr_order_sync.dart';
-import 'package:pos_system/firebase_sync/sync_to_firebase.dart';
 import 'package:pos_system/fragment/qr_order/adjust_stock_dialog.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/branch_link_product.dart';

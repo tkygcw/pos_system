@@ -5,11 +5,8 @@ import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/fragment/custom_toastification.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/utils/Utils.dart';
-import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
-import 'package:toastification/toastification.dart';
 
 import '../database/pos_database.dart';
-import '../fragment/custom_snackbar.dart';
 import '../main.dart';
 import '../object/branch_link_product.dart';
 import '../object/categories.dart';
@@ -18,7 +15,6 @@ import '../object/order_detail.dart';
 import '../object/order_modifier_detail.dart';
 import '../object/qr_order.dart';
 import '../object/qr_order_auto_accept.dart';
-import '../translation/AppLocalizations.dart';
 
 class FirestoreQROrderSync {
   static final FirestoreQROrderSync instance = FirestoreQROrderSync._init();
@@ -121,7 +117,7 @@ class FirestoreQROrderSync {
           asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
           return;
         }
-        ShowQRToast.showToast(context);
+        ShowQRToast.showToast();
       } else {
         throw Exception("order detail collection is empty: order_cache_key: ${localOrderCache.order_cache_key}");
       }

@@ -1,3 +1,5 @@
+import '../utils/Utils.dart';
+
 String? tablePosTable = 'tb_table';
 
 class PosTableFields {
@@ -164,7 +166,17 @@ class PosTable{
     PosTableFields.soft_delete: soft_delete,
     'group': group,
     'card_color': card_color,
-    'total_amount': total_amount
+    'total_amount': total_amount,
+  };
+
+  Map<String, Object?> toTableDynamicJson() => {
+    PosTableFields.table_id: table_id,
+    PosTableFields.branch_id: branch_id,
+    PosTableFields.created_at: Utils.dbCurrentDateTimeFormat(),
+    PosTableFields.updated_at: '',
+    PosTableFields.soft_delete: '',
+    'qr_expired_dateTime': dynamicQRExp,
+    'qr_url': dynamicQrHash
   };
 
 

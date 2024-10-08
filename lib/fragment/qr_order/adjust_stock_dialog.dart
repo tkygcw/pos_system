@@ -2,13 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:another_flushbar/flushbar.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
-import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_firestore.dart';
+import 'package:pos_system/fragment/custom_toastification.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
@@ -31,7 +30,6 @@ import '../../object/order_detail.dart';
 import '../../object/table_use.dart';
 import '../../object/table_use_detail.dart';
 import '../../translation/AppLocalizations.dart';
-import '../custom_snackbar.dart';
 import '../logout_dialog.dart';
 
 class AdjustStockDialog extends StatefulWidget {
@@ -751,41 +749,11 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     try {
       print("callPrinter called");
       BuildContext _context = MyApp.navigatorKey.currentContext!;
-      String flushbarStatus = '';
       List<OrderDetail> returnData = await PrintReceipt().printQrKitchenList(printerList, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
       if(returnData.isNotEmpty){
         _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
-        CustomSnackBar.instance.showSnackBar(
-            title:"${AppLocalizations.of(_context)?.translate('error')}${AppLocalizations.of(_context)?.translate('kitchen_printer_timeout')}",
-            description: "${AppLocalizations.of(_context)?.translate('please_try_again_later')}",
-            playSound: true,
-            playtime: 2,
-            contentType: ContentType.failure);
+        ShowFailedPrintKitchenToast.showToast();
       }
-      // playSound();
-      // Flushbar(
-      //   icon: Icon(Icons.error, size: 32, color: Colors.white),
-      //   shouldIconPulse: false,
-      //   title: "${AppLocalizations.of(_context)?.translate('error')}${AppLocalizations.of(_context)?.translate('kitchen_printer_timeout')}",
-      //   message: "${AppLocalizations.of(_context)?.translate('please_try_again_later')}",
-      //   duration: Duration(seconds: 5),
-      //   backgroundColor: Colors.red,
-      //   messageColor: Colors.white,
-      //   flushbarPosition: FlushbarPosition.TOP,
-      //   maxWidth: 350,
-      //   margin: EdgeInsets.all(8),
-      //   borderRadius: BorderRadius.circular(8),
-      //   padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-      //   onTap: (flushbar) {
-      //     flushbar.dismiss(true);
-      //   },
-      //   onStatusChanged: (status) {
-      //     flushbarStatus = status.toString();
-      //   },
-      // )..show(_context);
-      // Future.delayed(Duration(seconds: 3), () {
-      //   playSound();
-      // });
     } catch(e) {
       print("callPrinter error: ${e}");
     }

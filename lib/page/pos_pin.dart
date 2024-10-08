@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:gms_check/gms_check.dart';
 import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
-import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/firebase_sync/qr_order_sync.dart';
 import 'package:pos_system/firebase_sync/sync_to_firebase.dart';
 import 'package:pos_system/fragment/setting/sync_dialog.dart';
@@ -103,9 +103,10 @@ class _PosPinPageState extends State<PosPinPage> {
   }
 
   preload() async {
+    bool hasGMS = await GmsCheck().checkGmsAvailability() ?? false;
     await syncRecord.syncFromCloud();
     if(notificationModel.syncCountStarted == false){
-      startTimers();
+      startTimers(hasGMS);
     }
     await readAllPrinters();
     SyncToFirebase.instance.syncToFirebase();
@@ -278,7 +279,7 @@ class _PosPinPageState extends State<PosPinPage> {
     return completer.future;
   }
 
-  startTimers() {
+  startTimers(bool hasGMS) async {
     int timerCount = 0;
     notificationModel.setSyncCountAsStarted();
     notificationModel.resetTimer();
@@ -298,9 +299,10 @@ class _PosPinPageState extends State<PosPinPage> {
         return;
       }
       // print("sync to cloud count in 30 sec: ${mainSyncToCloud.count}");
-      // print('timer count: ${timerCount}');
+      // print('has gms service: ${hasGMS}');
       //sync qr order
-      if(qrOrder.count == 0){
+      if(qrOrder.count == 0 && hasGMS == false){
+        print("qr sync call!!!");
         qrOrder.count = 1;
         await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
         qrOrder.count = 0;

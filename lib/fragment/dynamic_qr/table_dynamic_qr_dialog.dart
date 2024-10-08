@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:provider/provider.dart';
@@ -26,11 +27,12 @@ class TableDynamicQrDialog extends StatefulWidget {
 }
 
 class _TableDynamicQrDialogState extends State<TableDynamicQrDialog> {
-  late TextEditingController dateTimeController;
+  PosFirestore posFirestore = PosFirestore.instance;
   PrintDynamicQr printDynamicQr = PrintDynamicQr();
   DateTime currentDateTime = DateTime.now().add(Duration(hours: AppSettingModel.instance.dynamic_qr_default_exp_after_hour!));
   int tapCount = 0;
   late Map branchObject;
+  late TextEditingController dateTimeController;
 
   resetTapCount () => tapCount = 0;
 
@@ -116,6 +118,7 @@ class _TableDynamicQrDialogState extends State<TableDynamicQrDialog> {
                       List<PosTable> selectedTable = widget.posTableList;
                       for(int i = 0 ; i < selectedTable.length; i++){
                         PosTable updatedTable = await generateDynamicQRUrl(selectedTable[i]);
+                        posFirestore.insertTableDynamic(updatedTable);
                         Map res = await Domain().insertTableDynamicQr(updatedTable);
                         if(res['status'] == '1'){
                           await printDynamicQr.printDynamicQR(table: updatedTable);

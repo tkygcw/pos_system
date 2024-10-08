@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:dotted_line/dotted_line.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
+import 'package:pos_system/fragment/setting/qr_code_setting/qr_code_utils.dart';
 import 'package:pos_system/object/dynamic_qr.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
@@ -47,34 +47,27 @@ class _ReceiptView2State extends State<MobileReceiptView2> {
 
   getDynamicQRLayout() async {
     try {
-      DynamicQR? data = await PosDatabase.instance.readSpecificDynamicQRByPaperSize(receiptView);
-      if (data != null) {
-        testLayout = data;
-        footerTextController.text = data.footer_text!;
-        switch (data.qr_code_size) {
-          case 0:
-            {
-              qrCodeSize = ReceiptDialogEnum.small;
-            }
-            break;
-          case 1:
-            {
-              qrCodeSize = ReceiptDialogEnum.medium;
-            }
-            break;
-          default:
-            {
-              qrCodeSize = ReceiptDialogEnum.big;
-            }
-        }
-      } else {
-        testLayout = DynamicQR(
-            qr_code_size: 2,
-            paper_size: receiptView,
-            footer_text: footerTextController.text);
+      DynamicQR data = await PosDatabase.instance.readSpecificDynamicQRByPaperSize(receiptView) ?? QrCodeUtils.default58mmDynamicLayout;
+      testLayout = data;
+      footerTextController.text = data.footer_text!;
+      switch (data.qr_code_size) {
+        case 0:
+          {
+            qrCodeSize = ReceiptDialogEnum.small;
+          }
+          break;
+        case 1:
+          {
+            qrCodeSize = ReceiptDialogEnum.medium;
+          }
+          break;
+        default:
+          {
+            qrCodeSize = ReceiptDialogEnum.big;
+          }
       }
     } catch (e) {
-      testLayout = DynamicQR(qr_code_size: 2, paper_size: receiptView, footer_text: footerTextController.text);
+      testLayout = QrCodeUtils.default58mmDynamicLayout;
       FLog.error(
         className: "mobile receipt view 2",
         text: "get dynamic qr layout error",

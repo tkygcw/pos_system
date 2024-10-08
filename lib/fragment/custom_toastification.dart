@@ -2,9 +2,12 @@ import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
 import 'package:toastification/toastification.dart';
 
+import '../main.dart';
 import '../translation/AppLocalizations.dart';
 
 class _CustomToastification {
+
+  static final BuildContext context = MyApp.navigatorKey.currentContext!;
 
   static playReviewSound() {
     try {
@@ -52,9 +55,10 @@ class _CustomToastification {
   }
 }
 
-class ShowQRToast {
-  static showToast(BuildContext context){
-    _CustomToastification.showToastificationAndSound(title: AppLocalizations.of(context)!.translate('new_qr_order_received'),
+class ShowQRToast extends _CustomToastification {
+  static showToast(){
+    _CustomToastification.showToastificationAndSound(
+        title: AppLocalizations.of(_CustomToastification.context)!.translate('new_qr_order_received'),
         showProgressBar: true,
         playSound: true,
         playTimes: 2,
@@ -62,11 +66,23 @@ class ShowQRToast {
   }
 }
 
-class ShowFailedPrintKitchenToast{
-  static showToast(BuildContext context){
+class ShowFailedPrintKitchenToast {
+  static showToast(){
     _CustomToastification.showToastificationAndSound(
-      title: "${AppLocalizations.of(context)?.translate('error')}"
-          "${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
+      title: "${AppLocalizations.of(_CustomToastification.context)?.translate('error')}"
+          "${AppLocalizations.of(_CustomToastification.context)?.translate('kitchen_printer_timeout')}",
+      isError: true,
+      playSound: true,
+      playTimes: 2,
+    );
+  }
+}
+
+class ShowPlaceOrderFailedToast {
+  static showToast(String description){
+    _CustomToastification.showToastificationAndSound(
+      title: AppLocalizations.of(_CustomToastification.context)!.translate('place_order_failed'),
+      description: Text(description),
       isError: true,
       playSound: true,
       playTimes: 2,
