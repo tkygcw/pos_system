@@ -458,10 +458,11 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
 
       Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(context)!.translate('price_updated'));
       tableModel.changeContent(true);
-      cart.removeAllTable();
-      cart.removeAllCartItem();
-      cart.removePromotion();
-      // widget.callBack(widget.cartItem);
+      // cart.removeAllTable();
+      // cart.removeAllCartItem();
+      // cart.removePromotion();
+      widget.cartItem.price = double.parse(priceController.text).toStringAsFixed(2);
+      widget.callBack(widget.cartItem);
       //sync to cloud
       syncAllToCloud();
     }

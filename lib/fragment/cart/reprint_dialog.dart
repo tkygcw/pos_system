@@ -15,12 +15,14 @@ import '../../translation/AppLocalizations.dart';
 class ReprintDialog extends StatefulWidget {
   final List<Printer> printerList;
   final CartModel cart;
+  final String orderKey;
   final BuildContext parentContext;
   final String currentPage;
   const ReprintDialog({
     Key? key,
     required this.printerList,
     required this.cart,
+    required this.orderKey,
     required this.parentContext,
     required this.currentPage}) : super(key: key);
 
@@ -133,7 +135,8 @@ class _ReprintDialogState extends State<ReprintDialog> {
   }
 
   printReviewReceipt() async {
-    int printStatus = await printReceipt.printReviewReceipt(widget.printerList, cartModel);
+    print("order key in reprint: ${widget.orderKey}");
+    int printStatus = await printReceipt.printReviewReceipt(widget.printerList, cartModel, widget.orderKey);
     checkPrinterStatus(printStatus);
   }
 

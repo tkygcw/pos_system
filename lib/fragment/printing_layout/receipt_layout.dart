@@ -13,6 +13,7 @@ import 'package:pos_system/object/checklist.dart';
 import 'package:pos_system/object/kitchen_list.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
+import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/receipt.dart';
 import 'package:pos_system/object/report_class.dart';
@@ -52,6 +53,7 @@ class ReceiptLayout{
   double totalCashOut = 0.0;
   double totalOpeningCash = 0.0;
   bool _isLoad = false;
+  List<OrderPaymentSplit> paymentSplitList = [];
 
   final Checklist checklistDefaultLayout = Checklist(
     product_name_font_size: 0,

@@ -194,11 +194,16 @@ class _SettlementPageState extends State<SettlementPage> {
                             ),
                             ElevatedButton(
                               child: Text(AppLocalizations.of(context)!.translate('settlement')),
-                              onPressed: () {
-                                if (cashRecordList.isNotEmpty) {
-                                  openSettlementDialog(cashRecordList);
+                              onPressed: () async {
+                                List<OrderCache> dataPaymentNotComplete = await PosDatabase.instance.readAllOrderCachePaymentNotComplete();
+                                if(dataPaymentNotComplete.isEmpty){
+                                  if (cashRecordList.isNotEmpty) {
+                                    openSettlementDialog(cashRecordList);
+                                  } else {
+                                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
+                                  }
                                 } else {
-                                  Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
+                                  Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('please_make_sure_all_payment_split_is_complete'));
                                 }
                               },
                               style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),

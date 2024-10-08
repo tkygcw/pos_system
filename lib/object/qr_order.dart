@@ -80,6 +80,7 @@ class QrOrder extends ChangeNotifier {
             qr_order_table_sqlite_id: '',
             qr_order_table_id: response['data'][i]['table_id'],
             accepted: 1,
+            payment_status: 0,
             sync_status: 1,
             created_at: dateTime,
             updated_at: '',

@@ -261,13 +261,16 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
   }
 
   updateTable() async {
+    print("updateTable called");
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     try{
       List<TableUseDetail> tableUseDetailList = await PosDatabase.instance.readTableUseDetailByTableUseKey(widget.object.table_use_key!);
       List<TableUseDetail> NowUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(widget.object.table_sqlite_id!);
       List<PosTable> tableData = await PosDatabase.instance.readSpecificTableByTableNo(tableNoController.text);
+      List<OrderCache> cacheData = await PosDatabase.instance.readSpecificOrderCacheByTableUseKey(tableData[0].table_use_key!);
       if(tableData.isEmpty) {
+        print("tableData is empty");
         Fluttertoast.showToast(
             backgroundColor: Colors.red,
             msg: "${AppLocalizations.of(context)?.translate("table_not_found")}");
@@ -280,21 +283,25 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
       List<TableUseDetail> NewUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableData[0].table_sqlite_id!);
       //check new table is in use or not
       if(NewUseDetailData.isNotEmpty){
-        //check is user change to same group merged table
-        if(checkTableUseKey(currentTableUseKey: NowUseDetailData[0].table_use_key!, targetTableUseKey: NewUseDetailData[0].table_use_key!) == false){
-          await callChangeToTableInUse(NowUseDetailData[0].table_use_key!, NowUseDetailData[0].table_use_sqlite_id!, NewUseDetailData[0].table_use_sqlite_id!, dateTime);
-          await updatePosTable(NewUseDetailData[0].table_use_detail_key!, dateTime, NowUseDetailData[0].table_use_key!, tableUseDetailList: tableUseDetailList);
+        if(cacheData[0].order_key == null || cacheData[0].order_key == '') {
+          //check is user change to same group merged table
+          if(checkTableUseKey(currentTableUseKey: NowUseDetailData[0].table_use_key!, targetTableUseKey: NewUseDetailData[0].table_use_key!) == false){
+            await callChangeToTableInUse(NowUseDetailData[0].table_use_key!, NowUseDetailData[0].table_use_sqlite_id!, NewUseDetailData[0].table_use_sqlite_id!, dateTime);
+            await updatePosTable(NewUseDetailData[0].table_use_detail_key!, dateTime, NowUseDetailData[0].table_use_key!, tableUseDetailList: tableUseDetailList);
+          } else {
+            Fluttertoast.showToast(
+                backgroundColor: Colors.red,
+                msg: "${AppLocalizations.of(context)?.translate("cannot_change_to_merged_table")}");
+          }
         } else {
-          Fluttertoast.showToast(
-              backgroundColor: Colors.red,
-              msg: "${AppLocalizations.of(context)?.translate("cannot_change_to_merged_table")}");
+          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
         }
-
       } else {
         await changeToUnusedTable(widget.object.table_sqlite_id!, tableData[0].table_sqlite_id.toString(), tableData[0].table_id.toString(), dateTime);
         await deleteOtherTableUseDetail(tableUseDetailList: tableUseDetailList, dateTime: dateTime);
         await updatePosTable(NowUseDetailData[0].table_use_detail_key!, dateTime, NowUseDetailData[0].table_use_key!, tableUseDetailList: tableUseDetailList);
       }
+
       await syncAllToCloud();
       if(this.isLogOut == true){
         openLogOutDialog();
