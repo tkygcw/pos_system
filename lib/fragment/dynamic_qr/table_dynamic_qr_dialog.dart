@@ -97,66 +97,58 @@ class _TableDynamicQrDialogState extends State<TableDynamicQrDialog> {
           ),
         ),
         actions: [
-          SizedBox(
-            width: 150,
-            height: 60,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: color.buttonColor
-              ),
-              onPressed: () async {
-                tapCount++;
-                if(tapCount == 1){
-                  if(currentDateTime.isBefore(DateTime.now())){
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                backgroundColor: color.buttonColor
+            ),
+            onPressed: () async {
+              tapCount++;
+              if(tapCount == 1){
+                if(currentDateTime.isBefore(DateTime.now())){
+                  resetTapCount();
+                  Fluttertoast.showToast(
+                      backgroundColor: Color(0xFFFF0000),
+                      msg: AppLocalizations.of(context)!.translate('dynamic_qr_error'));
+                } else {
+                  bool _hasInternetAccess = await Domain().isHostReachable();
+                  if(_hasInternetAccess){
+                    List<PosTable> selectedTable = widget.posTableList;
+                    for(int i = 0 ; i < selectedTable.length; i++){
+                      PosTable updatedTable = await generateDynamicQRUrl(selectedTable[i]);
+                      posFirestore.insertTableDynamic(updatedTable);
+                      Map res = await Domain().insertTableDynamicQr(updatedTable);
+                      if(res['status'] == '1'){
+                        await printDynamicQr.printDynamicQR(table: updatedTable);
+                      } else {
+                        break;
+                      }
+                    }
+                    if(widget.callback != null){
+                      widget.callback!();
+                    }
+                    Navigator.of(context).pop();
+                  } else {
                     resetTapCount();
                     Fluttertoast.showToast(
                         backgroundColor: Color(0xFFFF0000),
-                        msg: AppLocalizations.of(context)!.translate('dynamic_qr_error'));
-                  } else {
-                    bool _hasInternetAccess = await Domain().isHostReachable();
-                    if(_hasInternetAccess){
-                      List<PosTable> selectedTable = widget.posTableList;
-                      for(int i = 0 ; i < selectedTable.length; i++){
-                        PosTable updatedTable = await generateDynamicQRUrl(selectedTable[i]);
-                        posFirestore.insertTableDynamic(updatedTable);
-                        Map res = await Domain().insertTableDynamicQr(updatedTable);
-                        if(res['status'] == '1'){
-                          await printDynamicQr.printDynamicQR(table: updatedTable);
-                        } else {
-                          break;
-                        }
-                      }
-                      if(widget.callback != null){
-                        widget.callback!();
-                      }
-                      Navigator.of(context).pop();
-                    } else {
-                      resetTapCount();
-                      Fluttertoast.showToast(
-                          backgroundColor: Color(0xFFFF0000),
-                          msg: AppLocalizations.of(context)!.translate('check_internet_connection'));
-                    }
+                        msg: AppLocalizations.of(context)!.translate('check_internet_connection'));
                   }
                 }
-              },
-              child: Text(AppLocalizations.of(context)!.translate('generate')),
-            ),
+              }
+            },
+            child: Text(AppLocalizations.of(context)!.translate('generate')),
           ),
-          SizedBox(
-            width: 150,
-            height: 60,
-            child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red
-                ),
-                onPressed: () {
-                  tapCount++;
-                  if(tapCount == 1){
-                    Navigator.of(context).pop();
-                  }
-                },
-                child: Text(AppLocalizations.of(context)!.translate('close'))),
-          )
+          ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red
+              ),
+              onPressed: () {
+                tapCount++;
+                if(tapCount == 1){
+                  Navigator.of(context).pop();
+                }
+              },
+              child: Text(AppLocalizations.of(context)!.translate('close')))
         ],
       );
     });

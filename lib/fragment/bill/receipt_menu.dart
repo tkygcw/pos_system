@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/database/pos_database.dart';
@@ -174,7 +175,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                             child: ListTile(
                               contentPadding: EdgeInsets.all(10),
                               title: Text(
-                                'RM${paidOrderList[index].final_amount}',
+                                'RM${paidOrderList[index].final_amount}' + getPaymentSplitStatus(paidOrderList[index].payment_status!, paidOrderList[index].payment_split!),
                                 style: TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold),
                               ),
                               leading: CircleAvatar(
@@ -511,21 +512,24 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                           trailing: Icon(Icons.navigate_next),
                         )
                       ),
-                      Card(
-                          elevation: 5,
-                          child: ListTile(
-                            leading: CircleAvatar(
-                                backgroundColor: Colors.grey.shade200,
-                                child: Icon(
-                                  Icons.edit,
-                                  color: Colors.grey,
-                                )),
-                            title: Text(AppLocalizations.of(context)!.translate('edit_payment_method')),
-                            onTap: (){
-                              openPaymentSelect(order: order);
-                            },
-                            trailing: Icon(Icons.navigate_next),
-                          )
+                      Visibility(
+                        visible: order.ipay_trans_id != '' || order.payment_split != 0 ?  false : true,
+                        child: Card(
+                            elevation: 5,
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                  backgroundColor: Colors.grey.shade200,
+                                  child: Icon(
+                                    Icons.edit,
+                                    color: Colors.grey,
+                                  )),
+                              title: Text(AppLocalizations.of(context)!.translate('edit_payment_method')),
+                              onTap: (){
+                                openPaymentSelect(order: order);
+                              },
+                              trailing: Icon(Icons.navigate_next),
+                            )
+                        ),
                       ),
                     ]
                   ),
@@ -893,5 +897,16 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
         paidOrderList = data;
       });
     }
+  }
+
+  String getPaymentSplitStatus(int paymentStatus, int paymentSplit) {
+    String splitStatus = '';
+    if(paymentStatus == 1 && paymentSplit == 1) {
+      splitStatus = ' (Split Payment)';
+    } else if(paymentStatus == 2 && paymentSplit == 1) {
+      splitStatus = ' (Split Payment)';
+    }
+
+    return splitStatus;
   }
 }

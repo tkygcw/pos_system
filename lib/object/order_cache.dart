@@ -25,6 +25,7 @@ class OrderCacheFields {
     qr_order_table_sqlite_id,
     qr_order_table_id,
     accepted,
+    payment_status,
     sync_status,
     created_at,
     updated_at,
@@ -54,6 +55,7 @@ class OrderCacheFields {
   static String qr_order_table_sqlite_id = 'qr_order_table_sqlite_id';
   static String qr_order_table_id = 'qr_order_table_id';
   static String accepted = 'accepted';
+  static String payment_status = 'payment_status';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -84,6 +86,7 @@ class OrderCache{
   String? qr_order_table_sqlite_id;
   String? qr_order_table_id;
   int? accepted;
+  int? payment_status;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -117,6 +120,7 @@ class OrderCache{
         this.qr_order_table_sqlite_id,
         this.qr_order_table_id,
         this.accepted,
+        this.payment_status,
         this.sync_status,
         this.created_at,
         this.updated_at,
@@ -150,6 +154,7 @@ class OrderCache{
     String? qr_order_table_sqlite_id,
     String? qr_order_table_id,
     int? accepted,
+    int? payment_status,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -179,6 +184,7 @@ class OrderCache{
           qr_order_table_sqlite_id: qr_order_table_sqlite_id ?? this.qr_order_table_sqlite_id,
           qr_order_table_id: qr_order_table_id ?? this.qr_order_table_id,
           accepted: accepted ?? this.accepted,
+          payment_status: payment_status ?? this.payment_status,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -208,6 +214,7 @@ class OrderCache{
       qr_order_table_sqlite_id: json[OrderCacheFields.qr_order_table_sqlite_id] as String?,
       qr_order_table_id: json[OrderCacheFields.qr_order_table_id] as String?,
       accepted: json[OrderCacheFields.accepted] as int?,
+      payment_status: json[OrderCacheFields.payment_status] as int?,
       sync_status: json[OrderCacheFields.sync_status] as int?,
       created_at: json[OrderCacheFields.created_at] as String?,
       updated_at: json[OrderCacheFields.updated_at] as String?,
@@ -241,6 +248,7 @@ class OrderCache{
     OrderCacheFields.qr_order_table_sqlite_id: qr_order_table_sqlite_id,
     OrderCacheFields.qr_order_table_id: qr_order_table_id,
     OrderCacheFields.accepted: accepted,
+    OrderCacheFields.payment_status: payment_status,
     OrderCacheFields.sync_status: sync_status,
     OrderCacheFields.created_at: created_at,
     OrderCacheFields.updated_at: updated_at,

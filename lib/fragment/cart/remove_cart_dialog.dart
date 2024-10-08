@@ -527,8 +527,9 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
 
     Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(globalContext)!.translate('delete_successful'));
     tableModel.changeContent(true);
-    cart.removeAllTable();
-    cart.removeAllCartItem();
+    // cart.removeAllTable();
+    // cart.removeAllCartItem();
+    cart.removeItem(widget.cartItem!);
     cart.removePromotion();
     // syncAllToCloud();
   }

@@ -20,10 +20,12 @@ class CartModel extends ChangeNotifier {
   List<OrderCache> currentOrderCache = [];
   String selectedOption = '';
   String selectedOptionId = '';
+  String selectedOptionOrderKey = '';
   String? subtotal;
   bool isInit = false;
   int myCount = 0;
   bool isChange = false;
+  List<String> groupList = [];
 
   CartModel({
     List<cartProductItem>? cartNotifierItem,
@@ -31,12 +33,15 @@ class CartModel extends ChangeNotifier {
     List<PosTable>? selectedTable,
     String? selectedOption,
     String? selectedOptionId,
+    String? selectedOptionOrderKey,
     String? subtotal
   }){
+    this.groupList = groupList ?? [];
     this.selectedTable = selectedTable ?? [];
     this.cartNotifierItem = cartNotifierItem ?? [];
     this.selectedOption = selectedOption ?? '';
     this.selectedOptionId = selectedOptionId ?? '';
+    this.selectedOptionOrderKey = selectedOptionOrderKey ?? '';
     this.subtotal = subtotal;
     this.cartNotifierPayment = cartNotifierPayment ?? [];
   }
@@ -51,6 +56,7 @@ class CartModel extends ChangeNotifier {
         cartNotifierItem: cartNotifierItem,
         selectedOption: json['selectedOption'] as String?,
         selectedOptionId: json['selectedOptionId'] as String?,
+        selectedOptionOrderKey: json['selectedOptionOrderKey'] as String?,
         subtotal: json['subtotal'] as String?
     );
   }
@@ -75,7 +81,9 @@ class CartModel extends ChangeNotifier {
     removePaymentDetail();
     readAllBranchLinkDiningOption();
     currentOrderCache.clear();
+    removeAllGroupList();
     //selectedOptionId = '1';
+    selectedOptionOrderKey = '';
     notifyListeners();
   }
 
@@ -88,6 +96,7 @@ class CartModel extends ChangeNotifier {
     currentOrderCache.clear();
     selectedOption = 'Take Away';
     //selectedOptionId = '2';
+    selectedOptionOrderKey = '';
     notifyListeners();
   }
 
@@ -159,6 +168,27 @@ class CartModel extends ChangeNotifier {
     }
     cartNotifierItem.removeWhere((element) => _removeItem.contains(element));
     notifyListeners();
+  }
+
+  void addToGroupList(String tableGroupList) {
+    groupList.add(tableGroupList);
+    notifyListeners();
+  }
+
+  void removeAllGroupList() {
+    groupList.clear();
+    notifyListeners();
+  }
+
+  void removeSpecificGroupList(String tableGroupList) {
+    groupList.remove(tableGroupList);
+    notifyListeners();
+  }
+
+  bool checkGroupListContain(String tableGroupList) {
+    bool contains = groupList.contains(tableGroupList);
+    notifyListeners();
+    return contains;
   }
 
   void removeCartItemBasedOnOrderCache(String orderCacheSqliteId){

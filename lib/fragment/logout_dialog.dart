@@ -172,6 +172,7 @@ class _LogoutConfirmDialogState extends State<LogoutConfirmDialog> {
     PosDatabase.instance.clearAllOrder();
     PosDatabase.instance.clearAllOrderTax();
     PosDatabase.instance.clearAllOrderPromotion();
+    PosDatabase.instance.clearAllOrderPaymentSplit();
     //clear refund
     PosDatabase.instance.clearAllRefund();
     //clear settlement
@@ -199,6 +200,8 @@ class _LogoutConfirmDialogState extends State<LogoutConfirmDialog> {
     PosDatabase.instance.clearAllSubscription();
     //clear logout
     PosDatabase.instance.clearAllAttendance();
+    //clear current version
+    PosDatabase.instance.clearAllCurrentVersion();
   }
 
   Future<String> get _localPath async {
