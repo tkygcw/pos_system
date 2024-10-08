@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:gms_check/gms_check.dart';
 import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:pos_system/fragment/setting/sync_dialog.dart';
@@ -220,7 +221,15 @@ class _PosPinPageState extends State<PosPinPage> {
         openUpdateDialog();
       }
     }
+
     try {
+      int isGms = 0;
+      if(defaultTargetPlatform == TargetPlatform.android) {
+        print("gms2: ${GmsCheck().isGmsAvailable}");
+        isGms = GmsCheck().isGmsAvailable ? 1 : 0;
+      }
+
+      print("isGmsAvailable: $isGms");
       CurrentVersion? item = await PosDatabase.instance.readCurrentVersion();
       if(item == null){
         CurrentVersion object = CurrentVersion(
@@ -228,22 +237,26 @@ class _PosPinPageState extends State<PosPinPage> {
             branch_id: branch_id.toString(),
             current_version: version,
             platform: defaultTargetPlatform == TargetPlatform.android ? 0 : 1,
+            is_gms: isGms,
             source: source,
             sync_status: 0,
             created_at: dateTime,
             updated_at: '',
             soft_delete: '');
         await PosDatabase.instance.insertSqliteCurrentVersion(object);
+        print("Current Version: insert");
       } else {
-        if(item.current_version != version || item.platform != (defaultTargetPlatform == TargetPlatform.android ? 0 : 1) || item.source != source){
+        if(item.current_version != version || item.platform != (defaultTargetPlatform == TargetPlatform.android ? 0 : 1) || item.source != source || item.is_gms != isGms){
           CurrentVersion object = CurrentVersion(
               branch_id: branch_id.toString(),
               current_version: version,
               platform: defaultTargetPlatform == TargetPlatform.android ? 0 : 1,
+              is_gms: isGms,
               source: source,
               sync_status: item.sync_status == 0 ? 0 : 2,
               updated_at: dateTime);
           await PosDatabase.instance.updateCurrentVersion(object);
+            print("Current Version: update");
         }
       }
       try {

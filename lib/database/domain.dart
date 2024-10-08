@@ -2433,7 +2433,6 @@ class Domain {
   * insert current version
   * */
   insertCurrentVersionDay(data) async {
-    print("insertCurrentVersion called");
     try {
       var response = await http.post(Domain.current_version, body: {
         'data': data,

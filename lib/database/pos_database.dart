@@ -655,6 +655,7 @@ class PosDatabase {
           ${CurrentVersionFields.branch_id} $textType,
           ${CurrentVersionFields.current_version} $textType,
           ${CurrentVersionFields.platform} $integerType,
+          ${CurrentVersionFields.is_gms} $integerType,
           ${CurrentVersionFields.source} $textType,
           ${CurrentVersionFields.sync_status} $integerType,
           ${CurrentVersionFields.created_at} $textType,
@@ -1463,6 +1464,7 @@ class PosDatabase {
           ${CurrentVersionFields.branch_id} $textType,
           ${CurrentVersionFields.current_version} $textType,
           ${CurrentVersionFields.platform} $integerType,
+          ${CurrentVersionFields.is_gms} $integerType,
           ${CurrentVersionFields.source} $textType,
           ${CurrentVersionFields.sync_status} $integerType,
           ${CurrentVersionFields.created_at} $textType,
@@ -4776,8 +4778,8 @@ class PosDatabase {
   Future<int> updateCurrentVersion(CurrentVersion data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableCurrentVersion SET current_version = ?, platform = ?, source = ?, sync_status = ?, updated_at = ? WHERE branch_id = ?',
-        [data.current_version, data.platform, data.source, data.sync_status, data.updated_at, data.branch_id]);
+        'UPDATE $tableCurrentVersion SET current_version = ?, platform = ?, is_gms = ?, source = ?, sync_status = ?, updated_at = ? WHERE branch_id = ?',
+        [data.current_version, data.platform, data.is_gms, data.source, data.sync_status, data.updated_at, data.branch_id]);
   }
 
 /*
