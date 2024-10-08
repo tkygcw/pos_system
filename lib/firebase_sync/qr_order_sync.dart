@@ -170,6 +170,7 @@ class FirestoreQROrderSync {
           qr_order: 1,
           qr_order_table_sqlite_id: '',
           qr_order_table_id: data['table_id'] ?? '',
+          payment_status: 0,
           accepted: 1,
           sync_status: 1,
           created_at: data['created_at'],

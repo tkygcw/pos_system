@@ -904,7 +904,7 @@ getAllTable() async {
         try {
           PosTable item = PosTable.fromJson(responseJson[i]);
           // PosTable table = await PosDatabase.instance.insertPosTable(PosTable.fromJson(responseJson[i]));
-          PosTable data = await PosDatabase.instance.insertPosTable(PosTable(
+          PosTable table = await PosDatabase.instance.insertPosTable(PosTable(
             table_id: item.table_id,
             table_url: item.table_url,
             branch_id: item.branch_id,

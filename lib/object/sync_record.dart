@@ -1173,6 +1173,7 @@ class SyncRecord {
           updated_at: variantItemData.updated_at,
           soft_delete: variantItemData.soft_delete
       );
+      firestore.insertVariantItem(object);
       if(method == '0'){
         //create
         VariantItem? checkData = await PosDatabase.instance.checkSpecificVariantItemId(object.variant_item_id!);
@@ -1213,6 +1214,7 @@ class SyncRecord {
           updated_at: variantData.updated_at,
           soft_delete: variantData.soft_delete
       );
+      firestore.insertVariantGroup(object);
       if(method == '0'){
         //create
         VariantGroup? checkData = await PosDatabase.instance.checkSpecificVariantGroupId(object.variant_group_id!);
