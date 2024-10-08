@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:gms_check/gms_check.dart';
 import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:pos_system/fragment/setting/sync_dialog.dart';
 import 'package:pos_system/fragment/subscription_expired.dart';
 import 'package:pos_system/fragment/update_dialog.dart';
 import 'package:pos_system/main.dart';
+import 'package:pos_system/object/current_version.dart';
 import 'package:pos_system/object/subscription.dart';
 import 'package:pos_system/object/transfer_owner.dart';
 import 'package:pos_system/page/home.dart';
@@ -20,6 +22,7 @@ import 'package:custom_pin_screen/custom_pin_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:store_checker/store_checker.dart';
 import 'package:version/version.dart';
 import '../database/domain.dart';
 import '../database/pos_database.dart';
@@ -51,6 +54,7 @@ class _PosPinPageState extends State<PosPinPage> {
   String latestVersion = '';
   String? userValue, transferOwnerValue;
   bool isLogOut = false;
+  String source = '';
 
   @override
   void initState() {
@@ -128,7 +132,85 @@ class _PosPinPageState extends State<PosPinPage> {
     }
   }
 
+  getSource() async {
+    Source installationSource;
+    try {
+      installationSource = await StoreChecker.getSource;
+    } on PlatformException {
+      installationSource = Source.UNKNOWN;
+    }
+
+    switch (installationSource) {
+      case Source.IS_INSTALLED_FROM_PLAY_STORE:
+      // Installed from Play Store
+        source = "Play Store";
+        break;
+      case Source.IS_INSTALLED_FROM_PLAY_PACKAGE_INSTALLER:
+      // Installed from Google Package installer
+        source = "Google Package installer";
+        break;
+      case Source.IS_INSTALLED_FROM_LOCAL_SOURCE:
+      // Installed using adb commands or side loading or any cloud service
+        source = "Local Source";
+        break;
+      case Source.IS_INSTALLED_FROM_AMAZON_APP_STORE:
+      // Installed from Amazon app store
+        source = "Amazon Store";
+        break;
+      case Source.IS_INSTALLED_FROM_HUAWEI_APP_GALLERY:
+      // Installed from Huawei app store
+        source = "Huawei App Gallery";
+        break;
+      case Source.IS_INSTALLED_FROM_SAMSUNG_GALAXY_STORE:
+      // Installed from Samsung app store
+        source = "Samsung Galaxy Store";
+        break;
+      case Source.IS_INSTALLED_FROM_SAMSUNG_SMART_SWITCH_MOBILE:
+      // Installed from Samsung Smart Switch Mobile
+        source = "Samsung Smart Switch Mobile";
+        break;
+      case Source.IS_INSTALLED_FROM_XIAOMI_GET_APPS:
+      // Installed from Xiaomi app store
+        source = "Xiaomi Get Apps";
+        break;
+      case Source.IS_INSTALLED_FROM_OPPO_APP_MARKET:
+      // Installed from Oppo app store
+        source = "Oppo App Market";
+        break;
+      case Source.IS_INSTALLED_FROM_VIVO_APP_STORE:
+      // Installed from Vivo app store
+        source = "Vivo App Store";
+        break;
+      case Source.IS_INSTALLED_FROM_RU_STORE:
+      // Installed apk from RuStore
+        source = "RuStore";
+        break;
+      case Source.IS_INSTALLED_FROM_OTHER_SOURCE:
+      // Installed from other market store
+        source = "Other Source";
+        break;
+      case Source.IS_INSTALLED_FROM_APP_STORE:
+      // Installed from app store
+        source = "App Store";
+        break;
+      case Source.IS_INSTALLED_FROM_TEST_FLIGHT:
+      // Installed from Test Flight
+        source = "Test Flight";
+        break;
+      case Source.UNKNOWN:
+      // Installed from Unknown source
+        source = "Unknown Source";
+        break;
+    }
+  }
+
   checkVersion() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+
+    await getSource();
     await getLatestVersion();
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     String version = packageInfo.version;
@@ -139,7 +221,63 @@ class _PosPinPageState extends State<PosPinPage> {
         openUpdateDialog();
       }
     }
-    print('current version: $version');
+
+    try {
+      int isGms = 0;
+      if(defaultTargetPlatform == TargetPlatform.android) {
+        await GmsCheck().checkGmsAvailability();
+        isGms = GmsCheck().isGmsAvailable ? 1 : 0;
+      }
+
+      print("isGmsAvailable: $isGms");
+      CurrentVersion? item = await PosDatabase.instance.readCurrentVersion();
+      if(item == null){
+        CurrentVersion object = CurrentVersion(
+            current_version_id: 0,
+            branch_id: branch_id.toString(),
+            current_version: version,
+            platform: defaultTargetPlatform == TargetPlatform.android ? 0 : 1,
+            is_gms: isGms,
+            source: source,
+            sync_status: 0,
+            created_at: dateTime,
+            updated_at: '',
+            soft_delete: '');
+        await PosDatabase.instance.insertSqliteCurrentVersion(object);
+        print("Current Version: insert");
+      } else {
+        if(item.current_version != version || item.platform != (defaultTargetPlatform == TargetPlatform.android ? 0 : 1) || item.source != source || item.is_gms != isGms){
+          CurrentVersion object = CurrentVersion(
+              branch_id: branch_id.toString(),
+              current_version: version,
+              platform: defaultTargetPlatform == TargetPlatform.android ? 0 : 1,
+              is_gms: isGms,
+              source: source,
+              sync_status: item.sync_status == 0 ? 0 : 2,
+              updated_at: dateTime);
+          await PosDatabase.instance.updateCurrentVersion(object);
+            print("Current Version: update");
+        }
+      }
+      try {
+        CurrentVersion? data = await PosDatabase.instance.readCurrentVersion();
+        if(data!.sync_status != 1) {
+          Map? response = await Domain().insertCurrentVersionDay(jsonEncode(data).toString());
+          if (response != null && response['status'] == '1') {
+            await PosDatabase.instance.updateCurrentVersionSyncStatusFromCloud(branch_id.toString());
+            print("insert current version success");
+            return 1;
+          } else {
+            print("insert current version failed");
+            return 0;
+          }
+        }
+      } catch(e) {
+        print("current version sync to cloud error: $e");
+      }
+    } catch(e) {
+      print("current version insert error: $e");
+    }
   }
 
   checkSubscription() async {
@@ -217,7 +355,7 @@ class _PosPinPageState extends State<PosPinPage> {
                       SizedBox(height: 10),
                       Expanded(
                           child: Text(
-                          '${AppLocalizations.of(context)!.translate('subscription_is_about_to_expire_desc')}${DateFormat('dd/MM/yyyy').format(subscriptionEndDate)})',
+                          '${AppLocalizations.of(context)!.translate('subscription_is_about_to_expire_desc')} (${DateFormat('dd/MM/yyyy').format(subscriptionEndDate)})',
                             style: TextStyle(
                               fontSize: 16,
                             ),
@@ -263,8 +401,6 @@ class _PosPinPageState extends State<PosPinPage> {
         }).then((_) {
       completer.complete(); // Completing the Future when the dialog is dismissed
     });
-
-    return completer.future;
   }
 
   startTimers() {

@@ -4,9 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
 import 'package:pos_system/object/order.dart';
-import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
-import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
 
 import '../../notifier/report_notifier.dart';

@@ -1,9 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
+import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/notifier/report_notifier.dart';
 import 'package:pos_system/object/attendance.dart';
 import 'package:pos_system/object/categories.dart';
+import 'package:pos_system/object/user.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 
@@ -25,10 +29,16 @@ class _AttendanceReportState extends State<AttendanceReport> {
   String currentStDate = '';
   String currentEdDate = '';
   bool isLoaded = false;
+  final List<String> allUser = ['all_staff'];
+  int? selectedId = 0;
+  StreamController actionController = StreamController();
+  late Stream actionStream;
 
   @override
   void initState() {
     super.initState();
+    getAllStaff();
+    actionStream = actionController.stream.asBroadcastStream();
   }
   @override
   Widget build(BuildContext context) {
@@ -59,6 +69,50 @@ class _AttendanceReportState extends State<AttendanceReport> {
                           Divider(
                             height: 10,
                             color: Colors.grey,
+                          ),
+                          DropdownButtonHideUnderline(
+                            child: DropdownButton2(
+                              isExpanded: true,
+                              buttonStyleData: ButtonStyleData(
+                                height: 55,
+                                width: 200,
+                                padding: const EdgeInsets.only(left: 14, right: 14),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border.all(
+                                    color: Colors.black26,
+                                  ),
+                                ),
+                              ),
+                              dropdownStyleData: DropdownStyleData(
+                                maxHeight: 200,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  color: Colors.grey.shade100,
+                                ),
+                                scrollbarTheme: ScrollbarThemeData(
+                                    thickness: WidgetStateProperty.all(5),
+                                    mainAxisMargin: 20,
+                                    crossAxisMargin: 5
+                                ),
+                              ),
+                              items: allUser.asMap().entries.map((sort) => DropdownMenuItem<int>(
+                                value: int.tryParse(sort.value.split(':').first) ?? sort.key,
+                                child: Text(sort.value.contains(':') ? sort.value.split(':').last : AppLocalizations.of(context)!.translate(sort.value),
+                                  overflow: TextOverflow.visible,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              )).toList(),
+                              value: selectedId,
+                              onChanged: (int? value) {
+                                setState(() {
+                                  selectedId = value;
+                                  print("selectedId: $selectedId");
+                                });
+                              },
+                            ),
                           ),
                           SizedBox(height: 5),
                           _dataRow.isNotEmpty ?
@@ -153,6 +207,50 @@ class _AttendanceReportState extends State<AttendanceReport> {
                                 height: 10,
                                 color: Colors.grey,
                               ),
+                              DropdownButtonHideUnderline(
+                                child: DropdownButton2(
+                                  isExpanded: true,
+                                  buttonStyleData: ButtonStyleData(
+                                    height: 55,
+                                    width: 200,
+                                    padding: const EdgeInsets.only(left: 14, right: 14),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: Border.all(
+                                        color: Colors.black26,
+                                      ),
+                                    ),
+                                  ),
+                                  dropdownStyleData: DropdownStyleData(
+                                    maxHeight: 200,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      color: Colors.grey.shade100,
+                                    ),
+                                    scrollbarTheme: ScrollbarThemeData(
+                                        thickness: WidgetStateProperty.all(5),
+                                        mainAxisMargin: 20,
+                                        crossAxisMargin: 5
+                                    ),
+                                  ),
+                                  items: allUser.asMap().entries.map((sort) => DropdownMenuItem<int>(
+                                    value: int.tryParse(sort.value.split(':').first) ?? sort.key,
+                                    child: Text(sort.value.contains(':') ? sort.value.split(':').last : AppLocalizations.of(context)!.translate(sort.value),
+                                      overflow: TextOverflow.visible,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  )).toList(),
+                                  value: selectedId,
+                                  onChanged: (int? value) {
+                                    setState(() {
+                                      selectedId = value;
+                                      print("selectedId: $selectedId");
+                                    });
+                                  },
+                                ),
+                              ),
                               SizedBox(height: 5),
                               _dataRow.isNotEmpty ?
                               Container(
@@ -237,7 +335,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
 
   getAllProductWithOrder() async {
     _dataRow.clear();
-    ReportObject object = await ReportObject().getAllAttendanceGroup(currentStDate: currentStDate, currentEdDate: currentEdDate);
+    ReportObject object = await ReportObject().getAllAttendanceGroup(currentStDate: currentStDate, currentEdDate: currentEdDate, selectedId: selectedId);
     attendanceGroupData = object.dateAttendance!;
     if(attendanceGroupData.isNotEmpty){
       for(int i = 0; i < attendanceGroupData.length; i++){
@@ -276,5 +374,11 @@ class _AttendanceReportState extends State<AttendanceReport> {
     int minutes = duration % 60;
 
     return '${hours > 0 ? '$hours ${AppLocalizations.of(context)!.translate('hours')}' : ''} ${minutes > 0 ? '$minutes ${AppLocalizations.of(context)!.translate('minutes')}' : ''}';
+  }
+
+  getAllStaff() async {
+    List<User>users = await PosDatabase.instance.readAllUser();
+    // allUser.addAll(users.map((user) => user.user_id.toString()).toList());
+    allUser.addAll(users.map((user) => '${user.user_id}:${user.name!}').toList());
   }
 }
