@@ -2446,7 +2446,7 @@ class Domain {
 
   isHostReachable() async {
     try {
-      await http.post(Domain.login).timeout(Duration(seconds: 2), onTimeout: () => throw TimeoutException("Timeout"));
+      await http.post(Domain.login).timeout(Duration(seconds: 20), onTimeout: () => throw TimeoutException("Timeout"));
       return true;
     } catch (e) {
       print('host check error: $e');

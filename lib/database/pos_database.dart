@@ -312,6 +312,18 @@ class PosDatabase {
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
+          await db.execute('''CREATE TABLE $tableCurrentVersion(
+          ${CurrentVersionFields.current_version_sqlite_id} $idType,
+          ${CurrentVersionFields.current_version_id} $integerType,
+          ${CurrentVersionFields.branch_id} $textType,
+          ${CurrentVersionFields.current_version} $textType,
+          ${CurrentVersionFields.platform} $integerType,
+          ${CurrentVersionFields.is_gms} $integerType,
+          ${CurrentVersionFields.source} $textType,
+          ${CurrentVersionFields.sync_status} $integerType,
+          ${CurrentVersionFields.created_at} $textType,
+          ${CurrentVersionFields.updated_at} $textType,
+          ${CurrentVersionFields.soft_delete} $textType)''');
         }break;
         case 16: {
           await db.execute('''CREATE TABLE $tableAttendance(
@@ -380,6 +392,18 @@ class PosDatabase {
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
+          await db.execute('''CREATE TABLE $tableCurrentVersion(
+          ${CurrentVersionFields.current_version_sqlite_id} $idType,
+          ${CurrentVersionFields.current_version_id} $integerType,
+          ${CurrentVersionFields.branch_id} $textType,
+          ${CurrentVersionFields.current_version} $textType,
+          ${CurrentVersionFields.platform} $integerType,
+          ${CurrentVersionFields.is_gms} $integerType,
+          ${CurrentVersionFields.source} $textType,
+          ${CurrentVersionFields.sync_status} $integerType,
+          ${CurrentVersionFields.created_at} $textType,
+          ${CurrentVersionFields.updated_at} $textType,
+          ${CurrentVersionFields.soft_delete} $textType)''');
         }break;
         case 17: {
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
@@ -434,6 +458,18 @@ class PosDatabase {
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
+          await db.execute('''CREATE TABLE $tableCurrentVersion(
+          ${CurrentVersionFields.current_version_sqlite_id} $idType,
+          ${CurrentVersionFields.current_version_id} $integerType,
+          ${CurrentVersionFields.branch_id} $textType,
+          ${CurrentVersionFields.current_version} $textType,
+          ${CurrentVersionFields.platform} $integerType,
+          ${CurrentVersionFields.is_gms} $integerType,
+          ${CurrentVersionFields.source} $textType,
+          ${CurrentVersionFields.sync_status} $integerType,
+          ${CurrentVersionFields.created_at} $textType,
+          ${CurrentVersionFields.updated_at} $textType,
+          ${CurrentVersionFields.soft_delete} $textType)''');
         }break;
         case 18: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
@@ -484,6 +520,18 @@ class PosDatabase {
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
+          await db.execute('''CREATE TABLE $tableCurrentVersion(
+          ${CurrentVersionFields.current_version_sqlite_id} $idType,
+          ${CurrentVersionFields.current_version_id} $integerType,
+          ${CurrentVersionFields.branch_id} $textType,
+          ${CurrentVersionFields.current_version} $textType,
+          ${CurrentVersionFields.platform} $integerType,
+          ${CurrentVersionFields.is_gms} $integerType,
+          ${CurrentVersionFields.source} $textType,
+          ${CurrentVersionFields.sync_status} $integerType,
+          ${CurrentVersionFields.created_at} $textType,
+          ${CurrentVersionFields.updated_at} $textType,
+          ${CurrentVersionFields.soft_delete} $textType)''');
         }break;
         case 19: {
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
@@ -530,6 +578,18 @@ class PosDatabase {
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
+          await db.execute('''CREATE TABLE $tableCurrentVersion(
+          ${CurrentVersionFields.current_version_sqlite_id} $idType,
+          ${CurrentVersionFields.current_version_id} $integerType,
+          ${CurrentVersionFields.branch_id} $textType,
+          ${CurrentVersionFields.current_version} $textType,
+          ${CurrentVersionFields.platform} $integerType,
+          ${CurrentVersionFields.is_gms} $integerType,
+          ${CurrentVersionFields.source} $textType,
+          ${CurrentVersionFields.sync_status} $integerType,
+          ${CurrentVersionFields.created_at} $textType,
+          ${CurrentVersionFields.updated_at} $textType,
+          ${CurrentVersionFields.soft_delete} $textType)''');
         }break;
         case 20: {
           await db.execute('''CREATE TABLE $tableDynamicQR(
@@ -574,6 +634,18 @@ class PosDatabase {
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
+          await db.execute('''CREATE TABLE $tableCurrentVersion(
+          ${CurrentVersionFields.current_version_sqlite_id} $idType,
+          ${CurrentVersionFields.current_version_id} $integerType,
+          ${CurrentVersionFields.branch_id} $textType,
+          ${CurrentVersionFields.current_version} $textType,
+          ${CurrentVersionFields.platform} $integerType,
+          ${CurrentVersionFields.is_gms} $integerType,
+          ${CurrentVersionFields.source} $textType,
+          ${CurrentVersionFields.sync_status} $integerType,
+          ${CurrentVersionFields.created_at} $textType,
+          ${CurrentVersionFields.updated_at} $textType,
+          ${CurrentVersionFields.soft_delete} $textType)''');
         }break;
         case 21: {
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
@@ -604,6 +676,18 @@ class PosDatabase {
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
+          await db.execute('''CREATE TABLE $tableCurrentVersion(
+          ${CurrentVersionFields.current_version_sqlite_id} $idType,
+          ${CurrentVersionFields.current_version_id} $integerType,
+          ${CurrentVersionFields.branch_id} $textType,
+          ${CurrentVersionFields.current_version} $textType,
+          ${CurrentVersionFields.platform} $integerType,
+          ${CurrentVersionFields.is_gms} $integerType,
+          ${CurrentVersionFields.source} $textType,
+          ${CurrentVersionFields.sync_status} $integerType,
+          ${CurrentVersionFields.created_at} $textType,
+          ${CurrentVersionFields.updated_at} $textType,
+          ${CurrentVersionFields.soft_delete} $textType)''');
         }break;
         case 22: {
           if(defaultTargetPlatform == TargetPlatform.iOS){
@@ -630,6 +714,18 @@ class PosDatabase {
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
+          await db.execute('''CREATE TABLE $tableCurrentVersion(
+          ${CurrentVersionFields.current_version_sqlite_id} $idType,
+          ${CurrentVersionFields.current_version_id} $integerType,
+          ${CurrentVersionFields.branch_id} $textType,
+          ${CurrentVersionFields.current_version} $textType,
+          ${CurrentVersionFields.platform} $integerType,
+          ${CurrentVersionFields.is_gms} $integerType,
+          ${CurrentVersionFields.source} $textType,
+          ${CurrentVersionFields.sync_status} $integerType,
+          ${CurrentVersionFields.created_at} $textType,
+          ${CurrentVersionFields.updated_at} $textType,
+          ${CurrentVersionFields.soft_delete} $textType)''');
         }break;
         case 23: {
           await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
