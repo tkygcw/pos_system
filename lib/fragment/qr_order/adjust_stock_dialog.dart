@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:another_flushbar/flushbar.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
@@ -391,7 +390,6 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                               Navigator.of(context).pop();
                               await callPrinter();
                             }
-                            Navigator.of(context).pop();
                           });
                         }
                             : null,
@@ -981,7 +979,6 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
             order_detail_key: _orderDetail[i].order_detail_key,
             order_detail_sqlite_id: _orderDetail[i].order_detail_sqlite_id
         );
-        print('order detail${i}: ${orderDetailObj.quantity}');
         newSubtotal += double.parse(orderDetailObj.price!) * int.parse(orderDetailObj.quantity!);
         //update order detail
         int status = await PosDatabase.instance.updateOrderDetailQuantity(orderDetailObj);
@@ -1242,9 +1239,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   checkTable() async {
     tableInUsed = false;
     if (widget.tableLocalId != '') {
-      print('widget table local id: ${widget.tableLocalId}');
       List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(widget.tableLocalId);
-      print('table use key: ${tableData[0].table_use_key}');
       if (tableData[0].status == 1) {
         TableUse tableUse = await PosDatabase.instance.readSpecificTableUseByKey(tableData[0].table_use_key!);
         List<OrderCache> orderCache = await PosDatabase.instance.readTableOrderCache(tableUse.table_use_key!);

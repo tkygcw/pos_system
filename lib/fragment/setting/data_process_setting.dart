@@ -10,7 +10,6 @@ import 'package:pos_system/fragment/setting/system_log_dialog.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/subscription.dart';
 import 'package:pos_system/object/table.dart';
-import 'package:pos_system/page/loading.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/page/select_table_dialog.dart';

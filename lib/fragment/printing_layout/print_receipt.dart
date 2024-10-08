@@ -46,11 +46,10 @@ class PrintReceipt{
   Duration duration = Duration(seconds: 1);
 
   getDeviceList() async {
-    var devices;
     List<Map<String, dynamic>> results = [];
     results = await FlutterUsbPrinter.getUSBDeviceList();
     if(results.isNotEmpty){
-      return devices = jsonEncode(results[0]);
+      return jsonEncode(results[0]);
     } else {
       return null;
     }
@@ -73,7 +72,7 @@ class PrintReceipt{
               int.parse(printerDetail['vendorId']),
               int.parse(printerDetail['productId']));
           if (isConnected == true) {
-            bool? status = await flutterUsbPrinter.write(data);
+            await flutterUsbPrinter.write(data);
           } else {
             print('not connected');
           }
@@ -1416,7 +1415,6 @@ class PrintReceipt{
                     final printer = NetworkPrinter(PaperSize.mm80, profile);
                     final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
 
-                    var value = 0;
                     if (res == PosPrintResult.success) {
                       // await ReceiptLayout().printQrKitchenList80mm(false, orderDetailList[k], orderCacheLocalId, value: printer);
                       if(kitchenListLayout80mm == null || kitchenListLayout80mm.print_combine_kitchen_list == 0 || orderDetailList.length == 1)

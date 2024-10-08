@@ -388,8 +388,6 @@ class _PosPinPageState extends State<PosPinPage> {
         }).then((_) {
       completer.complete(); // Completing the Future when the dialog is dismissed
     });
-
-    return completer.future;
   }
 
   startTimers() {

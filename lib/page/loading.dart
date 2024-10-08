@@ -240,7 +240,7 @@ getSubscription() async {
           soft_delete: item.soft_delete,
         );
         try {
-          Subscription data = await PosDatabase.instance.insertSqliteSubscription(subscription);
+          await PosDatabase.instance.insertSqliteSubscription(subscription);
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -263,8 +263,6 @@ getAppSettingCloud() async {
   try {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-    String dateTime = dateFormat.format(DateTime.now());
     Map data = await Domain().getAppSetting(branch_id.toString());
     if (data['status'] == '1') {
       print("App Setting: Setting Record exist in cloud");
@@ -334,7 +332,7 @@ getAppSettingLocal() async {
         created_at: dateTime,
         updated_at: ''
       );
-      AppSetting data = await PosDatabase.instance.insertSqliteSetting(appSetting);
+      await PosDatabase.instance.insertSqliteSetting(appSetting);
     }
   } catch(e) {
     print("App Setting: Create App Setting Fail: $e");
@@ -372,7 +370,7 @@ syncAppSettingFromCloud(AppSetting item) async {
     updated_at: item.updated_at,
   );
   try {
-    AppSetting data = await PosDatabase.instance.insertSqliteSetting(appSetting);
+    await PosDatabase.instance.insertSqliteSetting(appSetting);
     print("App Setting: Sync From Cloud Success");
   } catch(e) {
     print("App Setting: Sync From Cloud Fail: $e");
@@ -423,7 +421,7 @@ getAllChecklist() async {
       List responseJson = response['data'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          Checklist insertData = await PosDatabase.instance.insertChecklist(Checklist.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertChecklist(Checklist.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -452,7 +450,7 @@ getAllKitchenList() async {
       List responseJson = response['data'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          KitchenList insertData = await PosDatabase.instance.insertKitchenList(KitchenList.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertKitchenList(KitchenList.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -481,7 +479,7 @@ getAllReceipt() async {
       List responseJson = response['receipt'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          Receipt data = await PosDatabase.instance.insertReceipt(Receipt.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertReceipt(Receipt.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -582,7 +580,7 @@ insertReceiptKey(Receipt receipt, String dateTime) async {
       sync_status: 0,
       receipt_sqlite_id: receipt.receipt_sqlite_id);
   try {
-    int updateUniqueKey = await PosDatabase.instance.updateReceiptUniqueKey(data);
+    await PosDatabase.instance.updateReceiptUniqueKey(data);
   } catch(e) {
     FLog.error(
       className: "loading",
@@ -650,7 +648,7 @@ clearCloudSyncRecord() async {
   try {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    Map data = await Domain().clearAllSyncRecord(branch_id.toString());
+    await Domain().clearAllSyncRecord(branch_id.toString());
   } catch(e) {
     FLog.error(
       className: "loading",
@@ -672,7 +670,7 @@ getAllSecondScreen() async {
       List responseJson = data['second_screen'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          SecondScreen data = await PosDatabase.instance.insertSecondScreen(SecondScreen.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertSecondScreen(SecondScreen.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -706,7 +704,7 @@ getAllUser() async {
       List responseJson = data['user'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          User user = await PosDatabase.instance.insertUser(User.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertUser(User.fromJson(responseJson[i]));
           // if (user != '') {
           //   Navigator.of(context).pushReplacement(MaterialPageRoute(
           //     builder: (context) => PosPinPage(),
@@ -764,7 +762,7 @@ getAllAttendance() async {
               updated_at: item.updated_at,
               soft_delete: item.soft_delete,
             );
-            Attendance data = await PosDatabase.instance.insertAttendance(attendance);
+            await PosDatabase.instance.insertAttendance(attendance);
           } catch(e) {
             FLog.error(
               className: "loading",
@@ -796,7 +794,7 @@ getBranchLinkUser() async {
       List responseJson = data['user'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          BranchLinkUser data = await PosDatabase.instance.insertBranchLinkUser(BranchLinkUser.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertBranchLinkUser(BranchLinkUser.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -838,7 +836,7 @@ getAllSettlement() async {
         for (var i = 0; i < responseJson.length; i++) {
           Settlement item = Settlement.fromJson(responseJson[i]);
           try {
-            Settlement data = await PosDatabase.instance.insertSettlement(Settlement(
+            await PosDatabase.instance.insertSettlement(Settlement(
               settlement_id: item.settlement_id,
               settlement_key: item.settlement_key,
               company_id: item.company_id,
@@ -905,7 +903,7 @@ getAllTable() async {
         try {
           PosTable item = PosTable.fromJson(responseJson[i]);
           // PosTable table = await PosDatabase.instance.insertPosTable(PosTable.fromJson(responseJson[i]));
-          PosTable table = await PosDatabase.instance.insertPosTable(PosTable(
+          await PosDatabase.instance.insertPosTable(PosTable(
             table_id: item.table_id,
             table_url: item.table_url,
             branch_id: item.branch_id,
@@ -959,7 +957,7 @@ getAllCategory() async {
       List responseJson = data['categories'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          Categories data = await PosDatabase.instance.insertCategories(Categories.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertCategories(Categories.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -996,7 +994,7 @@ getAllPrinter() async {
       for (var i = 0; i < responseJson.length; i++) {
         Printer printerItem = Printer.fromJson(responseJson[i]);
         try {
-          Printer data = await PosDatabase.instance.insertPrinter(Printer(
+          await PosDatabase.instance.insertPrinter(Printer(
               printer_id: printerItem.printer_id,
               printer_key: printerItem.printer_key,
               branch_id: printerItem.branch_id,
@@ -1048,7 +1046,7 @@ getAllPrinterLinkCategory() async {
         Printer printer = await PosDatabase.instance.readPrinterSqliteID(item.printer_key!);
         Categories? categories = await PosDatabase.instance.readCategorySqliteID(item.category_id!);
         try {
-          PrinterLinkCategory data = await PosDatabase.instance.insertPrinterCategory(PrinterLinkCategory(
+          await PosDatabase.instance.insertPrinterCategory(PrinterLinkCategory(
             printer_link_category_key: item.printer_link_category_key,
             printer_link_category_id: item.printer_link_category_id,
             printer_sqlite_id: printer.printer_sqlite_id.toString(),
@@ -1095,7 +1093,7 @@ getAllProduct() async {
         Product productItem = Product.fromJson(responseJson[i]);
         Categories? categoryData = await PosDatabase.instance.readCategorySqliteID(productItem.category_id!);
         try {
-          Product data = await PosDatabase.instance.insertProduct(Product(
+          await PosDatabase.instance.insertProduct(Product(
               product_id: productItem.product_id,
               category_id: productItem.category_id,
               category_sqlite_id: categoryData != null ? categoryData.category_sqlite_id.toString() : '0',
@@ -1158,7 +1156,7 @@ getAllDiningOption() async {
       List responseJson = data['dining_option'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          DiningOption data = await PosDatabase.instance.insertDiningOption(DiningOption.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertDiningOption(DiningOption.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1189,7 +1187,7 @@ getBranchLinkDiningOption() async {
       List responseJson = data['dining_option'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          BranchLinkDining data = await PosDatabase.instance.insertBranchLinkDining(BranchLinkDining.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertBranchLinkDining(BranchLinkDining.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1221,7 +1219,7 @@ getAllTax() async {
       List responseJson = data['tax'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          Tax data = await PosDatabase.instance.insertTax(Tax.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertTax(Tax.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1252,7 +1250,7 @@ getBranchLinkTax() async {
       List responseJson = data['tax'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          BranchLinkTax data = await PosDatabase.instance.insertBranchLinkTax(BranchLinkTax.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertBranchLinkTax(BranchLinkTax.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1283,7 +1281,7 @@ getTaxLinkDining() async {
       List responseJson = data['tax'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          TaxLinkDining data = await PosDatabase.instance.insertTaxLinkDining(TaxLinkDining.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertTaxLinkDining(TaxLinkDining.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1315,7 +1313,7 @@ getAllPromotion() async {
       List responseJson = data['promotion'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          Promotion data = await PosDatabase.instance.insertPromotion(Promotion.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertPromotion(Promotion.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1346,7 +1344,7 @@ getBranchLinkPromotion() async {
       List responseJson = data['promotion'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          BranchLinkPromotion data = await PosDatabase.instance.insertBranchLinkPromotion(BranchLinkPromotion.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertBranchLinkPromotion(BranchLinkPromotion.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1378,7 +1376,7 @@ getAllCustomer() async {
       List responseJson = data['customer'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          Customer data = await PosDatabase.instance.insertCustomer(Customer.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertCustomer(Customer.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1411,7 +1409,7 @@ getAllBill() async {
       List responseJson = data['bill'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          Bill data = await PosDatabase.instance.insertBill(Bill.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertBill(Bill.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1583,7 +1581,7 @@ getAllRefund() async {
 updateOrderRefundSqliteId(String refundLocalId, int orderLocalId) async {
   Order order = Order(refund_sqlite_id: refundLocalId, order_sqlite_id: orderLocalId);
   try {
-    int data = await PosDatabase.instance.updateOrderRefundSqliteId(order);
+    await PosDatabase.instance.updateOrderRefundSqliteId(order);
   } catch(e) {
     FLog.error(
       className: "loading",
@@ -1606,7 +1604,7 @@ getModifierGroup() async {
       List responseJson = data['modifier'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          ModifierGroup data = await PosDatabase.instance.insertModifierGroup(ModifierGroup.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertModifierGroup(ModifierGroup.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1638,7 +1636,7 @@ getModifierItem() async {
       List responseJson = data['modifier'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          ModifierItem data = await PosDatabase.instance.insertModifierItem(ModifierItem.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertModifierItem(ModifierItem.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1669,7 +1667,7 @@ getBranchLinkModifier() async {
       List responseJson = data['modifier'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          BranchLinkModifier data = await PosDatabase.instance.insertBranchLinkModifier(BranchLinkModifier.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertBranchLinkModifier(BranchLinkModifier.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1705,7 +1703,7 @@ getBranchLinkProduct() async {
         Product? productData = await PosDatabase.instance.readProductSqliteID(branchLinkProductData.product_id!);
         ProductVariant? productVariantData = await PosDatabase.instance.readProductVariantSqliteID(branchLinkProductData.product_variant_id!);
         try {
-          BranchLinkProduct data = await PosDatabase.instance.insertBranchLinkProduct(BranchLinkProduct(
+          await PosDatabase.instance.insertBranchLinkProduct(BranchLinkProduct(
               branch_link_product_id: branchLinkProductData.branch_link_product_id,
               branch_id: branchLinkProductData.branch_id,
               product_sqlite_id: productData!.product_sqlite_id.toString(),
@@ -1765,7 +1763,7 @@ getAllTableUse() async {
         for (var i = 0; i < responseJson.length; i++) {
           TableUse item = TableUse.fromJson(responseJson[i]);
           try {
-            TableUse user = await PosDatabase.instance.insertTableUse(TableUse(
+            await PosDatabase.instance.insertTableUse(TableUse(
               table_use_id: item.table_use_id,
               table_use_key: item.table_use_key,
               branch_id: item.branch_id,
@@ -1820,7 +1818,7 @@ getAllTableUseDetail() async {
           TableUse? tableUseData = await PosDatabase.instance.readTableUseSqliteID(item.table_use_key!);
           PosTable tableData = await PosDatabase.instance.readTableByCloudId(item.table_id.toString());
           try {
-            TableUseDetail user = await PosDatabase.instance.insertTableUseDetail(TableUseDetail(
+            await PosDatabase.instance.insertTableUseDetail(TableUseDetail(
                 table_use_detail_id: item.table_use_detail_id,
                 table_use_detail_key: item.table_use_detail_key,
                 table_use_sqlite_id: tableUseData != null ? tableUseData.table_use_sqlite_id.toString() : '0',
@@ -1867,7 +1865,7 @@ getModifierLinkProduct() async {
         ModifierLinkProduct modData = ModifierLinkProduct.fromJson(responseJson[i]);
         Product? productData = await PosDatabase.instance.readProductSqliteID(modData.product_id!);
         try {
-          ModifierLinkProduct data = await PosDatabase.instance.insertModifierLinkProduct(ModifierLinkProduct(
+          await PosDatabase.instance.insertModifierLinkProduct(ModifierLinkProduct(
             modifier_link_product_id: modData.modifier_link_product_id,
             mod_group_id: modData.mod_group_id,
             product_id: modData.product_id,
@@ -1910,7 +1908,7 @@ getVariantGroup() async {
         VariantGroup variantData = VariantGroup.fromJson(responseJson[i]);
         Product? productData = await PosDatabase.instance.readProductSqliteID(variantData.product_id!);
         try {
-          VariantGroup data = await PosDatabase.instance.insertVariantGroup(VariantGroup(
+          await PosDatabase.instance.insertVariantGroup(VariantGroup(
               child: [],
               variant_group_id: variantData.variant_group_id,
               product_id: variantData.product_id,
@@ -1956,7 +1954,7 @@ getVariantItem() async {
         VariantItem variantItemData = VariantItem.fromJson(responseJson[i]);
         VariantGroup? variantGroupData = await PosDatabase.instance.readVariantGroupSqliteID(variantItemData.variant_group_id!);
         try {
-          VariantItem data = await PosDatabase.instance.insertVariantItem(VariantItem(
+          await PosDatabase.instance.insertVariantItem(VariantItem(
               variant_item_id: variantItemData.variant_item_id,
               variant_group_id: variantItemData.variant_group_id,
               variant_group_sqlite_id: variantGroupData != null ? variantGroupData.variant_group_sqlite_id.toString() : '0',
@@ -2002,7 +2000,7 @@ getProductVariant() async {
         ProductVariant productVariantItem = ProductVariant.fromJson(responseJson[i]);
         Product? productData = await PosDatabase.instance.readProductSqliteID(productVariantItem.product_id!);
         try {
-          ProductVariant data = await PosDatabase.instance.insertProductVariant(ProductVariant(
+          await PosDatabase.instance.insertProductVariant(ProductVariant(
               product_variant_id: productVariantItem.product_variant_id,
               product_sqlite_id: productData!.product_sqlite_id.toString(),
               product_id: productVariantItem.product_id,
@@ -2055,7 +2053,7 @@ getProductVariantDetail() async {
         ProductVariant? productVariantData = await PosDatabase.instance.readProductVariantSqliteID(productVariantDetailItem.product_variant_id!);
         VariantItem? variantItemData = await PosDatabase.instance.readVariantItemSqliteID(productVariantDetailItem.variant_item_id!);
         try {
-          ProductVariantDetail data = await PosDatabase.instance.insertProductVariantDetail(ProductVariantDetail(
+          await PosDatabase.instance.insertProductVariantDetail(ProductVariantDetail(
               product_variant_detail_id: productVariantDetailItem.product_variant_detail_id,
               product_variant_id: productVariantDetailItem.product_variant_id,
               product_variant_sqlite_id: productVariantData!.product_variant_sqlite_id.toString(),
@@ -2106,7 +2104,7 @@ getSettlementLinkPayment() async {
           SettlementLinkPayment item = SettlementLinkPayment.fromJson(responseJson[i]);
           Settlement settlementData = await PosDatabase.instance.readSettlementSqliteID(item.settlement_key!);
           try {
-            SettlementLinkPayment data = await PosDatabase.instance.insertSettlementLinkPayment(SettlementLinkPayment(
+            await PosDatabase.instance.insertSettlementLinkPayment(SettlementLinkPayment(
               settlement_link_payment_id: item.settlement_link_payment_id,
               settlement_link_payment_key: item.settlement_link_payment_key,
               company_id: item.company_id,
@@ -2168,7 +2166,7 @@ getAllOrder() async {
             settlement = settlementData;
           }
           try {
-            Order data = await PosDatabase.instance.insertOrder(Order(
+            await PosDatabase.instance.insertOrder(Order(
                 order_id: responseJson[i]['order_id'],
                 order_number: responseJson[i]['order_number'],
                 order_queue: responseJson[i]['order_queue'],
@@ -2237,7 +2235,7 @@ getAllOrderPromotionDetail() async {
       for (var i = 0; i < responseJson.length; i++) {
         Order? orderData = await PosDatabase.instance.readOrderSqliteID(responseJson[i]['order_key']);
         try {
-          OrderPromotionDetail data = await PosDatabase.instance.insertOrderPromotionDetail(OrderPromotionDetail(
+          await PosDatabase.instance.insertOrderPromotionDetail(OrderPromotionDetail(
             order_promotion_detail_id: responseJson[i]['order_promotion_detail_id'],
             order_promotion_detail_key: responseJson[i]['order_promotion_detail_key'],
             order_sqlite_id:  orderData != null ? orderData.order_sqlite_id.toString() : '',
@@ -2296,7 +2294,7 @@ getAllOrderTaxDetail() async {
         for (var i = 0; i < responseJson.length; i++) {
           Order? orderData = await PosDatabase.instance.readOrderSqliteID(responseJson[i]['order_key']);
           try {
-            OrderTaxDetail data = await PosDatabase.instance.insertOrderTaxDetail(OrderTaxDetail(
+            await PosDatabase.instance.insertOrderTaxDetail(OrderTaxDetail(
               order_tax_detail_id: responseJson[i]['order_tax_detail_id'],
               order_tax_detail_key: responseJson[i]['order_tax_detail_key'],
               order_sqlite_id:  orderData != null ? orderData.order_sqlite_id.toString() : '',
@@ -2352,7 +2350,7 @@ getAllOrderPaymentSplit() async {
         List responseJson = data['data'];
         for (var i = 0; i < responseJson.length; i++) {
           try {
-            OrderPaymentSplit orderObject = await PosDatabase.instance.insertSqliteOrderPaymentSplit(OrderPaymentSplit(
+            await PosDatabase.instance.insertSqliteOrderPaymentSplit(OrderPaymentSplit(
                 order_payment_split_id: responseJson[i]['order_payment_split_id'],
                 order_payment_split_key: responseJson[i]['order_payment_split_key'],
                 branch_id: responseJson[i]['branch_id'],
@@ -2429,7 +2427,7 @@ getAllOrderCache() async {
             orderLocalId = '';
           }
           try {
-            OrderCache data = await PosDatabase.instance.insertOrderCache(OrderCache(
+            await PosDatabase.instance.insertOrderCache(OrderCache(
               order_cache_id: cloudData.order_cache_id,
               order_cache_key: cloudData.order_cache_key,
               order_queue: cloudData.order_queue,
@@ -2499,7 +2497,7 @@ getAllOrderDetail() async {
           continue;
         }
         try {
-          OrderDetail data = await PosDatabase.instance.insertOrderDetail(OrderDetail(
+          await PosDatabase.instance.insertOrderDetail(OrderDetail(
               order_detail_id: responseJson[i]['order_detail_id'],
               order_detail_key: responseJson[i]['order_detail_key'].toString(),
               order_cache_sqlite_id: cacheData.order_cache_sqlite_id.toString(),
@@ -2570,7 +2568,7 @@ getAllOrderDetailCancel() async {
           continue;
         }
         try {
-          OrderDetailCancel data = await PosDatabase.instance.insertOrderDetailCancel(OrderDetailCancel(
+          await PosDatabase.instance.insertOrderDetailCancel(OrderDetailCancel(
             order_detail_cancel_id: responseJson[i]['order_detail_cancel_id'],
             order_detail_cancel_key: responseJson[i]['order_detail_cancel_key'],
             order_detail_sqlite_id: detailData.order_detail_sqlite_id.toString(),
@@ -2622,7 +2620,7 @@ getAllOrderModifierDetail() async {
           continue;
         }
         try {
-          OrderModifierDetail data = await PosDatabase.instance.insertOrderModifierDetail(OrderModifierDetail(
+          await PosDatabase.instance.insertOrderModifierDetail(OrderModifierDetail(
               order_modifier_detail_id: responseJson[i]['order_modifier_detail_id'],
               order_modifier_detail_key: responseJson[i]['order_modifier_detail_key'],
               order_detail_key: responseJson[i]['order_detail_key'],
@@ -2667,7 +2665,7 @@ getSale() async {
     if (data['status'] == '1') {
       List responseJson = data['sale'];
       for (var i = 0; i < responseJson.length; i++) {
-        Sale data = await PosDatabase.instance.insertSale(Sale.fromJson(responseJson[i]));
+        await PosDatabase.instance.insertSale(Sale.fromJson(responseJson[i]));
       }
     }
   } catch(e) {
@@ -2701,7 +2699,7 @@ getCashRecord() async {
         List responseJson = data['data'];
         for (var i = 0; i < responseJson.length; i++) {
           try {
-            CashRecord data = await PosDatabase.instance.insertCashRecord(CashRecord(
+            await PosDatabase.instance.insertCashRecord(CashRecord(
               cash_record_id: responseJson[i]['cash_record_id'],
               cash_record_key: responseJson[i]['cash_record_key'],
               company_id: responseJson[i]['company_id'],
@@ -2759,7 +2757,7 @@ getTransferOwner() async {
         List responseJson = data['data'];
         for (var i = 0; i < responseJson.length; i++) {
           try {
-            TransferOwner data = await PosDatabase.instance.insertTransferOwner(TransferOwner(
+            await PosDatabase.instance.insertTransferOwner(TransferOwner(
               transfer_owner_key: responseJson[i]['transfer_owner_key'],
               branch_id: responseJson[i]['branch_id'],
               device_id: responseJson[i]['device_id'],
