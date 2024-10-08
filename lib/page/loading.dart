@@ -897,12 +897,30 @@ getAllTable() async {
   try {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
+    final String? dataRetrieveDate = prefs.getString('dataRetrieveDate');
     Map data = await Domain().getAllTable(branch_id.toString());
     if (data['status'] == '1') {
       List responseJson = data['table'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          PosTable table = await PosDatabase.instance.insertPosTable(PosTable.fromJson(responseJson[i]));
+          PosTable item = PosTable.fromJson(responseJson[i]);
+          // PosTable table = await PosDatabase.instance.insertPosTable(PosTable.fromJson(responseJson[i]));
+          PosTable table = await PosDatabase.instance.insertPosTable(PosTable(
+            table_id: item.table_id,
+            table_url: item.table_url,
+            branch_id: item.branch_id,
+            number: item.number,
+            seats: item.seats,
+            status: dataRetrieveDate == '' ? 0 : item.status,
+            table_use_detail_key: dataRetrieveDate == '' ? '' : item.table_use_detail_key,
+            table_use_key: dataRetrieveDate == '' ? '' : item.table_use_key,
+            sync_status: 1,
+            dx: item.dx,
+            dy: item.dy,
+            created_at: item.created_at,
+            updated_at: item.updated_at,
+            soft_delete: item.soft_delete,
+          ));
         } catch(e) {
           FLog.error(
             className: "loading",

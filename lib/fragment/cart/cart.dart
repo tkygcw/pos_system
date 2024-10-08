@@ -211,7 +211,8 @@ class CartPageState extends State<CartPage> {
               if(cart.cartNotifierItem.isEmpty){
                 isButtonDisabled = true;
               } else {
-                isButtonDisabled = false;
+                if(widget.currentPage != 'table' && widget.currentPage != 'other_order')
+                  isButtonDisabled = false;
               }
               if(lastDiningOption == false) readAllBranchLinkDiningOption(cart: cart);
 
@@ -1928,6 +1929,7 @@ class CartPageState extends State<CartPage> {
 */
   getSubTotal(CartModel cart) async {
     print("getSubTotal");
+    // await Future.delayed(Duration(milliseconds: 6000));
     try {
       // widget.currentPage == 'table' || widget.currentPage == 'qr_order'
       //     ? cart.selectedOption = 'Dine in'
@@ -1968,8 +1970,11 @@ class CartPageState extends State<CartPage> {
       });
       cart.myCount++;
     }
+    if((widget.currentPage == 'table' || widget.currentPage == 'other_order') && cart.cartNotifierItem.isNotEmpty)
+      isButtonDisabled = false;
     if (!controller.isClosed) {
       controller.sink.add('refresh');
+      print("refresh called");
     }
   }
 
