@@ -245,23 +245,22 @@ class _PosPinPageState extends State<PosPinPage> {
               updated_at: dateTime);
           await PosDatabase.instance.updateCurrentVersion(object);
         }
-
-        try {
-          CurrentVersion? data = await PosDatabase.instance.readCurrentVersion();
-          if(data!.sync_status != 1) {
-            Map? response = await Domain().insertCurrentVersionDay(jsonEncode(data).toString());
-            if (response != null && response['status'] == '1') {
-              await PosDatabase.instance.updateCurrentVersionSyncStatusFromCloud(branch_id.toString());
-              print("insert current version success");
-              return 1;
-            } else {
-              print("insert current version failed");
-              return 0;
-            }
+      }
+      try {
+        CurrentVersion? data = await PosDatabase.instance.readCurrentVersion();
+        if(data!.sync_status != 1) {
+          Map? response = await Domain().insertCurrentVersionDay(jsonEncode(data).toString());
+          if (response != null && response['status'] == '1') {
+            await PosDatabase.instance.updateCurrentVersionSyncStatusFromCloud(branch_id.toString());
+            print("insert current version success");
+            return 1;
+          } else {
+            print("insert current version failed");
+            return 0;
           }
-        } catch(e) {
-          print("current version sync to cloud error: $e");
         }
+      } catch(e) {
+        print("current version sync to cloud error: $e");
       }
     } catch(e) {
       print("current version insert error: $e");

@@ -8074,6 +8074,14 @@ class PosDatabase {
   }
 
 /*
+  Delete All current version
+*/
+  Future clearAllCurrentVersion() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableCurrentVersion');
+  }
+
+/*
   Delete specific dynamic qr
 */
   Future clearSpecificDynamicQr(int dynamic_qr_sqlite_id) async {
