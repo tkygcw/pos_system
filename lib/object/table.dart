@@ -63,7 +63,7 @@ class PosTable{
   bool? isInPaymentCart;
   String? dynamicQRExp;
   String? dynamicQrHash;
-
+  int? invalid_after_payment;
 
   PosTable(
       {this.table_sqlite_id,
@@ -88,7 +88,8 @@ class PosTable{
         this.isInPaymentCart,
         this.total_amount,
         this.dynamicQRExp,
-        this.dynamicQrHash
+        this.dynamicQrHash,
+        this.invalid_after_payment
       });
 
   PosTable copy({
@@ -148,7 +149,6 @@ class PosTable{
     card_color: json['card_color'] as String?,
     order_key: json['order_key'] as String?,
     total_amount: json['total_amount'] as String?
-
   );
 
   Map<String, Object?> toJson() => {
@@ -180,7 +180,8 @@ class PosTable{
     PosTableFields.updated_at: '',
     PosTableFields.soft_delete: '',
     'qr_expired_dateTime': dynamicQRExp,
-    'qr_url': dynamicQrHash
+    'qr_url': dynamicQrHash,
+    'invalid_after_payment': invalid_after_payment,
   };
 
 

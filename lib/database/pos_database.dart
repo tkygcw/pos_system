@@ -763,6 +763,7 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.company_id} $textType DEFAULT ${productData.company_id}");
           await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.working_day} $textType DEFAULT '\[0, 0, 0, 0, 0, 0, 0\]' ");
           await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.working_time} $textType DEFAULT '\[\"00:00\", \"23:59\"\]' ");
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.close_qr_order} $integerType DEFAULT 0 ");
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.show_in_qr} $integerType DEFAULT 1");
           await db.execute("ALTER TABLE $tableDiningOption ADD ${DiningOptionFields.company_id} $textType DEFAULT '${productData.company_id}' ");
           final branchResult = await db.rawQuery('SELECT * FROM $tableBranch LIMIT 1');
@@ -1178,7 +1179,8 @@ class PosDatabase {
            ${BranchFields.attendance_status} $integerType,
            ${BranchFields.company_id} $textType,
            ${BranchFields.working_day} $textType,
-           ${BranchFields.working_time} $textType)''');
+           ${BranchFields.working_time} $textType,
+           ${BranchFields.close_qr_order} $integerType)''');
 
 /*
     create app color table
@@ -6728,6 +6730,15 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableBranch SET name = ?, address = ?, phone = ?, email = ?, qr_order_status = ?, sub_pos_status = ?, attendance_status = ? WHERE branch_id = ? ',
         [data.name, data.address, data.phone, data.email, data.qr_order_status, data.sub_pos_status, data.attendance_status, data.branch_id]);
+  }
+
+/*
+  update Branch close qr order status
+*/
+  Future<int> updateBranchCloseQrStatus(Branch data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableBranch SET close_qr_order = ? WHERE branch_id = ? ',
+        [data.close_qr_order, data.branch_id]);
   }
 
 /*

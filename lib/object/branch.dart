@@ -17,6 +17,7 @@ class BranchFields {
     company_id,
     working_day,
     working_time,
+    close_qr_order,
   ];
 
   static String branch_id = 'branch_id';
@@ -34,6 +35,7 @@ class BranchFields {
   static String company_id = 'company_id';
   static String working_day = 'working_day';
   static String working_time = 'working_time';
+  static String close_qr_order = 'close_qr_order';
 }
 
 class Branch {
@@ -52,6 +54,7 @@ class Branch {
   String? company_id;
   String? working_day;
   String? working_time;
+  int? close_qr_order;
 
   Branch(
       {this.branch_id,
@@ -68,7 +71,8 @@ class Branch {
       this.attendance_status,
       this.company_id,
       this.working_day,
-      this.working_time
+      this.working_time,
+      this.close_qr_order
       });
 
   Branch copy({int? branch_id, String? name}) => Branch(
@@ -86,7 +90,8 @@ class Branch {
     attendance_status: attendance_status ?? this.attendance_status,
     company_id: company_id ?? this.company_id,
     working_day: working_day ?? this.working_day,
-    working_time: working_time ?? this.working_time
+    working_time: working_time ?? this.working_time,
+    close_qr_order: close_qr_order ?? this.close_qr_order
   );
 
   factory Branch.fromJson(Map<String, dynamic> json) {
@@ -105,7 +110,8 @@ class Branch {
       attendance_status: json['attendance_status'] as int?,
       company_id: json[BranchFields.company_id] as String?,
       working_day: json[BranchFields.working_day] as String?,
-      working_time: json[BranchFields.working_time] as String?
+      working_time: json[BranchFields.working_time] as String?,
+      close_qr_order: json[BranchFields.close_qr_order] as int?
     );
   }
 
@@ -124,6 +130,7 @@ class Branch {
     BranchFields.attendance_status: attendance_status,
     BranchFields.company_id: company_id,
     BranchFields.working_day: working_day,
-    BranchFields.working_time: working_time
+    BranchFields.working_time: working_time,
+    BranchFields.close_qr_order: close_qr_order
   };
 }

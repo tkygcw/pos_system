@@ -6,6 +6,7 @@ import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/firebase_sync/qr_order_sync.dart';
@@ -35,8 +36,8 @@ class QrMainPage extends StatefulWidget {
 class _QrMainPageState extends State<QrMainPage> {
   List<OrderCache> qrOrderCacheList = [];
   List<OrderDetail> orderDetailList = [], noStockOrderDetailList = [];
-  bool hasNoStockProduct = false, hasAccess = true;
-  late final String branch_id;
+  bool hasNoStockProduct = false, hasAccess = true, closeQrOrderStatus = false;
+  late final Branch branchObject;
 
   @override
   void initState() {
@@ -111,6 +112,25 @@ class _QrMainPageState extends State<QrMainPage> {
               PosFirestore.instance.offline();
             },
           ),
+          Spacer(),
+          Row(
+           children: [
+             Text("Close QR Order"),
+             Switch(value: closeQrOrderStatus, onChanged: (value) {
+               setState(() {
+                 closeQrOrderStatus = value;
+               });
+               Branch data = Branch(
+                   close_qr_order: closeQrOrderStatus ? 1 : 0,
+                   branch_id: branchObject.branch_id
+               );
+               PosFirestore.instance.updateBranchCloseQROrderStatus(data);
+               PosDatabase.instance.updateBranchCloseQrStatus(data);
+               Domain().updateBranchCloseQrOrder(data);
+             }),
+           ],
+          ),
+          SizedBox(width: 10),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor: color.backgroundColor,
@@ -121,7 +141,7 @@ class _QrMainPageState extends State<QrMainPage> {
               style: TextStyle(color: Colors.white),
             ),
             onPressed: () async {
-              await FirestoreQROrderSync.instance.readAllNotAcceptedOrderCache(branch_id);
+              await FirestoreQROrderSync.instance.readAllNotAcceptedOrderCache(branchObject.branch_id!.toString());
               if(qrOrder.count == 0){
                 qrOrder.count = 1;
                 await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
@@ -339,16 +359,14 @@ class _QrMainPageState extends State<QrMainPage> {
   }
 
   Future<void> checkStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? branch = prefs.getString('branch');
-    Map<String, dynamic> branchMap = json.decode(branch!);
-    Branch branchObject = Branch.fromJson(branchMap);
-    branch_id = branchObject.branch_id.toString();
-    if(branchObject.qr_order_status == '1'){
-      setState(() {
-        hasAccess = false;
-      });
+    branchObject = (await PosDatabase.instance.readLocalBranch())!;
+    if(branchObject.close_qr_order == 1){
+      closeQrOrderStatus = true;
     }
+    if(branchObject.qr_order_status == '1'){
+      hasAccess = false;
+    }
+    setState(() {});
   }
 
   checkOrderDetail(int orderCacheLocalId, int index) async {

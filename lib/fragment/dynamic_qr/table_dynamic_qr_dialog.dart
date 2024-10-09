@@ -31,6 +31,7 @@ class _TableDynamicQrDialogState extends State<TableDynamicQrDialog> {
   PrintDynamicQr printDynamicQr = PrintDynamicQr();
   DateTime currentDateTime = DateTime.now().add(Duration(hours: AppSettingModel.instance.dynamic_qr_default_exp_after_hour!));
   int tapCount = 0;
+  bool invalidAfterPayment = false;
   late Map branchObject;
   late TextEditingController dateTimeController;
 
@@ -93,6 +94,16 @@ class _TableDynamicQrDialogState extends State<TableDynamicQrDialog> {
                 },
                 controller: dateTimeController,
               ),
+              Row(
+                children: [
+                  Text("Invalid after payment"),
+                  Checkbox(value: invalidAfterPayment, onChanged: (value){
+                    setState(() {
+                      invalidAfterPayment = value!;
+                    });
+                  })
+                ],
+              )
             ],
           ),
         ),
@@ -212,6 +223,7 @@ class _TableDynamicQrDialogState extends State<TableDynamicQrDialog> {
     currentSelectedTable.dynamicQrHash = hashCode;
     currentSelectedTable.qrOrderUrl = url;
     currentSelectedTable.dynamicQRExp = dateFormat.format(currentDateTime);
+    currentSelectedTable.invalid_after_payment = invalidAfterPayment ? 1 : 0;
     return currentSelectedTable;
   }
 

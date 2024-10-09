@@ -103,6 +103,28 @@ class PosFirestore {
     await firestore.collection(tb_table_dynamic).doc().set(data.toTableDynamicJson(), SetOptions(merge: true));
   }
 
+  Future<int> updateBranchCloseQROrderStatus(Branch data) async {
+    int status = 0;
+    try{
+      final batch = firestore.batch();
+      Map<String, dynamic> jsonMap = {
+        BranchFields.close_qr_order: data.close_qr_order,
+      };
+      final docRef = await firestore.collection(tableBranch!).doc(data.branch_id!.toString());
+      batch.update(docRef, jsonMap);
+      batch.commit();
+      status = 1;
+    }catch(e){
+      FLog.error(
+        className: "pos_firestore",
+        text: "updateBranchCloseQROrderStatus error",
+        exception: e,
+      );
+      status = 0;
+    }
+    return status;
+  }
+
   Future<int> updateBranchLinkProductDailyLimit(BranchLinkProduct branchProduct) async {
     int status = 0;
     try{
