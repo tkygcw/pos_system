@@ -279,7 +279,7 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
                                 printerModel.removeAllPrinter();
                                 widget.callBack(jsonEncode(mac));
                                 Navigator.of(context).pop();
-                                this.connect(mac);
+                                // this.connect(mac);
                               },
                               leading: Icon(
                                 Icons.bluetooth,

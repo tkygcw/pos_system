@@ -590,7 +590,7 @@ class PrintReceipt{
             if (cashierPrinterList[i].paper_size == 0) {
               //print bluetooth 80mm
               if (res) {
-                await PrintBluetoothThermal.writeBytes(await PreviewLayout().printPreviewReceipt80mm(true, cartModel));
+                await PrintBluetoothThermal.writeBytes(await PreviewLayout().printPreviewReceipt80mm(true, cartModel, orderKey));
                 printStatus = 0;
               } else {
                 printStatus = 1;
@@ -598,7 +598,7 @@ class PrintReceipt{
             } else {
               //print bluetooth 58mm
               if (res) {
-                await PrintBluetoothThermal.writeBytes(await PreviewLayout().printPreviewReceipt58mm(true, cartModel));
+                await PrintBluetoothThermal.writeBytes(await PreviewLayout().printPreviewReceipt58mm(true, cartModel, orderKey));
                 printStatus = 0;
               } else {
                 printStatus = 1;
@@ -1271,7 +1271,6 @@ class PrintReceipt{
 
   reprintFailKitchenList(List<Printer> printerList, {required List<OrderDetail> reprintList}) async {
     List<OrderDetail>? failedPrintOrderDetail;
-    bool printCombinedKitchenList = false;
     int currentItem = 0;
     try{
       KitchenList? kitchenListLayout58mm = await PosDatabase.instance.readSpecificKitchenList('58');
@@ -1380,8 +1379,6 @@ class PrintReceipt{
                               }
                             }
                           }
-
-                          printCombinedKitchenList = true;
                         }
                         await Future.delayed(Duration(milliseconds: 100));
                         printer.disconnect();
@@ -1476,8 +1473,6 @@ class PrintReceipt{
                               }
                             }
                           }
-
-                          printCombinedKitchenList = true;
                         }
                         await Future.delayed(Duration(milliseconds: 100));
                         printer.disconnect();
@@ -1622,7 +1617,6 @@ class PrintReceipt{
                               }
                             }
                           }
-                          printCombinedKitchenList = true;
                         }
                         await Future.delayed(Duration(milliseconds: 100));
                       } else {

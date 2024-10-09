@@ -53,6 +53,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
   int? _paperSize = 0;
   bool _submitted = false, _isUpdate = false, _isCashier = false, _isLabel = false, _isActive = true, isLogOut = false;
   bool isLoad = false, isButtonDisabled = false;
+  bool isIos = false;
 
   String? selectedValue;
 
@@ -80,7 +81,8 @@ class _PrinterDialogState extends State<PrinterDialog> {
     }
 
     if (Platform.Platform.isIOS) {
-      _typeStatus = widget.printerObject!.type != null ? widget.printerObject!.type! : 1;
+      _typeStatus = widget.printerObject?.type != null ? widget.printerObject!.type! : 1;
+      isIos = true;
     }
     super.initState();
   }
@@ -116,13 +118,13 @@ class _PrinterDialogState extends State<PrinterDialog> {
             await callAddNewPrinter(printerValue, selectedCategories);
             if (_typeStatus == 0) {
               var printerDetail = jsonDecode(printerValue[0]);
-              bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
             }
           } else {
             await callUpdatePrinter(selectedCategories, widget.printerObject!);
             if (_typeStatus == 0) {
               var printerDetail = jsonDecode(printerValue[0]);
-              bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
             }
           }
           // if (_typeStatus == 1) {
@@ -242,19 +244,22 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                       },
                                     ),
                                   ),
-                                  Expanded(
-                                    child: RadioListTile<int>(
-                                      activeColor: color.backgroundColor,
-                                      title: Text(AppLocalizations.of(context)!.translate('bluetooth'), style: TextStyle(fontSize: 15)),
-                                      value: 2,
-                                      groupValue: _typeStatus,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          this.printerValue.clear();
-                                          // printerModel.removeAllPrinter();
-                                          _typeStatus = value;
-                                        });
-                                      },
+                                  Visibility(
+                                    visible: !Platform.Platform.isIOS,
+                                    child: Expanded(
+                                      child: RadioListTile<int>(
+                                        activeColor: color.backgroundColor,
+                                        title: Text(AppLocalizations.of(context)!.translate('bluetooth'), style: TextStyle(fontSize: 15)),
+                                        value: 2,
+                                        groupValue: _typeStatus,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            this.printerValue.clear();
+                                            // printerModel.removeAllPrinter();
+                                            _typeStatus = value;
+                                          });
+                                        },
+                                      ),
                                     ),
                                   )
                                 ],
@@ -631,61 +636,53 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                 AppLocalizations.of(context)!.translate('type'),
                                 style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
                               ),
-                              Row(
-                                children: [
-                                  Visibility(
-                                    visible: !Platform.Platform.isIOS,
-                                    child: Expanded(
-                                      child: RadioListTile<int>(
-                                        activeColor: color.backgroundColor,
-                                        title: const Text(
-                                          'USB',
-                                          style: TextStyle(fontSize: 15),
-                                        ),
-                                        value: 0,
-                                        groupValue: _typeStatus,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            this.printerValue.clear();
-                                            // printerModel.removeAllPrinter();
-                                            _typeStatus = value;
-                                          });
-                                        },
+
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: DropdownButtonFormField2<int>(
+                                  isExpanded: true,
+                                  isDense: false,
+                                  decoration: InputDecoration(
+                                    contentPadding: const EdgeInsets.symmetric(vertical: 5),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(color: color.backgroundColor),
+                                    ),
+                                  ),
+                                  hint: Text(
+                                    'Printer Type',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: Theme.of(context).hintColor,
+                                    ),
+                                  ),
+                                  items: <int>[0, 1, 2]
+                                      .where((int value) => !isIos || (value != 0 && value != 2))
+                                      .map<DropdownMenuItem<int>>((int value) {
+                                    return DropdownMenuItem<int>(
+                                      value: value,
+                                      child: Text(
+                                        value == 0
+                                            ? 'USB'
+                                            : value == 1
+                                            ? AppLocalizations.of(context)!.translate('lan')
+                                            : AppLocalizations.of(context)!.translate('bluetooth'),
+                                        style: TextStyle(fontSize: 15),
                                       ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: RadioListTile<int>(
-                                      activeColor: color.backgroundColor,
-                                      title: Text(AppLocalizations.of(context)!.translate('lan'), style: TextStyle(fontSize: 15)),
-                                      value: 1,
-                                      groupValue: _typeStatus,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          this.printerValue.clear();
-                                          // printerModel.removeAllPrinter();
-                                          _typeStatus = value;
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: RadioListTile<int>(
-                                      activeColor: color.backgroundColor,
-                                      title: Text(AppLocalizations.of(context)!.translate('bluetooth'), style: TextStyle(fontSize: 15)),
-                                      value: 2,
-                                      groupValue: _typeStatus,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          this.printerValue.clear();
-                                          // printerModel.removeAllPrinter();
-                                          _typeStatus = value;
-                                        });
-                                      },
-                                    ),
-                                  )
-                                ],
+                                    );
+                                  }).toList(),
+                                  value: _typeStatus,
+                                  onChanged: (int? value) {
+                                    setState(() {
+                                      this.printerValue.clear();
+                                      // printerModel.removeAllPrinter();
+                                      _typeStatus = value;
+                                    });
+                                  },
+                                ),
                               ),
+
+
+
                               Visibility(
                                 visible: printerValue.isEmpty ? true : false,
                                 child: Container(
@@ -1271,7 +1268,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
       PrinterLinkCategory printerLinkCategoryObject = PrinterLinkCategory(
           soft_delete: dateTime, sync_status: this.printer!.type == 0 ? 1 : 2, printer_sqlite_id: printer.printer_sqlite_id.toString());
 
-      int data = await PosDatabase.instance.deletePrinterCategory(printerLinkCategoryObject);
+      await PosDatabase.instance.deletePrinterCategory(printerLinkCategoryObject);
       if (this.printer!.type == 1) {
         List<PrinterLinkCategory> printerCategoryList =
             await PosDatabase.instance.readDeletedPrinterLinkCategory(int.parse(printerLinkCategoryObject.printer_sqlite_id!));
@@ -1310,7 +1307,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
           updated_at: dateTime,
           printer_sqlite_id: widget.printerObject!.printer_sqlite_id);
 
-      int data = await PosDatabase.instance.updatePrinter(printerObject);
+      await PosDatabase.instance.updatePrinter(printerObject);
       this.printer = printerObject;
       Printer updatedData = await PosDatabase.instance.readSpecificPrinterByLocalId(printerObject.printer_sqlite_id!);
       _value.add(jsonEncode(updatedData));
@@ -1574,7 +1571,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
         var data = Uint8List.fromList(await ReceiptLayout().testTicket80mm(true));
         bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
         if (isConnected == true) {
-          bool? status = await flutterUsbPrinter.write(data);
+          await flutterUsbPrinter.write(data);
         } else {
           print('not connected');
         }
