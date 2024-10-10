@@ -31,7 +31,7 @@ class _TableDynamicQrDialogState extends State<TableDynamicQrDialog> {
   PrintDynamicQr printDynamicQr = PrintDynamicQr();
   DateTime currentDateTime = DateTime.now().add(Duration(hours: AppSettingModel.instance.dynamic_qr_default_exp_after_hour!));
   int tapCount = 0;
-  bool invalidAfterPayment = false;
+  bool invalidAfterPayment = true, isLoading = false;
   late Map branchObject;
   late TextEditingController dateTimeController;
 
@@ -48,6 +48,7 @@ class _TableDynamicQrDialogState extends State<TableDynamicQrDialog> {
     super.initState();
     dateTimeController = TextEditingController(text: Utils.formatDate(currentDateTime.toString()));
     printDynamicQr.readCashierPrinter();
+    invalidAfterPayment = AppSettingModel.instance.dynamic_qr_invalid_after_payment ?? true;
     getPref();
   }
 
@@ -108,46 +109,21 @@ class _TableDynamicQrDialogState extends State<TableDynamicQrDialog> {
           ),
         ),
         actions: [
-          ElevatedButton(
+          ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-                backgroundColor: color.buttonColor
+                backgroundColor: color.buttonColor,
             ),
-            onPressed: () async {
-              tapCount++;
-              if(tapCount == 1){
-                if(currentDateTime.isBefore(DateTime.now())){
-                  resetTapCount();
-                  Fluttertoast.showToast(
-                      backgroundColor: Color(0xFFFF0000),
-                      msg: AppLocalizations.of(context)!.translate('dynamic_qr_error'));
-                } else {
-                  bool _hasInternetAccess = await Domain().isHostReachable();
-                  if(_hasInternetAccess){
-                    List<PosTable> selectedTable = widget.posTableList;
-                    for(int i = 0 ; i < selectedTable.length; i++){
-                      PosTable updatedTable = await generateDynamicQRUrl(selectedTable[i]);
-                      posFirestore.insertTableDynamic(updatedTable);
-                      Map res = await Domain().insertTableDynamicQr(updatedTable);
-                      if(res['status'] == '1'){
-                        await printDynamicQr.printDynamicQR(table: updatedTable);
-                      } else {
-                        break;
-                      }
-                    }
-                    if(widget.callback != null){
-                      widget.callback!();
-                    }
-                    Navigator.of(context).pop();
-                  } else {
-                    resetTapCount();
-                    Fluttertoast.showToast(
-                        backgroundColor: Color(0xFFFF0000),
-                        msg: AppLocalizations.of(context)!.translate('check_internet_connection'));
-                  }
-                }
-              }
-            },
-            child: Text(AppLocalizations.of(context)!.translate('generate')),
+            onPressed: isLoading ? null : _onGenerate,
+            icon: isLoading ? Container(
+              width: 24,
+              height: 24,
+              padding: const EdgeInsets.all(2.0),
+              child: CircularProgressIndicator(
+                color: color.buttonColor,
+                strokeWidth: 3,
+              ),
+            ) : Icon(Icons.qr_code_2_outlined),
+            label: Text(AppLocalizations.of(context)!.translate('generate')),
           ),
           ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -163,6 +139,46 @@ class _TableDynamicQrDialogState extends State<TableDynamicQrDialog> {
         ],
       );
     });
+  }
+
+  _onGenerate() async {
+    tapCount++;
+    if(currentDateTime.isBefore(DateTime.now())){
+      resetTapCount();
+      Fluttertoast.showToast(
+          backgroundColor: Color(0xFFFF0000),
+          msg: AppLocalizations.of(context)!.translate('dynamic_qr_error'));
+    } else {
+      setState(() {
+        isLoading = true;
+      });
+      bool _hasInternetAccess = await Domain().isHostReachable();
+      if(_hasInternetAccess){
+        List<PosTable> selectedTable = widget.posTableList;
+        for(int i = 0 ; i < selectedTable.length; i++){
+          PosTable updatedTable = await generateDynamicQRUrl(selectedTable[i]);
+          posFirestore.insertTableDynamic(updatedTable);
+          Map res = await Domain().insertTableDynamicQr(updatedTable);
+          if(res['status'] == '1'){
+            await printDynamicQr.printDynamicQR(table: updatedTable);
+          } else {
+            break;
+          }
+        }
+        if(widget.callback != null){
+          widget.callback!();
+        }
+        Navigator.of(context).pop();
+      } else {
+        resetTapCount();
+        setState(() {
+          isLoading = false;
+        });
+        Fluttertoast.showToast(
+            backgroundColor: Color(0xFFFF0000),
+            msg: AppLocalizations.of(context)!.translate('check_internet_connection'));
+      }
+    }
   }
 
   openDateTimePicker(ThemeColor color){

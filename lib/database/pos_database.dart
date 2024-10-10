@@ -766,6 +766,7 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.close_qr_order} $integerType DEFAULT 0 ");
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.show_in_qr} $integerType DEFAULT 1");
           await db.execute("ALTER TABLE $tableDiningOption ADD ${DiningOptionFields.company_id} $textType DEFAULT '${productData.company_id}' ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.dynamic_qr_invalid_after_payment} $integerType DEFAULT 1");
           final branchResult = await db.rawQuery('SELECT * FROM $tableBranch LIMIT 1');
           Branch branchData = Branch.fromJson(branchResult.first);
           await prefs.setString("branch", json.encode(branchData));
@@ -1401,6 +1402,7 @@ class PosDatabase {
           ${AppSettingFields.product_sort_by} $integerType,
           ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType,
           ${AppSettingFields.variant_item_sort_by} $integerType,
+          ${AppSettingFields.dynamic_qr_invalid_after_payment} $integerType,
           ${AppSettingFields.sync_status} $integerType,
           ${AppSettingFields.created_at} $textType,
           ${AppSettingFields.updated_at} $textType)''');
@@ -6882,6 +6884,15 @@ class PosDatabase {
   Future<int> updatePrintCancelReceiptSettings(AppSetting data) async {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableAppSetting SET print_cancel_receipt = ?, sync_status = ?, updated_at = ?', [data.print_cancel_receipt, 2, data.updated_at]);
+  }
+
+/*
+  update auto accept qr order Setting
+*/
+  Future<int> updateDynamicQrInvalidAfterPaymentSetting(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET dynamic_qr_invalid_after_payment = ?, sync_status = ?, updated_at = ?',
+        [data.dynamic_qr_invalid_after_payment, 2, data.updated_at]);
   }
 
 /*

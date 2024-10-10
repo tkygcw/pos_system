@@ -100,7 +100,29 @@ class PosFirestore {
   }
 
   insertTableDynamic(PosTable data) async {
-    await firestore.collection(tb_table_dynamic).doc().set(data.toTableDynamicJson(), SetOptions(merge: true));
+    await firestore.collection(tb_table_dynamic).doc(data.table_id!.toString()).set(data.toTableDynamicJson(), SetOptions(merge: true));
+  }
+
+  Future<int> softDeleteTableDynamic(PosTable data) async {
+    int status = 0;
+    try{
+      final batch = firestore.batch();
+      Map<String, dynamic> jsonMap = {
+        PosTableFields.soft_delete: data.soft_delete,
+      };
+      final docRef = await firestore.collection(tb_table_dynamic).doc(data.table_id!.toString());
+      batch.update(docRef, jsonMap);
+      batch.commit();
+      status = 1;
+    }catch(e){
+      FLog.error(
+        className: "pos_firestore",
+        text: "softDeleteTableDynamic error",
+        exception: e,
+      );
+      status = 0;
+    }
+    return status;
   }
 
   Future<int> updateBranchCloseQROrderStatus(Branch data) async {

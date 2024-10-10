@@ -174,7 +174,7 @@ class PosTable{
   };
 
   Map<String, Object?> toTableDynamicJson() => {
-    PosTableFields.table_id: table_id,
+    PosTableFields.table_id: table_id.toString(),
     PosTableFields.branch_id: branch_id,
     PosTableFields.created_at: Utils.dbCurrentDateTimeFormat(),
     PosTableFields.updated_at: '',

@@ -39,7 +39,7 @@ class _OrderSettingState extends State<OrderSetting> {
   // List<AppSetting> appSettingList = [];
   Receipt? receiptObject;
   bool printCheckList = false, enableNumbering = false, printReceipt = false, hasQrAccess = true, printCancelReceipt = true,
-      directPayment = false, qrOrderAutoAccept = false, cashDrawer = false, secondDisplay = false;
+      directPayment = false, qrOrderAutoAccept = false, cashDrawer = false, secondDisplay = false, invalidAfterPayment = true;
   int startingNumber = 0, compareStartingNumber = 0;
   final List<String> tableModeOption = [
     'table_mode_no_table',
@@ -78,6 +78,11 @@ class _OrderSettingState extends State<OrderSetting> {
         break;
         case 'qr_order_auto_accept':{
           await updateQrOrderAutoAcceptAppSetting();
+          controller.refresh(streamController);
+        }
+        break;
+        case 'invalid_after_payment':{
+          await updateDynamicQrInvalidAfterPaymentAppSetting();
           controller.refresh(streamController);
         }
         break;
@@ -151,6 +156,10 @@ class _OrderSettingState extends State<OrderSetting> {
         this.qrOrderAutoAccept = true;
       } else {
         this.qrOrderAutoAccept = false;
+      }
+
+      if(appSetting.dynamic_qr_invalid_after_payment == 0){
+        invalidAfterPayment = false;
       }
     }
   }
@@ -528,6 +537,19 @@ class _OrderSettingState extends State<OrderSetting> {
                             ),
                           ),
                           ListTile(
+                            title: Text("Auto checked invalid dynamic QR after payment"),
+                            subtitle: Text("auto checked invalid dynamic QR after payment during dynamic qr code generation"),
+                            trailing: Switch(
+                              value: invalidAfterPayment,
+                              activeColor: color.backgroundColor,
+                              onChanged: (value) {
+                                invalidAfterPayment = value;
+                                appSettingModel.setDynamicQrInvalidAfterPayment(invalidAfterPayment);
+                                actionController.sink.add("invalid_after_payment");
+                              },
+                            ),
+                          ),
+                          ListTile(
                               title: Text(AppLocalizations.of(context)!.translate('set_default_exp_after_hour'), style: TextStyle(color: !hasQrAccess ? Colors.grey: null)),
                               subtitle: Text(AppLocalizations.of(context)!.translate('set_default_exp_after_hour_desc')),
                               trailing: Text('${appSettingModel.dynamic_qr_default_exp_after_hour} ${AppLocalizations.of(context)!.translate('hours')}',
@@ -623,6 +645,17 @@ class _OrderSettingState extends State<OrderSetting> {
         updated_at: dateTime
     );
     await PosDatabase.instance.updateQrOrderAutoAcceptSetting(object);
+  }
+
+  updateDynamicQrInvalidAfterPaymentAppSetting() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    AppSetting object = AppSetting(
+        dynamic_qr_invalid_after_payment: invalidAfterPayment == true ? 1 : 0,
+        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
+        updated_at: dateTime
+    );
+    await PosDatabase.instance.updateDynamicQrInvalidAfterPaymentSetting(object);
   }
 
   Future<bool> anyTableUse() async {
