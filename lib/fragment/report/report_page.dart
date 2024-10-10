@@ -19,6 +19,7 @@ import 'package:pos_system/fragment/report/product_edited_report.dart';
 import 'package:pos_system/fragment/report/product_report.dart';
 import 'package:pos_system/fragment/report/refund_report.dart';
 import 'package:pos_system/fragment/report/report_overview.dart';
+import 'package:pos_system/fragment/report/report_receipt/layout/cancel_record_layout.dart';
 import 'package:pos_system/fragment/report/report_receipt/layout/cancellation_layout.dart';
 import 'package:pos_system/fragment/report/report_receipt/layout/cancelled_mod_layout.dart';
 import 'package:pos_system/fragment/report/report_receipt/layout/category_layout.dart';
@@ -844,6 +845,9 @@ class _ReportPageState extends State<ReportPage> {
       }break;
       case 6: {
         await receipt.printReceipt(layout: CancellationReceiptLayout());
+      }break;
+      case 7: {
+        await receipt.printReceipt(layout: CancelRecordLayout());
       }break;
       case 8: {
         await receipt.printReceipt(layout: CancelledModReceiptLayout());

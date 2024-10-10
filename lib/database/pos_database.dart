@@ -488,6 +488,7 @@ class PosDatabase {
         case 23: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.required_cancel_reason} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrderDetailCancel ADD ${OrderDetailCancelFields.cancel_reason} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderDetailCancel ADD ${OrderDetailCancelFields.quantity_before_cancel} $textType DEFAULT '' ");
         }break;
       }
     }
@@ -1182,6 +1183,7 @@ class PosDatabase {
           ${OrderDetailCancelFields.order_detail_sqlite_id} $textType,
           ${OrderDetailCancelFields.order_detail_key} $textType,
           ${OrderDetailCancelFields.quantity} $textType,
+          ${OrderDetailCancelFields.quantity_before_cancel} $textType,
           ${OrderDetailCancelFields.cancel_by} $textType,
           ${OrderDetailCancelFields.cancel_by_user_id} $textType,
           ${OrderDetailCancelFields.cancel_reason} $textType,
@@ -2469,14 +2471,15 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableOrderDetailCancel(order_detail_cancel_id, order_detail_cancel_key, order_detail_sqlite_id, order_detail_key, '
-        'quantity, cancel_by, cancel_by_user_id, cancel_reason, settlement_sqlite_id, settlement_key, status, sync_status, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'quantity, quantity_before_cancel, cancel_by, cancel_by_user_id, cancel_reason, settlement_sqlite_id, settlement_key, status, sync_status, created_at, updated_at, soft_delete) '
+        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.order_detail_cancel_id,
           data.order_detail_cancel_key,
           data.order_detail_sqlite_id,
           data.order_detail_key,
           data.quantity,
+          data.quantity_before_cancel,
           data.cancel_by,
           data.cancel_by_user_id,
           data.cancel_reason,
@@ -4512,12 +4515,29 @@ class PosDatabase {
 */
 
 /*
+  read all order detail cancel with OB
+*/
+  Future<List<OrderDetailCancel>> readOrderDetailCancelWithOB(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.product_name, b.product_variant_name, b.unit, '
+            'SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN b.price * a.quantity_before_cancel + 0.0 ELSE a.quantity * b.price + 0.0 END) AS price '
+            'FROM $tableOrderDetailCancel AS a JOIN $tableOrderDetail AS b ON a.order_detail_key = b.order_detail_key '
+            'JOIN $tableCashRecord AS c on a.settlement_key = c.settlement_key AND c.remark = ? '
+            'WHERE a.soft_delete = ? AND c.soft_delete = ? AND SUBSTR(c.created_at, 1, 10) >= ? AND SUBSTR(c.created_at, 1, 10) < ? '
+            'GROUP BY a.order_detail_cancel_sqlite_id ORDER BY a.created_at DESC',
+        ['each', 'each_c', 'Opening Balance', '', date1, date2]);
+    return result.map((json) => OrderDetailCancel.fromJson(json)).toList();
+  }
+
+/*
   read all order detail cancel
 */
   Future<List<OrderDetailCancel>> readOrderDetailCancel(String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.product_name, b.product_variant_name, SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN b.price * b.quantity + 0.0 ELSE a.quantity * b.price + 0.0 END) AS price '
+        'SELECT a.*, b.product_name, b.product_variant_name, b.unit, '
+            'SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN b.price * a.quantity_before_cancel + 0.0 ELSE a.quantity * b.price + 0.0 END) AS price '
             'FROM $tableOrderDetailCancel AS a JOIN $tableOrderDetail AS b ON a.order_detail_key = b.order_detail_key '
             'WHERE a.soft_delete = ? AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY a.order_detail_cancel_sqlite_id ORDER BY a.created_at DESC',
         ['each', 'each_c', '', date1, date2]);

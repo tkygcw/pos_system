@@ -1062,10 +1062,10 @@ packages:
     dependency: transitive
     description:
       name: pausable_timer
-      sha256: "1897e2c6a4e73b9486e4ff943bfd08585bc231400e6ae924a92f5b9fd8efc0a6"
+      sha256: "6ef1a95441ec3439de6fb63f39a011b67e693198e7dae14e20675c3c00e86074"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0+7"
+    version: "3.1.0+3"
   pdf:
     dependency: "direct main"
     description:
@@ -1304,6 +1304,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.10.0"
+  sprintf:
+    dependency: transitive
+    description:
+      name: sprintf
+      sha256: "1fc9ffe69d4df602376b52949af107d8f5703b77cda567c4d7d86a0693120f23"
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.0.0"
   sqflite:
     dependency: "direct main"
     description:
@@ -1396,10 +1404,10 @@ packages:
     dependency: "direct main"
     description:
       name: toastification
-      sha256: ce383b102d519ab8d85b04a949072c9acb2ea6c0dc0030182ed781b68cfdee6b
+      sha256: "4d97fbfa463dfe83691044cba9f37cb185a79bb9205cfecb655fa1f6be126a13"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0"
+    version: "2.3.0"
   typed_data:
     dependency: transitive
     description:
@@ -1473,13 +1481,13 @@ packages:
     source: hosted
     version: "3.1.2"
   uuid:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: uuid
-      sha256: "648e103079f7c64a36dc7d39369cabb358d377078a051d6ae2ad3aa539519313"
+      sha256: a5be9ef6618a7ac1e964353ef476418026db906c4facdedaa299b7a2e71690ff
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.7"
+    version: "4.5.1"
   vector_graphics:
     dependency: transitive
     description:

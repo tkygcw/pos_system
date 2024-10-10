@@ -8,6 +8,7 @@ class OrderDetailCancelFields{
     order_detail_sqlite_id,
     order_detail_key,
     quantity,
+    quantity_before_cancel,
     cancel_by,
     cancel_by_user_id,
     cancel_reason,
@@ -26,6 +27,7 @@ class OrderDetailCancelFields{
   static String order_detail_sqlite_id = 'order_detail_sqlite_id';
   static String order_detail_key = 'order_detail_key';
   static String quantity = 'quantity';
+  static String quantity_before_cancel = 'quantity_before_cancel';
   static String cancel_by = 'cancel_by';
   static String cancel_by_user_id = 'cancel_by_user_id';
   static String cancel_reason = 'cancel_reason';
@@ -45,6 +47,7 @@ class OrderDetailCancel{
   String? order_detail_sqlite_id;
   String? order_detail_key;
   String? quantity;
+  String? quantity_before_cancel;
   String? cancel_by;
   String? cancel_by_user_id;
   String? cancel_reason;
@@ -60,6 +63,7 @@ class OrderDetailCancel{
   String? product_name;
   String? product_variant_name;
   num? price;
+  String? unit;
 
   OrderDetailCancel(
       {this.order_detail_sqlite_id,
@@ -68,6 +72,7 @@ class OrderDetailCancel{
         this.order_detail_cancel_sqlite_id,
         this.order_detail_key,
         this.quantity,
+        this.quantity_before_cancel,
         this.cancel_by,
         this.cancel_by_user_id,
         this.cancel_reason,
@@ -82,7 +87,8 @@ class OrderDetailCancel{
         this.total_amount,
         this.product_name,
         this.product_variant_name,
-        this.price
+        this.price,
+        this.unit
       });
 
   OrderDetailCancel copy({
@@ -92,6 +98,7 @@ class OrderDetailCancel{
     String? order_detail_sqlite_id,
     String? order_detail_key,
     String? quantity,
+    String? quantity_before_cancel,
     String? cancel_by,
     String? cancel_by_user_id,
     String? cancel_reason,
@@ -110,6 +117,7 @@ class OrderDetailCancel{
         order_detail_sqlite_id: order_detail_sqlite_id ?? this.order_detail_sqlite_id,
         order_detail_key: order_detail_cancel_key ?? this.order_detail_key,
         quantity: quantity ?? this.quantity,
+        quantity_before_cancel: quantity_before_cancel ?? this.quantity_before_cancel,
         cancel_by: cancel_by ?? this.cancel_by,
         cancel_by_user_id: cancel_by_user_id ?? this.cancel_by_user_id,
         cancel_reason: cancel_reason ?? this.cancel_reason,
@@ -129,6 +137,7 @@ class OrderDetailCancel{
     order_detail_sqlite_id: json[OrderDetailCancelFields.order_detail_sqlite_id] as String?,
     order_detail_key: json[OrderDetailCancelFields.order_detail_key] as String?,
     quantity: json[OrderDetailCancelFields.quantity] as String?,
+    quantity_before_cancel: json[OrderDetailCancelFields.quantity_before_cancel] as String?,
     cancel_by: json[OrderDetailCancelFields.cancel_by] as String?,
     cancel_by_user_id: json[OrderDetailCancelFields.cancel_by_user_id] as String?,
     cancel_reason: json[OrderDetailCancelFields.cancel_reason] as String?,
@@ -142,7 +151,8 @@ class OrderDetailCancel{
     total_item: json['total_item'] as num?,
     product_name: json['product_name'] as String?,
     product_variant_name: json['product_variant_name'] as String?,
-    price: json['price'] as num?
+    price: json['price'] as num?,
+    unit: json['unit'] as String?
   );
 
   Map<String, Object?> toJson() => {
@@ -152,6 +162,7 @@ class OrderDetailCancel{
     OrderDetailCancelFields.order_detail_sqlite_id: order_detail_sqlite_id,
     OrderDetailCancelFields.order_detail_key: order_detail_key,
     OrderDetailCancelFields.quantity: quantity,
+    OrderDetailCancelFields.quantity_before_cancel: quantity_before_cancel,
     OrderDetailCancelFields.cancel_by: cancel_by,
     OrderDetailCancelFields.cancel_by_user_id: cancel_by_user_id,
     OrderDetailCancelFields.cancel_reason: cancel_reason,

@@ -14,8 +14,8 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # Read more about Android versioning at https://developer.android.com/studio/publish/versioning
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
-# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.1.11+123
+# https://developer.apple.com/library/archive/documentatioyn/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
+version: 1.1.17+129
 
 environment:
   sdk: ">=2.16.2 <3.0.0"
@@ -112,15 +112,14 @@ dependencies:
   awesome_snackbar_content: ^0.1.3
   pdf_widget_wrapper: ^1.0.4
   circular_menu: ^4.0.0
-  toastification: ^1.0.0
-
-
+  toastification: ^2.3.0
 
 dependency_overrides:
   image_picker_android: 0.8.6+6
   intl: 0.18.0
   image: ^4.1.3
   win32: 5.5.4
+  uuid: ^4.5.1
 
 dev_dependencies:
   flutter_test:

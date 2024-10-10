@@ -243,20 +243,22 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       title: Text(AppLocalizations.of(context)!.translate('adjust_quantity')),
       content: SizedBox(
         width: 350,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            //reason input
-            Visibility(
-              visible: AppSettingModel.instance.required_cancel_reason!,
-              child: ReasonInputWidget(reasonCallBack: reasonCallBack),
-            ),
-            // quantity input
-            QuantityInputWidget(
-              cartItemList: [widget.cartItem],
-              callback: qtyInputCallback,
-            )
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              //reason input
+              Visibility(
+                visible: AppSettingModel.instance.required_cancel_reason!,
+                child: ReasonInputWidget(reasonCallBack: reasonCallBack),
+              ),
+              // quantity input
+              QuantityInputWidget(
+                cartItemList: [widget.cartItem],
+                callback: qtyInputCallback,
+              )
+            ],
+          ),
         ),
       ),
       actions: <Widget>[
@@ -314,7 +316,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       isButtonDisabled = true;
     });
     if(AppSettingModel.instance.required_cancel_reason! == true && reason == ''){
-      CustomToastification.showToastification(context: context, title: "Cancel reason is required");
+      CustomFailedToast.showToast(title: "Cancel reason is required");
       setState(() {
         isButtonDisabled = false;
       });
@@ -551,6 +553,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       order_detail_sqlite_id: widget.cartItem.order_detail_sqlite_id,
       order_detail_key: data.order_detail_key,
       quantity: simpleIntInput.toString(),
+      quantity_before_cancel: widget.cartItem.quantity!.toString(),
       cancel_by: user.name,
       cancel_by_user_id: user.user_id.toString(),
       cancel_reason: reason,

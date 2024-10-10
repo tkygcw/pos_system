@@ -2376,6 +2376,7 @@ getAllOrderDetailCancel() async {
             order_detail_sqlite_id: detailData.order_detail_sqlite_id.toString(),
             order_detail_key: responseJson[i]['order_detail_key'],
             quantity: responseJson[i]['quantity'],
+            quantity_before_cancel: responseJson[i]['quantity'] ?? '',
             cancel_by: responseJson[i]['cancel_by'],
             cancel_by_user_id: responseJson[i]['cancel_by_user_id'],
             cancel_reason: responseJson[i]['cancel_reason'] ?? '',

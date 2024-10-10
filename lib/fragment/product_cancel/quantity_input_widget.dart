@@ -121,11 +121,11 @@ class _QuantityInputWidgetState extends State<QuantityInputWidget> {
                                   if((widget.cartItemList[i].unit! != 'each' && widget.cartItemList[i].unit! != 'each_c') && simpleIntInput > 1){
                                     simpleIntInput = 1;
                                     quantityController.text = simpleIntInput.toString();
-                                    CustomToastification.showToastification(context: context, title: "Max $simpleIntInput");
+                                    CustomFailedToast.showToast(title: "Max $maxQty");
                                   } else if (simpleIntInput > maxQty) {
                                     simpleIntInput = widget.cartItemList[i].quantity!;
                                     quantityController.text = simpleIntInput.toString();
-                                    CustomToastification.showToastification(context: context, title: "Max $simpleIntInput");
+                                    CustomFailedToast.showToast(title: "Max $maxQty");
                                   }
                                   widget.callback(qty: simpleIntInput);
                                 },
@@ -149,12 +149,13 @@ class _QuantityInputWidgetState extends State<QuantityInputWidget> {
                               child: IconButton(
                                 icon: Icon(Icons.add, color: Colors.white), // Set the icon color to white.
                                 onPressed: () {
-                                  if(simpleIntInput+1 < maxQty){
+                                  if(simpleIntInput+1 <= maxQty){
                                     setState(() {
                                       simpleIntInput += 1;
                                       quantityController.text = simpleIntInput.toString();
                                     });
                                   } else {
+                                    CustomFailedToast.showToast(title: "Max $maxQty");
                                     setState(() {
                                       simpleIntInput = maxQty;
                                       quantityController.text = simpleIntInput.toString();
