@@ -1343,7 +1343,7 @@ class _TableMenuState extends State<TableMenu> {
                     }
                   }
 
-                  else if (action == 'on_long_press'){
+                  else if (action == 'on_long_press' && !editingMode){
                     if(tableList[i].order_key == null) {
                       if(qrOrderStatus == '0'){
                         selectedTable = [tableList[i]];

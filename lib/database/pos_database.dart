@@ -77,7 +77,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 25, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 26, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -310,6 +310,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
           await db.execute('''CREATE TABLE $tableCurrentVersion(
           ${CurrentVersionFields.current_version_sqlite_id} $idType,
           ${CurrentVersionFields.current_version_id} $integerType,
@@ -390,6 +391,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
           await db.execute('''CREATE TABLE $tableCurrentVersion(
           ${CurrentVersionFields.current_version_sqlite_id} $idType,
           ${CurrentVersionFields.current_version_id} $integerType,
@@ -456,6 +458,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
           await db.execute('''CREATE TABLE $tableCurrentVersion(
           ${CurrentVersionFields.current_version_sqlite_id} $idType,
           ${CurrentVersionFields.current_version_id} $integerType,
@@ -518,6 +521,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
           await db.execute('''CREATE TABLE $tableCurrentVersion(
           ${CurrentVersionFields.current_version_sqlite_id} $idType,
           ${CurrentVersionFields.current_version_id} $integerType,
@@ -576,6 +580,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
           await db.execute('''CREATE TABLE $tableCurrentVersion(
           ${CurrentVersionFields.current_version_sqlite_id} $idType,
           ${CurrentVersionFields.current_version_id} $integerType,
@@ -632,6 +637,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
           await db.execute('''CREATE TABLE $tableCurrentVersion(
           ${CurrentVersionFields.current_version_sqlite_id} $idType,
           ${CurrentVersionFields.current_version_id} $integerType,
@@ -674,6 +680,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
           await db.execute('''CREATE TABLE $tableCurrentVersion(
           ${CurrentVersionFields.current_version_sqlite_id} $idType,
           ${CurrentVersionFields.current_version_id} $integerType,
@@ -712,6 +719,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
           await db.execute('''CREATE TABLE $tableCurrentVersion(
           ${CurrentVersionFields.current_version_sqlite_id} $idType,
           ${CurrentVersionFields.current_version_id} $integerType,
@@ -743,6 +751,7 @@ class PosDatabase {
           ${OrderPaymentSplitFields.soft_delete} $textType)''');
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
           await db.execute('''CREATE TABLE $tableCurrentVersion(
           ${CurrentVersionFields.current_version_sqlite_id} $idType,
           ${CurrentVersionFields.current_version_id} $integerType,
@@ -757,6 +766,9 @@ class PosDatabase {
           ${CurrentVersionFields.soft_delete} $textType)''');
         }break;
         case 24: {
+          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
+        }break;
+        case 25: {
           final result = await db.rawQuery('SELECT company_id FROM $tableProduct WHERE soft_delete = ? LIMIT 1', ['']);
           Product productData = Product.fromJson(result.first);
           await db.execute("ALTER TABLE $tableBranch RENAME branchID to branch_id");
