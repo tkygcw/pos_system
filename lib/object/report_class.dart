@@ -92,10 +92,12 @@ class ReportObject{
       orderDetailCancel = await PosDatabase.instance.readOrderDetailCancel(stringStDate, stringEdDate);
     }
     if(orderDetailCancel.isNotEmpty){
-      List<int> quantityList = orderDetailCancel.map((e) => int.parse(e.quantity!)).toList();
-      List<num> amountList = orderDetailCancel.map((e) => e.price!).toList();
-      orderDetailCancel.first.total_item = quantityList.sum;
-      orderDetailCancel.first.total_amount = amountList.sum;
+      final totalQty = orderDetailCancel.fold(0, (int sum, e) => sum + int.parse(e.quantity!));
+      final totalPrice = orderDetailCancel.fold(0, (num sum, e) => sum + e.price!);
+      print("total qty: ${totalQty}");
+      print("total price: ${totalPrice}");
+      orderDetailCancel.first.total_item = totalQty;
+      orderDetailCancel.first.total_amount = totalPrice;
     }
     return orderDetailCancel;
   }
