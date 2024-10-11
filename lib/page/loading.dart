@@ -1006,6 +1006,7 @@ getAllPrinter() async {
               paper_size: printerItem.paper_size,
               printer_status: printerItem.printer_status,
               is_counter: printerItem.is_counter,
+              is_kitchen_checklist: printerItem.is_kitchen_checklist,
               is_label: printerItem.is_label,
               sync_status: 1,
               created_at: printerItem.created_at,

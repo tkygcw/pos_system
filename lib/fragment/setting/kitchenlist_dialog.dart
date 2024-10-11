@@ -88,10 +88,10 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
       KitchenList? data = await PosDatabase.instance.readSpecificKitchenList(kitchen_listView);
       if(data != null){
         kitchen_list = data;
-        productFontSize = data.product_name_font_size == 0 ? ReceiptDialogEnum.big : ReceiptDialogEnum.small;
-        fontSize = data.product_name_font_size == 0 ? 20 : 14;
-        variantAddonFontSize = data.other_font_size == 0 ? ReceiptDialogEnum.big : ReceiptDialogEnum.small;
-        otherFontSize = data.other_font_size == 0 ? 20 : 14;
+        productFontSize = data.product_name_font_size == 0 ? ReceiptDialogEnum.big : (data.product_name_font_size == 1 ? ReceiptDialogEnum.small : ReceiptDialogEnum.medium);
+        fontSize = data.product_name_font_size == 0 ? 20 : data.product_name_font_size == 1 ? 14 : 18;
+        variantAddonFontSize = data.other_font_size == 0 ? ReceiptDialogEnum.big : (data.other_font_size == 1 ? ReceiptDialogEnum.small : ReceiptDialogEnum.medium);
+        otherFontSize = data.other_font_size == 0 ? 20 : data.other_font_size == 1 ? 14 : 18;
         kitchenListShowPrice = data.kitchen_list_show_price == 0 ? false : true;
         printCombineKitchenList = data.print_combine_kitchen_list == 0 ? false : true;
         kitchenListItemSeparator = data.kitchen_list_item_separator == 0 ? false : true;
@@ -380,8 +380,8 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
       KitchenList? checkData = await PosDatabase.instance.readSpecificKitchenListByKey(kitchen_list!.kitchen_list_key!);
       if(checkData != null){
         KitchenList data = KitchenList(
-          product_name_font_size: productFontSize == ReceiptDialogEnum.big ? 0 : 1,
-          other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : 1,
+          product_name_font_size: productFontSize == ReceiptDialogEnum.big ? 0 : (productFontSize == ReceiptDialogEnum.small ? 1 : 2),
+          other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : (variantAddonFontSize == ReceiptDialogEnum.small ? 1 : 2),
           kitchen_list_show_price: kitchenListShowPrice == true ? 1: 0,
           print_combine_kitchen_list: printCombineKitchenList == true ? 1: 0,
           kitchen_list_item_separator: kitchenListItemSeparator == true ? 1: 0,
@@ -486,8 +486,8 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
 
   testLayout(){
     testPrintLayout = KitchenList(
-        product_name_font_size: productFontSize == ReceiptDialogEnum.big ? 0 : 1,
-        other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : 1,
+        product_name_font_size: productFontSize == ReceiptDialogEnum.big ? 0 : (productFontSize == ReceiptDialogEnum.small ? 1 : 2),
+        other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : (variantAddonFontSize == ReceiptDialogEnum.small ? 1 : 2),
         kitchen_list_show_price: kitchenListShowPrice == true ? 1: 0,
         print_combine_kitchen_list: printCombineKitchenList == true ? 1: 0,
         kitchen_list_item_separator: kitchenListItemSeparator == true ? 1: 0,
@@ -709,6 +709,17 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              value: ReceiptDialogEnum.medium,
+              groupValue: productFontSize,
+              onChanged: (value) async  {
+                productFontSize = value;
+                fontSize = 18.0;
+                actionController.sink.add("switch");
+              },
+              title: Text(AppLocalizations.of(context)!.translate('medium')),
+              controlAffinity: ListTileControlAffinity.trailing,
+            ),
+            RadioListTile<ReceiptDialogEnum?>(
               value: ReceiptDialogEnum.small,
               groupValue: productFontSize,
               onChanged: (value) async  {
@@ -732,6 +743,17 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                 actionController.sink.add("switch");
               },
               title: Text(AppLocalizations.of(context)!.translate('big')),
+              controlAffinity: ListTileControlAffinity.trailing,
+            ),
+            RadioListTile<ReceiptDialogEnum?>(
+              value: ReceiptDialogEnum.medium,
+              groupValue: variantAddonFontSize,
+              onChanged: (value) async  {
+                variantAddonFontSize = value;
+                otherFontSize = 18.0;
+                actionController.sink.add("switch");
+              },
+              title: Text(AppLocalizations.of(context)!.translate('medium')),
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
@@ -995,6 +1017,17 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              value: ReceiptDialogEnum.medium,
+              groupValue: productFontSize,
+              onChanged: (value) async  {
+                productFontSize = value;
+                fontSize = 18.0;
+                actionController.sink.add("switch");
+              },
+              title: Text(AppLocalizations.of(context)!.translate('medium')),
+              controlAffinity: ListTileControlAffinity.trailing,
+            ),
+            RadioListTile<ReceiptDialogEnum?>(
               value: ReceiptDialogEnum.small,
               groupValue: productFontSize,
               onChanged: (value) async  {
@@ -1018,6 +1051,17 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                 actionController.sink.add("switch");
               },
               title: Text(AppLocalizations.of(context)!.translate('big')),
+              controlAffinity: ListTileControlAffinity.trailing,
+            ),
+            RadioListTile<ReceiptDialogEnum?>(
+              value: ReceiptDialogEnum.medium,
+              groupValue: variantAddonFontSize,
+              onChanged: (value) async  {
+                variantAddonFontSize = value;
+                otherFontSize = 18.0;
+                actionController.sink.add("switch");
+              },
+              title: Text(AppLocalizations.of(context)!.translate('medium')),
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
@@ -1147,6 +1191,17 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        value: ReceiptDialogEnum.medium,
+        groupValue: productFontSize,
+        onChanged: (value) async  {
+          productFontSize = value;
+          fontSize = 18.0;
+          actionController.sink.add("switch");
+        },
+        title: Text(AppLocalizations.of(context)!.translate('medium')),
+        controlAffinity: ListTileControlAffinity.trailing,
+      ),
+      RadioListTile<ReceiptDialogEnum?>(
         value: ReceiptDialogEnum.small,
         groupValue: productFontSize,
         onChanged: (value) async  {
@@ -1170,6 +1225,17 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
           actionController.sink.add("switch");
         },
         title: Text(AppLocalizations.of(context)!.translate('big')),
+        controlAffinity: ListTileControlAffinity.trailing,
+      ),
+      RadioListTile<ReceiptDialogEnum?>(
+        value: ReceiptDialogEnum.medium,
+        groupValue: variantAddonFontSize,
+        onChanged: (value) async  {
+          variantAddonFontSize = value;
+          otherFontSize = 18.0;
+          actionController.sink.add("switch");
+        },
+        title: Text(AppLocalizations.of(context)!.translate('medium')),
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
@@ -1295,6 +1361,17 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        value: ReceiptDialogEnum.medium,
+        groupValue: productFontSize,
+        onChanged: (value) async  {
+          productFontSize = value;
+          fontSize = 18.0;
+          actionController.sink.add("switch");
+        },
+        title: Text(AppLocalizations.of(context)!.translate('medium')),
+        controlAffinity: ListTileControlAffinity.trailing,
+      ),
+      RadioListTile<ReceiptDialogEnum?>(
         value: ReceiptDialogEnum.small,
         groupValue: productFontSize,
         onChanged: (value) async  {
@@ -1318,6 +1395,17 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
           actionController.sink.add("switch");
         },
         title: Text(AppLocalizations.of(context)!.translate('big')),
+        controlAffinity: ListTileControlAffinity.trailing,
+      ),
+      RadioListTile<ReceiptDialogEnum?>(
+        value: ReceiptDialogEnum.medium,
+        groupValue: variantAddonFontSize,
+        onChanged: (value) async  {
+          variantAddonFontSize = value;
+          otherFontSize = 18.0;
+          actionController.sink.add("switch");
+        },
+        title: Text(AppLocalizations.of(context)!.translate('medium')),
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(

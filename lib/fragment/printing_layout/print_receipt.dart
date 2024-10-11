@@ -733,12 +733,16 @@ class PrintReceipt{
   }
 
   printCheckList(List<Printer> printerList, int orderCacheLocalId, {String? order_by}) async {
+
     print('check list call');
     try {
       int printStatus = 0;
       for (int i = 0; i < printerList.length; i++) {
-        print('loop time: ${i+1}');
-        if(printerList[i].printer_status == 1 && printerList[i].is_counter == 1){
+        int printer_id = 0;
+        if(printerList[i].printer_status == 1 && (printerList[i].is_counter == 1 || printerList[i].is_kitchen_checklist == 1)){
+          if(printerList[i].is_kitchen_checklist == 1) {
+            printer_id = printerList[i].printer_sqlite_id!;
+          }
           var printerDetail = jsonDecode(printerList[i].value!);
           if (printerList[i].type == 0) {
             //print USB 80mm
@@ -776,7 +780,7 @@ class PrintReceipt{
               final printer = NetworkPrinter(PaperSize.mm80, profile);
               final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
               if (res == PosPrintResult.success) {
-                await ChecklistLayout().printCheckList80mm(false, orderCacheLocalId, value: printer, order_by: order_by);
+                await ChecklistLayout().printCheckList80mm(false, orderCacheLocalId, value: printer, order_by: order_by, printer_id: printer_id);
                 await Future.delayed(Duration(milliseconds: 100));
                 printer.disconnect();
                 printStatus = 0;
@@ -846,7 +850,7 @@ class PrintReceipt{
     try {
       if(printerList.isNotEmpty){
         for (int i = 0; i < printerList.length; i++) {
-          if(printerList[i].printer_status == 1 && printerList[i].is_counter == 1){
+          if(printerList[i].printer_status == 1 && (printerList[i].is_counter == 1 || printerList[i].is_kitchen_checklist == 1)){
             var printerDetail = jsonDecode(printerList[i].value!);
             if (printerList[i].type == 0) {
               //print USB 80mm

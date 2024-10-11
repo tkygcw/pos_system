@@ -1656,26 +1656,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                 children: [
                                                   ElevatedButton.icon(
                                                       style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                                                      onPressed: isButtonDisable || itemList.isEmpty ? null : () async {
-                                                        if (double.parse(inputController.text) >= double.parse(finalAmount)) {
-                                                          setState(() {
-                                                            isButtonDisable = true;
-                                                          });
-                                                          await callCreateOrder(inputController.text, orderChange: change);
-                                                          if (this.isLogOut == true) {
-                                                            openLogOutDialog();
-                                                            return;
-                                                          }
-                                                          openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: true, diningName: widget.dining_name);
-                                                        } else {
-                                                          Fluttertoast.showToast(
-                                                              backgroundColor: Color(0xFFFF0000),
-                                                              msg: AppLocalizations.of(context)!.translate('insufficient_balance'));
-                                                          setState(() {
-                                                            inputController.text = '0.00';
-                                                          });
-                                                        }
-                                                      },
+                                                      onPressed: isButtonDisable || itemList.isEmpty ? null : () async => makePayment(),
                                                       icon: Icon(Icons.payments, size: 20),
                                                       label: Text(AppLocalizations.of(context)!.translate('make_payment'))),
                                                   SizedBox(
@@ -2626,6 +2607,9 @@ class _MakePaymentState extends State<MakePayment> {
                                                         builder: (context, TextEditingValue value, __) {
                                                           return Container(
                                                             child: TextField(
+                                                              onSubmitted: (value) {
+                                                                makePayment();
+                                                              },
                                                               onChanged: (value) {
                                                                 calcChange(value);
                                                               },
@@ -2654,27 +2638,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                           ),
                                                           onPressed: isButtonDisable || itemList.isEmpty
                                                               ? null
-                                                              : () async {
-                                                            if (double.parse(inputController.text) >= double.parse(finalAmount)) {
-                                                              setState(() {
-                                                                isButtonDisable = true;
-                                                              });
-                                                              await callCreateOrder(inputController.text, orderChange: change);
-                                                              if (this.isLogOut == true) {
-                                                                openLogOutDialog();
-                                                                return;
-                                                              }
-                                                              openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: true, diningName: widget.dining_name);
-                                                            } else {
-                                                              Fluttertoast.showToast(
-                                                                backgroundColor: Color(0xFFFF0000),
-                                                                msg: AppLocalizations.of(context)!.translate('insufficient_balance'),
-                                                              );
-                                                              setState(() {
-                                                                inputController.text = '0.00';
-                                                              });
-                                                            }
-                                                          },
+                                                              : () async => makePayment(),
                                                           icon: Icon(Icons.payments, size: 20),
                                                           label: Text(AppLocalizations.of(context)!.translate('make_payment')),
                                                         ),

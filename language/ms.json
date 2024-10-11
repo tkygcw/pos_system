@@ -444,6 +444,7 @@
   "print_combine_kitchen_list_desc": "Gabungkan dan cetak semua pesanan dalam satu penyenaraian dapur",
   "print_combine_kitchen_list_required": "Pengaktifan gabungkan pesanan dapur cetak diperlukan",
   "print_check_list": "Cetak senarai semak",
+  "print_kitchen_checklist": "Cetak senarai semak dapur",
   "print_receipt": "Cetak resit",
   "print_review_receipt": "Cetak resit semakan",
   "printer": "Pencetak",

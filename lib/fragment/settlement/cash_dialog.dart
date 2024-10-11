@@ -298,8 +298,7 @@ class _CashDialogState extends State<CashDialog> {
                           ? Text(AppLocalizations.of(context)!.translate('cash_in'))
                           : Text(AppLocalizations.of(context)!.translate('cash_out')),
                   content: Container(
-
-                    width: MediaQuery.of(context).size.width,
+                    width: constraints.maxWidth > 300 ? 300 : MediaQuery.of(context).size.width,
                     child: SingleChildScrollView(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,

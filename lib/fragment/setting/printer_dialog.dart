@@ -51,7 +51,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
   String? printer_value, printer_category_value, printer_category_delete_value;
   int? _typeStatus = 0;
   int? _paperSize = 0;
-  bool _submitted = false, _isUpdate = false, _isCashier = false, _isLabel = false, _isActive = true, isLogOut = false;
+  bool _submitted = false, _isUpdate = false, _isCashier = false, _isKitchenCheckList = false, _isLabel = false, _isActive = true, isLogOut = false;
   bool isLoad = false, isButtonDisabled = false;
   bool isIos = false;
 
@@ -69,6 +69,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
       printerValue.add(widget.printerObject!.value!);
 
       widget.printerObject!.is_counter == 1 ? _isCashier = true : _isCashier = false;
+      widget.printerObject!.is_kitchen_checklist == 1 ? _isKitchenCheckList = true : _isKitchenCheckList = false;
       widget.printerObject!.is_label == 1 ? selectedValue = 'label_printer' : selectedValue = 'general_printer';
       widget.printerObject!.printer_status == 1 ? _isActive = true : _isActive = false;
     } else if (widget.devices != null) {
@@ -374,7 +375,10 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                     Row(
                                       children: [
                                         Container(
-                                          child: Text(AppLocalizations.of(context)!.translate('set_as_cashier_printer')),
+                                          child: Text(
+                                            AppLocalizations.of(context)!.translate('set_as_cashier_printer'),
+                                            style: TextStyle(color: _isKitchenCheckList ? Colors.grey : Colors.black),
+                                          ),
                                         ),
                                         Spacer(),
                                         Container(
@@ -385,6 +389,35 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                                 : (value) {
                                               setState(() {
                                                 _isCashier = value!;
+                                                if (_isKitchenCheckList) {
+                                                  _isKitchenCheckList = false;
+                                                }
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        Container(
+                                          child: Text(
+                                            AppLocalizations.of(context)!.translate('print_kitchen_checklist'),
+                                            style: TextStyle(color: _isCashier ? Colors.grey : Colors.black),
+                                          ),
+                                        ),
+                                        Spacer(),
+                                        Container(
+                                          child: Checkbox(
+                                            value: _isKitchenCheckList,
+                                            onChanged: widget.devices != null
+                                                ? null
+                                                : (value) {
+                                              setState(() {
+                                                _isKitchenCheckList = value!;
+                                                if (_isCashier) {
+                                                  _isCashier = false;
+                                                }
                                               });
                                             },
                                           ),
@@ -696,7 +729,8 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                           });
                                         } else {
                                           if(_typeStatus == 1){
-                                            manualAddDeviceDialog();
+                                            // manualAddDeviceDialog();
+                                            openAddDeviceDialog(_typeStatus!);
                                           } else {
                                             openAddDeviceDialog(_typeStatus!);
                                           }
@@ -800,6 +834,26 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                                 : (value) {
                                               setState(() {
                                                 _isCashier = value!;
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        Container(
+                                          child: Text(AppLocalizations.of(context)!.translate('print_kitchen_checklist')),
+                                        ),
+                                        Spacer(),
+                                        Container(
+                                          child: Checkbox(
+                                            value: _isKitchenCheckList,
+                                            onChanged: widget.devices != null
+                                                ? null
+                                                : (value) {
+                                              setState(() {
+                                                _isKitchenCheckList = value!;
                                               });
                                             },
                                           ),
@@ -1091,6 +1145,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
           paper_size: _paperSize,
           printer_status: _isActive ? 1 : 0,
           is_counter: _isCashier ? 1 : 0,
+          is_kitchen_checklist: _isKitchenCheckList ? 1 : 0,
           is_label: _isLabel ? 1 : 0,
           sync_status: _typeStatus == 0 ? -1 : 0,
           created_at: dateTime,
@@ -1201,9 +1256,11 @@ class _PrinterDialogState extends State<PrinterDialog> {
             selectedCategories.add(Categories(category_sqlite_id: 0, name: 'Other/uncategorized'));
           } else {
             Categories? catData = await PosDatabase.instance.readSpecificCategoryById(data[i].category_sqlite_id!);
-            if (!selectedCategories.contains(catData)) {
-              catData!.isChecked = true;
-              selectedCategories.add(catData);
+            if(catData != null) {
+              if (!selectedCategories.contains(catData)) {
+                catData.isChecked = true;
+                selectedCategories.add(catData);
+              }
             }
           }
         }
@@ -1296,6 +1353,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
           paper_size: _paperSize,
           printer_status: _isActive ? 1 : 0,
           is_counter: _isCashier ? 1 : 0,
+          is_kitchen_checklist: _isKitchenCheckList ? 1 : 0,
           is_label: _isLabel ? 1 : 0,
           sync_status: checkData.type == 0 && _typeStatus == 1
               ? 0

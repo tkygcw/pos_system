@@ -772,7 +772,9 @@ class PosDatabase {
         }break;
         case 24: {
           await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
-        }
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+        }break;
+
       }
     }
   }
@@ -1256,6 +1258,7 @@ class PosDatabase {
           ${PrinterFields.paper_size} $integerType,
           ${PrinterFields.printer_status} $integerType,
           ${PrinterFields.is_counter} $integerType,
+          ${PrinterFields.is_kitchen_checklist} $integerType,
           ${PrinterFields.is_label} $integerType,
           ${PrinterFields.sync_status} $integerType,
           ${PrinterFields.created_at} $textType,
@@ -2474,15 +2477,16 @@ class PosDatabase {
   Future<Printer> insertPrinter(Printer data) async {
     final db = await instance.database;
     final id = await db.rawInsert(
-        'INSERT INTO $tablePrinter(soft_delete, updated_at, created_at, sync_status, is_counter, is_label, '
+        'INSERT INTO $tablePrinter(soft_delete, updated_at, created_at, sync_status, is_counter, is_kitchen_checklist, is_label, '
         'printer_status, paper_size, printer_label, type, value, printer_link_category_id, company_id, branch_id, printer_key, printer_id) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.soft_delete,
           data.updated_at,
           data.created_at,
           data.sync_status,
           data.is_counter,
+          data.is_kitchen_checklist,
           data.is_label,
           data.printer_status,
           data.paper_size,
@@ -6930,8 +6934,8 @@ class PosDatabase {
   Future<int> updatePrinter(Printer data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tablePrinter SET printer_label = ?, paper_size = ?, type = ?, value = ?, printer_status = ?, is_counter = ?, is_label = ?, sync_status = ?, updated_at = ? WHERE printer_sqlite_id = ?',
-        [data.printer_label, data.paper_size, data.type, data.value, data.printer_status, data.is_counter, data.is_label, data.sync_status, data.updated_at, data.printer_sqlite_id]);
+        'UPDATE $tablePrinter SET printer_label = ?, paper_size = ?, type = ?, value = ?, printer_status = ?, is_counter = ?, is_kitchen_checklist = ?, is_label = ?, sync_status = ?, updated_at = ? WHERE printer_sqlite_id = ?',
+        [data.printer_label, data.paper_size, data.type, data.value, data.printer_status, data.is_counter, data.is_kitchen_checklist, data.is_label, data.sync_status, data.updated_at, data.printer_sqlite_id]);
   }
 
 /*
@@ -7155,7 +7159,8 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate("UPDATE $tableKitchenList SET updated_at = ?, sync_status = ?, show_product_sku = ?, kitchen_list_show_total_amount = ?, kitchen_list_item_separator = ?, "
         "print_combine_kitchen_list = ?, kitchen_list_show_price = ?, product_name_font_size = ?, other_font_size = ? WHERE kitchen_list_sqlite_id = ?",
-        [data.updated_at, data.sync_status, data.show_product_sku, data.kitchen_list_show_total_amount, data.kitchen_list_item_separator, data.print_combine_kitchen_list, data.kitchen_list_show_price, data.product_name_font_size, data.other_font_size, data.kitchen_list_sqlite_id]);
+        [data.updated_at, data.sync_status, data.show_product_sku, data.kitchen_list_show_total_amount, data.kitchen_list_item_separator, data.print_combine_kitchen_list, data.kitchen_list_show_price,
+          data.product_name_font_size, data.other_font_size, data.kitchen_list_sqlite_id]);
   }
 
 /*
