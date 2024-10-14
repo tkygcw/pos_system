@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:async_queue/async_queue.dart';
-import 'package:dart_ping_ios/dart_ping_ios.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -64,9 +63,6 @@ Future<void> main() async {
 
   //init lcd screen
   initLCDScreen();
-
-  //required to scan ip, for ios used
-  DartPingIOS.register();
 
   WidgetsFlutterBinding.ensureInitialized();
   //create default app color

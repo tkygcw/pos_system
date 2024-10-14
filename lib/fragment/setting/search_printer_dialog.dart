@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:io' as Platform;
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -8,7 +9,6 @@ import 'package:lan_scanner/lan_scanner.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:location/location.dart';
 import 'package:network_info_plus/network_info_plus.dart';
-import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:pos_system/notifier/printer_notifier.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:provider/provider.dart';
@@ -41,6 +41,7 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
   bool connected = false;
   bool bluetoothIsOn = false;
   String customIp = '';
+  bool isStreamRunning = false;
 
   @override
   initState() {
@@ -171,6 +172,7 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
     isLoad = false;
     final scanner = LanScanner();
     ips = [];
+    percentage = 0.0;
 
     wifiIP = await NetworkInfo().getWifiIP();
     if (wifiIP != null) {
@@ -190,29 +192,42 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
       wifiName = '"mobile data"';
     }
     var subnet = ipToCSubnet(wifiIP!);
-    final stream = scanner.icmpScan(subnet, progressCallback: (progress) {
-      if (mounted) {
-        setState(() {
-          info = Text(
-              "${AppLocalizations.of(context)?.translate('scanning_device_within')} $wifiName\n${AppLocalizations.of(context)!.translate('device_ip')}: ${wifiIP}");
-          percentage = progress;
-          if (percentage == 1.0) {
-            isLoad = true;
-          }
-        });
-      }
-    });
 
-    streamSub = stream.listen((Host host) async {
-      if (wifiIP != host.internetAddress.address) {
-        bool isPortOpen = await checkPort(host.internetAddress.address, 9100);
-        if (isPortOpen) {
+    if(Platform.Platform.isAndroid) {
+      final stream = scanner.icmpScan(subnet, progressCallback: (progress) {
+        if (mounted) {
           setState(() {
-            ips.add(host.internetAddress.address);
+            info = Text(
+                "${AppLocalizations.of(context)?.translate('scanning_device_within')} $wifiName\n${AppLocalizations.of(context)!.translate('device_ip')}: ${wifiIP}");
+            percentage = progress;
+            if (percentage == 1.0) {
+              isLoad = true;
+              isStreamRunning = false;
+            }
           });
         }
+      });
+
+      isStreamRunning = true;
+      streamSub = stream.listen((Host host) async {
+        if (wifiIP != host.internetAddress.address) {
+          bool isPortOpen = await checkPort(host.internetAddress.address, 9100);
+          if (isPortOpen) {
+            setState(() {
+              ips.add(host.internetAddress.address);
+            });
+          }
+        }
+      });
+
+      if(streamSub != null) {
+        streamSub!.onDone(() {
+          isStreamRunning = false;
+        });
       }
-    });
+    } else {
+      isLoad = true;
+    }
   }
 
   Future<bool> checkPort(String ip, int port) async {
@@ -266,10 +281,21 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
                         child: SizedBox(
                           width: 25.0,
                           height: 25.0,
-                          child: CircularProgressIndicator(
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.grey),
-                          ),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                              ),
+                              Text(
+                                '${(percentage * 100).toStringAsFixed(0)}',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 14.0,
+                                ),
+                              ),
+                            ],
+                          )
                         ),
                       )
                     : Container(),
@@ -302,9 +328,10 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
                                             : () async {
                                                 setState(() {
                                                   isButtonDisable = true;
-                                                  if (streamSub != null) {
+                                                  if (isStreamRunning) {
                                                     streamSub!.cancel();
                                                     isLoad = true;
+                                                    isStreamRunning = false;
                                                   }
                                                 });
                                                 await manualAddDeviceDialog();
@@ -383,11 +410,19 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
               child: Text(
                   "${AppLocalizations.of(context)?.translate('refresh')}"),
               onPressed: () {
-                widget.type == 0
-                    ? _getDevicelist()
-                    : widget.type == 1
-                        ? scan_network()
-                        : checkBluetooth();
+                if (isStreamRunning) {
+                  streamSub!.cancel();
+                  setState(() {
+                    isLoad = true;
+                    isStreamRunning = false;
+                  });
+                } else {
+                  widget.type == 0
+                      ? _getDevicelist()
+                      : widget.type == 1
+                      ? scan_network()
+                      : checkBluetooth();
+                }
               },
             ),
             TextButton(
@@ -395,7 +430,7 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
                   Text('${AppLocalizations.of(context)?.translate('close')}',
                       style: TextStyle(color: Colors.red)),
               onPressed: () {
-                if (streamSub != null) {
+                if (isStreamRunning) {
                   streamSub!.cancel();
                 }
                 Navigator.of(context).pop();
@@ -467,7 +502,6 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
                         });
                       } else {
                         customIp = ip.text;
-                        print("customIp: $customIp");
                         widget.callBack(jsonEncode(customIp));
                         Navigator.of(context).pop();
                         Navigator.of(context).pop();
@@ -501,7 +535,6 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
                       });
                     } else {
                       customIp = ip.text;
-                      print("customIp: $customIp");
                       widget.callBack(jsonEncode(customIp));
                       Navigator.of(context).pop();
                       Navigator.of(context).pop();
