@@ -18,6 +18,7 @@ class BranchFields {
     working_day,
     working_time,
     close_qr_order,
+    register_no,
   ];
 
   static String branch_id = 'branch_id';
@@ -36,6 +37,7 @@ class BranchFields {
   static String working_day = 'working_day';
   static String working_time = 'working_time';
   static String close_qr_order = 'close_qr_order';
+  static String register_no = 'register_no';
 }
 
 class Branch {
@@ -55,25 +57,27 @@ class Branch {
   String? working_day;
   String? working_time;
   int? close_qr_order;
+  String? register_no;
 
-  Branch(
-      {this.branch_id,
-      this.branch_url,
-      this.name,
-      this.address,
-      this.phone,
-      this.email,
-      this.ipay_merchant_code,
-      this.ipay_merchant_key,
-      this.notification_token,
-      this.qr_order_status,
-      this.sub_pos_status,
-      this.attendance_status,
-      this.company_id,
-      this.working_day,
-      this.working_time,
-      this.close_qr_order
-      });
+  Branch({
+    this.branch_id,
+    this.branch_url,
+    this.name,
+    this.address,
+    this.phone,
+    this.email,
+    this.ipay_merchant_code,
+    this.ipay_merchant_key,
+    this.notification_token,
+    this.qr_order_status,
+    this.sub_pos_status,
+    this.attendance_status,
+    this.company_id,
+    this.working_day,
+    this.working_time,
+    this.close_qr_order,
+    this.register_no
+  });
 
   Branch copy({int? branch_id, String? name}) => Branch(
     branch_id: branch_id ?? this.branch_id,
@@ -91,7 +95,8 @@ class Branch {
     company_id: company_id ?? this.company_id,
     working_day: working_day ?? this.working_day,
     working_time: working_time ?? this.working_time,
-    close_qr_order: close_qr_order ?? this.close_qr_order
+    close_qr_order: close_qr_order ?? this.close_qr_order,
+    register_no: register_no ?? this.register_no
   );
 
   factory Branch.fromJson(Map<String, dynamic> json) {
@@ -111,7 +116,8 @@ class Branch {
       company_id: json[BranchFields.company_id] as String?,
       working_day: json[BranchFields.working_day] as String?,
       working_time: json[BranchFields.working_time] as String?,
-      close_qr_order: json[BranchFields.close_qr_order] as int?
+      close_qr_order: json[BranchFields.close_qr_order] as int?,
+      register_no: json[BranchFields.register_no] as String?
     );
   }
 
@@ -131,6 +137,7 @@ class Branch {
     BranchFields.company_id: company_id,
     BranchFields.working_day: working_day,
     BranchFields.working_time: working_time,
-    BranchFields.close_qr_order: close_qr_order
+    BranchFields.close_qr_order: close_qr_order,
+    BranchFields.register_no: register_no
   };
 }

@@ -88,7 +88,6 @@ class _LoadingPageState extends State<LoadingPage> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Scaffold(
-        backgroundColor: color.backgroundColor,
         body: CustomProgressBar(),
       );
     });
@@ -98,7 +97,6 @@ class _LoadingPageState extends State<LoadingPage> {
     try{
       await getDateRetrieveDate();
       await getCashRecord();
-
       await getAllDynamicQr();
       await getSubscription();
       await getAppSettingCloud();
@@ -125,8 +123,6 @@ class _LoadingPageState extends State<LoadingPage> {
       await getModifierGroup();
       await getModifierItem();
       await getBranchLinkModifier();
-      // await getSale();
-
       await getTransferOwner();
       await clearCloudSyncRecord();
       await getAllReceipt();
@@ -535,6 +531,7 @@ createReceiptLayout80() async {
         status: 1,
         show_product_sku: 0,
         show_branch_tel: 1,
+        show_register_no: 0,
         sync_status: 0,
         created_at: dateTime,
         updated_at: '',
@@ -623,6 +620,7 @@ createReceiptLayout58() async {
         status: 1,
         show_product_sku: 0,
         show_branch_tel: 1,
+        show_register_no: 0,
         sync_status: 0,
         created_at: dateTime,
         updated_at: '',

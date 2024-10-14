@@ -97,7 +97,7 @@ class _TableDynamicQrDialogState extends State<TableDynamicQrDialog> {
               ),
               Row(
                 children: [
-                  Text("Invalid after payment"),
+                  Text(AppLocalizations.of(context)!.translate("qr_code_one_time")),
                   Checkbox(value: invalidAfterPayment, onChanged: (value){
                     setState(() {
                       invalidAfterPayment = value!;

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
@@ -22,7 +21,6 @@ import 'package:pos_system/object/table.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/branch.dart';
 
@@ -34,10 +32,15 @@ class QrMainPage extends StatefulWidget {
 }
 
 class _QrMainPageState extends State<QrMainPage> {
+  final on = 'ON';
+  final off = 'OFF';
+  static const disableCloseQRstatus = 'qr_order_OFF';
+  static const enableCloseQRstatus = 'qr_order_ON';
   List<OrderCache> qrOrderCacheList = [];
   List<OrderDetail> orderDetailList = [], noStockOrderDetailList = [];
   bool hasNoStockProduct = false, hasAccess = true, closeQrOrderStatus = false;
   late final Branch branchObject;
+  String closeQrOption = disableCloseQRstatus;
 
   @override
   void initState() {
@@ -86,48 +89,23 @@ class _QrMainPageState extends State<QrMainPage> {
         children: [
           Text(AppLocalizations.of(context)!.translate('qr_order'), style: TextStyle(fontSize: 25)),
           Spacer(),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: color.backgroundColor,
-            ),
-            icon: Icon(Icons.sync),
-            label: Text(
-              'online mode',
-              style: TextStyle(color: Colors.white),
-            ),
-            onPressed: (){
-              PosFirestore.instance.online();
-            },
-          ),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: color.backgroundColor,
-            ),
-            icon: Icon(Icons.sync),
-            label: Text(
-              'offline mode',
-              style: TextStyle(color: Colors.white),
-            ),
-            onPressed: (){
-              PosFirestore.instance.offline();
-            },
-          ),
-          Spacer(),
           Row(
            children: [
-             Text("Close QR Order"),
-             Switch(value: closeQrOrderStatus, onChanged: (value) {
-               setState(() {
-                 closeQrOrderStatus = value;
-               });
-               Branch data = Branch(
-                   close_qr_order: closeQrOrderStatus ? 1 : 0,
-                   branch_id: branchObject.branch_id
-               );
-               PosFirestore.instance.updateBranchCloseQROrderStatus(data);
-               PosDatabase.instance.updateBranchCloseQrStatus(data);
-               Domain().updateBranchCloseQrOrder(data);
-             }),
+             Text(AppLocalizations.of(context)!.translate("close_qr_order")),
+             Switch(
+                activeColor: color.backgroundColor,
+                 value: closeQrOrderStatus,
+                 onChanged: (value) {
+                   setState(() {
+                     closeQrOrderStatus = value;
+                   });
+                   Branch data = Branch(
+                       close_qr_order: closeQrOrderStatus ? 1 : 0,
+                       branch_id: branchObject.branch_id
+                   );
+                   updateCloseQrOrderStatusFunction(data);
+                 }
+             ),
            ],
           ),
           SizedBox(width: 10),
@@ -140,14 +118,7 @@ class _QrMainPageState extends State<QrMainPage> {
               AppLocalizations.of(context)!.translate('sync_qr_order'),
               style: TextStyle(color: Colors.white),
             ),
-            onPressed: () async {
-              await FirestoreQROrderSync.instance.readAllNotAcceptedOrderCache(branchObject.branch_id!.toString());
-              if(qrOrder.count == 0){
-                qrOrder.count = 1;
-                await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
-                qrOrder.count = 0;
-              }
-            },
+            onPressed: syncAllQrFunction
           ),
           SizedBox(width: 10),
           ElevatedButton.icon(
@@ -160,17 +131,7 @@ class _QrMainPageState extends State<QrMainPage> {
               style: TextStyle(color: Colors.white),
             ),
             onPressed: () async {
-              if (await confirm(
-                context,
-                title: Text("${AppLocalizations.of(context)!.translate('confirm_accept_all')}"),
-                content: Text('${AppLocalizations.of(context)!.translate('confirm_accept_all_desc')}'),
-                textOK: Text('${AppLocalizations.of(context)!.translate('yes')}'),
-                textCancel: Text('${AppLocalizations.of(context)!.translate('no')}'),
-              )) {
-                if(mounted){
-                  asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
-                }
-              }
+              await acceptAllQrFunction();
             },
           ),
         ],
@@ -195,7 +156,7 @@ class _QrMainPageState extends State<QrMainPage> {
         PopupMenuButton<String>(
           onSelected: handleClick,
           itemBuilder: (BuildContext context) {
-            return {'sync_qr_order', 'accept_all'}.map((String choice) {
+            return {'${closeQrOption}', 'sync_qr_order', 'accept_all'}.map((String choice) {
               return PopupMenuItem<String>(
                 value: choice,
                 child: Text(AppLocalizations.of(context)!.translate(choice)),
@@ -210,25 +171,27 @@ class _QrMainPageState extends State<QrMainPage> {
 
   Future<void> handleClick(String value) async {
     switch (value) {
+      case disableCloseQRstatus: {
+        closeQrOption = enableCloseQRstatus;
+        Branch data = Branch(
+            close_qr_order: 1,
+            branch_id: branchObject.branch_id
+        );
+        updateCloseQrOrderStatusFunction(data);
+      }break;
+      case enableCloseQRstatus : {
+        closeQrOption = disableCloseQRstatus;
+        Branch data = Branch(
+            close_qr_order: 0,
+            branch_id: branchObject.branch_id
+        );
+        updateCloseQrOrderStatusFunction(data);
+      }break;
       case 'sync_qr_order':
-        if(qrOrder.count == 0){
-          qrOrder.count = 1;
-          await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
-          qrOrder.count = 0;
-        }
+        await syncAllQrFunction();
         break;
       case 'accept_all':
-        if (await confirm(
-          context,
-          title: Text("${AppLocalizations.of(context)!.translate('confirm_accept_all')}"),
-          content: Text('${AppLocalizations.of(context)!.translate('confirm_accept_all_desc')}'),
-          textOK: Text('${AppLocalizations.of(context)!.translate('yes')}'),
-          textCancel: Text('${AppLocalizations.of(context)!.translate('no')}'),
-        )) {
-          if(mounted){
-            asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
-          }
-        }
+        await acceptAllQrFunction();
         break;
     }
   }
@@ -338,6 +301,36 @@ class _QrMainPageState extends State<QrMainPage> {
         });
   }
 
+  Future<void> acceptAllQrFunction() async {
+    if (await confirm(
+      context,
+      title: Text("${AppLocalizations.of(context)!.translate('confirm_accept_all')}"),
+      content: Text('${AppLocalizations.of(context)!.translate('confirm_accept_all_desc')}'),
+      textOK: Text('${AppLocalizations.of(context)!.translate('yes')}'),
+      textCancel: Text('${AppLocalizations.of(context)!.translate('no')}'),
+    )) {
+      if(mounted){
+        asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
+      }
+    }
+  }
+
+  void updateCloseQrOrderStatusFunction(Branch data){
+    PosFirestore.instance.updateBranchCloseQROrderStatus(data);
+    PosDatabase.instance.updateBranchCloseQrStatus(data);
+    Domain().updateBranchCloseQrOrder(data);
+  }
+
+  Future<void> syncAllQrFunction() async {
+    print("sync qr order called!!!");
+    await FirestoreQROrderSync.instance.readAllNotAcceptedOrderCache(branchObject.branch_id!.toString());
+    if(qrOrder.count == 0){
+      qrOrder.count = 1;
+      await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
+      qrOrder.count = 0;
+    }
+  }
+
   getAllNotAcceptedQrOrder(QrOrder order) async {
     qrOrderCacheList = order.qrOrderCacheList;
     if (qrOrderCacheList.isNotEmpty) {
@@ -360,7 +353,9 @@ class _QrMainPageState extends State<QrMainPage> {
 
   Future<void> checkStatus() async {
     branchObject = (await PosDatabase.instance.readLocalBranch())!;
+    print("branchObject.close_qr_order: ${branchObject.close_qr_order}");
     if(branchObject.close_qr_order == 1){
+      closeQrOption = enableCloseQRstatus;
       closeQrOrderStatus = true;
     }
     if(branchObject.qr_order_status == '1'){

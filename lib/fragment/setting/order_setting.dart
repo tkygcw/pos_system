@@ -537,8 +537,8 @@ class _OrderSettingState extends State<OrderSetting> {
                             ),
                           ),
                           ListTile(
-                            title: Text("Auto checked invalid dynamic QR after payment"),
-                            subtitle: Text("auto checked invalid dynamic QR after payment during dynamic qr code generation"),
+                            title: Text(AppLocalizations.of(context)!.translate("qr_code_one_time")),
+                            subtitle: Text(AppLocalizations.of(context)!.translate("qr_code_one_time_desc")),
                             trailing: Switch(
                               value: invalidAfterPayment,
                               activeColor: color.backgroundColor,

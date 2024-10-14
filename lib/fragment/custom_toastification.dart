@@ -35,7 +35,7 @@ class _CustomToastification {
       alignment: Alignment.topCenter,
       showProgressBar: showProgressBar,
       closeOnClick: true,
-      icon: isError != null ? Icon(Icons.remove_circle_rounded) : Icon(Icons.check_circle_rounded),
+      icon: isError != null ? Icon(Icons.cancel_rounded) : Icon(Icons.check_circle_rounded),
       title: Text(title),
       description: description,
       autoCloseDuration: Duration(seconds: autoCloseDuration!),
