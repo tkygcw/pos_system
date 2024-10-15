@@ -1041,6 +1041,121 @@ class ReportFormat {
     return pdf.save();
   }
 
+  Future<Uint8List> generateCancelRecordReportPdf(PdfPageFormat format, String title, ReportModel reportModel) async {
+    List valueList = reportModel.reportValue2;
+    final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
+    final font = await PdfGoogleFonts.nunitoExtraLight();
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
+    final imageByteData = await rootBundle.load('drawable/logo.png');
+    // Convert ByteData to Uint8List
+    final imageUint8List = imageByteData.buffer.asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
+    final image = pw.MemoryImage(imageUint8List);
+
+    pdf.addPage(
+      pw.MultiPage(
+          pageFormat: format,
+          orientation: pw.PageOrientation.landscape,
+          build: (pw.Context context) => [
+            pw.Center(
+                child: pw.Text('${branchObject['name']}', style: pw.TextStyle(font: getFontFormat(branchObject['name']), fontSize: 18))
+            ),
+            pw.SizedBox(height: 10),
+            pw.Table(
+                border: pw.TableBorder(
+                  left: pw.BorderSide(width: 0),
+                  top: pw.BorderSide(width: 0),
+                  right: pw.BorderSide(width: 0),
+                  bottom: pw.BorderSide(width: 0),
+                  horizontalInside: pw.BorderSide(width: 0),
+                  verticalInside: pw.BorderSide.none,
+                ),
+                children: [
+                  pw.TableRow(
+                      decoration: pw.BoxDecoration(
+                        color: PdfColors.black,
+                      ),
+                      children: [
+                        pw.Padding(
+                          padding: pw.EdgeInsets.all(10),
+                          child: pw.Text('Datetime', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Datetime'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.all(10),
+                          child: pw.Text('Product', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Product'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Variant', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Variant'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Cancel By', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Cancel By'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Reason', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Reason'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Quantity', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Quantity'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Total amount', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Total amount'))),
+                        ),
+                      ]
+                  ),
+                  for(final record in valueList)
+                    pw.TableRow(
+                        children: [
+                          pw.Padding(
+                            padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                            child: pw.Text(Utils.formatDate(record.created_at),
+                                style: pw.TextStyle(font: getFontFormat(Utils.formatDate(record.created_at)))),
+                          ),
+                          pw.Padding(
+                            padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                            child: pw.Text(record.product_name,
+                                style: pw.TextStyle(font: getFontFormat(record.product_name))),
+                          ),
+                          pw.Padding(
+                            padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                            child: pw.Text(getProductVariant(record),
+                                style: pw.TextStyle(font: getFontFormat(getProductVariant(record)))),
+                          ),
+                          pw.Padding(
+                            padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                            child: pw.Text(record.cancel_by,
+                                style: pw.TextStyle(font: getFontFormat(record.cancel_by))),
+                          ),
+                          pw.Padding(
+                            padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                            child: pw.Text(record.cancel_reason,
+                                style: pw.TextStyle(font: getFontFormat(record.cancel_reason))),
+                          ),
+                          pw.Padding(
+                            padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                            child: pw.Text(getProductQty(record),
+                                style: pw.TextStyle(font: getFontFormat(getProductQty(record)))),
+                          ),
+                          pw.Padding(
+                            padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                            child: pw.Text(record.price.toStringAsFixed(2),
+                                style: pw.TextStyle(font: getFontFormat(record.price.toStringAsFixed(2)))),
+                          ),
+                        ]
+                    ),
+
+                ]
+            ),
+          ]
+      ),
+    );
+    return pdf.save();
+  }
+
   Future<Uint8List> generateDiningReport(PdfPageFormat format, String title, ReportModel reportModel) async {
     List valueList = reportModel.reportValue2;
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
@@ -1633,6 +1748,22 @@ class ReportFormat {
       ),
     );
     return pdf.save();
+  }
+
+  String getProductQty(record){
+    if(record.unit == 'each' || record.unit == 'each_c'){
+      return record.quantity!;
+    } else {
+      return '${record.quantity!}(${record.quantity_before_cancel!})';
+    }
+  }
+
+  String getProductVariant(record){
+    if(record.product_variant_name != null && record.product_variant_name != ''){
+      return '${record.product_variant_name}';
+    } else {
+      return '';
+    }
   }
 
   String formatAmount({required CashRecord cashRecord}){

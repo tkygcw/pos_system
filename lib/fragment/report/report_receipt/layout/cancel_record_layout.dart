@@ -71,6 +71,9 @@ class CancelRecordLayout {
           PosColumn(text: getProductQty(record), width: 2, styles: PosStyles()),
           PosColumn(text: Utils.to2Decimal(record.price!), width: 2, styles: PosStyles()),
         ]);
+        bytes += generator.row([
+          PosColumn(text: Utils.formatDate(record.created_at!), width: 12, containsChinese: true, styles: PosStyles())
+        ]);
         if(record.product_variant_name != null && record.product_variant_name != ''){
           bytes += generator.row([
             PosColumn(text: getProductVariant(record), width: 12, containsChinese: true, styles: PosStyles()),
@@ -87,14 +90,14 @@ class CancelRecordLayout {
       }
       bytes += generator.row([
         PosColumn(text: 'Subtotal', width: 8, styles: PosStyles(bold: true)),
-        PosColumn(text: model.reportValue2.first.total_item.toString(), width: 2, styles: PosStyles(bold: true)),
-        PosColumn(text: model.reportValue2.first.total_amount!.toStringAsFixed(2), width: 2, styles: PosStyles(bold: true)),
+        PosColumn(text: model.reportValue2.isNotEmpty ? model.reportValue2.first.total_item.toString() : '0', width: 2, styles: PosStyles(bold: true)),
+        PosColumn(text: model.reportValue2.isNotEmpty ?model.reportValue2.first.total_amount!.toStringAsFixed(2) : '0.00', width: 2, styles: PosStyles(bold: true)),
       ]);
       bytes += generator.reset();
       bytes += generator.row([
         PosColumn(text: 'Grand total', width: 8, styles: PosStyles(bold: true)),
-        PosColumn(text: model.reportValue2.first.total_item.toString(), width: 2, styles: PosStyles(bold: true)),
-        PosColumn(text: model.reportValue2.first.total_amount!.toStringAsFixed(2), width: 2, styles: PosStyles(bold: true)),
+        PosColumn(text: model.reportValue2.isNotEmpty ? model.reportValue2.first.total_item.toString() : '0', width: 2, styles: PosStyles(bold: true)),
+        PosColumn(text: model.reportValue2.isNotEmpty ? model.reportValue2.first.total_amount!.toStringAsFixed(2): '0.00', width: 2, styles: PosStyles(bold: true)),
       ]);
       bytes += generator.hr();
       bytes += generator.cut(mode: PosCutMode.partial);
@@ -169,14 +172,14 @@ class CancelRecordLayout {
       }
       bytes += generator.row([
         PosColumn(text: 'Subtotal', width: 8, styles: PosStyles(bold: true)),
-        PosColumn(text: model.reportValue2.first.total_item.toString(), width: 2, styles: PosStyles(bold: true)),
-        PosColumn(text: model.reportValue2.first.total_amount!.toStringAsFixed(2), width: 2, styles: PosStyles(bold: true)),
+        PosColumn(text: model.reportValue2.isNotEmpty ? model.reportValue2.first.total_item.toString() : '0', width: 2, styles: PosStyles(bold: true)),
+        PosColumn(text: model.reportValue2.isNotEmpty ?model.reportValue2.first.total_amount!.toStringAsFixed(2) : '0.00', width: 2, styles: PosStyles(bold: true)),
       ]);
       bytes += generator.reset();
       bytes += generator.row([
         PosColumn(text: 'Grand total', width: 8, styles: PosStyles(bold: true)),
-        PosColumn(text: model.reportValue2.first.total_item.toString(), width: 2, styles: PosStyles(bold: true)),
-        PosColumn(text: model.reportValue2.first.total_amount!.toStringAsFixed(2), width: 2, styles: PosStyles(bold: true)),
+        PosColumn(text: model.reportValue2.isNotEmpty ? model.reportValue2.first.total_item.toString() : '0', width: 2, styles: PosStyles(bold: true)),
+        PosColumn(text: model.reportValue2.isNotEmpty ? model.reportValue2.first.total_amount!.toStringAsFixed(2): '0.00', width: 2, styles: PosStyles(bold: true)),
       ]);
       bytes += generator.hr();
       bytes += generator.cut(mode: PosCutMode.partial);

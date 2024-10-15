@@ -258,6 +258,7 @@ class _CancelRecordReportState extends State<CancelRecordReport> {
   }
 
   getAllOrderDetailCancel() async {
+    print("call!!!");
     _dataRow.clear();
     String currentStDate = model.startDateTime;
     String currentEdDate = model.endDateTime;

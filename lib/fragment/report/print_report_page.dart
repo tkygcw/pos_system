@@ -37,7 +37,7 @@ class _PrintReportPageState extends State<PrintReportPage> {
   void initState() {
     super.initState();
     reportFormat.presetTextFormat();
-    posTableList = widget.tableList!;
+    posTableList = widget.tableList ?? [];
     // if(widget.currentPage == -1){
     //   generateUrl();
     // }
@@ -46,13 +46,16 @@ class _PrintReportPageState extends State<PrintReportPage> {
   Widget build(BuildContext context) {
     return Consumer<ReportModel>(builder: (context, ReportModel reportModel, child) {
         return PopScope(
-          onPopInvoked: (value){
-            widget.callBack!();
+          onPopInvokedWithResult: (value, _){
+            if(widget.callBack != null) {
+              widget.callBack!();
+            }
+            return;
           },
           child: Scaffold(
             appBar:  AppBar(
                 backgroundColor: Colors.white,
-                title: Text('Pdf', style: TextStyle(fontSize: 18))),
+                title: Text('PDF', style: TextStyle(fontSize: 18))),
             body: PdfPreview(
               build: (format) {
                 switch(widget.currentPage){
@@ -78,24 +81,27 @@ class _PrintReportPageState extends State<PrintReportPage> {
                     //generate cancel report
                     return reportFormat.generateCancelProductReportPdf(format, 'Cancellation Report', reportModel);
                   case 7:
+                  //generate cancel modifier report
+                    return reportFormat.generateCancelRecordReportPdf(format, 'Cancel record Report', reportModel);
+                  case 8:
                     //generate cancel modifier report
                     return reportFormat.generateCancelModifierReportPdf(format, 'Cancel Modifier Report', reportModel);
-                  case 8:
+                  case 9:
                     //generate dining report
                     return reportFormat.generateDiningReport(format, 'Dining Report', reportModel);
-                  case 9:
+                  case 10:
                     //generate payment report
                     return reportFormat.generatePaymentReport(format, 'Payment Report', reportModel);
-                  case 10:
+                  case 11:
                     //generate refund report
                     return reportFormat.generateRefundReport(format, 'Refund Report', reportModel);
-                  case 11:
+                  case 12:
                   //generate cash record report
                     return reportFormat.generateCashRecordReport(format, 'Cash Record Report', reportModel);
-                  case 12:
+                  case 13:
                   //generate user sales report
                     return reportFormat.generateStaffSalesReport(format, 'Staff Sales Report', reportModel);
-                  case 13:
+                  case 14:
                   // generate attendance report
                     return reportFormat.generateAttendanceReport(format, 'Attendance Report', reportModel);
                   default:
@@ -106,7 +112,7 @@ class _PrintReportPageState extends State<PrintReportPage> {
               canDebug: false,
               previewPageMargin: EdgeInsets.all(10),
               pdfFileName: generateFileName(),
-              maxPageWidth: MediaQuery.of(context).size.width/2,
+              maxPageWidth: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width/2 : MediaQuery.of(context).size.width,
               initialPageFormat: PdfPageFormat.a4,
               onPrintError: (context, error) {
                 Fluttertoast.showToast(
