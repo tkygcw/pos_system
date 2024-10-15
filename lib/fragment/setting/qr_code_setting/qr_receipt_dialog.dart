@@ -147,96 +147,118 @@ class _DynamicQrReceiptDialogState extends State<DynamicQrReceiptDialog> {
           ],
         );
       } else {
-        return SingleChildScrollView(
-          child: AlertDialog(
-            title: Row(
-              children: [
-                Text(AppLocalizations.of(context)!.translate('dynamic_qr_layout')),
-                SizedBox(width: 10),
-                SegmentedButton(
-                  style: ButtonStyle(
-                      side: WidgetStateProperty.all(
-                        BorderSide.lerp(BorderSide(
-                          style: BorderStyle.solid,
-                          color: Colors.blueGrey,
-                          width: 1,
-                        ),
-                            BorderSide(
+        return AlertDialog(
+          title: Text(AppLocalizations.of(context)!.translate('dynamic_qr_layout')),
+          titlePadding: EdgeInsets.fromLTRB(24, 16, 24, 0),
+          contentPadding: EdgeInsets.fromLTRB(24, 16, 24, 16),
+          content: Container(
+            height: MediaQuery.of(context).size.height / 2,
+            width: 500,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: SegmentedButton(
+                      style: ButtonStyle(
+                          side: WidgetStateProperty.all(
+                            BorderSide.lerp(BorderSide(
                               style: BorderStyle.solid,
                               color: Colors.blueGrey,
                               width: 1,
                             ),
-                            1),
-                      )
+                                BorderSide(
+                                  style: BorderStyle.solid,
+                                  color: Colors.blueGrey,
+                                  width: 1,
+                                ),
+                                1),
+                          )
+                      ),
+                      segments: <ButtonSegment<String>>[
+                        ButtonSegment(value: "80", label: Text("80mm")),
+                        ButtonSegment(value: "58", label: Text("58mm"))
+                      ],
+                      onSelectionChanged: (Set<String> newSelection) async{
+                        setState(() {
+                          receiptView = newSelection.first;
+                        });
+                      },
+                      selected: <String>{receiptView},
+                    ),
                   ),
-                  segments: <ButtonSegment<String>>[
-                    ButtonSegment(value: "80", label: Text("80mm")),
-                    ButtonSegment(value: "58", label: Text("58mm"))
-                  ],
-                  onSelectionChanged: (Set<String> newSelection) async{
-                    setState(() {
-                      receiptView = newSelection.first;
-                    });
-                  },
-                  selected: <String>{receiptView},
+                  SizedBox(height: 10),
+                  receiptView == "80" ?
+                  MobileReceiptView1(callBack: testLayout) :
+                  MobileReceiptView2(callBack: testLayout),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            Row(
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: SizedBox(
+                    width: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width / 2.5 : MediaQuery.of(context).size.width / 3,
+                    height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10 : MediaQuery.of(context).size.height / 20,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: color.backgroundColor,
+                      ),
+                      child: Text(MediaQuery.of(context).orientation == Orientation.landscape ?
+                      AppLocalizations.of(context)!.translate('test_print')
+                          : AppLocalizations.of(context)!.translate('test')),
+                      onPressed: () async {
+                        await printDynamicQr.testPrintDynamicQR(qrLayout: testPrintLayout!, paperSize: receiptView);
+                      },
+                    ),
+                  ),
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                  flex: 1,
+                  child: SizedBox(
+                    width: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width / 2.5 : MediaQuery.of(context).size.width / 3,
+                    height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10 : MediaQuery.of(context).size.height / 20,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                      ),
+                      child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                      onPressed: () {
+                        tapCount++;
+                        if(tapCount == 1){
+                          Navigator.of(context).pop();
+                        }
+                      },
+                    ),
+                  ),
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                  flex: 1,
+                  child: SizedBox(
+                    width: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width / 2.5 : MediaQuery.of(context).size.width / 3,
+                    height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10 : MediaQuery.of(context).size.height / 20,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: color.backgroundColor,
+                      ),
+                      child: Text(AppLocalizations.of(context)!.translate('update')),
+                      onPressed: () {
+                        tapCount++;
+                        if(tapCount == 1){
+                          _submit(context);
+                        }
+                      },
+                    ),
+                  ),
                 ),
               ],
             ),
-            content: SizedBox(
-              height: screenHeight / 2.5,
-              width: 500,
-              child: receiptView == "80" ?
-              MobileReceiptView1(callBack: testLayout) :
-              MobileReceiptView2(callBack: testLayout),
-            ),
-            actions: [
-              SizedBox(
-                width: screenWidth / 4,
-                height: screenHeight / 12,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: color.backgroundColor,
-                  ),
-                  child: Text(AppLocalizations.of(context)!.translate('test_print')),
-                  onPressed: () async {
-                    await printDynamicQr.testPrintDynamicQR(qrLayout: testPrintLayout!, paperSize: receiptView);
-                  },
-                ),
-              ),
-              SizedBox(
-                width: screenWidth / 4,
-                height: screenHeight / 12,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent,
-                  ),
-                  child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                  onPressed: () {
-                    tapCount++;
-                    if(tapCount == 1){
-                      Navigator.of(context).pop();
-                    }
-                  },
-                ),
-              ),
-              SizedBox(
-                width: screenWidth / 4,
-                height: screenHeight / 12,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: color.backgroundColor,
-                  ),
-                  child: Text(AppLocalizations.of(context)!.translate('update')),
-                  onPressed: () {
-                    tapCount++;
-                    if(tapCount == 1){
-                      _submit(context);
-                    }
-                  },
-                ),
-              ),
-            ],
-          ),
+          ],
         );
       }
     });

@@ -175,56 +175,73 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                           }),
                     ),
                     actions: <Widget>[
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                        height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: color.backgroundColor,
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 1,
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                              height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                                  ? MediaQuery.of(context).size.height / 12
+                                  : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+                                  : MediaQuery.of(context).size.height / 20,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: color.backgroundColor,
+                                ),
+                                child: Text(
+                                  AppLocalizations.of(context)!.translate('close'),
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                onPressed: isButtonDisabled2
+                                    ? null
+                                    : () {
+                                  setState(() {
+                                    isButtonDisabled2 = true;
+                                  });
+                                  Navigator.of(context).pop();
+                                  setState(() {
+                                    isButtonDisabled2 = false;
+                                  });
+                                },
+                              ),
+                            ),
                           ),
-                          child: Text(
-                            AppLocalizations.of(context)!.translate('close'),
-                            style: TextStyle(color: Colors.white),
+                          SizedBox(width: 10),
+                          Expanded(
+                            flex: 1,
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                              height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                                  ? MediaQuery.of(context).size.height / 12
+                                  : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+                                  : MediaQuery.of(context).size.height / 20,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: color.buttonColor,
+                                ),
+                                child: Text(
+                                  AppLocalizations.of(context)!.translate('yes'),
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                onPressed: isButtonDisabled2
+                                    ? null
+                                    : () async {
+                                  setState(() {
+                                    isButtonDisabled2 = true;
+                                    willPop = false;
+                                  });
+                                  _submit(context, cart);
+                                  if(mounted){
+                                    setState(() {
+                                      isButtonDisabled = false;
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
                           ),
-                          onPressed: isButtonDisabled2
-                              ? null
-                              : () {
-                            setState(() {
-                              isButtonDisabled2 = true;
-                            });
-                            Navigator.of(context).pop();
-                            setState(() {
-                              isButtonDisabled2 = false;
-                            });
-                          },
-                        ),
-                      ),
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                        height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: color.buttonColor,
-                          ),
-                          child: Text(
-                            AppLocalizations.of(context)!.translate('yes'),
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          onPressed: isButtonDisabled2
-                              ? null
-                              : () async {
-                            setState(() {
-                              isButtonDisabled2 = true;
-                              willPop = false;
-                            });
-                            _submit(context, cart);
-                            if(mounted){
-                              setState(() {
-                                isButtonDisabled = false;
-                              });
-                            }
-                          },
-                        ),
+                        ],
                       ),
                     ],
                   ),

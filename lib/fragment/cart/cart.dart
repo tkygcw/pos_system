@@ -29,6 +29,7 @@ import 'package:pos_system/object/modifier_item.dart';
 import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
+import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/promotion.dart';
@@ -37,7 +38,6 @@ import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/page/loading_dialog.dart';
 import 'package:pos_system/page/progress_bar.dart';
-import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -81,6 +81,7 @@ class CartPageState extends State<CartPage> {
   PrintReceipt printReceipt = PrintReceipt();
   List<Printer> printerList = [];
   List<Promotion> promotionList = [], autoApplyPromotionList = [];
+  List<OrderPaymentSplit> paymentSplitList = [];
   List<BranchLinkDining> diningList = [];
   List<String> branchLinkDiningIdList = [];
   List<cartProductItem> sameCategoryItemList = [];
@@ -105,7 +106,8 @@ class CartPageState extends State<CartPage> {
       tableOrderPrice = 0.0,
       rounding = 0.0,
       paymentReceived = 0.0,
-      paymentChange = 0.0;
+      paymentChange = 0.0,
+      paymentSplitAmount = 0.0;
   String selectedPromoRate = '', promoName = '', promoRate = '', localTableUseId = '', orderCacheId = '', orderNumber = '', allPromo = '', finalAmount = '', localOrderId = '';
   String? table_use_value,
       table_use_detail_value,
@@ -137,6 +139,7 @@ class CartPageState extends State<CartPage> {
   bool lastDiningOption = false;
 
   String tableNo = 'N/A';
+  String orderKey = '';
 
   void _scrollDown() {
     _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
@@ -208,7 +211,8 @@ class CartPageState extends State<CartPage> {
               if(cart.cartNotifierItem.isEmpty){
                 isButtonDisabled = true;
               } else {
-                isButtonDisabled = false;
+                if(widget.currentPage != 'table' && widget.currentPage != 'other_order')
+                  isButtonDisabled = false;
               }
               if(lastDiningOption == false) readAllBranchLinkDiningOption(cart: cart);
 
@@ -303,8 +307,7 @@ class CartPageState extends State<CartPage> {
                         Visibility(
                           visible: (widget.currentPage == 'menu' && cart.selectedOption == 'Dine in' && appSettingModel.table_order != 0) ||
                               (widget.currentPage == 'menu' && cart.selectedOption != 'Dine in' && appSettingModel.directPaymentStatus == false) ||
-                              widget.currentPage == 'qr_order' ||
-                              widget.currentPage == 'bill'
+                              widget.currentPage == 'qr_order' || widget.currentPage == 'bill' || ((widget.currentPage == 'table' || widget.currentPage == 'other_order') && orderKey != '')
                               ? false
                               : true,
                           child: IconButton(
@@ -415,8 +418,8 @@ class CartPageState extends State<CartPage> {
                                             ),
                                             key: ValueKey(cart.cartNotifierItem[index].product_name),
                                             direction: widget.currentPage == 'menu' && cart.cartNotifierItem[index].status == 0 ||
-                                                widget.currentPage == 'table' ||
-                                                widget.currentPage == 'other_order'
+                                                widget.currentPage == 'table' && orderKey == ''||
+                                                widget.currentPage == 'other_order' && orderKey == ''
                                                 ? DismissDirection.startToEnd
                                                 : DismissDirection.none,
                                             confirmDismiss: (direction) async {
@@ -455,8 +458,10 @@ class CartPageState extends State<CartPage> {
                                               onTap: () async {
                                                 // if(widget.currentPage == 'menu' && cart.cartNotifierItem[index].status == 0 ||
                                                 //     widget.currentPage == 'table' || widget.currentPage == 'other_order')
-                                                if(widget.currentPage == 'table' || widget.currentPage == 'other_order')
-                                                  await openAdjustPriceDialog(cart, cart.cartNotifierItem[index], widget.currentPage, index);
+                                                if(orderKey == '') {
+                                                  if(widget.currentPage == 'table' || widget.currentPage == 'other_order')
+                                                    await openAdjustPriceDialog(cart, cart.cartNotifierItem[index], widget.currentPage, index);
+                                                }
                                               },
                                               trailing: Container(
                                                 child: FittedBox(
@@ -533,9 +538,11 @@ class CartPageState extends State<CartPage> {
                                   ),
                                   SizedBox(height: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 10 : 5),
                                   Container(
-                                    height: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
-                                        ? widget.currentPage == 'menu' || widget.currentPage == 'table'
+                                    height: MediaQuery.of(context).size.height > 500
+                                        ? widget.currentPage == 'menu' || widget.currentPage == 'table' || widget.currentPage == 'other_order' || widget.currentPage == 'bill'
+                                        ? MediaQuery.of(context).orientation == Orientation.landscape
                                         ? 130
+                                        : 100
                                         : null
                                         : 25,
                                     child: ListView(
@@ -568,17 +575,20 @@ class CartPageState extends State<CartPage> {
                                               child: Row(
                                                 children: [
                                                   Text('${allPromo} (${selectedPromoRate})', style: TextStyle(fontSize: 14)),
-                                                  IconButton(
-                                                    padding: EdgeInsets.only(left: 10),
-                                                    constraints: BoxConstraints(),
-                                                    icon: Icon(Icons.close),
-                                                    iconSize: 20.0,
-                                                    color: Colors.red,
-                                                    onPressed: () {
-                                                      cart.removePromotion();
-                                                      selectedPromo = 0.0;
-                                                      hasSelectedPromo = false;
-                                                    },
+                                                  Visibility(
+                                                    visible: orderKey == '' ? true : false,
+                                                    child: IconButton(
+                                                      padding: EdgeInsets.only(left: 10),
+                                                      constraints: BoxConstraints(),
+                                                      icon: Icon(Icons.close),
+                                                      iconSize: 20.0,
+                                                      color: Colors.red,
+                                                      onPressed: () {
+                                                        cart.removePromotion();
+                                                        selectedPromo = 0.0;
+                                                        hasSelectedPromo = false;
+                                                      },
+                                                    ),
                                                   ),
                                                 ],
                                               ),
@@ -648,6 +658,21 @@ class CartPageState extends State<CartPage> {
                                           trailing: Text('${rounding.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
                                           visualDensity: VisualDensity(vertical: -4),
                                           dense: true,
+                                        ),
+                                        Visibility(
+                                            visible: orderKey != '' ? true : false,
+                                            child: ListView.builder(
+                                                shrinkWrap: true,
+                                                physics: NeverScrollableScrollPhysics(),
+                                                itemCount: paymentSplitList.length,
+                                                itemBuilder: (context, index) {
+                                                  return ListTile(
+                                                      title: Text('${paymentSplitList[index].payment_name}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                                      visualDensity: VisualDensity(vertical: -4),
+                                                      dense: true,
+                                                      trailing: Text('${paymentSplitList[index].payment_received!}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)));
+                                                }
+                                            )
                                         ),
                                         ListTile(
                                           visualDensity: VisualDensity(vertical: -4),
@@ -760,17 +785,48 @@ class CartPageState extends State<CartPage> {
                                                       }
                                                     } else if (widget.currentPage == 'table') {
                                                       if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
-                                                        if (cart.selectedTable.length > 1) {
-                                                          if (await confirm(
-                                                            context,
-                                                            title: Text('${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
-                                                            content: Text('${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
-                                                            textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                                                            textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
-                                                          )) {
+                                                        if (_isSettlement == true) {
+                                                          showDialog(
+                                                              barrierDismissible: false,
+                                                              context: context,
+                                                              builder: (BuildContext context) {
+                                                                return PopScope(
+                                                                    canPop: false,
+                                                                    child: CashDialog(isCashIn: true, callBack: () {}, isCashOut: false, isNewDay: true));
+                                                              });
+                                                          _isSettlement = false;
+                                                        } else {
+                                                          if (cart.selectedTable.length > 1) {
+                                                            if (await confirm(
+                                                              context,
+                                                              title: Text('${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
+                                                              content: Text('${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
+                                                              textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                                                              textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                                                            )) {
+                                                              paymentAddToCart(cart);
+                                                              return openPaymentSelect(cart);
+                                                            }
+                                                          } else {
                                                             paymentAddToCart(cart);
-                                                            return openPaymentSelect(cart);
+                                                            openPaymentSelect(cart);
                                                           }
+                                                        }
+                                                      } else {
+                                                        Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                                      }
+                                                    } else if (widget.currentPage == 'other_order') {
+                                                      if (cart.cartNotifierItem.isNotEmpty) {
+                                                        if (_isSettlement == true) {
+                                                          showDialog(
+                                                              barrierDismissible: false,
+                                                              context: context,
+                                                              builder: (BuildContext context) {
+                                                                return PopScope(
+                                                                    canPop: false,
+                                                                    child: CashDialog(isCashIn: true, callBack: () {}, isCashOut: false, isNewDay: true));
+                                                              });
+                                                          _isSettlement = false;
                                                         } else {
                                                           paymentAddToCart(cart);
                                                           openPaymentSelect(cart);
@@ -778,19 +834,24 @@ class CartPageState extends State<CartPage> {
                                                       } else {
                                                         Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                                       }
-                                                    } else if (widget.currentPage == 'other_order') {
-                                                      if (cart.cartNotifierItem.isNotEmpty) {
-                                                        paymentAddToCart(cart);
-                                                        openPaymentSelect(cart);
-                                                      } else {
-                                                        Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
-                                                      }
                                                     } else {
                                                       if (cart.cartNotifierItem.isNotEmpty) {
-                                                        int printStatus = await printReceipt.printCartReceiptList(printerList, cart, this.localOrderId);
-                                                        checkPrinterStatus(printStatus);
-                                                        cart.initialLoad();
-                                                        cart.changInit(true);
+                                                        if (_isSettlement == true) {
+                                                          showDialog(
+                                                              barrierDismissible: false,
+                                                              context: context,
+                                                              builder: (BuildContext context) {
+                                                                return PopScope(
+                                                                    canPop: false,
+                                                                    child: CashDialog(isCashIn: true, callBack: () {}, isCashOut: false, isNewDay: true));
+                                                              });
+                                                          _isSettlement = false;
+                                                        } else {
+                                                          int printStatus = await printReceipt.printCartReceiptList(printerList, cart, this.localOrderId);
+                                                          checkPrinterStatus(printStatus);
+                                                          cart.initialLoad();
+                                                          cart.changInit(true);
+                                                        }
                                                       } else {
                                                         Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                                       }
@@ -803,10 +864,15 @@ class CartPageState extends State<CartPage> {
                                                       : widget.currentPage == 'table' || widget.currentPage == 'other_order'
                                                       ? Text(AppLocalizations.of(context)!.translate('pay') + ' (RM ${this.finalAmount})')
                                                       : Text(AppLocalizations.of(context)!.translate('print_receipt'))
+                                                  // mobile
                                                       : widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
+                                                      ? MediaQuery.of(context).orientation == Orientation.landscape
                                                       ? Text(AppLocalizations.of(context)!.translate('place_order'))
+                                                      : Text(AppLocalizations.of(context)!.translate('place_order') + '\n (RM ${this.finalAmount})')
                                                       : widget.currentPage == 'table' || widget.currentPage == 'other_order'
+                                                      ? MediaQuery.of(context).orientation == Orientation.landscape
                                                       ? Text(AppLocalizations.of(context)!.translate('pay'))
+                                                      : Text(AppLocalizations.of(context)!.translate('pay') + ' (RM ${this.finalAmount})')
                                                       : Text(AppLocalizations.of(context)!.translate('print_receipt')))),
                                         ),
                                         Visibility(
@@ -1198,8 +1264,25 @@ class CartPageState extends State<CartPage> {
 /*
   -----------------Calculation-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
-  calPromotion(CartModel cart) {
+  calPromotion(CartModel cart) async {
+    // check if it is a split payment
     promoAmount = 0.0;
+    if(orderKey != '' && cart.cartNotifierItem.isNotEmpty) {
+      List<OrderPromotionDetail> promotionData = await PosDatabase.instance.readSpecificOrderPromotionDetailByOrderKey(orderKey);
+      // check if promotion apply
+      if(promotionData.isNotEmpty && cart.selectedPromotion == null) {
+        for(int i = 0 ; i < promotionData.length; i++ ) {
+          for(int j = 0 ; j < promotionList.length; j++) {
+            if(promotionList[j].promotion_id == int.parse(promotionData[i].promotion_id!)) {
+              if(promotionList[j].auto_apply == '0') {
+                cart.addPromotion(promotionList[j]);
+              }
+            }
+          }
+        }
+      }
+    }
+
     getAutoApplyPromotion(cart);
     getManualApplyPromotion(cart);
     // if (!controller.isClosed) {
@@ -1470,6 +1553,7 @@ class CartPageState extends State<CartPage> {
   }
 
   getAutoApplyPromotion(CartModel cart) {
+    print("getAutoApplyPromotion called");
     try {
       // cart.removeAutoPromotion();
       cart.autoPromotion = [];
@@ -1776,7 +1860,6 @@ class CartPageState extends State<CartPage> {
   }
 
   getDiningTax(CartModel cart) async {
-    final prefs = await SharedPreferences.getInstance();
     try {
       //get dining option data
       List<DiningOption> data = await PosDatabase.instance.checkSelectedOption(cart.selectedOption);
@@ -1803,7 +1886,7 @@ class CartPageState extends State<CartPage> {
 /*
   receipt menu initial call
 */
-  getReceiptPaymentDetail(CartModel cart) {
+  getReceiptPaymentDetail(CartModel cart) async {
     this.total = 0.0;
     this.totalAmount = 0.0;
     this.rounding = 0.0;
@@ -1816,6 +1899,15 @@ class CartPageState extends State<CartPage> {
     this.localOrderId = '';
 
     for (int i = 0; i < cart.cartNotifierPayment.length; i++) {
+      List<Order> orderData = [];
+      orderData = await PosDatabase.instance.readSpecificPaidOrder(cart.cartNotifierPayment[i].localOrderId);
+      // refund order
+      if(orderData.length == 0) {
+        orderData = await PosDatabase.instance.readSpecificRefundedOrder(cart.cartNotifierPayment[i].localOrderId);
+      }
+      if(orderData.length != 0) {
+        this.orderKey = orderData[0].order_key!;
+      }
       this.total = cart.cartNotifierPayment[i].subtotal;
       this.totalAmount = cart.cartNotifierPayment[i].amount;
       this.rounding = cart.cartNotifierPayment[i].rounding;
@@ -1826,6 +1918,7 @@ class CartPageState extends State<CartPage> {
       this.orderPromotionList = cart.cartNotifierPayment[i].orderPromotionDetail;
       this.localOrderId = cart.cartNotifierPayment[i].localOrderId;
     }
+    await getAllPaymentSplit(cart);
     if (!controller.isClosed) {
       controller.sink.add('refresh');
     }
@@ -1835,18 +1928,27 @@ class CartPageState extends State<CartPage> {
   Cart Ordering initial called
 */
   getSubTotal(CartModel cart) async {
+    print("getSubTotal");
+    // await Future.delayed(Duration(milliseconds: 6000));
     try {
       // widget.currentPage == 'table' || widget.currentPage == 'qr_order'
       //     ? cart.selectedOption = 'Dine in'
       //     : null;
       total = 0.0;
       newOrderSubtotal = 0.0;
+      paymentSplitAmount = 0.0;
       promo = 0.0;
       promoAmount = 0.0;
+      orderKey = '';
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
         total += (double.parse((cart.cartNotifierItem[i].price!)) * cart.cartNotifierItem[i].quantity!);
         if (cart.cartNotifierItem[i].status == 0) {
           newOrderSubtotal += (double.parse((cart.cartNotifierItem[i].price!)) * cart.cartNotifierItem[i].quantity!);
+        }
+        if(cart.cartNotifierItem[i].order_key != null && cart.cartNotifierItem[i].order_key != '') {
+          orderKey = cart.cartNotifierItem[i].order_key!;
+        } else {
+          orderKey = '';
         }
       }
     } catch (e) {
@@ -1854,9 +1956,10 @@ class CartPageState extends State<CartPage> {
       total = 0.0;
     }
     await getDiningTax(cart);
-    calPromotion(cart);
+    await calPromotion(cart);
     getTaxAmount();
     getRounding();
+    await getAllPaymentSplit(cart);
     getAllTotal();
     checkCartItem(cart);
     if (cart.myCount == 0) {
@@ -1867,8 +1970,11 @@ class CartPageState extends State<CartPage> {
       });
       cart.myCount++;
     }
+    if((widget.currentPage == 'table' || widget.currentPage == 'other_order') && cart.cartNotifierItem.isNotEmpty)
+      isButtonDisabled = false;
     if (!controller.isClosed) {
       controller.sink.add('refresh');
+      print("refresh called");
     }
   }
 
@@ -1914,7 +2020,7 @@ class CartPageState extends State<CartPage> {
 
   getAllTotal() {
     try {
-      finalAmount = Utils.roundToNearestFiveSen(double.parse(totalAmount.toStringAsFixed(2))).toStringAsFixed(2);
+      finalAmount = Utils.roundToNearestFiveSen(double.parse((totalAmount-paymentSplitAmount).toStringAsFixed(2))).toStringAsFixed(2);
     } catch (error) {
       print('Total calc error: $error');
     }
@@ -1922,6 +2028,30 @@ class CartPageState extends State<CartPage> {
     // if (!controller.isClosed) {
     //   controller.sink.add('refresh');
     // }
+  }
+
+  getAllPaymentSplit(CartModel cart) async {
+    try {
+      paymentSplitList = [];
+      paymentSplitAmount = 0.0;
+      if(paymentSplitList.isEmpty) {
+        print("paymentSplitList empty");
+      } else {
+        print("paymentSplitList is not empty");
+      }
+      print("Cart item: ${cart.cartNotifierItem.length}");
+      if(cart.cartNotifierItem.length != 0) {
+        if(orderKey != '') {
+          List<OrderPaymentSplit> orderSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(orderKey);
+          for(int k = 0; k < orderSplit.length; k++){
+            paymentSplitAmount += double.parse(orderSplit[k].amount!);
+            paymentSplitList.add(orderSplit[k]);
+          }
+        }
+      }
+    } catch(e) {
+      print("Total payment split: $e");
+    }
   }
 
 /*
@@ -1939,6 +2069,7 @@ class CartPageState extends State<CartPage> {
               child: ReprintDialog(
                 printerList: printerList,
                 cart: cart,
+                orderKey: orderKey,
                 parentContext: this.widget.parentContext!,
                 currentPage: this.widget.currentPage,
               ),
@@ -1946,7 +2077,8 @@ class CartPageState extends State<CartPage> {
           );
         },
         transitionDuration: Duration(milliseconds: 200),
-        barrierDismissible: false,
+        barrierDismissible: true,
+        barrierLabel: 'Dismiss',
         context: context,
         pageBuilder: (context, animation1, animation2) {
           // ignore: null_check_always_fails
@@ -2173,13 +2305,15 @@ class CartPageState extends State<CartPage> {
       branchLinkDiningIdList.add(data[i].dining_id!);
     }
     if (serverCall == null) {
-      if (data.any((item) => item.name == 'Dine in')) {
-        cart.selectedOption = 'Dine in';
-      } else {
-        cart.selectedOption = "Take Away";
-      }
-      if (!controller.isClosed) {
-        controller.sink.add('refresh');
+      if(cart.selectedOptionId == '') {
+        if (data.any((item) => item.name == 'Dine in')) {
+          cart.selectedOption = 'Dine in';
+        } else {
+          cart.selectedOption = "Take Away";
+        }
+        if (!controller.isClosed) {
+          controller.sink.add('refresh');
+        }
       }
     }
     //cart.selectedOption = diningList.first.name;
@@ -2273,6 +2407,7 @@ class CartPageState extends State<CartPage> {
         //   return;
         // }
         asyncQ.addJob((_) => printKitchenList());
+        isCartExpanded = !isCartExpanded;
         // printKitchenList();
       } else {
         cart.removeAllCartItem();
@@ -2340,6 +2475,7 @@ class CartPageState extends State<CartPage> {
           //   return;
           // }
           asyncQ.addJob((_) => printKitchenList());
+          isCartExpanded = !isCartExpanded;
           // printKitchenList();
         } else {
           Navigator.of(context).pop();
@@ -2408,6 +2544,7 @@ class CartPageState extends State<CartPage> {
       //   return;
       // }
       asyncQ.addJob((_) => printKitchenList());
+      isCartExpanded = !isCartExpanded;
       // printKitchenList();
     } catch(e) {
       FLog.error(
@@ -2603,7 +2740,6 @@ class CartPageState extends State<CartPage> {
     int tempColor = 0;
     int matchColor = 0;
     int diff = 0;
-    int count = 0;
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     List<TableUse> data = await PosDatabase.instance.readAllTableUseId(branch_id!);
@@ -2921,6 +3057,7 @@ class CartPageState extends State<CartPage> {
                 qr_order_table_sqlite_id: '',
                 qr_order_table_id: '',
                 accepted: 0,
+                payment_status: 0,
                 sync_status: 0,
                 created_at: dateTime,
                 updated_at: '',
@@ -3545,7 +3682,6 @@ class CartPageState extends State<CartPage> {
   }
 
   readAllOrderCache() async {
-    final prefs = await SharedPreferences.getInstance();
     List<OrderCache> data = await PosDatabase.instance.readAllOrderCache();
     orderCacheList = data;
   }

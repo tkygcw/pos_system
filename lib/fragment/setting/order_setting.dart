@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/fragment/setting/adjust_hour_dialog.dart';
 import 'package:pos_system/fragment/setting/kitchenlist_dialog.dart';
 import 'package:pos_system/fragment/setting/receipt_dialog.dart';
 import 'package:pos_system/object/table.dart';
@@ -316,6 +317,20 @@ class _OrderSettingState extends State<OrderSetting> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<AppSettingModel>(builder: (context, AppSettingModel appSettingModel, child) {
         return Scaffold(
+            appBar:  MediaQuery.of(context).size.width < 800 && MediaQuery.of(context).orientation == Orientation.portrait ? AppBar(
+              elevation: 1,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back_ios, color: color.buttonColor),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              backgroundColor: Colors.white,
+              title: Text(AppLocalizations.of(context)!.translate('order_setting'),
+                  style: TextStyle(fontSize: 20, color: color.backgroundColor)),
+              centerTitle: false,
+            )
+                : null,
             body: StreamBuilder(
                 stream: controller.hardwareSettingStream,
                 builder: (context, snapshot){
@@ -327,7 +342,7 @@ class _OrderSettingState extends State<OrderSetting> {
                             title: Text(AppLocalizations.of(context)!.translate('table_mode')),
                             subtitle: Text(AppLocalizations.of(context)!.translate('table_mode_desc')),
                             trailing: SizedBox(
-                              width: 200,
+                              width: MediaQuery.of(context).orientation == Orientation.landscape ? 200 : 150,
                               child: DropdownButtonHideUnderline(
                                 child: DropdownButton2(
                                   isExpanded: true,
@@ -512,6 +527,15 @@ class _OrderSettingState extends State<OrderSetting> {
                               },
                             ),
                           ),
+                          ListTile(
+                              title: Text(AppLocalizations.of(context)!.translate('set_default_exp_after_hour'), style: TextStyle(color: !hasQrAccess ? Colors.grey: null)),
+                              subtitle: Text(AppLocalizations.of(context)!.translate('set_default_exp_after_hour_desc')),
+                              trailing: Text('${appSettingModel.dynamic_qr_default_exp_after_hour} ${AppLocalizations.of(context)!.translate('hours')}',
+                                  style: TextStyle(color: !hasQrAccess ? Colors.grey : null, fontWeight: FontWeight.w500)),
+                              onTap: hasQrAccess ? (){
+                                openAdjustHourDialog(appSettingModel);
+                              } : null
+                          ),
                         ],
                       ),
                     );
@@ -524,6 +548,28 @@ class _OrderSettingState extends State<OrderSetting> {
         );
       });
     });
+  }
+
+  Future<Future<Object?>> openAdjustHourDialog(AppSettingModel appSettingModel) async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+                opacity: a1.value,
+                child: AdjustHourDialog(exp_hour: appSettingModel.dynamic_qr_default_exp_after_hour!)
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   updateAppSetting() async {

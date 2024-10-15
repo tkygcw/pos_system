@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +32,7 @@ class QrMainPage extends StatefulWidget {
 class _QrMainPageState extends State<QrMainPage> {
   List<OrderCache> qrOrderCacheList = [];
   List<OrderDetail> orderDetailList = [], noStockOrderDetailList = [];
-  bool _isLoaded = false, hasNoStockProduct = false, hasAccess = true;
+  bool hasNoStockProduct = false, hasAccess = true;
 
   @override
   void initState() {
@@ -72,7 +73,7 @@ class _QrMainPageState extends State<QrMainPage> {
   }
 
   AppBar QrAppBar(BuildContext context, ThemeColor color) {
-    return AppBar(
+    return MediaQuery.of(context).orientation == Orientation.landscape && MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? AppBar(
       primary: false,
       elevation: 0,
       automaticallyImplyLeading: false,
@@ -123,7 +124,62 @@ class _QrMainPageState extends State<QrMainPage> {
           ),
         ],
       ),
+    ) : AppBar(
+      automaticallyImplyLeading: false,
+      elevation: 0,
+      leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: GestureDetector(
+          onTap: () {
+            isCollapsedNotifier.value = !isCollapsedNotifier.value;
+          },
+          child: Image.asset('drawable/logo.png'),
+        ),
+      ),
+      title: Text(AppLocalizations.of(context)!.translate('qr_order'),
+        style: TextStyle(fontSize: 20, color: color.backgroundColor),
+      ),
+      centerTitle: false,
+      actions: [
+        PopupMenuButton<String>(
+          onSelected: handleClick,
+          itemBuilder: (BuildContext context) {
+            return {'sync_qr_order', 'accept_all'}.map((String choice) {
+              return PopupMenuItem<String>(
+                value: choice,
+                child: Text(AppLocalizations.of(context)!.translate(choice)),
+              );
+            }).toList();
+          },
+          icon: Icon(Icons.more_vert, color: color.backgroundColor,),
+        ),
+      ],
     );
+  }
+
+  Future<void> handleClick(String value) async {
+    switch (value) {
+      case 'sync_qr_order':
+        if(qrOrder.count == 0){
+          qrOrder.count = 1;
+          await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
+          qrOrder.count = 0;
+        }
+        break;
+      case 'accept_all':
+        if (await confirm(
+          context,
+          title: Text("${AppLocalizations.of(context)!.translate('confirm_accept_all')}"),
+          content: Text('${AppLocalizations.of(context)!.translate('confirm_accept_all_desc')}'),
+          textOK: Text('${AppLocalizations.of(context)!.translate('yes')}'),
+          textCancel: Text('${AppLocalizations.of(context)!.translate('no')}'),
+        )) {
+          if(mounted){
+            asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
+          }
+        }
+        break;
+    }
   }
 
   Widget NoOrderView(BuildContext context) {
@@ -146,7 +202,7 @@ class _QrMainPageState extends State<QrMainPage> {
         return Card(
           elevation: 5,
           child: ListTile(
-            contentPadding: EdgeInsets.all(10),
+            contentPadding: MediaQuery.of(context).size.width > 500 ? EdgeInsets.all(10) : EdgeInsets.fromLTRB(15, 10, 10, 10),
             //isThreeLine: true,
             title: qrOrderCacheList[index].dining_name == 'Dine in'
                 ? Text(AppLocalizations.of(context)!.translate('table_no')+': ${qrOrderCacheList[index].table_number}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey))
@@ -171,14 +227,14 @@ class _QrMainPageState extends State<QrMainPage> {
                 ],
               ),
             ),
-            leading: CircleAvatar(
+            leading: MediaQuery.of(context).size.width > 500 ? CircleAvatar(
                 backgroundColor: Colors.grey.shade200,
                 child: Icon(
                   Icons.qr_code,
                   color: Colors.grey,
-                )),
+                )) : null,
             trailing: Container(
-              width: 130,
+              width: MediaQuery.of(context).size.width > 500 ? 130 : 110,
               padding: EdgeInsets.all(8.0),
               child: Text(
                 '${getDuration(qrOrderCacheList[index].created_at)}',

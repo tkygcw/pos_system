@@ -528,6 +528,7 @@ class ReportObject{
 
   getAllPaymentData({currentStDate, currentEdDate}) async {
     await getPrefData();
+
     datePayment = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
@@ -793,7 +794,7 @@ class ReportObject{
     return value;
   }
 
-  getAllAttendanceGroup({currentStDate, currentEdDate}) async {
+  getAllAttendanceGroup({currentStDate, currentEdDate, selectedId}) async {
     dateAttendance = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
@@ -801,7 +802,7 @@ class ReportObject{
     DateTime addEndDate = addDays(date: _endDate);
     String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
     String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
-    List<Attendance> attendance = await PosDatabase.instance.readAllAttendanceGroup(stringStDate, stringEdDate);
+    List<Attendance> attendance = await PosDatabase.instance.readAllAttendanceGroup(stringStDate, stringEdDate, selectedId);
     this.attendanceData = attendance;
     if (attendanceData.isNotEmpty) {
       for (int i = 0; i < attendanceData.length; i++) {
@@ -893,7 +894,7 @@ class ReportObject{
 
       }
       for (int j = 0; j < dateOrderList!.length; j++) {
-        if(dateOrderList![j].payment_status == 1){
+        if(dateOrderList![j].payment_status == 1 || dateOrderList![j].payment_status == 3){
           sumAllOrderTotal(dateOrderList![j].final_amount!);
         }
       }

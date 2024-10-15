@@ -121,6 +121,20 @@ class _PrinterSettingState extends State<PrinterSetting> {
           ///mobile layout
           return isLoaded ?
           Scaffold(
+            appBar:  MediaQuery.of(context).size.width < 800 && MediaQuery.of(context).orientation == Orientation.portrait ? AppBar(
+              elevation: 1,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back_ios, color: color.buttonColor),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              backgroundColor: Colors.white,
+              title: Text(AppLocalizations.of(context)!.translate('printer_setting'),
+                  style: TextStyle(fontSize: 20, color: color.backgroundColor)),
+              centerTitle: false,
+            )
+                : null,
             resizeToAvoidBottomInset: false,
             floatingActionButton: FloatingActionButton(
               backgroundColor: color.backgroundColor,

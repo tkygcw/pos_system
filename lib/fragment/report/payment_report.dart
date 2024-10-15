@@ -92,15 +92,7 @@ class _PaymentReportState extends State<PaymentReport> {
                                        ),
                                        DataColumn(
                                          label: Expanded(
-                                           child: Text(AppLocalizations.of(context)!.translate('net_sales'),
-                                             style: TextStyle(fontWeight: FontWeight.bold),
-                                           ),
-                                         ),
-                                       ),
-                                       DataColumn(
-                                         label: Expanded(
-                                           child: Text(
-                                             AppLocalizations.of(context)!.translate('gross_sales'),
+                                           child: Text(AppLocalizations.of(context)!.translate('total_sales'),
                                              style: TextStyle(fontWeight: FontWeight.bold),
                                            ),
                                          ),
@@ -174,15 +166,7 @@ class _PaymentReportState extends State<PaymentReport> {
                                        ),
                                        DataColumn(
                                          label: Expanded(
-                                           child: Text(AppLocalizations.of(context)!.translate('net_sales'),
-                                             style: TextStyle(fontWeight: FontWeight.bold),
-                                           ),
-                                         ),
-                                       ),
-                                       DataColumn(
-                                         label: Expanded(
-                                           child: Text(
-                                             AppLocalizations.of(context)!.translate('gross_sales'),
+                                           child: Text(AppLocalizations.of(context)!.translate('total_sales'),
                                              style: TextStyle(fontWeight: FontWeight.bold),
                                            ),
                                          ),
@@ -232,6 +216,10 @@ class _PaymentReportState extends State<PaymentReport> {
     ReportObject object = await ReportObject().getAllPaymentData(currentStDate: currentStDate, currentEdDate: currentEdDate);
     paymentList = object.datePayment!;
     //print('modifier data: ${modifierData.length}');
+    if(paymentList.isNotEmpty) {
+
+    }
+
     if(paymentList.isNotEmpty){
       for(int i = 0; i < paymentList.length; i++){
         _dataRow.addAll([
@@ -241,9 +229,7 @@ class _PaymentReportState extends State<PaymentReport> {
                 Text('${paymentList[i].payment_name}'),
               ),
               DataCell(Text('${paymentList[i].item_sum}')),
-              DataCell(Text('${paymentList[i].net_sales!.toStringAsFixed(2)}')),
-              // DataCell(Text('${paymentList[i].gross_sales!.toStringAsFixed(2)}')),
-              DataCell(Text('${Utils.to2Decimal(paymentList[i].gross_sales!)}')),
+              DataCell(Text('${Utils.to2Decimal(paymentList[i].total_sales!)}')),
             ],
           ),
         ]);

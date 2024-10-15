@@ -9,6 +9,7 @@ import 'package:pos_system/object/branch_link_tax.dart';
 import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
+import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/report_class.dart';
@@ -285,7 +286,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                   );
                 } else {
                   ///mobile layout
-                  return Scaffold(
+                  return MediaQuery.of(context).orientation == Orientation.landscape ? Scaffold(
                     resizeToAvoidBottomInset: false,
                     body: Container(
                       padding: const EdgeInsets.all(8),
@@ -476,6 +477,256 @@ class _ReportOverviewState extends State<ReportOverview> {
                         ),
                       ),
                     ),
+                  ) :
+                  Scaffold(
+                    resizeToAvoidBottomInset: false,
+                    body: Container(
+                      padding: const EdgeInsets.all(8),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              child: Text(AppLocalizations.of(context)!.translate('overview'),
+                                  style: TextStyle(fontSize: 25, color: Colors.black)),
+                            ),
+                            SizedBox(height: 5),
+                            Divider(
+                              height: 10,
+                              color: Colors.grey,
+                            ),
+                            Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: SizedBox(
+                                        height: 120,
+                                        child: Card(
+                                          color: color.iconColor,
+                                          elevation: 5,
+                                          child: ListTile(
+                                            title: Text(AppLocalizations.of(context)!.translate('total_bills'),
+                                                style: TextStyle(fontWeight: FontWeight.w500)),
+                                            subtitle: Text('${dateOrderList.length}',
+                                                style: TextStyle(color: Colors.black, fontSize: 20)),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: SizedBox(
+                                        height: 120,
+                                        child: Card(
+                                          color: color.iconColor,
+                                          elevation: 5,
+                                          child: ListTile(
+                                            title: Text(AppLocalizations.of(context)!.translate('total_sales') + ' (MYR)',
+                                                style: TextStyle(fontWeight: FontWeight.w500)),
+                                            subtitle: Text('${totalSales.toStringAsFixed(2)}',
+                                                style: TextStyle(color: Colors.black, fontSize: 20)),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: SizedBox(
+                                        height: 120,
+                                        child: Card(
+                                          color: color.iconColor,
+                                          elevation: 5,
+                                          child: ListTile(
+                                            title: Text(AppLocalizations.of(context)!.translate('total_refund_bill'),
+                                                style: TextStyle(fontWeight: FontWeight.w500)),
+                                            subtitle: Text('${dateRefundList.length}',
+                                                style: TextStyle(color: Colors.black, fontSize: 20)),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: SizedBox(
+                                        height: 120,
+                                        child: Card(
+                                          color: color.iconColor,
+                                          elevation: 5,
+                                          child: ListTile(
+                                            title: Text(AppLocalizations.of(context)!.translate('total_refund'),
+                                                style: TextStyle(fontWeight: FontWeight.w500)),
+                                            subtitle: Text('${totalRefundAmount.toStringAsFixed(2)}',
+                                                style: TextStyle(color: Colors.black, fontSize: 20)),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: SizedBox(
+                                        height: 120,
+                                        child: Card(
+                                          color: color.iconColor,
+                                          elevation: 5,
+                                          child: ListTile(
+                                            title: Text(AppLocalizations.of(context)!.translate('total_discount'),
+                                                style: TextStyle(fontWeight: FontWeight.w500)),
+                                            subtitle: Text('${totalPromotionAmount.toStringAsFixed(2)}',
+                                                style: TextStyle(color: Colors.black, fontSize: 20)),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: SizedBox(
+                                        height: 120,
+                                        child: Card(
+                                          color: color.iconColor,
+                                          elevation: 5,
+                                          child: ListTile(
+                                            title: Text(AppLocalizations.of(context)!.translate('total_cancelled_item'),
+                                                style: TextStyle(fontWeight: FontWeight.w500)),
+                                            subtitle: dateOrderDetailCancel[0].total_item != null
+                                                ? Text('${dateOrderDetailCancel[0].total_item!}',
+                                                style: TextStyle(color: Colors.black, fontSize: 20))
+                                                : Text('0',
+                                                style: TextStyle(color: Colors.black, fontSize: 20)),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: SizedBox(
+                                        height: 120,
+                                        child: Card(
+                                          color: color.iconColor,
+                                          elevation: 5,
+                                          child: Column(
+                                            children: [
+                                              ListTile(
+                                                title: Text(
+                                                  AppLocalizations.of(context)!.translate('payment_overview'),
+                                                    style: TextStyle(fontWeight: FontWeight.w500)
+                                                ),
+                                                subtitle: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Container(
+                                                      padding: EdgeInsets.only(top: 10),
+                                                      child: paymentList.isNotEmpty
+                                                          ? Table(
+                                                        children: [
+                                                          for (var payment in paymentList)
+                                                            TableRow(children: [
+                                                              Container(
+                                                                padding: EdgeInsets.only(bottom: 10),
+                                                                child: Text('${payment.name}',
+                                                                    style: TextStyle(color: Colors.black)),
+                                                              ),
+                                                              Container(
+                                                                padding: EdgeInsets.only(bottom: 10),
+                                                                child: Text('${payment.total_bill}',
+                                                                    style: TextStyle(color: Colors.black)),
+                                                              ),
+                                                              Container(
+                                                                padding: EdgeInsets.only(bottom: 10),
+                                                                child: Text('${payment.totalAmount.toStringAsFixed(2)}',
+                                                                    style: TextStyle(color: Colors.black)),
+                                                              ),
+                                                            ]),
+                                                        ],
+                                                      )
+                                                          : Center(
+                                                        child: Column(
+                                                          children: [
+                                                            Icon(Icons.credit_card_off_outlined),
+                                                            Text(AppLocalizations.of(context)!.translate('no_payment_record')),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: SizedBox(
+                                        height: 120,
+                                        child: Card(
+                                          color: color.iconColor,
+                                          elevation: 5,
+                                          child: Column(
+                                            children: [
+                                              ListTile(
+                                                title: Text(
+                                                  AppLocalizations.of(context)!.translate('charges_overview'),
+                                                  style: TextStyle(fontWeight: FontWeight.w500),
+                                                ),
+                                                subtitle: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Container(
+                                                      padding: EdgeInsets.only(top: 10),
+                                                      child: branchTaxList.isNotEmpty
+                                                          ? Table(
+                                                        children: [
+                                                          for (var branchTax in branchTaxList)
+                                                            TableRow(children: [
+                                                              Container(
+                                                                padding: EdgeInsets.only(bottom: 10),
+                                                                child: Text('${branchTax.tax_name}',
+                                                                    style: TextStyle(color: Colors.black)),
+                                                              ),
+                                                              Container(
+                                                                padding: EdgeInsets.only(bottom: 10),
+                                                                child: Text('${branchTax.total_amount.toStringAsFixed(2)}',
+                                                                    style: TextStyle(color: Colors.black)),
+                                                              ),
+                                                            ]),
+                                                        ],
+                                                      )
+                                                          : Center(
+                                                        child: Column(
+                                                          children: [
+                                                            Icon(Icons.credit_card_off_outlined),
+                                                            Text(AppLocalizations.of(context)!.translate('no_payment_record')),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
                   );
                 }
               });
@@ -521,9 +772,19 @@ class _ReportOverviewState extends State<ReportOverview> {
       for (int j = 0; j < paymentList.length; j++) {
         for (int i = 0; i < dateOrderList.length; i++) {
           if (dateOrderList[i].payment_status == 1) {
+            print("paymentList[j].payment_link_company_id: ${paymentList[j].payment_link_company_id}");
+            print("dateOrderList[i].payment_link_company_id!: ${dateOrderList[i].payment_link_company_id!}");
             if (paymentList[j].payment_link_company_id == int.parse(dateOrderList[i].payment_link_company_id!)) {
               paymentList[j].total_bill++;
               paymentList[j].totalAmount += double.parse(dateOrderList[i].final_amount!);
+            } else if (int.parse(dateOrderList[i].payment_link_company_id!) == 0) {
+              List<OrderPaymentSplit> orderPaymentSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(dateOrderList[i].order_key!);
+              for(int k = 0; k < orderPaymentSplit.length; k++) {
+                if (paymentList[j].payment_link_company_id == int.parse(orderPaymentSplit[k].payment_link_company_id!)) {
+                  paymentList[j].total_bill++;
+                  paymentList[j].totalAmount += double.parse(orderPaymentSplit[k].payment_received!);
+                }
+              }
             }
           }
         }

@@ -5,6 +5,7 @@ import 'package:f_logs/model/flog/flog.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/fragment/cart/cart.dart';
 import 'package:pos_system/fragment/product/product_order_dialog.dart';
+import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/order_detail.dart';
@@ -96,6 +97,8 @@ class ServerAction {
           var data9 = await PosDatabase.instance.readAllTaxLinkDining();
           var data10 = await getBranchPromotionData();
           var data11 = appLanguage.appLocal.languageCode;
+          var data12 = await PosDatabase.instance.readAllSubscription();
+
           print("data2 length: ${data2.length}");
            objectData = {
              'tb_categories': data,
@@ -108,7 +111,8 @@ class ServerAction {
              'tb_branch_link_dining_option': data8,
              'taxLinkDiningList': data9,
              'branchPromotionList': data10,
-             'app_language_code': data11
+             'app_language_code': data11,
+             'subscription_data': data12
           };
           result = {'status': '1', 'action': '1', 'data': objectData};
         }
@@ -182,7 +186,7 @@ class ServerAction {
             CartModel cart = CartModel();
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam['cart']);
-            if(cart.selectedOption == 'Dine in'){
+            if(cart.selectedOption == 'Dine in' && AppSettingModel.instance.table_order != 0){
               PlaceNewDineInOrder order = PlaceNewDineInOrder();
               Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
               if(cartItem != null){

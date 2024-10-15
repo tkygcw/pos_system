@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:animations/animations.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +32,11 @@ class _SetupPageState extends State<SetupPage> {
   Branch? selectedBranch;
   Device? selectedDevice;
   String? token;
+  final adminPosPinController = TextEditingController();
+  bool inProgress = false;
+  bool isButtonDisabled = false;
+  bool _submitted = false;
+  int selectedDays = 0;
 
   @override
   void initState() {
@@ -264,7 +268,8 @@ class _SetupPageState extends State<SetupPage> {
     } else {
       savePref();
       await PosDatabase.instance.insertBranch(selectedBranch!);
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => LoadingPage()));
+      // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => LoadingPage()));
+      showDaysSelectionDialog(context);
     }
   }
 
@@ -295,7 +300,8 @@ class _SetupPageState extends State<SetupPage> {
       if(_hasInternetAccess){
         Map response = await Domain().updateBranchNotificationToken(this.token, selectedBranch!.branchID);
         if (response['status'] == '1') {
-          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => LoadingPage()));
+          showDaysSelectionDialog(context);
+          // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => LoadingPage()));
         } else {
           Fluttertoast.showToast(
               msg: '${AppLocalizations.of(context)?.translate('fail_get_token')}');
@@ -315,4 +321,155 @@ class _SetupPageState extends State<SetupPage> {
       backToLogin();
     }
   }
+
+  showDaysSelectionDialog(BuildContext context) async {
+    await showDialog<int>(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        int tempSelectedDays = selectedDays;
+
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              title: Text('${AppLocalizations.of(context)?.translate('download_order_data_from_cloud')}',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
+              content: Container(
+                width: 400,
+                padding: EdgeInsets.all(10.0),
+                child: DropdownButton<int>(
+                  value: tempSelectedDays,
+                  onChanged: (int? newValue) {
+                    setState(() {
+                      tempSelectedDays = newValue!;
+                    });
+                  },
+                  items: [
+                    DropdownMenuItem<int>(
+                      value: 0,
+                      child: Text('${AppLocalizations.of(context)?.translate('do_not_download_order_data')}'),
+                    ),
+                    DropdownMenuItem<int>(
+                      value: 1,
+                      child: Text('1 ${AppLocalizations.of(context)?.translate('days')}'),
+                    ),
+                    DropdownMenuItem<int>(
+                      value: 3,
+                      child: Text('3 ${AppLocalizations.of(context)?.translate('days')}'),
+                    ),
+                    DropdownMenuItem<int>(
+                      value: 7,
+                      child: Text('7 ${AppLocalizations.of(context)?.translate('days')}'),
+                    ),
+                    DropdownMenuItem<int>(
+                      value: -1,
+                      child: Text('Debug'),
+                    ),
+                  ],
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 16,
+                  ),
+                  dropdownColor: Colors.white,
+                  isExpanded: true,
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    backToLogin();
+                  },
+                  child: Text('${AppLocalizations.of(context)?.translate('back_to_login')}')
+                ),
+                SizedBox(width: 10),
+                TextButton(
+                  onPressed: () {
+                    selectedDays = tempSelectedDays;
+                    if(selectedDays == -1) {
+                      showSecondDialog(context);
+                    } else {
+                      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => LoadingPage(selectedDays: selectedDays)));
+                    }
+                  },
+                  child: Text('${AppLocalizations.of(context)?.translate('yes')}')
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future showSecondDialog(BuildContext context) async {
+    String? pin;
+    await showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        return Consumer<ThemeColor>(
+          builder: (context, ThemeColor color, child) {
+            return AlertDialog(
+              title: Text(AppLocalizations.of(context)!.translate('enter_debug_pin')),
+              content: TextField(
+                autofocus: true,
+                obscureText: true,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: color.backgroundColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: color.backgroundColor),
+                  ),
+                  labelText: "PIN",
+                ),
+                onChanged: (value) {
+                  pin = value;
+                },
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(AppLocalizations.of(context)!.translate('close')),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(pin);
+                  },
+                  child: Text(AppLocalizations.of(context)!.translate('yes')),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (pin != null) {
+      await readAdminData(pin!);
+    }
+  }
+
+  readAdminData(String pin) async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? branchId = prefs.getInt('branch_id')?.toString();
+
+    if (branchId != null) {
+      if (pin == branchId.padLeft(6, '0')) {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => LoadingPage(selectedDays: selectedDays)));
+      } else {
+        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('wrong_pin_please_insert_valid_pin')}");
+      }
+    } else {
+      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('something_went_wrong_please_try_again_later')}");
+    }
+  }
+
 }

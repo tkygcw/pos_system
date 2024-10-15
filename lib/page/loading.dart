@@ -25,6 +25,7 @@ import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
+import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
@@ -67,7 +68,8 @@ import '../utils/Utils.dart';
 import 'login.dart';
 
 class LoadingPage extends StatefulWidget {
-  const LoadingPage({Key? key}) : super(key: key);
+  final int selectedDays;
+  const LoadingPage({Key? key, required this.selectedDays}) : super(key: key);
 
   @override
   State<LoadingPage> createState() => _LoadingPageState();
@@ -93,6 +95,9 @@ class _LoadingPageState extends State<LoadingPage> {
 
   startLoad() async {
     try{
+      await getDateRetrieveDate();
+      await getCashRecord();
+
       await getAllDynamicQr();
       await getSubscription();
       await getAppSettingCloud();
@@ -120,7 +125,7 @@ class _LoadingPageState extends State<LoadingPage> {
       await getModifierItem();
       await getBranchLinkModifier();
       // await getSale();
-      await getCashRecord();
+
       await getTransferOwner();
       await clearCloudSyncRecord();
       await getAllReceipt();
@@ -142,6 +147,43 @@ class _LoadingPageState extends State<LoadingPage> {
     Timer(Duration(seconds: 2), () {
       Navigator.push(context, MaterialPageRoute(builder: (_) => PosPinPage()));
     });
+  }
+
+  getDateRetrieveDate() async {
+    final prefs = await SharedPreferences.getInstance();
+    try {
+      String dataRetrieveDate = '';
+      String retrieveDate = '';
+      if(widget.selectedDays == 0){
+        dataRetrieveDate = '';
+      } else if(widget.selectedDays == -1) {
+        dataRetrieveDate = 'all';
+      } else {
+        DateTime retrieveFrom = DateTime.now().subtract(Duration(days: widget.selectedDays));
+        retrieveDate = DateFormat('yyyy-MM-dd 00:00:00').format(retrieveFrom);
+
+        final prefs = await SharedPreferences.getInstance();
+        final int? branch_id = prefs.getInt('branch_id');
+        final String? user = prefs.getString('user');
+        Map userObject = json.decode(user!);
+        Map data = await Domain().getCashRecordOBAfterDate(userObject['company_id'], branch_id.toString(), retrieveDate);
+
+        if (data['status'] == '1') {
+          List responseJson = data['data'];
+          dataRetrieveDate = responseJson.first['created_at'];
+        } else {
+          dataRetrieveDate = '';
+        }
+      }
+      await prefs.setString('dataRetrieveDate', dataRetrieveDate);
+    } catch(e) {
+      print("getDateRetrieveDate error: $e");
+      FLog.error(
+        className: "loading",
+        text: "getDateRetrieveDate error",
+        exception: e,
+      );
+    }
   }
 }
 
@@ -198,7 +240,7 @@ getSubscription() async {
           soft_delete: item.soft_delete,
         );
         try {
-          Subscription data = await PosDatabase.instance.insertSqliteSubscription(subscription);
+          await PosDatabase.instance.insertSqliteSubscription(subscription);
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -221,8 +263,6 @@ getAppSettingCloud() async {
   try {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-    String dateTime = dateFormat.format(DateTime.now());
     Map data = await Domain().getAppSetting(branch_id.toString());
     if (data['status'] == '1') {
       print("App Setting: Setting Record exist in cloud");
@@ -293,7 +333,7 @@ getAppSettingLocal() async {
         created_at: dateTime,
         updated_at: ''
       );
-      AppSetting data = await PosDatabase.instance.insertSqliteSetting(appSetting);
+      await PosDatabase.instance.insertSqliteSetting(appSetting);
     }
   } catch(e) {
     print("App Setting: Create App Setting Fail: $e");
@@ -305,7 +345,7 @@ getAppSettingLocal() async {
   }
 }
 
-  /*
+/*
   create app setting
 */
 syncAppSettingFromCloud(AppSetting item) async {
@@ -332,7 +372,7 @@ syncAppSettingFromCloud(AppSetting item) async {
     updated_at: item.updated_at,
   );
   try {
-    AppSetting data = await PosDatabase.instance.insertSqliteSetting(appSetting);
+    await PosDatabase.instance.insertSqliteSetting(appSetting);
     print("App Setting: Sync From Cloud Success");
   } catch(e) {
     print("App Setting: Sync From Cloud Fail: $e");
@@ -383,7 +423,7 @@ getAllChecklist() async {
       List responseJson = response['data'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          Checklist insertData = await PosDatabase.instance.insertChecklist(Checklist.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertChecklist(Checklist.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -412,7 +452,7 @@ getAllKitchenList() async {
       List responseJson = response['data'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          KitchenList insertData = await PosDatabase.instance.insertKitchenList(KitchenList.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertKitchenList(KitchenList.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -441,7 +481,7 @@ getAllReceipt() async {
       List responseJson = response['receipt'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          Receipt data = await PosDatabase.instance.insertReceipt(Receipt.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertReceipt(Receipt.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -542,7 +582,7 @@ insertReceiptKey(Receipt receipt, String dateTime) async {
       sync_status: 0,
       receipt_sqlite_id: receipt.receipt_sqlite_id);
   try {
-    int updateUniqueKey = await PosDatabase.instance.updateReceiptUniqueKey(data);
+    await PosDatabase.instance.updateReceiptUniqueKey(data);
   } catch(e) {
     FLog.error(
       className: "loading",
@@ -610,7 +650,7 @@ clearCloudSyncRecord() async {
   try {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    Map data = await Domain().clearAllSyncRecord(branch_id.toString());
+    await Domain().clearAllSyncRecord(branch_id.toString());
   } catch(e) {
     FLog.error(
       className: "loading",
@@ -632,7 +672,7 @@ getAllSecondScreen() async {
       List responseJson = data['second_screen'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          SecondScreen data = await PosDatabase.instance.insertSecondScreen(SecondScreen.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertSecondScreen(SecondScreen.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -666,7 +706,7 @@ getAllUser() async {
       List responseJson = data['user'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          User user = await PosDatabase.instance.insertUser(User.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertUser(User.fromJson(responseJson[i]));
           // if (user != '') {
           //   Navigator.of(context).pushReplacement(MaterialPageRoute(
           //     builder: (context) => PosPinPage(),
@@ -697,32 +737,41 @@ getAllAttendance() async {
   try {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    Map data = await Domain().getAllAttendance(branch_id.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['data'];
-      for (var i = 0; i < responseJson.length; i++) {
-        try {
-          Attendance item = Attendance.fromJson(responseJson[i]);
-          Attendance attendance = Attendance(
-            attendance_key: item.attendance_key,
-            branch_id: item.branch_id,
-            user_id: item.user_id,
-            role: item.role,
-            clock_in_at: item.clock_in_at,
-            clock_out_at: item.clock_out_at,
-            duration: item.duration,
-            sync_status: 1,
-            created_at: item.created_at,
-            updated_at: item.updated_at,
-            soft_delete: item.soft_delete,
-          );
-          Attendance data = await PosDatabase.instance.insertAttendance(attendance);
-        } catch(e) {
-          FLog.error(
-            className: "loading",
-            text: "attendance create failed",
-            exception: "$e\n${responseJson[i].toJson()}",
-          );
+    final String? dataRetrieveDate = prefs.getString('dataRetrieveDate');
+    Map data;
+
+    if(dataRetrieveDate != '') {
+      if(dataRetrieveDate == 'all')
+        data = await Domain().getAllAttendance(branch_id.toString());
+      else
+        data = await Domain().getAllAttendanceAfterDate(branch_id.toString(), dataRetrieveDate);
+
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          try {
+            Attendance item = Attendance.fromJson(responseJson[i]);
+            Attendance attendance = Attendance(
+              attendance_key: item.attendance_key,
+              branch_id: item.branch_id,
+              user_id: item.user_id,
+              role: item.role,
+              clock_in_at: item.clock_in_at,
+              clock_out_at: item.clock_out_at,
+              duration: item.duration,
+              sync_status: 1,
+              created_at: item.created_at,
+              updated_at: item.updated_at,
+              soft_delete: item.soft_delete,
+            );
+            await PosDatabase.instance.insertAttendance(attendance);
+          } catch(e) {
+            FLog.error(
+              className: "loading",
+              text: "attendance create failed",
+              exception: "$e\n${responseJson[i].toJson()}",
+            );
+          }
         }
       }
     }
@@ -747,7 +796,7 @@ getBranchLinkUser() async {
       List responseJson = data['user'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          BranchLinkUser data = await PosDatabase.instance.insertBranchLinkUser(BranchLinkUser.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertBranchLinkUser(BranchLinkUser.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -774,46 +823,59 @@ getAllSettlement() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     final String? user = prefs.getString('user');
+    final String? dataRetrieveDate = prefs.getString('dataRetrieveDate');
     Map userObject = json.decode(user!);
-    Map data = await Domain().getSettlement(userObject['company_id'], branch_id.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['settlement'];
-      for (var i = 0; i < responseJson.length; i++) {
-        Settlement item = Settlement.fromJson(responseJson[i]);
-        try {
-          Settlement data = await PosDatabase.instance.insertSettlement(Settlement(
-            settlement_id: item.settlement_id,
-            settlement_key: item.settlement_key,
-            company_id: item.company_id,
-            branch_id: item.branch_id,
-            total_bill: item.total_bill,
-            total_sales: item.total_sales,
-            total_refund_bill: item.total_refund_bill,
-            total_refund_amount: item.total_refund_amount,
-            total_discount: item.total_discount,
-            total_cancellation: item.total_cancellation,
-            total_charge: item.total_charge,
-            total_tax: item.total_tax,
-            settlement_by_user_id: item.settlement_by_user_id,
-            settlement_by: item.settlement_by,
-            status: item.status,
-            sync_status: 1,
-            opened_at: item.opened_at,
-            created_at: item.created_at,
-            updated_at: item.updated_at,
-            soft_delete: item.soft_delete,
-          ));
-        } catch(e) {
-          FLog.error(
-            className: "loading",
-            text: "settlement insert failed (settlement_id: ${item.settlement_id})",
-            exception: "$e\n${responseJson[i].toJson()}",
-          );
+    Map data;
+
+    if(dataRetrieveDate != '') {
+      if(dataRetrieveDate == 'all')
+        data = await Domain().getSettlement(userObject['company_id'], branch_id.toString());
+      else
+        data = await Domain().getSettlementAfterDate(userObject['company_id'], branch_id.toString(), dataRetrieveDate);
+
+      if (data['status'] == '1') {
+        List responseJson = data['settlement'];
+        for (var i = 0; i < responseJson.length; i++) {
+          Settlement item = Settlement.fromJson(responseJson[i]);
+          try {
+            await PosDatabase.instance.insertSettlement(Settlement(
+              settlement_id: item.settlement_id,
+              settlement_key: item.settlement_key,
+              company_id: item.company_id,
+              branch_id: item.branch_id,
+              total_bill: item.total_bill,
+              total_sales: item.total_sales,
+              total_refund_bill: item.total_refund_bill,
+              total_refund_amount: item.total_refund_amount,
+              total_discount: item.total_discount,
+              total_cancellation: item.total_cancellation,
+              total_charge: item.total_charge,
+              total_tax: item.total_tax,
+              settlement_by_user_id: item.settlement_by_user_id,
+              settlement_by: item.settlement_by,
+              status: item.status,
+              sync_status: 1,
+              opened_at: item.opened_at,
+              created_at: item.created_at,
+              updated_at: item.updated_at,
+              soft_delete: item.soft_delete,
+            ));
+          } catch(e) {
+            FLog.error(
+              className: "loading",
+              text: "settlement insert failed (settlement_id: ${item.settlement_id})",
+              exception: "$e\n${responseJson[i].toJson()}",
+            );
+          }
         }
+        await getAllOrder();
+        getAllTable();
+        getSettlementLinkPayment();
+      } else {
+        await getAllOrder();
+        getAllTable();
+        getSettlementLinkPayment();
       }
-      await getAllOrder();
-      getAllTable();
-      getSettlementLinkPayment();
     } else {
       await getAllOrder();
       getAllTable();
@@ -835,12 +897,30 @@ getAllTable() async {
   try {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
+    final String? dataRetrieveDate = prefs.getString('dataRetrieveDate');
     Map data = await Domain().getAllTable(branch_id.toString());
     if (data['status'] == '1') {
       List responseJson = data['table'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          PosTable table = await PosDatabase.instance.insertPosTable(PosTable.fromJson(responseJson[i]));
+          PosTable item = PosTable.fromJson(responseJson[i]);
+          // PosTable table = await PosDatabase.instance.insertPosTable(PosTable.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertPosTable(PosTable(
+            table_id: item.table_id,
+            table_url: item.table_url,
+            branch_id: item.branch_id,
+            number: item.number,
+            seats: item.seats,
+            status: dataRetrieveDate == '' ? 0 : item.status,
+            table_use_detail_key: dataRetrieveDate == '' ? '' : item.table_use_detail_key,
+            table_use_key: dataRetrieveDate == '' ? '' : item.table_use_key,
+            sync_status: 1,
+            dx: item.dx,
+            dy: item.dy,
+            created_at: item.created_at,
+            updated_at: item.updated_at,
+            soft_delete: item.soft_delete,
+          ));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -879,7 +959,7 @@ getAllCategory() async {
       List responseJson = data['categories'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          Categories data = await PosDatabase.instance.insertCategories(Categories.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertCategories(Categories.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -916,7 +996,7 @@ getAllPrinter() async {
       for (var i = 0; i < responseJson.length; i++) {
         Printer printerItem = Printer.fromJson(responseJson[i]);
         try {
-          Printer data = await PosDatabase.instance.insertPrinter(Printer(
+          await PosDatabase.instance.insertPrinter(Printer(
               printer_id: printerItem.printer_id,
               printer_key: printerItem.printer_key,
               branch_id: printerItem.branch_id,
@@ -968,7 +1048,7 @@ getAllPrinterLinkCategory() async {
         Printer printer = await PosDatabase.instance.readPrinterSqliteID(item.printer_key!);
         Categories? categories = await PosDatabase.instance.readCategorySqliteID(item.category_id!);
         try {
-          PrinterLinkCategory data = await PosDatabase.instance.insertPrinterCategory(PrinterLinkCategory(
+          await PosDatabase.instance.insertPrinterCategory(PrinterLinkCategory(
             printer_link_category_key: item.printer_link_category_key,
             printer_link_category_id: item.printer_link_category_id,
             printer_sqlite_id: printer.printer_sqlite_id.toString(),
@@ -1015,7 +1095,7 @@ getAllProduct() async {
         Product productItem = Product.fromJson(responseJson[i]);
         Categories? categoryData = await PosDatabase.instance.readCategorySqliteID(productItem.category_id!);
         try {
-          Product data = await PosDatabase.instance.insertProduct(Product(
+          await PosDatabase.instance.insertProduct(Product(
               product_id: productItem.product_id,
               category_id: productItem.category_id,
               category_sqlite_id: categoryData != null ? categoryData.category_sqlite_id.toString() : '0',
@@ -1078,7 +1158,7 @@ getAllDiningOption() async {
       List responseJson = data['dining_option'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          DiningOption data = await PosDatabase.instance.insertDiningOption(DiningOption.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertDiningOption(DiningOption.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1109,7 +1189,7 @@ getBranchLinkDiningOption() async {
       List responseJson = data['dining_option'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          BranchLinkDining data = await PosDatabase.instance.insertBranchLinkDining(BranchLinkDining.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertBranchLinkDining(BranchLinkDining.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1141,7 +1221,7 @@ getAllTax() async {
       List responseJson = data['tax'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          Tax data = await PosDatabase.instance.insertTax(Tax.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertTax(Tax.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1172,7 +1252,7 @@ getBranchLinkTax() async {
       List responseJson = data['tax'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          BranchLinkTax data = await PosDatabase.instance.insertBranchLinkTax(BranchLinkTax.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertBranchLinkTax(BranchLinkTax.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1203,7 +1283,7 @@ getTaxLinkDining() async {
       List responseJson = data['tax'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          TaxLinkDining data = await PosDatabase.instance.insertTaxLinkDining(TaxLinkDining.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertTaxLinkDining(TaxLinkDining.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1235,7 +1315,7 @@ getAllPromotion() async {
       List responseJson = data['promotion'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          Promotion data = await PosDatabase.instance.insertPromotion(Promotion.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertPromotion(Promotion.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1266,7 +1346,7 @@ getBranchLinkPromotion() async {
       List responseJson = data['promotion'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          BranchLinkPromotion data = await PosDatabase.instance.insertBranchLinkPromotion(BranchLinkPromotion.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertBranchLinkPromotion(BranchLinkPromotion.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1298,7 +1378,7 @@ getAllCustomer() async {
       List responseJson = data['customer'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          Customer data = await PosDatabase.instance.insertCustomer(Customer.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertCustomer(Customer.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1331,7 +1411,7 @@ getAllBill() async {
       List responseJson = data['bill'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          Bill data = await PosDatabase.instance.insertBill(Bill.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertBill(Bill.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1443,39 +1523,48 @@ getAllRefund() async {
     final prefs = await SharedPreferences.getInstance();
     final String? user = prefs.getString('user');
     final int? branch_id = prefs.getInt('branch_id');
+    final String? dataRetrieveDate = prefs.getString('dataRetrieveDate');
     Map userObject = json.decode(user!);
-    Map data = await Domain().getAllRefund(userObject['company_id'], branch_id.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['refund'];
-      for (var i = 0; i < responseJson.length; i++) {
-        Order? orderData = await PosDatabase.instance.readOrderSqliteID(responseJson[i]['order_key']);
-        Refund data = await PosDatabase.instance.insertRefund(Refund(
-          refund_id: responseJson[i]['refund_id'],
-          refund_key: responseJson[i]['refund_key'],
-          company_id: responseJson[i]['company_id'],
-          branch_id: responseJson[i]['branch_id'],
-          order_cache_sqlite_id: '',
-          order_cache_key: '',
-          order_sqlite_id: orderData != null ? orderData.order_sqlite_id.toString() : '',
-          order_key: responseJson[i]['order_key'],
-          refund_by: responseJson[i]['refund_by'],
-          refund_by_user_id: responseJson[i]['refund_by_user_id'],
-          bill_id: responseJson[i]['bill_id'],
-          sync_status: 1,
-          created_at: responseJson[i]['created_at'],
-          updated_at: responseJson[i]['updated_at'],
-          soft_delete: responseJson[i]['soft_delete'],
-        ));
-        try {
-          if(orderData != null) {
-            updateOrderRefundSqliteId(data.refund_sqlite_id.toString(), orderData.order_sqlite_id!);
+    Map data;
+
+    if(dataRetrieveDate != '') {
+      if(dataRetrieveDate == 'all')
+        data = await Domain().getAllRefund(userObject['company_id'], branch_id.toString());
+      else
+        data = await Domain().getAllRefundAfterDate(userObject['company_id'], branch_id.toString(), dataRetrieveDate);
+
+      if (data['status'] == '1') {
+        List responseJson = data['refund'];
+        for (var i = 0; i < responseJson.length; i++) {
+          Order? orderData = await PosDatabase.instance.readOrderSqliteID(responseJson[i]['order_key']);
+          Refund data = await PosDatabase.instance.insertRefund(Refund(
+            refund_id: responseJson[i]['refund_id'],
+            refund_key: responseJson[i]['refund_key'],
+            company_id: responseJson[i]['company_id'],
+            branch_id: responseJson[i]['branch_id'],
+            order_cache_sqlite_id: '',
+            order_cache_key: '',
+            order_sqlite_id: orderData != null ? orderData.order_sqlite_id.toString() : '',
+            order_key: responseJson[i]['order_key'],
+            refund_by: responseJson[i]['refund_by'],
+            refund_by_user_id: responseJson[i]['refund_by_user_id'],
+            bill_id: responseJson[i]['bill_id'],
+            sync_status: 1,
+            created_at: responseJson[i]['created_at'],
+            updated_at: responseJson[i]['updated_at'],
+            soft_delete: responseJson[i]['soft_delete'],
+          ));
+          try {
+            if(orderData != null) {
+              updateOrderRefundSqliteId(data.refund_sqlite_id.toString(), orderData.order_sqlite_id!);
+            }
+          } catch(e) {
+            FLog.error(
+              className: "loading",
+              text: "refund insert failed (refund_id: ${responseJson[i]['refund_id']})",
+              exception: "$e\n${data.toJson()}",
+            );
           }
-        } catch(e) {
-          FLog.error(
-            className: "loading",
-            text: "refund insert failed (refund_id: ${responseJson[i]['refund_id']})",
-            exception: "$e\n${data.toJson()}",
-          );
         }
       }
     }
@@ -1494,7 +1583,7 @@ getAllRefund() async {
 updateOrderRefundSqliteId(String refundLocalId, int orderLocalId) async {
   Order order = Order(refund_sqlite_id: refundLocalId, order_sqlite_id: orderLocalId);
   try {
-    int data = await PosDatabase.instance.updateOrderRefundSqliteId(order);
+    await PosDatabase.instance.updateOrderRefundSqliteId(order);
   } catch(e) {
     FLog.error(
       className: "loading",
@@ -1517,7 +1606,7 @@ getModifierGroup() async {
       List responseJson = data['modifier'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          ModifierGroup data = await PosDatabase.instance.insertModifierGroup(ModifierGroup.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertModifierGroup(ModifierGroup.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1549,7 +1638,7 @@ getModifierItem() async {
       List responseJson = data['modifier'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          ModifierItem data = await PosDatabase.instance.insertModifierItem(ModifierItem.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertModifierItem(ModifierItem.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1580,7 +1669,7 @@ getBranchLinkModifier() async {
       List responseJson = data['modifier'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
-          BranchLinkModifier data = await PosDatabase.instance.insertBranchLinkModifier(BranchLinkModifier.fromJson(responseJson[i]));
+          await PosDatabase.instance.insertBranchLinkModifier(BranchLinkModifier.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -1616,7 +1705,7 @@ getBranchLinkProduct() async {
         Product? productData = await PosDatabase.instance.readProductSqliteID(branchLinkProductData.product_id!);
         ProductVariant? productVariantData = await PosDatabase.instance.readProductVariantSqliteID(branchLinkProductData.product_variant_id!);
         try {
-          BranchLinkProduct data = await PosDatabase.instance.insertBranchLinkProduct(BranchLinkProduct(
+          await PosDatabase.instance.insertBranchLinkProduct(BranchLinkProduct(
               branch_link_product_id: branchLinkProductData.branch_link_product_id,
               branch_id: branchLinkProductData.branch_id,
               product_sqlite_id: productData!.product_sqlite_id.toString(),
@@ -1662,33 +1751,42 @@ getAllTableUse() async {
   try {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    Map data = await Domain().getAllTableUse(branch_id.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['table_use'];
-      for (var i = 0; i < responseJson.length; i++) {
-        TableUse item = TableUse.fromJson(responseJson[i]);
-        try {
-          TableUse user = await PosDatabase.instance.insertTableUse(TableUse(
-            table_use_id: item.table_use_id,
-            table_use_key: item.table_use_key,
-            branch_id: item.branch_id,
-            order_cache_key: item.order_cache_key,
-            card_color: item.card_color,
-            status: item.status,
-            sync_status: 1,
-            created_at: item.created_at,
-            updated_at: item.updated_at,
-            soft_delete: item.soft_delete,
-          ));
-        } catch(e) {
-          FLog.error(
-            className: "loading",
-            text: "getAllTableUse error",
-            exception: "$e\n${item.toJson()}",
-          );
+    final String? dataRetrieveDate = prefs.getString('dataRetrieveDate');
+    Map data;
+
+    if(dataRetrieveDate != '') {
+      if(dataRetrieveDate == 'all')
+        data = await Domain().getAllTableUse(branch_id.toString());
+      else
+        data = await Domain().getAllTableUseAfterDate(branch_id.toString(), dataRetrieveDate);
+
+      if (data['status'] == '1') {
+        List responseJson = data['table_use'];
+        for (var i = 0; i < responseJson.length; i++) {
+          TableUse item = TableUse.fromJson(responseJson[i]);
+          try {
+            await PosDatabase.instance.insertTableUse(TableUse(
+              table_use_id: item.table_use_id,
+              table_use_key: item.table_use_key,
+              branch_id: item.branch_id,
+              order_cache_key: item.order_cache_key,
+              card_color: item.card_color,
+              status: item.status,
+              sync_status: 1,
+              created_at: item.created_at,
+              updated_at: item.updated_at,
+              soft_delete: item.soft_delete,
+            ));
+          } catch(e) {
+            FLog.error(
+              className: "loading",
+              text: "getAllTableUse error",
+              exception: "$e\n${item.toJson()}",
+            );
+          }
         }
+        getAllTableUseDetail();
       }
-      getAllTableUseDetail();
     }
   } catch(e) {
     FLog.error(
@@ -1706,32 +1804,41 @@ getAllTableUseDetail() async {
   try {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    Map data = await Domain().getAllTableUseDetail(branch_id.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['table_use'];
-      for (var i = 0; i < responseJson.length; i++) {
-        TableUseDetail item = TableUseDetail.fromJson(responseJson[i]);
-        TableUse? tableUseData = await PosDatabase.instance.readTableUseSqliteID(item.table_use_key!);
-        PosTable tableData = await PosDatabase.instance.readTableByCloudId(item.table_id.toString());
-        try {
-          TableUseDetail user = await PosDatabase.instance.insertTableUseDetail(TableUseDetail(
-              table_use_detail_id: item.table_use_detail_id,
-              table_use_detail_key: item.table_use_detail_key,
-              table_use_sqlite_id: tableUseData != null ? tableUseData.table_use_sqlite_id.toString() : '0',
-              table_use_key: item.table_use_key,
-              table_sqlite_id: tableData.table_sqlite_id.toString(),
-              table_id: item.table_id,
-              status: item.status,
-              sync_status: 1,
-              created_at: item.created_at,
-              updated_at: item.updated_at,
-              soft_delete: item.soft_delete));
-        } catch(e) {
-          FLog.error(
-            className: "loading",
-            text: "table user detail insert failed (table_use_detail_id: ${item.table_use_detail_id})",
-            exception: "$e\n${item.toJson()}",
-          );
+    final String? dataRetrieveDate = prefs.getString('dataRetrieveDate');
+    Map data;
+
+    if(dataRetrieveDate != '') {
+      if(dataRetrieveDate == 'all')
+        data = await Domain().getAllTableUseDetail(branch_id.toString());
+      else
+        data = await Domain().getAllTableUseDetailAfterDate(branch_id.toString(), dataRetrieveDate);
+
+      if (data['status'] == '1') {
+        List responseJson = data['table_use'];
+        for (var i = 0; i < responseJson.length; i++) {
+          TableUseDetail item = TableUseDetail.fromJson(responseJson[i]);
+          TableUse? tableUseData = await PosDatabase.instance.readTableUseSqliteID(item.table_use_key!);
+          PosTable tableData = await PosDatabase.instance.readTableByCloudId(item.table_id.toString());
+          try {
+            await PosDatabase.instance.insertTableUseDetail(TableUseDetail(
+                table_use_detail_id: item.table_use_detail_id,
+                table_use_detail_key: item.table_use_detail_key,
+                table_use_sqlite_id: tableUseData != null ? tableUseData.table_use_sqlite_id.toString() : '0',
+                table_use_key: item.table_use_key,
+                table_sqlite_id: tableData.table_sqlite_id.toString(),
+                table_id: item.table_id,
+                status: item.status,
+                sync_status: 1,
+                created_at: item.created_at,
+                updated_at: item.updated_at,
+                soft_delete: item.soft_delete));
+          } catch(e) {
+            FLog.error(
+              className: "loading",
+              text: "table user detail insert failed (table_use_detail_id: ${item.table_use_detail_id})",
+              exception: "$e\n${item.toJson()}",
+            );
+          }
         }
       }
     }
@@ -1760,7 +1867,7 @@ getModifierLinkProduct() async {
         ModifierLinkProduct modData = ModifierLinkProduct.fromJson(responseJson[i]);
         Product? productData = await PosDatabase.instance.readProductSqliteID(modData.product_id!);
         try {
-          ModifierLinkProduct data = await PosDatabase.instance.insertModifierLinkProduct(ModifierLinkProduct(
+          await PosDatabase.instance.insertModifierLinkProduct(ModifierLinkProduct(
             modifier_link_product_id: modData.modifier_link_product_id,
             mod_group_id: modData.mod_group_id,
             product_id: modData.product_id,
@@ -1803,7 +1910,7 @@ getVariantGroup() async {
         VariantGroup variantData = VariantGroup.fromJson(responseJson[i]);
         Product? productData = await PosDatabase.instance.readProductSqliteID(variantData.product_id!);
         try {
-          VariantGroup data = await PosDatabase.instance.insertVariantGroup(VariantGroup(
+          await PosDatabase.instance.insertVariantGroup(VariantGroup(
               child: [],
               variant_group_id: variantData.variant_group_id,
               product_id: variantData.product_id,
@@ -1849,7 +1956,7 @@ getVariantItem() async {
         VariantItem variantItemData = VariantItem.fromJson(responseJson[i]);
         VariantGroup? variantGroupData = await PosDatabase.instance.readVariantGroupSqliteID(variantItemData.variant_group_id!);
         try {
-          VariantItem data = await PosDatabase.instance.insertVariantItem(VariantItem(
+          await PosDatabase.instance.insertVariantItem(VariantItem(
               variant_item_id: variantItemData.variant_item_id,
               variant_group_id: variantItemData.variant_group_id,
               variant_group_sqlite_id: variantGroupData != null ? variantGroupData.variant_group_sqlite_id.toString() : '0',
@@ -1895,7 +2002,7 @@ getProductVariant() async {
         ProductVariant productVariantItem = ProductVariant.fromJson(responseJson[i]);
         Product? productData = await PosDatabase.instance.readProductSqliteID(productVariantItem.product_id!);
         try {
-          ProductVariant data = await PosDatabase.instance.insertProductVariant(ProductVariant(
+          await PosDatabase.instance.insertProductVariant(ProductVariant(
               product_variant_id: productVariantItem.product_variant_id,
               product_sqlite_id: productData!.product_sqlite_id.toString(),
               product_id: productVariantItem.product_id,
@@ -1948,7 +2055,7 @@ getProductVariantDetail() async {
         ProductVariant? productVariantData = await PosDatabase.instance.readProductVariantSqliteID(productVariantDetailItem.product_variant_id!);
         VariantItem? variantItemData = await PosDatabase.instance.readVariantItemSqliteID(productVariantDetailItem.variant_item_id!);
         try {
-          ProductVariantDetail data = await PosDatabase.instance.insertProductVariantDetail(ProductVariantDetail(
+          await PosDatabase.instance.insertProductVariantDetail(ProductVariantDetail(
               product_variant_detail_id: productVariantDetailItem.product_variant_detail_id,
               product_variant_id: productVariantDetailItem.product_variant_id,
               product_variant_sqlite_id: productVariantData!.product_variant_sqlite_id.toString(),
@@ -1984,36 +2091,44 @@ getSettlementLinkPayment() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     final String? user = prefs.getString('user');
+    final String? dataRetrieveDate = prefs.getString('dataRetrieveDate');
     Map userObject = json.decode(user!);
-    Map data = await Domain().getSettlementLinkPayment(userObject['company_id'], branch_id.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['settlement'];
-      for (var i = 0; i < responseJson.length; i++) {
-        SettlementLinkPayment item = SettlementLinkPayment.fromJson(responseJson[i]);
-        Settlement settlementData = await PosDatabase.instance.readSettlementSqliteID(item.settlement_key!);
-        try {
-          SettlementLinkPayment data = await PosDatabase.instance.insertSettlementLinkPayment(SettlementLinkPayment(
-            settlement_link_payment_id: item.settlement_link_payment_id,
-            settlement_link_payment_key: item.settlement_link_payment_key,
-            company_id: item.company_id,
-            branch_id: item.branch_id,
-            settlement_sqlite_id: settlementData.settlement_sqlite_id.toString(),
-            settlement_key: item.settlement_key,
-            total_bill: item.total_bill,
-            total_sales: item.total_sales,
-            payment_link_company_id: item.payment_link_company_id,
-            status: item.status,
-            sync_status: 1,
-            created_at: item.created_at,
-            updated_at: item.updated_at,
-            soft_delete: item.soft_delete,
-          ));
-        } catch(e) {
-          FLog.error(
-            className: "loading",
-            text: "settlement link payment insert failed (settlement_link_payment_id: ${item.settlement_link_payment_id})",
-            exception: "$e\n${item.toJson()}",
-          );
+    Map data;
+    if(dataRetrieveDate != '') {
+      if(dataRetrieveDate == 'all')
+        data = await Domain().getSettlementLinkPayment(userObject['company_id'], branch_id.toString());
+      else
+        data = await Domain().getSettlementLinkPaymentAfterDate(userObject['company_id'], branch_id.toString(), dataRetrieveDate);
+
+      if (data['status'] == '1') {
+        List responseJson = data['settlement'];
+        for (var i = 0; i < responseJson.length; i++) {
+          SettlementLinkPayment item = SettlementLinkPayment.fromJson(responseJson[i]);
+          Settlement settlementData = await PosDatabase.instance.readSettlementSqliteID(item.settlement_key!);
+          try {
+            await PosDatabase.instance.insertSettlementLinkPayment(SettlementLinkPayment(
+              settlement_link_payment_id: item.settlement_link_payment_id,
+              settlement_link_payment_key: item.settlement_link_payment_key,
+              company_id: item.company_id,
+              branch_id: item.branch_id,
+              settlement_sqlite_id: settlementData.settlement_sqlite_id.toString(),
+              settlement_key: item.settlement_key,
+              total_bill: item.total_bill,
+              total_sales: item.total_sales,
+              payment_link_company_id: item.payment_link_company_id,
+              status: item.status,
+              sync_status: 1,
+              created_at: item.created_at,
+              updated_at: item.updated_at,
+              soft_delete: item.soft_delete,
+            ));
+          } catch(e) {
+            FLog.error(
+              className: "loading",
+              text: "settlement link payment insert failed (settlement_link_payment_id: ${item.settlement_link_payment_id})",
+              exception: "$e\n${item.toJson()}",
+            );
+          }
         }
       }
     }
@@ -2035,56 +2150,68 @@ getAllOrder() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     final String? user = prefs.getString('user');
+    final String? dataRetrieveDate = prefs.getString('dataRetrieveDate');
     Map userObject = json.decode(user!);
-    Map data = await Domain().getAllOrder(userObject['company_id'], branch_id.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['order'];
-      for (var i = 0; i < responseJson.length; i++) {
-        if (responseJson[i]['settlement_key'] != '') {
-          Settlement settlementData = await PosDatabase.instance.readSettlementSqliteID(responseJson[i]['settlement_key']);
-          settlement = settlementData;
+    Map data;
+
+    if(dataRetrieveDate != '') {
+      if(dataRetrieveDate == 'all')
+        data = await Domain().getAllOrder(userObject['company_id'], branch_id.toString());
+      else
+        data = await Domain().getAllOrderAfterDate(userObject['company_id'], branch_id.toString(), dataRetrieveDate);
+
+      if (data['status'] == '1') {
+        List responseJson = data['order'];
+        for (var i = 0; i < responseJson.length; i++) {
+          if (responseJson[i]['settlement_key'] != '') {
+            Settlement settlementData = await PosDatabase.instance.readSettlementSqliteID(responseJson[i]['settlement_key']);
+            settlement = settlementData;
+          }
+          try {
+            await PosDatabase.instance.insertOrder(Order(
+                order_id: responseJson[i]['order_id'],
+                order_number: responseJson[i]['order_number'],
+                order_queue: responseJson[i]['order_queue'],
+                company_id: responseJson[i]['company_id'],
+                customer_id: responseJson[i]['customer_id'],
+                dining_id: responseJson[i]['dining_id'],
+                dining_name: responseJson[i]['dining_name'],
+                branch_link_promotion_id: responseJson[i]['branch_link_promotion_id'],
+                payment_link_company_id: responseJson[i]['payment_link_company_id'],
+                branch_id: responseJson[i]['branch_id'],
+                branch_link_tax_id: responseJson[i]['branch_link_tax_id'],
+                subtotal: responseJson[i]['subtotal'],
+                amount: responseJson[i]['amount'],
+                rounding: responseJson[i]['rounding'],
+                final_amount: responseJson[i]['final_amount'],
+                close_by: responseJson[i]['close_by'],
+                payment_status: responseJson[i]['payment_status'],
+                payment_split: responseJson[i]['payment_split'],
+                payment_received: responseJson[i]['payment_received'],
+                payment_change: responseJson[i]['payment_change'],
+                order_key: responseJson[i]['order_key'],
+                refund_sqlite_id: '',
+                refund_key: responseJson[i]['refund_key'],
+                settlement_sqlite_id: settlement != null ? settlement.settlement_sqlite_id.toString() : '',
+                settlement_key: responseJson[i]['settlement_key'],
+                ipay_trans_id: responseJson[i]['ipay_trans_id'] ?? '',
+                sync_status: 1,
+                created_at: responseJson[i]['created_at'],
+                updated_at: responseJson[i]['updated_at'],
+                soft_delete: responseJson[i]['soft_delete']));
+          } catch(e) {
+            FLog.error(
+              className: "loading",
+              text: "order insert failed (order_id: ${responseJson[i]['order_id']})",
+              exception: "$e\n${responseJson[i].toJson()}",
+            );
+          }
         }
-        try {
-          Order data = await PosDatabase.instance.insertOrder(Order(
-              order_id: responseJson[i]['order_id'],
-              order_number: responseJson[i]['order_number'],
-              order_queue: responseJson[i]['order_queue'],
-              company_id: responseJson[i]['company_id'],
-              customer_id: responseJson[i]['customer_id'],
-              dining_id: responseJson[i]['dining_id'],
-              dining_name: responseJson[i]['dining_name'],
-              branch_link_promotion_id: responseJson[i]['branch_link_promotion_id'],
-              payment_link_company_id: responseJson[i]['payment_link_company_id'],
-              branch_id: responseJson[i]['branch_id'],
-              branch_link_tax_id: responseJson[i]['branch_link_tax_id'],
-              subtotal: responseJson[i]['subtotal'],
-              amount: responseJson[i]['amount'],
-              rounding: responseJson[i]['rounding'],
-              final_amount: responseJson[i]['final_amount'],
-              close_by: responseJson[i]['close_by'],
-              payment_status: responseJson[i]['payment_status'],
-              payment_received: responseJson[i]['payment_received'],
-              payment_change: responseJson[i]['payment_change'],
-              order_key: responseJson[i]['order_key'],
-              refund_sqlite_id: '',
-              refund_key: responseJson[i]['refund_key'],
-              settlement_sqlite_id: settlement != null ? settlement.settlement_sqlite_id.toString() : '',
-              settlement_key: responseJson[i]['settlement_key'],
-              sync_status: 1,
-              created_at: responseJson[i]['created_at'],
-              updated_at: responseJson[i]['updated_at'],
-              soft_delete: responseJson[i]['soft_delete']));
-        } catch(e) {
-          FLog.error(
-            className: "loading",
-            text: "order insert failed (order_id: ${responseJson[i]['order_id']})",
-            exception: "$e\n${responseJson[i].toJson()}",
-          );
-        }
+        getAllOrderPromotionDetail();
+        getAllOrderTaxDetail();
+        getAllOrderPaymentSplit();
+        getAllRefund();
       }
-      getAllOrderPromotionDetail();
-      getAllOrderTaxDetail();
-      getAllRefund();
     }
   } catch(e) {
     FLog.error(
@@ -2110,7 +2237,7 @@ getAllOrderPromotionDetail() async {
       for (var i = 0; i < responseJson.length; i++) {
         Order? orderData = await PosDatabase.instance.readOrderSqliteID(responseJson[i]['order_key']);
         try {
-          OrderPromotionDetail data = await PosDatabase.instance.insertOrderPromotionDetail(OrderPromotionDetail(
+          await PosDatabase.instance.insertOrderPromotionDetail(OrderPromotionDetail(
             order_promotion_detail_id: responseJson[i]['order_promotion_detail_id'],
             order_promotion_detail_key: responseJson[i]['order_promotion_detail_key'],
             order_sqlite_id:  orderData != null ? orderData.order_sqlite_id.toString() : '',
@@ -2154,36 +2281,45 @@ getAllOrderTaxDetail() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     final String? user = prefs.getString('user');
+    final String? dataRetrieveDate = prefs.getString('dataRetrieveDate');
     Map userObject = json.decode(user!);
-    Map data = await Domain().getAllOrderTaxDetail(userObject['company_id'], branch_id.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['order'];
-      for (var i = 0; i < responseJson.length; i++) {
-        Order? orderData = await PosDatabase.instance.readOrderSqliteID(responseJson[i]['order_key']);
-        try {
-          OrderTaxDetail data = await PosDatabase.instance.insertOrderTaxDetail(OrderTaxDetail(
-            order_tax_detail_id: responseJson[i]['order_tax_detail_id'],
-            order_tax_detail_key: responseJson[i]['order_tax_detail_key'],
-            order_sqlite_id:  orderData != null ? orderData.order_sqlite_id.toString() : '',
-            order_id: orderData != null ? orderData.order_id.toString() : '',
-            order_key: responseJson[i]['order_key'],
-            tax_name: responseJson[i]['tax_name'],
-            type: responseJson[i]['type'],
-            rate: responseJson[i]['rate'],
-            tax_id: responseJson[i]['tax_id'],
-            branch_link_tax_id: responseJson[i]['branch_link_tax_id'],
-            tax_amount: responseJson[i]['tax_amount'],
-            sync_status: 1,
-            created_at: responseJson[i]['created_at'],
-            updated_at: responseJson[i]['updated_at'],
-            soft_delete: responseJson[i]['soft_delete'],
-          ));
-        } catch(e) {
-          FLog.error(
-            className: "loading",
-            text: "order tax detail insert failed (order_tax_detail_id: ${responseJson[i]['order_tax_detail_id']})",
-            exception: "$e\n${responseJson[i].toJson()}",
-          );
+    Map data;
+
+    if(dataRetrieveDate != '') {
+      if(dataRetrieveDate == 'all')
+        data = await Domain().getAllOrderTaxDetail(userObject['company_id'], branch_id.toString());
+      else
+        data = await Domain().getAllOrderTaxDetailAfterDate(userObject['company_id'], branch_id.toString(), dataRetrieveDate);
+
+      if (data['status'] == '1') {
+        List responseJson = data['order'];
+        for (var i = 0; i < responseJson.length; i++) {
+          Order? orderData = await PosDatabase.instance.readOrderSqliteID(responseJson[i]['order_key']);
+          try {
+            await PosDatabase.instance.insertOrderTaxDetail(OrderTaxDetail(
+              order_tax_detail_id: responseJson[i]['order_tax_detail_id'],
+              order_tax_detail_key: responseJson[i]['order_tax_detail_key'],
+              order_sqlite_id:  orderData != null ? orderData.order_sqlite_id.toString() : '',
+              order_id: orderData != null ? orderData.order_id.toString() : '',
+              order_key: responseJson[i]['order_key'],
+              tax_name: responseJson[i]['tax_name'],
+              type: responseJson[i]['type'],
+              rate: responseJson[i]['rate'],
+              tax_id: responseJson[i]['tax_id'],
+              branch_link_tax_id: responseJson[i]['branch_link_tax_id'],
+              tax_amount: responseJson[i]['tax_amount'],
+              sync_status: 1,
+              created_at: responseJson[i]['created_at'],
+              updated_at: responseJson[i]['updated_at'],
+              soft_delete: responseJson[i]['soft_delete'],
+            ));
+          } catch(e) {
+            FLog.error(
+              className: "loading",
+              text: "order tax detail insert failed (order_tax_detail_id: ${responseJson[i]['order_tax_detail_id']})",
+              exception: "$e\n${responseJson[i].toJson()}",
+            );
+          }
         }
       }
     }
@@ -2191,6 +2327,60 @@ getAllOrderTaxDetail() async {
     FLog.error(
       className: "loading",
       text: "getAllOrderTaxDetail error",
+      exception: e,
+    );
+  }
+}
+
+/*
+  save order payment split to database
+*/
+getAllOrderPaymentSplit() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    final String? dataRetrieveDate = prefs.getString('dataRetrieveDate');
+    Map data;
+
+    if(dataRetrieveDate != '') {
+      if(dataRetrieveDate == 'all')
+        data = await Domain().getAllOrderPaymentSplit(branch_id.toString());
+      else
+        data = await Domain().getAllOrderPaymentSplitAfterDate(branch_id.toString(), dataRetrieveDate);
+
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          try {
+            await PosDatabase.instance.insertSqliteOrderPaymentSplit(OrderPaymentSplit(
+                order_payment_split_id: responseJson[i]['order_payment_split_id'],
+                order_payment_split_key: responseJson[i]['order_payment_split_key'],
+                branch_id: responseJson[i]['branch_id'],
+                payment_link_company_id: responseJson[i]['payment_link_company_id'],
+                amount: responseJson[i]['amount'],
+                payment_received: responseJson[i]['payment_received'],
+                payment_change: responseJson[i]['payment_change'],
+                order_key: responseJson[i]['order_key'],
+                ipay_trans_id: responseJson[i]['ipay_trans_id'],
+                sync_status: 1,
+                created_at: responseJson[i]['created_at'],
+                updated_at: responseJson[i]['updated_at'],
+                soft_delete: responseJson[i]['soft_delete']
+            ));
+          } catch(e) {
+            FLog.error(
+              className: "loading",
+              text: "order payment split insert failed (order_payment_split_id: ${responseJson[i]['order_payment_split_id']})",
+              exception: "$e\n${responseJson[i].toJson()}",
+            );
+          }
+        }
+      }
+    }
+  } catch(e) {
+    FLog.error(
+      className: "loading",
+      text: "getAllOrderPaymentSplit error",
       exception: e,
     );
   }
@@ -2205,69 +2395,79 @@ getAllOrderCache() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     final String? user = prefs.getString('user');
+    final String? dataRetrieveDate = prefs.getString('dataRetrieveDate');
     Map userObject = json.decode(user!);
-    Map data = await Domain().getAllOrderCache(userObject['company_id'], branch_id.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['order'];
-      for (var i = 0; i < responseJson.length; i++) {
-        OrderCache cloudData = OrderCache.fromJson(responseJson[i]);
-        if (cloudData.table_use_key != '' && cloudData.table_use_key != null) {
-          // print("table use key: ${cloudData.table_use_key}");
-          TableUse? tableUseData = await PosDatabase.instance.readTableUseSqliteID(cloudData.table_use_key!);
-          if(tableUseData != null){
-            tableUseLocalId = tableUseData.table_use_sqlite_id.toString();
-          } else {
-            continue;
-          }
-        } else {
-          tableUseLocalId = '';
-        }
+    Map data;
 
-        if (cloudData.order_key != '' && cloudData.order_key != null) {
-          // print("order key in order cache sync: ${cloudData.order_key}");
-          Order? orderData = await PosDatabase.instance.readOrderSqliteID(cloudData.order_key!);
-          orderLocalId =  orderData != null ? orderData.order_sqlite_id.toString() : '';
-        } else {
-          orderLocalId = '';
+    if(dataRetrieveDate != '') {
+      if(dataRetrieveDate == 'all')
+        data = await Domain().getAllOrderCache(userObject['company_id'], branch_id.toString());
+      else
+        data = await Domain().getAllOrderCacheAfterDate(userObject['company_id'], branch_id.toString(), dataRetrieveDate);
+
+      if (data['status'] == '1') {
+        List responseJson = data['order'];
+        for (var i = 0; i < responseJson.length; i++) {
+          OrderCache cloudData = OrderCache.fromJson(responseJson[i]);
+          if (cloudData.table_use_key != '' && cloudData.table_use_key != null) {
+            // print("table use key: ${cloudData.table_use_key}");
+            TableUse? tableUseData = await PosDatabase.instance.readTableUseSqliteID(cloudData.table_use_key!);
+            if(tableUseData != null){
+              tableUseLocalId = tableUseData.table_use_sqlite_id.toString();
+            } else {
+              continue;
+            }
+          } else {
+            tableUseLocalId = '';
+          }
+
+          if (cloudData.order_key != '' && cloudData.order_key != null) {
+            // print("order key in order cache sync: ${cloudData.order_key}");
+            Order? orderData = await PosDatabase.instance.readOrderSqliteID(cloudData.order_key!);
+            orderLocalId =  orderData != null ? orderData.order_sqlite_id.toString() : '';
+          } else {
+            orderLocalId = '';
+          }
+          try {
+            await PosDatabase.instance.insertOrderCache(OrderCache(
+              order_cache_id: cloudData.order_cache_id,
+              order_cache_key: cloudData.order_cache_key,
+              order_queue: cloudData.order_queue,
+              company_id: cloudData.company_id,
+              branch_id: cloudData.branch_id,
+              order_detail_id: '',
+              table_use_sqlite_id: tableUseLocalId,
+              table_use_key: cloudData.table_use_key != '' && cloudData.table_use_key != null ? cloudData.table_use_key : '',
+              batch_id: cloudData.batch_id,
+              dining_id: cloudData.dining_id,
+              order_sqlite_id: orderLocalId,
+              order_key: cloudData.order_key != '' && cloudData.order_key != null ? cloudData.order_key : '',
+              order_by: cloudData.order_by != '' ? cloudData.order_by : '',
+              order_by_user_id: cloudData.order_by_user_id,
+              cancel_by: cloudData.cancel_by != '' ? cloudData.cancel_by : '',
+              cancel_by_user_id: cloudData.cancel_by_user_id != '' ? cloudData.cancel_by_user_id : '',
+              customer_id: cloudData.customer_id,
+              total_amount: cloudData.total_amount != '' ? cloudData.total_amount : '',
+              qr_order: cloudData.qr_order,
+              qr_order_table_sqlite_id: '',
+              qr_order_table_id: responseJson[i]['table_id'],
+              accepted: cloudData.accepted,
+              sync_status: 1,
+              payment_status: cloudData.payment_status,
+              created_at: cloudData.created_at,
+              updated_at: cloudData.updated_at,
+              soft_delete: cloudData.soft_delete,
+            ));
+          } catch(e) {
+            FLog.error(
+              className: "loading",
+              text: "order cache insert failed (order_cache_id: ${cloudData.order_cache_id})",
+              exception: "$e\n${cloudData.toJson()}",
+            );
+          }
         }
-        try {
-          OrderCache data = await PosDatabase.instance.insertOrderCache(OrderCache(
-            order_cache_id: cloudData.order_cache_id,
-            order_cache_key: cloudData.order_cache_key,
-            order_queue: cloudData.order_queue,
-            company_id: cloudData.company_id,
-            branch_id: cloudData.branch_id,
-            order_detail_id: '',
-            table_use_sqlite_id: tableUseLocalId,
-            table_use_key: cloudData.table_use_key != '' && cloudData.table_use_key != null ? cloudData.table_use_key : '',
-            batch_id: cloudData.batch_id,
-            dining_id: cloudData.dining_id,
-            order_sqlite_id: orderLocalId,
-            order_key: cloudData.order_key != '' && cloudData.order_key != null ? cloudData.order_key : '',
-            order_by: cloudData.order_by != '' ? cloudData.order_by : '',
-            order_by_user_id: cloudData.order_by_user_id,
-            cancel_by: cloudData.cancel_by != '' ? cloudData.cancel_by : '',
-            cancel_by_user_id: cloudData.cancel_by_user_id != '' ? cloudData.cancel_by_user_id : '',
-            customer_id: cloudData.customer_id,
-            total_amount: cloudData.total_amount != '' ? cloudData.total_amount : '',
-            qr_order: cloudData.qr_order,
-            qr_order_table_sqlite_id: '',
-            qr_order_table_id: responseJson[i]['table_id'],
-            accepted: cloudData.accepted,
-            sync_status: 1,
-            created_at: cloudData.created_at,
-            updated_at: cloudData.updated_at,
-            soft_delete: cloudData.soft_delete,
-          ));
-        } catch(e) {
-          FLog.error(
-            className: "loading",
-            text: "order cache insert failed (order_cache_id: ${cloudData.order_cache_id})",
-            exception: "$e\n${cloudData.toJson()}",
-          );
-        }
+        getAllOrderDetail();
       }
-      getAllOrderDetail();
     }
   } catch(e) {
     FLog.error(
@@ -2299,7 +2499,7 @@ getAllOrderDetail() async {
           continue;
         }
         try {
-          OrderDetail data = await PosDatabase.instance.insertOrderDetail(OrderDetail(
+          await PosDatabase.instance.insertOrderDetail(OrderDetail(
               order_detail_id: responseJson[i]['order_detail_id'],
               order_detail_key: responseJson[i]['order_detail_key'].toString(),
               order_cache_sqlite_id: cacheData.order_cache_sqlite_id.toString(),
@@ -2370,7 +2570,7 @@ getAllOrderDetailCancel() async {
           continue;
         }
         try {
-          OrderDetailCancel data = await PosDatabase.instance.insertOrderDetailCancel(OrderDetailCancel(
+          await PosDatabase.instance.insertOrderDetailCancel(OrderDetailCancel(
             order_detail_cancel_id: responseJson[i]['order_detail_cancel_id'],
             order_detail_cancel_key: responseJson[i]['order_detail_cancel_key'],
             order_detail_sqlite_id: detailData.order_detail_sqlite_id.toString(),
@@ -2424,7 +2624,7 @@ getAllOrderModifierDetail() async {
           continue;
         }
         try {
-          OrderModifierDetail data = await PosDatabase.instance.insertOrderModifierDetail(OrderModifierDetail(
+          await PosDatabase.instance.insertOrderModifierDetail(OrderModifierDetail(
               order_modifier_detail_id: responseJson[i]['order_modifier_detail_id'],
               order_modifier_detail_key: responseJson[i]['order_modifier_detail_key'],
               order_detail_key: responseJson[i]['order_detail_key'],
@@ -2469,7 +2669,7 @@ getSale() async {
     if (data['status'] == '1') {
       List responseJson = data['sale'];
       for (var i = 0; i < responseJson.length; i++) {
-        Sale data = await PosDatabase.instance.insertSale(Sale.fromJson(responseJson[i]));
+        await PosDatabase.instance.insertSale(Sale.fromJson(responseJson[i]));
       }
     }
   } catch(e) {
@@ -2489,36 +2689,45 @@ getCashRecord() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     final String? user = prefs.getString('user');
+    final String? dataRetrieveDate = prefs.getString('dataRetrieveDate');
     Map userObject = json.decode(user!);
-    Map data = await Domain().getCashRecord(userObject['company_id'], branch_id.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['data'];
-      for (var i = 0; i < responseJson.length; i++) {
-        try {
-          CashRecord data = await PosDatabase.instance.insertCashRecord(CashRecord(
-            cash_record_id: responseJson[i]['cash_record_id'],
-            cash_record_key: responseJson[i]['cash_record_key'],
-            company_id: responseJson[i]['company_id'],
-            branch_id: responseJson[i]['branch_id'],
-            remark: responseJson[i]['remark'],
-            payment_name: responseJson[i]['payment_name'],
-            payment_type_id: responseJson[i]['payment_type_id'],
-            type: responseJson[i]['type'],
-            amount: responseJson[i]['amount'],
-            user_id: responseJson[i]['user_id'],
-            settlement_key: responseJson[i]['settlement_key'],
-            settlement_date: responseJson[i]['settlement_date'],
-            sync_status: 1,
-            created_at: responseJson[i]['created_at'],
-            updated_at: responseJson[i]['updated_at'],
-            soft_delete: responseJson[i]['soft_delete'],
-          ));
-        } catch(e) {
-          FLog.error(
-            className: "loading",
-            text: "cash record insert failed (cash_record_id: ${responseJson[i]['cash_record_id']})",
-            exception: "$e\n${responseJson[i].toJson()}",
-          );
+    Map data;
+
+    if(dataRetrieveDate != '') {
+      if(dataRetrieveDate == 'all')
+        data = await Domain().getCashRecord(userObject['company_id'], branch_id.toString());
+      else
+        data = await Domain().getCashRecordAfterDate(userObject['company_id'], branch_id.toString(), dataRetrieveDate);
+
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          try {
+            await PosDatabase.instance.insertCashRecord(CashRecord(
+              cash_record_id: responseJson[i]['cash_record_id'],
+              cash_record_key: responseJson[i]['cash_record_key'],
+              company_id: responseJson[i]['company_id'],
+              branch_id: responseJson[i]['branch_id'],
+              remark: responseJson[i]['remark'],
+              payment_name: responseJson[i]['payment_name'],
+              payment_type_id: responseJson[i]['payment_type_id'],
+              type: responseJson[i]['type'],
+              amount: responseJson[i]['amount'],
+              user_id: responseJson[i]['user_id'],
+              settlement_key: responseJson[i]['settlement_key'],
+              settlement_date: responseJson[i]['settlement_date'],
+              sync_status: 1,
+              created_at: responseJson[i]['created_at'],
+              updated_at: responseJson[i]['updated_at'],
+              soft_delete: responseJson[i]['soft_delete'],
+            ));
+          } catch(e) {
+            FLog.error(
+              className: "loading",
+              text: "cash record insert failed (cash_record_id: ${responseJson[i]['cash_record_id']})",
+              exception: "$e\n${responseJson[i].toJson()}",
+            );
+          }
         }
       }
     }
@@ -2539,29 +2748,38 @@ getTransferOwner() async {
   try {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    Map data = await Domain().getTransferOwner(branch_id.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['data'];
-      for (var i = 0; i < responseJson.length; i++) {
-        try {
-          TransferOwner data = await PosDatabase.instance.insertTransferOwner(TransferOwner(
-            transfer_owner_key: responseJson[i]['transfer_owner_key'],
-            branch_id: responseJson[i]['branch_id'],
-            device_id: responseJson[i]['device_id'],
-            transfer_from_user_id: responseJson[i]['transfer_from_user_id'],
-            transfer_to_user_id: responseJson[i]['transfer_to_user_id'],
-            cash_balance: responseJson[i]['cash_balance'],
-            sync_status: 1,
-            created_at: responseJson[i]['created_at'],
-            updated_at: '',
-            soft_delete: '',
-          ));
-        } catch(e) {
-          FLog.error(
-            className: "loading",
-            text: "transfer order insert failed (transfer_owner_key: ${responseJson[i]['transfer_owner_key']})",
-            exception: "$e\n${responseJson[i].toJson()}",
-          );
+    final String? dataRetrieveDate = prefs.getString('dataRetrieveDate');
+    Map data;
+
+    if(dataRetrieveDate != '') {
+      if(dataRetrieveDate == 'all')
+        data = await Domain().getTransferOwner(branch_id.toString());
+      else
+        data = await Domain().getTransferOwnerAfterDate(branch_id.toString(), dataRetrieveDate);
+
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          try {
+            await PosDatabase.instance.insertTransferOwner(TransferOwner(
+              transfer_owner_key: responseJson[i]['transfer_owner_key'],
+              branch_id: responseJson[i]['branch_id'],
+              device_id: responseJson[i]['device_id'],
+              transfer_from_user_id: responseJson[i]['transfer_from_user_id'],
+              transfer_to_user_id: responseJson[i]['transfer_to_user_id'],
+              cash_balance: responseJson[i]['cash_balance'],
+              sync_status: 1,
+              created_at: responseJson[i]['created_at'],
+              updated_at: '',
+              soft_delete: '',
+            ));
+          } catch(e) {
+            FLog.error(
+              className: "loading",
+              text: "transfer order insert failed (transfer_owner_key: ${responseJson[i]['transfer_owner_key']})",
+              exception: "$e\n${responseJson[i].toJson()}",
+            );
+          }
         }
       }
     }

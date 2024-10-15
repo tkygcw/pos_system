@@ -4,12 +4,9 @@ import 'dart:typed_data';
 import 'package:esc_pos_printer/esc_pos_printer.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
-import 'package:pos_system/fragment/report/report_receipt/layout/category_layout.dart';
-import 'package:pos_system/fragment/report/report_receipt/layout/product_layout.dart';
 
 import '../../../database/pos_database.dart';
 import '../../../object/printer.dart';
-import 'layout/modifier_layout.dart';
 
 class PrintReportReceipt {
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();

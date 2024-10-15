@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
@@ -79,6 +80,7 @@ class _SettlementPageState extends State<SettlementPage> {
                 AppLocalizations.of(context)!.translate('counter'),
                 style: TextStyle(fontSize: 25),
               ),
+              centerTitle: false,
               actions: [
                 Container(
                   margin: EdgeInsets.only(right: 10),
@@ -192,11 +194,16 @@ class _SettlementPageState extends State<SettlementPage> {
                             ),
                             ElevatedButton(
                               child: Text(AppLocalizations.of(context)!.translate('settlement')),
-                              onPressed: () {
-                                if (cashRecordList.isNotEmpty) {
-                                  openSettlementDialog(cashRecordList);
+                              onPressed: () async {
+                                List<OrderCache> dataPaymentNotComplete = await PosDatabase.instance.readAllOrderCachePaymentNotComplete();
+                                if(dataPaymentNotComplete.isEmpty){
+                                  if (cashRecordList.isNotEmpty) {
+                                    openSettlementDialog(cashRecordList);
+                                  } else {
+                                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
+                                  }
                                 } else {
-                                  Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
+                                  Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('please_make_sure_all_payment_split_is_complete'));
                                 }
                               },
                               style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
@@ -414,6 +421,59 @@ class _SettlementPageState extends State<SettlementPage> {
           ///mobile layout
           return Scaffold(
             resizeToAvoidBottomInset: false,
+            appBar: AppBar(
+              automaticallyImplyLeading: false,
+              elevation: 0,
+              leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: GestureDetector(
+                  onTap: () {
+                    isCollapsedNotifier.value = !isCollapsedNotifier.value;
+                  },
+                  child: Image.asset('drawable/logo.png'),
+                ),
+              ),
+              title: Text(
+                AppLocalizations.of(context)!.translate('counter'),
+                style: TextStyle(fontSize: 20, color: color.backgroundColor),
+              ),
+              centerTitle: false,
+              actions: [
+                Container(
+                  width: 150,
+                  child: DropdownButton<PaymentLinkCompany>(
+                    onChanged: (value) {
+                      setState(() {
+                        paymentMethod = value!;
+                        readSpecificPaymentCashRecord(paymentMethod!.payment_type_id!);
+                      });
+                    },
+                    menuMaxHeight: 300,
+                    value: paymentMethod,
+                    // Hide the default underline
+                    underline: Container(),
+                    icon: Icon(
+                      Icons.arrow_drop_down,
+                      color: color.backgroundColor,
+                    ),
+                    isExpanded: true,
+                    // The list of options
+                    items: companyPaymentList.map((e) => DropdownMenuItem<PaymentLinkCompany>(
+                      value: e,
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        child: Text(e.name!,style: TextStyle(fontSize: 16)),
+                      ),
+                    ))
+                        .toList(),
+                    // Customize the selected item
+                    selectedItemBuilder: (BuildContext context) => companyPaymentList.map((e) => Center(
+                      child: Text(e.name!,style: TextStyle(fontSize: 16)),
+                    )).toList(),
+                  ),
+                ),
+              ],
+            ),
             body: isLoad
                 ? Container(
                     child: Padding(
@@ -421,51 +481,6 @@ class _SettlementPageState extends State<SettlementPage> {
                       child: SingleChildScrollView(
                         child: Column(
                           children: [
-                            Container(
-                                margin: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                                alignment: Alignment.topLeft,
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      AppLocalizations.of(context)!.translate('counter'),
-                                      style: TextStyle(fontSize: 25),
-                                    ),
-                                    Spacer(),
-                                    Container(
-                                      margin: EdgeInsets.only(right: 10),
-                                      width: MediaQuery.of(context).size.width / 4,
-                                      child: DropdownButton<PaymentLinkCompany>(
-                                        onChanged: (value) {
-                                          setState(() {
-                                            paymentMethod = value!;
-                                            readSpecificPaymentCashRecord(paymentMethod!.payment_type_id!);
-                                          });
-                                        },
-                                        menuMaxHeight: 200,
-                                        value: paymentMethod,
-                                        // Hide the default underline
-                                        underline: Container(),
-                                        icon: Icon(
-                                          Icons.arrow_drop_down,
-                                          color: color.backgroundColor,
-                                        ),
-                                        isExpanded: true,
-                                        // The list of options
-                                        items: companyPaymentList
-                                            .map((e) => DropdownMenuItem(
-                                                  value: e,
-                                                  child: Container(
-                                                    alignment: Alignment.centerLeft,
-                                                    child: Text(e.name!,style: TextStyle(fontSize: 18))
-                                                  ),
-                                                ))
-                                            .toList(),
-                                        // Customize the selected item
-                                        selectedItemBuilder: (BuildContext context) => companyPaymentList.map((e) => Center(child: Text(e.name!))).toList(),
-                                      ),
-                                    ),
-                                  ],
-                                )),
                             Divider(
                               height: 10,
                               color: Colors.grey,
@@ -617,8 +632,10 @@ class _SettlementPageState extends State<SettlementPage> {
                             ),
                             cashRecordList.isNotEmpty
                                 ? Container(
-                                    margin: EdgeInsets.fromLTRB(25, 0, 25, 0),
-                                    height: MediaQuery.of(context).size.height / 1.7,
+                                    // margin: EdgeInsets.fromLTRB(25, 0, 25, 0),
+                                    height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 1.7
+                                      : MediaQuery.of(context).size.height > 900 ? MediaQuery.of(context).size.height / 1.3
+                                      : MediaQuery.of(context).size.height / 1.5,
                                     child: Scrollbar(child:
                                         Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
                                       return ListView.builder(
@@ -743,22 +760,25 @@ class _SettlementPageState extends State<SettlementPage> {
                     ),
                   )
                 : CustomProgressBar(),
-            bottomNavigationBar: Container(
-              height: MediaQuery.of(context).size.height / 6,
+            bottomNavigationBar: BottomAppBar(
+              elevation: 0,
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Divider(
                     height: 10,
                     color: Colors.grey,
                   ),
                   Container(
-                      margin: EdgeInsets.all(5),
-                      padding: EdgeInsets.only(right: 10),
-                      alignment: Alignment.bottomRight,
-                      child: Text(
-                        '${getTotalAmount()}',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
-                      )),
+                    margin: EdgeInsets.all(5),
+                    padding: EdgeInsets.only(right: 10),
+                    alignment: Alignment.bottomRight,
+                    child: Text(
+                      '${getTotalAmount()}',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                      textAlign: TextAlign.right,
+                    ),
+                  ),
                   Divider(
                     height: 10,
                     color: Colors.grey,
@@ -912,10 +932,11 @@ class _SettlementPageState extends State<SettlementPage> {
 
   Future<Future<Object?>> openReprintSettlementDialog() async {
     return showDialog(
-      barrierDismissible: false,
+      barrierDismissible: true,
+      barrierLabel: 'Dismiss',
       context: context,
       builder: (_) => ReprintSettlementDialog(),
-    );;
+    );
   }
 
   Future<Future<Object?>> openSettlementHistoryDialog() async {
@@ -1169,7 +1190,7 @@ class _SettlementPageState extends State<SettlementPage> {
     String total = "${AppLocalizations.of(context)!.translate('amount')}: ";
     if(paymentMethod!.payment_type_id == '0'){
       total += calcTotalAmount();
-      total += ' / ${AppLocalizations.of(context)!.translate('cash_drawer_amount')}: ${calcCashDrawer()}';
+      total += ' ${MediaQuery.of(context).orientation == Orientation.landscape ? '/ ' : '\n'}${AppLocalizations.of(context)!.translate('cash_drawer_amount')}: ${calcCashDrawer()}';
     } else {
       total += calcTotalAmount();
     }

@@ -1,6 +1,8 @@
+import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:f_logs/model/flog/flog.dart';
+import 'package:pos_system/object/order_payment_split.dart';
 
 import '../../../notifier/cart_notifier.dart';
 import '../../../object/cart_product.dart';
@@ -10,7 +12,7 @@ class PreviewLayout extends ReceiptLayout {
 /*
   Review Receipt layout 80mm
 */
-  printPreviewReceipt80mm(bool isUSB, CartModel cartModel, {value}) async {
+  printPreviewReceipt80mm(bool isUSB, CartModel cartModel, String orderKey, {value}) async {
     String dateTime = dateFormat.format(DateTime.now());
     await readReceiptLayout('80');
     await readOrderCache(int.parse(cartModel.cartNotifierItem[0].order_cache_sqlite_id!));
@@ -24,6 +26,7 @@ class PreviewLayout extends ReceiptLayout {
     } else {
       generator = value;
     }
+    await getAllPaymentSplit(orderKey);
 
     List<int> bytes = [];
     try {
@@ -204,6 +207,15 @@ class PreviewLayout extends ReceiptLayout {
             styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2, bold: true)),
       ]);
       bytes += generator.hr();
+      if(paymentSplitList.isNotEmpty) {
+        for(int i = 0; i < paymentSplitList.length; i++) {
+          //payment method
+          bytes += generator.row([
+            PosColumn(text: '${paymentSplitList[i].payment_name}', width: 8, styles: PosStyles(align: PosAlign.right)),
+            PosColumn(text: '${paymentSplitList[i].payment_received}', width: 4, styles: PosStyles(align: PosAlign.right)),
+          ]);
+        }
+      }
       //footer
       // if(receipt!.footer_text_status == 1){
       //   bytes += generator.text('${receipt!.footer_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1));
@@ -227,7 +239,7 @@ class PreviewLayout extends ReceiptLayout {
 /*
   Review Receipt layout 58mm
 */
-  printPreviewReceipt58mm(bool isUSB, CartModel cartModel, {value}) async {
+  printPreviewReceipt58mm(bool isUSB, CartModel cartModel, String orderKey, {value}) async {
     String dateTime = dateFormat.format(DateTime.now());
     await readReceiptLayout('58');
     await readOrderCache(int.parse(cartModel.cartNotifierItem[0].order_cache_sqlite_id!));
@@ -238,11 +250,12 @@ class PreviewLayout extends ReceiptLayout {
     } else {
       generator = value;
     }
+    await getAllPaymentSplit(orderKey);
 
     List<int> bytes = [];
     try {
       bytes += generator.reset();
-      bytes += generator.text('** Review Receipt **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
+      bytes += generator.text('** Review Receipt **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, bold: true));
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       bytes += generator.hr();
@@ -390,16 +403,25 @@ class PreviewLayout extends ReceiptLayout {
       //total
       bytes += generator.hr();
       bytes += generator.row([
-        PosColumn(text: 'Final Amount', width: 8, styles: PosStyles(height: PosTextSize.size2)),
+        PosColumn(text: 'Final Amount', width: 8),
         PosColumn(
             text: '${cartModel.cartNotifierPayment[0].finalAmount}',
             width: 4,
             styles: PosStyles(height: PosTextSize.size2, bold: true)),
       ]);
       bytes += generator.hr();
+      if(paymentSplitList.isNotEmpty) {
+        for(int i = 0; i < paymentSplitList.length; i++) {
+          //payment method
+          bytes += generator.row([
+            PosColumn(text: '${paymentSplitList[i].payment_name}', width: 8),
+            PosColumn(text: '${paymentSplitList[i].payment_received}', width: 4),
+          ]);
+        }
+      }
       bytes += generator.emptyLines(1);
       //copyright
-      bytes += generator.text('POWERED BY OPTIMY POS');
+      bytes += generator.text('POWERED BY OPTIMY POS', styles: PosStyles(bold: true, align: PosAlign.center));
       bytes += generator.cut(mode: PosCutMode.partial);
       return bytes;
     } catch (e) {
@@ -410,6 +432,20 @@ class PreviewLayout extends ReceiptLayout {
         exception: e,
       );
       return null;
+    }
+  }
+
+  getAllPaymentSplit(String orderKey) async {
+    try {
+      paymentSplitList = [];
+      if(orderKey != '') {
+        List<OrderPaymentSplit> orderSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(orderKey);
+        for(int k = 0; k < orderSplit.length; k++){
+          paymentSplitList.add(orderSplit[k]);
+        }
+      }
+    } catch(e) {
+      print("Total payment split: $e");
     }
   }
 }

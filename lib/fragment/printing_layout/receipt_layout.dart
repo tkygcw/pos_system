@@ -13,6 +13,7 @@ import 'package:pos_system/object/checklist.dart';
 import 'package:pos_system/object/kitchen_list.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
+import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/receipt.dart';
 import 'package:pos_system/object/report_class.dart';
@@ -52,6 +53,7 @@ class ReceiptLayout{
   double totalCashOut = 0.0;
   double totalOpeningCash = 0.0;
   bool _isLoad = false;
+  List<OrderPaymentSplit> paymentSplitList = [];
 
   final Checklist checklistDefaultLayout = Checklist(
     product_name_font_size: 0,
@@ -1769,6 +1771,7 @@ class ReceiptLayout{
         bytes += generator.reset();
 
         bytes += generator.text('Settlement By: ${settlement.settlement_by}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('Opened At: ${Utils.formatDate(settlement.opened_at)}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Settlement Time: ${Utils.formatDate(settlementDateTime)}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.hr();
         bytes += generator.reset();
@@ -2077,6 +2080,7 @@ class ReceiptLayout{
         bytes += generator.reset();
 
         bytes += generator.text('Settlement By: ${settlement.settlement_by}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('Opened At: ${Utils.formatDate(settlement.opened_at)}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Settlement Time: ${Utils.formatDate(settlementDateTime)}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.hr();
         bytes += generator.reset();

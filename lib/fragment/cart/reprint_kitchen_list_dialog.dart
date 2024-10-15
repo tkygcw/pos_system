@@ -1,4 +1,3 @@
-import 'package:another_flushbar/flushbar.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
@@ -69,41 +68,41 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
         return WillPopScope(
           onWillPop: () async => false,
           child: AlertDialog(
-            title: Row(
-              children: [
-                Text(AppLocalizations.of(context)!.translate('fail_print_order_detail')),
-                Spacer(),
-                Visibility(
-                  visible: orderDetail.isEmpty ? false : true,
-                  child: Row(
-                    children: [
-                      Checkbox(
-                          value: isSelectAll,
-                          onChanged: (value){
-                            checkChange(value: value);
-                          }),
-                      Container(
-                        height: 30,
-                        child: VerticalDivider(color: Colors.grey, thickness: 1),
-                      ),
-                      IconButton(
-                          onPressed: () async {
-                            if (await confirm(
-                              context,
-                              title: Text("${AppLocalizations.of(context)!.translate('confirm_remove_all_order_detail')}"),
-                              content: Text('${AppLocalizations.of(context)!.translate('confirm_remove_all_order_detail_desc')}'),
-                              textOK: Text('${AppLocalizations.of(context)!.translate('yes')}'),
-                              textCancel: Text('${AppLocalizations.of(context)!.translate('no')}'),
-                            )) {
-                              _failPrintModel.removeAllFailedOrderDetail();
-                            }
-                          },
-                          icon: Icon(Icons.delete_forever, color: Colors.red))
-                    ],
-                  ),
-                )
-              ],
-            ),
+            title: Wrap(
+            children: [
+              Text(AppLocalizations.of(context)!.translate('fail_print_order_detail')),
+              Visibility(
+                visible: orderDetail.isEmpty ? false : true,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Checkbox(
+                        value: isSelectAll,
+                        onChanged: (value){
+                          checkChange(value: value);
+                        }),
+                    Container(
+                      height: 30,
+                      child: VerticalDivider(color: Colors.grey, thickness: 1),
+                    ),
+                    IconButton(
+                        onPressed: () async {
+                          if (await confirm(
+                            context,
+                            title: Text("${AppLocalizations.of(context)!.translate('confirm_remove_all_order_detail')}"),
+                            content: Text('${AppLocalizations.of(context)!.translate('confirm_remove_all_order_detail_desc')}'),
+                            textOK: Text('${AppLocalizations.of(context)!.translate('yes')}'),
+                            textCancel: Text('${AppLocalizations.of(context)!.translate('no')}'),
+                          )) {
+                            _failPrintModel.removeAllFailedOrderDetail();
+                          }
+                        },
+                        icon: Icon(Icons.delete_forever, color: Colors.red))
+                  ],
+                ),
+              )
+            ],
+          ),
 
             content: Container(
               constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height / 2),
@@ -230,31 +229,46 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
               ),
             ),
             actions: [
-              SizedBox(
-                width: MediaQuery.of(context).size.width / 4,
-                height: MediaQuery.of(context).size.height / 12,
-                child: ElevatedButton(
-                    onPressed: isButtonDisable || orderDetail.isEmpty  ? null : () async {
-                      disableButton();
-                      asyncQ.addJob((_) async => await callPrinter());
-                      //await callPrinter();
-                    },
-                    child: Text(AppLocalizations.of(context)!.translate('reprint'))),
-              ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width / 4,
-                height: MediaQuery.of(context).size.height / 12,
-                  child: ElevatedButton(
-                      onPressed: closeButtonDisable ? null : (){
-                        setState(() {
-                          closeButtonDisable = true;
-                        });
-                        closeDialog();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: color.backgroundColor,
-                      ),
-                      child: Text(AppLocalizations.of(context)!.translate('close')))
+              Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                          ? MediaQuery.of(context).size.height / 12
+                          : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+                          : MediaQuery.of(context).size.height / 20,
+                      child: ElevatedButton(
+                          onPressed: isButtonDisable || orderDetail.isEmpty  ? null : () async {
+                            disableButton();
+                            asyncQ.addJob((_) async => await callPrinter());
+                            //await callPrinter();
+                          },
+                          child: Text(AppLocalizations.of(context)!.translate('reprint'))),
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    flex: 1,
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                          ? MediaQuery.of(context).size.height / 12
+                          : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+                          : MediaQuery.of(context).size.height / 20,
+                        child: ElevatedButton(
+                            onPressed: closeButtonDisable ? null : (){
+                              setState(() {
+                                closeButtonDisable = true;
+                              });
+                              closeDialog();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: color.backgroundColor,
+                            ),
+                            child: Text(AppLocalizations.of(context)!.translate('close')))
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

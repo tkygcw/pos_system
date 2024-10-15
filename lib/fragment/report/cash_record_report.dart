@@ -47,6 +47,7 @@ class _CashRecordReportState extends State<CashRecordReport> {
               backgroundColor: Colors.transparent,
               title: Text(AppLocalizations.of(context)!.translate('cash_record_report'), style: TextStyle(fontSize: 25)),
               titleSpacing: 0.0,
+              centerTitle: false,
               automaticallyImplyLeading: false,
               bottom: PreferredSize(
                 preferredSize: Size.zero,
@@ -101,6 +102,14 @@ class _CashRecordReportState extends State<CashRecordReport> {
                                       ),
                                     ),
                                   ),
+                                  DataColumn(
+                                    label: Expanded(
+                                      child: Text(
+                                        AppLocalizations.of(context)!.translate('payment_method'),
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
                                 ],
                                 rows: _dataRow
                             ),
@@ -149,6 +158,7 @@ class _CashRecordReportState extends State<CashRecordReport> {
               DataCell(Container()),
               DataCell(Container()),
               DataCell(Text(calcTotalCashRecord(cashRecordList: cashRecord))),
+              DataCell(Container()),
             ]
         ),
       );
@@ -163,6 +173,7 @@ class _CashRecordReportState extends State<CashRecordReport> {
                 DataCell(Text(cashRecord[i].userName!)),
                 DataCell(Text(cashRecord[i].remark!)),
                 DataCell(Text(formatAmount(cashRecord: cashRecord[i]))),
+                DataCell(Text(cashRecord[i].payment_method!)),
               ],
             ),
           ]);

@@ -22,6 +22,7 @@ class OrderFields {
     final_amount,
     close_by,
     payment_status,
+    payment_split,
     payment_received,
     payment_change,
     order_key,
@@ -29,6 +30,7 @@ class OrderFields {
     refund_key,
     settlement_sqlite_id,
     settlement_key,
+    ipay_trans_id,
     sync_status,
     created_at,
     updated_at,
@@ -53,6 +55,7 @@ class OrderFields {
   static String final_amount = 'final_amount';
   static String close_by = 'close_by';
   static String payment_status = 'payment_status';
+  static String payment_split = 'payment_split';
   static String payment_received = 'payment_received';
   static String payment_change = 'payment_change';
   static String order_key = 'order_key';
@@ -60,6 +63,7 @@ class OrderFields {
   static String refund_key = 'refund_key';
   static String settlement_sqlite_id = 'settlement_sqlite_id';
   static String settlement_key = 'settlement_key';
+  static String ipay_trans_id = 'ipay_trans_id';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -85,6 +89,7 @@ class Order {
   String? final_amount;
   String? close_by;
   int? payment_status;
+  int? payment_split;
   String? payment_received;
   String? payment_change;
   String? order_key;
@@ -92,6 +97,7 @@ class Order {
   String? refund_key;
   String? settlement_sqlite_id;
   String? settlement_key;
+  String? ipay_trans_id;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -104,12 +110,14 @@ class Order {
   int? item_sum;
   double? net_sales;
   double? gross_sales;
+  double? total_sales;
   String? bill_no;
   double? promo_amount;
   double? total_tax_amount;
   String? tax_id;
   List<OrderTaxDetail> taxDetailList = [];
   String? counterOpenDate;
+  String? amountSplit;
 
   generateOrderNumber(){
     String orderNum = '';
@@ -136,6 +144,7 @@ class Order {
         this.final_amount,
         this.close_by,
         this.payment_status,
+        this.payment_split,
         this.payment_received,
         this.payment_change,
         this.order_key,
@@ -143,6 +152,7 @@ class Order {
         this.refund_key,
         this.settlement_sqlite_id,
         this.settlement_key,
+        this.ipay_trans_id,
         this.sync_status,
         this.created_at,
         this.updated_at,
@@ -154,11 +164,14 @@ class Order {
         this.item_sum,
         this.net_sales,
         this.gross_sales,
+        this.total_sales,
         this.bill_no,
         this.promo_amount,
         this.total_tax_amount,
         this.tax_id,
-        this.counterOpenDate});
+        this.counterOpenDate,
+        this.amountSplit
+      });
 
   Order copy({
     int? order_sqlite_id,
@@ -179,6 +192,7 @@ class Order {
     String? final_amount,
     String? close_by,
     int? payment_status,
+    int? payment_split,
     String? payment_received,
     String? payment_change,
     String? order_key,
@@ -186,6 +200,7 @@ class Order {
     String? refund_key,
     String? settlement_sqlite_id,
     String? settlement_key,
+    String? ipay_trans_id,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -210,6 +225,7 @@ class Order {
           final_amount: final_amount ?? this.final_amount,
           close_by: close_by ?? this.close_by,
           payment_status: payment_status ?? this.payment_status,
+          payment_split: payment_split ?? this.payment_split,
           payment_received: payment_received ?? this.payment_received,
           payment_change: payment_change ?? this.payment_change,
           order_key: order_key ?? this.order_key,
@@ -217,6 +233,7 @@ class Order {
           refund_key: refund_key ?? this.refund_key,
           settlement_sqlite_id: settlement_sqlite_id ?? this.settlement_sqlite_id,
           settlement_key: settlement_key ?? this.settlement_key,
+          ipay_trans_id: ipay_trans_id ?? this.ipay_trans_id,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -243,6 +260,7 @@ class Order {
       final_amount: json[OrderFields.final_amount] as String?,
       close_by: json[OrderFields.close_by] as String?,
       payment_status: json[OrderFields.payment_status] as int?,
+      payment_split: json[OrderFields.payment_split] as int?,
       payment_received: json[OrderFields.payment_received] as String?,
       payment_change: json[OrderFields.payment_change] as String?,
       order_key: json[OrderFields.order_key] as String?,
@@ -250,6 +268,7 @@ class Order {
       refund_key: json[OrderFields.refund_key] as String?,
       settlement_sqlite_id: json[OrderFields.settlement_sqlite_id] as String?,
       settlement_key: json[OrderFields.settlement_key] as String?,
+      ipay_trans_id: json[OrderFields.ipay_trans_id] as String?,
       sync_status: json[OrderFields.sync_status] as int?,
       created_at: json[OrderFields.created_at] as String?,
       updated_at: json[OrderFields.updated_at] as String?,
@@ -261,11 +280,13 @@ class Order {
       item_sum: json['item_sum'] as int?,
       net_sales: json['net_sales'] as double?,
       gross_sales: json['gross_sales'] as double?,
+      total_sales: json['total_sales'] as double?,
       bill_no: json['bill_no'] as String?,
       promo_amount: json['promo_amount'] as double?,
       total_tax_amount: json['total_tax_amount'] as double?,
       tax_id: json['tax_id'] as String?,
       counterOpenDate: json['counterOpenDate'] as String?,
+      amountSplit: json['amountSplit'] as String?,
   );
 
   Map<String, Object?> toJson() => {
@@ -287,6 +308,7 @@ class Order {
     OrderFields.final_amount: final_amount,
     OrderFields.close_by: close_by,
     OrderFields.payment_status: payment_status,
+    OrderFields.payment_split: payment_split,
     OrderFields.payment_received: payment_received,
     OrderFields.payment_change: payment_change,
     OrderFields.order_key: order_key,
@@ -294,6 +316,7 @@ class Order {
     OrderFields.refund_key: refund_key,
     OrderFields.settlement_sqlite_id: settlement_sqlite_id,
     OrderFields.settlement_key: settlement_key,
+    OrderFields.ipay_trans_id: ipay_trans_id,
     OrderFields.sync_status: sync_status,
     OrderFields.created_at: created_at,
     OrderFields.updated_at: updated_at,

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
@@ -604,65 +603,203 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                 builder: (context, snapshot){
                   if(snapshot.hasData){
                     return Center(
-                      child: SingleChildScrollView(
-                        child: AlertDialog(
-                          title: Row(
-                            children: [
-                              Container(
-                                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width / 2),
-                                child: Text(widget.productDetail!.name!,
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    )),
-                              ),
-                              Spacer(),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ?
-                                  Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
+                      child: GestureDetector(
+                        onTap: () {
+                          FocusScope.of(context).unfocus();
+                        },
+                        child: SingleChildScrollView(
+                          child: AlertDialog(
+                            title: Row(
+                              children: [
+                                Container(
+                                  constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width / 2),
+                                  child: Text(widget.productDetail!.name!,
                                       style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      )) :
-                                  Text("RM ${Utils.convertTo2Dec(dialogPrice)} / each",
-                                      style: TextStyle(
-                                        fontSize: 16,
+                                        fontSize: 20,
                                         fontWeight: FontWeight.bold,
                                       )),
-                                  Visibility(
-                                    visible: dialogStock != '' ? true : false,
-                                    child: Text("${AppLocalizations.of(context)!.translate('in_stock')}: ${dialogStock}${widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? widget.productDetail!.unit : ''}",
+                                ),
+                                Spacer(),
+                                MediaQuery.of(context).orientation == Orientation.landscape ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ?
+                                    Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
                                         style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: dialogStock == '0' ? Colors.red : Colors.black
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        )) :
+                                    Text("RM ${Utils.convertTo2Dec(dialogPrice)} / each",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
                                         )),
-                                  )
-
-                                ],
-                              )
-                            ],
-                          ),
-                          content: Container(
-                            height: MediaQuery.of(context).size.height /2.5, // Change as per your requirement
-                            width: MediaQuery.of(context).size.width / 1.5,
-                            child: SingleChildScrollView(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Visibility(
-                                    visible: appSettingModel.show_product_desc!,
-                                    child: Padding(
-                                      padding: EdgeInsets.only(bottom: 15.0),
-                                      child: Text(widget.productDetail!.description!),
+                                    Visibility(
+                                      visible: dialogStock != '' ? true : false,
+                                      child: Text("${AppLocalizations.of(context)!.translate('in_stock')}: ${dialogStock}${widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? widget.productDetail!.unit : ''}",
+                                          style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: dialogStock == '0' ? Colors.red : Colors.black
+                                          )),
+                                    )
+                        
+                                  ],
+                                ) : Container()
+                              ],
+                            ),
+                            content: Container(
+                              height: MediaQuery.of(context).size.height /2.5,
+                              width: MediaQuery.of(context).size.width / 1.5,
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    MediaQuery.of(context).orientation == Orientation.landscape ? Container() : Padding(
+                                      padding: const EdgeInsets.only(bottom: 20),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ?
+                                          Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              )) :
+                                          Text("RM ${Utils.convertTo2Dec(dialogPrice)} / each",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              )),
+                                          Visibility(
+                                            visible: dialogStock != '' ? true : false,
+                                            child: Text("${AppLocalizations.of(context)!.translate('in_stock')}: $dialogStock${widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? widget.productDetail!.unit : ''}",
+                                                style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: dialogStock == '0' ? Colors.red : Colors.black
+                                                )),
+                                          )
+                        
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  Visibility(
-                                    visible: widget.productDetail!.unit == 'each_c' ? true : false,
-                                    child: Column(
+                                    Visibility(
+                                      visible: appSettingModel.show_product_desc!,
+                                      child: Padding(
+                                        padding: EdgeInsets.only(bottom: 15.0),
+                                        child: Text(widget.productDetail!.description!),
+                                      ),
+                                    ),
+                                    Visibility(
+                                      visible: widget.productDetail!.unit == 'each_c' ? true : false,
+                                      child: Column(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  "${AppLocalizations.of(context)!.translate('product_name')}",
+                                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Expanded(
+                                                  child: TextField(
+                                                    autofocus: false,
+                                                    controller: nameController,
+                                                    keyboardType: TextInputType.text,
+                                                    textAlign: TextAlign.center,
+                                                    decoration: InputDecoration(
+                                                      errorText: getProductNameErrorText(nameController.text),
+                                                      focusedBorder: OutlineInputBorder(
+                                                        borderSide: BorderSide(color: color.backgroundColor),
+                                                      ),
+                                                    ),
+                                                    onChanged: (value) => setState(() {
+                                                      try{
+                                                        widget.productDetail!.name = value;
+                                                      }catch (e){
+                                                        widget.productDetail!.name = "Custom";
+                                                      }
+                                                    }),
+                                                    onSubmitted: (value) {
+                                                      if(widget.productDetail!.name!.isNotEmpty && widget.productDetail!.name!.trim().isNotEmpty) {
+                                                        setState(() {
+                                                          widget.productDetail!.name = value;
+                                                        });
+                                                      } else {
+                                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_name_empty'));
+                                                      }
+                                                    },
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  "${AppLocalizations.of(context)!.translate('price')}",
+                                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Expanded(
+                                                  child: TextField(
+                                                    autofocus: true,
+                                                    controller: priceController,
+                                                    keyboardType: TextInputType.number,
+                                                    inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
+                                                    textAlign: TextAlign.center,
+                                                    decoration: InputDecoration(
+                                                      errorText: getPriceErrorText(priceController.text),
+                                                      prefixText: 'RM ',
+                                                      focusedBorder: OutlineInputBorder(
+                                                        borderSide: BorderSide(color: color.backgroundColor),
+                                                      ),
+                                                      hintText: "${Utils.convertTo2Dec(dialogPrice)}",
+                                                    ),
+                                                    onChanged: (value) async {
+                                                      await getProductPrice();
+                                                      setState(() {});
+                                                    },
+                                                    onSubmitted: (value) async {
+                                                      await getProductPrice();
+                                                      setState(() {});
+                                                    },
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    for (int i = 0; i < variantGroup.length; i++)
+                                      variantGroupLayout(variantGroup[i]),
+                                    for (int j = 0; j < modifierGroup.length; j++)
+                                      Visibility(
+                                        visible: modifierGroup[j].modifierChild!.isNotEmpty && modifierGroup[j].dining_id == "" || modifierGroup[j].dining_id == cart.selectedOptionId ? true : false,
+                                        child: modifierGroupLayout(modifierGroup[j], cart),
+                                      ),
+                                    Column(
                                       children: [
                                         Padding(
                                           padding: const EdgeInsets.all(8.0),
@@ -670,313 +807,225 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                             mainAxisAlignment: MainAxisAlignment.start,
                                             children: [
                                               Text(
-                                                "${AppLocalizations.of(context)!.translate('product_name')}",
+                                                AppLocalizations.of(context)!.translate('quantity'),
                                                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                               ),
                                             ],
                                           ),
                                         ),
-                                        Container(
+                                        // quantity input
+                                        SizedBox(
                                           width: 400,
                                           child: Row(
                                             mainAxisAlignment: MainAxisAlignment.center,
                                             children: [
-                                              Container(
-                                                width: 273,
-                                                child: TextField(
-                                                  autofocus: false,
-                                                  controller: nameController,
-                                                  keyboardType: TextInputType.text,
-                                                  textAlign: TextAlign.center,
-                                                  decoration: InputDecoration(
-                                                    errorText: getProductNameErrorText(nameController.text),
-                                                    focusedBorder: OutlineInputBorder(
-                                                      borderSide: BorderSide(color: color.backgroundColor),
-                                                    ),
+                                              // quantity input remove button
+                                              Expanded(
+                                                flex: 1,
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    color: color.backgroundColor,
+                                                    borderRadius: BorderRadius.circular(10),
                                                   ),
-                                                  onChanged: (value) => setState(() {
-                                                    try{
-                                                      widget.productDetail!.name = value;
-                                                    }catch (e){
-                                                      widget.productDetail!.name = "Custom";
-                                                    }
-                                                  }),
-                                                  onSubmitted: (value) {
-                                                    if(widget.productDetail!.name!.isNotEmpty && widget.productDetail!.name!.trim().isNotEmpty) {
-                                                      setState(() {
-                                                        widget.productDetail!.name = value;
-                                                      });
-                                                    } else {
-                                                      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_name_empty'));
-                                                    }
-                                                  },
+                                                  child: IconButton(
+                                                    icon: Icon(Icons.remove, color: Colors.white), // Set the icon color to white.
+                                                    onPressed: () {
+                                                      if(simpleIntInput >= 1){
+                                                        setState(() {
+                                                          simpleIntInput -= 1;
+                                                          quantityController.text = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
+                                                          simpleIntInput = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
+                                                        });
+                                                      } else{
+                                                        setState(() {
+                                                          simpleIntInput = 0;
+                                                          quantityController.text =  widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
+                                                          simpleIntInput = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
+                                                        });
+                                                      }
+                                                    },
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(width: 10),
+                                              // quantity input text field
+                                              Expanded(
+                                                flex: 4,
+                                                child: SizedBox(
+                                                  width: MediaQuery.of(context).orientation == Orientation.landscape ? 273 : constraints.maxWidth / 3,
+                                                  child: TextField(
+                                                    autofocus: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? true : false,
+                                                    controller: quantityController,
+                                                    keyboardType: TextInputType.number,
+                                                    inputFormatters: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))]
+                                                        : <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+                                                    textAlign: TextAlign.center,
+                                                    decoration: InputDecoration(
+                                                      focusedBorder: OutlineInputBorder(
+                                                        borderSide: BorderSide(color: color.backgroundColor),
+                                                      ),
+                                                    ),
+                                                    onChanged: (value) {
+                                                      if(value != ''){
+                                                        setState(() => simpleIntInput = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? double.parse(value.replaceAll(',', '')): int.parse(value.replaceAll(',', '')));
+                                                      } else {
+                                                        simpleIntInput = 0;
+                                                      }
+                                                    },
+                                                    onSubmitted: _onSubmitted,
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(width: 10),
+                                              // quantity input add button
+                                              Expanded(
+                                                flex: 1,
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    color: color.backgroundColor,
+                                                    borderRadius: BorderRadius.circular(10),
+                                                  ),
+                                                  child: IconButton(
+                                                    icon: Icon(Icons.add, color: Colors.white),
+                                                    onPressed: () {
+                                                      // stock disable or in stock
+                                                      if(dialogStock == '' || simpleIntInput+1 < int.parse(dialogStock)) {
+                                                        setState(() {
+                                                          simpleIntInput += 1;
+                                                          quantityController.text = simpleIntInput.toString();
+                                                          simpleIntInput =  int.parse(quantityController.text.replaceAll(',', ''));
+                                                        });
+                                                      } else{
+                                                        setState(() {
+                                                          simpleIntInput = int.parse(dialogStock);
+                                                          quantityController.text = simpleIntInput.toString();
+                                                          simpleIntInput = int.parse(quantityController.text.replaceAll(',', ''));
+                                                        });
+                                                        if(dialogStock == '0'){
+                                                          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
+                                                        }
+                                                      }
+                                                    },
+                                                  ),
                                                 ),
                                               ),
                                             ],
                                           ),
-                                        ),
+                                        )
+                                      ],
+                                    ),
+                                    Column(
+                                      children: [
                                         Padding(
-                                          padding: const EdgeInsets.all(8.0),
+                                          padding: const EdgeInsets.fromLTRB(8, 30, 8, 10),
                                           child: Row(
                                             mainAxisAlignment: MainAxisAlignment.start,
                                             children: [
                                               Text(
-                                                "${AppLocalizations.of(context)!.translate('price')}",
+                                                AppLocalizations.of(context)!.translate('remark'),
                                                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                               ),
                                             ],
                                           ),
                                         ),
-                                        Container(
-                                          width: 400,
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Container(
-                                                width: 273,
-                                                child: TextField(
-                                                  autofocus: true,
-                                                  controller: priceController,
-                                                  keyboardType: TextInputType.number,
-                                                  inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
-                                                  textAlign: TextAlign.center,
-                                                  decoration: InputDecoration(
-                                                    errorText: getPriceErrorText(priceController.text),
-                                                    prefixText: 'RM ',
-                                                    focusedBorder: OutlineInputBorder(
-                                                      borderSide: BorderSide(color: color.backgroundColor),
-                                                    ),
-                                                    hintText: "${Utils.convertTo2Dec(dialogPrice)}",
-                                                  ),
-                                                  onChanged: (value) async {
-                                                    await getProductPrice();
-                                                    setState(() {});
-                                                  },
-                                                  onSubmitted: (value) async {
-                                                    await getProductPrice();
-                                                    setState(() {});
-                                                  },
-                                                ),
-                                              ),
-                                            ],
+                                        TextField(
+                                          controller: remarkController,
+                                          decoration: InputDecoration(
+                                            focusedBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(color: color.backgroundColor),
+                                            ),
                                           ),
-                                        ),
+                                          keyboardType: TextInputType.multiline,
+                                          maxLines: null,
+                                        )
                                       ],
-                                    ),
-                                  ),
-                                  for (int i = 0; i < variantGroup.length; i++)
-                                    variantGroupLayout(variantGroup[i]),
-                                  for (int j = 0; j < modifierGroup.length; j++)
-                                    Visibility(
-                                      visible: modifierGroup[j].modifierChild!.isNotEmpty && modifierGroup[j].dining_id == "" || modifierGroup[j].dining_id == cart.selectedOptionId ? true : false,
-                                      child: modifierGroupLayout(modifierGroup[j], cart),
-                                    ),
-                                  Column(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              AppLocalizations.of(context)!.translate('quantity'),
-                                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      // quantity input
-                                      Container(
-                                        width: 400,
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            // quantity input remove button
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                color: color.backgroundColor,
-                                                borderRadius: BorderRadius.circular(10),
-                                              ),
-                                              child: IconButton(
-                                                icon: Icon(Icons.remove, color: Colors.white), // Set the icon color to white.
-                                                onPressed: () {
-                                                  if(simpleIntInput >= 1){
-                                                    setState(() {
-                                                      simpleIntInput -= 1;
-                                                      quantityController.text = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
-                                                      simpleIntInput = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
-                                                    });
-                                                  } else{
-                                                    setState(() {
-                                                      simpleIntInput = 0;
-                                                      quantityController.text =  widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
-                                                      simpleIntInput = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
-                                                    });
-                                                  }
-                                                },
-                                              ),
-                                            ),
-                                            SizedBox(width: 10),
-                                            // quantity input text field
-                                            Container(
-                                              width: 273,
-                                              child: TextField(
-                                                autofocus: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? true : false,
-                                                controller: quantityController,
-                                                keyboardType: TextInputType.number,
-                                                inputFormatters: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))]
-                                                    : <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-                                                textAlign: TextAlign.center,
-                                                decoration: InputDecoration(
-                                                  focusedBorder: OutlineInputBorder(
-                                                    borderSide: BorderSide(color: color.backgroundColor),
-                                                  ),
-                                                ),
-                                                onChanged: (value) {
-                                                  if(value != ''){
-                                                    setState(() => simpleIntInput = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? double.parse(value.replaceAll(',', '')): int.parse(value.replaceAll(',', '')));
-                                                  } else {
-                                                    simpleIntInput = 0;
-                                                  }
-                                                },
-                                                onSubmitted: _onSubmitted,
-                                              ),
-                                            ),
-                                            SizedBox(width: 10),
-                                            // quantity input add button
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                color: color.backgroundColor,
-                                                borderRadius: BorderRadius.circular(10),
-                                              ),
-                                              child: IconButton(
-                                                icon: Icon(Icons.add, color: Colors.white),
-                                                onPressed: () {
-                                                  // stock disable or in stock
-                                                  if(dialogStock == '' || simpleIntInput+1 < int.parse(dialogStock)) {
-                                                    setState(() {
-                                                      simpleIntInput += 1;
-                                                      quantityController.text = simpleIntInput.toString();
-                                                      simpleIntInput =  int.parse(quantityController.text.replaceAll(',', ''));
-                                                    });
-                                                  } else{
-                                                    setState(() {
-                                                      simpleIntInput = int.parse(dialogStock);
-                                                      quantityController.text = simpleIntInput.toString();
-                                                      simpleIntInput = int.parse(quantityController.text.replaceAll(',', ''));
-                                                    });
-                                                    if(dialogStock == '0'){
-                                                      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
-                                                    }
-                                                  }
-                                                },
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                  Column(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(8, 30, 8, 10),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              AppLocalizations.of(context)!.translate('remark'),
-                                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      TextField(
-                                        controller: remarkController,
-                                        decoration: InputDecoration(
-                                          focusedBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(color: color.backgroundColor),
-                                          ),
-                                        ),
-                                        keyboardType: TextInputType.multiline,
-                                        maxLines: null,
-                                      )
-                                    ],
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                          actions: <Widget>[
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width / 2.5,
-                              height: MediaQuery.of(context).size.height / 10,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                                onPressed: isButtonDisabled
-                                    ? null
-                                    : () {
-                                  // Disable the button after it has been pressed
-                                  setState(() {
-                                    isButtonDisabled = true;
-                                  });
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                            ),
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width / 2.5,
-                              height: MediaQuery.of(context).size.height / 10,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: color.buttonColor,
+                                    )
+                                  ],
                                 ),
-                                child: Text('${AppLocalizations.of(context)?.translate('add')}'),
-                                onPressed: isButtonDisabled
-                                    ? null
-                                    : () async {
-                                  if(widget.productDetail!.name!.isNotEmpty && widget.productDetail!.name!.trim().isNotEmpty) {
-                                    if(priceController.text.isNotEmpty && priceController.text.trim().isNotEmpty) {
-                                      await checkProductStock(widget.productDetail!, cart);
-                                      //await getBranchLinkProductItem(widget.productDetail!);
-                                      if (hasStock == true) {
-                                        if (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 0) {
-                                          if(simpleIntInput > 0){
-                                            if (cart.selectedTable.isNotEmpty) {
-                                              // Disable the button after it has been pressed
-                                              setState(() {
-                                                isButtonDisabled = true;
-                                              });
-                                              await addToCart(cart);
-                                              Navigator.of(context).pop();
-                                            } else {
-                                              openChooseTableDialog(cart, context);
-                                            }
-                                          } else {
-                                            Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
-                                          }
-                                        } else {
+                              ),
+                            ),
+                            actions: <Widget>[
+                              Row(
+                                children: [
+                                  Expanded(
+                                    flex: 1,
+                                    child: SizedBox(
+                                      width: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width / 2.5 : MediaQuery.of(context).size.width / 3,
+                                      height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10 : MediaQuery.of(context).size.height / 20,
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                                        child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                                        onPressed: isButtonDisabled
+                                            ? null
+                                            : () {
                                           // Disable the button after it has been pressed
                                           setState(() {
                                             isButtonDisabled = true;
                                           });
-                                          await addToCart(cart);
                                           Navigator.of(context).pop();
-                                        }
-                                      } else {
-                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
-                                      }
-                                    } else {
-                                      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_price_empty'));
-                                    }
-                                  } else {
-                                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_name_empty'));
-                                  }
-                                },
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    flex: 1,
+                                    child: SizedBox(
+                                      width: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width / 2.5 : MediaQuery.of(context).size.width / 3,
+                                      height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10 : MediaQuery.of(context).size.height / 20,
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: color.buttonColor,
+                                        ),
+                                        child: Text('${AppLocalizations.of(context)?.translate('add')}'),
+                                        onPressed: isButtonDisabled
+                                            ? null
+                                            : () async {
+                                          if(widget.productDetail!.name!.isNotEmpty && widget.productDetail!.name!.trim().isNotEmpty) {
+                                            if(priceController.text.isNotEmpty && priceController.text.trim().isNotEmpty) {
+                                              await checkProductStock(widget.productDetail!, cart);
+                                              //await getBranchLinkProductItem(widget.productDetail!);
+                                              if (hasStock == true) {
+                                                if (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 0) {
+                                                  if(simpleIntInput > 0){
+                                                    if (cart.selectedTable.isNotEmpty) {
+                                                      // Disable the button after it has been pressed
+                                                      setState(() {
+                                                        isButtonDisabled = true;
+                                                      });
+                                                      await addToCart(cart);
+                                                      Navigator.of(context).pop();
+                                                    } else {
+                                                      openChooseTableDialog(cart, context);
+                                                    }
+                                                  } else {
+                                                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
+                                                  }
+                                                } else {
+                                                  // Disable the button after it has been pressed
+                                                  setState(() {
+                                                    isButtonDisabled = true;
+                                                  });
+                                                  await addToCart(cart);
+                                                  Navigator.of(context).pop();
+                                                }
+                                              } else {
+                                                Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
+                                              }
+                                            } else {
+                                              Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_price_empty'));
+                                            }
+                                          } else {
+                                            Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_name_empty'));
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     );
