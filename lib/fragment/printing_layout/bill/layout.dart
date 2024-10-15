@@ -127,13 +127,13 @@ class BillLayout extends ReceiptLayout{
           orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ?
           PosColumn(
               text: productUnitPriceSplit  ? getReceiptProductName(orderDetailList[i])
-                  : '${getReceiptProductName(orderDetailList[i])} (${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})',
+                  : '${getReceiptProductName(orderDetailList[i])} (${receipt!.show_break_down_price == 0 ? orderDetailList[i].price : orderDetailList[i].original_price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})',
               width: 7,
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, bold: true))
               : PosColumn(
               text: productUnitPriceSplit  ? getReceiptProductName(orderDetailList[i])
-                  : '${getReceiptProductName(orderDetailList[i])} (${orderDetailList[i].price}/each)',
+                  : '${getReceiptProductName(orderDetailList[i])} (${receipt!.show_break_down_price == 0 ? orderDetailList[i].price : orderDetailList[i].original_price}/each)',
               width: 7,
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, bold: true)),
@@ -147,7 +147,8 @@ class BillLayout extends ReceiptLayout{
         if(productUnitPriceSplit){
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ? '(${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})' : '(${orderDetailList[i].price}/each)', width: 7),
+            PosColumn(text: orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ? '(${receipt!.show_break_down_price == 0 ? orderDetailList[i].price : orderDetailList[i].original_price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})'
+                : '(${receipt!.show_break_down_price == 0 ? orderDetailList[i].price : orderDetailList[i].original_price}/each)', width: 7),
             PosColumn(text: '', width: 3, styles: PosStyles(align: PosAlign.right)),
           ]);
         }
@@ -166,7 +167,7 @@ class BillLayout extends ReceiptLayout{
             //modifier
             bytes += generator.row([
               PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
-              PosColumn(text: '+${orderModifierDetailList[j].mod_name}', width: 7, containsChinese: true),
+              PosColumn(text: '+${orderModifierDetailList[j].mod_name}${receipt!.show_break_down_price == 0 ? '' : ' (${double.parse(orderModifierDetailList[j].mod_price!).toStringAsFixed(2)}/each)'}', width: 7, containsChinese: true),
               PosColumn(text: '', width: 3, styles: PosStyles(align: PosAlign.right)),
             ]);
           }
@@ -424,13 +425,13 @@ class BillLayout extends ReceiptLayout{
           orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ?
           PosColumn(
               text: productUnitPriceSplit  ? getReceiptProductName(orderDetailList[i])
-                  : '${getReceiptProductName(orderDetailList[i])} (${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})',
+                  : '${getReceiptProductName(orderDetailList[i])} (${receipt!.show_break_down_price == 0 ? orderDetailList[i].price : orderDetailList[i].original_price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})',
               width: 6,
               containsChinese: true,
               styles: PosStyles(bold: true))
               : PosColumn(
               text: productUnitPriceSplit  ? getReceiptProductName(orderDetailList[i])
-                  : '${getReceiptProductName(orderDetailList[i])} (${orderDetailList[i].price}/each)',
+                  : '${getReceiptProductName(orderDetailList[i])} (${receipt!.show_break_down_price == 0 ? orderDetailList[i].price : orderDetailList[i].original_price}/each)',
               width: 6,
               containsChinese: true,
               styles: PosStyles(bold: true)),
@@ -441,7 +442,8 @@ class BillLayout extends ReceiptLayout{
         if(productUnitPriceSplit){
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ? '(${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})' : '(${orderDetailList[i].price}/each)', width: 10),
+            PosColumn(text: orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ? '(${receipt!.show_break_down_price == 0 ? orderDetailList[i].price : orderDetailList[i].original_price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})'
+                : '(${receipt!.show_break_down_price == 0 ? orderDetailList[i].price : orderDetailList[i].original_price}/each)', width: 10),
           ]);
         }
         bytes += generator.reset();
@@ -459,7 +461,7 @@ class BillLayout extends ReceiptLayout{
             //modifier
             bytes += generator.row([
               PosColumn(text: '', width: 2),
-              PosColumn(text: '+${orderModifierDetailList[j].mod_name}', width: 10, containsChinese: true),
+              PosColumn(text: '+${orderModifierDetailList[j].mod_name}${receipt!.show_break_down_price == 0 ? '' : ' (${double.parse(orderModifierDetailList[j].mod_price!).toStringAsFixed(2)}/each)'}', width: 10, containsChinese: true),
             ]);
           }
         }

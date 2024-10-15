@@ -200,6 +200,7 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
             info = Text(
                 "${AppLocalizations.of(context)?.translate('scanning_device_within')} $wifiName\n${AppLocalizations.of(context)!.translate('device_ip')}: ${wifiIP}");
             percentage = progress;
+            print("percentage: $percentage");
             if (percentage == 1.0) {
               isLoad = true;
               isStreamRunning = false;

@@ -770,11 +770,11 @@ class PosDatabase {
         case 24: {
           await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
         }break;
-        case 24: {
+        case 25: {
           await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
           await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
         }break;
-
       }
     }
   }
@@ -1297,6 +1297,7 @@ class PosDatabase {
           ${ReceiptFields.show_address} $integerType,
           ${ReceiptFields.show_email} $integerType,
           ${ReceiptFields.receipt_email} $textType,
+          ${ReceiptFields.show_break_down_price} $integerType,
           ${ReceiptFields.footer_image} $textType,
           ${ReceiptFields.footer_image_status} $integerType,
           ${ReceiptFields.footer_text} $textType,
@@ -2552,9 +2553,9 @@ class PosDatabase {
     final id = db.rawInsert(
         'INSERT INTO $tableReceipt(soft_delete, updated_at, created_at, sync_status, show_branch_tel, '
         'show_product_sku, header_font_size, status, paper_size, promotion_detail_status, '
-        'footer_text_status, footer_text, footer_image_status, footer_image, receipt_email, show_email, show_address, '
+        'footer_text_status, footer_text, footer_image_status, footer_image, show_break_down_price, receipt_email, show_email, show_address, '
         'header_text_status, header_text, header_image_status, header_image, branch_id, receipt_key, receipt_id) '
-            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.soft_delete,
           data.updated_at,
@@ -2570,6 +2571,7 @@ class PosDatabase {
           data.footer_text,
           data.footer_image_status,
           data.footer_image,
+          data.show_break_down_price,
           data.receipt_email,
           data.show_email,
           data.show_address,
@@ -7091,7 +7093,7 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate(
         'UPDATE $tableReceipt SET header_image = ?, header_image_status = ?, header_text = ?, header_text_status = ?, '
-        'header_font_size = ?, show_address = ?, show_email = ?, receipt_email = ?, '
+        'header_font_size = ?, show_address = ?, show_email = ?, receipt_email = ?, show_break_down_price = ?, '
         'footer_image = ?, footer_image_status = ?, footer_text = ?, footer_text_status = ?, '
             'promotion_detail_status = ?, show_product_sku = ?, show_branch_tel = ?, sync_status = ?, updated_at = ? WHERE receipt_sqlite_id = ?',
         [
@@ -7103,6 +7105,7 @@ class PosDatabase {
           data.show_address,
           data.show_email,
           data.receipt_email,
+          data.show_break_down_price,
           data.footer_image,
           data.footer_image_status,
           data.footer_text,
