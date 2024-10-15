@@ -4122,6 +4122,18 @@ class PosDatabase {
   }
 
 /*
+  read specific order detail by local id no left join
+*/
+  Future<OrderDetail> readSpecificOrderDetailByLocalIdNoJoin(String order_detail_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderDetail WHERE order_detail_sqlite_id = ? ',
+        [order_detail_sqlite_id]);
+
+    return OrderDetail.fromJson(result.first);
+  }
+
+/*
   read specific order modifier detail by local id
 */
   Future<OrderModifierDetail> readSpecificOrderModifierDetailByLocalId(int order_modifier_detail_sqlite_id) async {
@@ -4241,7 +4253,7 @@ class PosDatabase {
   }
 
 /*
-  read specific
+  read specific order detail
 */
   Future<OrderDetailCancel> readSpecificOrderDetailCancelByLocalId(int local_id) async {
     final db = await instance.database;

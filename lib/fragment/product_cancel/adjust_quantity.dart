@@ -479,17 +479,20 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
           table_value = _posTableValue.toString();
         }
       }
+      cart.removeItem(widget.cartItem);
     } else {
       await createOrderDetailCancel(userData, dateTime);
       await updateOrderDetailQuantity(dateTime);
+      await cart.updateItemQty(widget.cartItem);
       print('update order detail quantity & create order detail cancel');
     }
     callPrinter(dateTime, cart);
 
     Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(globalContext)!.translate('delete_successful'));
     tableModel.changeContent(true);
-    cart.removeAllTable();
-    cart.removeAllCartItem();
+    // cart.removeAllTable();
+    // cart.removeAllCartItem();
+    // cart.removeItem(widget.cartItem!);
     cart.removePromotion();
     // syncAllToCloud();
   }
