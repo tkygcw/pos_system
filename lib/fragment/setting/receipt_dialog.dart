@@ -603,7 +603,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 Visibility(
                   visible: showBranchRegisterNo && branchObject![BranchFields.register_no] != '',
                   child: Center(
-                    child: Text('Register No: ${branchObject![BranchFields.register_no]}'),
+                    child: Text(branchObject![BranchFields.register_no]),
                   ),
                 ),
                 Center(
@@ -1228,7 +1228,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       Visibility(
                         visible: showBranchRegisterNo && branchObject![BranchFields.register_no] != '',
                         child: Center(
-                          child: Text('Register No: ${branchObject![BranchFields.register_no]}'),
+                          child: Text(branchObject![BranchFields.register_no]),
                         ),
                       ),
                       Visibility(

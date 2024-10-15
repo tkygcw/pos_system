@@ -996,7 +996,7 @@ class ReceiptLayout{
       bytes += generator.reset();
       //register no
       if(receipt!.show_register_no == 1){
-        bytes += generator.text('Register no: ${branchObject[BranchFields.register_no]}',
+        bytes += generator.text(branchObject[BranchFields.register_no],
             containsChinese: true,
             styles: PosStyles(align: PosAlign.center, ),
         );
@@ -1202,7 +1202,7 @@ class ReceiptLayout{
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
         if(receipt!.show_register_no == 1){
-          bytes += generator.text('Register no: ${branchObject[BranchFields.register_no]}',
+          bytes += generator.text(branchObject[BranchFields.register_no],
             containsChinese: true,
             styles: PosStyles(align: PosAlign.center),
           );

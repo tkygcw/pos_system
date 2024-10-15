@@ -81,7 +81,7 @@ class BillLayout extends ReceiptLayout{
       bytes += generator.reset();
       //register no
       if(receipt!.show_register_no == 1 && branchObject[BranchFields.register_no] != ''){
-        bytes += generator.text('Register no: ${branchObject[BranchFields.register_no]}',
+        bytes += generator.text(branchObject[BranchFields.register_no],
           containsChinese: true,
           styles: PosStyles(align: PosAlign.center),
         );
@@ -370,7 +370,7 @@ class BillLayout extends ReceiptLayout{
       bytes += generator.reset();
       //register no
       if(receipt!.show_register_no == 1 && branchObject[BranchFields.register_no] != ''){
-        bytes += generator.text('Register no: ${branchObject[BranchFields.register_no]}',
+        bytes += generator.text(branchObject[BranchFields.register_no],
           containsChinese: true,
           styles: PosStyles(align: PosAlign.center),
         );
