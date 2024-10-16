@@ -5941,7 +5941,7 @@ class PosDatabase {
   Future<List<OrderTaxDetail>> readAllNotSettlementOrderTaxDetailCharge() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT c.*, IFNULL((SELECT SUM(a.tax_amount + 0.0) FROM $tableOrderTaxDetail AS a JOIN $tableOrder AS b ON a.order_key = b.order_key WHERE b.settlement_key = ? AND b.refund_key = ? AND a.type = ?), 0) AS total_charge_amount '
+        'SELECT c.*, IFNULL((SELECT SUM(a.tax_amount + 0.0) FROM $tableOrderTaxDetail AS a JOIN $tableOrder AS b ON a.order_key = b.order_key WHERE b.settlement_key = ? AND b.refund_key = ? AND a.type = ?), 0.00) AS total_charge_amount '
             'FROM $tableOrderTaxDetail AS c JOIN $tableOrder AS d ON c.order_key = d.order_key '
             'WHERE c.soft_delete = ? AND d.soft_delete = ? AND d.settlement_key = ? AND d.refund_key = ?',
         ['', '', 0, '', '', '', '']);
