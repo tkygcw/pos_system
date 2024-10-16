@@ -438,7 +438,6 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
         orientation = 0;
         prefs.setInt('orientation', orientation!);
       }
-      print("orientation value = $orientation");
       setState(() {
         isLoaded = true;
       });

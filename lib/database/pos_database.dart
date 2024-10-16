@@ -77,7 +77,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 25, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 26, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -770,6 +770,10 @@ class PosDatabase {
         case 24: {
           await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
         }break;
+        case 25: {
+          await db.execute("ALTER TABLE $tableModifierGroup ADD ${ModifierGroupFields.min_select} $integerType DEFAULT 1");
+          await db.execute("ALTER TABLE $tableModifierGroup ADD ${ModifierGroupFields.max_select} $integerType DEFAULT 1");
+        }break;
       }
     }
   }
@@ -838,6 +842,8 @@ class PosDatabase {
         ${ModifierGroupFields.dining_id} $textType, 
         ${ModifierGroupFields.compulsory} $textType, 
         ${ModifierGroupFields.sequence_number} $textType,
+        ${ModifierGroupFields.min_select} $integerType,
+        ${ModifierGroupFields.max_select} $integerType,
         ${ModifierGroupFields.created_at} $textType, ${ModifierGroupFields.updated_at} $textType, ${ModifierGroupFields.soft_delete} $textType)''');
 /*
     create modifier item table

@@ -68,6 +68,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   bool hasPromo = false;
   bool hasStock = false;
   bool isButtonDisabled = false;
+  bool isAddButtonDisabled = false;
 
   String? initProductName;
 
@@ -143,10 +144,51 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   }
 
   Widget modifierGroupLayout(ModifierGroup modifierGroup, CartModel cart) {
+    bool minSelectText = false;
+    int checkedModifiersCount = 0;
+    int maxSelect = modifierGroup.max_select ?? 0;
+    int minSelect = modifierGroup.min_select ?? 0;
+    for(int i = 0; i < modifierGroup.modifierChild!.length; i++){
+      if(modifierGroup.modifierChild![i].isChecked!){
+        checkedModifiersCount++;
+      }
+    }
+
+    if(minSelect != 0 && checkedModifiersCount < minSelect) {
+      minSelectText = true;
+      isAddButtonDisabled = true;
+    } else {
+      minSelectText = false;
+    }
+
+    String getModifierMinMaxHint() {
+      if (minSelectText) {
+        return ' (${AppLocalizations.of(context)!.translate('choose_at_least')} $minSelect${AppLocalizations.of(context)!.translate('ge')})';
+      } else if (maxSelect != 0) {
+        return ' (${AppLocalizations.of(context)!.translate('choose_maximum')} $maxSelect${AppLocalizations.of(context)!.translate('ge')})';
+      } else {
+        return '';
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(modifierGroup.name!, style: TextStyle(fontWeight: FontWeight.bold)),
+        Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: modifierGroup.name!,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              if (maxSelect != 0 || minSelectText)
+                TextSpan(
+                  text: getModifierMinMaxHint(),
+                  style: TextStyle(color: minSelectText ? Colors.red : Colors.black, fontSize: 14),
+                ),
+            ],
+          ),
+        ),
         for (int i = 0; i < modifierGroup.modifierChild!.length; i++)
           CheckboxListTile(
             title: Row(
@@ -162,10 +204,24 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
             onChanged: modifierGroup.modifierChild![i].mod_status! == '2'
                 ? null
                 : (isChecked) {
+              if (isChecked! && maxSelect != 0 && checkedModifiersCount >= maxSelect) {
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: '${modifierGroup.name} ${AppLocalizations.of(context)!.translate('choose_maximum')} $maxSelect ${AppLocalizations.of(context)!.translate('ge')}'
+                );
+                return;
+              }
               setState(() {
-                modifierGroup.modifierChild![i].isChecked = isChecked!;
+                checkedModifiersCount++;
+                modifierGroup.modifierChild![i].isChecked = isChecked;
                 addCheckedModItem(modifierGroup.modifierChild![i]);
                 actionController.sink.add("add-on");
+
+                if(minSelect != 0 && checkedModifiersCount < minSelect) {
+                  isAddButtonDisabled = true;
+                } else {
+                  isAddButtonDisabled = false;
+                }
               });
             },
             controlAffinity: ListTileControlAffinity.trailing,
@@ -537,7 +593,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                     AppLocalizations.of(context)!.translate('add'),
                                     style: TextStyle(color: Colors.white),
                                   ),
-                                  onPressed: isButtonDisabled
+                                  onPressed: isButtonDisabled || isAddButtonDisabled
                                       ? null
                                       : () async {
                                     if(widget.productDetail!.name!.isNotEmpty && widget.productDetail!.name!.trim().isNotEmpty) {
@@ -552,6 +608,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                 setState(() {
                                                   isButtonDisabled = true;
                                                 });
+                                                checkModifierMinSelect(modifierGroup);
                                                 await addToCart(cart);
                                                 Navigator.of(context).pop();
                                               } else {
@@ -1042,6 +1099,24 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     });
   }
 
+  bool checkModifierMinSelect(List<ModifierGroup> modifierGroup){
+    int checkedModifiersCount = 0;
+    for(int i = 0; i < modifierGroup.length; i++){
+      for(int j = 0; j < modifierGroup[i].modifierChild!.length;){
+        if(modifierGroup[i].modifierChild![i].isChecked!){
+          checkedModifiersCount++;
+        }
+        if(modifierGroup[i].min_select != 0)
+          if (checkedModifiersCount <= modifierGroup[i].min_select!) {
+            print('mix select: ${modifierGroup[i].min_select}');
+            print('checkedModifiersCount: ${checkedModifiersCount}');
+            return false;
+          }
+      }
+    }
+    return true;
+  }
+
   String? getProductNameErrorText(String textInController){
     if(textInController.isEmpty || textInController.trim().isEmpty){
       return "${AppLocalizations.of(context)?.translate('product_name_empty')}";
@@ -1147,7 +1222,9 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
             mod_group_id: data[i].mod_group_id,
             dining_id: data[i].dining_id,
             compulsory: data[i].compulsory,
-            sequence_number: data[i].sequence_number
+            sequence_number: data[i].sequence_number,
+          min_select: data[i].min_select,
+          max_select: data[i].max_select,
         ));
         List<ModifierItem> itemData = await PosDatabase.instance.readProductModifierItem(data[i].mod_group_id!);
         List<ModifierItem> modItemChild = [];
@@ -1555,6 +1632,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   }
 
   addToCart(CartModel cart) async {
+
     //check selected variant
     for (int j = 0; j < variantGroup.length; j++) {
       VariantGroup group = variantGroup[j];
