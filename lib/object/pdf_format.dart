@@ -1107,6 +1107,25 @@ class ReportFormat {
                         ),
                       ]
                   ),
+                  pw.TableRow(
+                      children: [
+                        pw.Text(''),
+                        pw.Text(''),
+                        pw.Text(''),
+                        pw.Text(''),
+                        pw.Text(''),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                          child: pw.Text(valueList.isEmpty ? '0' : valueList.first.total_item.toString(),
+                              style: pw.TextStyle(font: getFontFormat(valueList.isEmpty ? '0' : valueList.first.total_item.toString()))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                          child: pw.Text(valueList.isEmpty ? '0.00' : valueList.first.total_amount!.toStringAsFixed(2),
+                              style: pw.TextStyle(font: getFontFormat(valueList.isEmpty ? '0.00' : valueList.first.total_amount!.toStringAsFixed(2)))),
+                        ),
+                      ]
+                  ),
                   for(final record in valueList)
                     pw.TableRow(
                         children: [
@@ -1147,7 +1166,6 @@ class ReportFormat {
                           ),
                         ]
                     ),
-
                 ]
             ),
           ]

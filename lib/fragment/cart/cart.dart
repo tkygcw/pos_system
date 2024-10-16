@@ -221,6 +221,7 @@ class CartPageState extends State<CartPage> {
                 WidgetsBinding.instance.addPostFrameCallback((_){
                   cart.removeAllCartItem();
                   cart.removeAllTable();
+                  cart.removeAllGroupList();
                   cart.removeAllPromotion();
                   cart.removePaymentDetail();
                 });

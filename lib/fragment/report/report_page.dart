@@ -339,7 +339,7 @@ class _ReportPageState extends State<ReportPage> {
                         ),
                         SideNavigationBarItem(
                           icon: Icons.no_food,
-                          label: 'cancel record',
+                          label: AppLocalizations.of(context)!.translate('cancel_record_report'),
                         ),
                         SideNavigationBarItem(
                           icon: Icons.no_food,
@@ -506,7 +506,7 @@ class _ReportPageState extends State<ReportPage> {
                     Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 20, color: color.backgroundColor)),
                     Spacer(),
                     Visibility(
-                      visible: currentPage != 14 ? true : false,
+                      visible: currentPage != 14 && currentPage != 15 ? true : false,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
@@ -537,7 +537,7 @@ class _ReportPageState extends State<ReportPage> {
                     ),
                     SizedBox(width: 10),
                     Visibility(
-                      visible: currentPage != 14 ? true : false,
+                      visible: currentPage != 15 ? true : false,
                       child: IconButton(
                         icon: Icon(Icons.print),
                         color: color.backgroundColor,
@@ -553,7 +553,7 @@ class _ReportPageState extends State<ReportPage> {
                       ),
                     ),
                     Visibility(
-                      visible: currentPage != 1 && currentPage != 5 && currentPage != 11 && currentPage != 12 && currentPage != 14  ? true : false,
+                      visible: currentPage != 1 && currentPage != 5 && currentPage != 11 && currentPage != 12 && currentPage != 14 && currentPage != 15  ? true : false,
                       child: Container(
                         child: IconButton(
                           icon: Icon(Icons.receipt),
@@ -903,34 +903,38 @@ class _ReportPageState extends State<ReportPage> {
                           ),
                           DropdownMenuItem(
                             value: 7,
-                            child: Text(AppLocalizations.of(context)!.translate('cancel_modifier_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('cancel_record_report')),
                           ),
                           DropdownMenuItem(
                             value: 8,
-                            child: Text(AppLocalizations.of(context)!.translate('dining_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('cancel_modifier_report')),
                           ),
                           DropdownMenuItem(
                             value: 9,
-                            child: Text(AppLocalizations.of(context)!.translate('payment_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('dining_report')),
                           ),
                           DropdownMenuItem(
                             value: 10,
-                            child: Text(AppLocalizations.of(context)!.translate('refund_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('payment_report')),
                           ),
                           DropdownMenuItem(
                             value: 11,
-                            child: Text(AppLocalizations.of(context)!.translate('cash_record_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('refund_report')),
                           ),
                           DropdownMenuItem(
                             value: 12,
-                            child: Text(AppLocalizations.of(context)!.translate('staff_sales_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('cash_record_report')),
                           ),
                           DropdownMenuItem(
                             value: 13,
-                            child: Text(AppLocalizations.of(context)!.translate('attendance_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('staff_sales_report')),
                           ),
                           DropdownMenuItem(
                             value: 14,
+                            child: Text(AppLocalizations.of(context)!.translate('attendance_report')),
+                          ),
+                          DropdownMenuItem(
+                            value: 15,
                             child: Text(AppLocalizations.of(context)!.translate('transfer_report')),
                           ),
                         ],

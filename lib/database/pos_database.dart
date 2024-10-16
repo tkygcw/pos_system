@@ -4995,7 +4995,7 @@ class PosDatabase {
             'JOIN $tableCashRecord AS c on a.settlement_key = c.settlement_key AND c.remark = ? '
             'WHERE a.soft_delete = ? AND c.soft_delete = ? AND SUBSTR(c.created_at, 1, 10) >= ? AND SUBSTR(c.created_at, 1, 10) < ? '
             'GROUP BY a.order_detail_cancel_sqlite_id ORDER BY a.created_at DESC',
-        ['each', 'each_c', 'Opening Balance', '', date1, date2]);
+        ['each', 'each_c', 'Opening Balance', '', '', date1, date2]);
     return result.map((json) => OrderDetailCancel.fromJson(json)).toList();
   }
 

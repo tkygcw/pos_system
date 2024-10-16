@@ -85,7 +85,7 @@ class ReportObject{
     print('string start date: ${stringStDate}');
     print('string end date: ${stringEdDate}');
     List<OrderDetailCancel> orderDetailCancel = [];
-
+    print("advance mode: ${_isChecked}");
     if(_isChecked) {
       orderDetailCancel = await PosDatabase.instance.readOrderDetailCancelWithOB(stringStDate, stringEdDate);
     } else {

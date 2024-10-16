@@ -146,14 +146,14 @@ class CartModel extends ChangeNotifier {
   }
 
   Future<void> updateItemQty(cartProductItem object, {bool? notify = false}) async {
-    cartProductItem cartItem = object;
-    OrderDetail orderDetail =
-    await PosDatabase.instance.readSpecificOrderDetailByLocalIdNoJoin(cartItem.order_detail_sqlite_id!);
-    cartItem.quantity = int.tryParse(orderDetail.quantity!) ?? double.parse(orderDetail.quantity!);
-    cartNotifierItem.remove(object);
-    cartNotifierItem.add(cartItem);
-    if(notify == true){
-      notifyListeners();
+    if(cartNotifierItem.isNotEmpty){
+      cartProductItem cartItem = cartNotifierItem.firstWhere((e) => e == object) ;
+      OrderDetail orderDetail =
+      await PosDatabase.instance.readSpecificOrderDetailByLocalIdNoJoin(cartItem.order_detail_sqlite_id!);
+      cartItem.quantity = int.tryParse(orderDetail.quantity!) ?? double.parse(orderDetail.quantity!);
+      if(notify == true){
+        notifyListeners();
+      }
     }
   }
 

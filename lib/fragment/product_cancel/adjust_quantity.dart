@@ -46,6 +46,7 @@ class AdjustQuantityDialog extends StatefulWidget {
 }
 
 class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
+  AppSettingModel appSettingModel = AppSettingModel.instance;
   BuildContext globalContext = MyApp.navigatorKey.currentContext!;
   num simpleIntInput = 0;
   late num currentQuantity;
@@ -266,7 +267,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
             children: [
               //reason input
               Visibility(
-                visible: AppSettingModel.instance.required_cancel_reason!,
+                visible: appSettingModel.required_cancel_reason!,
                 child: ReasonInputWidget(reasonCallBack: reasonCallBack),
               ),
               // quantity input
@@ -281,7 +282,10 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       actions: <Widget>[
         SizedBox(
           width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+              ? MediaQuery.of(context).size.height / 12
+              : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+              : MediaQuery.of(context).size.height / 20,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: color.backgroundColor,
@@ -303,7 +307,10 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
         ),
         SizedBox(
           width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+          height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+              ? MediaQuery.of(context).size.height / 12
+              : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+              : MediaQuery.of(context).size.height / 20,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: color.buttonColor,
@@ -332,8 +339,8 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     setState(() {
       isButtonDisabled = true;
     });
-    if(AppSettingModel.instance.required_cancel_reason! == true && reason == ''){
-      CustomFailedToast.showToast(title: "Cancel reason is required");
+    if(appSettingModel.required_cancel_reason! == true && reason == ''){
+      CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('reason_required'));
       setState(() {
         isButtonDisabled = false;
       });
@@ -483,7 +490,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     } else {
       await createOrderDetailCancel(userData, dateTime);
       await updateOrderDetailQuantity(dateTime);
-      await cart.updateItemQty(widget.cartItem);
+      await cart.updateItemQty(widget.cartItem, notify: true);
       print('update order detail quantity & create order detail cancel');
     }
     callPrinter(dateTime, cart);
@@ -493,12 +500,12 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     // cart.removeAllTable();
     // cart.removeAllCartItem();
     // cart.removeItem(widget.cartItem!);
-    cart.removePromotion();
+    // cart.removePromotion();
     // syncAllToCloud();
   }
 
   callPrinter(String dateTime, CartModel cart) async {
-    if(AppSettingModel.instance.autoPrintCancelReceipt!){
+    if(appSettingModel.autoPrintCancelReceipt!){
       int printStatus = await PrintReceipt().printCancelReceipt(printerList, widget.cartItem.order_cache_sqlite_id!, dateTime);
       if (printStatus == 1) {
         Fluttertoast.showToast(

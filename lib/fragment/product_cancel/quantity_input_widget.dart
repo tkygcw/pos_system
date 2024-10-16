@@ -17,9 +17,8 @@ class QuantityInputWidget extends StatefulWidget {
 }
 
 class _QuantityInputWidgetState extends State<QuantityInputWidget> {
-  // late final num maxQuantity;
-  num simpleIntInput = 0;
   TextEditingController quantityController = TextEditingController();
+  num simpleIntInput = 0;
   bool restock = false;
 
   @override
@@ -44,9 +43,9 @@ class _QuantityInputWidgetState extends State<QuantityInputWidget> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text("Cancel quantity", style: TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold)),
+                Text(AppLocalizations.of(context)!.translate('cancel_quantity'), style: TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold)),
                 Spacer(),
-                Text("Restock"),
+                Text(AppLocalizations.of(context)!.translate('restock')),
                 Checkbox(
                     value: restock,
                     onChanged: (value){
@@ -70,9 +69,10 @@ class _QuantityInputWidgetState extends State<QuantityInputWidget> {
               itemBuilder: (context, i){
                 num maxQty = widget.cartItemList[i].unit! != 'each' && widget.cartItemList[i].unit! != 'each_c' ? 1 : widget.cartItemList[i].quantity!;
                 return ListTile(
+                  dense: getDense(),
                   contentPadding: EdgeInsets.zero,
                   title: Text(widget.cartItemList[i].product_name!),
-                  subtitle: Text('Max: $maxQty', style: TextStyle(color: Colors.redAccent)),
+                  subtitle: Text('${AppLocalizations.of(context)!.translate('max')}: $maxQty', style: TextStyle(color: Colors.redAccent)),
                   trailing: FittedBox(
                       child: Padding(
                         padding: const EdgeInsets.only(right: 1.0),
@@ -106,7 +106,7 @@ class _QuantityInputWidgetState extends State<QuantityInputWidget> {
                             SizedBox(width: 10),
                             // quantity input text field
                             SizedBox(
-                              width: 100,
+                              width: getQtyInputWidth(),
                               child: TextField(
                                 controller: quantityController,
                                 keyboardType: TextInputType.number,
@@ -121,11 +121,15 @@ class _QuantityInputWidgetState extends State<QuantityInputWidget> {
                                   if((widget.cartItemList[i].unit! != 'each' && widget.cartItemList[i].unit! != 'each_c') && simpleIntInput > 1){
                                     simpleIntInput = 1;
                                     quantityController.text = simpleIntInput.toString();
-                                    CustomFailedToast.showToast(title: "Max $maxQty");
+                                    CustomFailedToast.showToast(
+                                        title: "${AppLocalizations.of(context)!.translate('max')} $maxQty",
+                                    );
                                   } else if (simpleIntInput > maxQty) {
                                     simpleIntInput = widget.cartItemList[i].quantity!;
                                     quantityController.text = simpleIntInput.toString();
-                                    CustomFailedToast.showToast(title: "Max $maxQty");
+                                    CustomFailedToast.showToast(
+                                      title: "${AppLocalizations.of(context)!.translate('max')} $maxQty",
+                                    );
                                   }
                                   widget.callback(qty: simpleIntInput);
                                 },
@@ -155,7 +159,9 @@ class _QuantityInputWidgetState extends State<QuantityInputWidget> {
                                       quantityController.text = simpleIntInput.toString();
                                     });
                                   } else {
-                                    CustomFailedToast.showToast(title: "Max $maxQty");
+                                    CustomFailedToast.showToast(
+                                      title: "${AppLocalizations.of(context)!.translate('max')} $maxQty",
+                                    );
                                     setState(() {
                                       simpleIntInput = maxQty;
                                       quantityController.text = simpleIntInput.toString();
@@ -176,5 +182,27 @@ class _QuantityInputWidgetState extends State<QuantityInputWidget> {
         ],
       ),
     );
+  }
+
+  getDense(){
+    if(MediaQuery.of(context).orientation == Orientation.portrait){
+      if(MediaQuery.of(context).size.width < 500){
+        return  true;
+      }
+    } else {
+      if(MediaQuery.of(context).size.height < 500){
+        return true;
+      }
+    }
+  }
+
+  getQtyInputWidth(){
+    double defaultWidth = 100.0;
+    if(MediaQuery.of(context).orientation == Orientation.portrait){
+      if(MediaQuery.of(context).size.width < 500){
+        defaultWidth =  50.0;
+      }
+    }
+    return defaultWidth;
   }
 }

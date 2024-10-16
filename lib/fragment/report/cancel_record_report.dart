@@ -36,218 +36,101 @@ class _CancelRecordReportState extends State<CancelRecordReport> {
             future: getAllOrderDetailCancel(),
             builder: (context, snapshot) {
               if(snapshot.hasData){
-                return LayoutBuilder(builder: (context, constraints) {
-                  if (constraints.maxWidth > 800) {
-                    return Scaffold(
-                        resizeToAvoidBottomInset: false,
-                        body: Container(
-                          padding: const EdgeInsets.all(8),
-                          child: SingleChildScrollView(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                return Scaffold(
+                    resizeToAvoidBottomInset: false,
+                    body: Container(
+                      padding: const EdgeInsets.all(8),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
                               children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      child: Text("Cancel record report",
-                                          style: TextStyle(fontSize: 25, color: Colors.black)),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 5),
-                                Divider(
-                                  height: 10,
-                                  color: Colors.grey,
-                                ),
-                                SizedBox(height: 5),
-                                _dataRow.isNotEmpty ?
                                 Container(
-                                    margin: EdgeInsets.all(10),
-                                    child:  SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: DataTable(
-                                          border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
-                                          headingTextStyle: TextStyle(color: Colors.white),
-                                          headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
-                                          columns: <DataColumn>[
-                                            DataColumn(
-                                              label: Expanded(
-                                                child: Text(
-                                                  'Datetime',
-                                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                                ),
-                                              ),
-                                            ),
-                                            DataColumn(
-                                              label: Expanded(
-                                                child: Text(
-                                                  'Product',
-                                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                                ),
-                                              ),
-                                            ),
-                                            DataColumn(
-                                              label: Expanded(
-                                                child: Text(
-                                                  'Variant',
-                                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                                ),
-                                              ),
-                                            ),
-                                            DataColumn(
-                                              label: Expanded(
-                                                child: Text(AppLocalizations.of(context)!.translate('cancel_by'),
-                                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                                ),
-                                              ),
-                                            ),
-                                            DataColumn(
-                                              label: Expanded(
-                                                child: Text('Reason',
-                                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                                ),
-                                              ),
-                                            ),
-                                            DataColumn(
-                                              label: Expanded(
-                                                child: Text(
-                                                  'Quantity',
-                                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                                ),
-                                              ),
-                                            ),
-                                            DataColumn(
-                                              label: Expanded(
-                                                child: Text(
-                                                  'Total amount',
-                                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                          rows: _dataRow
-                                      ),
-                                    )
-                                ):
-                                Center(
-                                  heightFactor: 12,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.menu),
-                                      Text(AppLocalizations.of(context)!.translate('no_record_found')),
-                                    ],
-                                  ),
-                                )
-
+                                  child: Text(AppLocalizations.of(context)!.translate('cancel_record_report'),
+                                      style: TextStyle(fontSize: 25, color: Colors.black)),
+                                ),
                               ],
                             ),
-                          ),
-                        )
-                    );
-                    ///mobile
-                  } else {
-                    return Scaffold(
-                        resizeToAvoidBottomInset: false,
-                        body: Container(
-                          padding: const EdgeInsets.all(8),
-                          child: SingleChildScrollView(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      child: Text(AppLocalizations.of(context)!.translate('cancellation_report'),
-                                          style: TextStyle(fontSize: 25, color: Colors.black)),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 5),
-                                Divider(
-                                  height: 10,
-                                  color: Colors.grey,
-                                ),
-                                SizedBox(height: 5),
-                                _dataRow.isNotEmpty ?
-                                Container(
-                                    margin: EdgeInsets.all(10),
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: DataTable(
-                                          border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
-                                          headingTextStyle: TextStyle(color: Colors.white),
-                                          headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
-                                          columns: <DataColumn>[
-                                            DataColumn(
-                                              label: Expanded(
-                                                child: Text(
-                                                  AppLocalizations.of(context)!.translate('product'),
-                                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                                ),
-                                              ),
+                            SizedBox(height: 5),
+                            Divider(
+                              height: 10,
+                              color: Colors.grey,
+                            ),
+                            SizedBox(height: 5),
+                            Container(
+                                margin: EdgeInsets.all(10),
+                                child:  SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: DataTable(
+                                      border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
+                                      headingTextStyle: TextStyle(color: Colors.white),
+                                      headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
+                                      columns: <DataColumn>[
+                                        DataColumn(
+                                          label: Expanded(
+                                            child: Text(
+                                              AppLocalizations.of(context)!.translate('date_time'),
+                                              style: TextStyle(fontWeight: FontWeight.bold),
                                             ),
-                                            DataColumn(
-                                              label: Expanded(
-                                                child: Text(
-                                                  AppLocalizations.of(context)!.translate('variant'),
-                                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                                ),
-                                              ),
+                                          ),
+                                        ),
+                                        DataColumn(
+                                          label: Expanded(
+                                            child: Text(
+                                              AppLocalizations.of(context)!.translate('product'),
+                                              style: TextStyle(fontWeight: FontWeight.bold),
                                             ),
-                                            DataColumn(
-                                              label: Expanded(
-                                                child: Text(AppLocalizations.of(context)!.translate('quantity'),
-                                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                                ),
-                                              ),
+                                          ),
+                                        ),
+                                        DataColumn(
+                                          label: Expanded(
+                                            child: Text(
+                                              AppLocalizations.of(context)!.translate('variant'),
+                                              style: TextStyle(fontWeight: FontWeight.bold),
                                             ),
-                                            DataColumn(
-                                              label: Expanded(
-                                                child: Text(AppLocalizations.of(context)!.translate('net_sales'),
-                                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                                ),
-                                              ),
+                                          ),
+                                        ),
+                                        DataColumn(
+                                          label: Expanded(
+                                            child: Text(AppLocalizations.of(context)!.translate('cancel_by'),
+                                              style: TextStyle(fontWeight: FontWeight.bold),
                                             ),
-                                            DataColumn(
-                                              label: Expanded(
-                                                child: Text(
-                                                  AppLocalizations.of(context)!.translate('gross_sales'),
-                                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                                ),
-                                              ),
+                                          ),
+                                        ),
+                                        DataColumn(
+                                          label: Expanded(
+                                            child: Text('Reason',
+                                              style: TextStyle(fontWeight: FontWeight.bold),
                                             ),
-                                            DataColumn(
-                                              label: Expanded(
-                                                child: Text(
-                                                  AppLocalizations.of(context)!.translate('cancel_by'),
-                                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                                ),
-                                              ),
+                                          ),
+                                        ),
+                                        DataColumn(
+                                          label: Expanded(
+                                            child: Text(
+                                              AppLocalizations.of(context)!.translate('quantity'),
+                                              style: TextStyle(fontWeight: FontWeight.bold),
                                             ),
-                                          ],
-                                          rows: _dataRow
-                                      ),
-                                    )
-                                ):
-                                Center(
-                                  heightFactor: 4,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.menu),
-                                      Text(AppLocalizations.of(context)!.translate('no_record_found')),
-                                    ],
+                                          ),
+                                        ),
+                                        DataColumn(
+                                          label: Expanded(
+                                            child: Text(
+                                              'Total amount',
+                                              style: TextStyle(fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                      rows: _dataRow
                                   ),
                                 )
-
-                              ],
-                            ),
-                          ),
-                        )
-                    );
-                  }
-                });
+                            )
+                          ],
+                        ),
+                      ),
+                    )
+                );
               } else {
                 return CustomProgressBar();
               }

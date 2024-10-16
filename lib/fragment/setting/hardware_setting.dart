@@ -401,8 +401,8 @@ class _HardwareSettingState extends State<HardwareSetting> {
                             endIndent: 20,
                           ),
                           ListTile(
-                            title: Text('Require reason when cancel order'),
-                            subtitle: Text('force user insert reason when cancel order'),
+                            title: Text(AppLocalizations.of(context)!.translate('cancel_require_reason')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('cancel_require_reason_desc')),
                             trailing: Switch(
                                 value: requiredReason,
                                 activeColor: color.backgroundColor,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../notifier/theme_color.dart';
+import '../../translation/AppLocalizations.dart';
 class ReasonInputWidget extends StatefulWidget {
   final Function(String reason) reasonCallBack;
   const ReasonInputWidget({Key? key, required this.reasonCallBack}) : super(key: key);
@@ -24,12 +25,13 @@ class _ReasonInputWidgetState extends State<ReasonInputWidget> {
         children: [
           Padding(
             padding: EdgeInsets.only(bottom: 10.0),
-            child: Text("Enter reason", style: TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold),),
+            child: Text(AppLocalizations.of(context)!.translate('enter_reason'), style: TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold),),
           ),
           TextField(
             controller: reasonController,
             decoration: InputDecoration(
-              errorText: doneEdit && reasonController.text == ''? 'reason required' : null,
+              errorText: doneEdit && reasonController.text == ''?
+              AppLocalizations.of(context)!.translate('reason_required') : null,
               border: OutlineInputBorder(
                 borderSide: BorderSide(color: color.backgroundColor),
               ),
