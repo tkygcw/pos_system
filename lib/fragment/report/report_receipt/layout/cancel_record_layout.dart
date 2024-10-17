@@ -1,5 +1,8 @@
 import 'dart:convert';
 
+import 'package:pos_system/fragment/report/cancel_record_report_utils.dart';
+import 'package:pos_system/object/order_detail.dart';
+import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 
@@ -9,19 +12,11 @@ import '../../../../utils/Utils.dart';
 class CancelRecordLayout {
 
   String getProductQty(record){
-    if(record.unit == 'each' || record.unit == 'each_c'){
-      return record.quantity!;
-    } else {
-      return '${record.quantity!}(${record.quantity_before_cancel!})';
-    }
+    return CancelRecordReportUtils.getCancelQtyFormat(record);
   }
 
   String getProductVariant(record){
-    if(record.product_variant_name != null && record.product_variant_name != ''){
-      return '${record.product_variant_name}';
-    } else {
-      return '';
-    }
+    return CancelRecordReportUtils.getProductVariant(record);
   }
 
   Future<List<int>> print80mmFormat(bool isUSB, {value}) async {
@@ -64,7 +59,7 @@ class CancelRecordLayout {
         PosColumn(text: 'Total', width: 2, styles: PosStyles(bold: true)),
       ]);
       bytes += generator.hr();
-      for(final record in model.reportValue2){
+      for(var record in model.reportValue2){
         bytes += generator.reset();
         bytes += generator.row([
           PosColumn(text: record.product_name, width: 8, containsChinese: true, styles: PosStyles()),

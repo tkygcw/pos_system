@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:pos_system/fragment/report/cancel_record_report_utils.dart';
 import 'package:pos_system/notifier/report_notifier.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/utils/Utils.dart';
@@ -1141,8 +1142,8 @@ class ReportFormat {
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text(getProductVariant(record),
-                                style: pw.TextStyle(font: getFontFormat(getProductVariant(record)))),
+                            child: pw.Text(CancelRecordReportUtils.getProductVariant(record),
+                                style: pw.TextStyle(font: getFontFormat(CancelRecordReportUtils.getProductVariant(record)))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
@@ -1156,8 +1157,8 @@ class ReportFormat {
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text(getProductQty(record),
-                                style: pw.TextStyle(font: getFontFormat(getProductQty(record)))),
+                            child: pw.Text(CancelRecordReportUtils.getCancelQtyFormat(record),
+                                style: pw.TextStyle(font: getFontFormat(CancelRecordReportUtils.getCancelQtyFormat(record)))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
@@ -1774,22 +1775,6 @@ class ReportFormat {
       ),
     );
     return pdf.save();
-  }
-
-  String getProductQty(record){
-    if(record.unit == 'each' || record.unit == 'each_c'){
-      return record.quantity!;
-    } else {
-      return '${record.quantity!}(${record.quantity_before_cancel!})';
-    }
-  }
-
-  String getProductVariant(record){
-    if(record.product_variant_name != null && record.product_variant_name != ''){
-      return '${record.product_variant_name}';
-    } else {
-      return '';
-    }
   }
 
   String formatAmount({required CashRecord cashRecord}){

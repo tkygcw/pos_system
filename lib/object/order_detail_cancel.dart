@@ -1,4 +1,4 @@
-String? tableOrderDetailCancel = 'tb_order_detail_cancel ';
+String? tableOrderDetailCancel = 'tb_order_detail_cancel';
 
 class OrderDetailCancelFields{
   static List<String> values = [

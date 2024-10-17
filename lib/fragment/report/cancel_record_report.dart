@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:pos_system/fragment/report/cancel_record_report_utils.dart';
 import 'package:pos_system/notifier/report_notifier.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:provider/provider.dart';
@@ -141,7 +142,6 @@ class _CancelRecordReportState extends State<CancelRecordReport> {
   }
 
   getAllOrderDetailCancel() async {
-    print("call!!!");
     _dataRow.clear();
     String currentStDate = model.startDateTime;
     String currentEdDate = model.endDateTime;
@@ -169,7 +169,7 @@ class _CancelRecordReportState extends State<CancelRecordReport> {
               DataCell(Text(data[i].product_variant_name!)),
               DataCell(Text(data[i].cancel_by!)),
               DataCell(Text(data[i].cancel_reason!)),
-              DataCell(Text(getCancelQtyFormat(data[i]))),
+              DataCell(Text(CancelRecordReportUtils.getCancelQtyFormat(data[i]))),
               DataCell(Text(data[i].price!.toStringAsFixed(2))),
             ],
           ),
@@ -177,13 +177,5 @@ class _CancelRecordReportState extends State<CancelRecordReport> {
       }
     }
     return _dataRow;
-  }
-
-  String getCancelQtyFormat(OrderDetailCancel orderDetailCancel){
-    if(orderDetailCancel.unit == 'each' || orderDetailCancel.unit == 'each_c'){
-      return orderDetailCancel.quantity!;
-    } else {
-      return '${orderDetailCancel.quantity!}(${orderDetailCancel.quantity_before_cancel!})';
-    }
   }
 }

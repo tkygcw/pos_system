@@ -580,7 +580,8 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       order_detail_sqlite_id: widget.cartItem.order_detail_sqlite_id,
       order_detail_key: data.order_detail_key,
       quantity: simpleIntInput.toString(),
-      quantity_before_cancel: widget.cartItem.quantity!.toString(),
+      quantity_before_cancel: widget.cartItem.quantity! is double ?
+      widget.cartItem.quantity!.toStringAsFixed(2): widget.cartItem.quantity!.toString(),
       cancel_by: user.name,
       cancel_by_user_id: user.user_id.toString(),
       cancel_reason: reason,

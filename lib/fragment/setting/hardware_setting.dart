@@ -32,7 +32,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
   AppSetting appSetting = AppSetting();
   late StreamController streamController;
   late Stream actionStream;
-  Receipt? receiptObject;
   final List<String> sortBy = [
     'default',
     'product_name',
@@ -74,7 +73,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
         case 'init':{
           await checkStatus();
           await getAllAppSetting();
-          await read80mmReceiptLayout();
           controller.refresh(streamController);
         }
         break;
@@ -123,13 +121,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
     Map branchObject = json.decode(branch!);
     if(branchObject['qr_order_status'] == '1'){
       hasQrAccess = false;
-    }
-  }
-
-  read80mmReceiptLayout() async {
-    Receipt? data = await PosDatabase.instance.readSpecificReceipt("80");
-    if(data != null){
-      receiptObject = data;
     }
   }
 

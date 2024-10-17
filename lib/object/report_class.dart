@@ -92,7 +92,7 @@ class ReportObject{
       orderDetailCancel = await PosDatabase.instance.readOrderDetailCancel(stringStDate, stringEdDate);
     }
     if(orderDetailCancel.isNotEmpty){
-      final totalQty = orderDetailCancel.fold(0, (int sum, e) => sum + int.parse(e.quantity!));
+      final totalQty = orderDetailCancel.fold(0, (int sum, e) => sum + (int.tryParse(e.quantity!) ?? 1));
       final totalPrice = orderDetailCancel.fold(0, (num sum, e) => sum + e.price!);
       print("total qty: ${totalQty}");
       print("total price: ${totalPrice}");

@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:f_logs/model/flog/flog.dart';
 
+import '../../../object/branch.dart';
 import '../../../object/table.dart';
 import '../../../utils/Utils.dart';
 
@@ -78,6 +79,13 @@ class BillLayout extends ReceiptLayout{
       }
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
+      //register no
+      if(receipt!.show_register_no == 1 && branchObject[BranchFields.register_no] != ''){
+        bytes += generator.text(branchObject[BranchFields.register_no],
+          containsChinese: true,
+          styles: PosStyles(align: PosAlign.center),
+        );
+      }
       //Address
       if(receipt!.show_address == 1 && branchObject['address'].toString() != ''){
         bytes += generator.text('${branchObject['address']}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
@@ -360,6 +368,13 @@ class BillLayout extends ReceiptLayout{
       }
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
+      //register no
+      if(receipt!.show_register_no == 1 && branchObject[BranchFields.register_no] != ''){
+        bytes += generator.text(branchObject[BranchFields.register_no],
+          containsChinese: true,
+          styles: PosStyles(align: PosAlign.center),
+        );
+      }
       //Address
       if(receipt!.show_address == 1 && branchObject['address'].toString() != ''){
         bytes += generator.text('${branchObject['address'].toString().replaceAll(',', '\n')}', containsChinese: true, styles: PosStyles(align: PosAlign.center));

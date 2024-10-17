@@ -773,7 +773,12 @@ class PosDatabase {
         case 25: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.required_cancel_reason} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrderDetailCancel ADD ${OrderDetailCancelFields.cancel_reason} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableOrderDetailCancel ADD ${OrderDetailCancelFields.quantity_before_cancel} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderDetailCancel ADD ${OrderDetailCancelFields.quantity_before_cancel} $textType DEFAULT '0' ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_register_no} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.register_no} $textType DEFAULT '' ");
+          final branchResult = await db.rawQuery('SELECT * FROM $tableBranch LIMIT 1');
+          Branch branchData = Branch.fromJson(branchResult.first);
+          await prefs.setString("branch", json.encode(branchData));
         }break;
       }
     }
@@ -1175,7 +1180,8 @@ class PosDatabase {
            ${BranchFields.notification_token} $textType,
            ${BranchFields.qr_order_status} $textType,
            ${BranchFields.sub_pos_status} $integerType,
-           ${BranchFields.attendance_status} $integerType)''');
+           ${BranchFields.attendance_status} $integerType,
+           ${BranchFields.register_no} $textType)''');
 
 /*
     create app color table
@@ -1305,6 +1311,7 @@ class PosDatabase {
           ${ReceiptFields.status} $integerType,
           ${ReceiptFields.show_product_sku} $integerType,
           ${ReceiptFields.show_branch_tel} $integerType,
+          ${ReceiptFields.show_register_no} $integerType,
           ${ReceiptFields.sync_status} $integerType,
           ${ReceiptFields.created_at} $textType,
           ${ReceiptFields.updated_at} $textType,
@@ -2553,8 +2560,8 @@ class PosDatabase {
         'INSERT INTO $tableReceipt(soft_delete, updated_at, created_at, sync_status, show_branch_tel, '
         'show_product_sku, header_font_size, status, paper_size, promotion_detail_status, '
         'footer_text_status, footer_text, footer_image_status, footer_image, receipt_email, show_email, show_address, '
-        'header_text_status, header_text, header_image_status, header_image, branch_id, receipt_key, receipt_id) '
-            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'header_text_status, header_text, header_image_status, header_image, branch_id, receipt_key, receipt_id, show_register_no) '
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.soft_delete,
           data.updated_at,
@@ -2579,7 +2586,8 @@ class PosDatabase {
           data.header_image,
           data.branch_id,
           data.receipt_key,
-          data.receipt_id
+          data.receipt_id,
+          data.show_register_no
         ]);
     return data.copy(receipt_sqlite_id: await id);
   }
@@ -5006,10 +5014,13 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.product_name, b.product_variant_name, b.unit, '
-            'SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN b.price * a.quantity_before_cancel + 0.0 ELSE a.quantity * b.price + 0.0 END) AS price '
+            'SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN '
+            'CASE WHEN a.quantity_before_cancel != ? THEN b.price * a.quantity_before_cancel + 0.0 '
+            'ELSE b.price * a.quantity + 0.0 END '
+            'ELSE a.quantity * b.price + 0.0 END) AS price '
             'FROM $tableOrderDetailCancel AS a JOIN $tableOrderDetail AS b ON a.order_detail_key = b.order_detail_key '
             'WHERE a.soft_delete = ? AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY a.order_detail_cancel_sqlite_id ORDER BY a.created_at DESC',
-        ['each', 'each_c', '', date1, date2]);
+        ['each', 'each_c', '0', '', date1, date2]);
     return result.map((json) => OrderDetailCancel.fromJson(json)).toList();
   }
 
@@ -6752,8 +6763,11 @@ class PosDatabase {
 */
   Future<int> updateBranch(Branch data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableBranch SET name = ?, address = ?, phone = ?, email = ?, qr_order_status = ?, sub_pos_status = ?, attendance_status = ? WHERE branchID = ? ',
-        [data.name, data.address, data.phone, data.email, data.qr_order_status, data.sub_pos_status, data.attendance_status, data.branchID]);
+    return await db.rawUpdate('UPDATE $tableBranch SET name = ?, address = ?, phone = ?, email = ?, '
+        'qr_order_status = ?, sub_pos_status = ?, attendance_status = ?, register_no = ? WHERE branchID = ? ',
+        [data.name, data.address, data.phone, data.email,
+          data.qr_order_status, data.sub_pos_status, data.attendance_status, data.register_no, data.branchID],
+    );
   }
 
 /*
@@ -7140,11 +7154,11 @@ class PosDatabase {
 */
   Future<int> updateReceiptLayout(Receipt data) async {
     final db = await instance.database;
-    return await db.rawUpdate(
-        'UPDATE $tableReceipt SET header_image = ?, header_image_status = ?, header_text = ?, header_text_status = ?, '
-        'header_font_size = ?, show_address = ?, show_email = ?, receipt_email = ?, '
-        'footer_image = ?, footer_image_status = ?, footer_text = ?, footer_text_status = ?, '
-            'promotion_detail_status = ?, show_product_sku = ?, show_branch_tel = ?, sync_status = ?, updated_at = ? WHERE receipt_sqlite_id = ?',
+    return await db.rawUpdate('UPDATE $tableReceipt SET header_image = ?, header_image_status = ?, '
+        'header_text = ?, header_text_status = ?, header_font_size = ?, show_address = ?, show_email = ?, '
+        'receipt_email = ?, footer_image = ?, footer_image_status = ?, footer_text = ?, footer_text_status = ?, '
+        'promotion_detail_status = ?, show_product_sku = ?, show_branch_tel = ?, show_register_no = ?, '
+        'sync_status = ?, updated_at = ? WHERE receipt_sqlite_id = ?',
         [
           data.header_image,
           data.header_image_status,
@@ -7161,6 +7175,7 @@ class PosDatabase {
           data.promotion_detail_status,
           data.show_product_sku,
           data.show_branch_tel,
+          data.show_register_no,
           data.sync_status,
           data.updated_at,
           data.receipt_sqlite_id
