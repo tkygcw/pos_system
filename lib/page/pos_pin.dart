@@ -230,7 +230,6 @@ class _PosPinPageState extends State<PosPinPage> {
         isGms = GmsCheck().isGmsAvailable ? 1 : 0;
       }
 
-      print("isGmsAvailable: $isGms");
       CurrentVersion? item = await PosDatabase.instance.readCurrentVersion();
       if(item == null){
         CurrentVersion object = CurrentVersion(

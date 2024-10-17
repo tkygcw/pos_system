@@ -747,7 +747,7 @@ class PrintReceipt{
           if (printerList[i].type == 0) {
             //print USB 80mm
             if (printerList[i].paper_size == 0) {
-              var data = Uint8List.fromList(await ChecklistLayout().printCheckList80mm(true, orderCacheLocalId, order_by: order_by));
+              var data = Uint8List.fromList(await ChecklistLayout().printCheckList80mm(true, orderCacheLocalId, order_by: order_by, printer_id: printer_id));
               bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
               if (isConnected == true) {
                 await flutterUsbPrinter.write(data);
@@ -760,7 +760,7 @@ class PrintReceipt{
               }
             } else {
               //print 58mm
-              var data = Uint8List.fromList(await ChecklistLayout().printCheckList58mm(true, orderCacheLocalId, order_by: order_by));
+              var data = Uint8List.fromList(await ChecklistLayout().printCheckList58mm(true, orderCacheLocalId, order_by: order_by, printer_id: printer_id));
               bool? isConnected = await flutterUsbPrinter.connect(
                   int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
               if (isConnected == true) {
@@ -796,7 +796,7 @@ class PrintReceipt{
               final printer = NetworkPrinter(PaperSize.mm58, profile);
               final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
               if (res == PosPrintResult.success) {
-                await ChecklistLayout().printCheckList58mm(false, orderCacheLocalId, value: printer, order_by: order_by);
+                await ChecklistLayout().printCheckList58mm(false, orderCacheLocalId, value: printer, order_by: order_by, printer_id: printer_id);
                 await Future.delayed(Duration(milliseconds: 100));
                 printer.disconnect();
                 printStatus = 0;
@@ -812,7 +812,7 @@ class PrintReceipt{
             //bluetooth print 80mm
             if (printerList[i].paper_size == 0) {
               if (res) {
-                await PrintBluetoothThermal.writeBytes(await ChecklistLayout().printCheckList80mm(true, orderCacheLocalId, order_by: order_by));
+                await PrintBluetoothThermal.writeBytes(await ChecklistLayout().printCheckList80mm(true, orderCacheLocalId, order_by: order_by, printer_id: printer_id));
                 printStatus = 0;
               } else {
                 printStatus = 1;
@@ -820,7 +820,7 @@ class PrintReceipt{
             } else {
               //bluetooth print 58mm
               if (res) {
-                await PrintBluetoothThermal.writeBytes(await ChecklistLayout().printCheckList58mm(true, orderCacheLocalId, order_by: order_by));
+                await PrintBluetoothThermal.writeBytes(await ChecklistLayout().printCheckList58mm(true, orderCacheLocalId, order_by: order_by, printer_id: printer_id));
                 printStatus = 0;
               } else {
                 printStatus = 1;

@@ -278,7 +278,8 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                           });
                                         } else {
                                           if(_typeStatus == 1){
-                                            manualAddDeviceDialog();
+                                            // manualAddDeviceDialog();
+                                            openAddDeviceDialog(_typeStatus!);
                                           } else {
                                             openAddDeviceDialog(_typeStatus!);
                                           }
@@ -713,9 +714,6 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                   },
                                 ),
                               ),
-
-
-
                               Visibility(
                                 visible: printerValue.isEmpty ? true : false,
                                 child: Container(

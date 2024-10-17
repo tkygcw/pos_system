@@ -149,14 +149,14 @@ class ChecklistLayout extends ReceiptLayout {
 /*
   Check list layout 58mm
 */
-  printCheckList58mm(bool isUSB, int localId, {value, isQrOrder, String? order_by}) async {
+  printCheckList58mm(bool isUSB, int localId, {value, isQrOrder, String? order_by, int? printer_id}) async {
     Checklist? checklistLayout = await PosDatabase.instance.readSpecificChecklist('58');
     if(checklistLayout == null){
       checklistLayout = checklistDefaultLayout;
     }
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    await readOrderCache(localId);
+    await readOrderCache(localId, printer_id: printer_id);
 
     var generator;
     if (isUSB) {

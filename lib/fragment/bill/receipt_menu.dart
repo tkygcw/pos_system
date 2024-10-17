@@ -558,7 +558,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: PaymentSelect(dining_id: '', dining_name: '', isUpdate: true, currentOrder: order,),
+              child: PaymentSelect(dining_id: '', dining_name: '', isUpdate: true, currentOrder: order, order_key: '',),
             ),
           );
         },

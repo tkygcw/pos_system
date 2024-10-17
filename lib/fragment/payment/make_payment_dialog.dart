@@ -54,13 +54,18 @@ class MakePayment extends StatefulWidget {
   final int payment_link_company_id;
   final String dining_id;
   final String dining_name;
+  final String order_key;
+  final Function(String)? callBack;
 
   const MakePayment(
       {Key? key,
       required this.type,
       required this.payment_link_company_id,
       required this.dining_id,
-      required this.dining_name})
+      required this.dining_name,
+      required this.order_key,
+      this.callBack
+      })
       : super(key: key);
 
   @override
@@ -93,6 +98,7 @@ class _MakePaymentState extends State<MakePayment> {
   List<Order> orderList = [];
   List<Tax> taxList = [];
   List<cartProductItem> itemList = [];
+  List<OrderPaymentSplit> paymentSplitList = [];
   bool scanning = false;
   bool isopen = false;
   bool chipSelected = false;
@@ -113,6 +119,7 @@ class _MakePaymentState extends State<MakePayment> {
   double totalAmount = 0.0;
   double tableOrderPrice = 0.0;
   double rounding = 0.0;
+  double paymentSplitAmount = 0.0;
   String diningName = '';
   String selectedPromoRate = '';
   String promoName = '';
@@ -177,6 +184,7 @@ class _MakePaymentState extends State<MakePayment> {
     readSpecificPaymentMethod();
     readAllOrder();
     readPaymentMethod();
+    getAllPaymentSplit(widget.order_key);
   }
 
   @override
@@ -467,6 +475,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                 visualDensity: VisualDensity(vertical: -4),
                                                 dense: true,
                                               ),
+                                              for (int index = 0; index < paymentSplitList.length; index++)
+                                                ListTile(
+                                                  title: Text('${paymentSplitList[index].payment_name}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                                  visualDensity: VisualDensity(vertical: -4),
+                                                  dense: true,
+                                                  trailing: Text('${paymentSplitList[index].payment_received!}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                                ),
                                               ListTile(
                                                 visualDensity: VisualDensity(vertical: -4),
                                                 title: Text('Final Amount',
@@ -3485,7 +3500,9 @@ class _MakePaymentState extends State<MakePayment> {
                 dining_id: dining_id,
                 orderCacheIdList: orderCacheIdList,
                 selectedTableList: selectedTableList,
-                callback: () => {},
+                callback: (orderKeyValue) async {
+                  await getCallback(orderKeyValue);
+                },
                 orderId: orderId!,
                 orderKey: orderKey!,
                 change: change,
@@ -3503,6 +3520,10 @@ class _MakePaymentState extends State<MakePayment> {
           // ignore: null_check_always_fails
           return null!;
         });
+  }
+
+  getCallback(String orderKeyValue) {
+    widget.callBack!(orderKeyValue);
   }
 
 /*
@@ -4383,5 +4404,21 @@ class _MakePaymentState extends State<MakePayment> {
     setState(() {
       isload = true;
     });
+  }
+
+  getAllPaymentSplit(String order_key) async {
+    try {
+      paymentSplitList = [];
+      paymentSplitAmount = 0.0;
+      if(order_key != '') {
+        List<OrderPaymentSplit> orderSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(order_key);
+        for(int k = 0; k < orderSplit.length; k++){
+          paymentSplitAmount += double.parse(orderSplit[k].amount!);
+          paymentSplitList.add(orderSplit[k]);
+        }
+      }
+    } catch(e) {
+      print("Total payment split error: $e");
+    }
   }
 }

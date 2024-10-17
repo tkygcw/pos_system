@@ -33,7 +33,7 @@ class PaymentSuccessDialog extends StatefulWidget {
   final bool isCashMethod;
   final List<String> orderCacheIdList;
   final List<PosTable> selectedTableList;
-  final Function() callback;
+  final Function(String) callback;
   final String orderId;
   final String orderKey;
   final String dining_id;
@@ -157,20 +157,20 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                       setState(() {
                                         isButtonDisabled = true;
                                       });
-                                      // await createCashRecord();
-                                      // await syncAllToCloud();
-                                      // if(this.isLogOut == true){
-                                      //   openLogOutDialog();
-                                      //   return;
-                                      // }
+
                                       if (notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true) {
                                         reInitSecondDisplay();
                                       }
                                       await callPrinter();
-                                      //await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList, context);
-                                      tableModel.changeContent(true);
-                                      cartModel.initialLoad();
-                                      Navigator.of(context).pop();
+                                      print("widget.split_payment: ${widget.split_payment}");
+                                      if(widget.split_payment == true) {
+                                        widget.callback(widget.orderKey);
+                                      } else {
+                                        //await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList, context);
+                                        tableModel.changeContent(true);
+                                        cartModel.initialLoad();
+                                        Navigator.of(context).pop();
+                                      }
                                       Navigator.of(context).pop();
                                       Navigator.of(context).pop();
                                     },
@@ -238,16 +238,18 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                     isButtonDisabled = true;
                                   });
                                   tableModel.changeContent(true);
-                                  cartModel.initialLoad();
-                                  if (notificationModel
-                                      .hasSecondScreen ==
-                                      true &&
-                                      notificationModel
-                                          .secondScreenEnable ==
-                                          true) {
-                                    reInitSecondDisplay();
+                                  if(widget.split_payment == true) {
+                                    widget.callback(widget.orderKey);
+                                  } else {
+
+                                    cartModel.initialLoad();
+                                    if (notificationModel.hasSecondScreen == true &&
+                                        notificationModel.secondScreenEnable == true) {
+                                      reInitSecondDisplay();
+                                    }
+                                    Navigator.of(context).pop();
                                   }
-                                  Navigator.of(context).pop();
+
                                   Navigator.of(context).pop();
                                   Navigator.of(context).pop();
                                 },
@@ -309,7 +311,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                     fontSize: 20),
                               )),
                           SizedBox(height: 15),
-                          Row(
+                          Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Container(
@@ -325,17 +327,21 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                       setState(() {
                                         isButtonDisabled = true;
                                       });
+
+                                      if (notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true) {
+                                        reInitSecondDisplay();
+                                      }
                                       await callPrinter();
-                                      //await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList, context);
-                                      // await createCashRecord();
-                                      // await syncAllToCloud();
-                                      // if(this.isLogOut == true){
-                                      //   openLogOutDialog();
-                                      //   return;
-                                      // }
-                                      tableModel.changeContent(true);
-                                      cartModel.initialLoad();
-                                      Navigator.of(context).pop();
+
+                                      print("widget.split_payment: ${widget.split_payment}");
+                                      if(widget.split_payment == true) {
+                                        widget.callback(widget.orderKey);
+                                      } else {
+                                        //await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList, context);
+                                        tableModel.changeContent(true);
+                                        cartModel.initialLoad();
+                                        Navigator.of(context).pop();
+                                      }
                                       Navigator.of(context).pop();
                                       Navigator.of(context).pop();
                                     },
@@ -378,10 +384,19 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                             setState(() {
                               isButtonDisabled = true;
                             });
-                            tableModel.changeContent(true);
-                            cartModel.removeAllGroupList();
-                            cartModel.initialLoad();
-                            Navigator.of(context).pop();
+
+                            if(widget.split_payment == true) {
+                              widget.callback(widget.orderKey);
+                            } else {
+                              tableModel.changeContent(true);
+                              cartModel.initialLoad();
+                              if (notificationModel.hasSecondScreen == true &&
+                                  notificationModel.secondScreenEnable == true) {
+                                reInitSecondDisplay();
+                              }
+                              Navigator.of(context).pop();
+                            }
+
                             Navigator.of(context).pop();
                             Navigator.of(context).pop();
                           },
@@ -431,7 +446,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     await updateOrder(dateTime: dateTime);
     if (widget.dining_name == 'Dine in' && widget.selectedTableList.isNotEmpty) {
       Order? orderData = await PosDatabase.instance.readOrderSqliteID(widget.orderKey);
-      if(orderData!.payment_status == 1 && ((orderData!.payment_split == 1 && !widget.split_payment!) || orderData!.payment_split == 0)) {
+      if(orderData!.payment_status == 1 && ((orderData.payment_split == 1 && !widget.split_payment!) || orderData.payment_split == 0)) {
         await deleteCurrentTableUseDetail(dateTime: dateTime);
         await deleteCurrentTableUseId(dateTime: dateTime);
         await updatePosTableStatus(dateTime: dateTime);
@@ -725,7 +740,6 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
 
   insertCashRecordKey(CashRecord cashRecord, String dateTime) async {
     CashRecord? _record;
-    int _status = 0;
     String? _key;
     _key = await generateCashRecordKey(cashRecord);
     if (_key != null) {
