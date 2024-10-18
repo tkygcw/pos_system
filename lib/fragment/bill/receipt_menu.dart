@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/bill/refund_dialog.dart';
 import 'package:pos_system/main.dart';
@@ -12,6 +14,7 @@ import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import '../../notifier/cart_notifier.dart';
 import '../../notifier/notification_notifier.dart';
 import '../../notifier/theme_color.dart';
@@ -51,6 +54,14 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
   List<String> optionList = ['Paid', 'Refunded'];
   bool _isLoaded = false;
   bool _readComplete = false;
+  DateRangePickerController _dateRangePickerController = DateRangePickerController();
+  DateFormat dateFormat = DateFormat("dd/MM/yyyy");
+  String currentStDate = new DateFormat("yyyy-MM-dd").format(DateTime.now());
+  String currentEdDate = new DateFormat("yyyy-MM-dd").format(DateTime.now());
+  String _range = '';
+  late TextEditingController _controller;
+  String dateTimeNow = '';
+  bool _isExpanded = false;
 
   @override
   void initState() {
@@ -153,6 +164,58 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                           selectedItemBuilder: (BuildContext context) => optionList.map((e) => Center(child: Text(AppLocalizations.of(context)!.translate(getSelectedOption(e))))).toList(),
                         ),
                       ),
+                      SizedBox(width: 10),
+                      IconButton(
+                        onPressed: () {
+                          showDialog(barrierDismissible: false, context: context, builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text(AppLocalizations.of(context)!.translate('select_a_date_range')),
+                              titlePadding: EdgeInsets.fromLTRB(24, 12, 24, 0),
+                              contentPadding: EdgeInsets.all(16),
+                              content: Container(
+                                height: 400,
+                                width: 450,
+                                child: Container(
+                                  child: Card(
+                                    elevation: 10,
+                                    child: SfDateRangePicker(
+                                      view: DateRangePickerView.month,
+                                      controller: _dateRangePickerController,
+                                      selectionMode: DateRangePickerSelectionMode.range,
+                                      allowViewNavigation: true,
+                                      showActionButtons: true,
+                                      showTodayButton: true,
+                                      onSelectionChanged: _onSelectionChanged,
+                                      maxDate: DateTime.now(),
+                                      confirmText: AppLocalizations.of(context)!.translate('ok'),
+                                      cancelText: AppLocalizations.of(context)!.translate('cancel'),
+                                      onSubmit: (object) {
+                                        _controller = _range != '' ?
+                                        new TextEditingController(text: '${_range}')
+                                            :
+                                        new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
+                                        setState(() {
+                                          // reportModel.setDateTime(currentStDate, currentEdDate);
+                                          print("currentStDate: ${currentStDate}");
+                                          print("currentEdDate: ${currentEdDate}");
+                                          getOrder();
+                                        });
+                                        Navigator.of(context).pop();
+                                      },
+                                      onCancel: (){
+                                        Navigator.of(context).pop();
+                                      },
+
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          });
+                        },
+                        icon: Icon(Icons.calendar_month),
+                        color: color.backgroundColor,
+                      )
                     ],
                   ),
                   resizeToAvoidBottomInset: false,
@@ -229,11 +292,15 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                               onLongPress: paidOrderList[index].payment_status == 1 ? () {
                                 //openRefundDialog(paidOrderList[index], orderCacheList);
                                 print('refund bill');
-                                showSecondDialog(context, color,
-                                  order: paidOrderList[index],
-                                  orderCacheList: orderCacheList,
-                                  cart: cart,
-                                );
+                                if(paidOrderList[index].settlement_key == '') {
+                                  showSecondDialog(context, color,
+                                    order: paidOrderList[index],
+                                    orderCacheList: orderCacheList,
+                                    cart: cart,
+                                  );
+                                } else {
+                                  Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('settlement_bill_cannot_be_modified'));
+                                }
                               }
                                   : null,
                             ),
@@ -319,6 +386,58 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                           selectedItemBuilder: (BuildContext context) => optionList.map((e) => Center(child: Text(e))).toList(),
                         ),
                       ),
+                      SizedBox(width: 10),
+                      IconButton(
+                        onPressed: () {
+                          showDialog(barrierDismissible: false, context: context, builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text(AppLocalizations.of(context)!.translate('select_a_date_range')),
+                              titlePadding: EdgeInsets.fromLTRB(24, 12, 24, 0),
+                              contentPadding: EdgeInsets.all(16),
+                              content: Container(
+                                height: 400,
+                                width: 450,
+                                child: Container(
+                                  child: Card(
+                                    elevation: 10,
+                                    child: SfDateRangePicker(
+                                      view: DateRangePickerView.month,
+                                      controller: _dateRangePickerController,
+                                      selectionMode: DateRangePickerSelectionMode.range,
+                                      allowViewNavigation: true,
+                                      showActionButtons: true,
+                                      showTodayButton: true,
+                                      onSelectionChanged: _onSelectionChanged,
+                                      maxDate: DateTime.now(),
+                                      confirmText: AppLocalizations.of(context)!.translate('ok'),
+                                      cancelText: AppLocalizations.of(context)!.translate('cancel'),
+                                      onSubmit: (object) {
+                                        _controller = _range != '' ?
+                                        new TextEditingController(text: '${_range}')
+                                            :
+                                        new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
+                                        setState(() {
+                                          // reportModel.setDateTime(currentStDate, currentEdDate);
+                                          print("currentStDate: ${currentStDate}");
+                                          print("currentEdDate: ${currentEdDate}");
+                                          getOrder();
+                                        });
+                                        Navigator.of(context).pop();
+                                      },
+                                      onCancel: (){
+                                        Navigator.of(context).pop();
+                                      },
+
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          });
+                        },
+                        icon: Icon(Icons.calendar_month),
+                        color: color.backgroundColor,
+                      )
                     ],
                   ) :
                   AppBar(
@@ -340,7 +459,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                     actions: [
                       Container(
                         width: MediaQuery.of(context).size.height / 7,
-                        padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                        padding: EdgeInsets.fromLTRB(0, 5, 0, 0),
                         child: DropdownButton<String>(
                           onChanged: (String? value) {
                             setState(() {
@@ -376,6 +495,95 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                           // Customize the selected item
                           selectedItemBuilder: (BuildContext context) => optionList.map((e) => Center(child: Text(e))).toList(),
                         ),
+                      ),
+                      Visibility(
+                        visible: !_isExpanded,
+                        child: IconButton(
+                          icon: Icon(Icons.search),
+                          color: color.backgroundColor,
+                          onPressed: () {
+                            setState(() {
+                              _isExpanded = !_isExpanded;
+                            });
+                          },
+                        ),
+                      ),
+                      if (_isExpanded)
+                        Container(
+                          padding: EdgeInsets.only(top: 5),
+                          width: 150,
+                          child: TextField(
+                            maxLines: 1,
+                            autofocus: true,
+                            onChanged: (value) {
+                              searchPaidOrders(value);
+                            },
+                            decoration: InputDecoration(
+                              isDense: true,
+                              border: InputBorder.none,
+                              labelText: AppLocalizations.of(context)!.translate('search'),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(color: Colors.grey, width: 2.0),
+                                borderRadius: BorderRadius.circular(25.0),
+                              ),
+                            ),
+                            onEditingComplete: () {
+                              setState(() {
+                                _isExpanded = false;
+                              });
+                            },
+                          ),
+                        ),
+                      IconButton(
+                        onPressed: () {
+                          showDialog(barrierDismissible: false, context: context, builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text(AppLocalizations.of(context)!.translate('select_a_date_range')),
+                              titlePadding: EdgeInsets.fromLTRB(24, 12, 24, 0),
+                              contentPadding: EdgeInsets.all(16),
+                              content: Container(
+                                height: 400,
+                                width: 450,
+                                child: Container(
+                                  child: Card(
+                                    elevation: 10,
+                                    child: SfDateRangePicker(
+                                      view: DateRangePickerView.month,
+                                      controller: _dateRangePickerController,
+                                      selectionMode: DateRangePickerSelectionMode.range,
+                                      allowViewNavigation: true,
+                                      showActionButtons: true,
+                                      showTodayButton: true,
+                                      onSelectionChanged: _onSelectionChanged,
+                                      maxDate: DateTime.now(),
+                                      confirmText: AppLocalizations.of(context)!.translate('ok'),
+                                      cancelText: AppLocalizations.of(context)!.translate('cancel'),
+                                      onSubmit: (object) {
+                                        _controller = _range != '' ?
+                                        new TextEditingController(text: '${_range}')
+                                            :
+                                        new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
+                                        setState(() {
+                                          // reportModel.setDateTime(currentStDate, currentEdDate);
+                                          print("currentStDate: ${currentStDate}");
+                                          print("currentEdDate: ${currentEdDate}");
+                                          getOrder();
+                                        });
+                                        Navigator.of(context).pop();
+                                      },
+                                      onCancel: (){
+                                        Navigator.of(context).pop();
+                                      },
+
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          });
+                        },
+                        icon: Icon(Icons.calendar_month),
+                        color: color.backgroundColor,
                       )
                     ],
                   ),
@@ -850,12 +1058,12 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
     _isLoaded = false;
     paidOrderList = [];
     if (selectedOption == 'Paid') {
-      List<Order> data = await PosDatabase.instance.readAllPaidOrder();
+      List<Order> data = await PosDatabase.instance.readAllPaidOrderByDate(currentStDate, currentEdDate);
       if (data.isNotEmpty) {
         paidOrderList = List.from(data);
       }
     } else {
-      List<Order> data = await PosDatabase.instance.readAllNotSettlementRefundOrder();
+      List<Order> data = await PosDatabase.instance.readAllNotSettlementRefundOrderByDate(currentStDate, currentEdDate);
       if (data.isNotEmpty) {
         paidOrderList = List.from(data);
       }
@@ -886,6 +1094,9 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
   }
 
   searchPaidOrders(String text) async {
+    print("currentStDate: ${currentStDate}");
+    print("currentEdDate: ${currentEdDate}");
+    text = text.replaceAll('#', '').replaceAll('-', '');
     if (selectedOption == 'Paid') {
       List<Order> data = await PosDatabase.instance.searchPaidReceipt(text);
       setState(() {
@@ -908,5 +1119,18 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
     }
 
     return splitStatus;
+  }
+
+  void _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
+    DateFormat _dateFormat = DateFormat("yyyy-MM-dd");
+    if (args.value is PickerDateRange) {
+      _range = '${DateFormat('dd/MM/yyyy').format(args.value.startDate)} -'
+      // ignore: lines_longer_than_80_chars
+          ' ${DateFormat('dd/MM/yyyy').format(args.value.endDate ?? args.value.startDate)}';
+
+      this.currentStDate = _dateFormat.format(args.value.startDate);
+      this.currentEdDate = _dateFormat.format(args.value.endDate ?? args.value.startDate);
+      _dateRangePickerController.selectedRange = PickerDateRange(args.value.startDate, args.value.endDate ?? args.value.startDate);
+    }
   }
 }

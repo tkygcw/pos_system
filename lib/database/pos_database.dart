@@ -77,7 +77,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 26, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 27, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -775,6 +775,9 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
           await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
         }break;
+        case 26: {
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
+        }break;
       }
     }
   }
@@ -1393,6 +1396,7 @@ class PosDatabase {
           ${AppSettingFields.enable_numbering} $integerType,
           ${AppSettingFields.starting_number} $integerType,
           ${AppSettingFields.table_order} $integerType,
+          ${AppSettingFields.settlement_after_all_order_paid} $integerType,
           ${AppSettingFields.show_product_desc} $integerType,
           ${AppSettingFields.print_cancel_receipt} $integerType,
           ${AppSettingFields.product_sort_by} $integerType,
@@ -3635,8 +3639,8 @@ class PosDatabase {
   Future<List<Order>> searchPaidReceipt(String text) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableOrder WHERE payment_status = ? AND soft_delete = ? AND (order_number LIKE ? OR close_by LIKE ?) ORDER BY created_at DESC ',
-        [1, '', '%' + text + '%', '%' + text + '%']);
+        'SELECT * FROM $tableOrder WHERE payment_status = ? AND soft_delete = ? AND (order_number LIKE ? OR REPLACE(REPLACE(REPLACE(created_at, "-", ""), " ", ""), ":", "") LIKE ? OR close_by LIKE ?) ORDER BY created_at DESC ',
+        [1, '', '%' + text + '%', '%' + text + '%', '%' + text + '%']);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
@@ -3646,8 +3650,8 @@ class PosDatabase {
   Future<List<Order>> searchRefundReceipt(String text) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.refund_by AS refund_name FROM $tableOrder AS a JOIN $tableRefund AS b ON a.refund_key = b.refund_key WHERE a.payment_status = ? AND a.soft_delete = ? AND b.soft_delete = ? AND (a.order_number LIKE ? OR b.refund_by LIKE ?) ORDER BY created_at DESC ',
-        [2, '', '', '%' + text + '%', '%' + text + '%']);
+        'SELECT a.*, b.refund_by AS refund_name FROM $tableOrder AS a JOIN $tableRefund AS b ON a.refund_key = b.refund_key WHERE a.payment_status = ? AND a.soft_delete = ? AND b.soft_delete = ? AND (a.order_number LIKE ? OR REPLACE(REPLACE(REPLACE(created_at, "-", ""), " ", ""), ":", "") LIKE ? OR b.refund_by LIKE ?) ORDER BY created_at DESC ',
+        [2, '', '', '%' + text + '%', '%' + text + '%', '%' + text + '%']);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
@@ -4483,6 +4487,15 @@ class PosDatabase {
   }
 
 /*
+  read all not paid order cache
+*/
+  Future<List<OrderCache>> readAllOrderCacheNotPaid() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE created_at != ? AND payment_status = ? ORDER BY order_cache_sqlite_id', ['', 0]);
+    return result.map((json) => OrderCache.fromJson(json)).toList();
+  }
+
+/*
   read branch cash record(haven't settlement)
 */
   Future<List<CashRecord>> readBranchCashRecord() async {
@@ -4757,8 +4770,21 @@ class PosDatabase {
     final result = await db.rawQuery(
         'SELECT a.*, b.payment_type_id FROM $tableOrder AS a '
         'LEFT JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
-        'WHERE a.payment_status = ? AND a.payment_split != ? AND a.settlement_key = ? AND a.soft_delete = ? ORDER BY a.created_at DESC',
-        [1, 2, '', '']);
+        'WHERE a.payment_status = ? AND a.payment_split != ? AND a.soft_delete = ? ORDER BY a.created_at DESC',
+        [1, 2, '']);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  read all paid order by date
+*/
+  Future<List<Order>> readAllPaidOrderByDate(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.payment_type_id FROM $tableOrder AS a '
+            'LEFT JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id WHERE a.payment_status = ? AND a.payment_split != ? '
+            'AND a.soft_delete = ? AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) <= ? ORDER BY a.created_at DESC',
+        [1, 2, '', date1, date2]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
@@ -5624,6 +5650,21 @@ class PosDatabase {
         'JOIN $tableRefund AS c ON a.refund_key = c.refund_key '
         'WHERE a.payment_status = ? AND a.refund_key != ? AND a.settlement_key = ? AND a.soft_delete = ? AND c.soft_delete = ? ORDER BY a.created_at DESC',
         ['', 2, '', '', '', '']);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  read all refund order by date
+*/
+  Future<List<Order>> readAllNotSettlementRefundOrderByDate(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.payment_type_id, c.refund_by AS refund_name, c.created_at AS refund_at FROM $tableOrder AS a '
+            'LEFT JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id AND b.soft_delete = ? '
+            'JOIN $tableRefund AS c ON a.refund_key = c.refund_key '
+            'WHERE a.payment_status = ? AND a.refund_key != ? AND a.soft_delete = ? AND c.soft_delete = ? '
+            'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) <= ? ORDER BY a.created_at DESC',
+        ['', 2, '', '', '', date1, date2]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
@@ -6824,6 +6865,14 @@ class PosDatabase {
   Future<int> updateQrOrderAutoAcceptSetting(AppSetting data) async {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableAppSetting SET qr_order_auto_accept = ?, sync_status = ?, updated_at = ?', [data.qr_order_auto_accept, 2, data.updated_at]);
+  }
+
+/*
+  update settlement after all order paid Setting
+*/
+  Future<int> updateSettlementAfterAllOrderPaidSetting(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET settlement_after_all_order_paid = ?, sync_status = ?, updated_at = ?', [data.settlement_after_all_order_paid, 2, data.updated_at]);
   }
 
 /*

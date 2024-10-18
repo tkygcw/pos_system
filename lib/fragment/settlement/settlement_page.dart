@@ -15,6 +15,7 @@ import 'package:pos_system/fragment/settlement/history_dialog.dart';
 import 'package:pos_system/fragment/settlement/pos_pin_dialog.dart';
 import 'package:pos_system/fragment/settlement/reprint_settlement_dialog.dart';
 import 'package:pos_system/fragment/settlement/settlement_dialog.dart';
+import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/printer.dart';
@@ -196,9 +197,23 @@ class _SettlementPageState extends State<SettlementPage> {
                               child: Text(AppLocalizations.of(context)!.translate('settlement')),
                               onPressed: () async {
                                 List<OrderCache> dataPaymentNotComplete = await PosDatabase.instance.readAllOrderCachePaymentNotComplete();
+                                List<OrderCache> dataOrderNotPaid = await PosDatabase.instance.readAllOrderCacheNotPaid();
+                                final prefs = await SharedPreferences.getInstance();
+                                final String? user = prefs.getString('user');
+                                final int? branch_id = prefs.getInt('branch_id');
+                                AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
+
                                 if(dataPaymentNotComplete.isEmpty){
                                   if (cashRecordList.isNotEmpty) {
-                                    openSettlementDialog(cashRecordList);
+                                    if(localSetting!.settlement_after_all_order_paid == 1) {
+                                      if(dataOrderNotPaid.isEmpty){
+                                        openSettlementDialog(cashRecordList);
+                                      } else {
+                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('please_make_sure_all_order_is_paid'));
+                                      }
+                                    } else {
+                                      openSettlementDialog(cashRecordList);
+                                    }
                                   } else {
                                     Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
                                   }

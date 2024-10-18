@@ -360,6 +360,7 @@ syncAppSettingFromCloud(AppSetting item) async {
     enable_numbering: item.enable_numbering,
     starting_number: item.starting_number,
     table_order: item.table_order,
+    settlement_after_all_order_paid: item.settlement_after_all_order_paid,
     show_product_desc: item.show_product_desc,
     print_cancel_receipt: item.print_cancel_receipt,
     product_sort_by: item.product_sort_by,
