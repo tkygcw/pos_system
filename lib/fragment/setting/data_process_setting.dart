@@ -72,7 +72,7 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Optimy Pos License v$appVersion+1 ($source)',
+                        'Optimy Pos License v$appVersion+2 ($source)',
                         style: TextStyle(
                             color: Colors.white,
                             fontSize: 20,

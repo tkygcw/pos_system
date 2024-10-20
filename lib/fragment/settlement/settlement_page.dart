@@ -19,6 +19,8 @@ import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/settlement.dart';
+import 'package:pos_system/object/table.dart';
+import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/user.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:pos_system/page/progress_bar.dart';
@@ -195,16 +197,40 @@ class _SettlementPageState extends State<SettlementPage> {
                             ElevatedButton(
                               child: Text(AppLocalizations.of(context)!.translate('settlement')),
                               onPressed: () async {
+                                bool splitNotComplete = false;
+                                List<PosTable>tableList = await PosDatabase.instance.readAllTable();
                                 List<OrderCache> dataPaymentNotComplete = await PosDatabase.instance.readAllOrderCachePaymentNotComplete();
-                                if(dataPaymentNotComplete.isEmpty){
+                                for (int i = 0; i < tableList.length; i++) {
+                                  if(tableList[i].status == 1) {
+                                    List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableList[i].table_sqlite_id!);
+                                    if (tableUseDetailData.isNotEmpty) {
+                                      List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
+                                      for(int j = 0; j < data.length; j++) {
+                                        if(data[j].payment_status == 2) {
+                                          splitNotComplete = true;
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                                if(splitNotComplete) {
+                                  Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('please_make_sure_all_payment_split_is_complete'));
+                                } else {
                                   if (cashRecordList.isNotEmpty) {
                                     openSettlementDialog(cashRecordList);
                                   } else {
                                     Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
                                   }
-                                } else {
-                                  Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('please_make_sure_all_payment_split_is_complete'));
                                 }
+                                // if(dataPaymentNotComplete.isEmpty){
+                                //   if (cashRecordList.isNotEmpty) {
+                                //     openSettlementDialog(cashRecordList);
+                                //   } else {
+                                //     Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
+                                //   }
+                                // } else {
+                                //   Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('please_make_sure_all_payment_split_is_complete'));
+                                // }
                               },
                               style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                             ),
