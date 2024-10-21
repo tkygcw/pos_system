@@ -223,7 +223,7 @@ class _HardwareSettingState extends State<HardwareSetting> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Optimy Pos License v$appVersion+1 ($source)',
+                                    'Optimy Pos License v$appVersion ($source)',
                                     style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 20,

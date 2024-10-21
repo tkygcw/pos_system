@@ -718,7 +718,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                               }
                                                                             },
                                                                             controller: splitAmountController,
-                                                                            keyboardType: TextInputType.number,
+                                                                            keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                                             inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                                             decoration: InputDecoration(
                                                                               border: OutlineInputBorder(
@@ -970,7 +970,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                       }
                                                                     },
                                                                     controller: splitAmountController,
-                                                                    keyboardType: TextInputType.number,
+                                                                    keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                                     inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                                     decoration: InputDecoration(
                                                                       border: OutlineInputBorder(
@@ -1228,7 +1228,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                             }
                                                                           },
                                                                           controller: splitAmountController,
-                                                                          keyboardType: TextInputType.number,
+                                                                          keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                                           inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                                           decoration: InputDecoration(
                                                                             border: OutlineInputBorder(
@@ -1582,6 +1582,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                   visualDensity: VisualDensity(vertical: -4),
                                                   dense: true,
                                                 ),
+                                                for (int index = 0; index < paymentSplitList.length; index++)
+                                                  ListTile(
+                                                    title: Text('${paymentSplitList[index].payment_name}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                                    visualDensity: VisualDensity(vertical: -4),
+                                                    dense: true,
+                                                    trailing: Text('${paymentSplitList[index].payment_received!}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                                  ),
                                                 ListTile(
                                                   visualDensity: VisualDensity(vertical: -4),
                                                   title: Text('Final Amount',
@@ -1648,7 +1655,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                         onChanged: (value) {
                                                           calcChange(value);
                                                         },
-                                                        keyboardType: TextInputType.number,
+                                                        keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                         textAlign: TextAlign.right,
                                                         enabled: MediaQuery.of(context).size.height > 500 ? false : true,
                                                         maxLines: 1,
@@ -1732,7 +1739,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                     }
                                                                   },
                                                                   controller: splitAmountController,
-                                                                  keyboardType: TextInputType.number,
+                                                                  keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                                   inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                                   decoration: InputDecoration(
                                                                     border: OutlineInputBorder(
@@ -1983,7 +1990,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                   }
                                                                 },
                                                                 controller: splitAmountController,
-                                                                keyboardType: TextInputType.number,
+                                                                keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                                 inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                                 decoration: InputDecoration(
                                                                   border: OutlineInputBorder(
@@ -2238,7 +2245,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                   }
                                                                 },
                                                                 controller: splitAmountController,
-                                                                keyboardType: TextInputType.number,
+                                                                keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                                 inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                                 decoration: InputDecoration(
                                                                   border: OutlineInputBorder(
@@ -2563,6 +2570,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                     visualDensity: VisualDensity(vertical: -4),
                                                     dense: true,
                                                   ),
+                                                  for (int index = 0; index < paymentSplitList.length; index++)
+                                                    ListTile(
+                                                      title: Text('${paymentSplitList[index].payment_name}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                                      visualDensity: VisualDensity(vertical: -4),
+                                                      dense: true,
+                                                      trailing: Text('${paymentSplitList[index].payment_received!}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                                    ),
                                                   ListTile(
                                                     visualDensity: VisualDensity(vertical: -4),
                                                     title: Text('Final Amount', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -2628,7 +2642,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                               onChanged: (value) {
                                                                 calcChange(value);
                                                               },
-                                                              keyboardType: TextInputType.number,
+                                                              keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                               textAlign: TextAlign.right,
                                                               maxLines: 1,
                                                               controller: inputController,
@@ -2714,7 +2728,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                         }
                                                                       },
                                                                       controller: splitAmountController,
-                                                                      keyboardType: TextInputType.number,
+                                                                      keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                                       inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                                       decoration: InputDecoration(
                                                                         border: OutlineInputBorder(
@@ -2954,7 +2968,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                     }
                                                                   },
                                                                   controller: splitAmountController,
-                                                                  keyboardType: TextInputType.number,
+                                                                  keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                                   inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                                   decoration: InputDecoration(
                                                                     border: OutlineInputBorder(
@@ -3195,7 +3209,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                   }
                                                                 },
                                                                 controller: splitAmountController,
-                                                                keyboardType: TextInputType.number,
+                                                                keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                                 inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                                 decoration: InputDecoration(
                                                                   border: OutlineInputBorder(

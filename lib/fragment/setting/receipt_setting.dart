@@ -177,7 +177,7 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                             child: TextField(
                               autofocus: true,
                               controller: orderNumberController,
-                              keyboardType: TextInputType.number,
+                              keyboardType: TextInputType.numberWithOptions(decimal: true),
                               inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
                               textAlign: TextAlign.center,
                               decoration: InputDecoration(

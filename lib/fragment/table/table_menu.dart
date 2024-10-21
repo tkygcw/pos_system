@@ -1501,7 +1501,7 @@ class AddTableDialog extends StatelessWidget {
           TextField(
             autofocus: true,
             controller: _seatsController,
-            keyboardType: TextInputType.number,
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(labelText: 'Number of Seats'),
           ),
         ],

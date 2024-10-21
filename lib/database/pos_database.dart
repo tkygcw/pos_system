@@ -77,7 +77,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 27, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 26, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -774,8 +774,6 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
           await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
           await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
-        }break;
-        case 26: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
         }break;
       }
@@ -5030,8 +5028,8 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.created_at, a.type, a.user_id, a.amount, a.remark, a.payment_name, b.name AS name, c.name AS payment_method  FROM $tableCashRecord AS a JOIN $tableUser AS b on a.user_id = b.user_id '
-            'JOIN $tablePaymentLinkCompany AS c on a.payment_type_id = c.payment_type_id '
-            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ?',
+            'LEFT JOIN $tablePaymentLinkCompany AS c on a.payment_type_id = c.payment_type_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND (c.soft_delete = ? OR c.soft_delete IS NULL) AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ?',
         ['', '', '', date1, date2]);
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }

@@ -181,7 +181,7 @@ class _CashDialogState extends State<CashDialog> {
                                       inputFormatters: [
                                         FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
                                       ],
-                                      keyboardType: TextInputType.number,
+                                      keyboardType: TextInputType.numberWithOptions(decimal: true),
                                       controller: amountController,
                                       decoration: InputDecoration(
                                         errorText: _submitted
@@ -344,7 +344,7 @@ class _CashDialogState extends State<CashDialog> {
                                     padding: const EdgeInsets.all(8.0),
                                     child: TextField(
                                       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
-                                      keyboardType: TextInputType.number,
+                                      keyboardType: TextInputType.numberWithOptions(decimal: true),
                                       controller: amountController,
                                       decoration: InputDecoration(
                                         errorText: _submitted

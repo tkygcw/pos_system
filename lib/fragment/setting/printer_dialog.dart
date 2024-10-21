@@ -821,7 +821,9 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                     Row(
                                       children: [
                                         Container(
-                                          child: Text(AppLocalizations.of(context)!.translate('set_as_cashier_printer')),
+                                          child: Text(AppLocalizations.of(context)!.translate('set_as_cashier_printer'),
+                                              style: TextStyle(color: _isKitchenCheckList ? Colors.grey : Colors.black)
+                                          ),
                                         ),
                                         Spacer(),
                                         Container(
@@ -832,6 +834,9 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                                 : (value) {
                                               setState(() {
                                                 _isCashier = value!;
+                                                if (_isKitchenCheckList) {
+                                                  _isKitchenCheckList = false;
+                                                }
                                               });
                                             },
                                           ),
@@ -841,7 +846,9 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                     Row(
                                       children: [
                                         Container(
-                                          child: Text(AppLocalizations.of(context)!.translate('print_kitchen_checklist')),
+                                          child: Text(AppLocalizations.of(context)!.translate('print_kitchen_checklist'),
+                                            style: TextStyle(color: _isCashier ? Colors.grey : Colors.black),
+                                          ),
                                         ),
                                         Spacer(),
                                         Container(
@@ -852,6 +859,9 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                                 : (value) {
                                               setState(() {
                                                 _isKitchenCheckList = value!;
+                                                if (_isCashier) {
+                                                  _isCashier = false;
+                                                }
                                               });
                                             },
                                           ),

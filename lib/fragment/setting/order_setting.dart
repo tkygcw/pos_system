@@ -222,7 +222,7 @@ class _OrderSettingState extends State<OrderSetting> {
                             child: TextField(
                                 autofocus: true,
                                 controller: orderNumberController,
-                                keyboardType: TextInputType.number,
+                                keyboardType: TextInputType.numberWithOptions(decimal: true),
                                 inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
                                 textAlign: TextAlign.center,
                                 decoration: InputDecoration(
@@ -547,26 +547,26 @@ class _OrderSettingState extends State<OrderSetting> {
                                 openAdjustHourDialog(appSettingModel);
                               } : null
                           ),
-                          Divider(
-                            color: Colors.grey,
-                            height: 1,
-                            thickness: 1,
-                            indent: 20,
-                            endIndent: 20,
-                          ),
-                          ListTile(
-                            title: Text(AppLocalizations.of(context)!.translate('settlement_after_all_order_paid')),
-                            subtitle: Text(AppLocalizations.of(context)!.translate('settlement_after_all_order_paid_desc')),
-                            trailing: Switch(
-                              value: settlementAfterAllOrderPaid,
-                              activeColor: color.backgroundColor,
-                              onChanged: (value) {
-                                settlementAfterAllOrderPaid = value;
-                                appSettingModel.setSettlementAfterAllOrderPaidStatus(settlementAfterAllOrderPaid);
-                                actionController.sink.add("settlement_after_all_order_paid");
-                              },
-                            ),
-                          ),
+                          // Divider(
+                          //   color: Colors.grey,
+                          //   height: 1,
+                          //   thickness: 1,
+                          //   indent: 20,
+                          //   endIndent: 20,
+                          // ),
+                          // ListTile(
+                          //   title: Text(AppLocalizations.of(context)!.translate('settlement_after_all_order_paid')),
+                          //   subtitle: Text(AppLocalizations.of(context)!.translate('settlement_after_all_order_paid_desc')),
+                          //   trailing: Switch(
+                          //     value: settlementAfterAllOrderPaid,
+                          //     activeColor: color.backgroundColor,
+                          //     onChanged: (value) {
+                          //       settlementAfterAllOrderPaid = value;
+                          //       appSettingModel.setSettlementAfterAllOrderPaidStatus(settlementAfterAllOrderPaid);
+                          //       actionController.sink.add("settlement_after_all_order_paid");
+                          //     },
+                          //   ),
+                          // ),
                         ],
                       ),
                     );

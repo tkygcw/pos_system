@@ -162,7 +162,6 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                         reInitSecondDisplay();
                                       }
                                       await callPrinter();
-                                      print("widget.split_payment: ${widget.split_payment}");
                                       if(widget.split_payment == true) {
                                         widget.callback(widget.orderKey);
                                       } else {
@@ -333,7 +332,6 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                       }
                                       await callPrinter();
 
-                                      print("widget.split_payment: ${widget.split_payment}");
                                       if(widget.split_payment == true) {
                                         widget.callback(widget.orderKey);
                                       } else {
@@ -454,7 +452,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     }
     await updateOrderCache(dateTime: dateTime);
     await createCashRecord(dateTime: dateTime);
-    if(_appSettingModel.autoPrintReceipt == true) {
+    if(_appSettingModel.autoPrintReceipt == true && !widget.split_payment!) {
       await callPrinter();
     }
     if (widget.isCashMethod == true) {
