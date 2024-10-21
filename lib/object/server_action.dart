@@ -13,7 +13,7 @@ import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/second_device/cart_dialog_function.dart';
-import 'package:pos_system/second_device/place_order.dart';
+import 'package:pos_system/second_device/place_order/place_order.dart';
 import 'package:pos_system/second_device/reprint_kitchen_list_function.dart';
 import 'package:pos_system/second_device/table_function.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,6 +21,7 @@ import 'package:version/version.dart';
 
 import '../database/pos_database.dart';
 import '../main.dart';
+import '../second_device/place_order/place_new_order.dart';
 import 'branch_link_promotion.dart';
 
 class ServerAction {
