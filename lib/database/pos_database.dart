@@ -773,7 +773,7 @@ class PosDatabase {
         case 25: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.required_cancel_reason} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrderDetailCancel ADD ${OrderDetailCancelFields.cancel_reason} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableOrderDetailCancel ADD ${OrderDetailCancelFields.quantity_before_cancel} $textType DEFAULT '0' ");
+          await db.execute("ALTER TABLE $tableOrderDetailCancel ADD ${OrderDetailCancelFields.quantity_before_cancel} $textType DEFAULT '' ");
           await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_register_no} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.register_no} $textType DEFAULT '' ");
           final branchResult = await db.rawQuery('SELECT * FROM $tableBranch LIMIT 1');
@@ -5020,7 +5020,7 @@ class PosDatabase {
             'ELSE a.quantity * b.price + 0.0 END) AS price '
             'FROM $tableOrderDetailCancel AS a JOIN $tableOrderDetail AS b ON a.order_detail_key = b.order_detail_key '
             'WHERE a.soft_delete = ? AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY a.order_detail_cancel_sqlite_id ORDER BY a.created_at DESC',
-        ['each', 'each_c', '0', '', date1, date2]);
+        ['each', 'each_c', '', '', date1, date2]);
     return result.map((json) => OrderDetailCancel.fromJson(json)).toList();
   }
 
