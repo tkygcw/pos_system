@@ -7,6 +7,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/fail_print_notifier.dart';
@@ -45,6 +46,7 @@ DisplayManager displayManager = DisplayManager();
 AppLanguage appLanguage = AppLanguage();
 final snackBarKey = GlobalKey<ScaffoldMessengerState>();
 bool isCartExpanded = false;
+String appVersionCode = '', patch = '';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
 
@@ -68,6 +70,10 @@ Future<void> main() async {
   //init lcd screen
   initLCDScreen();
 
+  //get app version
+  await getAppVersion();
+
+  WidgetsFlutterBinding.ensureInitialized();
   //create default app color
   await appLanguage.fetchLocale();
 
@@ -265,4 +271,9 @@ statusBarColor() {
     statusBarBrightness: Brightness.dark, //status bar brightness
     statusBarIconBrightness: Brightness.dark,
   ));
+}
+
+getAppVersion() async {
+  PackageInfo packageInfo = await PackageInfo.fromPlatform();
+  appVersionCode = '${packageInfo.version}${patch != '' ? '+$patch' : ''}';
 }

@@ -1,13 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:app_settings/app_settings.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pos_system/object/subscription.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:provider/provider.dart';
@@ -63,7 +61,7 @@ class _HardwareSettingState extends State<HardwareSetting> {
   int? tableMode = 0;
   bool cashDrawer = false, secondDisplay = false, directPayment = false, showSKU = false,
       qrOrderAutoAccept = false, showProductDesc = false, hasQrAccess = true;
-  String subscriptionEndDate = '', appVersion = '', source = "";
+  String subscriptionEndDate = '', source = "";
   int daysLeft = 0;
 
   @override
@@ -223,7 +221,7 @@ class _HardwareSettingState extends State<HardwareSetting> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Optimy Pos License v$appVersion ($source)',
+                                    'Optimy Pos License v$appVersionCode ($source)',
                                     style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 20,
@@ -551,9 +549,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
   }
 
   getAppVersion() async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    appVersion = packageInfo.version;
-
     Source installationSource;
     try {
       installationSource = await StoreChecker.getSource;
