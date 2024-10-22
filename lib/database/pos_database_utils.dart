@@ -308,6 +308,7 @@ class PosDatabaseUtils {
           ${CurrentVersionFields.soft_delete} $textType)''');
           //26
           await dbVersion26Upgrade(db, prefs);
+          await dbVersion27Upgrade(db);
         }break;
         case 16: {
           await db.execute('''CREATE TABLE $tableAttendance(
@@ -391,6 +392,7 @@ class PosDatabaseUtils {
           ${CurrentVersionFields.soft_delete} $textType)''');
           //26
           await dbVersion26Upgrade(db, prefs);
+          await dbVersion27Upgrade(db);
         }break;
         case 17: {
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
@@ -460,6 +462,7 @@ class PosDatabaseUtils {
           ${CurrentVersionFields.soft_delete} $textType)''');
           //26
           await dbVersion26Upgrade(db, prefs);
+          await dbVersion27Upgrade(db);
         }break;
         case 18: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
@@ -525,6 +528,7 @@ class PosDatabaseUtils {
           ${CurrentVersionFields.soft_delete} $textType)''');
           //26
           await dbVersion26Upgrade(db, prefs);
+          await dbVersion27Upgrade(db);
         }break;
         case 19: {
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
@@ -586,6 +590,7 @@ class PosDatabaseUtils {
           ${CurrentVersionFields.soft_delete} $textType)''');
           //26
           await dbVersion26Upgrade(db, prefs);
+          await dbVersion27Upgrade(db);
         }break;
         case 20: {
           await db.execute('''CREATE TABLE $tableDynamicQR(
@@ -645,6 +650,7 @@ class PosDatabaseUtils {
           ${CurrentVersionFields.soft_delete} $textType)''');
           //26
           await dbVersion26Upgrade(db, prefs);
+          await dbVersion27Upgrade(db);
         }break;
         case 21: {
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
@@ -690,6 +696,7 @@ class PosDatabaseUtils {
           ${CurrentVersionFields.soft_delete} $textType)''');
           //26
           await dbVersion26Upgrade(db, prefs);
+          await dbVersion27Upgrade(db);
         }break;
         case 22: {
           if(defaultTargetPlatform == TargetPlatform.iOS){
@@ -731,6 +738,7 @@ class PosDatabaseUtils {
           ${CurrentVersionFields.soft_delete} $textType)''');
           //26
           await dbVersion26Upgrade(db, prefs);
+          await dbVersion27Upgrade(db);
         }break;
         case 23: {
           await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
@@ -765,14 +773,20 @@ class PosDatabaseUtils {
           ${CurrentVersionFields.soft_delete} $textType)''');
           //26
           await dbVersion26Upgrade(db, prefs);
+          await dbVersion27Upgrade(db);
         }break;
         case 24: {
           await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
           //26
           await dbVersion26Upgrade(db, prefs);
+          await dbVersion27Upgrade(db);
         }break;
         case 25: {
           await dbVersion26Upgrade(db, prefs);
+          await dbVersion27Upgrade(db);
+        }break;
+        case 26: {
+          await dbVersion27Upgrade(db);
         }break;
       }
     }
@@ -819,6 +833,13 @@ class PosDatabaseUtils {
     final branchResult = await db.rawQuery('SELECT * FROM $tableBranch LIMIT 1');
     Branch branchData = Branch.fromJson(branchResult.first);
     await prefs.setString("branch", json.encode(branchData));
+  }
+
+  static dbVersion27Upgrade(Database db) async {
+    await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+    await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+    await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+    await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
   }
 
   static Future createDB(Database db, int version) async {
@@ -1307,6 +1328,7 @@ class PosDatabaseUtils {
           ${PrinterFields.paper_size} $integerType,
           ${PrinterFields.printer_status} $integerType,
           ${PrinterFields.is_counter} $integerType,
+          ${PrinterFields.is_kitchen_checklist} $integerType,
           ${PrinterFields.is_label} $integerType,
           ${PrinterFields.sync_status} $integerType,
           ${PrinterFields.created_at} $textType,
@@ -1345,6 +1367,7 @@ class PosDatabaseUtils {
           ${ReceiptFields.show_address} $integerType,
           ${ReceiptFields.show_email} $integerType,
           ${ReceiptFields.receipt_email} $textType,
+          ${ReceiptFields.show_break_down_price} $integerType,
           ${ReceiptFields.footer_image} $textType,
           ${ReceiptFields.footer_image_status} $integerType,
           ${ReceiptFields.footer_text} $textType,
@@ -1441,6 +1464,7 @@ class PosDatabaseUtils {
           ${AppSettingFields.enable_numbering} $integerType,
           ${AppSettingFields.starting_number} $integerType,
           ${AppSettingFields.table_order} $integerType,
+          ${AppSettingFields.settlement_after_all_order_paid} $integerType,
           ${AppSettingFields.show_product_desc} $integerType,
           ${AppSettingFields.print_cancel_receipt} $integerType,
           ${AppSettingFields.product_sort_by} $integerType,
@@ -1576,6 +1600,7 @@ class PosDatabaseUtils {
           ${KitchenListFields.kitchen_list_show_price} $integerType,
           ${KitchenListFields.print_combine_kitchen_list} $integerType,
           ${KitchenListFields.kitchen_list_item_separator} $integerType,
+          ${KitchenListFields.kitchen_list_show_total_amount} $integerType,
           ${KitchenListFields.show_product_sku} $integerType,
           ${KitchenListFields.sync_status} $integerType,
           ${KitchenListFields.created_at} $textType,
