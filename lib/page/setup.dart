@@ -418,7 +418,7 @@ class _SetupPageState extends State<SetupPage> {
               content: TextField(
                 autofocus: true,
                 obscureText: true,
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderSide: BorderSide(color: color.backgroundColor),

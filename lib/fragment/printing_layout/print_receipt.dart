@@ -17,6 +17,8 @@ import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
 import 'package:pos_system/object/settlement.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use_detail.dart';
+import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/pos_database.dart';
 import 'bill/layout.dart';
@@ -44,6 +46,7 @@ class PrintReceipt{
    */
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   Duration duration = Duration(seconds: 1);
+  double combineListTotal = 0;
 
   getDeviceList() async {
     List<Map<String, dynamic>> results = [];
@@ -64,6 +67,7 @@ class PrintReceipt{
 
   selfTest(List<Printer> printerList) async {
     try {
+      // for usb printer
       for (int i = 0; i < printerList.length; i++) {
         var printerDetail = jsonDecode(printerList[i].value!);
         if(printerList[i].paper_size == 0){
@@ -119,7 +123,7 @@ class PrintReceipt{
           if (cashierPrinterList[i].type == 0) {
             ReceiptLayout().openCashDrawer(isUSB: true);
             printStatus = 0;
-          } else {
+          } else if(cashierPrinterList[i].type == 1) {
             var printerDetail = jsonDecode(cashierPrinterList[i].value!);
             final profile = await CapabilityProfile.load();
             final printer = NetworkPrinter(PaperSize.mm80, profile);
@@ -130,6 +134,15 @@ class PrintReceipt{
               printStatus = 0;
             } else if(res == PosPrintResult.timeout){
               printStatus = 2;
+            } else {
+              printStatus = 1;
+            }
+          } else {
+            var printerDetail = jsonDecode(cashierPrinterList[i].value!);
+            bool res = await bluetoothPrinterConnect(printerDetail);
+            if (res) {
+              await PrintBluetoothThermal.writeBytes(await ReceiptLayout().openCashDrawer(isUSB: true));
+              printStatus = 0;
             } else {
               printStatus = 1;
             }
@@ -154,52 +167,70 @@ class PrintReceipt{
     try{
       for (int i = 0; i < cashierPrinter.length; i++) {
         var printerDetail = jsonDecode(cashierPrinter[i].value!);
-        if (cashierPrinter[i].type == 0) {
-          if (paperSize == '80') {
-            //print 80mm
-            var data = Uint8List.fromList(await ReceiptLayout().printTestCheckList80mm(true, checklistLayout: checklistLayout));
-            bool? isConnected = await flutterUsbPrinter.connect(
-                int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
-            if (isConnected == true) {
-              await flutterUsbPrinter.write(data);
+        if (cashierPrinter[i].printer_status == 1) {
+          if (cashierPrinter[i].type == 0) {
+            if (paperSize == '80') {
+              //print 80mm
+              var data = Uint8List.fromList(await ReceiptLayout().printTestCheckList80mm(true, checklistLayout: checklistLayout));
+              bool? isConnected = await flutterUsbPrinter.connect(
+                  int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
+              } else {
+              }
             } else {
+              //print 58mm
+              var data = Uint8List.fromList(
+                  await ReceiptLayout().printTestCheckList58mm(true, checklistLayout: checklistLayout));
+              bool? isConnected = await flutterUsbPrinter.connect(
+                  int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
+              } else {
+              }
+            }
+          } else if(cashierPrinter[i].type == 1){
+            if (paperSize == '80') {
+              //print LAN 80mm
+              final profile = await CapabilityProfile.load();
+              final printer = NetworkPrinter(PaperSize.mm80, profile);
+              final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+
+              if (res == PosPrintResult.success) {
+                await ReceiptLayout().printTestCheckList80mm(false, value: printer, checklistLayout: checklistLayout);
+                printer.disconnect();
+              } else {
+              }
+            } else {
+              //print LAN 58mm
+              final profile = await CapabilityProfile.load();
+              final printer = NetworkPrinter(PaperSize.mm58, profile);
+              final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+
+              if (res == PosPrintResult.success) {
+                await ReceiptLayout().printTestCheckList58mm(false, value: printer, checklistLayout: checklistLayout);
+                printer.disconnect();
+              } else {
+              }
             }
           } else {
-            //print 58mm
-            var data = Uint8List.fromList(
-                await ReceiptLayout().printTestCheckList58mm(true, checklistLayout: checklistLayout));
-            bool? isConnected = await flutterUsbPrinter.connect(
-                int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
-            if (isConnected == true) {
-              await flutterUsbPrinter.write(data);
+            bool res = await bluetoothPrinterConnect(printerDetail);
+            if (paperSize == '80') {
+              //print bluetooth 80mm
+              if (res) {
+                await PrintBluetoothThermal.writeBytes(await ReceiptLayout().printTestCheckList80mm(true, checklistLayout: checklistLayout));
+              } else {
+              }
             } else {
-            }
-          }
-        } else {
-          if (paperSize == '80') {
-            //print LAN 80mm
-            final profile = await CapabilityProfile.load();
-            final printer = NetworkPrinter(PaperSize.mm80, profile);
-            final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-
-            if (res == PosPrintResult.success) {
-              await ReceiptLayout().printTestCheckList80mm(false, value: printer, checklistLayout: checklistLayout);
-              printer.disconnect();
-            } else {
-            }
-          } else {
-            //print LAN 58mm
-            final profile = await CapabilityProfile.load();
-            final printer = NetworkPrinter(PaperSize.mm58, profile);
-            final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-
-            if (res == PosPrintResult.success) {
-              await ReceiptLayout().printTestCheckList58mm(false, value: printer, checklistLayout: checklistLayout);
-              printer.disconnect();
-            } else {
+              //print bluetooth 58mm
+              if (res) {
+                await PrintBluetoothThermal.writeBytes(await ReceiptLayout().printTestCheckList58mm(true, checklistLayout: checklistLayout));
+              } else {
+              }
             }
           }
         }
+
       }
     } catch(e){
       print("test print fail: ${e}");
@@ -231,7 +262,7 @@ class PrintReceipt{
             } else {
             }
           }
-        } else {
+        } else if(kitchenPrinter[i].type == 1){
           if (paperSize == '80') {
             //print LAN 80mm
             final profile = await CapabilityProfile.load();
@@ -252,6 +283,21 @@ class PrintReceipt{
             if (res == PosPrintResult.success) {
               await ReceiptLayout().printTestKitchenList58mm(false, value: printer, KitchenListLayout: KitchenListLayout);
               printer.disconnect();
+            } else {
+            }
+          }
+        } else {
+          bool res = await bluetoothPrinterConnect(printerDetail);
+          if (paperSize == '80') {
+            //print bluetooth 80mm
+            if (res) {
+              await PrintBluetoothThermal.writeBytes(await ReceiptLayout().printTestKitchenList80mm(true, KitchenListLayout: KitchenListLayout));
+            } else {
+            }
+          } else {
+            //print bluetooth 58mm
+            if (res) {
+              await PrintBluetoothThermal.writeBytes(await ReceiptLayout().printTestKitchenList58mm(true, KitchenListLayout: KitchenListLayout));
             } else {
             }
           }
@@ -294,7 +340,7 @@ class PrintReceipt{
                   msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
             }
           }
-        } else {
+        } else if(cashierPrinter[i].type == 1) {
           if (paperSize == '80') {
             //print LAN 80mm
             final profile = await CapabilityProfile.load();
@@ -322,6 +368,27 @@ class PrintReceipt{
               Fluttertoast.showToast(
                   backgroundColor: Colors.red,
                   msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
+            }
+          }
+        } else {
+          bool res = await bluetoothPrinterConnect(printerDetail);
+          if (paperSize == '80') {
+            //print bluetooth 80mm
+            if (res) {
+              await PrintBluetoothThermal.writeBytes(await ReceiptLayout().printTestReceipt80mm(true, receipt));
+            } else {
+              Fluttertoast.showToast(
+                  backgroundColor: Colors.red,
+                  msg: "${AppLocalizations.of(context)?.translate('bluetooth_printer_not_connect')}");
+            }
+          } else {
+            //print bluetooth 58mm
+            if (res) {
+              await PrintBluetoothThermal.writeBytes(await ReceiptLayout().printTestReceipt58mm(true, receipt));
+            } else {
+              Fluttertoast.showToast(
+                  backgroundColor: Colors.red,
+                  msg: "${AppLocalizations.of(context)?.translate('bluetooth_printer_not_connect')}");
             }
           }
         }
@@ -373,7 +440,7 @@ class PrintReceipt{
                 //     msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
               }
             }
-          } else {
+          } else if(cashierPrinterList[i].type == 1) {
             if (cashierPrinterList[i].paper_size == 0) {
               //print LAN 80mm
               final profile = await CapabilityProfile.load();
@@ -386,14 +453,8 @@ class PrintReceipt{
                 printStatus = 0;
               } else if (res == PosPrintResult.timeout){
                 printStatus = 2;
-                // Fluttertoast.showToast(
-                //     backgroundColor: Colors.orangeAccent,
-                //     msg: "${AppLocalizations.of(context)?.translate('lan_printer_timeout')}");
               } else {
                 printStatus = 1;
-                // Fluttertoast.showToast(
-                //     backgroundColor: Colors.red,
-                //     msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
               }
             } else {
               //print LAN 58mm
@@ -407,14 +468,27 @@ class PrintReceipt{
                 printStatus = 0;
               } else if (res == PosPrintResult.timeout){
                 printStatus = 2;
-                // Fluttertoast.showToast(
-                //     backgroundColor: Colors.orangeAccent,
-                //     msg: "${AppLocalizations.of(context)?.translate('lan_printer_timeout')}");
               } else {
                 printStatus = 1;
-                // Fluttertoast.showToast(
-                //     backgroundColor: Colors.red,
-                //     msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
+              }
+            }
+          } else {
+            bool res = await bluetoothPrinterConnect(printerDetail);
+            if (cashierPrinterList[i].paper_size == 0) {
+              //print bluetooth 80mm
+              if (res) {
+                await PrintBluetoothThermal.writeBytes(await BillLayout().printReceipt80mm(true, orderId, selectedTableList));
+                printStatus = 0;
+              } else {
+                printStatus = 1;
+              }
+            } else {
+              //print bluetooth 58mm
+              if (res) {
+                await PrintBluetoothThermal.writeBytes(await BillLayout().printReceipt58mm(true, orderId, selectedTableList));
+                printStatus = 0;
+              } else {
+                printStatus = 1;
               }
             }
           }
@@ -476,7 +550,7 @@ class PrintReceipt{
                 //     msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
               }
             }
-          } else {
+          } else if(cashierPrinterList[i].type == 1) {
             if (cashierPrinterList[i].paper_size == 0) {
               //print LAN 80mm
               final profile = await CapabilityProfile.load();
@@ -508,6 +582,25 @@ class PrintReceipt{
                 printStatus = 2;
               }
               else {
+                printStatus = 1;
+              }
+            }
+          } else {
+            bool res = await bluetoothPrinterConnect(printerDetail);
+            if (cashierPrinterList[i].paper_size == 0) {
+              //print bluetooth 80mm
+              if (res) {
+                await PrintBluetoothThermal.writeBytes(await PreviewLayout().printPreviewReceipt80mm(true, cartModel, orderKey));
+                printStatus = 0;
+              } else {
+                printStatus = 1;
+              }
+            } else {
+              //print bluetooth 58mm
+              if (res) {
+                await PrintBluetoothThermal.writeBytes(await PreviewLayout().printPreviewReceipt58mm(true, cartModel, orderKey));
+                printStatus = 0;
+              } else {
                 printStatus = 1;
               }
             }
@@ -549,9 +642,6 @@ class PrintReceipt{
                   printStatus = 0;
                 } else {
                   printStatus = 1;
-                  // Fluttertoast.showToast(
-                  //     backgroundColor: Colors.red,
-                  //     msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
                 }
               } else {
                 var data = Uint8List.fromList(
@@ -563,12 +653,9 @@ class PrintReceipt{
                   printStatus = 0;
                 } else {
                   printStatus = 1;
-                  // Fluttertoast.showToast(
-                  //     backgroundColor: Colors.red,
-                  //     msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
                 }
               }
-            } else {
+            } else if(cashierPrinterList[i].type == 1) {
               //print LAN 80mm
               if (cashierPrinterList[i].paper_size == 0) {
                 final profile = await CapabilityProfile.load();
@@ -581,15 +668,9 @@ class PrintReceipt{
                 }  else if (res == PosPrintResult.timeout){
                   print('printer time out');
                   printStatus = 2;
-                  // Fluttertoast.showToast(
-                  //     backgroundColor: Colors.orangeAccent,
-                  //     msg: "${AppLocalizations.of(context)?.translate('lan_printer_timeout')}");
                 }
                 else {
                   printStatus = 1;
-                  // Fluttertoast.showToast(
-                  //     backgroundColor: Colors.red,
-                  //     msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
                 }
               } else {
                 //print LAN 58mm
@@ -613,6 +694,25 @@ class PrintReceipt{
                   //     msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
                 }
               }
+            } else {
+              bool res = await bluetoothPrinterConnect(printerDetail);
+              if (cashierPrinterList[i].paper_size == 0) {
+                //print bluetooth 80mm
+                if (res) {
+                  await PrintBluetoothThermal.writeBytes(await BillLayout().printReceipt80mm(true, localOrderId, cart.selectedTable, isRefund: cart.cartNotifierItem[0].isRefund));
+                  printStatus = 0;
+                } else {
+                  printStatus = 1;
+                }
+              } else {
+                //print bluetooth 58mm
+                if (res) {
+                  await PrintBluetoothThermal.writeBytes(await BillLayout().printReceipt58mm(true, localOrderId, cart.selectedTable, isRefund: cart.cartNotifierItem[0].isRefund));
+                  printStatus = 0;
+                } else {
+                  printStatus = 1;
+                }
+              }
             }
           }
         }
@@ -633,17 +733,21 @@ class PrintReceipt{
   }
 
   printCheckList(List<Printer> printerList, int orderCacheLocalId, {String? order_by}) async {
+
     print('check list call');
     try {
       int printStatus = 0;
       for (int i = 0; i < printerList.length; i++) {
-        print('loop time: ${i+1}');
-        if(printerList[i].printer_status == 1 && printerList[i].is_counter == 1){
+        int printer_id = 0;
+        if(printerList[i].printer_status == 1 && (printerList[i].is_counter == 1 || printerList[i].is_kitchen_checklist == 1)){
+          if(printerList[i].is_kitchen_checklist == 1) {
+            printer_id = printerList[i].printer_sqlite_id!;
+          }
           var printerDetail = jsonDecode(printerList[i].value!);
           if (printerList[i].type == 0) {
             //print USB 80mm
             if (printerList[i].paper_size == 0) {
-              var data = Uint8List.fromList(await ChecklistLayout().printCheckList80mm(true, orderCacheLocalId, order_by: order_by));
+              var data = Uint8List.fromList(await ChecklistLayout().printCheckList80mm(true, orderCacheLocalId, order_by: order_by, printer_id: printer_id));
               bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
               if (isConnected == true) {
                 await flutterUsbPrinter.write(data);
@@ -656,7 +760,7 @@ class PrintReceipt{
               }
             } else {
               //print 58mm
-              var data = Uint8List.fromList(await ChecklistLayout().printCheckList58mm(true, orderCacheLocalId, order_by: order_by));
+              var data = Uint8List.fromList(await ChecklistLayout().printCheckList58mm(true, orderCacheLocalId, order_by: order_by, printer_id: printer_id));
               bool? isConnected = await flutterUsbPrinter.connect(
                   int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
               if (isConnected == true) {
@@ -669,14 +773,14 @@ class PrintReceipt{
                 //     msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
               }
             }
-          } else {
+          } else if(printerList[i].type == 1){
             if (printerList[i].paper_size == 0) {
               //print LAN 80mm paper
               final profile = await CapabilityProfile.load();
               final printer = NetworkPrinter(PaperSize.mm80, profile);
               final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
               if (res == PosPrintResult.success) {
-                await ChecklistLayout().printCheckList80mm(false, orderCacheLocalId, value: printer, order_by: order_by);
+                await ChecklistLayout().printCheckList80mm(false, orderCacheLocalId, value: printer, order_by: order_by, printer_id: printer_id);
                 await Future.delayed(Duration(milliseconds: 100));
                 printer.disconnect();
                 printStatus = 0;
@@ -692,7 +796,7 @@ class PrintReceipt{
               final printer = NetworkPrinter(PaperSize.mm58, profile);
               final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
               if (res == PosPrintResult.success) {
-                await ChecklistLayout().printCheckList58mm(false, orderCacheLocalId, value: printer, order_by: order_by);
+                await ChecklistLayout().printCheckList58mm(false, orderCacheLocalId, value: printer, order_by: order_by, printer_id: printer_id);
                 await Future.delayed(Duration(milliseconds: 100));
                 printer.disconnect();
                 printStatus = 0;
@@ -701,6 +805,25 @@ class PrintReceipt{
                 printStatus = 2;
               } else {
                 printStatus =  1;
+              }
+            }
+          } else {
+            bool res = await bluetoothPrinterConnect(printerDetail);
+            //bluetooth print 80mm
+            if (printerList[i].paper_size == 0) {
+              if (res) {
+                await PrintBluetoothThermal.writeBytes(await ChecklistLayout().printCheckList80mm(true, orderCacheLocalId, order_by: order_by, printer_id: printer_id));
+                printStatus = 0;
+              } else {
+                printStatus = 1;
+              }
+            } else {
+              //bluetooth print 58mm
+              if (res) {
+                await PrintBluetoothThermal.writeBytes(await ChecklistLayout().printCheckList58mm(true, orderCacheLocalId, order_by: order_by, printer_id: printer_id));
+                printStatus = 0;
+              } else {
+                printStatus = 1;
               }
             }
           }
@@ -727,7 +850,7 @@ class PrintReceipt{
     try {
       if(printerList.isNotEmpty){
         for (int i = 0; i < printerList.length; i++) {
-          if(printerList[i].printer_status == 1 && printerList[i].is_counter == 1){
+          if(printerList[i].printer_status == 1 && (printerList[i].is_counter == 1 || printerList[i].is_kitchen_checklist == 1)){
             var printerDetail = jsonDecode(printerList[i].value!);
             if (printerList[i].type == 0) {
               //print USB 80mm
@@ -753,7 +876,7 @@ class PrintReceipt{
                 }
               }
             }
-            else {
+            else if(printerList[i].type == 1){
               if (printerList[i].paper_size == 0) {
                 //print LAN 80mm paper
                 final profile = await CapabilityProfile.load();
@@ -783,6 +906,26 @@ class PrintReceipt{
                 } else if (res == PosPrintResult.timeout){
                   print('printer time out');
                   printStatus = 2;
+                } else {
+                  printStatus = 1;
+                }
+              }
+            }
+            else {
+              bool res = await bluetoothPrinterConnect(printerDetail);
+              //bluetooth print 80mm
+              if (printerList[i].paper_size == 0) {
+                if (res) {
+                  await PrintBluetoothThermal.writeBytes(await ReprintCheckListLayout().reprintCheckList80mm(true, cartModel, isPayment: isPayment));
+                  printStatus = 0;
+                } else {
+                  printStatus = 1;
+                }
+              } else {
+                //bluetooth print 58mm
+                if (res) {
+                  await PrintBluetoothThermal.writeBytes(await ReprintCheckListLayout().reprintCheckList58mm(true, cartModel, isPayment: isPayment));
+                  printStatus = 0;
                 } else {
                   printStatus = 1;
                 }
@@ -903,11 +1046,13 @@ class PrintReceipt{
   }
 
   List<OrderDetail> groupOrderDetailsByCategory(List<OrderDetail> orderDetail, List<PrinterLinkCategory> data) {
+    combineListTotal = 0;
     List<OrderDetail> groupedOrderDetails = [];
     for(int i=0; i < orderDetail.length; i++){
       for (int j = 0; j < data.length; j++) {
         if(orderDetail[i].category_sqlite_id == data[j].category_sqlite_id){
           groupedOrderDetails.add(orderDetail[i]);
+          combineListTotal += double.parse(orderDetail[i].price!) * double.parse(orderDetail[i].quantity!);
         }
       }
     }
@@ -958,7 +1103,7 @@ class PrintReceipt{
                           await DefaultKitchenListLayout().printKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetail[k], isReprint: isReprint);
                         else if(kitchenListLayout80mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                           List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetail, data);
-                          await CombineKitchenListLayout().printCombinedKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails, isReprint: isReprint);
+                          await CombineKitchenListLayout().printCombinedKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails, isReprint: isReprint, combineListTotal: combineListTotal);
                           printCombinedKitchenList = true;
                         }
                         await Future.delayed(Duration(milliseconds: 100));
@@ -976,7 +1121,7 @@ class PrintReceipt{
                           await DefaultKitchenListLayout().printKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetail[k], isReprint: isReprint);
                         else if(kitchenListLayout58mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                           List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetail, data);
-                          await CombineKitchenListLayout().printCombinedKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails, isReprint: isReprint);
+                          await CombineKitchenListLayout().printCombinedKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails, isReprint: isReprint, combineListTotal: combineListTotal);
                           printCombinedKitchenList = true;
                         }
                         await Future.delayed(Duration(milliseconds: 100));
@@ -1006,7 +1151,7 @@ class PrintReceipt{
                         }
                       }
                     }
-                  } else {
+                  } else if(printerList[i].type == 0){
                     //print USB
                     if (printerList[i].paper_size == 0) {
                       var data_usb;
@@ -1014,7 +1159,7 @@ class PrintReceipt{
                         data_usb = Uint8List.fromList(await DefaultKitchenListLayout().printKitchenList80mm(true, orderCacheLocalId, orderDetail: orderDetail[k], isReprint: isReprint));
                       else if(kitchenListLayout80mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                         List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetail, data);
-                        data_usb = Uint8List.fromList(await CombineKitchenListLayout().printCombinedKitchenList80mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails, isReprint: isReprint));
+                        data_usb = Uint8List.fromList(await CombineKitchenListLayout().printCombinedKitchenList80mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails, isReprint: isReprint, combineListTotal: combineListTotal));
                         printCombinedKitchenList = true;
                       }
                       if(data_usb != null) {
@@ -1032,7 +1177,7 @@ class PrintReceipt{
                         data_usb = Uint8List.fromList(await DefaultKitchenListLayout().printKitchenList58mm(true, orderCacheLocalId, orderDetail: orderDetail[k], isReprint: isReprint));
                       else if(kitchenListLayout58mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                         List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetail, data);
-                        data_usb = Uint8List.fromList(await CombineKitchenListLayout().printCombinedKitchenList58mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails, isReprint: isReprint));
+                        data_usb = Uint8List.fromList(await CombineKitchenListLayout().printCombinedKitchenList58mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails, isReprint: isReprint, combineListTotal: combineListTotal));
                         printCombinedKitchenList = true;
                       }
                       if(data_usb != null) {
@@ -1065,6 +1210,50 @@ class PrintReceipt{
                         }
                       }
                     }
+                  } else {
+                    //print bluetooth
+                    bool res = await bluetoothPrinterConnect(printerDetail);
+                    if (printerList[i].paper_size == 0) {
+                      if (res) {
+                        if(kitchenListLayout80mm == null || kitchenListLayout80mm.print_combine_kitchen_list == 0 || orderDetail.length == 1)
+                          await PrintBluetoothThermal.writeBytes(await DefaultKitchenListLayout().printKitchenList80mm(true, orderCacheLocalId, orderDetail: orderDetail[k], isReprint: isReprint));
+                        else if(kitchenListLayout80mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
+                          List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetail, data);
+                          await PrintBluetoothThermal.writeBytes(await CombineKitchenListLayout().printCombinedKitchenList80mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails, isReprint: isReprint, combineListTotal: combineListTotal));
+                          printCombinedKitchenList = true;
+                        }
+                      } else {
+                        failedPrintOrderDetail.add(orderDetail[k]);
+                      }
+                    } else if (printerList[i].paper_size == 1) {
+                      if (res) {
+                        if(kitchenListLayout58mm == null || kitchenListLayout58mm.print_combine_kitchen_list == 0 || orderDetail.length == 1)
+                          await PrintBluetoothThermal.writeBytes(await DefaultKitchenListLayout().printKitchenList58mm(true, orderCacheLocalId, orderDetail: orderDetail[k], isReprint: isReprint));
+                        else if(kitchenListLayout58mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
+                          List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetail, data);
+                          await PrintBluetoothThermal.writeBytes(await CombineKitchenListLayout().printCombinedKitchenList58mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails, isReprint: isReprint, combineListTotal: combineListTotal));
+                          printCombinedKitchenList = true;
+                        }
+                      } else {
+                        failedPrintOrderDetail.add(orderDetail[k]);
+                      }
+                    } else {
+                      //print bluetooth 35mm
+                      int totalItem = 0;
+                      // get total item in order
+                      for (int x = 0; x < orderDetail.length; x++)
+                        for (int y = 0; y < int.parse(orderDetail[x].quantity!); y++)
+                          totalItem += 1;
+
+                      for (int j = 0; j < int.parse(orderDetail[k].quantity!); j++) {
+                        currentItem++;
+                        if (res) {
+                          await PrintBluetoothThermal.writeBytes(await ReceiptLayout().printLabel35mm(true, orderCacheLocalId, totalItem, currentItem, orderDetail: orderDetail[k]));
+                        } else {
+                          failedPrintOrderDetail.add(orderDetail[k]);
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -1086,7 +1275,6 @@ class PrintReceipt{
 
   reprintFailKitchenList(List<Printer> printerList, {required List<OrderDetail> reprintList}) async {
     List<OrderDetail>? failedPrintOrderDetail;
-    bool printCombinedKitchenList = false;
     int currentItem = 0;
     try{
       KitchenList? kitchenListLayout58mm = await PosDatabase.instance.readSpecificKitchenList('58');
@@ -1144,6 +1332,7 @@ class PrintReceipt{
                                   int.parse(filteredOrders.first.order_cache_sqlite_id!),
                                   value: printer,
                                   orderDetailList: groupedOrderDetails,
+                                  combineListTotal: combineListTotal
                                 );
                                 reprintList.removeWhere((orderDetail) => groupedOrderDetails.any((groupedDetail) => groupedDetail.order_detail_sqlite_id == orderDetail.order_detail_sqlite_id));
                               } else {
@@ -1164,6 +1353,7 @@ class PrintReceipt{
                                   int.parse(groupedOrderDetails.first.order_cache_sqlite_id!),
                                   value: printer,
                                   orderDetailList: groupedOrderDetails,
+                                  combineListTotal: combineListTotal
                                 );
                                 reprintList.removeWhere((orderDetail) => groupedOrderDetails.any((groupedDetail) => groupedDetail.order_detail_sqlite_id == orderDetail.order_detail_sqlite_id));
                               } else {
@@ -1184,6 +1374,7 @@ class PrintReceipt{
                                   int.parse(filteredOrders.first.order_cache_sqlite_id!),
                                   value: printer,
                                   orderDetailList: groupedOrderDetails,
+                                  combineListTotal: combineListTotal
                                 );
                                 reprintList.removeWhere((orderDetail) => groupedOrderDetails.any((groupedDetail) => groupedDetail.order_detail_sqlite_id == orderDetail.order_detail_sqlite_id));
                               } else {
@@ -1192,8 +1383,6 @@ class PrintReceipt{
                               }
                             }
                           }
-
-                          printCombinedKitchenList = true;
                         }
                         await Future.delayed(Duration(milliseconds: 100));
                         printer.disconnect();
@@ -1237,6 +1426,7 @@ class PrintReceipt{
                                   int.parse(groupedOrderDetails.first.order_cache_sqlite_id!),
                                   value: printer,
                                   orderDetailList: groupedOrderDetails,
+                                  combineListTotal: combineListTotal
                                 );
                                 reprintList.removeWhere((orderDetail) => groupedOrderDetails.any((groupedDetail) => groupedDetail.order_detail_sqlite_id == orderDetail.order_detail_sqlite_id));
                               } else {
@@ -1257,6 +1447,7 @@ class PrintReceipt{
                                   int.parse(groupedOrderDetails.first.order_cache_sqlite_id!),
                                   value: printer,
                                   orderDetailList: groupedOrderDetails,
+                                  combineListTotal: combineListTotal
                                 );
                                 reprintList.removeWhere((orderDetail) => groupedOrderDetails.any((groupedDetail) => groupedDetail.order_detail_sqlite_id == orderDetail.order_detail_sqlite_id));
                               } else {
@@ -1277,6 +1468,7 @@ class PrintReceipt{
                                   int.parse(groupedOrderDetails.first.order_cache_sqlite_id!),
                                   value: printer,
                                   orderDetailList: groupedOrderDetails,
+                                  combineListTotal: combineListTotal
                                 );
                                 reprintList.removeWhere((orderDetail) => groupedOrderDetails.any((groupedDetail) => groupedDetail.order_detail_sqlite_id == orderDetail.order_detail_sqlite_id));
                               } else {
@@ -1285,8 +1477,6 @@ class PrintReceipt{
                               }
                             }
                           }
-
-                          printCombinedKitchenList = true;
                         }
                         await Future.delayed(Duration(milliseconds: 100));
                         printer.disconnect();
@@ -1315,7 +1505,7 @@ class PrintReceipt{
                         }
                       }
                     }
-                  } else {
+                  } else if(printerList[i].type == 0){
                     //print USB
                     if (printerList[i].paper_size == 0) {
                       var data = Uint8List.fromList(
@@ -1356,6 +1546,85 @@ class PrintReceipt{
                         } else {
                           failedPrintOrderDetail.add(reprintList[k]);
                         }
+                      }
+                    }
+                  } else {
+                    //print bluetooth
+                    bool res = await bluetoothPrinterConnect(printerDetail);
+                    if (printerList[i].paper_size == 0) {
+                      if (res) {
+                        if(kitchenListLayout80mm == null || kitchenListLayout80mm.print_combine_kitchen_list == 0 || reprintList.length == 1){
+                          var data = await DefaultKitchenListLayout().printKitchenList80mm(true, int.parse(reprintList[k].order_cache_sqlite_id!), orderDetail: reprintList[k], isReprint: true);
+                          await PrintBluetoothThermal.writeBytes(data);
+                        } else if(kitchenListLayout80mm.print_combine_kitchen_list == 1) {
+                          List<String> distinctTableNumbers = [];
+                          List<String> distinctOrderNumbers = [];
+                          List<String> distinctDateTime = [];
+
+                          for (OrderDetail orderDetail in reprintList) {
+                            if (orderDetail.orderQueue != '') {
+                              distinctOrderNumbers = reprintList.map((orderDetail) => orderDetail.orderQueue!).toSet().toList();
+                            } else if (orderDetail.tableNumber.isNotEmpty) {
+                              // distinctTableNumbers.add(orderDetail.tableNumber.map((num) => num.toString()).join(', '));
+                              distinctTableNumbers = reprintList.map((orderDetail) => orderDetail.tableNumber.map((num) => num.toString()).join(', ')).toSet().toList();
+                            } else {
+                              distinctDateTime = reprintList.map((orderDetail) => orderDetail.created_at!).toSet().toList();
+                            }
+                          }
+                          if(distinctOrderNumbers.length >= 1) {
+                            for (String orderNumberFiltered in distinctOrderNumbers) {
+                              List<OrderDetail> filteredOrders = [];
+                              filteredOrders.addAll(reprintList.where((orderDetail) => orderDetail.orderQueue! == orderNumberFiltered).toList());
+                              List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(filteredOrders, data);
+                              if(filteredOrders.length > 1) {
+                                var data = await CombineKitchenListLayout().printCombinedKitchenList80mm(true, int.parse(filteredOrders.first.order_cache_sqlite_id!), orderDetailList: groupedOrderDetails, isReprint: true, combineListTotal: combineListTotal);
+                                await PrintBluetoothThermal.writeBytes(data);
+                                reprintList.removeWhere((orderDetail) => groupedOrderDetails.any((groupedDetail) => groupedDetail.order_detail_sqlite_id == orderDetail.order_detail_sqlite_id));
+                              } else {
+                                var data = await DefaultKitchenListLayout().printKitchenList80mm(true, int.parse(filteredOrders.first.order_cache_sqlite_id!), orderDetail: groupedOrderDetails[0], isReprint: true);
+                                await PrintBluetoothThermal.writeBytes(data);
+                                reprintList.removeWhere((orderDetail) => orderDetail.orderQueue! == orderNumberFiltered);
+                              }
+                            }
+                          }
+
+                          if(distinctTableNumbers.length >= 1) {
+                            for (String tableNumberFiltered in distinctTableNumbers) {
+                              List<OrderDetail> filteredOrders = [];
+                              filteredOrders.addAll(reprintList.where((orderDetail) => orderDetail.tableNumber.toString().replaceAll('[', '').replaceAll(']', '') == tableNumberFiltered).toList());
+                              List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(filteredOrders, data);
+                              if(filteredOrders.length > 1) {
+                                var data = await CombineKitchenListLayout().printCombinedKitchenList80mm(true, int.parse(groupedOrderDetails.first.order_cache_sqlite_id!), orderDetailList: groupedOrderDetails, isReprint: true, combineListTotal: combineListTotal);
+                                await PrintBluetoothThermal.writeBytes(data);
+                                reprintList.removeWhere((orderDetail) => groupedOrderDetails.any((groupedDetail) => groupedDetail.order_detail_sqlite_id == orderDetail.order_detail_sqlite_id));
+                              } else {
+                                var data = await DefaultKitchenListLayout().printKitchenList80mm(true, int.parse(filteredOrders.first.order_cache_sqlite_id!), orderDetail: groupedOrderDetails[0], isReprint: true);
+                                await PrintBluetoothThermal.writeBytes(data);
+                                reprintList.removeWhere((orderDetail) => orderDetail.tableNumber.toString().replaceAll('[', '').replaceAll(']', '') == tableNumberFiltered);
+                              }
+                            }
+                          }
+
+                          if(distinctDateTime.length >= 1) {
+                            for (String dateTimeFiltered in distinctDateTime) {
+                              List<OrderDetail> filteredOrders = [];
+                              filteredOrders.addAll(reprintList.where((orderDetail) => orderDetail.created_at! == dateTimeFiltered).toList());
+                              List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(filteredOrders, data);
+                              if(filteredOrders.length > 1) {
+                                var data = await CombineKitchenListLayout().printCombinedKitchenList80mm(true, int.parse(filteredOrders.first.order_cache_sqlite_id!), orderDetailList: groupedOrderDetails, isReprint: true, combineListTotal: combineListTotal);
+                                await PrintBluetoothThermal.writeBytes(data);
+                                reprintList.removeWhere((orderDetail) => groupedOrderDetails.any((groupedDetail) => groupedDetail.order_detail_sqlite_id == orderDetail.order_detail_sqlite_id));
+                              } else {
+                                var data = await DefaultKitchenListLayout().printKitchenList80mm(true, int.parse(filteredOrders.first.order_cache_sqlite_id!), orderDetail: groupedOrderDetails[0], isReprint: true);
+                                await PrintBluetoothThermal.writeBytes(data);
+                                reprintList.removeWhere((orderDetail) => orderDetail.created_at! == dateTimeFiltered);
+                              }
+                            }
+                          }
+                        }
+                        await Future.delayed(Duration(milliseconds: 100));
+                      } else {
+                        failedPrintOrderDetail.add(reprintList[k]);
                       }
                     }
                   }
@@ -1421,7 +1690,7 @@ class PrintReceipt{
                         await DefaultKitchenListLayout().printKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetailList[k]);
                       else if(kitchenListLayout80mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                         List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetailList, data);
-                        await CombineKitchenListLayout().printCombinedKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails);
+                        await CombineKitchenListLayout().printCombinedKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails, combineListTotal: combineListTotal);
                         printCombinedKitchenList = true;
                       }
                       await Future.delayed(Duration(milliseconds: 100));
@@ -1442,7 +1711,7 @@ class PrintReceipt{
                         await DefaultKitchenListLayout().printKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetailList[k]);
                       else if(kitchenListLayout58mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                         List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetail, data);
-                        await CombineKitchenListLayout().printCombinedKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails);
+                        await CombineKitchenListLayout().printCombinedKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails, combineListTotal: combineListTotal);
                         printCombinedKitchenList = true;
                       }
                       await Future.delayed(Duration(milliseconds: 100));
@@ -1471,20 +1740,8 @@ class PrintReceipt{
                         failedPrintOrderDetail.add(orderDetail[k]);
                       }
                     }
-                    // if (res == PosPrintResult.success) {
-                    //   // await ReceiptLayout().printQrKitchenList58mm(false, orderDetailList[k], orderCacheLocalId, value: printer);
-                    //   if(kitchenListLayout58mm == null || kitchenListLayout58mm.print_combine_kitchen_list == 0 || orderDetailList.length == 1)
-                    //     await ReceiptLayout().printKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetailList[k]);
-                    //   else if(kitchenListLayout58mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
-                    //     await ReceiptLayout().printCombinedKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetailList: orderDetailList);
-                    //     printCombinedKitchenList = true;
-                    //   }
-                    //   printer.disconnect();
-                    // } else {
-                    //   failedPrintOrderDetail.add(orderDetailList[k]);
-                    // }
                   }
-                } else {
+                } else if(printerList[i].type == 0){
                   //print USB
                   if (printerList[i].paper_size == 0) {
                     // var data = Uint8List.fromList(
@@ -1494,7 +1751,7 @@ class PrintReceipt{
                       data_usb = Uint8List.fromList(await DefaultKitchenListLayout().printKitchenList80mm(true, orderCacheLocalId, orderDetail: orderDetailList[k]));
                     else if(kitchenListLayout80mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                       List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetailList, data);
-                      data_usb = Uint8List.fromList(await CombineKitchenListLayout().printCombinedKitchenList80mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails));
+                      data_usb = Uint8List.fromList(await CombineKitchenListLayout().printCombinedKitchenList80mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails, combineListTotal: combineListTotal));
                       printCombinedKitchenList = true;
                     }
                     if(data_usb != null) {
@@ -1515,7 +1772,7 @@ class PrintReceipt{
                       data_usb = Uint8List.fromList(await DefaultKitchenListLayout().printKitchenList58mm(true, orderCacheLocalId, orderDetail: orderDetailList[k]));
                     else if(kitchenListLayout58mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                       List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetail, data);
-                      data_usb = Uint8List.fromList(await CombineKitchenListLayout().printCombinedKitchenList58mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails));
+                      data_usb = Uint8List.fromList(await CombineKitchenListLayout().printCombinedKitchenList58mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails, combineListTotal: combineListTotal));
                       printCombinedKitchenList = true;
                     }
                     if(data_usb != null) {
@@ -1529,6 +1786,61 @@ class PrintReceipt{
                     }
                   } else {
                     //print USB 35mm
+                    int totalItem = 0;
+                    // get total item in order
+                    for (int x = 0; x < orderDetail.length; x++)
+                      for (int y = 0; y < int.parse(orderDetail[x].quantity!); y++)
+                        totalItem += 1;
+
+                    for (int j = 0; j < int.parse(orderDetail[k].quantity!); j++) {
+                      currentItem++;
+                      var data = Uint8List.fromList(
+                          await ReceiptLayout().printLabel35mm(true, orderCacheLocalId, totalItem, currentItem, orderDetail: orderDetail[k]));
+                      bool? isConnected = await flutterUsbPrinter.connect(
+                          int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+                      if (isConnected == true) {
+                        await flutterUsbPrinter.write(data);
+                      } else {
+                        failedPrintOrderDetail.add(orderDetail[k]);
+                      }
+                    }
+                  }
+                } else {
+                  //print bluetooth
+                  bool res = await bluetoothPrinterConnect(printerDetail);
+                  if (printerList[i].paper_size == 0) {
+                    if (res) {
+                      if(kitchenListLayout80mm == null || kitchenListLayout80mm.print_combine_kitchen_list == 0 || orderDetailList.length == 1){
+                        var bluetooth_data = await DefaultKitchenListLayout().printKitchenList80mm(true, orderCacheLocalId, orderDetail: orderDetailList[k]);
+                        await PrintBluetoothThermal.writeBytes(bluetooth_data);
+                      } else if(kitchenListLayout80mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
+                        List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetailList, data);
+                        var bluetooth_data = await CombineKitchenListLayout().printCombinedKitchenList80mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails, combineListTotal: combineListTotal);
+                        await PrintBluetoothThermal.writeBytes(bluetooth_data);
+                        printCombinedKitchenList = true;
+                      }
+                      await Future.delayed(Duration(milliseconds: 100));
+                    } else {
+                      failedPrintOrderDetail.add(orderDetailList[k]);
+                    }
+                  } else if (printerList[i].paper_size == 1){
+                    //print 58mm
+                    if (res) {
+                      if(kitchenListLayout58mm == null || kitchenListLayout58mm.print_combine_kitchen_list == 0 || orderDetailList.length == 1){
+                        var bluetooth_data = await DefaultKitchenListLayout().printKitchenList58mm(true, orderCacheLocalId, orderDetail: orderDetailList[k]);
+                        await PrintBluetoothThermal.writeBytes(bluetooth_data);
+                      } else if(kitchenListLayout58mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
+                        List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetailList, data);
+                        var bluetooth_data = await CombineKitchenListLayout().printCombinedKitchenList58mm(true, orderCacheLocalId, orderDetailList: groupedOrderDetails, combineListTotal: combineListTotal);
+                        await PrintBluetoothThermal.writeBytes(bluetooth_data);
+                        printCombinedKitchenList = true;
+                      }
+                      await Future.delayed(Duration(milliseconds: 100));
+                    } else {
+                      failedPrintOrderDetail.add(orderDetailList[k]);
+                    }
+                  } else {
+                    //print bluetooth 35mm
                     int totalItem = 0;
                     // get total item in order
                     for (int x = 0; x < orderDetail.length; x++)
@@ -1598,7 +1910,7 @@ class PrintReceipt{
                 printStatus = 1;
               }
             }
-          } else {
+          } else if(printerList[i].type == 1) {
             //check paper size (print LAN)
             if(printerList[i].paper_size == 0){
               //print LAN
@@ -1638,6 +1950,28 @@ class PrintReceipt{
                 // Fluttertoast.showToast(
                 //     backgroundColor: Colors.orangeAccent,
                 //     msg: "${AppLocalizations.of(context)?.translate('lan_printer_timeout')}");
+              } else {
+                print('not connected');
+                printStatus = 1;
+              }
+            }
+          } else {
+            //print bluetooth
+            bool res = await bluetoothPrinterConnect(printerDetail);
+            if (printerList[i].paper_size == 0) {
+              if (res) {
+                await PrintBluetoothThermal.writeBytes(await ReceiptLayout().printDeleteItemList80mm(true, orderCacheId, dateTime, value: printerDetail));
+                await Future.delayed(Duration(milliseconds: 100));
+                printStatus = 0;
+              } else {
+                print('not connected');
+                printStatus = 1;
+              }
+            } else {
+              if (res) {
+                await PrintBluetoothThermal.writeBytes(await ReceiptLayout().printDeleteItemList58mm(true, orderCacheId, dateTime, value: printerDetail));
+                await Future.delayed(Duration(milliseconds: 100));
+                printStatus = 0;
               } else {
                 print('not connected');
                 printStatus = 1;
@@ -1689,7 +2023,7 @@ class PrintReceipt{
                     printStatus = 1;
                   }
                 }
-              } else {
+              } else if(printerList[i].type == 1) {
                 //check paper size
                 if(printerList[i].paper_size == 0){
                   //print LAN 80mm
@@ -1736,6 +2070,26 @@ class PrintReceipt{
                     print('not connected');
                     printStatus = 1;
                     break;
+                  }
+                }
+              } else {
+                //print bluetooth
+                bool res = await bluetoothPrinterConnect(printerDetail);
+                if (printerList[i].paper_size == 0) {
+                  if (res) {
+                    await PrintBluetoothThermal.writeBytes(await ReceiptLayout().printDeleteItemList80mm(true, orderCacheId, dateTime, value: printerDetail));
+                    await Future.delayed(Duration(milliseconds: 100));
+                    printStatus = 0;
+                  } else {
+                    printStatus = 1;
+                  }
+                } else {
+                  if (res) {
+                    await PrintBluetoothThermal.writeBytes(await ReceiptLayout().printDeleteItemList58mm(true, orderCacheId, dateTime, value: printerDetail));
+                    await Future.delayed(Duration(milliseconds: 100));
+                    printStatus = 0;
+                  } else {
+                    printStatus = 1;
                   }
                 }
               }
@@ -1790,7 +2144,7 @@ class PrintReceipt{
                   //     msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
                 }
               }
-            } else {
+            } else if(printerList[i].type == 1) {
               if(printerList[i].paper_size == 0){
                 //print LAN 80mm
                 final profile = await CapabilityProfile.load();
@@ -1836,6 +2190,26 @@ class PrintReceipt{
                   //     msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
                 }
               }
+            } else {
+              //print bluetooth
+              bool res = await bluetoothPrinterConnect(printerDetail);
+              if (printerList[i].paper_size == 0) {
+                if (res) {
+                  await PrintBluetoothThermal.writeBytes(await ReceiptLayout().printSettlementList80mm(true, dateTime, settlement, value: printerDetail));
+                  await Future.delayed(Duration(milliseconds: 100));
+                  printStatus = 0;
+                } else {
+                  printStatus = 1;
+                }
+              } else {
+                if (res) {
+                  await PrintBluetoothThermal.writeBytes(await ReceiptLayout().printSettlementList58mm(true, dateTime, settlement, value: printerDetail));
+                  await Future.delayed(Duration(milliseconds: 100));
+                  printStatus = 0;
+                } else {
+                  printStatus = 1;
+                }
+              }
             }
           }
         }
@@ -1856,6 +2230,7 @@ class PrintReceipt{
   }
 
   printCashBalanceList(List<Printer> printerList, context, {required cashBalance}) async {
+    print("printCashBalanceList called");
     try {
       for (int i = 0; i < printerList.length; i++) {
         if(printerList[i].printer_status == 1 && printerList[i].is_counter == 1){
@@ -1880,7 +2255,7 @@ class PrintReceipt{
                 Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
               }
             }
-          } else {
+          } else if(printerList[i].type == 1) {
             //print LAN
             if (printerList[i].paper_size == 0) {
               //print 80mm
@@ -1915,6 +2290,24 @@ class PrintReceipt{
                     msg: "${AppLocalizations.of(context)?.translate('lan_printer_timeout')}");
               } else {
                 Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
+              }
+            }
+          } else {
+            //print bluetooth
+            bool res = await bluetoothPrinterConnect(printerDetail);
+            if (printerList[i].paper_size == 0) {
+              if (res) {
+                await PrintBluetoothThermal.writeBytes(await ReceiptLayout().printCashBalanceList80mm(true, cashBalance));
+                await Future.delayed(Duration(milliseconds: 100));
+              } else {
+                Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('bluetooth_printer_not_connect')}");
+              }
+            } else {
+              if (res) {
+                await PrintBluetoothThermal.writeBytes(await ReceiptLayout().printCashBalanceList58mm(true, cashBalance));
+                await Future.delayed(Duration(milliseconds: 100));
+              } else {
+                Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('bluetooth_printer_not_connect')}");
               }
             }
           }
@@ -1961,7 +2354,7 @@ class PrintReceipt{
                 //     msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
               }
             }
-          } else {
+          } else if(printerList[i].type == 1) {
             if (printerList[i].paper_size == 0) {
               //print LAN 80mm paper
               final profile = await CapabilityProfile.load();
@@ -1999,6 +2392,26 @@ class PrintReceipt{
                 printStatus = 1;
               }
             }
+          } else {
+            //print bluetooth
+            bool res = await bluetoothPrinterConnect(printerDetail);
+            if (printerList[i].paper_size == 0) {
+              if (res) {
+                await PrintBluetoothThermal.writeBytes(await ReceiptLayout().printChangeTableList80mm(true, fromTable: lastTable, toTable: newTable));
+                printStatus = 0;
+                await Future.delayed(Duration(milliseconds: 100));
+              } else {
+                printStatus = 1;
+              }
+            } else {
+              if (res) {
+                await PrintBluetoothThermal.writeBytes(await ReceiptLayout().printChangeTableList58mm(true, fromTable: lastTable, toTable: newTable));
+                printStatus = 0;
+                await Future.delayed(Duration(milliseconds: 100));
+              } else {
+                printStatus = 1;
+              }
+            }
           }
         }
       }
@@ -2010,6 +2423,30 @@ class PrintReceipt{
       //     backgroundColor: Colors.red,
       //     msg: "${AppLocalizations.of(context)?.translate('printing_error')}");
     }
+  }
+
+  static Future<bool> bluetoothPrinterConnect(String mac) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? lastBtConnection = prefs.getString('lastBtConnection');
+    bool result = false;
+    bool connectionStatus = await PrintBluetoothThermal.connectionStatus;
+    if (connectionStatus) {
+      if (lastBtConnection != mac) {
+        await PrintBluetoothThermal.disconnect;
+        result = await PrintBluetoothThermal.connect(macPrinterAddress: mac);
+        if(result) {
+          await prefs.setString('lastBtConnection', mac);
+        }
+      } else {
+        result = true;
+      }
+    } else {
+      result = await PrintBluetoothThermal.connect(macPrinterAddress: mac);
+      if(result) {
+        await prefs.setString('lastBtConnection', mac);
+      }
+    }
+    return result;
   }
 
 }

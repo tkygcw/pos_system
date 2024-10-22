@@ -12,6 +12,7 @@ class KitchenListFields {
     kitchen_list_show_price,
     print_combine_kitchen_list,
     kitchen_list_item_separator,
+    kitchen_list_show_total_amount,
     show_product_sku,
     sync_status,
     created_at,
@@ -29,6 +30,7 @@ class KitchenListFields {
   static String kitchen_list_show_price = 'kitchen_list_show_price';
   static String print_combine_kitchen_list = 'print_combine_kitchen_list';
   static String kitchen_list_item_separator = 'kitchen_list_item_separator';
+  static String kitchen_list_show_total_amount = 'kitchen_list_show_total_amount';
   static String show_product_sku = 'show_product_sku';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
@@ -48,6 +50,7 @@ class KitchenList {
   int? kitchen_list_show_price;
   int? print_combine_kitchen_list;
   int? kitchen_list_item_separator;
+  int? kitchen_list_show_total_amount;
   int? show_product_sku;
   int? sync_status;
   String? created_at;
@@ -65,6 +68,7 @@ class KitchenList {
         this.kitchen_list_show_price,
         this.print_combine_kitchen_list,
         this.kitchen_list_item_separator,
+        this.kitchen_list_show_total_amount,
         this.show_product_sku,
         this.sync_status,
         this.created_at,
@@ -82,6 +86,7 @@ class KitchenList {
     int? kitchen_list_show_price,
     int? print_combine_kitchen_list,
     int? kitchen_list_item_separator,
+    int? kitchen_list_show_total_amount,
     int? show_product_sku,
     int? sync_status,
     String? created_at,
@@ -99,6 +104,7 @@ class KitchenList {
           kitchen_list_show_price: kitchen_list_show_price ?? this.kitchen_list_show_price,
           print_combine_kitchen_list: print_combine_kitchen_list ?? this.print_combine_kitchen_list,
           kitchen_list_item_separator: kitchen_list_item_separator ?? this.kitchen_list_item_separator,
+          kitchen_list_show_total_amount: kitchen_list_show_total_amount ?? this.kitchen_list_show_total_amount,
           show_product_sku: show_product_sku ?? this.show_product_sku,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
@@ -116,6 +122,7 @@ class KitchenList {
     kitchen_list_show_price: json[KitchenListFields.kitchen_list_show_price] as int?,
     print_combine_kitchen_list: json[KitchenListFields.print_combine_kitchen_list] as int?,
     kitchen_list_item_separator: json[KitchenListFields.kitchen_list_item_separator] as int?,
+    kitchen_list_show_total_amount: json[KitchenListFields.kitchen_list_show_total_amount] as int?,
     show_product_sku: json[KitchenListFields.show_product_sku] as int?,
     sync_status: json[KitchenListFields.sync_status] as int?,
     created_at: json[KitchenListFields.created_at] as String?,
@@ -134,6 +141,7 @@ class KitchenList {
     KitchenListFields.kitchen_list_show_price: kitchen_list_show_price,
     KitchenListFields.print_combine_kitchen_list: print_combine_kitchen_list,
     KitchenListFields.kitchen_list_item_separator: kitchen_list_item_separator,
+    KitchenListFields.kitchen_list_show_total_amount: kitchen_list_show_total_amount,
     KitchenListFields.show_product_sku: show_product_sku,
     KitchenListFields.sync_status: sync_status,
     KitchenListFields.created_at: created_at,

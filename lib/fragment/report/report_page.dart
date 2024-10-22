@@ -418,7 +418,7 @@ class _ReportPageState extends State<ReportPage> {
                                 },
                                 obscureText: _obscureText,
                                 controller: adminPosPinController,
-                                keyboardType: TextInputType.number,
+                                keyboardType: TextInputType.numberWithOptions(decimal: true),
                                 decoration: InputDecoration(
                                   suffixIcon: IconButton(
                                     icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility),
@@ -982,7 +982,7 @@ class _ReportPageState extends State<ReportPage> {
                                 },
                                 obscureText: _obscureText,
                                 controller: adminPosPinController,
-                                keyboardType: TextInputType.number,
+                                keyboardType: TextInputType.numberWithOptions(decimal: true),
                                 decoration: InputDecoration(
                                   suffixIcon: IconButton(
                                     icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility),

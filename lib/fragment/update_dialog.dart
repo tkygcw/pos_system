@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gms_check/gms_check.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:store_checker/store_checker.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -39,7 +40,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
               return true;
             }
           },
-          child: Text('Current: $source($appVersion)\n${versionData[0]['description']}')),
+          child: Text('Current: $source($appVersionCode)\n${versionData[0]['description']}')),
       actions: [
         Visibility(
           visible: versionData[0]['force_update'] == 0 ? true : false,
@@ -71,9 +72,6 @@ class _UpdateDialogState extends State<UpdateDialog> {
     );
   }
   getSource() async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    appVersion = packageInfo.version;
-
     Source installationSource;
     try {
       installationSource = await StoreChecker.getSource;

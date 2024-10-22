@@ -77,7 +77,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 26, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 27, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -325,6 +325,11 @@ class PosDatabase {
           ${CurrentVersionFields.created_at} $textType,
           ${CurrentVersionFields.updated_at} $textType,
           ${CurrentVersionFields.soft_delete} $textType)''');
+          //new 26
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
         }break;
         case 16: {
           await db.execute('''CREATE TABLE $tableAttendance(
@@ -406,6 +411,11 @@ class PosDatabase {
           ${CurrentVersionFields.created_at} $textType,
           ${CurrentVersionFields.updated_at} $textType,
           ${CurrentVersionFields.soft_delete} $textType)''');
+          //new 26
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
         }break;
         case 17: {
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
@@ -473,6 +483,11 @@ class PosDatabase {
           ${CurrentVersionFields.created_at} $textType,
           ${CurrentVersionFields.updated_at} $textType,
           ${CurrentVersionFields.soft_delete} $textType)''');
+          //new 26
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
         }break;
         case 18: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
@@ -536,6 +551,11 @@ class PosDatabase {
           ${CurrentVersionFields.created_at} $textType,
           ${CurrentVersionFields.updated_at} $textType,
           ${CurrentVersionFields.soft_delete} $textType)''');
+          //new 26
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
         }break;
         case 19: {
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
@@ -595,6 +615,11 @@ class PosDatabase {
           ${CurrentVersionFields.created_at} $textType,
           ${CurrentVersionFields.updated_at} $textType,
           ${CurrentVersionFields.soft_delete} $textType)''');
+          //new 26
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
         }break;
         case 20: {
           await db.execute('''CREATE TABLE $tableDynamicQR(
@@ -652,6 +677,11 @@ class PosDatabase {
           ${CurrentVersionFields.created_at} $textType,
           ${CurrentVersionFields.updated_at} $textType,
           ${CurrentVersionFields.soft_delete} $textType)''');
+          //new 26
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
         }break;
         case 21: {
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
@@ -695,6 +725,11 @@ class PosDatabase {
           ${CurrentVersionFields.created_at} $textType,
           ${CurrentVersionFields.updated_at} $textType,
           ${CurrentVersionFields.soft_delete} $textType)''');
+          //new 26
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
         }break;
         case 22: {
           if(defaultTargetPlatform == TargetPlatform.iOS){
@@ -734,6 +769,11 @@ class PosDatabase {
           ${CurrentVersionFields.created_at} $textType,
           ${CurrentVersionFields.updated_at} $textType,
           ${CurrentVersionFields.soft_delete} $textType)''');
+          //new 26
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
         }break;
         case 23: {
           await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
@@ -766,11 +806,27 @@ class PosDatabase {
           ${CurrentVersionFields.created_at} $textType,
           ${CurrentVersionFields.updated_at} $textType,
           ${CurrentVersionFields.soft_delete} $textType)''');
+          //new 26
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
         }break;
         case 24: {
           await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
+          //new 26
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
         }break;
         case 25: {
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
+        }break;
+        case 26: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.required_cancel_reason} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tableOrderDetailCancel ADD ${OrderDetailCancelFields.cancel_reason} $textType DEFAULT '' ");
           await db.execute("ALTER TABLE $tableOrderDetailCancel ADD ${OrderDetailCancelFields.quantity_before_cancel} $textType DEFAULT '' ");
@@ -1264,6 +1320,7 @@ class PosDatabase {
           ${PrinterFields.paper_size} $integerType,
           ${PrinterFields.printer_status} $integerType,
           ${PrinterFields.is_counter} $integerType,
+          ${PrinterFields.is_kitchen_checklist} $integerType,
           ${PrinterFields.is_label} $integerType,
           ${PrinterFields.sync_status} $integerType,
           ${PrinterFields.created_at} $textType,
@@ -1302,6 +1359,7 @@ class PosDatabase {
           ${ReceiptFields.show_address} $integerType,
           ${ReceiptFields.show_email} $integerType,
           ${ReceiptFields.receipt_email} $textType,
+          ${ReceiptFields.show_break_down_price} $integerType,
           ${ReceiptFields.footer_image} $textType,
           ${ReceiptFields.footer_image_status} $integerType,
           ${ReceiptFields.footer_text} $textType,
@@ -1398,6 +1456,7 @@ class PosDatabase {
           ${AppSettingFields.enable_numbering} $integerType,
           ${AppSettingFields.starting_number} $integerType,
           ${AppSettingFields.table_order} $integerType,
+          ${AppSettingFields.settlement_after_all_order_paid} $integerType,
           ${AppSettingFields.show_product_desc} $integerType,
           ${AppSettingFields.print_cancel_receipt} $integerType,
           ${AppSettingFields.product_sort_by} $integerType,
@@ -1535,6 +1594,7 @@ class PosDatabase {
           ${KitchenListFields.kitchen_list_show_price} $integerType,
           ${KitchenListFields.print_combine_kitchen_list} $integerType,
           ${KitchenListFields.kitchen_list_item_separator} $integerType,
+          ${KitchenListFields.kitchen_list_show_total_amount} $integerType,
           ${KitchenListFields.show_product_sku} $integerType,
           ${KitchenListFields.sync_status} $integerType,
           ${KitchenListFields.created_at} $textType,
@@ -2485,15 +2545,16 @@ class PosDatabase {
   Future<Printer> insertPrinter(Printer data) async {
     final db = await instance.database;
     final id = await db.rawInsert(
-        'INSERT INTO $tablePrinter(soft_delete, updated_at, created_at, sync_status, is_counter, is_label, '
+        'INSERT INTO $tablePrinter(soft_delete, updated_at, created_at, sync_status, is_counter, is_kitchen_checklist, is_label, '
         'printer_status, paper_size, printer_label, type, value, printer_link_category_id, company_id, branch_id, printer_key, printer_id) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.soft_delete,
           data.updated_at,
           data.created_at,
           data.sync_status,
           data.is_counter,
+          data.is_kitchen_checklist,
           data.is_label,
           data.printer_status,
           data.paper_size,
@@ -2559,9 +2620,9 @@ class PosDatabase {
     final id = db.rawInsert(
         'INSERT INTO $tableReceipt(soft_delete, updated_at, created_at, sync_status, show_branch_tel, '
         'show_product_sku, header_font_size, status, paper_size, promotion_detail_status, '
-        'footer_text_status, footer_text, footer_image_status, footer_image, receipt_email, show_email, show_address, '
+        'footer_text_status, footer_text, footer_image_status, footer_image, show_break_down_price, receipt_email, show_email, show_address, '
         'header_text_status, header_text, header_image_status, header_image, branch_id, receipt_key, receipt_id, show_register_no) '
-            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.soft_delete,
           data.updated_at,
@@ -2577,6 +2638,7 @@ class PosDatabase {
           data.footer_text,
           data.footer_image_status,
           data.footer_image,
+          data.show_break_down_price,
           data.receipt_email,
           data.show_email,
           data.show_address,
@@ -2890,15 +2952,16 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableKitchenList(soft_delete, updated_at, created_at, sync_status, show_product_sku, '
-            'kitchen_list_item_separator, print_combine_kitchen_list, kitchen_list_show_price, '
+            'kitchen_list_show_total_amount, kitchen_list_item_separator, print_combine_kitchen_list, kitchen_list_show_price, '
             'paper_size, other_font_size, product_name_font_size, branch_id, kitchen_list_key, kitchen_list_id) '
-            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           '',
           data.updated_at,
           data.created_at,
           data.sync_status,
           data.show_product_sku,
+          data.kitchen_list_show_total_amount,
           data.kitchen_list_item_separator,
           data.print_combine_kitchen_list,
           data.kitchen_list_show_price,
@@ -3642,8 +3705,8 @@ class PosDatabase {
   Future<List<Order>> searchPaidReceipt(String text) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableOrder WHERE payment_status = ? AND soft_delete = ? AND (order_number LIKE ? OR close_by LIKE ?) ORDER BY created_at DESC ',
-        [1, '', '%' + text + '%', '%' + text + '%']);
+        'SELECT * FROM $tableOrder WHERE payment_status = ? AND soft_delete = ? AND (order_number LIKE ? OR REPLACE(REPLACE(REPLACE(created_at, "-", ""), " ", ""), ":", "") LIKE ? OR close_by LIKE ?) ORDER BY created_at DESC ',
+        [1, '', '%' + text + '%', '%' + text + '%', '%' + text + '%']);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
@@ -3653,8 +3716,8 @@ class PosDatabase {
   Future<List<Order>> searchRefundReceipt(String text) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.refund_by AS refund_name FROM $tableOrder AS a JOIN $tableRefund AS b ON a.refund_key = b.refund_key WHERE a.payment_status = ? AND a.soft_delete = ? AND b.soft_delete = ? AND (a.order_number LIKE ? OR b.refund_by LIKE ?) ORDER BY created_at DESC ',
-        [2, '', '', '%' + text + '%', '%' + text + '%']);
+        'SELECT a.*, b.refund_by AS refund_name FROM $tableOrder AS a JOIN $tableRefund AS b ON a.refund_key = b.refund_key WHERE a.payment_status = ? AND a.soft_delete = ? AND b.soft_delete = ? AND (a.order_number LIKE ? OR REPLACE(REPLACE(REPLACE(created_at, "-", ""), " ", ""), ":", "") LIKE ? OR b.refund_by LIKE ?) ORDER BY created_at DESC ',
+        [2, '', '', '%' + text + '%', '%' + text + '%', '%' + text + '%']);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
@@ -4502,6 +4565,15 @@ class PosDatabase {
   }
 
 /*
+  read all not paid order cache
+*/
+  Future<List<OrderCache>> readAllOrderCacheNotPaid() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE created_at != ? AND payment_status = ? ORDER BY order_cache_sqlite_id', ['', 0]);
+    return result.map((json) => OrderCache.fromJson(json)).toList();
+  }
+
+/*
   read branch cash record(haven't settlement)
 */
   Future<List<CashRecord>> readBranchCashRecord() async {
@@ -4776,8 +4848,21 @@ class PosDatabase {
     final result = await db.rawQuery(
         'SELECT a.*, b.payment_type_id FROM $tableOrder AS a '
         'LEFT JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
-        'WHERE a.payment_status = ? AND a.payment_split != ? AND a.settlement_key = ? AND a.soft_delete = ? ORDER BY a.created_at DESC',
-        [1, 2, '', '']);
+        'WHERE a.payment_status = ? AND a.payment_split != ? AND a.soft_delete = ? ORDER BY a.created_at DESC',
+        [1, 2, '']);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  read all paid order by date
+*/
+  Future<List<Order>> readAllPaidOrderByDate(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.payment_type_id FROM $tableOrder AS a '
+            'LEFT JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id WHERE a.payment_status = ? AND a.payment_split != ? '
+            'AND a.soft_delete = ? AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) <= ? ORDER BY a.created_at DESC',
+        [1, 2, '', date1, date2]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
@@ -5056,8 +5141,8 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.created_at, a.type, a.user_id, a.amount, a.remark, a.payment_name, b.name AS name, c.name AS payment_method  FROM $tableCashRecord AS a JOIN $tableUser AS b on a.user_id = b.user_id '
-            'JOIN $tablePaymentLinkCompany AS c on a.payment_type_id = c.payment_type_id '
-            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ?',
+            'LEFT JOIN $tablePaymentLinkCompany AS c on a.payment_type_id = c.payment_type_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND (c.soft_delete = ? OR c.soft_delete IS NULL) AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ?',
         ['', '', '', date1, date2]);
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }
@@ -5676,6 +5761,21 @@ class PosDatabase {
         'JOIN $tableRefund AS c ON a.refund_key = c.refund_key '
         'WHERE a.payment_status = ? AND a.refund_key != ? AND a.settlement_key = ? AND a.soft_delete = ? AND c.soft_delete = ? ORDER BY a.created_at DESC',
         ['', 2, '', '', '', '']);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  read all refund order by date
+*/
+  Future<List<Order>> readAllNotSettlementRefundOrderByDate(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.payment_type_id, c.refund_by AS refund_name, c.created_at AS refund_at FROM $tableOrder AS a '
+            'LEFT JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id AND b.soft_delete = ? '
+            'JOIN $tableRefund AS c ON a.refund_key = c.refund_key '
+            'WHERE a.payment_status = ? AND a.refund_key != ? AND a.soft_delete = ? AND c.soft_delete = ? '
+            'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) <= ? ORDER BY a.created_at DESC',
+        ['', 2, '', '', '', date1, date2]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
@@ -6882,6 +6982,14 @@ class PosDatabase {
   }
 
 /*
+  update settlement after all order paid Setting
+*/
+  Future<int> updateSettlementAfterAllOrderPaidSetting(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET settlement_after_all_order_paid = ?, sync_status = ?, updated_at = ?', [data.settlement_after_all_order_paid, 2, data.updated_at]);
+  }
+
+/*
   update show product description  Setting
 */
   Future<int> updateShowProDescSettings(AppSetting data) async {
@@ -6999,8 +7107,8 @@ class PosDatabase {
   Future<int> updatePrinter(Printer data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tablePrinter SET printer_label = ?, paper_size = ?, type = ?, value = ?, printer_status = ?, is_counter = ?, is_label = ?, sync_status = ?, updated_at = ? WHERE printer_sqlite_id = ?',
-        [data.printer_label, data.paper_size, data.type, data.value, data.printer_status, data.is_counter, data.is_label, data.sync_status, data.updated_at, data.printer_sqlite_id]);
+        'UPDATE $tablePrinter SET printer_label = ?, paper_size = ?, type = ?, value = ?, printer_status = ?, is_counter = ?, is_kitchen_checklist = ?, is_label = ?, sync_status = ?, updated_at = ? WHERE printer_sqlite_id = ?',
+        [data.printer_label, data.paper_size, data.type, data.value, data.printer_status, data.is_counter, data.is_kitchen_checklist, data.is_label, data.sync_status, data.updated_at, data.printer_sqlite_id]);
   }
 
 /*
@@ -7156,7 +7264,7 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableReceipt SET header_image = ?, header_image_status = ?, '
         'header_text = ?, header_text_status = ?, header_font_size = ?, show_address = ?, show_email = ?, '
-        'receipt_email = ?, footer_image = ?, footer_image_status = ?, footer_text = ?, footer_text_status = ?, '
+        'receipt_email = ?, show_break_down_price = ?, footer_image = ?, footer_image_status = ?, footer_text = ?, footer_text_status = ?, '
         'promotion_detail_status = ?, show_product_sku = ?, show_branch_tel = ?, show_register_no = ?, '
         'sync_status = ?, updated_at = ? WHERE receipt_sqlite_id = ?',
         [
@@ -7168,6 +7276,7 @@ class PosDatabase {
           data.show_address,
           data.show_email,
           data.receipt_email,
+          data.show_break_down_price,
           data.footer_image,
           data.footer_image_status,
           data.footer_text,
@@ -7223,9 +7332,10 @@ class PosDatabase {
 */
   Future<int> updateKitchenList(KitchenList data) async {
     final db = await instance.database;
-    return await db.rawUpdate("UPDATE $tableKitchenList SET updated_at = ?, sync_status = ?, show_product_sku = ?, kitchen_list_item_separator = ?, print_combine_kitchen_list = ?, "
-        "kitchen_list_show_price = ?, product_name_font_size = ?, other_font_size = ? WHERE kitchen_list_sqlite_id = ?",
-        [data.updated_at, data.sync_status, data.show_product_sku, data.kitchen_list_item_separator, data.print_combine_kitchen_list, data.kitchen_list_show_price, data.product_name_font_size, data.other_font_size, data.kitchen_list_sqlite_id]);
+    return await db.rawUpdate("UPDATE $tableKitchenList SET updated_at = ?, sync_status = ?, show_product_sku = ?, kitchen_list_show_total_amount = ?, kitchen_list_item_separator = ?, "
+        "print_combine_kitchen_list = ?, kitchen_list_show_price = ?, product_name_font_size = ?, other_font_size = ? WHERE kitchen_list_sqlite_id = ?",
+        [data.updated_at, data.sync_status, data.show_product_sku, data.kitchen_list_show_total_amount, data.kitchen_list_item_separator, data.print_combine_kitchen_list, data.kitchen_list_show_price,
+          data.product_name_font_size, data.other_font_size, data.kitchen_list_sqlite_id]);
   }
 
 /*

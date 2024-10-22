@@ -142,7 +142,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                               },
                               obscureText: true,
                               controller: adminPosPinController,
-                              keyboardType: TextInputType.number,
+                              keyboardType: TextInputType.numberWithOptions(decimal: true),
                               decoration: InputDecoration(
                                 errorText: _submitted
                                     ? errorPassword == null
