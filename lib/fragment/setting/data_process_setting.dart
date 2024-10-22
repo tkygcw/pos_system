@@ -1,10 +1,8 @@
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
-import 'package:pos_system/firebase_sync/sync_to_firebase.dart';
 import 'package:pos_system/fragment/setting/sync_dialog.dart';
 import 'package:pos_system/fragment/setting/system_log_dialog.dart';
 import 'package:pos_system/notifier/theme_color.dart';
@@ -70,14 +68,14 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
                 title: Text(AppLocalizations.of(context)!.translate('sync')),
                 trailing: Icon(Icons.sync),
                 onTap: () async {
-                  openSyncDialog();
+                  openSyncDialog(SyncType.sync);
                 },
               ),
               ListTile(
                 title: Text(AppLocalizations.of(context)!.translate('sync_to_firestore')),
                 trailing: Icon(Icons.sync_alt),
                 onTap: () {
-                  SyncToFirebase.instance.sync();
+                  openSyncDialog(SyncType.firestore_sync);
                 },
               ),
               ListTile(
@@ -510,7 +508,7 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
         });
   }
 
-  Future<Future<Object?>> openSyncDialog() async {
+  Future<Future<Object?>> openSyncDialog(SyncType syncType) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -519,7 +517,7 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: SyncDialog(),
+              child: SyncDialog(syncType: syncType),
             ),
           );
         },

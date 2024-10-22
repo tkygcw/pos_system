@@ -46,24 +46,27 @@ class SyncToFirebase {
     isBranchExisted = true;
   }
 
-  sync(){
-    syncVariantItem();
-    syncVariantGroup();
-    syncPosTable();
-    syncProductVariantDetail();
-    syncProductVariant();
-    syncProduct();
-    syncModifierLinkProduct();
-    syncModifierItem();
-    syncModifierGroup();
-    syncDiningOption();
-    syncCategories();
-    syncBranchLinkTax();
-    syncBranchLinkPromotion();
-    syncBranchLinkProduct();
-    syncBranchLinkModifier();
-    syncBranchLinkDiningOption();
-    syncBranch();
+  sync() async {
+    Branch? data = await PosDatabase.instance.readLocalBranch();
+    if(data != null && data.qr_order_status == '0'){
+      syncVariantItem();
+      syncVariantGroup();
+      syncPosTable();
+      syncProductVariantDetail();
+      syncProductVariant();
+      syncProduct();
+      syncModifierLinkProduct();
+      syncModifierItem();
+      syncModifierGroup();
+      syncDiningOption();
+      syncCategories();
+      syncBranchLinkTax();
+      syncBranchLinkPromotion();
+      syncBranchLinkProduct();
+      syncBranchLinkModifier();
+      syncBranchLinkDiningOption();
+      syncBranch();
+    }
   }
 
   syncBranch() async {
