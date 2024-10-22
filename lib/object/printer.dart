@@ -14,6 +14,7 @@ class PrinterFields {
     paper_size,
     printer_status,
     is_counter,
+    is_kitchen_checklist,
     is_label,
     sync_status,
     created_at,
@@ -33,6 +34,7 @@ class PrinterFields {
   static String paper_size = 'paper_size';
   static String printer_status = 'printer_status';
   static String is_counter = 'is_counter';
+  static String is_kitchen_checklist = 'is_kitchen_checklist';
   static String is_label = 'is_label';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
@@ -53,6 +55,7 @@ class Printer {
   int? paper_size;
   int? printer_status;
   int? is_counter;
+  int? is_kitchen_checklist;
   int? is_label;
   int? sync_status;
   String? created_at;
@@ -72,6 +75,7 @@ class Printer {
       this.paper_size,
       this.printer_status,
       this.is_counter,
+      this.is_kitchen_checklist,
       this.is_label,
       this.sync_status,
       this.created_at,
@@ -91,6 +95,7 @@ class Printer {
     int? paper_size,
     int? printer_status,
     int? is_counter,
+    int? is_kitchen_checklist,
     int? is_label,
     int? sync_status,
     String? created_at,
@@ -110,6 +115,7 @@ class Printer {
         paper_size: paper_size ?? this.paper_size,
         printer_status: printer_status ?? this.printer_status,
         is_counter: is_counter ?? this.is_counter,
+        is_kitchen_checklist: is_kitchen_checklist ?? this.is_kitchen_checklist,
         is_label: is_label ?? this.is_label,
         sync_status: sync_status ?? this.sync_status,
         created_at: created_at ?? this.created_at,
@@ -129,6 +135,7 @@ class Printer {
     paper_size: json[PrinterFields.paper_size] as int?,
     printer_status: json[PrinterFields.printer_status] as int?,
     is_counter: json[PrinterFields.is_counter] as int?,
+    is_kitchen_checklist: json[PrinterFields.is_kitchen_checklist] as int?,
     is_label: json[PrinterFields.is_label] as int?,
     sync_status: json[PrinterFields.sync_status] as int?,
     created_at: json[PrinterFields.created_at] as String?,
@@ -149,6 +156,7 @@ class Printer {
     PrinterFields.paper_size: paper_size,
     PrinterFields.printer_status: printer_status,
     PrinterFields.is_counter: is_counter,
+    PrinterFields.is_kitchen_checklist: is_kitchen_checklist,
     PrinterFields.is_label: is_label,
     PrinterFields.sync_status: sync_status,
     PrinterFields.created_at: created_at,

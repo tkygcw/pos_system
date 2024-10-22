@@ -320,7 +320,7 @@ class _AttendanceDialogState extends State<AttendanceDialog> {
                               },
                               obscureText: _obscureText,
                               controller: adminPosPinController,
-                              keyboardType: TextInputType.number,
+                              keyboardType: TextInputType.numberWithOptions(decimal: true),
                               decoration: InputDecoration(
                                 errorText: _submitted
                                     ? errorPassword == null

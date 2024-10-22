@@ -151,7 +151,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                                 },
                                 obscureText: true,
                                 controller: adminPosPinController,
-                                keyboardType: TextInputType.number,
+                                keyboardType: TextInputType.numberWithOptions(decimal: true),
                                 decoration: InputDecoration(
                                   errorText: _submitted
                                       ? errorPassword == null
@@ -306,7 +306,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                               child: TextField(
                                 autofocus: widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? true : false,
                                 controller: quantityController,
-                                keyboardType: TextInputType.number,
+                                keyboardType: TextInputType.numberWithOptions(decimal: true),
                                 inputFormatters: widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))]
                                     : <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
                                 textAlign: TextAlign.center,

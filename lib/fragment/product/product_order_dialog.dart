@@ -334,7 +334,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                   child: TextField(
                                                     autofocus: true,
                                                     controller: priceController,
-                                                    keyboardType: TextInputType.number,
+                                                    keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                     inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                     textAlign: TextAlign.center,
                                                     decoration: InputDecoration(
@@ -420,7 +420,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                 child: TextField(
                                                   autofocus: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? true : false,
                                                   controller: quantityController,
-                                                  keyboardType: TextInputType.number,
+                                                  keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                   inputFormatters: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))]
                                                       : <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
                                                   textAlign: TextAlign.center,
@@ -766,7 +766,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                   child: TextField(
                                                     autofocus: true,
                                                     controller: priceController,
-                                                    keyboardType: TextInputType.number,
+                                                    keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                     inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                     textAlign: TextAlign.center,
                                                     decoration: InputDecoration(
@@ -857,7 +857,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                   child: TextField(
                                                     autofocus: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? true : false,
                                                     controller: quantityController,
-                                                    keyboardType: TextInputType.number,
+                                                    keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                     inputFormatters: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))]
                                                         : <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
                                                     textAlign: TextAlign.center,

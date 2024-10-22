@@ -14,6 +14,7 @@ class ReceiptFields {
     show_address,
     show_email,
     receipt_email,
+    show_break_down_price,
     footer_image,
     footer_image_status,
     footer_text,
@@ -42,6 +43,7 @@ class ReceiptFields {
   static String show_address = 'show_address';
   static String show_email = 'show_email';
   static String receipt_email = 'receipt_email';
+  static String show_break_down_price = 'show_break_down_price';
   static String footer_image = 'footer_image';
   static String footer_image_status = 'footer_image_status';
   static String footer_text = 'footer_text';
@@ -72,6 +74,7 @@ class Receipt {
   int? show_address;
   int? show_email;
   String? receipt_email;
+  int? show_break_down_price;
   String? footer_image;
   int? footer_image_status;
   String? footer_text;
@@ -100,6 +103,7 @@ class Receipt {
         this.show_address,
         this.show_email,
         this.receipt_email,
+        this.show_break_down_price,
         this.footer_image,
         this.footer_image_status,
         this.footer_text,
@@ -128,6 +132,7 @@ class Receipt {
     int? show_address,
     int? show_email,
     String? receipt_email,
+    int? show_break_down_price,
     String? footer_image,
     int? footer_image_status,
     String? footer_text,
@@ -156,6 +161,7 @@ class Receipt {
           show_address: show_address ?? this.show_address,
           show_email: show_email ?? this.show_email,
           receipt_email: receipt_email ?? this.receipt_email,
+          show_break_down_price: show_break_down_price ?? this.show_break_down_price,
           footer_image: footer_image ?? this.footer_image,
           footer_image_status: footer_image_status ?? this.footer_image_status,
           footer_text: footer_text ?? this.footer_text,
@@ -184,6 +190,7 @@ class Receipt {
     show_address: json[ReceiptFields.show_address] as int?,
     show_email: json[ReceiptFields.show_email] as int?,
     receipt_email: json[ReceiptFields.receipt_email] as String?,
+    show_break_down_price: json[ReceiptFields.show_break_down_price] as int?,
     footer_image: json[ReceiptFields.footer_image] as String?,
     footer_image_status: json[ReceiptFields.footer_image_status] as int?,
     footer_text: json[ReceiptFields.footer_text] as String?,

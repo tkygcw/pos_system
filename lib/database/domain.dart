@@ -297,6 +297,7 @@ class Domain {
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
+      print("getAllOrderPaymentSplit error: ${error}");
     }
   }
 

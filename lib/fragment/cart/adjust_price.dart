@@ -127,7 +127,7 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
                                 },
                                 obscureText: true,
                                 controller: adminPosPinController,
-                                keyboardType: TextInputType.number,
+                                keyboardType: TextInputType.numberWithOptions(decimal: true),
                                 decoration: InputDecoration(
                                   errorText: _submitted
                                       ? errorPassword == null
@@ -229,7 +229,7 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
                         child: TextField(
                           autofocus: false,
                           controller: priceController,
-                          keyboardType: TextInputType.number,
+                          keyboardType: TextInputType.numberWithOptions(decimal: true),
                           inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                           textAlign: TextAlign.center,
                           decoration: InputDecoration(

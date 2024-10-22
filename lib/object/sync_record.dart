@@ -90,10 +90,10 @@ class SyncRecord {
       }
       return status;
     }on TimeoutException catch(_){
-      print('sync record 15 timeout');
+      print('sync subscription timeout');
       return 2;
     }catch(e){
-      print("sync record 15 error: $e");
+      print("sync subscription error: $e");
       return 3;
     }
   }

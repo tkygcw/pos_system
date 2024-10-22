@@ -714,7 +714,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                 fontSize = 20.0;
                 actionController.sink.add("switch");
               },
-              title: Text(AppLocalizations.of(context)!.translate('big')),
+              title: Text(AppLocalizations.of(context)!.translate('medium')),
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
@@ -740,7 +740,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                 otherFontSize = 20.0;
                 actionController.sink.add("switch");
               },
-              title: Text(AppLocalizations.of(context)!.translate('big')),
+              title: Text(AppLocalizations.of(context)!.translate('medium')),
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
@@ -968,7 +968,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                 fontSize = 20.0;
                 actionController.sink.add("switch");
               },
-              title: Text(AppLocalizations.of(context)!.translate('big')),
+              title: Text(AppLocalizations.of(context)!.translate('medium')),
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
@@ -994,7 +994,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                 otherFontSize = 20.0;
                 actionController.sink.add("switch");
               },
-              title: Text(AppLocalizations.of(context)!.translate('big')),
+              title: Text(AppLocalizations.of(context)!.translate('medium')),
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
@@ -1068,7 +1068,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
           fontSize = 20.0;
           actionController.sink.add("switch");
         },
-        title: Text(AppLocalizations.of(context)!.translate('big')),
+        title: Text(AppLocalizations.of(context)!.translate('medium')),
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
@@ -1094,7 +1094,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
           otherFontSize = 20.0;
           actionController.sink.add("switch");
         },
-        title: Text(AppLocalizations.of(context)!.translate('big')),
+        title: Text(AppLocalizations.of(context)!.translate('medium')),
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
@@ -1165,7 +1165,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
           fontSize = 20.0;
           actionController.sink.add("switch");
         },
-        title: Text(AppLocalizations.of(context)!.translate('big')),
+        title: Text(AppLocalizations.of(context)!.translate('medium')),
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
@@ -1191,7 +1191,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
           otherFontSize = 20.0;
           actionController.sink.add("switch");
         },
-        title: Text(AppLocalizations.of(context)!.translate('big')),
+        title: Text(AppLocalizations.of(context)!.translate('medium')),
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(

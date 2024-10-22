@@ -7,6 +7,8 @@ import 'package:esc_pos_printer/esc_pos_printer.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:pos_system/fragment/dynamic_qr/dynamic_qr_layout.dart';
 import 'package:pos_system/object/dynamic_qr.dart';
+import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../database/pos_database.dart';
 import '../../../object/printer.dart';
@@ -42,7 +44,7 @@ class PrintDynamicQr {
                 await flutterUsbPrinter.write(data);
               }
             }
-          } else {
+          } else if(printers.type == 1) {
             if(printers.paper_size == 0){
               final profile = await CapabilityProfile.load();
               final printer = NetworkPrinter(PaperSize.mm80, profile);
@@ -58,6 +60,19 @@ class PrintDynamicQr {
               if (res == PosPrintResult.success) {
                 await layout.print58mmFormat(false, value: printer, posTable: table);
                 printer.disconnect();
+              }
+            }
+          } else {
+            bool res = await bluetoothPrinterConnect(printerDetail);
+            if(printers.paper_size == 0){
+              if (res) {
+                var data = Uint8List.fromList(await layout.print80mmFormat(true, posTable: table));
+                await PrintBluetoothThermal.writeBytes(data.toList());
+              }
+            } else {
+              if (res) {
+                var data = Uint8List.fromList(await layout.print58mmFormat(true, posTable: table));
+                await PrintBluetoothThermal.writeBytes(data.toList());
               }
             }
           }
@@ -112,5 +127,29 @@ class PrintDynamicQr {
         }
       }
     }
+  }
+
+  static Future<bool> bluetoothPrinterConnect(String mac) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? lastBtConnection = prefs.getString('lastBtConnection');
+    bool result = false;
+    bool connectionStatus = await PrintBluetoothThermal.connectionStatus;
+    if (connectionStatus) {
+      if (lastBtConnection != mac) {
+        await PrintBluetoothThermal.disconnect;
+        result = await PrintBluetoothThermal.connect(macPrinterAddress: mac);
+        if(result) {
+          await prefs.setString('lastBtConnection', mac);
+        }
+      } else {
+        result = true;
+      }
+    } else {
+      result = await PrintBluetoothThermal.connect(macPrinterAddress: mac);
+      if(result) {
+        await prefs.setString('lastBtConnection', mac);
+      }
+    }
+    return result;
   }
 }

@@ -2035,11 +2035,6 @@ class CartPageState extends State<CartPage> {
     try {
       paymentSplitList = [];
       paymentSplitAmount = 0.0;
-      if(paymentSplitList.isEmpty) {
-        print("paymentSplitList empty");
-      } else {
-        print("paymentSplitList is not empty");
-      }
       print("Cart item: ${cart.cartNotifierItem.length}");
       if(cart.cartNotifierItem.length != 0) {
         if(orderKey != '') {
@@ -2222,11 +2217,21 @@ class CartPageState extends State<CartPage> {
               child: PaymentSelect(
                   dining_id: diningOptionID.toString(),
                   dining_name: cart.selectedOption,
-                  callBack: () {
+                  order_key: orderKey,
+                  callBack: (orderKeyValue) async {
                     if (this.widget.currentPage == "menu" || this.widget.currentPage == 'bill') {
                       cart.removeAllCartItem();
                       cart.removeAllTable();
                     }
+                    if(orderKeyValue != '') {
+                      cart.cartNotifierItem.forEach((element) {
+                        element.order_key = orderKeyValue;
+                      });
+                      await getSubTotal(cart);
+                      await paymentAddToCart(cart);
+                      print("final amount: $finalAmount");
+                    }
+
                   }),
             ),
           );
@@ -2640,11 +2645,8 @@ class CartPageState extends State<CartPage> {
 
   checkDirectPayment(AppSettingModel appSettingModel, cart) {
     if (appSettingModel.directPaymentStatus == true) {
-      print("11");
       paymentAddToCart(cart);
-      print("22");
       updateCartItem(cart);
-      print("33");
       openPaymentSelect(cart);
     } else {
       cart.removeAllCartItem();

@@ -39,7 +39,8 @@ class _OrderSettingState extends State<OrderSetting> {
   // List<AppSetting> appSettingList = [];
   Receipt? receiptObject;
   bool printCheckList = false, enableNumbering = false, printReceipt = false, hasQrAccess = true, printCancelReceipt = true,
-      directPayment = false, qrOrderAutoAccept = false, cashDrawer = false, secondDisplay = false, invalidAfterPayment = true;
+      directPayment = false, qrOrderAutoAccept = false, cashDrawer = false, secondDisplay = false, invalidAfterPayment = true,
+      settlementAfterAllOrderPaid = false;
   int startingNumber = 0, compareStartingNumber = 0;
   final List<String> tableModeOption = [
     'table_mode_no_table',
@@ -83,6 +84,11 @@ class _OrderSettingState extends State<OrderSetting> {
         break;
         case 'invalid_after_payment':{
           await updateDynamicQrInvalidAfterPaymentAppSetting();
+          controller.refresh(streamController);
+        }
+        break;
+        case 'settlement_after_all_order_paid':{
+          await updateSettlementAfterAllOrderPaidAppSetting();
           controller.refresh(streamController);
         }
         break;
@@ -161,6 +167,12 @@ class _OrderSettingState extends State<OrderSetting> {
       if(appSetting.dynamic_qr_invalid_after_payment == 0){
         invalidAfterPayment = false;
       }
+
+      if(appSetting.settlement_after_all_order_paid == 1){
+        this.settlementAfterAllOrderPaid = true;
+      } else {
+        this.settlementAfterAllOrderPaid = false;
+      }
     }
   }
 
@@ -220,7 +232,7 @@ class _OrderSettingState extends State<OrderSetting> {
                             child: TextField(
                                 autofocus: true,
                                 controller: orderNumberController,
-                                keyboardType: TextInputType.number,
+                                keyboardType: TextInputType.numberWithOptions(decimal: true),
                                 inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
                                 textAlign: TextAlign.center,
                                 decoration: InputDecoration(
@@ -558,6 +570,26 @@ class _OrderSettingState extends State<OrderSetting> {
                                 openAdjustHourDialog(appSettingModel);
                               } : null
                           ),
+                          // Divider(
+                          //   color: Colors.grey,
+                          //   height: 1,
+                          //   thickness: 1,
+                          //   indent: 20,
+                          //   endIndent: 20,
+                          // ),
+                          // ListTile(
+                          //   title: Text(AppLocalizations.of(context)!.translate('settlement_after_all_order_paid')),
+                          //   subtitle: Text(AppLocalizations.of(context)!.translate('settlement_after_all_order_paid_desc')),
+                          //   trailing: Switch(
+                          //     value: settlementAfterAllOrderPaid,
+                          //     activeColor: color.backgroundColor,
+                          //     onChanged: (value) {
+                          //       settlementAfterAllOrderPaid = value;
+                          //       appSettingModel.setSettlementAfterAllOrderPaidStatus(settlementAfterAllOrderPaid);
+                          //       actionController.sink.add("settlement_after_all_order_paid");
+                          //     },
+                          //   ),
+                          // ),
                         ],
                       ),
                     );
@@ -656,6 +688,17 @@ class _OrderSettingState extends State<OrderSetting> {
         updated_at: dateTime
     );
     await PosDatabase.instance.updateDynamicQrInvalidAfterPaymentSetting(object);
+  }
+
+  updateSettlementAfterAllOrderPaidAppSetting() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    AppSetting object = AppSetting(
+        settlement_after_all_order_paid: this.settlementAfterAllOrderPaid == true ? 1 : 0,
+        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
+        updated_at: dateTime
+    );
+    await PosDatabase.instance.updateSettlementAfterAllOrderPaidSetting(object);
   }
 
   Future<bool> anyTableUse() async {

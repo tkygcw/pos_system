@@ -19,6 +19,7 @@ import 'package:pos_system/object/subscription.dart';
 import 'package:pos_system/object/transfer_owner.dart';
 import 'package:pos_system/page/home.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
+import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:provider/provider.dart';
 import 'package:custom_pin_screen/custom_pin_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -240,7 +241,6 @@ class _PosPinPageState extends State<PosPinPage> {
         isGms = GmsCheck().isGmsAvailable ? 1 : 0;
       }
 
-      print("isGmsAvailable: $isGms");
       CurrentVersion? item = await PosDatabase.instance.readCurrentVersion();
       if(item == null){
         CurrentVersion object = CurrentVersion(
@@ -622,6 +622,7 @@ class _PosPinPageState extends State<PosPinPage> {
         }
       } else {
         await testPrintAllUsbPrinter();
+        await bluetoothPrinterConnect();
       }
     }
   }
@@ -629,6 +630,22 @@ class _PosPinPageState extends State<PosPinPage> {
   testPrintAllUsbPrinter() async {
     List<Printer> usbPrinter = printerList.where((item) => item.type == 0).toList();
     await printReceipt.selfTest(usbPrinter);
+  }
+
+  bluetoothPrinterConnect() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? lastBtConnection = prefs.getString('lastBtConnection');
+
+    bool bluetoothIsOn = await PrintBluetoothThermal.bluetoothEnabled;
+    if(bluetoothIsOn) {
+      bool connectionStatus = await PrintBluetoothThermal.connectionStatus;
+      if (!connectionStatus && lastBtConnection != null) {
+        bool result = await PrintBluetoothThermal.connect(macPrinterAddress: lastBtConnection);
+        if(result) {
+          await prefs.setString('lastBtConnection', lastBtConnection);
+        }
+      }
+    }
   }
 
   @override
