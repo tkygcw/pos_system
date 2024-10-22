@@ -119,6 +119,8 @@ PODS:
     - PhoneNumberKit/PhoneNumberKitCore
   - presentation_displays (0.0.1):
     - Flutter
+  - print_bluetooth_thermal (0.0.1):
+    - Flutter
   - printing (1.0.0):
     - Flutter
   - PromisesObjC (2.4.0)
@@ -162,6 +164,7 @@ DEPENDENCIES:
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - presentation_displays (from `.symlinks/plugins/presentation_displays/ios`)
+  - print_bluetooth_thermal (from `.symlinks/plugins/print_bluetooth_thermal/ios`)
   - printing (from `.symlinks/plugins/printing/ios`)
   - qr_code_scanner (from `.symlinks/plugins/qr_code_scanner/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
@@ -232,6 +235,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
   presentation_displays:
     :path: ".symlinks/plugins/presentation_displays/ios"
+  print_bluetooth_thermal:
+    :path: ".symlinks/plugins/print_bluetooth_thermal/ios"
   printing:
     :path: ".symlinks/plugins/printing/ios"
   qr_code_scanner:
@@ -279,6 +284,7 @@ SPEC CHECKSUMS:
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   PhoneNumberKit: ced55861269312a5e3bc2ef82a58d6255b1c976a
   presentation_displays: 02a9b05f708afe31d23564988f285b4d8019ddcd
+  print_bluetooth_thermal: 54a9ba9436479dd633d18f393669ee793ee498fa
   printing: 233e1b73bd1f4a05615548e9b5a324c98588640b
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   qr_code_scanner: bb67d64904c3b9658ada8c402e8b4d406d5d796e

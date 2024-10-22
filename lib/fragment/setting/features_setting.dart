@@ -328,6 +328,14 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                             },
                           ),
                           ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('bluetooth_setting')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('bluetooth_setting_desc')),
+                            trailing: Icon(Icons.bluetooth),
+                            onTap: () {
+                              AppSettings.openAppSettings(type: AppSettingsType.bluetooth);
+                            },
+                          ),
+                          ListTile(
                             title: Text(AppLocalizations.of(context)!.translate('app_notification_setting')),
                             subtitle: Text(AppLocalizations.of(context)!.translate('open_app_notification_setting')),
                             trailing: Icon(Icons.notifications_on),

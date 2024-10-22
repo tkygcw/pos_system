@@ -129,7 +129,7 @@ class _RefundDialogState extends State<RefundDialog> {
                               obscureText: true,
                               inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
                               controller: adminPosPinController,
-                              keyboardType: TextInputType.number,
+                              keyboardType: TextInputType.numberWithOptions(decimal: true),
                               decoration: InputDecoration(
                                 errorText: _submitted
                                     ? errorPassword == null

@@ -13,7 +13,7 @@ class CombineKitchenListLayout extends ReceiptLayout {
 /*
   combine kitchen layout 80mm
 */
-  printCombinedKitchenList80mm(bool isUSB, int localId, {value, required List<OrderDetail> orderDetailList, bool? isReprint}) async {
+  printCombinedKitchenList80mm(bool isUSB, int localId, {value, required List<OrderDetail> orderDetailList, bool? isReprint, double? combineListTotal}) async {
     List<cartProductItem> cartItemList = [];
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
@@ -21,6 +21,11 @@ class CombineKitchenListLayout extends ReceiptLayout {
     if(kitchenListLayout == null){
       kitchenListLayout = kitchenListDefaultLayout;
     }
+    PosFontType productFontType = kitchenListLayout.product_name_font_size == 2 ? PosFontType.fontB : PosFontType.fontA;
+    PosFontType otherFontType = kitchenListLayout.other_font_size == 2 ? PosFontType.fontB : PosFontType.fontA;
+    PosTextSize productFontSize = kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2;
+    PosTextSize otherFontSize = kitchenListLayout.other_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2;
+
     await readOrderCache(localId);
 
     for (int i = 0; i < orderDetailList.length; i++) {
@@ -91,15 +96,17 @@ class CombineKitchenListLayout extends ReceiptLayout {
               styles: PosStyles(
                   align: PosAlign.left,
                   bold: true,
-                  height: kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
-                  width: kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
+                  fontType: productFontType,
+                  height: productFontSize,
+                  width: productFontSize)),
           PosColumn(
               text: '${getCartProductSKU(cartItemList[i], layout: kitchenListLayout)}${cartItemList[i].product_name}${kitchenListLayout.kitchen_list_show_price == 1 ? '(RM${(double.parse(cartItemList[i].price!) * cartItemList[i].quantity!).toStringAsFixed(2)})' : '' }',
               width: 10, containsChinese: true,
               styles: PosStyles(
                   align: PosAlign.left,
-                  height: kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
-                  width: kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2))
+                  fontType: productFontType,
+                  height: productFontSize,
+                  width: productFontSize))
         ]);
         bytes += generator.reset();
         //product variant
@@ -112,8 +119,9 @@ class CombineKitchenListLayout extends ReceiptLayout {
                 containsChinese: true,
                 styles: PosStyles(
                     align: PosAlign.left,
-                    height: kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                    width: kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+                    fontType: otherFontType,
+                    height: otherFontSize,
+                    width: otherFontSize)),
           ]);
         }
         bytes += generator.reset();
@@ -126,8 +134,9 @@ class CombineKitchenListLayout extends ReceiptLayout {
               PosColumn(text: '+${cartItemList[i].orderModifierDetail![j].mod_name}', containsChinese: true, width: 10,
                   styles: PosStyles(
                       align: PosAlign.left,
-                      height: kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                      width: kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+                      fontType: otherFontType,
+                      height: otherFontSize,
+                      width: otherFontSize)),
             ]);
           }
         }
@@ -142,12 +151,26 @@ class CombineKitchenListLayout extends ReceiptLayout {
                 text: '**${cartItemList[i].remark}', width: 8, containsChinese: true,
                 styles: PosStyles(
                     align: PosAlign.left,
-                    height: kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                    width: PosTextSize.size2)),
+                    fontType: otherFontType,
+                    height: otherFontSize,
+                    width: otherFontSize)),
             PosColumn(text: '', width: 2),
           ]);
         }
         bytes += generator.emptyLines(1);
+      }
+
+      if(combineListTotal != null) {
+        bytes += generator.reset();
+        bytes += generator.emptyLines(1);
+        bytes += generator.text('Total: RM ${combineListTotal.toStringAsFixed(2)}',
+            styles: PosStyles(
+                align: PosAlign.right,
+                fontType: productFontType,
+                height: productFontSize,
+                width: productFontSize
+            )
+        );
       }
 
       bytes += generator.feed(1);
@@ -162,7 +185,7 @@ class CombineKitchenListLayout extends ReceiptLayout {
 /*
   combine kitchen layout 58mm
 */
-  printCombinedKitchenList58mm(bool isUSB, int localId, {value, required List<OrderDetail> orderDetailList, bool? isReprint}) async {
+  printCombinedKitchenList58mm(bool isUSB, int localId, {value, required List<OrderDetail> orderDetailList, bool? isReprint, double? combineListTotal}) async {
     List<cartProductItem> cartItemList = [];
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
@@ -170,6 +193,11 @@ class CombineKitchenListLayout extends ReceiptLayout {
     if(kitchenListLayout == null){
       kitchenListLayout = kitchenListDefaultLayout;
     }
+    PosFontType productFontType = kitchenListLayout.product_name_font_size == 2 ? PosFontType.fontB : PosFontType.fontA;
+    PosFontType otherFontType = kitchenListLayout.other_font_size == 2 ? PosFontType.fontB : PosFontType.fontA;
+    PosTextSize productFontSize = kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2;
+    PosTextSize otherFontSize = kitchenListLayout.other_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2;
+
     await readOrderCache(localId);
 
     for (int i = 0; i < orderDetailList.length; i++) {
@@ -241,15 +269,17 @@ class CombineKitchenListLayout extends ReceiptLayout {
               styles: PosStyles(
                   align: PosAlign.left,
                   bold: true,
-                  height: kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
-                  width: kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
+                  fontType: productFontType,
+                  height: productFontSize,
+                  width: productFontSize)),
           PosColumn(
               text: '${getCartProductSKU(cartItemList[i], layout: kitchenListLayout)}${cartItemList[i].product_name}${kitchenListLayout.kitchen_list_show_price == 1 ? '(RM${(double.parse(cartItemList[i].price!) * cartItemList[i].quantity!).toStringAsFixed(2)})' : '' }',
               width: 10, containsChinese: true,
               styles: PosStyles(
                   align: PosAlign.left,
-                  height: kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
-                  width: kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2))
+                  fontType: productFontType,
+                  height: productFontSize,
+                  width: productFontSize))
         ]);
         bytes += generator.reset();
         //product variant
@@ -262,8 +292,9 @@ class CombineKitchenListLayout extends ReceiptLayout {
                 containsChinese: true,
                 styles: PosStyles(
                     align: PosAlign.left,
-                    height: kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                    width: kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+                    fontType: otherFontType,
+                    height: otherFontSize,
+                    width: otherFontSize)),
           ]);
         }
         bytes += generator.reset();
@@ -276,8 +307,9 @@ class CombineKitchenListLayout extends ReceiptLayout {
               PosColumn(text: '+${cartItemList[i].orderModifierDetail![j].mod_name}', containsChinese: true, width: 10,
                   styles: PosStyles(
                       align: PosAlign.left,
-                      height: kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                      width: kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+                      fontType: otherFontType,
+                      height: otherFontSize,
+                      width: otherFontSize)),
             ]);
           }
         }
@@ -292,12 +324,26 @@ class CombineKitchenListLayout extends ReceiptLayout {
                 text: '**${cartItemList[i].remark}', width: 8, containsChinese: true,
                 styles: PosStyles(
                     align: PosAlign.left,
-                    height: kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                    width: PosTextSize.size2)),
+                    fontType: otherFontType,
+                    height: otherFontSize,
+                    width: otherFontSize)),
             PosColumn(text: '', width: 2),
           ]);
         }
         bytes += generator.emptyLines(1);
+      }
+
+      if(combineListTotal != null) {
+        bytes += generator.reset();
+        bytes += generator.emptyLines(1);
+        bytes += generator.text('Total: RM ${combineListTotal.toStringAsFixed(2)}',
+            styles: PosStyles(
+                align: PosAlign.right,
+                fontType: otherFontType,
+                height: otherFontSize,
+                width: otherFontSize
+            )
+        );
       }
 
       bytes += generator.feed(1);

@@ -41,7 +41,8 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
   String kitchen_listView = "80";
   String? kitchen_list_value;
   double? fontSize, otherFontSize;
-  bool isButtonDisabled = false, submitted = false, kitchenListShowPrice = false, printCombineKitchenList = false, kitchenListItemSeparator = false, showSKU = false;
+  bool isButtonDisabled = false, submitted = false, kitchenListShowPrice = false,
+      printCombineKitchenList = false, kitchenListItemSeparator = false, showSKU = false, kitchenListShowTotalPrice = false;
   List<Printer> kitchenPrinter = [];
 
   @override
@@ -85,16 +86,16 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
   getKitchenListSetting() async {
     try{
       KitchenList? data = await PosDatabase.instance.readSpecificKitchenList(kitchen_listView);
-      print("data: $data");
       if(data != null){
         kitchen_list = data;
-        productFontSize = data.product_name_font_size == 0 ? ReceiptDialogEnum.big : ReceiptDialogEnum.small;
-        fontSize = data.product_name_font_size == 0 ? 20 : 14;
-        variantAddonFontSize = data.other_font_size == 0 ? ReceiptDialogEnum.big : ReceiptDialogEnum.small;
-        otherFontSize = data.other_font_size == 0 ? 20 : 14;
+        productFontSize = data.product_name_font_size == 0 ? ReceiptDialogEnum.big : (data.product_name_font_size == 1 ? ReceiptDialogEnum.small : ReceiptDialogEnum.medium);
+        fontSize = data.product_name_font_size == 0 ? 20 : data.product_name_font_size == 1 ? 14 : 18;
+        variantAddonFontSize = data.other_font_size == 0 ? ReceiptDialogEnum.big : (data.other_font_size == 1 ? ReceiptDialogEnum.small : ReceiptDialogEnum.medium);
+        otherFontSize = data.other_font_size == 0 ? 20 : data.other_font_size == 1 ? 14 : 18;
         kitchenListShowPrice = data.kitchen_list_show_price == 0 ? false : true;
         printCombineKitchenList = data.print_combine_kitchen_list == 0 ? false : true;
         kitchenListItemSeparator = data.kitchen_list_item_separator == 0 ? false : true;
+        kitchenListShowTotalPrice = data.kitchen_list_show_total_amount == 0 ? false : true;
         showSKU = data.show_product_sku == 0 ? false : true;
       } else {
         kitchen_list = null;
@@ -105,6 +106,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         kitchenListShowPrice = false;
         printCombineKitchenList = false;
         kitchenListItemSeparator = false;
+        kitchenListShowTotalPrice = false;
         showSKU = false;
       }
     } catch(e){
@@ -378,11 +380,12 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
       KitchenList? checkData = await PosDatabase.instance.readSpecificKitchenListByKey(kitchen_list!.kitchen_list_key!);
       if(checkData != null){
         KitchenList data = KitchenList(
-          product_name_font_size: productFontSize == ReceiptDialogEnum.big ? 0 : 1,
-          other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : 1,
+          product_name_font_size: productFontSize == ReceiptDialogEnum.big ? 0 : (productFontSize == ReceiptDialogEnum.small ? 1 : 2),
+          other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : (variantAddonFontSize == ReceiptDialogEnum.small ? 1 : 2),
           kitchen_list_show_price: kitchenListShowPrice == true ? 1: 0,
           print_combine_kitchen_list: printCombineKitchenList == true ? 1: 0,
           kitchen_list_item_separator: kitchenListItemSeparator == true ? 1: 0,
+          kitchen_list_show_total_amount: kitchenListShowTotalPrice == true ? 1: 0,
           show_product_sku: showSKU ? 1 : 0,
           sync_status: checkData.sync_status == 0 ? 0 : 2,
           updated_at: dateTime,
@@ -423,6 +426,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         kitchen_list_show_price: kitchenListShowPrice == true ? 1 : 0,
         print_combine_kitchen_list: printCombineKitchenList == true ? 1 : 0,
         kitchen_list_item_separator: kitchenListItemSeparator == true ? 1 : 0,
+        kitchen_list_show_total_amount: kitchenListShowTotalPrice == true ? 1 : 0,
         show_product_sku: showSKU ? 1 : 0,
         sync_status: 0,
         created_at: dateTime,
@@ -482,11 +486,12 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
 
   testLayout(){
     testPrintLayout = KitchenList(
-        product_name_font_size: productFontSize == ReceiptDialogEnum.big ? 0 : 1,
-        other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : 1,
+        product_name_font_size: productFontSize == ReceiptDialogEnum.big ? 0 : (productFontSize == ReceiptDialogEnum.small ? 1 : 2),
+        other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : (variantAddonFontSize == ReceiptDialogEnum.small ? 1 : 2),
         kitchen_list_show_price: kitchenListShowPrice == true ? 1: 0,
         print_combine_kitchen_list: printCombineKitchenList == true ? 1: 0,
         kitchen_list_item_separator: kitchenListItemSeparator == true ? 1: 0,
+        kitchen_list_show_total_amount: kitchenListShowTotalPrice == true ? 1: 0,
         paper_size: kitchen_listView,
         show_product_sku: showSKU == true ? 1 : 0
     );
@@ -661,6 +666,18 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                             ),
                           ],
                         ),
+                        Visibility(
+                          visible: kitchenListShowTotalPrice,
+                          child: Padding(
+                            padding: EdgeInsets.only(top: 20, bottom: 10),
+                            child: Row(
+                              children: [
+                                Spacer(),
+                                Text("Total: RM 31.60", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                              ],
+                            ),
+                          ),
+                        ),
                         // Add more Rows as needed
                       ],
                     ),
@@ -692,6 +709,17 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              value: ReceiptDialogEnum.medium,
+              groupValue: productFontSize,
+              onChanged: (value) async  {
+                productFontSize = value;
+                fontSize = 18.0;
+                actionController.sink.add("switch");
+              },
+              title: Text(AppLocalizations.of(context)!.translate('medium')),
+              controlAffinity: ListTileControlAffinity.trailing,
+            ),
+            RadioListTile<ReceiptDialogEnum?>(
               value: ReceiptDialogEnum.small,
               groupValue: productFontSize,
               onChanged: (value) async  {
@@ -715,6 +743,17 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                 actionController.sink.add("switch");
               },
               title: Text(AppLocalizations.of(context)!.translate('big')),
+              controlAffinity: ListTileControlAffinity.trailing,
+            ),
+            RadioListTile<ReceiptDialogEnum?>(
+              value: ReceiptDialogEnum.medium,
+              groupValue: variantAddonFontSize,
+              onChanged: (value) async  {
+                variantAddonFontSize = value;
+                otherFontSize = 18.0;
+                actionController.sink.add("switch");
+              },
+              title: Text(AppLocalizations.of(context)!.translate('medium')),
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
@@ -755,6 +794,8 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                   if(!printCombineKitchenList){
                     if(kitchenListItemSeparator)
                       kitchenListItemSeparator = value;
+                    if(kitchenListShowTotalPrice)
+                      kitchenListShowTotalPrice = value;
                   }
                   actionController.sink.add("switch");
                 },
@@ -783,6 +824,28 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
               ),
             ),
             ListTile(
+              title: Text(AppLocalizations.of(context)!.translate('kitchen_list_show_total_amount'),
+                  style: TextStyle(
+                      color: !printCombineKitchenList ? Colors.grey : null)
+              ),
+              subtitle: Text(AppLocalizations.of(context)!.translate('kitchen_list_show_total_amount_desc'),
+                  style: TextStyle(
+                      color: !printCombineKitchenList ? Colors.grey : null)
+              ),
+              trailing: Switch(
+                value: kitchenListShowTotalPrice,
+                activeColor: color.backgroundColor,
+                onChanged: (value) async {
+                  if(!printCombineKitchenList) {
+                    Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('print_combine_kitchen_list_required'));
+                  } else {
+                    kitchenListShowTotalPrice = value;
+                    actionController.sink.add("switch");
+                  }
+                },
+              ),
+            ),
+            ListTile(
               title: Text(AppLocalizations.of(context)!.translate('show_product_sku')),
               subtitle: Text(AppLocalizations.of(context)!.translate('show_product_sku_desc')),
               trailing: Switch(
@@ -800,7 +863,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
     ],
   );
 
-  //50mm
+  //58mm
   Widget ReceiptView2(ThemeColor color) => Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -911,6 +974,18 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                             ),
                           ],
                         ),
+                        Visibility(
+                          visible: kitchenListShowTotalPrice,
+                          child: Padding(
+                            padding: EdgeInsets.only(top: 20, bottom: 10),
+                            child: Row(
+                              children: [
+                                Spacer(),
+                                Text("Total: RM 31.60", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                              ],
+                            ),
+                          ),
+                        ),
                         // Add more Rows as needed
                       ],
                     ),
@@ -942,6 +1017,17 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              value: ReceiptDialogEnum.medium,
+              groupValue: productFontSize,
+              onChanged: (value) async  {
+                productFontSize = value;
+                fontSize = 18.0;
+                actionController.sink.add("switch");
+              },
+              title: Text(AppLocalizations.of(context)!.translate('medium')),
+              controlAffinity: ListTileControlAffinity.trailing,
+            ),
+            RadioListTile<ReceiptDialogEnum?>(
               value: ReceiptDialogEnum.small,
               groupValue: productFontSize,
               onChanged: (value) async  {
@@ -965,6 +1051,17 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                 actionController.sink.add("switch");
               },
               title: Text(AppLocalizations.of(context)!.translate('big')),
+              controlAffinity: ListTileControlAffinity.trailing,
+            ),
+            RadioListTile<ReceiptDialogEnum?>(
+              value: ReceiptDialogEnum.medium,
+              groupValue: variantAddonFontSize,
+              onChanged: (value) async  {
+                variantAddonFontSize = value;
+                otherFontSize = 18.0;
+                actionController.sink.add("switch");
+              },
+              title: Text(AppLocalizations.of(context)!.translate('medium')),
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
@@ -1006,6 +1103,8 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                   if(!printCombineKitchenList){
                     if(kitchenListItemSeparator)
                       kitchenListItemSeparator = value;
+                    if(kitchenListShowTotalPrice)
+                      kitchenListShowTotalPrice = value;
                   }
                   actionController.sink.add("switch");
                 },
@@ -1028,6 +1127,28 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                     Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('print_combine_kitchen_list_required'));
                   } else {
                     kitchenListItemSeparator = value;
+                    actionController.sink.add("switch");
+                  }
+                },
+              ),
+            ),
+            ListTile(
+              title: Text(AppLocalizations.of(context)!.translate('kitchen_list_show_total_amount'),
+                  style: TextStyle(
+                      color: !printCombineKitchenList ? Colors.grey : null)
+              ),
+              subtitle: Text(AppLocalizations.of(context)!.translate('kitchen_list_show_total_amount_desc'),
+                  style: TextStyle(
+                      color: !printCombineKitchenList ? Colors.grey : null)
+              ),
+              trailing: Switch(
+                value: kitchenListShowTotalPrice,
+                activeColor: color.backgroundColor,
+                onChanged: (value) async {
+                  if(!printCombineKitchenList) {
+                    Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('print_combine_kitchen_list_required'));
+                  } else {
+                    kitchenListShowTotalPrice = value;
                     actionController.sink.add("switch");
                   }
                 },
@@ -1070,6 +1191,17 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        value: ReceiptDialogEnum.medium,
+        groupValue: productFontSize,
+        onChanged: (value) async  {
+          productFontSize = value;
+          fontSize = 18.0;
+          actionController.sink.add("switch");
+        },
+        title: Text(AppLocalizations.of(context)!.translate('medium')),
+        controlAffinity: ListTileControlAffinity.trailing,
+      ),
+      RadioListTile<ReceiptDialogEnum?>(
         value: ReceiptDialogEnum.small,
         groupValue: productFontSize,
         onChanged: (value) async  {
@@ -1093,6 +1225,17 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
           actionController.sink.add("switch");
         },
         title: Text(AppLocalizations.of(context)!.translate('big')),
+        controlAffinity: ListTileControlAffinity.trailing,
+      ),
+      RadioListTile<ReceiptDialogEnum?>(
+        value: ReceiptDialogEnum.medium,
+        groupValue: variantAddonFontSize,
+        onChanged: (value) async  {
+          variantAddonFontSize = value;
+          otherFontSize = 18.0;
+          actionController.sink.add("switch");
+        },
+        title: Text(AppLocalizations.of(context)!.translate('medium')),
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
@@ -1133,6 +1276,8 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
             if(!printCombineKitchenList){
               if(kitchenListItemSeparator)
                 kitchenListItemSeparator = value;
+              if(kitchenListShowTotalPrice)
+                kitchenListShowTotalPrice = value;
             }
             actionController.sink.add("switch");
           },
@@ -1161,6 +1306,28 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         ),
       ),
       ListTile(
+        title: Text(AppLocalizations.of(context)!.translate('kitchen_list_show_total_amount'),
+            style: TextStyle(
+                color: !printCombineKitchenList ? Colors.grey : null)
+        ),
+        subtitle: Text(AppLocalizations.of(context)!.translate('kitchen_list_show_total_amount_desc'),
+            style: TextStyle(
+                color: !printCombineKitchenList ? Colors.grey : null)
+        ),
+        trailing: Switch(
+          value: kitchenListShowTotalPrice,
+          activeColor: color.backgroundColor,
+          onChanged: (value) async {
+            if(!printCombineKitchenList) {
+              Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('print_combine_kitchen_list_required'));
+            } else {
+              kitchenListShowTotalPrice = value;
+              actionController.sink.add("switch");
+            }
+          },
+        ),
+      ),
+      ListTile(
         title: Text(AppLocalizations.of(context)!.translate('show_product_sku')),
         subtitle: Text(AppLocalizations.of(context)!.translate('show_product_sku_desc')),
         trailing: Switch(
@@ -1175,7 +1342,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
     ],
   );
 
-  //mobile layout 35mm
+  //mobile layout 58mm
   Widget mobileView2(ThemeColor color) => Column(
     children: [
       Container(
@@ -1191,6 +1358,17 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
           actionController.sink.add("switch");
         },
         title: Text(AppLocalizations.of(context)!.translate('big')),
+        controlAffinity: ListTileControlAffinity.trailing,
+      ),
+      RadioListTile<ReceiptDialogEnum?>(
+        value: ReceiptDialogEnum.medium,
+        groupValue: productFontSize,
+        onChanged: (value) async  {
+          productFontSize = value;
+          fontSize = 18.0;
+          actionController.sink.add("switch");
+        },
+        title: Text(AppLocalizations.of(context)!.translate('medium')),
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
@@ -1217,6 +1395,17 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
           actionController.sink.add("switch");
         },
         title: Text(AppLocalizations.of(context)!.translate('big')),
+        controlAffinity: ListTileControlAffinity.trailing,
+      ),
+      RadioListTile<ReceiptDialogEnum?>(
+        value: ReceiptDialogEnum.medium,
+        groupValue: variantAddonFontSize,
+        onChanged: (value) async  {
+          variantAddonFontSize = value;
+          otherFontSize = 18.0;
+          actionController.sink.add("switch");
+        },
+        title: Text(AppLocalizations.of(context)!.translate('medium')),
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
@@ -1257,6 +1446,8 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
             if(!printCombineKitchenList){
               if(kitchenListItemSeparator)
                 kitchenListItemSeparator = value;
+              if(kitchenListShowTotalPrice)
+                kitchenListShowTotalPrice = value;
             }
             actionController.sink.add("switch");
           },
@@ -1279,6 +1470,28 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
               Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('print_combine_kitchen_list_required'));
             } else {
               kitchenListItemSeparator = value;
+              actionController.sink.add("switch");
+            }
+          },
+        ),
+      ),
+      ListTile(
+        title: Text(AppLocalizations.of(context)!.translate('kitchen_list_show_total_amount'),
+            style: TextStyle(
+                color: !printCombineKitchenList ? Colors.grey : null)
+        ),
+        subtitle: Text(AppLocalizations.of(context)!.translate('kitchen_list_show_total_amount_desc'),
+            style: TextStyle(
+                color: !printCombineKitchenList ? Colors.grey : null)
+        ),
+        trailing: Switch(
+          value: kitchenListShowTotalPrice,
+          activeColor: color.backgroundColor,
+          onChanged: (value) async {
+            if(!printCombineKitchenList) {
+              Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('print_combine_kitchen_list_required'));
+            } else {
+              kitchenListShowTotalPrice = value;
               actionController.sink.add("switch");
             }
           },

@@ -338,7 +338,7 @@ class _TableDialogState extends State<TableDialog> {
                             padding: const EdgeInsets.all(8.0),
                             child: TextField(
                               controller: seatController,
-                              keyboardType: TextInputType.number,
+                              keyboardType: TextInputType.numberWithOptions(decimal: true),
                               inputFormatters: [
                                 FilteringTextInputFormatter.allow(
                                   RegExp(r'[0-9]'),

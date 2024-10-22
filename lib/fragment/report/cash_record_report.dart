@@ -173,7 +173,7 @@ class _CashRecordReportState extends State<CashRecordReport> {
                 DataCell(Text(cashRecord[i].userName!)),
                 DataCell(Text(cashRecord[i].remark!)),
                 DataCell(Text(formatAmount(cashRecord: cashRecord[i]))),
-                DataCell(Text(cashRecord[i].payment_method!)),
+                DataCell(Text(cashRecord[i].payment_method ?? '')),
               ],
             ),
           ]);

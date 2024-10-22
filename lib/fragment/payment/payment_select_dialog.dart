@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
@@ -23,14 +24,16 @@ import 'make_payment_dialog.dart';
 class PaymentSelect extends StatefulWidget {
   final String? dining_id;
   final String dining_name;
+  final String order_key;
   final bool? isUpdate;
   final Order? currentOrder;
-  final Function()? callBack;
+  final Function(String)? callBack;
   const PaymentSelect(
       {
         Key? key,
         required this.dining_id,
         required this.dining_name,
+        required this.order_key,
         this.isUpdate,
         this.currentOrder, this.callBack
       }) : super(key: key);
@@ -66,7 +69,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
           return WillPopScope(
             onWillPop: () async {
               if(widget.callBack != null){
-                widget.callBack!();
+                widget.callBack!('');
               }
               return willPop;
             },
@@ -93,7 +96,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                                     onTap: () async {
                                       if(widget.isUpdate == null){
                                         if(cart.cartNotifierItem.isNotEmpty){
-                                          openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!, widget.dining_name);
+                                          openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!, widget.dining_name, widget.order_key);
                                         } else {
                                           Fluttertoast.showToast(
                                               backgroundColor: Colors.red,
@@ -155,8 +158,9 @@ class _PaymentSelectState extends State<PaymentSelect> {
                 ElevatedButton(
                     onPressed: isButtonDisable ? null : (){
                       if(widget.callBack != null){
-                        widget.callBack!();
+                        widget.callBack!('');
                       }
+                      TableModel.instance.changeContent(true);
                       if (canPop) {
                         Navigator.of(context).pop();
                         canPop = false;
@@ -201,7 +205,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                                 onTap: () async  {
                                   if(widget.isUpdate == null){
                                     if(cart.cartNotifierItem.isNotEmpty){
-                                      openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!, widget.dining_name);
+                                      openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!, widget.dining_name, widget.order_key);
                                     } else {
                                       Fluttertoast.showToast(
                                           backgroundColor: Colors.red,
@@ -265,7 +269,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                 ElevatedButton(
                     onPressed: isButtonDisable ? null : (){
                       if(widget.callBack != null){
-                        widget.callBack!();
+                        widget.callBack!('');
                       }
                       if (canPop) {
                         Navigator.of(context).pop();
@@ -355,7 +359,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
     }
   }
 
-  Future<Future<Object?>> openMakePayment(int type_id, int payment_link_id, String dining, String diningName) async {
+  Future<Future<Object?>> openMakePayment(int type_id, int payment_link_id, String dining, String diningName, String orderKey) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -367,8 +371,12 @@ class _PaymentSelectState extends State<PaymentSelect> {
               child: MakePayment(
                 dining_id: dining,
                 dining_name: diningName,
+                order_key: orderKey,
                 type: type_id,
                 payment_link_company_id: payment_link_id,
+                callBack: (orderKeyValue) async {
+                  await getCallback(orderKeyValue);
+                }
               ),
             ),
           );
@@ -380,6 +388,10 @@ class _PaymentSelectState extends State<PaymentSelect> {
           // ignore: null_check_always_fails
           return null!;
         });
+  }
+
+  getCallback(String orderKeyValue) {
+    widget.callBack!(orderKeyValue);
   }
 
   Future<Future<Object?>> openLogOutDialog() async {

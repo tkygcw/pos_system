@@ -49,7 +49,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   bool logoText = false;
   bool footerText = false;
   bool showAddress = true;
-  bool showEmail = true;
+  bool showEmail = true, showBreakDownPrice = false;
   bool showTaxDetail = true;
   bool promoDetail = true;
   bool _submitted = false;
@@ -144,6 +144,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     receipt.promotion_detail_status == 1 ? this.promoDetail = true : this.promoDetail = false;
     receipt.show_address == 1 ? showAddress = true : showAddress = false;
     receipt.show_email == 1 ? this.showEmail = true : this.showEmail = false;
+    receipt.show_break_down_price == 1 ? this.showBreakDownPrice = true : this.showBreakDownPrice = false;
     headerText = receipt.header_text!;
     headerTextController.text = receipt.header_text!;
     receipt.show_email == 1 ? emailAddress = receipt.receipt_email : '';
@@ -504,6 +505,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       header_image_status: logoImage == true ? 1 : 0,
       footer_image_status: footerImage == true ? 1 : 0,
       promotion_detail_status: promoDetail == true ? 1 : 0,
+      show_break_down_price: showBreakDownPrice == true ? 1 : 0,
       show_address: showAddress == true ? 1 : 0,
       show_email: showEmail == true ? 1 : 0,
       receipt_email: emailTextController.text,
@@ -1071,6 +1073,23 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       ),
                     );
                   }),
+            ),
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text(AppLocalizations.of(context)!.translate('show_break_down_price'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Switch(
+                    value: showBreakDownPrice,
+                    activeColor: color.backgroundColor,
+                    onChanged: (bool value){
+                      setState(() {
+                        showBreakDownPrice = value;
+                      });
+                    })
+              ],
             ),
             Row(
               children: [
@@ -1672,6 +1691,23 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
+                  child: Text(AppLocalizations.of(context)!.translate('show_break_down_price'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Switch(
+                    value: showBreakDownPrice,
+                    activeColor: color.backgroundColor,
+                    onChanged: (bool value){
+                      setState(() {
+                        showBreakDownPrice = value;
+                      });
+                    })
+              ],
+            ),
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
                   child: Text(AppLocalizations.of(context)!.translate('footer_text'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
@@ -1905,6 +1941,23 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 ),
               );
             }),
+      ),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text(AppLocalizations.of(context)!.translate('show_break_down_price'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: showBreakDownPrice,
+              activeColor: color.backgroundColor,
+              onChanged: (bool value){
+                setState(() {
+                  showBreakDownPrice = value;
+                });
+              })
+        ],
       ),
       Row(
         children: [
@@ -2157,6 +2210,23 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 ),
               );
             }),
+      ),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text(AppLocalizations.of(context)!.translate('show_break_down_price'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: showBreakDownPrice,
+              activeColor: color.backgroundColor,
+              onChanged: (bool value){
+                setState(() {
+                  showBreakDownPrice = value;
+                });
+              })
+        ],
       ),
       Row(
         children: [

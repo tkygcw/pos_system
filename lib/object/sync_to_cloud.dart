@@ -436,11 +436,13 @@ class SyncToCloud {
       List<String> _value = [];
       List<Printer> data = await PosDatabase.instance.readAllNotSyncLANPrinter();
       notSyncPrinterList = data;
+      print('printer list: ${notSyncPrinterList.length}');
       if(notSyncPrinterList.isNotEmpty){
         for(int i = 0; i < notSyncPrinterList.length; i++){
           _value.add(jsonEncode(notSyncPrinterList[i]));
         }
         this.printer_value = _value.toString();
+        print('value: ${printer_value}');
       }
     } catch(error){
       print('15 printer sync error: ${error}');
