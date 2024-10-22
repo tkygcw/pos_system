@@ -42,6 +42,8 @@
 	<string>This app requires access to the photo library to select product pictures</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
     <string>This app requires Bluetooth access to communicate with nearby devices.</string>
+    <key>NSBluetoothPeripheralUsageDescription</key>
+    <string>This app uses Bluetooth to connect to external devices.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
