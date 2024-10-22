@@ -325,6 +325,11 @@ class PosDatabase {
           ${CurrentVersionFields.created_at} $textType,
           ${CurrentVersionFields.updated_at} $textType,
           ${CurrentVersionFields.soft_delete} $textType)''');
+          //new 26
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
         }break;
         case 16: {
           await db.execute('''CREATE TABLE $tableAttendance(
@@ -406,6 +411,11 @@ class PosDatabase {
           ${CurrentVersionFields.created_at} $textType,
           ${CurrentVersionFields.updated_at} $textType,
           ${CurrentVersionFields.soft_delete} $textType)''');
+          //new 26
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
         }break;
         case 17: {
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
@@ -473,6 +483,11 @@ class PosDatabase {
           ${CurrentVersionFields.created_at} $textType,
           ${CurrentVersionFields.updated_at} $textType,
           ${CurrentVersionFields.soft_delete} $textType)''');
+          //new 26
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
         }break;
         case 18: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
@@ -536,6 +551,11 @@ class PosDatabase {
           ${CurrentVersionFields.created_at} $textType,
           ${CurrentVersionFields.updated_at} $textType,
           ${CurrentVersionFields.soft_delete} $textType)''');
+          //new 26
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
         }break;
         case 19: {
           await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
@@ -595,6 +615,11 @@ class PosDatabase {
           ${CurrentVersionFields.created_at} $textType,
           ${CurrentVersionFields.updated_at} $textType,
           ${CurrentVersionFields.soft_delete} $textType)''');
+          //new 26
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
         }break;
         case 20: {
           await db.execute('''CREATE TABLE $tableDynamicQR(
@@ -652,6 +677,11 @@ class PosDatabase {
           ${CurrentVersionFields.created_at} $textType,
           ${CurrentVersionFields.updated_at} $textType,
           ${CurrentVersionFields.soft_delete} $textType)''');
+          //new 26
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
         }break;
         case 21: {
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
@@ -695,6 +725,11 @@ class PosDatabase {
           ${CurrentVersionFields.created_at} $textType,
           ${CurrentVersionFields.updated_at} $textType,
           ${CurrentVersionFields.soft_delete} $textType)''');
+          //new 26
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
         }break;
         case 22: {
           if(defaultTargetPlatform == TargetPlatform.iOS){
@@ -734,6 +769,11 @@ class PosDatabase {
           ${CurrentVersionFields.created_at} $textType,
           ${CurrentVersionFields.updated_at} $textType,
           ${CurrentVersionFields.soft_delete} $textType)''');
+          //new 26
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
         }break;
         case 23: {
           await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
@@ -766,9 +806,19 @@ class PosDatabase {
           ${CurrentVersionFields.created_at} $textType,
           ${CurrentVersionFields.updated_at} $textType,
           ${CurrentVersionFields.soft_delete} $textType)''');
+          //new 26
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
         }break;
         case 24: {
           await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
+          //new 26
+          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
         }break;
         case 25: {
           await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
