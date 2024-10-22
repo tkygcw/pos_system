@@ -213,6 +213,7 @@ class Receipt {
     ReceiptFields.show_address: show_address,
     ReceiptFields.show_email: show_email,
     ReceiptFields.receipt_email: receipt_email,
+    ReceiptFields.show_break_down_price: show_break_down_price,
     ReceiptFields.footer_image: footer_image,
     ReceiptFields.footer_image_status: footer_image_status,
     ReceiptFields.footer_text: footer_text,

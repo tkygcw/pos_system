@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/domain.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/page/setup.dart';
@@ -86,56 +87,72 @@ class _LoginPageState extends State<LoginPage> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Scaffold(
         body: isLoaded ?
-        Container(
-          child: Theme(
-            data: Theme.of(context).copyWith(
-              colorScheme: ThemeData().colorScheme.copyWith(
-                primary: Colors.black26,
-              ),
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage("drawable/login_background.jpg"),
-                  fit: BoxFit.cover,
+        Stack(
+          children: [
+            Container(
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                  colorScheme: ThemeData().colorScheme.copyWith(
+                    primary: Colors.black26,
+                  ),
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage("drawable/login_background.jpg"),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  child: FlutterLogin(
+                    title: 'Optimy POS',
+                    navigateBackAfterRecovery: true,
+                    messages: LoginMessages(
+                      recoverPasswordButton: "SEND",
+                      recoverPasswordIntro: "Reset Password Send",
+                      recoverPasswordDescription: "We will send an reset password link to this email.Please check your mail.",
+                      recoverPasswordSuccess: 'Password reset successfully',
+                    ),
+                    scrollable: false,
+                    logo: AssetImage("drawable/logo.png"),
+                    onLogin: _authUser,
+                    onSubmitAnimationCompleted: () {
+                      if(toNextPage == true){
+                        Navigator.of(context).pushReplacement(MaterialPageRoute(
+                          builder: (context) => SetupPage(),
+                        ));
+                      } else {
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (context) => LoginPage()),
+                              (Route route) => false,
+                        );
+                      }
+                    },
+                    theme: LoginTheme(
+                        primaryColor: Colors.black26,
+                        accentColor: Colors.white,
+                        buttonTheme: LoginButtonTheme(backgroundColor: Colors.teal),
+                        inputTheme: InputDecorationTheme(
+                          filled: true,
+                          fillColor: Colors.grey.shade200,
+                        )),
+                    onRecoverPassword: _recoverPassword,
+                  ),
                 ),
               ),
-              child: FlutterLogin(
-                title: 'Optimy POS',
-                navigateBackAfterRecovery: true,
-                messages: LoginMessages(
-                  recoverPasswordButton: "SEND",
-                  recoverPasswordIntro: "Reset Password Send",
-                  recoverPasswordDescription: "We will send an reset password link to this email.Please check your mail.",
-                  recoverPasswordSuccess: 'Password reset successfully',
+            ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 16.0), // Adjust the value as needed
+                child: Text(
+                  appVersionCode,
+                  style: TextStyle(
+                    color: Colors.white54,
+                  ),
                 ),
-                scrollable: false,
-                logo: AssetImage("drawable/logo.png"),
-                onLogin: _authUser,
-                onSubmitAnimationCompleted: () {
-                  if(toNextPage == true){
-                    Navigator.of(context).pushReplacement(MaterialPageRoute(
-                      builder: (context) => SetupPage(),
-                    ));
-                  } else {
-                    Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (context) => LoginPage()),
-                          (Route route) => false,
-                    );
-                  }
-                },
-                theme: LoginTheme(
-                    primaryColor: Colors.black26,
-                    accentColor: Colors.white,
-                    buttonTheme: LoginButtonTheme(backgroundColor: Colors.teal),
-                    inputTheme: InputDecorationTheme(
-                      filled: true,
-                      fillColor: Colors.grey.shade200,
-                    )),
-                onRecoverPassword: _recoverPassword,
               ),
             ),
-          ),
+          ],
         ): CustomProgressBar()
       );
     });
