@@ -73,7 +73,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 27, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
+    return await openDatabase(path, version: 28, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
   }
 
 /*
@@ -5240,8 +5240,19 @@ class PosDatabase {
 */
   Future<int> updateBranch(Branch data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableBranch SET name = ?, address = ?, phone = ?, email = ?, qr_order_status = ?, sub_pos_status = ?, attendance_status = ? WHERE branch_id = ? ',
-        [data.name, data.address, data.phone, data.email, data.qr_order_status, data.sub_pos_status, data.attendance_status, data.branch_id]);
+    return await db.rawUpdate('UPDATE $tableBranch SET name = ?, address = ?, phone = ?, email = ?, '
+        'qr_order_status = ?, sub_pos_status = ?, attendance_status = ?, allow_firestore = ? WHERE branch_id = ? ',
+        [
+          data.name,
+          data.address,
+          data.phone,
+          data.email,
+          data.qr_order_status,
+          data.sub_pos_status,
+          data.attendance_status,
+          data.allow_firestore,
+          data.branch_id,
+        ]);
   }
 
 /*

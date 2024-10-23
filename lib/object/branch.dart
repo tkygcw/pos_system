@@ -19,6 +19,7 @@ class BranchFields {
     working_time,
     close_qr_order,
     register_no,
+    allow_firestore
   ];
 
   static String branch_id = 'branch_id';
@@ -38,6 +39,7 @@ class BranchFields {
   static String working_time = 'working_time';
   static String close_qr_order = 'close_qr_order';
   static String register_no = 'register_no';
+  static String allow_firestore = 'allow_firestore';
 }
 
 class Branch {
@@ -58,6 +60,7 @@ class Branch {
   String? working_time;
   int? close_qr_order;
   String? register_no;
+  int? allow_firestore;
 
   Branch({
     this.branch_id,
@@ -76,7 +79,8 @@ class Branch {
     this.working_day,
     this.working_time,
     this.close_qr_order,
-    this.register_no
+    this.register_no,
+    this.allow_firestore
   });
 
   Branch copy({int? branch_id, String? name}) => Branch(
@@ -96,7 +100,8 @@ class Branch {
     working_day: working_day ?? this.working_day,
     working_time: working_time ?? this.working_time,
     close_qr_order: close_qr_order ?? this.close_qr_order,
-    register_no: register_no ?? this.register_no
+    register_no: register_no ?? this.register_no,
+    allow_firestore: allow_firestore ?? this.allow_firestore
   );
 
   factory Branch.fromJson(Map<String, dynamic> json) {
@@ -117,7 +122,8 @@ class Branch {
       working_day: json[BranchFields.working_day] as String?,
       working_time: json[BranchFields.working_time] as String?,
       close_qr_order: json[BranchFields.close_qr_order] as int?,
-      register_no: json[BranchFields.register_no] as String?
+      register_no: json[BranchFields.register_no] as String?,
+      allow_firestore: json[BranchFields.allow_firestore] as int?
     );
   }
 
@@ -138,6 +144,7 @@ class Branch {
     BranchFields.working_day: working_day,
     BranchFields.working_time: working_time,
     BranchFields.close_qr_order: close_qr_order,
-    BranchFields.register_no: register_no
+    BranchFields.register_no: register_no,
+    BranchFields.allow_firestore: allow_firestore
   };
 }

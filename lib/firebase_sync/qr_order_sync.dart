@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
@@ -20,40 +22,62 @@ class FirestoreQROrderSync {
   static final FirestoreQROrderSync instance = FirestoreQROrderSync._init();
   static final firestore = PosFirestore.instance.firestore;
   static final BuildContext context = MyApp.navigatorKey.currentContext!;
+  static FirestoreStatus firestore_status = PosFirestore.instance.firestore_status;
+  static StreamSubscription? _qrOrderListener;
+
   final _tb_qr_order_cache = 'tb_qr_order_cache';
+
+  get qrOrderListener => _qrOrderListener;
 
   FirestoreQROrderSync._init();
 
+  terminateQrOrder(){
+    if(_qrOrderListener != null){
+      _qrOrderListener!.cancel();
+      _qrOrderListener = null;
+    }
+  }
+
   realtimeQROrder(String branch_id) {
-    final docRef = firestore.collection(_tb_qr_order_cache)
-        .where(OrderCacheFields.branch_id, isEqualTo: branch_id)
-        .where(OrderCacheFields.soft_delete, isEqualTo: '')
-        .where(OrderCacheFields.accepted, isEqualTo: 1)
-        .where(OrderCacheFields.sync_status, isEqualTo: 0);
-    docRef.snapshots(includeMetadataChanges: true).listen((event) async {
-      for (var changes in event.docChanges) {
-        final source = (event.metadata.isFromCache) ? "local cache" : "server";
-        switch (changes.type) {
-          case DocumentChangeType.added:
-            print("New product from $source: ${changes.doc.id}");
-            readOrderCache(changes.doc);
-            break;
-          case DocumentChangeType.modified:
-            print("Modified product from $source: ${changes.doc.data()}");
-            break;
-          case DocumentChangeType.removed:
-            print("Removed order from $source: ${changes.doc.id}");
-            print("Removed order from $source: ${changes.doc.data()}");
-            break;
+    if(_qrOrderListener == null){
+      final docRef = firestore.collection(_tb_qr_order_cache)
+          .where(OrderCacheFields.branch_id, isEqualTo: branch_id)
+          .where(OrderCacheFields.soft_delete, isEqualTo: '')
+          .where(OrderCacheFields.accepted, isEqualTo: 1)
+          .where(OrderCacheFields.sync_status, isEqualTo: 0);
+      _qrOrderListener = docRef.snapshots(includeMetadataChanges: true).listen((event) async {
+        if(firestore_status == FirestoreStatus.offline){
+          terminateQrOrder();
+          return;
         }
-      }
-    },
-      onError: (error) => print("Listen failed: $error"),
-    );
+        for (var changes in event.docChanges) {
+          final source = (event.metadata.isFromCache) ? "local cache" : "server";
+          switch (changes.type) {
+            case DocumentChangeType.added:
+              print("New product from $source: ${changes.doc.id}");
+              readOrderCache(changes.doc);
+              break;
+            case DocumentChangeType.modified:
+              print("Modified product from $source: ${changes.doc.data()}");
+              break;
+            case DocumentChangeType.removed:
+              print("Removed order from $source: ${changes.doc.id}");
+              print("Removed order from $source: ${changes.doc.data()}");
+              break;
+          }
+        }
+      },
+        onError: (error) => print("Listen failed: $error"),
+      );
+    }
   }
 
   Future<void> readAllNotAcceptedOrderCache(String branch_id) async {
     try{
+      if(firestore_status == FirestoreStatus.offline){
+        terminateQrOrder();
+        return;
+      }
       Query orderCache = firestore.collection(_tb_qr_order_cache)
           .where(OrderCacheFields.branch_id, isEqualTo: branch_id)
           .where(OrderCacheFields.soft_delete, isEqualTo: '')
@@ -291,6 +315,9 @@ class FirestoreQROrderSync {
   Future<int> acceptOrderCache(OrderCache updatedOrderCache) async {
     int status = 0;
     try{
+      if(firestore_status == FirestoreStatus.offline){
+        return 0;
+      }
       final batch = firestore.batch();
       Map<String, dynamic> jsonMap = {
         OrderCacheFields.updated_at: updatedOrderCache.updated_at,
@@ -320,6 +347,9 @@ class FirestoreQROrderSync {
   Future<int> rejectOrderCache(OrderCache updatedOrderCache) async {
     int status = 0;
     try{
+      if(firestore_status == FirestoreStatus.offline){
+        return 0;
+      }
       final batch = firestore.batch();
       Map<String, dynamic> jsonMap = {
         OrderCacheFields.soft_delete: updatedOrderCache.soft_delete ?? '',
@@ -346,6 +376,9 @@ class FirestoreQROrderSync {
   Future<int> updateOrderDetail(OrderDetail orderDetail) async {
     int status = 0;
     try{
+      if(firestore_status == FirestoreStatus.offline){
+        return 0;
+      }
       final batch = firestore.batch();
       Map<String, dynamic> jsonMap = {
         'updated_at': orderDetail.updated_at,
@@ -373,6 +406,9 @@ class FirestoreQROrderSync {
   Future<int> removeOrderDetail(OrderDetail orderDetail) async {
     int status = 0;
     try{
+      if(firestore_status == FirestoreStatus.offline){
+        return 0;
+      }
       final batch = firestore.batch();
       Map<String, dynamic> jsonMap = {
         OrderDetailFields.updated_at: orderDetail.updated_at,
@@ -399,6 +435,9 @@ class FirestoreQROrderSync {
   Future<int> updateOrderCacheTotalAmount(OrderCache orderCache) async {
     int status = 0;
     try{
+      if(firestore_status == FirestoreStatus.offline){
+        return 0;
+      }
       final batch = firestore.batch();
       Map<String, dynamic> jsonMap = {
         OrderCacheFields.updated_at: orderCache.updated_at,
@@ -424,6 +463,9 @@ class FirestoreQROrderSync {
   Future<int> cancelOrderDetail(OrderDetail orderDetail) async {
     int status = 0;
     try{
+      if(firestore_status == FirestoreStatus.offline){
+        return 0;
+      }
       final batch = firestore.batch();
       Map<String, dynamic> jsonMap = {
         OrderDetailFields.updated_at: orderDetail.updated_at,
@@ -452,6 +494,9 @@ class FirestoreQROrderSync {
   Future<int> updateOrderDetailQty(OrderDetail orderDetail) async {
     int status = 0;
     try{
+      if(firestore_status == FirestoreStatus.offline){
+        return 0;
+      }
       final batch = firestore.batch();
       Map<String, dynamic> jsonMap = {
         OrderDetailFields.updated_at: orderDetail.updated_at,
@@ -478,6 +523,9 @@ class FirestoreQROrderSync {
   Future<int> cancelOrderCache(OrderCache orderCache) async {
     int status = 0;
     try{
+      if(firestore_status == FirestoreStatus.offline){
+        return 0;
+      }
       final batch = firestore.batch();
       Map<String, dynamic> jsonMap = {
         OrderCacheFields.updated_at: orderCache.updated_at,

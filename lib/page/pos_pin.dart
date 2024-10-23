@@ -29,9 +29,11 @@ import 'package:store_checker/store_checker.dart';
 import 'package:version/version.dart';
 import '../database/domain.dart';
 import '../database/pos_database.dart';
+import '../database/pos_firestore.dart';
 import '../fragment/logout_dialog.dart';
 import '../fragment/setting/printer_dialog.dart';
 import '../notifier/theme_color.dart';
+import '../object/branch.dart';
 import '../object/cash_record.dart';
 import '../fragment/printing_layout/print_receipt.dart';
 import '../object/printer.dart';
@@ -49,6 +51,7 @@ class PosPinPage extends StatefulWidget {
 }
 
 class _PosPinPageState extends State<PosPinPage> {
+  PosFirestore pos_firestore = PosFirestore.instance;
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   PrintReceipt printReceipt = PrintReceipt();
   List response = [];
@@ -108,6 +111,7 @@ class _PosPinPageState extends State<PosPinPage> {
 
   preload() async {
     bool hasGMS = await GmsCheck().checkGmsAvailability() ?? false;
+    await initFirestoreStatus();
     await syncRecord.syncFromCloud();
     if(notificationModel.syncCountStarted == false){
       startTimers(hasGMS);
@@ -115,6 +119,15 @@ class _PosPinPageState extends State<PosPinPage> {
     await readAllPrinters();
     SyncToFirebase.instance.syncToFirebase();
     listenQROrder();
+  }
+
+  initFirestoreStatus() async {
+    Branch? data = await PosDatabase.instance.readLocalBranch();
+    if(data!.allow_firestore == 1){
+      pos_firestore.setFirestoreStatus = FirestoreStatus.online;
+    } else {
+      pos_firestore.setFirestoreStatus = FirestoreStatus.offline;
+    }
   }
 
 /*
@@ -437,25 +450,36 @@ class _PosPinPageState extends State<PosPinPage> {
       // print("sync to cloud count in 30 sec: ${mainSyncToCloud.count}");
       // print('has gms service: ${hasGMS}');
       //sync qr order
-      if(qrOrder.count == 0 && hasGMS == false){
-        print("qr sync call!!!");
-        qrOrder.count = 1;
-        await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
-        qrOrder.count = 0;
-      }
-
-      //sync subscription
-      if(syncRecord.count == 0){
-        // print('subscription sync');
-        syncRecord.count = 1;
-        int syncStatus = await syncRecord.syncSubscriptionFromCloud();
-        syncRecord.count = 0;
-        // print('is log out: ${syncStatus}');
-        if (syncStatus == 1) {
-          openLogOutDialog();
-          return;
+      if(hasGMS == true) {
+        print("firestore status: ${pos_firestore.firestore_status}");
+        if(pos_firestore.firestore_status == FirestoreStatus.offline) {
+          if(qrOrder.count == 0 ){
+            print("qr sync call!!!");
+            qrOrder.count = 1;
+            await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
+            qrOrder.count = 0;
+          }
+        }
+      } else {
+        if(qrOrder.count == 0 ){
+          print("qr sync call!!!");
+          qrOrder.count = 1;
+          await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
+          qrOrder.count = 0;
         }
       }
+      //sync subscription
+      // if(syncRecord.count == 0){
+      //   // print('subscription sync');
+      //   syncRecord.count = 1;
+      //   int syncStatus = await syncRecord.syncSubscriptionFromCloud();
+      //   syncRecord.count = 0;
+      //   // print('is log out: ${syncStatus}');
+      //   if (syncStatus == 1) {
+      //     openLogOutDialog();
+      //     return;
+      //   }
+      // }
       //30 sec sync
       // if (timerCount == 0) {
       //   //sync to cloud

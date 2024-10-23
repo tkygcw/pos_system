@@ -21,91 +21,160 @@ import '../object/branch_link_product.dart';
 import '../object/variant_item.dart';
 import 'domain.dart';
 
+enum FirestoreStatus{
+  online,
+  offline
+}
+
 class PosFirestore {
   static final PosFirestore instance = PosFirestore._init();
   static final BuildContext context = MyApp.navigatorKey.currentContext!;
   static FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  static FirestoreStatus _firestore_status = FirestoreStatus.offline;
   static final tb_table_dynamic = 'tb_table_dynamic';
 
   PosFirestore._init();
 
   FirebaseFirestore get firestore => _firestore;
 
+  FirestoreStatus get firestore_status => _firestore_status;
+
+  set setFirestoreStatus(FirestoreStatus status) {
+    _firestore_status = status;
+  }
+
   insertBranch(Branch branch) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
     await firestore.collection(tableBranch!).doc(branch.branch_id.toString()).set(branch.toJson(), SetOptions(merge: true));
   }
 
   insertBranchLinkDining(BranchLinkDining data) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
     await firestore.collection(tableBranchLinkDining!).doc(data.branch_link_dining_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertBranchLinkModifier(BranchLinkModifier data) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
     await firestore.collection(tableBranchLinkModifier!).doc(data.branch_link_modifier_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertBranchLinkProduct(BranchLinkProduct data) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
     await firestore.collection(tableBranchLinkProduct!).doc(data.branch_link_product_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertBranchLinkPromotion(BranchLinkPromotion data) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
     await firestore.collection(tableBranchLinkPromotion!).doc(data.branch_link_promotion_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertBranchLinkTax(BranchLinkTax data) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
     await firestore.collection(tableBranchLinkTax!).doc(data.branch_link_tax_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertCategory(Categories data) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
     await firestore.collection(tableCategories!).doc(data.category_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertDiningOption(DiningOption data) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
     await firestore.collection(tableDiningOption!).doc(data.dining_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertModifierGroup(ModifierGroup data) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
     await firestore.collection(tableModifierGroup!).doc(data.mod_group_id.toString()).set(data.toJson2(), SetOptions(merge: true));
   }
 
   insertModifierItem(ModifierItem data) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
     await firestore.collection(tableModifierItem!).doc(data.mod_item_id.toString()).set(data.toJson2(), SetOptions(merge: true));
   }
 
   insertModifierLinkProduct(ModifierLinkProduct data) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
     await firestore.collection(tableModifierLinkProduct!).doc(data.modifier_link_product_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertProduct(Product data) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
     await firestore.collection(tableProduct!).doc(data.product_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertProductVariant(ProductVariant data) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
     await firestore.collection(tableProductVariant!).doc(data.product_variant_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertProductVariantDetail(ProductVariantDetail data) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
     await firestore.collection(tableProductVariantDetail!).doc(data.product_variant_detail_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertPosTable(PosTable data) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
     await firestore.collection(tablePosTable!).doc(data.table_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertVariantGroup(VariantGroup data) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
     await firestore.collection(tableVariantGroup!).doc(data.variant_group_id.toString()).set(data.toInsertJson(), SetOptions(merge: true));
   }
 
   insertVariantItem(VariantItem data) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
     await firestore.collection(tableVariantItem!).doc(data.variant_item_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertTableDynamic(PosTable data) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
     await firestore.collection(tb_table_dynamic).doc(data.table_id!.toString()).set(data.toTableDynamicJson(), SetOptions(merge: true));
   }
 
   Future<int> softDeleteTableDynamic(PosTable data) async {
     int status = 0;
     try{
+      if(firestore_status == FirestoreStatus.offline){
+        return 0;
+      }
       final batch = firestore.batch();
       Map<String, dynamic> jsonMap = {
         PosTableFields.soft_delete: data.soft_delete,
@@ -128,6 +197,9 @@ class PosFirestore {
   Future<int> updateBranchCloseQROrderStatus(Branch data) async {
     int status = 0;
     try{
+     if(firestore_status == FirestoreStatus.offline){
+        return 0;
+      }
       final batch = firestore.batch();
       Map<String, dynamic> jsonMap = {
         BranchFields.close_qr_order: data.close_qr_order,
@@ -150,6 +222,9 @@ class PosFirestore {
   Future<int> updateBranchLinkProductDailyLimit(BranchLinkProduct branchProduct) async {
     int status = 0;
     try{
+     if(firestore_status == FirestoreStatus.offline){
+        return 0;
+      }
       final batch = firestore.batch();
       Map<String, dynamic> jsonMap = {
         BranchLinkProductFields.updated_at: branchProduct.updated_at,
@@ -173,6 +248,9 @@ class PosFirestore {
   Future<int> updateBranchLinkProductStock(BranchLinkProduct branchProduct) async {
     int status = 0;
     try{
+     if(firestore_status == FirestoreStatus.offline){
+        return 0;
+      }
       final batch = firestore.batch();
       Map<String, dynamic> jsonMap = {
         BranchLinkProductFields.updated_at: branchProduct.updated_at,
@@ -194,6 +272,9 @@ class PosFirestore {
   }
 
   Future<Branch?> readCurrentBranch(String branch_id) async {
+    if(firestore_status == 0){
+      return null;
+    }
     var snapshot = await firestore.collection(tableBranch!).doc(branch_id).get();
     if(snapshot.data() != null){
       return Branch.fromJson(snapshot.data()!);

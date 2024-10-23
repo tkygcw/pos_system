@@ -22,6 +22,7 @@ import '../object/product_variant_detail.dart';
 
 class SyncToFirebase {
   static final SyncToFirebase instance = SyncToFirebase.init();
+  static PosFirestore posFirestore = PosFirestore.instance;
   static bool isBranchExisted = false;
   SyncToFirebase.init();
 
@@ -31,6 +32,7 @@ class SyncToFirebase {
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
       Branch? data = await PosFirestore.instance.readCurrentBranch(branch_id.toString());
+      print("branch data in syncToFirebase: ${data}");
       if(data == null){
         print("perform sync");
         sync();
@@ -38,17 +40,23 @@ class SyncToFirebase {
     }
   }
 
-  checkBranchInFirestore(String branch_id) async {
-    Branch? data = await PosFirestore.instance.readCurrentBranch(branch_id.toString());
-    if(data == null){
-      syncBranch();
+  checkBranchInFirestore(Branch branch) async {
+    if(branch.allow_firestore == 0) {
+      posFirestore.setFirestoreStatus = FirestoreStatus.offline;
+    } else {
+      posFirestore.setFirestoreStatus = FirestoreStatus.online;
+      Branch? data = await PosFirestore.instance.readCurrentBranch(branch.branch_id.toString());
+      print("branch data in checkBranchInFirestore: ${data}");
+      if(data == null){
+        syncBranch();
+      }
     }
     isBranchExisted = true;
   }
 
   sync() async {
     Branch? data = await PosDatabase.instance.readLocalBranch();
-    if(data != null && data.qr_order_status == '0'){
+    if(data != null && data.qr_order_status == '0' && data.allow_firestore == 1){
       syncVariantItem();
       syncVariantGroup();
       syncPosTable();
@@ -71,7 +79,7 @@ class SyncToFirebase {
 
   syncBranch() async {
     Branch? data = await PosDatabase.instance.readLocalBranch();
-    if(data != null){
+    if(data != null && data.allow_firestore == 1){
       PosFirestore.instance.insertBranch(data);
     }
   }

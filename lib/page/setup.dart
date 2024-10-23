@@ -273,7 +273,7 @@ class _SetupPageState extends State<SetupPage> {
       // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => LoadingPage()));
       showDaysSelectionDialog(context);
     }
-    SyncToFirebase.instance.checkBranchInFirestore(selectedBranch!.branch_id.toString());
+    SyncToFirebase.instance.checkBranchInFirestore(selectedBranch!);
   }
 
   savePref() async {

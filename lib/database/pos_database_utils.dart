@@ -788,6 +788,9 @@ class PosDatabaseUtils {
         case 26: {
           await dbVersion27Upgrade(db);
         }break;
+        case 27: {
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.allow_firestore} $integerType DEFAULT 0 ");
+        }break;
       }
     }
   }
@@ -1245,7 +1248,8 @@ class PosDatabaseUtils {
            ${BranchFields.working_day} $textType,
            ${BranchFields.working_time} $textType,
            ${BranchFields.close_qr_order} $integerType,
-           ${BranchFields.register_no} $textType)''');
+           ${BranchFields.register_no} $textType,
+           ${BranchFields.allow_firestore} $integerType)''');
 
 /*
     create app color table
