@@ -152,32 +152,32 @@ class _TableDynamicQrDialogState extends State<TableDynamicQrDialog> {
       setState(() {
         isLoading = true;
       });
-      bool _hasInternetAccess = await Domain().isHostReachable();
-      if(_hasInternetAccess){
-        List<PosTable> selectedTable = widget.posTableList;
-        for(int i = 0 ; i < selectedTable.length; i++){
-          PosTable updatedTable = await generateDynamicQRUrl(selectedTable[i]);
+      List<PosTable> selectedTable = widget.posTableList.toList();
+      for(int i = 0 ; i < selectedTable.length; i++){
+        PosTable updatedTable = await generateDynamicQRUrl(selectedTable[i]);
+        if(posFirestore.firestore_status == FirestoreStatus.online){
           posFirestore.insertTableDynamic(updatedTable);
+          await printDynamicQr.printDynamicQR(table: updatedTable);
+        } else {
           Map res = await Domain().insertTableDynamicQr(updatedTable);
           if(res['status'] == '1'){
             await printDynamicQr.printDynamicQR(table: updatedTable);
           } else {
+            resetTapCount();
+            setState(() {
+              isLoading = false;
+            });
+            Fluttertoast.showToast(
+                backgroundColor: Color(0xFFFF0000),
+                msg: AppLocalizations.of(context)!.translate('check_internet_connection'));
             break;
           }
         }
-        if(widget.callback != null){
-          widget.callback!();
-        }
-        Navigator.of(context).pop();
-      } else {
-        resetTapCount();
-        setState(() {
-          isLoading = false;
-        });
-        Fluttertoast.showToast(
-            backgroundColor: Color(0xFFFF0000),
-            msg: AppLocalizations.of(context)!.translate('check_internet_connection'));
       }
+      if(widget.callback != null){
+        widget.callback!();
+      }
+      Navigator.of(context).pop();
     }
   }
 

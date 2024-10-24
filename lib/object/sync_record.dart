@@ -512,6 +512,7 @@ class SyncRecord {
         firestoreQrOrderSync.realtimeQROrder(branch.branch_id!.toString());
       } else {
         pos_firestore.setFirestoreStatus = FirestoreStatus.offline;
+        firestoreQrOrderSync.terminateQrOrder();
       }
       if(data == 1){
         isComplete = true;

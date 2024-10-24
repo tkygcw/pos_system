@@ -417,6 +417,7 @@ class QrOrderAutoAccept {
   }
 
   updateProductStock() async {
+    PosFirestore posFirestore = PosFirestore.instance;
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     List<String> _branchLinkProductValue = [];
@@ -436,7 +437,7 @@ class QrOrderAutoAccept {
                   branch_link_product_id: orderDetailList[i].branch_link_product_id,
                   branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
               updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
-              PosFirestore.instance.updateBranchLinkProductDailyLimit(object);
+              posFirestore.updateBranchLinkProductDailyLimit(object);
             }break;
             case '2' :{
               _totalStockQty = int.parse(checkData[0].stock_quantity!) - int.parse(orderDetailList[i].quantity!);
@@ -447,7 +448,7 @@ class QrOrderAutoAccept {
                   branch_link_product_id: orderDetailList[i].branch_link_product_id,
                   branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
               updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
-              PosFirestore.instance.updateBranchLinkProductStock(object);
+              posFirestore.updateBranchLinkProductStock(object);
             }break;
             default: {
               updateStock = 0;

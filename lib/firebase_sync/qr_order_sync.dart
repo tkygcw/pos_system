@@ -20,14 +20,16 @@ import '../object/qr_order_auto_accept.dart';
 
 class FirestoreQROrderSync {
   static final FirestoreQROrderSync instance = FirestoreQROrderSync._init();
-  static final firestore = PosFirestore.instance.firestore;
+  static final PosFirestore posFirestore = PosFirestore.instance;
   static final BuildContext context = MyApp.navigatorKey.currentContext!;
-  static FirestoreStatus firestore_status = PosFirestore.instance.firestore_status;
   static StreamSubscription? _qrOrderListener;
-
   final _tb_qr_order_cache = 'tb_qr_order_cache';
 
   get qrOrderListener => _qrOrderListener;
+
+  FirebaseFirestore get firestore => posFirestore.firestore;
+
+  FirestoreStatus get firestore_status => posFirestore.firestore_status;
 
   FirestoreQROrderSync._init();
 

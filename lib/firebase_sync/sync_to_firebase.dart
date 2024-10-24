@@ -31,8 +31,7 @@ class SyncToFirebase {
     if(isBranchExisted == false){
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
-      Branch? data = await PosFirestore.instance.readCurrentBranch(branch_id.toString());
-      print("branch data in syncToFirebase: ${data}");
+      Branch? data = await posFirestore.readCurrentBranch(branch_id.toString());
       if(data == null){
         print("perform sync");
         sync();
@@ -45,8 +44,7 @@ class SyncToFirebase {
       posFirestore.setFirestoreStatus = FirestoreStatus.offline;
     } else {
       posFirestore.setFirestoreStatus = FirestoreStatus.online;
-      Branch? data = await PosFirestore.instance.readCurrentBranch(branch.branch_id.toString());
-      print("branch data in checkBranchInFirestore: ${data}");
+      Branch? data = await posFirestore.readCurrentBranch(branch.branch_id.toString());
       if(data == null){
         syncBranch();
       }
@@ -80,119 +78,119 @@ class SyncToFirebase {
   syncBranch() async {
     Branch? data = await PosDatabase.instance.readLocalBranch();
     if(data != null && data.allow_firestore == 1){
-      PosFirestore.instance.insertBranch(data);
+      posFirestore.insertBranch(data);
     }
   }
 
   syncBranchLinkDiningOption() async {
     List<BranchLinkDining> branchLinkDining = await PosDatabase.instance.readLocalBranchLinkDining();
     for(final dining in branchLinkDining){
-      PosFirestore.instance.insertBranchLinkDining(dining);
+      posFirestore.insertBranchLinkDining(dining);
     }
   }
 
   syncBranchLinkModifier() async{
     List<BranchLinkModifier> branchLinkModifier = await PosDatabase.instance.readLocalBranchLinkModifier();
     for(final branchModifier in branchLinkModifier){
-      PosFirestore.instance.insertBranchLinkModifier(branchModifier);
+      posFirestore.insertBranchLinkModifier(branchModifier);
     }
   }
 
   syncBranchLinkProduct() async{
     List<BranchLinkProduct> branchLinkProduct = await PosDatabase.instance.readLocalBranchLinkProduct();
     for(final branchProduct in branchLinkProduct){
-      PosFirestore.instance.insertBranchLinkProduct(branchProduct);
+      posFirestore.insertBranchLinkProduct(branchProduct);
     }
   }
 
   syncBranchLinkPromotion() async{
     List<BranchLinkPromotion> branchLinkPromotion = await PosDatabase.instance.readLocalBranchLinkPromotion();
     for(final branchPromotion in branchLinkPromotion){
-      PosFirestore.instance.insertBranchLinkPromotion(branchPromotion);
+      posFirestore.insertBranchLinkPromotion(branchPromotion);
     }
   }
 
   syncBranchLinkTax() async{
     List<BranchLinkTax> branchLinkTax = await PosDatabase.instance.readLocalBranchLinkTax();
     for(final branchTax in branchLinkTax){
-      PosFirestore.instance.insertBranchLinkTax(branchTax);
+      posFirestore.insertBranchLinkTax(branchTax);
     }
   }
 
   syncDiningOption() async{
     List<DiningOption> diningOption = await PosDatabase.instance.readLocalDiningOption();
     for(final option in diningOption){
-      PosFirestore.instance.insertDiningOption(option);
+      posFirestore.insertDiningOption(option);
     }
   }
 
   syncCategories() async{
     List<Categories> categories = await PosDatabase.instance.readLocalCategories();
     for(final category in categories){
-      PosFirestore.instance.insertCategory(category);
+      posFirestore.insertCategory(category);
     }
   }
 
   syncModifierGroup() async {
     List<ModifierGroup> modifierGroup = await PosDatabase.instance.readLocalModifierGroup();
     for(final group in modifierGroup){
-      PosFirestore.instance.insertModifierGroup(group);
+      posFirestore.insertModifierGroup(group);
     }
   }
 
   syncModifierItem() async {
     List<ModifierItem> modifierItem = await PosDatabase.instance.readLocalModifierItem();
     for(final item in modifierItem){
-      PosFirestore.instance.insertModifierItem(item);
+      posFirestore.insertModifierItem(item);
     }
   }
 
   syncModifierLinkProduct() async {
     List<ModifierLinkProduct> modLinkProduct = await PosDatabase.instance.readLocalModifierLinkProduct();
     for(final productMod in modLinkProduct){
-      PosFirestore.instance.insertModifierLinkProduct(productMod);
+      posFirestore.insertModifierLinkProduct(productMod);
     }
   }
 
   syncProduct() async {
     List<Product> product = await PosDatabase.instance.readLocalProduct();
     for(final products in product){
-      PosFirestore.instance.insertProduct(products);
+      posFirestore.insertProduct(products);
     }
   }
 
   syncProductVariant() async {
       List<ProductVariant> productVariant = await PosDatabase.instance.readLocalProductVariant();
       for(final productVariants in productVariant){
-        PosFirestore.instance.insertProductVariant(productVariants);
+        posFirestore.insertProductVariant(productVariants);
       }
   }
 
   syncProductVariantDetail() async {
     List<ProductVariantDetail> productVariantDetail = await PosDatabase.instance.readLocalProductVariantDetail();
     for(final detail in productVariantDetail){
-      PosFirestore.instance.insertProductVariantDetail(detail);
+      posFirestore.insertProductVariantDetail(detail);
     }
   }
 
   syncPosTable() async {
     List<PosTable> posTable = await PosDatabase.instance.readLocalPosTable();
     for(final table in posTable){
-      PosFirestore.instance.insertPosTable(table);
+      posFirestore.insertPosTable(table);
     }
   }
 
   syncVariantGroup() async {
     List<VariantGroup> variantGroup = await PosDatabase.instance.readLocalVariantGroup();
     for(final group in variantGroup){
-      PosFirestore.instance.insertVariantGroup(group);
+      posFirestore.insertVariantGroup(group);
     }
   }
 
   syncVariantItem() async {
     List<VariantItem> variantItem = await PosDatabase.instance.readLocalVariantItem();
     for(final item in variantItem){
-      PosFirestore.instance.insertVariantItem(item);
+      posFirestore.insertVariantItem(item);
     }
   }
 

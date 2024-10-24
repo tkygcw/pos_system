@@ -111,7 +111,7 @@ class _PosPinPageState extends State<PosPinPage> {
 
   preload() async {
     bool hasGMS = await GmsCheck().checkGmsAvailability() ?? false;
-    await initFirestoreStatus();
+    await initFirestoreStatus(hasGMS);
     await syncRecord.syncFromCloud();
     if(notificationModel.syncCountStarted == false){
       startTimers(hasGMS);
@@ -121,9 +121,9 @@ class _PosPinPageState extends State<PosPinPage> {
     listenQROrder();
   }
 
-  initFirestoreStatus() async {
+  initFirestoreStatus(bool hasGMS) async {
     Branch? data = await PosDatabase.instance.readLocalBranch();
-    if(data!.allow_firestore == 1){
+    if(data!.allow_firestore == 1 && hasGMS == true){
       pos_firestore.setFirestoreStatus = FirestoreStatus.online;
     } else {
       pos_firestore.setFirestoreStatus = FirestoreStatus.offline;
