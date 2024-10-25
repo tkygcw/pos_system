@@ -5241,7 +5241,8 @@ class PosDatabase {
   Future<int> updateBranch(Branch data) async {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableBranch SET name = ?, address = ?, phone = ?, email = ?, '
-        'qr_order_status = ?, sub_pos_status = ?, attendance_status = ?, allow_firestore = ? WHERE branch_id = ? ',
+        'qr_order_status = ?, sub_pos_status = ?, attendance_status = ?, register_no = ?, allow_firestore = ? '
+        'WHERE branch_id = ? ',
         [
           data.name,
           data.address,
@@ -5250,6 +5251,7 @@ class PosDatabase {
           data.qr_order_status,
           data.sub_pos_status,
           data.attendance_status,
+          data.register_no,
           data.allow_firestore,
           data.branch_id,
         ]);
