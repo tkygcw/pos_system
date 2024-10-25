@@ -14,6 +14,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../main.dart';
+import '../../object/branch.dart';
 import '../../object/table_use.dart';
 import '../../object/table_use_detail.dart';
 import '../../translation/AppLocalizations.dart';
@@ -29,11 +30,20 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
   final adminPosPinController = TextEditingController();
   bool inProgress = false;
   bool isButtonDisabled = false;
-  bool _submitted = false;
+  bool _submitted = false, allowFirestore = false;
+  late Branch? branch;
 
   @override
   void initState() {
     super.initState();
+    initLoad();
+  }
+
+  initLoad() async {
+    branch = await PosDatabase.instance.readLocalBranch();
+    setState(() {
+      allowFirestore = branch!.allow_firestore == 1 ? true : false;
+    });
   }
 
   @override
@@ -71,12 +81,15 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
                   openSyncDialog(SyncType.sync);
                 },
               ),
-              ListTile(
-                title: Text(AppLocalizations.of(context)!.translate('sync_to_firestore')),
-                trailing: Icon(Icons.sync_alt),
-                onTap: () {
-                  openSyncDialog(SyncType.firestore_sync);
-                },
+              Visibility(
+                visible: allowFirestore,
+                child: ListTile(
+                  title: Text(AppLocalizations.of(context)!.translate('sync_to_firestore')),
+                  trailing: Icon(Icons.sync_alt),
+                  onTap: () {
+                    openSyncDialog(SyncType.firestore_sync);
+                  },
+                ),
               ),
               ListTile(
                 title: Text(AppLocalizations.of(context)!.translate('sync_reset')),
