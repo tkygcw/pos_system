@@ -1,15 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/receipt.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image/image.dart' as img;
 
 import '../../database/domain.dart';
 import '../../enumClass/receipt_dialog_enum.dart';
@@ -40,7 +43,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   String? footerDir;
   String headerText = '';
   String footerTextString = '';
-  ReceiptDialogEnum? headerFontSize;
+  ReceiptDialogEnum? headerFontSize, headerImageSize;
   String? emailAddress;
   bool isLoad = false, isButtonDisabled = false;
   bool _isUpdate = false;
@@ -56,11 +59,13 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   bool isLogOut = false;
   bool showSKU = false;
   bool showBranchTel = true;
+  bool branchLogoExist = false;
   Map? branchObject;
-  double? fontSize;
+  double? fontSize, logoSize;
   Receipt? testReceipt;
   Receipt receipt = Receipt();
   String receiptView = "80";
+  Uint8List? _imageData;
 
   @override
   void initState() {
@@ -72,6 +77,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       _isUpdate = false;
       isLoad = true;
     }
+
     super.initState();
   }
 
@@ -87,6 +93,9 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   preload(){
     _isUpdate = true;
     initialData(widget.receiptObject!);
+    if(logoImage){
+      getBranchLogo();
+    }
     getSharePreferences();
     getAllPrinter();
   }
@@ -138,6 +147,8 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   initialData(Receipt data){
     receipt = data;
     receipt.header_image_status == 1 ? this.logoImage = true  : this.logoImage = false;
+    receipt.header_image_size == 0 ? headerImageSize = ReceiptDialogEnum.small : (receipt.header_image_size == 1 ? headerImageSize = ReceiptDialogEnum.medium : headerImageSize = ReceiptDialogEnum.big);
+    logoSize = receipt.header_image_size == 0 ? 60 : receipt.header_image_size == 1 ? 100 : 140;
     receipt.footer_image_status == 1 ? this.footerImage = true  : this.footerImage = false;
     receipt.header_text_status == 1 ? this.logoText = true : this.logoText = false;
     receipt.footer_text_status == 1 ? this.footerText = true : this.footerText = false;
@@ -166,6 +177,9 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     }
     if(branchObject!['address'] == '' && showAddress){
       showAddress = false;
+    }
+    if(branchObject!['logo'] == '' && logoImage){
+      logoImage = false;
     }
     isLoad = true;
   }
@@ -237,6 +251,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   testReceiptLayout(){
     testReceipt = Receipt(
       header_text: logoText == true ? headerTextController.text : '',
+      header_image_size: headerImageSize == ReceiptDialogEnum.small ? 0 : (headerImageSize == ReceiptDialogEnum.medium ? 1 : 2),
       footer_text: footerText == true ? footerTextController.text : '',
       header_image: logoImage == true ? 'branchLogo.jpg' : '',
       footer_image: footerImage == true ? 'branchFooter.jpg' : '',
@@ -498,6 +513,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       header_text: logoText == true ? headerTextController.text : '',
       footer_text: footerText == true ? footerTextController.text : '',
       header_font_size: headerFontSize == ReceiptDialogEnum.big ? 0 : 1,
+      header_image_size: headerImageSize == ReceiptDialogEnum.small ? 0 : (headerImageSize == ReceiptDialogEnum.medium ? 1 : 2),
       header_image: logoImage == true ? 'branchLogo.jpg' : '',
       footer_image: footerImage == true ? 'branchFooter.jpg' : '',
       header_text_status: logoText == true ? 1 : 0,
@@ -583,10 +599,16 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 Visibility(
                     visible: logoImage ? true : false,
                     child: Center(
-                      child: CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.black,
-                        child: Text(AppLocalizations.of(context)!.translate('logo')),
+                      // child: CircleAvatar(
+                      //   radius: 30,
+                      //   backgroundColor: Colors.black,
+                      //   child: Text(AppLocalizations.of(context)!.translate('logo')),
+                      // ),
+                      child: Container(
+                        margin: EdgeInsets.only(bottom: 10),
+                        // width: 380,
+                        height: logoSize,
+                        child: _imageData != null ? Image.memory(_imageData!) : null,
                       ),
                     )
                 ),
@@ -873,6 +895,75 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
         flex: 1,
         child: Column(
           children: [
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text(AppLocalizations.of(context)!.translate('logo'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Switch(
+                    value: logoImage,
+                    activeColor: color.backgroundColor,
+                    onChanged: (bool value) async {
+                      if(value && branchObject!['logo'] == '') {
+                        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_branch_logo_added'));
+                      } else {
+                        await getBranchLogo();
+                        setState(() {
+                          logoImage = value;
+                        });
+                      }
+                    })
+              ],
+            ),
+            Visibility(
+                visible: logoImage ? true : false,
+                child: Column(
+                  children: [
+                    Container(
+                      alignment: Alignment.topLeft,
+                      child: Text(AppLocalizations.of(context)!.translate('logo_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.big,
+                      groupValue: headerImageSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          headerImageSize = value;
+                          logoSize = 140.0;
+                        });
+                      },
+                      title: Text(AppLocalizations.of(context)!.translate('big')),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.medium,
+                      groupValue: headerImageSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          headerImageSize = value;
+                          logoSize = 100.0;
+                        });
+                      },
+                      title: Text(AppLocalizations.of(context)!.translate('medium')),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.small,
+                      groupValue: headerImageSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          headerImageSize = value;
+                          logoSize = 60.0;
+                        });
+                      },
+                      title: Text(AppLocalizations.of(context)!.translate('small')),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                  ],
+                )
+            ),
             Row(
               children: [
                 Container(
@@ -1494,6 +1585,75 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
+                  child: Text(AppLocalizations.of(context)!.translate('logo'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Switch(
+                    value: logoImage,
+                    activeColor: color.backgroundColor,
+                    onChanged: (bool value) async {
+                      if(value && branchObject!['logo'] == '') {
+                        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_branch_logo_added'));
+                      } else {
+                        await getBranchLogo();
+                        setState(() {
+                          logoImage = value;
+                        });
+                      }
+                    })
+              ],
+            ),
+            Visibility(
+                visible: logoImage ? true : false,
+                child: Column(
+                  children: [
+                    Container(
+                      alignment: Alignment.topLeft,
+                      child: Text(AppLocalizations.of(context)!.translate('logo_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.big,
+                      groupValue: headerImageSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          headerImageSize = value;
+                          logoSize = 140.0;
+                        });
+                      },
+                      title: Text(AppLocalizations.of(context)!.translate('big')),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.medium,
+                      groupValue: headerImageSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          headerImageSize = value;
+                          logoSize = 100.0;
+                        });
+                      },
+                      title: Text(AppLocalizations.of(context)!.translate('medium')),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.small,
+                      groupValue: headerImageSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          headerImageSize = value;
+                          logoSize = 60.0;
+                        });
+                      },
+                      title: Text(AppLocalizations.of(context)!.translate('small')),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                  ],
+                )
+            ),
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
                   child: Text(AppLocalizations.of(context)!.translate('logo_text'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
@@ -1782,31 +1942,74 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
 
   Widget MobileReceiptView1(ThemeColor color) => Column(
     children: [
-      Container(
-        alignment: Alignment.topLeft,
-        child: Text(AppLocalizations.of(context)!.translate('logo_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text(AppLocalizations.of(context)!.translate('logo'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: logoImage,
+              activeColor: color.backgroundColor,
+              onChanged: (bool value) async {
+                if(value && branchObject!['logo'] == '') {
+                  Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_branch_logo_added'));
+                } else {
+                  await getBranchLogo();
+                  setState(() {
+                    logoImage = value;
+                  });
+                }
+              })
+        ],
       ),
-      RadioListTile<ReceiptDialogEnum?>(
-        value: ReceiptDialogEnum.big,
-        groupValue: headerFontSize,
-        onChanged: (value) async  {
-          setState(() {
-            headerFontSize = value;
-          });
-        },
-        title: Text(AppLocalizations.of(context)!.translate('big')),
-        controlAffinity: ListTileControlAffinity.trailing,
-      ),
-      RadioListTile<ReceiptDialogEnum?>(
-        value: ReceiptDialogEnum.small,
-        groupValue: headerFontSize,
-        onChanged: (value) async  {
-         setState(() {
-           headerFontSize = value;
-         });
-        },
-        title: Text(AppLocalizations.of(context)!.translate('small')),
-        controlAffinity: ListTileControlAffinity.trailing,
+      Visibility(
+          visible: logoImage ? true : false,
+          child: Column(
+            children: [
+              Container(
+                alignment: Alignment.topLeft,
+                child: Text(AppLocalizations.of(context)!.translate('logo_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+              ),
+              RadioListTile<ReceiptDialogEnum?>(
+                value: ReceiptDialogEnum.big,
+                groupValue: headerImageSize,
+                onChanged: (value) async  {
+                  setState(() {
+                    headerImageSize = value;
+                    logoSize = 140.0;
+                  });
+                },
+                title: Text(AppLocalizations.of(context)!.translate('big')),
+                controlAffinity: ListTileControlAffinity.trailing,
+              ),
+              RadioListTile<ReceiptDialogEnum?>(
+                value: ReceiptDialogEnum.medium,
+                groupValue: headerImageSize,
+                onChanged: (value) async  {
+                  setState(() {
+                    headerImageSize = value;
+                    logoSize = 100.0;
+                  });
+                },
+                title: Text(AppLocalizations.of(context)!.translate('medium')),
+                controlAffinity: ListTileControlAffinity.trailing,
+              ),
+              RadioListTile<ReceiptDialogEnum?>(
+                value: ReceiptDialogEnum.small,
+                groupValue: headerImageSize,
+                onChanged: (value) async  {
+                  setState(() {
+                    headerImageSize = value;
+                    logoSize = 60.0;
+                  });
+                },
+                title: Text(AppLocalizations.of(context)!.translate('small')),
+                controlAffinity: ListTileControlAffinity.trailing,
+              ),
+            ],
+          )
       ),
       Row(
         children: [
@@ -1858,6 +2061,39 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 ),
               );
             }),
+      ),
+      Visibility(
+        visible: logoText ? true : false,
+        child: Column(
+          children: [
+            Container(
+              alignment: Alignment.topLeft,
+              child: Text(AppLocalizations.of(context)!.translate('logo_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            ),
+            RadioListTile<ReceiptDialogEnum?>(
+              value: ReceiptDialogEnum.big,
+              groupValue: headerFontSize,
+              onChanged: (value) async  {
+                setState(() {
+                  headerFontSize = value;
+                });
+              },
+              title: Text(AppLocalizations.of(context)!.translate('big')),
+              controlAffinity: ListTileControlAffinity.trailing,
+            ),
+            RadioListTile<ReceiptDialogEnum?>(
+              value: ReceiptDialogEnum.small,
+              groupValue: headerFontSize,
+              onChanged: (value) async  {
+                setState(() {
+                  headerFontSize = value;
+                });
+              },
+              title: Text(AppLocalizations.of(context)!.translate('small')),
+              controlAffinity: ListTileControlAffinity.trailing,
+            ),
+          ],
+        ),
       ),
       Row(
         children: [
@@ -2051,31 +2287,74 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
 
   Widget MobileReceiptView2(ThemeColor color) => Column(
     children: [
-      Container(
-        alignment: Alignment.topLeft,
-        child: Text(AppLocalizations.of(context)!.translate('logo_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text(AppLocalizations.of(context)!.translate('logo'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: logoImage,
+              activeColor: color.backgroundColor,
+              onChanged: (bool value) async {
+                if(value && branchObject!['logo'] == '') {
+                  Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_branch_logo_added'));
+                } else {
+                  await getBranchLogo();
+                  setState(() {
+                    logoImage = value;
+                  });
+                }
+              })
+        ],
       ),
-      RadioListTile<ReceiptDialogEnum?>(
-        value: ReceiptDialogEnum.big,
-        groupValue: headerFontSize,
-        onChanged: (value) async  {
-          setState(() {
-            headerFontSize = value;
-          });
-        },
-        title: Text(AppLocalizations.of(context)!.translate('big')),
-        controlAffinity: ListTileControlAffinity.trailing,
-      ),
-      RadioListTile<ReceiptDialogEnum?>(
-        value: ReceiptDialogEnum.small,
-        groupValue: headerFontSize,
-        onChanged: (value) async  {
-          setState(() {
-            headerFontSize = value;
-          });
-        },
-        title: Text(AppLocalizations.of(context)!.translate('small')),
-        controlAffinity: ListTileControlAffinity.trailing,
+      Visibility(
+          visible: logoImage ? true : false,
+          child: Column(
+            children: [
+              Container(
+                alignment: Alignment.topLeft,
+                child: Text(AppLocalizations.of(context)!.translate('logo_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+              ),
+              RadioListTile<ReceiptDialogEnum?>(
+                value: ReceiptDialogEnum.big,
+                groupValue: headerImageSize,
+                onChanged: (value) async  {
+                  setState(() {
+                    headerImageSize = value;
+                    logoSize = 140.0;
+                  });
+                },
+                title: Text(AppLocalizations.of(context)!.translate('big')),
+                controlAffinity: ListTileControlAffinity.trailing,
+              ),
+              RadioListTile<ReceiptDialogEnum?>(
+                value: ReceiptDialogEnum.medium,
+                groupValue: headerImageSize,
+                onChanged: (value) async  {
+                  setState(() {
+                    headerImageSize = value;
+                    logoSize = 100.0;
+                  });
+                },
+                title: Text(AppLocalizations.of(context)!.translate('medium')),
+                controlAffinity: ListTileControlAffinity.trailing,
+              ),
+              RadioListTile<ReceiptDialogEnum?>(
+                value: ReceiptDialogEnum.small,
+                groupValue: headerImageSize,
+                onChanged: (value) async  {
+                  setState(() {
+                    headerImageSize = value;
+                    logoSize = 60.0;
+                  });
+                },
+                title: Text(AppLocalizations.of(context)!.translate('small')),
+                controlAffinity: ListTileControlAffinity.trailing,
+              ),
+            ],
+          )
       ),
       Row(
         children: [
@@ -2127,6 +2406,39 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 ),
               );
             }),
+      ),
+      Visibility(
+        visible: logoText ? true : false,
+        child: Column(
+          children: [
+            Container(
+              alignment: Alignment.topLeft,
+              child: Text(AppLocalizations.of(context)!.translate('logo_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            ),
+            RadioListTile<ReceiptDialogEnum?>(
+              value: ReceiptDialogEnum.big,
+              groupValue: headerFontSize,
+              onChanged: (value) async  {
+                setState(() {
+                  headerFontSize = value;
+                });
+              },
+              title: Text(AppLocalizations.of(context)!.translate('big')),
+              controlAffinity: ListTileControlAffinity.trailing,
+            ),
+            RadioListTile<ReceiptDialogEnum?>(
+              value: ReceiptDialogEnum.small,
+              groupValue: headerFontSize,
+              onChanged: (value) async  {
+                setState(() {
+                  headerFontSize = value;
+                });
+              },
+              title: Text(AppLocalizations.of(context)!.translate('small')),
+              controlAffinity: ListTileControlAffinity.trailing,
+            ),
+          ],
+        ),
       ),
       Row(
         children: [
@@ -2301,5 +2613,50 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       ),
     ],
   );
+
+  Future<img.Image> getBranchLogo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
+    String? path = '';
+
+    if(Platform.isIOS){
+      String dir = await _localPath;
+      path = dir + '/assets/logo';
+    } else {
+      if(prefs.getString('logo_path') != null)
+        path = prefs.getString('logo_path')!;
+    }
+
+    if(path != '') {
+      final File imageFile = File('$path/${branchObject['logo']}');
+      if (!await imageFile.exists()) {
+        branchLogoExist = false;
+        return img.Image(width: 1, height: 1);
+      }
+
+      branchLogoExist = true;
+      final Uint8List imageBytes = await imageFile.readAsBytes();
+      final img.Image decodedImage = img.decodeImage(imageBytes)!;
+      img.Image thumbnail = img.copyResize(decodedImage, height: 130);
+      img.Image originalImg = img.copyResize(decodedImage, width: 380, height: 130);
+      img.fill(originalImg, color: img.ColorRgb8(255, 255, 255));
+
+      var padding = (originalImg.width - thumbnail.width) / 2;
+      img.compositeImage(originalImg, thumbnail, dstX: padding.toInt());
+      img.Image processedImage = img.adjustColor(originalImg, saturation: -100, contrast: 100, gamma: 10);
+      setState(() {
+        _imageData = img.encodeJpg(processedImage);
+      });
+      return processedImage;
+    } else {
+      return img.Image(width: 1, height: 1);
+    }
+  }
+
+  Future<String> get _localPath async {
+    final directory = await getApplicationSupportDirectory();
+    return directory.path;
+  }
 
 }

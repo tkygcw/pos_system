@@ -77,7 +77,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 26, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 27, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -90,742 +90,140 @@ class PosDatabase {
 
     if (oldVersion < newVersion) {
       // you can execute drop table and create table
-      switch (oldVersion) {
-        case 10: {
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_receipt} INTEGER NOT NULL DEFAULT 1");
-          //new
-          await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.allow_image} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.image_name} $textType DEFAULT '' ");
-          //new case 12
-          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by} TEXT NOT NULL DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by_user_id} TEXT NOT NULL DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_price} INTEGER NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_separator} INTEGER NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.edit_price_without_pin} INTEGER NOT NULL DEFAULT 0");
-          //new case 13
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.qr_order_auto_accept} INTEGER NOT NULL DEFAULT 0");
-          await db.execute('''CREATE TABLE $tableSubscription(
-          ${SubscriptionFields.subscription_sqlite_id} $idType,
-          ${SubscriptionFields.id} $integerType,
-          ${SubscriptionFields.company_id} $textType,
-          ${SubscriptionFields.subscription_plan_id} $textType,
-          ${SubscriptionFields.subscribe_package} $textType,
-          ${SubscriptionFields.subscribe_fee} $textType,
-          ${SubscriptionFields.duration} $textType,
-          ${SubscriptionFields.branch_amount} $integerType,
-          ${SubscriptionFields.start_date} $textType,
-          ${SubscriptionFields.end_date} $textType,
-          ${SubscriptionFields.created_at} $textType,
-          ${SubscriptionFields.soft_delete} $textType)''');
-        }break;
-        case 11: {
-          await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.allow_image} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.image_name} $textType DEFAULT '' ");
-          //new case 12
-          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by} TEXT NOT NULL DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by_user_id} TEXT NOT NULL DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_price} INTEGER NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_separator} INTEGER NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.edit_price_without_pin} INTEGER NOT NULL DEFAULT 0");
-          //new case 13
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.qr_order_auto_accept} INTEGER NOT NULL DEFAULT 0");
-          await db.execute('''CREATE TABLE $tableSubscription(
-          ${SubscriptionFields.subscription_sqlite_id} $idType,
-          ${SubscriptionFields.id} $integerType,
-          ${SubscriptionFields.company_id} $textType,
-          ${SubscriptionFields.subscription_plan_id} $textType,
-          ${SubscriptionFields.subscribe_package} $textType,
-          ${SubscriptionFields.subscribe_fee} $textType,
-          ${SubscriptionFields.duration} $textType,
-          ${SubscriptionFields.branch_amount} $integerType,
-          ${SubscriptionFields.start_date} $textType,
-          ${SubscriptionFields.end_date} $textType,
-          ${SubscriptionFields.created_at} $textType,
-          ${SubscriptionFields.soft_delete} $textType)''');
-        }break;
-        case 12: {
-          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by} TEXT NOT NULL DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by_user_id} TEXT NOT NULL DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_price} INTEGER NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_separator} INTEGER NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.edit_price_without_pin} INTEGER NOT NULL DEFAULT 0");
-          //new case 13
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.qr_order_auto_accept} INTEGER NOT NULL DEFAULT 0");
-          await db.execute('''CREATE TABLE $tableSubscription(
-          ${SubscriptionFields.subscription_sqlite_id} $idType,
-          ${SubscriptionFields.id} $integerType,
-          ${SubscriptionFields.company_id} $textType,
-          ${SubscriptionFields.subscription_plan_id} $textType,
-          ${SubscriptionFields.subscribe_package} $textType,
-          ${SubscriptionFields.subscribe_fee} $textType,
-          ${SubscriptionFields.duration} $textType,
-          ${SubscriptionFields.branch_amount} $integerType,
-          ${SubscriptionFields.start_date} $textType,
-          ${SubscriptionFields.end_date} $textType,
-          ${SubscriptionFields.created_at} $textType,
-          ${SubscriptionFields.soft_delete} $textType)''');
-        }break;
-        case 13: {
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.qr_order_auto_accept} INTEGER NOT NULL DEFAULT 0");
-          await db.execute('''CREATE TABLE $tableSubscription(
-          ${SubscriptionFields.subscription_sqlite_id} $idType,
-          ${SubscriptionFields.id} $integerType,
-          ${SubscriptionFields.company_id} $textType,
-          ${SubscriptionFields.subscription_plan_id} $textType,
-          ${SubscriptionFields.subscribe_package} $textType,
-          ${SubscriptionFields.subscribe_fee} $textType,
-          ${SubscriptionFields.duration} $textType,
-          ${SubscriptionFields.branch_amount} $integerType,
-          ${SubscriptionFields.start_date} $textType,
-          ${SubscriptionFields.end_date} $textType,
-          ${SubscriptionFields.created_at} $textType,
-          ${SubscriptionFields.soft_delete} $textType)''');
-        }break;
-        case 14: {
-          print("case 14 called");
-          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.refund_permission} INTEGER NOT NULL DEFAULT 1");
-          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.settlement_permission} INTEGER NOT NULL DEFAULT 1");
-          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.report_permission} INTEGER NOT NULL DEFAULT 1");
-          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.cash_drawer_permission} INTEGER NOT NULL DEFAULT 1");
-          //branch table
-          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.qr_order_status} $textType DEFAULT '0'");
-          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.sub_pos_status} INTEGER NOT NULL DEFAULT 1");
-          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.attendance_status} INTEGER NOT NULL DEFAULT 1");
-
-          await db.execute("UPDATE $tableUser SET ${UserFields.edit_price_without_pin} = 1 WHERE role = 0 AND soft_delete = ''");
-
-          await db.execute('''CREATE TABLE $tableAttendance(
-          ${AttendanceFields.attendance_sqlite_id} $idType,
-          ${AttendanceFields.attendance_key} $textType,
-          ${AttendanceFields.branch_id} $textType,
-          ${AttendanceFields.user_id} $textType,
-          ${AttendanceFields.role} $integerType,
-          ${AttendanceFields.clock_in_at} $textType,
-          ${AttendanceFields.clock_out_at} $textType,
-          ${AttendanceFields.duration} $integerType,
-          ${AttendanceFields.sync_status} $integerType,
-          ${AttendanceFields.created_at} $textType,
-          ${AttendanceFields.updated_at} $textType,
-          ${AttendanceFields.soft_delete} $textType)''');
-
-          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_count} $integerType NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_exp} $textType NOT NULL DEFAULT '' ");
-          //new 18
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
-          //new 20
-          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
-          //new 21
-          await db.execute('''CREATE TABLE $tableDynamicQR(
-          ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
-          ${DynamicQRFields.dynamic_qr_id} $integerType,
-          ${DynamicQRFields.dynamic_qr_key} $textType,
-          ${DynamicQRFields.branch_id} $textType,
-          ${DynamicQRFields.qr_code_size} $integerType,
-          ${DynamicQRFields.paper_size} $textType,
-          ${DynamicQRFields.footer_text} $textType,
-          ${DynamicQRFields.sync_status} $integerType,
-          ${DynamicQRFields.created_at} $textType,
-          ${DynamicQRFields.updated_at} $textType,
-          ${DynamicQRFields.soft_delete} $textType)''');
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType DEFAULT 1");
-          //new 22
-          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_product_sku} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_tel} $integerType DEFAULT 1");
-          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_product_sku} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.type} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
-        }break;
-        case 15: {
-          await db.execute("UPDATE $tableUser SET ${UserFields.edit_price_without_pin} = 1 WHERE role = 0 AND soft_delete = ''");
-          await db.execute("UPDATE $tableBranch SET ${BranchFields.sub_pos_status} = 1");
-          await db.execute("UPDATE $tableBranch SET ${BranchFields.attendance_status} = 1");
-
-          await db.execute('''CREATE TABLE $tableAttendance(
-          ${AttendanceFields.attendance_sqlite_id} $idType,
-          ${AttendanceFields.attendance_key} $textType,
-          ${AttendanceFields.branch_id} $textType,
-          ${AttendanceFields.user_id} $textType,
-          ${AttendanceFields.role} $integerType,
-          ${AttendanceFields.clock_in_at} $textType,
-          ${AttendanceFields.clock_out_at} $textType,
-          ${AttendanceFields.duration} $integerType,
-          ${AttendanceFields.sync_status} $integerType,
-          ${AttendanceFields.created_at} $textType,
-          ${AttendanceFields.updated_at} $textType,
-          ${AttendanceFields.soft_delete} $textType)''');
-
-          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_count} $integerType NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_exp} $textType NOT NULL DEFAULT '' ");
-          //new 18
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
-          //new 20
-          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
-          //new 21
-          await db.execute('''CREATE TABLE $tableDynamicQR(
-          ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
-          ${DynamicQRFields.dynamic_qr_id} $integerType,
-          ${DynamicQRFields.dynamic_qr_key} $textType,
-          ${DynamicQRFields.branch_id} $textType,
-          ${DynamicQRFields.qr_code_size} $integerType,
-          ${DynamicQRFields.paper_size} $textType,
-          ${DynamicQRFields.footer_text} $textType,
-          ${DynamicQRFields.sync_status} $integerType,
-          ${DynamicQRFields.created_at} $textType,
-          ${DynamicQRFields.updated_at} $textType,
-          ${DynamicQRFields.soft_delete} $textType)''');
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType DEFAULT 1");
-          //new 22
-          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_product_sku} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_tel} $integerType DEFAULT 1");
-          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_product_sku} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.type} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
-          //new 23
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
-          //new 24
-          await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
-          ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
-          ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
-          ${OrderPaymentSplitFields.order_payment_split_key} $textType,
-          ${OrderPaymentSplitFields.branch_id} $textType,
-          ${OrderPaymentSplitFields.payment_link_company_id} $textType,
-          ${OrderPaymentSplitFields.amount} $textType,
-          ${OrderPaymentSplitFields.payment_received} $textType,
-          ${OrderPaymentSplitFields.payment_change} $textType,
-          ${OrderPaymentSplitFields.order_key} $textType,
-          ${OrderPaymentSplitFields.ipay_trans_id} $textType,
-          ${OrderPaymentSplitFields.sync_status} $integerType,
-          ${OrderPaymentSplitFields.created_at} $textType,
-          ${OrderPaymentSplitFields.updated_at} $textType,
-          ${OrderPaymentSplitFields.soft_delete} $textType)''');
-          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
-          await db.execute('''CREATE TABLE $tableCurrentVersion(
-          ${CurrentVersionFields.current_version_sqlite_id} $idType,
-          ${CurrentVersionFields.current_version_id} $integerType,
-          ${CurrentVersionFields.branch_id} $textType,
-          ${CurrentVersionFields.current_version} $textType,
-          ${CurrentVersionFields.platform} $integerType,
-          ${CurrentVersionFields.is_gms} $integerType,
-          ${CurrentVersionFields.source} $textType,
-          ${CurrentVersionFields.sync_status} $integerType,
-          ${CurrentVersionFields.created_at} $textType,
-          ${CurrentVersionFields.updated_at} $textType,
-          ${CurrentVersionFields.soft_delete} $textType)''');
-          //new 26
-          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
-        }break;
-        case 16: {
-          await db.execute('''CREATE TABLE $tableAttendance(
-          ${AttendanceFields.attendance_sqlite_id} $idType,
-          ${AttendanceFields.attendance_key} $textType,
-          ${AttendanceFields.branch_id} $textType,
-          ${AttendanceFields.user_id} $textType,
-          ${AttendanceFields.role} $integerType,
-          ${AttendanceFields.clock_in_at} $textType,
-          ${AttendanceFields.clock_out_at} $textType,
-          ${AttendanceFields.duration} $integerType,
-          ${AttendanceFields.sync_status} $integerType,
-          ${AttendanceFields.created_at} $textType,
-          ${AttendanceFields.updated_at} $textType,
-          ${AttendanceFields.soft_delete} $textType)''');
-          //new
-          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_count} $integerType NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_exp} $textType NOT NULL DEFAULT '' ");
-          //new 18
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
-          //new 20
-          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
-          //new 21
-          await db.execute('''CREATE TABLE $tableDynamicQR(
-          ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
-          ${DynamicQRFields.dynamic_qr_id} $integerType,
-          ${DynamicQRFields.dynamic_qr_key} $textType,
-          ${DynamicQRFields.branch_id} $textType,
-          ${DynamicQRFields.qr_code_size} $integerType,
-          ${DynamicQRFields.paper_size} $textType,
-          ${DynamicQRFields.footer_text} $textType,
-          ${DynamicQRFields.sync_status} $integerType,
-          ${DynamicQRFields.created_at} $textType,
-          ${DynamicQRFields.updated_at} $textType,
-          ${DynamicQRFields.soft_delete} $textType)''');
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType DEFAULT 1");
-          //new 22
-          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_product_sku} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_tel} $integerType DEFAULT 1");
-          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_product_sku} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.type} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
-          //new 23
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
-          //new 24
-          await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
-          ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
-          ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
-          ${OrderPaymentSplitFields.order_payment_split_key} $textType,
-          ${OrderPaymentSplitFields.branch_id} $textType,
-          ${OrderPaymentSplitFields.payment_link_company_id} $textType,
-          ${OrderPaymentSplitFields.amount} $textType,
-          ${OrderPaymentSplitFields.payment_received} $textType,
-          ${OrderPaymentSplitFields.payment_change} $textType,
-          ${OrderPaymentSplitFields.order_key} $textType,
-          ${OrderPaymentSplitFields.ipay_trans_id} $textType,
-          ${OrderPaymentSplitFields.sync_status} $integerType,
-          ${OrderPaymentSplitFields.created_at} $textType,
-          ${OrderPaymentSplitFields.updated_at} $textType,
-          ${OrderPaymentSplitFields.soft_delete} $textType)''');
-          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
-          await db.execute('''CREATE TABLE $tableCurrentVersion(
-          ${CurrentVersionFields.current_version_sqlite_id} $idType,
-          ${CurrentVersionFields.current_version_id} $integerType,
-          ${CurrentVersionFields.branch_id} $textType,
-          ${CurrentVersionFields.current_version} $textType,
-          ${CurrentVersionFields.platform} $integerType,
-          ${CurrentVersionFields.is_gms} $integerType,
-          ${CurrentVersionFields.source} $textType,
-          ${CurrentVersionFields.sync_status} $integerType,
-          ${CurrentVersionFields.created_at} $textType,
-          ${CurrentVersionFields.updated_at} $textType,
-          ${CurrentVersionFields.soft_delete} $textType)''');
-          //new 26
-          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
-        }break;
-        case 17: {
-          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_count} $integerType NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_exp} $textType NOT NULL DEFAULT '' ");
-          //new 18
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
-          //new 20
-          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
-          //new 21
-          await db.execute('''CREATE TABLE $tableDynamicQR(
-          ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
-          ${DynamicQRFields.dynamic_qr_id} $integerType,
-          ${DynamicQRFields.dynamic_qr_key} $textType,
-          ${DynamicQRFields.branch_id} $textType,
-          ${DynamicQRFields.qr_code_size} $integerType,
-          ${DynamicQRFields.paper_size} $textType,
-          ${DynamicQRFields.footer_text} $textType,
-          ${DynamicQRFields.sync_status} $integerType,
-          ${DynamicQRFields.created_at} $textType,
-          ${DynamicQRFields.updated_at} $textType,
-          ${DynamicQRFields.soft_delete} $textType)''');
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType DEFAULT 1");
-          //new 22
-          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_product_sku} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_tel} $integerType DEFAULT 1");
-          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_product_sku} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.type} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
-          //new 23
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
-          //new 24
-          await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
-          ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
-          ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
-          ${OrderPaymentSplitFields.order_payment_split_key} $textType,
-          ${OrderPaymentSplitFields.branch_id} $textType,
-          ${OrderPaymentSplitFields.payment_link_company_id} $textType,
-          ${OrderPaymentSplitFields.amount} $textType,
-          ${OrderPaymentSplitFields.payment_received} $textType,
-          ${OrderPaymentSplitFields.payment_change} $textType,
-          ${OrderPaymentSplitFields.order_key} $textType,
-          ${OrderPaymentSplitFields.ipay_trans_id} $textType,
-          ${OrderPaymentSplitFields.sync_status} $integerType,
-          ${OrderPaymentSplitFields.created_at} $textType,
-          ${OrderPaymentSplitFields.updated_at} $textType,
-          ${OrderPaymentSplitFields.soft_delete} $textType)''');
-          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
-          await db.execute('''CREATE TABLE $tableCurrentVersion(
-          ${CurrentVersionFields.current_version_sqlite_id} $idType,
-          ${CurrentVersionFields.current_version_id} $integerType,
-          ${CurrentVersionFields.branch_id} $textType,
-          ${CurrentVersionFields.current_version} $textType,
-          ${CurrentVersionFields.platform} $integerType,
-          ${CurrentVersionFields.is_gms} $integerType,
-          ${CurrentVersionFields.source} $textType,
-          ${CurrentVersionFields.sync_status} $integerType,
-          ${CurrentVersionFields.created_at} $textType,
-          ${CurrentVersionFields.updated_at} $textType,
-          ${CurrentVersionFields.soft_delete} $textType)''');
-          //new 26
-          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
-        }break;
-        case 18: {
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
-          //new 20
-          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
-          //new 21
-          await db.execute('''CREATE TABLE $tableDynamicQR(
-          ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
-          ${DynamicQRFields.dynamic_qr_id} $integerType,
-          ${DynamicQRFields.dynamic_qr_key} $textType,
-          ${DynamicQRFields.branch_id} $textType,
-          ${DynamicQRFields.qr_code_size} $integerType,
-          ${DynamicQRFields.paper_size} $textType,
-          ${DynamicQRFields.footer_text} $textType,
-          ${DynamicQRFields.sync_status} $integerType,
-          ${DynamicQRFields.created_at} $textType,
-          ${DynamicQRFields.updated_at} $textType,
-          ${DynamicQRFields.soft_delete} $textType)''');
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType DEFAULT 1");
-          //new 22
-          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_product_sku} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_tel} $integerType DEFAULT 1");
-          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_product_sku} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.type} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
-          //new 23
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
-          //new 24
-          await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
-          ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
-          ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
-          ${OrderPaymentSplitFields.order_payment_split_key} $textType,
-          ${OrderPaymentSplitFields.branch_id} $textType,
-          ${OrderPaymentSplitFields.payment_link_company_id} $textType,
-          ${OrderPaymentSplitFields.amount} $textType,
-          ${OrderPaymentSplitFields.payment_received} $textType,
-          ${OrderPaymentSplitFields.payment_change} $textType,
-          ${OrderPaymentSplitFields.order_key} $textType,
-          ${OrderPaymentSplitFields.ipay_trans_id} $textType,
-          ${OrderPaymentSplitFields.sync_status} $integerType,
-          ${OrderPaymentSplitFields.created_at} $textType,
-          ${OrderPaymentSplitFields.updated_at} $textType,
-          ${OrderPaymentSplitFields.soft_delete} $textType)''');
-          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
-          await db.execute('''CREATE TABLE $tableCurrentVersion(
-          ${CurrentVersionFields.current_version_sqlite_id} $idType,
-          ${CurrentVersionFields.current_version_id} $integerType,
-          ${CurrentVersionFields.branch_id} $textType,
-          ${CurrentVersionFields.current_version} $textType,
-          ${CurrentVersionFields.platform} $integerType,
-          ${CurrentVersionFields.is_gms} $integerType,
-          ${CurrentVersionFields.source} $textType,
-          ${CurrentVersionFields.sync_status} $integerType,
-          ${CurrentVersionFields.created_at} $textType,
-          ${CurrentVersionFields.updated_at} $textType,
-          ${CurrentVersionFields.soft_delete} $textType)''');
-          //new 26
-          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
-        }break;
-        case 19: {
-          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
-          //new 21
-          await db.execute('''CREATE TABLE $tableDynamicQR(
-          ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
-          ${DynamicQRFields.dynamic_qr_id} $integerType,
-          ${DynamicQRFields.dynamic_qr_key} $textType,
-          ${DynamicQRFields.branch_id} $textType,
-          ${DynamicQRFields.qr_code_size} $integerType,
-          ${DynamicQRFields.paper_size} $textType,
-          ${DynamicQRFields.footer_text} $textType,
-          ${DynamicQRFields.sync_status} $integerType,
-          ${DynamicQRFields.created_at} $textType,
-          ${DynamicQRFields.updated_at} $textType,
-          ${DynamicQRFields.soft_delete} $textType)''');
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType DEFAULT 1");
-          //new 22
-          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_product_sku} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_tel} $integerType DEFAULT 1");
-          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_product_sku} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.type} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
-          //new 23
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
-          //new 24
-          await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
-          ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
-          ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
-          ${OrderPaymentSplitFields.order_payment_split_key} $textType,
-          ${OrderPaymentSplitFields.branch_id} $textType,
-          ${OrderPaymentSplitFields.payment_link_company_id} $textType,
-          ${OrderPaymentSplitFields.amount} $textType,
-          ${OrderPaymentSplitFields.payment_received} $textType,
-          ${OrderPaymentSplitFields.payment_change} $textType,
-          ${OrderPaymentSplitFields.order_key} $textType,
-          ${OrderPaymentSplitFields.ipay_trans_id} $textType,
-          ${OrderPaymentSplitFields.sync_status} $integerType,
-          ${OrderPaymentSplitFields.created_at} $textType,
-          ${OrderPaymentSplitFields.updated_at} $textType,
-          ${OrderPaymentSplitFields.soft_delete} $textType)''');
-          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
-          await db.execute('''CREATE TABLE $tableCurrentVersion(
-          ${CurrentVersionFields.current_version_sqlite_id} $idType,
-          ${CurrentVersionFields.current_version_id} $integerType,
-          ${CurrentVersionFields.branch_id} $textType,
-          ${CurrentVersionFields.current_version} $textType,
-          ${CurrentVersionFields.platform} $integerType,
-          ${CurrentVersionFields.is_gms} $integerType,
-          ${CurrentVersionFields.source} $textType,
-          ${CurrentVersionFields.sync_status} $integerType,
-          ${CurrentVersionFields.created_at} $textType,
-          ${CurrentVersionFields.updated_at} $textType,
-          ${CurrentVersionFields.soft_delete} $textType)''');
-          //new 26
-          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
-        }break;
-        case 20: {
-          await db.execute('''CREATE TABLE $tableDynamicQR(
-          ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
-          ${DynamicQRFields.dynamic_qr_id} $integerType,
-          ${DynamicQRFields.dynamic_qr_key} $textType,
-          ${DynamicQRFields.branch_id} $textType,
-          ${DynamicQRFields.qr_code_size} $integerType,
-          ${DynamicQRFields.paper_size} $textType,
-          ${DynamicQRFields.footer_text} $textType,
-          ${DynamicQRFields.sync_status} $integerType,
-          ${DynamicQRFields.created_at} $textType,
-          ${DynamicQRFields.updated_at} $textType,
-          ${DynamicQRFields.soft_delete} $textType)''');
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType DEFAULT 1");
-          //new 22
-          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_product_sku} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_tel} $integerType DEFAULT 1");
-          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_product_sku} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.type} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
-          //new 23
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
-          //new 24
-          await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
-          ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
-          ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
-          ${OrderPaymentSplitFields.order_payment_split_key} $textType,
-          ${OrderPaymentSplitFields.branch_id} $textType,
-          ${OrderPaymentSplitFields.payment_link_company_id} $textType,
-          ${OrderPaymentSplitFields.amount} $textType,
-          ${OrderPaymentSplitFields.payment_received} $textType,
-          ${OrderPaymentSplitFields.payment_change} $textType,
-          ${OrderPaymentSplitFields.order_key} $textType,
-          ${OrderPaymentSplitFields.ipay_trans_id} $textType,
-          ${OrderPaymentSplitFields.sync_status} $integerType,
-          ${OrderPaymentSplitFields.created_at} $textType,
-          ${OrderPaymentSplitFields.updated_at} $textType,
-          ${OrderPaymentSplitFields.soft_delete} $textType)''');
-          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
-          await db.execute('''CREATE TABLE $tableCurrentVersion(
-          ${CurrentVersionFields.current_version_sqlite_id} $idType,
-          ${CurrentVersionFields.current_version_id} $integerType,
-          ${CurrentVersionFields.branch_id} $textType,
-          ${CurrentVersionFields.current_version} $textType,
-          ${CurrentVersionFields.platform} $integerType,
-          ${CurrentVersionFields.is_gms} $integerType,
-          ${CurrentVersionFields.source} $textType,
-          ${CurrentVersionFields.sync_status} $integerType,
-          ${CurrentVersionFields.created_at} $textType,
-          ${CurrentVersionFields.updated_at} $textType,
-          ${CurrentVersionFields.soft_delete} $textType)''');
-          //new 26
-          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
-        }break;
-        case 21: {
-          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_product_sku} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_tel} $integerType DEFAULT 1");
-          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_product_sku} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.type} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
-          await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
-          //new 23
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
-          //new 24
-          await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
-          ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
-          ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
-          ${OrderPaymentSplitFields.order_payment_split_key} $textType,
-          ${OrderPaymentSplitFields.branch_id} $textType,
-          ${OrderPaymentSplitFields.payment_link_company_id} $textType,
-          ${OrderPaymentSplitFields.amount} $textType,
-          ${OrderPaymentSplitFields.payment_received} $textType,
-          ${OrderPaymentSplitFields.payment_change} $textType,
-          ${OrderPaymentSplitFields.order_key} $textType,
-          ${OrderPaymentSplitFields.ipay_trans_id} $textType,
-          ${OrderPaymentSplitFields.sync_status} $integerType,
-          ${OrderPaymentSplitFields.created_at} $textType,
-          ${OrderPaymentSplitFields.updated_at} $textType,
-          ${OrderPaymentSplitFields.soft_delete} $textType)''');
-          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
-          await db.execute('''CREATE TABLE $tableCurrentVersion(
-          ${CurrentVersionFields.current_version_sqlite_id} $idType,
-          ${CurrentVersionFields.current_version_id} $integerType,
-          ${CurrentVersionFields.branch_id} $textType,
-          ${CurrentVersionFields.current_version} $textType,
-          ${CurrentVersionFields.platform} $integerType,
-          ${CurrentVersionFields.is_gms} $integerType,
-          ${CurrentVersionFields.source} $textType,
-          ${CurrentVersionFields.sync_status} $integerType,
-          ${CurrentVersionFields.created_at} $textType,
-          ${CurrentVersionFields.updated_at} $textType,
-          ${CurrentVersionFields.soft_delete} $textType)''');
-          //new 26
-          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
-        }break;
-        case 22: {
-          if(defaultTargetPlatform == TargetPlatform.iOS){
+      for (int version = oldVersion; version <= newVersion; version++) {
+        switch (version) {
+          case 10: {
+            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_receipt} INTEGER NOT NULL DEFAULT 1");
+          }break;
+          case 11: {
+            await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.allow_image} $integerType DEFAULT 0");
+            await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.image_name} $textType DEFAULT '' ");
+          }break;
+          case 12: {
+            await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by} TEXT NOT NULL DEFAULT '' ");
+            await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by_user_id} TEXT NOT NULL DEFAULT '' ");
+            await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_price} INTEGER NOT NULL DEFAULT 0");
+            await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_separator} INTEGER NOT NULL DEFAULT 0");
+          }break;
+          case 13: {
+            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.qr_order_auto_accept} INTEGER NOT NULL DEFAULT 0");
+            await db.execute('''CREATE TABLE $tableSubscription(
+            ${SubscriptionFields.subscription_sqlite_id} $idType,
+            ${SubscriptionFields.id} $integerType,
+            ${SubscriptionFields.company_id} $textType,
+            ${SubscriptionFields.subscription_plan_id} $textType,
+            ${SubscriptionFields.subscribe_package} $textType,
+            ${SubscriptionFields.subscribe_fee} $textType,
+            ${SubscriptionFields.duration} $textType,
+            ${SubscriptionFields.branch_amount} $integerType,
+            ${SubscriptionFields.start_date} $textType,
+            ${SubscriptionFields.end_date} $textType,
+            ${SubscriptionFields.created_at} $textType,
+            ${SubscriptionFields.soft_delete} $textType)''');
+          }break;
+          case 14: {
+            await db.execute("ALTER TABLE $tableUser ADD ${UserFields.refund_permission} INTEGER NOT NULL DEFAULT 1");
+            await db.execute("ALTER TABLE $tableUser ADD ${UserFields.settlement_permission} INTEGER NOT NULL DEFAULT 1");
+            await db.execute("ALTER TABLE $tableUser ADD ${UserFields.report_permission} INTEGER NOT NULL DEFAULT 1");
+            await db.execute("ALTER TABLE $tableUser ADD ${UserFields.cash_drawer_permission} INTEGER NOT NULL DEFAULT 1");
+            await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.qr_order_status} $textType DEFAULT '0'");
+            await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.sub_pos_status} INTEGER NOT NULL DEFAULT 1");
+            await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.attendance_status} INTEGER NOT NULL DEFAULT 1");
+          }break;
+          case 15: {
+            await db.execute("UPDATE $tableUser SET ${UserFields.edit_price_without_pin} = 1 WHERE role = 0 AND soft_delete = ''");
+            await db.execute("UPDATE $tableBranch SET ${BranchFields.sub_pos_status} = 1");
+            await db.execute("UPDATE $tableBranch SET ${BranchFields.attendance_status} = 1");
+          }break;
+          case 16: {
+            await db.execute('''CREATE TABLE $tableAttendance(
+            ${AttendanceFields.attendance_sqlite_id} $idType,
+            ${AttendanceFields.attendance_key} $textType,
+            ${AttendanceFields.branch_id} $textType,
+            ${AttendanceFields.user_id} $textType,
+            ${AttendanceFields.role} $integerType,
+            ${AttendanceFields.clock_in_at} $textType,
+            ${AttendanceFields.clock_out_at} $textType,
+            ${AttendanceFields.duration} $integerType,
+            ${AttendanceFields.sync_status} $integerType,
+            ${AttendanceFields.created_at} $textType,
+            ${AttendanceFields.updated_at} $textType,
+            ${AttendanceFields.soft_delete} $textType)''');
+          }break;
+          case 17: {
+            await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.allow_ticket} $integerType DEFAULT 0");
+            await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_count} $integerType NOT NULL DEFAULT 0");
+            await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.ticket_exp} $textType NOT NULL DEFAULT '' ");
+          }break;
+          case 18: {
+            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_cancel_receipt} $integerType DEFAULT 1");
+            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.product_sort_by} $integerType DEFAULT 0");
+            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_product_desc} $integerType DEFAULT 0");
+          }break;
+          case 19: {
+            await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.opened_at} $textType NOT NULL DEFAULT '' ");
+          }break;
+          case 20: {
+            await db.execute('''CREATE TABLE $tableDynamicQR(
+            ${DynamicQRFields.dynamic_qr_sqlite_id} $idType,
+            ${DynamicQRFields.dynamic_qr_id} $integerType,
+            ${DynamicQRFields.dynamic_qr_key} $textType,
+            ${DynamicQRFields.branch_id} $textType,
+            ${DynamicQRFields.qr_code_size} $integerType,
+            ${DynamicQRFields.paper_size} $textType,
+            ${DynamicQRFields.footer_text} $textType,
+            ${DynamicQRFields.sync_status} $integerType,
+            ${DynamicQRFields.created_at} $textType,
+            ${DynamicQRFields.updated_at} $textType,
+            ${DynamicQRFields.soft_delete} $textType)''');
+            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType DEFAULT 1");
+          }break;
+          case 21: {
+            await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.product_sku} $textType DEFAULT '' ");
+            await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_product_sku} $integerType DEFAULT 0");
+            await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_branch_tel} $integerType DEFAULT 1");
+            await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_product_sku} $integerType DEFAULT 0");
+            await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.show_product_sku} $integerType DEFAULT 0 ");
+          }break;
+          case 22: {
             await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.type} $integerType DEFAULT 0");
             await db.execute("ALTER TABLE $tableOrderTaxDetail ADD ${OrderTaxDetailFields.type} $integerType DEFAULT 0");
             await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_charge} $textType NOT NULL DEFAULT '' ");
-          }
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
-          //new 24
-          await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
-          ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
-          ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
-          ${OrderPaymentSplitFields.order_payment_split_key} $textType,
-          ${OrderPaymentSplitFields.branch_id} $textType,
-          ${OrderPaymentSplitFields.payment_link_company_id} $textType,
-          ${OrderPaymentSplitFields.amount} $textType,
-          ${OrderPaymentSplitFields.payment_received} $textType,
-          ${OrderPaymentSplitFields.payment_change} $textType,
-          ${OrderPaymentSplitFields.order_key} $textType,
-          ${OrderPaymentSplitFields.ipay_trans_id} $textType,
-          ${OrderPaymentSplitFields.sync_status} $integerType,
-          ${OrderPaymentSplitFields.created_at} $textType,
-          ${OrderPaymentSplitFields.updated_at} $textType,
-          ${OrderPaymentSplitFields.soft_delete} $textType)''');
-          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
-          await db.execute('''CREATE TABLE $tableCurrentVersion(
-          ${CurrentVersionFields.current_version_sqlite_id} $idType,
-          ${CurrentVersionFields.current_version_id} $integerType,
-          ${CurrentVersionFields.branch_id} $textType,
-          ${CurrentVersionFields.current_version} $textType,
-          ${CurrentVersionFields.platform} $integerType,
-          ${CurrentVersionFields.is_gms} $integerType,
-          ${CurrentVersionFields.source} $textType,
-          ${CurrentVersionFields.sync_status} $integerType,
-          ${CurrentVersionFields.created_at} $textType,
-          ${CurrentVersionFields.updated_at} $textType,
-          ${CurrentVersionFields.soft_delete} $textType)''');
-          //new 26
-          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
-        }break;
-        case 23: {
-          await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
-          ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
-          ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
-          ${OrderPaymentSplitFields.order_payment_split_key} $textType,
-          ${OrderPaymentSplitFields.branch_id} $textType,
-          ${OrderPaymentSplitFields.payment_link_company_id} $textType,
-          ${OrderPaymentSplitFields.amount} $textType,
-          ${OrderPaymentSplitFields.payment_received} $textType,
-          ${OrderPaymentSplitFields.payment_change} $textType,
-          ${OrderPaymentSplitFields.order_key} $textType,
-          ${OrderPaymentSplitFields.ipay_trans_id} $textType,
-          ${OrderPaymentSplitFields.sync_status} $integerType,
-          ${OrderPaymentSplitFields.created_at} $textType,
-          ${OrderPaymentSplitFields.updated_at} $textType,
-          ${OrderPaymentSplitFields.soft_delete} $textType)''');
-          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
-          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
-          await db.execute('''CREATE TABLE $tableCurrentVersion(
-          ${CurrentVersionFields.current_version_sqlite_id} $idType,
-          ${CurrentVersionFields.current_version_id} $integerType,
-          ${CurrentVersionFields.branch_id} $textType,
-          ${CurrentVersionFields.current_version} $textType,
-          ${CurrentVersionFields.platform} $integerType,
-          ${CurrentVersionFields.is_gms} $integerType,
-          ${CurrentVersionFields.source} $textType,
-          ${CurrentVersionFields.sync_status} $integerType,
-          ${CurrentVersionFields.created_at} $textType,
-          ${CurrentVersionFields.updated_at} $textType,
-          ${CurrentVersionFields.soft_delete} $textType)''');
-          //new 26
-          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
-        }break;
-        case 24: {
-          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
-          //new 26
-          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
-        }break;
-        case 25: {
-          await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
-        }break;
+            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.variant_item_sort_by} $integerType DEFAULT 0");
+          }break;
+          case 23: {
+            await db.execute('''CREATE TABLE $tableOrderPaymentSplit(
+            ${OrderPaymentSplitFields.order_payment_split_sqlite_id} $idType,
+            ${OrderPaymentSplitFields.order_payment_split_id} $integerType,
+            ${OrderPaymentSplitFields.order_payment_split_key} $textType,
+            ${OrderPaymentSplitFields.branch_id} $textType,
+            ${OrderPaymentSplitFields.payment_link_company_id} $textType,
+            ${OrderPaymentSplitFields.amount} $textType,
+            ${OrderPaymentSplitFields.payment_received} $textType,
+            ${OrderPaymentSplitFields.payment_change} $textType,
+            ${OrderPaymentSplitFields.order_key} $textType,
+            ${OrderPaymentSplitFields.ipay_trans_id} $textType,
+            ${OrderPaymentSplitFields.sync_status} $integerType,
+            ${OrderPaymentSplitFields.created_at} $textType,
+            ${OrderPaymentSplitFields.updated_at} $textType,
+            ${OrderPaymentSplitFields.soft_delete} $textType)''');
+            await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.payment_split} INTEGER NOT NULL DEFAULT 0");
+            await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.ipay_trans_id} $textType DEFAULT '' ");
+          }break;
+          case 24: {
+            await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.payment_status} $integerType DEFAULT 1");
+          }break;
+          case 25: {
+            await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+            await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+            await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
+          }break;
+          case 26: {
+            await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.logo} $textType DEFAULT ''");
+            await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.header_image_size} $integerType DEFAULT 0 ");
+          }break;
+        }
       }
     }
   }
@@ -1218,6 +616,7 @@ class PosDatabase {
            ${BranchFields.branchID} $idType,
            ${BranchFields.branch_url} $textType,
            ${BranchFields.name} $textType,
+           ${BranchFields.logo} $textType,
            ${BranchFields.address} $textType,
            ${BranchFields.phone} $textType,
            ${BranchFields.email} $textType,
@@ -1341,6 +740,7 @@ class PosDatabase {
           ${ReceiptFields.receipt_key} $textType,
           ${ReceiptFields.branch_id} $textType,
           ${ReceiptFields.header_image} $textType,
+          ${ReceiptFields.header_image_size} $integerType,
           ${ReceiptFields.header_image_status} $integerType,
           ${ReceiptFields.header_text} $textType,
           ${ReceiptFields.header_text_status} $integerType,
@@ -2606,8 +2006,8 @@ class PosDatabase {
         'INSERT INTO $tableReceipt(soft_delete, updated_at, created_at, sync_status, show_branch_tel, '
         'show_product_sku, header_font_size, status, paper_size, promotion_detail_status, '
         'footer_text_status, footer_text, footer_image_status, footer_image, show_break_down_price, receipt_email, show_email, show_address, '
-        'header_text_status, header_text, header_image_status, header_image, branch_id, receipt_key, receipt_id) '
-            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'header_text_status, header_text, header_image_status, header_image_size, header_image, branch_id, receipt_key, receipt_id) '
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.soft_delete,
           data.updated_at,
@@ -2630,6 +2030,7 @@ class PosDatabase {
           data.header_text_status,
           data.header_text,
           data.header_image_status,
+          data.header_image_size,
           data.header_image,
           data.branch_id,
           data.receipt_key,
@@ -6800,8 +6201,8 @@ class PosDatabase {
 */
   Future<int> updateBranch(Branch data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableBranch SET name = ?, address = ?, phone = ?, email = ?, qr_order_status = ?, sub_pos_status = ?, attendance_status = ? WHERE branchID = ? ',
-        [data.name, data.address, data.phone, data.email, data.qr_order_status, data.sub_pos_status, data.attendance_status, data.branchID]);
+    return await db.rawUpdate('UPDATE $tableBranch SET name = ?, logo = ?, address = ?, phone = ?, email = ?, qr_order_status = ?, sub_pos_status = ?, attendance_status = ? WHERE branchID = ? ',
+        [data.name, data.logo, data.address, data.phone, data.email, data.qr_order_status, data.sub_pos_status, data.attendance_status, data.branchID]);
   }
 
 /*
@@ -7189,12 +6590,13 @@ class PosDatabase {
   Future<int> updateReceiptLayout(Receipt data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableReceipt SET header_image = ?, header_image_status = ?, header_text = ?, header_text_status = ?, '
+        'UPDATE $tableReceipt SET header_image = ?, header_image_size = ?, header_image_status = ?, header_text = ?, header_text_status = ?, '
         'header_font_size = ?, show_address = ?, show_email = ?, receipt_email = ?, show_break_down_price = ?, '
         'footer_image = ?, footer_image_status = ?, footer_text = ?, footer_text_status = ?, '
             'promotion_detail_status = ?, show_product_sku = ?, show_branch_tel = ?, sync_status = ?, updated_at = ? WHERE receipt_sqlite_id = ?',
         [
           data.header_image,
+          data.header_image_size,
           data.header_image_status,
           data.header_text,
           data.header_text_status,

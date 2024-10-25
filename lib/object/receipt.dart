@@ -7,6 +7,7 @@ class ReceiptFields {
     receipt_key,
     branch_id,
     header_image,
+    header_image_size,
     header_image_status,
     header_text,
     header_text_status,
@@ -35,6 +36,7 @@ class ReceiptFields {
   static String receipt_key = 'receipt_key';
   static String branch_id = 'branch_id';
   static String header_image = 'header_image';
+  static String header_image_size = 'header_image_size';
   static String header_image_status = 'header_image_status';
   static String header_text = 'header_text';
   static String header_text_status = 'header_text_status';
@@ -65,6 +67,7 @@ class Receipt {
   String? receipt_key;
   String? branch_id;
   String? header_image;
+  int? header_image_size;
   int? header_image_status;
   String? header_text;
   int? header_text_status;
@@ -93,6 +96,7 @@ class Receipt {
         this.receipt_key,
         this.branch_id,
         this.header_image,
+        this.header_image_size,
         this.header_image_status,
         this.header_text,
         this.header_text_status,
@@ -121,6 +125,7 @@ class Receipt {
     String? receipt_key,
     String? branch_id,
     String? header_image,
+    int? header_image_size,
     int? header_image_status,
     String? header_text,
     int? header_text_status,
@@ -149,6 +154,7 @@ class Receipt {
           receipt_key: receipt_key ?? this.receipt_key,
           branch_id: branch_id ?? this.branch_id,
           header_image: header_image ?? this.header_image,
+          header_image_size: header_image_size ?? this.header_image_size,
           header_image_status: header_image_status ?? this.header_image_status,
           header_text: header_text ?? this.header_text,
           header_text_status: header_text_status ?? this.header_text_status,
@@ -177,6 +183,7 @@ class Receipt {
     receipt_key: json[ReceiptFields.receipt_key] as String?,
     branch_id: json[ReceiptFields.branch_id] as String?,
     header_image: json[ReceiptFields.header_image] as String?,
+    header_image_size: json[ReceiptFields.header_image_size] as int?,
     header_image_status: json[ReceiptFields.header_image_status] as int?,
     header_text: json[ReceiptFields.header_text] as String?,
     header_text_status: json[ReceiptFields.header_text_status] as int?,
@@ -206,6 +213,7 @@ class Receipt {
     ReceiptFields.receipt_key: receipt_key,
     ReceiptFields.branch_id: branch_id,
     ReceiptFields.header_image: header_image,
+    ReceiptFields.header_image_size: header_image_size,
     ReceiptFields.header_image_status: header_image_status,
     ReceiptFields.header_text: header_text,
     ReceiptFields.header_text_status: header_text_status,

@@ -1,9 +1,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:io';
 
+import 'package:image/image.dart' as img;
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:esc_pos_utils_plus/gbk_codec/gbk_codec.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/branch_link_dining_option.dart';
@@ -1010,6 +1014,47 @@ class ReceiptLayout{
     }
   }
 
+  Future<String> get _localPath async {
+    final directory = await getApplicationSupportDirectory();
+    return directory.path;
+  }
+
+  Future<img.Image> getBranchLogo(int header_image_size) async {
+    int imageSize = header_image_size == 0 ? 100 : header_image_size == 1 ? 160 : 220;
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
+    String? path = '';
+
+    if(Platform.isIOS){
+      String dir = await _localPath;
+      path = dir + '/assets/logo';
+    } else {
+      if(prefs.getString('logo_path') != null)
+        path = prefs.getString('logo_path')!;
+    }
+
+    if(path != '') {
+      final File imageFile = File('$path/${branchObject['logo']}');
+      if (!await imageFile.exists()) {
+        return img.Image(width: 1, height: 1);
+      }
+      final Uint8List imageBytes = await imageFile.readAsBytes();
+      final img.Image decodedImage = img.decodeImage(imageBytes)!;
+      img.Image thumbnail = img.copyResize(decodedImage, height: imageSize);
+      img.Image originalImg = img.copyResize(decodedImage, width: 380, height: imageSize);
+      img.fill(originalImg, color: img.ColorRgb8(255, 255, 255));
+
+      var padding = (originalImg.width - thumbnail.width) / 2;
+      img.compositeImage(originalImg, thumbnail, dstX: padding.toInt());
+      img.Image processedImage = img.adjustColor(originalImg, saturation: -100, contrast: 100, gamma: 10);
+
+      return processedImage;
+    } else {
+      return img.Image(width: 1, height: 1);
+    }
+  }
+
 /*
   Test print Receipt layout 80mm
 */
@@ -1030,7 +1075,13 @@ class ReceiptLayout{
     List<int> bytes = [];
     try {
       bytes += generator.reset();
-      //bytes += generator.image(decodedImage);
+
+      if(receipt!.header_image_status == 1){
+        img.Image processedImage = await getBranchLogo(receipt!.header_image_size!);
+        bytes += generator.imageRaster(processedImage, align: PosAlign.center);
+        bytes += generator.emptyLines(1);
+      }
+
       if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
         ///big font
         // bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));

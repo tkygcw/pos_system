@@ -36,7 +36,8 @@ class ServerAction {
     Map userObject = json.decode(user!);
     // final String imagePath = prefs.getString('local_path')!;
     if(Platform.isIOS){
-      String dir = await _localPath;
+      Directory tempDir = await getApplicationSupportDirectory();
+      String dir = tempDir.path;
       imagePath = dir + '/assets/${userObject['company_id']}';
     } else {
       imagePath = prefs.getString('local_path')!;

@@ -481,6 +481,7 @@ getAllReceipt() async {
       List responseJson = response['receipt'];
       for (var i = 0; i < responseJson.length; i++) {
         try {
+          print("receipt232: ${jsonEncode(responseJson[i])}");
           await PosDatabase.instance.insertReceipt(Receipt.fromJson(responseJson[i]));
         } catch(e) {
           FLog.error(
@@ -520,6 +521,7 @@ createReceiptLayout80() async {
         header_text: branchObject['name'],
         footer_text: 'Thank you, please come again',
         header_image: '',
+        header_image_size: 0,
         footer_image: '',
         show_address: branchObject['address'] != '' ? 1 : 0,
         show_email: branchObject['email'] != '' ? 1 : 0,
@@ -609,6 +611,7 @@ createReceiptLayout58() async {
         header_text: branchObject['name'],
         footer_text: 'Thank you, please come again',
         header_image: '',
+        header_image_size: 0,
         footer_image: '',
         show_address: branchObject['address'] != '' ? 1 : 0,
         show_email: branchObject['email'] != '' ? 1 : 0,
