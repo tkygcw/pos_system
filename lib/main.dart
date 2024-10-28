@@ -44,7 +44,7 @@ DisplayManager displayManager = DisplayManager();
 AppLanguage appLanguage = AppLanguage();
 final snackBarKey = GlobalKey<ScaffoldMessengerState>();
 bool isCartExpanded = false;
-String appVersionCode = '', patch = '';
+String appVersionCode = '', patch = '2';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
 

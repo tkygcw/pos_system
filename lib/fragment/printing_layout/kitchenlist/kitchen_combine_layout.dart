@@ -160,7 +160,7 @@ class CombineKitchenListLayout extends ReceiptLayout {
         bytes += generator.emptyLines(1);
       }
 
-      if(combineListTotal != null) {
+      if(combineListTotal != null && kitchenListLayout.kitchen_list_show_total_amount == 1) {
         bytes += generator.reset();
         bytes += generator.emptyLines(1);
         bytes += generator.text('Total: RM ${combineListTotal.toStringAsFixed(2)}',
@@ -333,7 +333,7 @@ class CombineKitchenListLayout extends ReceiptLayout {
         bytes += generator.emptyLines(1);
       }
 
-      if(combineListTotal != null) {
+      if(combineListTotal != null && kitchenListLayout.kitchen_list_show_total_amount == 1) {
         bytes += generator.reset();
         bytes += generator.emptyLines(1);
         bytes += generator.text('Total: RM ${combineListTotal.toStringAsFixed(2)}',
