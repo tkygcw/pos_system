@@ -2,14 +2,21 @@ import 'dart:async';
 
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
+import 'package:pos_system/firebase_sync/sync_to_firebase.dart';
 import 'package:pos_system/object/sync_to_cloud.dart';
 import 'package:pos_system/page/progress_bar.dart';
 
 import '../../main.dart';
 import '../../translation/AppLocalizations.dart';
 
+enum SyncType {
+  sync,
+  firestore_sync
+}
+
 class SyncDialog extends StatefulWidget {
-  const SyncDialog({Key? key}) : super(key: key);
+  final SyncType syncType;
+  const SyncDialog({Key? key, required this.syncType}) : super(key: key);
 
   @override
   State<SyncDialog> createState() => _SyncDialogState();
@@ -41,10 +48,10 @@ class _SyncDialogState extends State<SyncDialog> {
   }
 
   listenAction(){
-    actionController.sink.add("init");
+    actionController.sink.add(widget.syncType);
     streamSubscription = actionStream.listen((event) async {
       switch(event){
-        case 'init':{
+        case SyncType.sync :{
           await syncData();
           await syncToCloudChecking();
         }
@@ -58,6 +65,10 @@ class _SyncDialogState extends State<SyncDialog> {
         case 'close': {
           isButtonDisable = true;
           Navigator.of(context).pop(true);
+        }
+        break;
+        case SyncType.firestore_sync: {
+          manualSyncToFirestore();
         }
         break;
       }
@@ -140,6 +151,24 @@ class _SyncDialogState extends State<SyncDialog> {
         ),
       ],
     );
+  }
+
+  manualSyncToFirestore(){
+    try{
+      FLog.info(
+        className: "sync_dialog",
+        text: "Manual firestore sync: start",
+      );
+      SyncToFirebase.instance.sync();
+      Future.delayed(Duration(seconds: 3), () => controller.sink.add("refresh"));
+    }catch(e){
+      controller.sink.add("refresh");
+      FLog.error(
+        className: "sync_dialog",
+        text: "manualSyncToFirestore error",
+        exception: e,
+      );
+    }
   }
 
   syncData() async {

@@ -1,4 +1,4 @@
-String? tableProduct = 'tb_product ';
+String? tableProduct = 'tb_product';
 
 class ProductFields {
   static List<String> values = [
@@ -26,6 +26,7 @@ class ProductFields {
     allow_ticket,
     ticket_count,
     ticket_exp,
+    show_in_qr,
     sync_status,
     created_at,
     updated_at,
@@ -56,6 +57,7 @@ class ProductFields {
   static String allow_ticket = 'allow_ticket';
   static String ticket_count = 'ticket_count';
   static String ticket_exp = 'ticket_exp';
+  static String show_in_qr = 'show_in_qr';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -87,6 +89,7 @@ class Product{
   int? allow_ticket;
   int? ticket_count;
   String? ticket_exp;
+  int? show_in_qr;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -118,6 +121,7 @@ class Product{
         this.allow_ticket,
         this.ticket_count,
         this.ticket_exp,
+        this.show_in_qr,
         this.sync_status,
         this.created_at,
         this.updated_at,
@@ -150,6 +154,7 @@ class Product{
     int? allow_ticket,
     int? ticket_count,
     String? ticket_exp,
+    int? show_in_qr,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -180,6 +185,7 @@ class Product{
           allow_ticket: allow_ticket ?? this.allow_ticket,
           ticket_count: ticket_count ?? this.ticket_count,
           ticket_exp: ticket_exp ?? this.ticket_exp,
+          show_in_qr: show_in_qr ?? this.show_in_qr,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -210,6 +216,7 @@ class Product{
     allow_ticket: json[ProductFields.allow_ticket] as int?,
     ticket_count: json[ProductFields.ticket_count] as int?,
     ticket_exp: json[ProductFields.ticket_exp] as String?,
+    show_in_qr: json[ProductFields.show_in_qr] as int?,
     sync_status: json[ProductFields.sync_status] as int?,
     created_at: json[ProductFields.created_at] as String?,
     updated_at: json[ProductFields.updated_at] as String?,
@@ -242,6 +249,7 @@ class Product{
     ProductFields.allow_ticket: allow_ticket,
     ProductFields.ticket_count: ticket_count,
     ProductFields.ticket_exp: ticket_exp,
+    ProductFields.show_in_qr: show_in_qr,
     ProductFields.sync_status: sync_status,
     ProductFields.created_at: created_at,
     ProductFields.updated_at: updated_at,

@@ -1264,11 +1264,9 @@ class _PrinterDialogState extends State<PrinterDialog> {
             selectedCategories.add(Categories(category_sqlite_id: 0, name: 'Other/uncategorized'));
           } else {
             Categories? catData = await PosDatabase.instance.readSpecificCategoryById(data[i].category_sqlite_id!);
-            if(catData != null) {
-              if (!selectedCategories.contains(catData)) {
-                catData.isChecked = true;
-                selectedCategories.add(catData);
-              }
+            if (catData != null) {
+              catData.isChecked = true;
+              selectedCategories.add(catData);
             }
           }
         }

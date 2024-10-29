@@ -11,6 +11,10 @@ PODS:
     - SwiftProtobuf
   - charset_converter (0.0.1):
     - Flutter
+  - cloud_firestore (5.4.4):
+    - Firebase/Firestore (= 11.2.0)
+    - firebase_core
+    - Flutter
   - connectivity_plus (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -18,38 +22,65 @@ PODS:
     - Flutter
   - devicelocale (0.0.1):
     - Flutter
-  - Firebase/CoreOnly (10.18.0):
-    - FirebaseCore (= 10.18.0)
-  - Firebase/Messaging (10.18.0):
+  - Firebase/CoreOnly (11.2.0):
+    - FirebaseCore (= 11.2.0)
+  - Firebase/Firestore (11.2.0):
     - Firebase/CoreOnly
-    - FirebaseMessaging (~> 10.18.0)
-  - firebase_core (2.24.2):
-    - Firebase/CoreOnly (= 10.18.0)
+    - FirebaseFirestore (~> 11.2.0)
+  - Firebase/Messaging (11.2.0):
+    - Firebase/CoreOnly
+    - FirebaseMessaging (~> 11.2.0)
+  - firebase_core (3.6.0):
+    - Firebase/CoreOnly (= 11.2.0)
     - Flutter
-  - firebase_messaging (14.7.10):
-    - Firebase/Messaging (= 10.18.0)
+  - firebase_messaging (15.1.3):
+    - Firebase/Messaging (= 11.2.0)
     - firebase_core
     - Flutter
-  - FirebaseCore (10.18.0):
-    - FirebaseCoreInternal (~> 10.0)
-    - GoogleUtilities/Environment (~> 7.12)
-    - GoogleUtilities/Logger (~> 7.12)
-  - FirebaseCoreInternal (10.29.0):
-    - "GoogleUtilities/NSData+zlib (~> 7.8)"
-  - FirebaseInstallations (10.29.0):
-    - FirebaseCore (~> 10.0)
-    - GoogleUtilities/Environment (~> 7.8)
-    - GoogleUtilities/UserDefaults (~> 7.8)
-    - PromisesObjC (~> 2.1)
-  - FirebaseMessaging (10.18.0):
-    - FirebaseCore (~> 10.0)
-    - FirebaseInstallations (~> 10.0)
-    - GoogleDataTransport (~> 9.2)
-    - GoogleUtilities/AppDelegateSwizzler (~> 7.8)
-    - GoogleUtilities/Environment (~> 7.8)
-    - GoogleUtilities/Reachability (~> 7.8)
-    - GoogleUtilities/UserDefaults (~> 7.8)
-    - nanopb (< 2.30910.0, >= 2.30908.0)
+  - FirebaseCore (11.2.0):
+    - FirebaseCoreInternal (~> 11.0)
+    - GoogleUtilities/Environment (~> 8.0)
+    - GoogleUtilities/Logger (~> 8.0)
+  - FirebaseCoreExtension (11.2.0):
+    - FirebaseCore (~> 11.0)
+  - FirebaseCoreInternal (11.3.0):
+    - "GoogleUtilities/NSData+zlib (~> 8.0)"
+  - FirebaseFirestore (11.2.0):
+    - FirebaseFirestoreBinary (= 11.2.0)
+  - FirebaseFirestoreAbseilBinary (1.2024011602.0)
+  - FirebaseFirestoreBinary (11.2.0):
+    - FirebaseCore (= 11.2.0)
+    - FirebaseCoreExtension (= 11.2.0)
+    - FirebaseFirestoreInternalBinary (= 11.2.0)
+    - FirebaseSharedSwift (= 11.2.0)
+  - FirebaseFirestoreGRPCBoringSSLBinary (1.65.1)
+  - FirebaseFirestoreGRPCCoreBinary (1.65.1):
+    - FirebaseFirestoreAbseilBinary (= 1.2024011602.0)
+    - FirebaseFirestoreGRPCBoringSSLBinary (= 1.65.1)
+  - FirebaseFirestoreGRPCCPPBinary (1.65.1):
+    - FirebaseFirestoreAbseilBinary (= 1.2024011602.0)
+    - FirebaseFirestoreGRPCCoreBinary (= 1.65.1)
+  - FirebaseFirestoreInternalBinary (11.2.0):
+    - FirebaseCore (= 11.2.0)
+    - FirebaseFirestoreAbseilBinary (= 1.2024011602.0)
+    - FirebaseFirestoreGRPCCPPBinary (= 1.65.1)
+    - leveldb-library (~> 1.22)
+    - nanopb (~> 3.30910.0)
+  - FirebaseInstallations (11.3.0):
+    - FirebaseCore (~> 11.0)
+    - GoogleUtilities/Environment (~> 8.0)
+    - GoogleUtilities/UserDefaults (~> 8.0)
+    - PromisesObjC (~> 2.4)
+  - FirebaseMessaging (11.2.0):
+    - FirebaseCore (~> 11.0)
+    - FirebaseInstallations (~> 11.0)
+    - GoogleDataTransport (~> 10.0)
+    - GoogleUtilities/AppDelegateSwizzler (~> 8.0)
+    - GoogleUtilities/Environment (~> 8.0)
+    - GoogleUtilities/Reachability (~> 8.0)
+    - GoogleUtilities/UserDefaults (~> 8.0)
+    - nanopb (~> 3.30910.0)
+  - FirebaseSharedSwift (11.2.0)
   - Flutter (1.0.0)
   - flutter_file_dialog (0.0.1):
     - Flutter
@@ -60,48 +91,47 @@ PODS:
   - fluttertoast (0.0.2):
     - Flutter
     - Toast
-  - GoogleDataTransport (9.4.1):
-    - GoogleUtilities/Environment (~> 7.7)
-    - nanopb (< 2.30911.0, >= 2.30908.0)
-    - PromisesObjC (< 3.0, >= 1.2)
-  - GoogleUtilities/AppDelegateSwizzler (7.13.3):
+  - GoogleDataTransport (10.1.0):
+    - nanopb (~> 3.30910.0)
+    - PromisesObjC (~> 2.4)
+  - GoogleUtilities/AppDelegateSwizzler (8.0.2):
     - GoogleUtilities/Environment
     - GoogleUtilities/Logger
     - GoogleUtilities/Network
     - GoogleUtilities/Privacy
-  - GoogleUtilities/Environment (7.13.3):
+  - GoogleUtilities/Environment (8.0.2):
     - GoogleUtilities/Privacy
-    - PromisesObjC (< 3.0, >= 1.2)
-  - GoogleUtilities/Logger (7.13.3):
+  - GoogleUtilities/Logger (8.0.2):
     - GoogleUtilities/Environment
     - GoogleUtilities/Privacy
-  - GoogleUtilities/Network (7.13.3):
+  - GoogleUtilities/Network (8.0.2):
     - GoogleUtilities/Logger
     - "GoogleUtilities/NSData+zlib"
     - GoogleUtilities/Privacy
     - GoogleUtilities/Reachability
-  - "GoogleUtilities/NSData+zlib (7.13.3)":
+  - "GoogleUtilities/NSData+zlib (8.0.2)":
     - GoogleUtilities/Privacy
-  - GoogleUtilities/Privacy (7.13.3)
-  - GoogleUtilities/Reachability (7.13.3):
+  - GoogleUtilities/Privacy (8.0.2)
+  - GoogleUtilities/Reachability (8.0.2):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
-  - GoogleUtilities/UserDefaults (7.13.3):
+  - GoogleUtilities/UserDefaults (8.0.2):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
   - image_picker_ios (0.0.1):
     - Flutter
+  - leveldb-library (1.22.5)
   - libphonenumber_plugin (0.0.1):
     - Flutter
     - PhoneNumberKit
   - location (0.0.1):
     - Flutter
   - MTBBarcodeScanner (5.0.11)
-  - nanopb (2.30909.1):
-    - nanopb/decode (= 2.30909.1)
-    - nanopb/encode (= 2.30909.1)
-  - nanopb/decode (2.30909.1)
-  - nanopb/encode (2.30909.1)
+  - nanopb (3.30910.0):
+    - nanopb/decode (= 3.30910.0)
+    - nanopb/encode (= 3.30910.0)
+  - nanopb/decode (3.30910.0)
+  - nanopb/encode (3.30910.0)
   - network_info_plus (0.0.1):
     - Flutter
   - package_info (0.0.1):
@@ -130,12 +160,12 @@ PODS:
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
-  - sqflite (0.0.3):
+  - sqflite_darwin (0.0.4):
     - Flutter
     - FlutterMacOS
   - store_checker (0.0.1):
     - Flutter
-  - SwiftProtobuf (1.28.1)
+  - SwiftProtobuf (1.28.2)
   - Toast (4.1.1)
   - url_launcher_ios (0.0.1):
     - Flutter
@@ -146,11 +176,13 @@ DEPENDENCIES:
   - assets_audio_player_web (from `.symlinks/plugins/assets_audio_player_web/ios`)
   - barcode_scan2 (from `.symlinks/plugins/barcode_scan2/ios`)
   - charset_converter (from `.symlinks/plugins/charset_converter/ios`)
+  - cloud_firestore (from `.symlinks/plugins/cloud_firestore/ios`)
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/darwin`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - devicelocale (from `.symlinks/plugins/devicelocale/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
+  - FirebaseFirestore (from `https://github.com/invertase/firestore-ios-sdk-frameworks.git`, tag `11.2.0`)
   - Flutter (from `Flutter`)
   - flutter_file_dialog (from `.symlinks/plugins/flutter_file_dialog/ios`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
@@ -168,7 +200,7 @@ DEPENDENCIES:
   - printing (from `.symlinks/plugins/printing/ios`)
   - qr_code_scanner (from `.symlinks/plugins/qr_code_scanner/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
-  - sqflite (from `.symlinks/plugins/sqflite/darwin`)
+  - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
   - store_checker (from `.symlinks/plugins/store_checker/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
 
@@ -176,11 +208,20 @@ SPEC REPOS:
   trunk:
     - Firebase
     - FirebaseCore
+    - FirebaseCoreExtension
     - FirebaseCoreInternal
+    - FirebaseFirestoreAbseilBinary
+    - FirebaseFirestoreBinary
+    - FirebaseFirestoreGRPCBoringSSLBinary
+    - FirebaseFirestoreGRPCCoreBinary
+    - FirebaseFirestoreGRPCCPPBinary
+    - FirebaseFirestoreInternalBinary
     - FirebaseInstallations
     - FirebaseMessaging
+    - FirebaseSharedSwift
     - GoogleDataTransport
     - GoogleUtilities
+    - leveldb-library
     - MTBBarcodeScanner
     - nanopb
     - PhoneNumberKit
@@ -199,6 +240,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/barcode_scan2/ios"
   charset_converter:
     :path: ".symlinks/plugins/charset_converter/ios"
+  cloud_firestore:
+    :path: ".symlinks/plugins/cloud_firestore/ios"
   connectivity_plus:
     :path: ".symlinks/plugins/connectivity_plus/darwin"
   device_info_plus:
@@ -209,6 +252,9 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/firebase_core/ios"
   firebase_messaging:
     :path: ".symlinks/plugins/firebase_messaging/ios"
+  FirebaseFirestore:
+    :git: https://github.com/invertase/firestore-ios-sdk-frameworks.git
+    :tag: 11.2.0
   Flutter:
     :path: Flutter
   flutter_file_dialog:
@@ -243,12 +289,17 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/qr_code_scanner/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
-  sqflite:
-    :path: ".symlinks/plugins/sqflite/darwin"
+  sqflite_darwin:
+    :path: ".symlinks/plugins/sqflite_darwin/darwin"
   store_checker:
     :path: ".symlinks/plugins/store_checker/ios"
   url_launcher_ios:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
+
+CHECKOUT OPTIONS:
+  FirebaseFirestore:
+    :git: https://github.com/invertase/firestore-ios-sdk-frameworks.git
+    :tag: 11.2.0
 
 SPEC CHECKSUMS:
   app_settings: 017320c6a680cdc94c799949d95b84cb69389ebc
@@ -256,28 +307,39 @@ SPEC CHECKSUMS:
   assets_audio_player_web: 19826380c44375761aa0b9053665c1e3fbc3b86b
   barcode_scan2: 0af2bb63c81b4565aab6cd78278e4c0fa136dbb0
   charset_converter: 215c7b04932ec2b9ba43be96a9bc34afed3e5322
+  cloud_firestore: 5cb927f1a8c9d748d6fdbf16c6b267956cb82c53
   connectivity_plus: ddd7f30999e1faaef5967c23d5b6d503d10434db
   device_info_plus: c6fb39579d0f423935b0c9ce7ee2f44b71b9fce6
   devicelocale: b22617f40038496deffba44747101255cee005b0
-  Firebase: 414ad272f8d02dfbf12662a9d43f4bba9bec2a06
-  firebase_core: 0af4a2b24f62071f9bf283691c0ee41556dcb3f5
-  firebase_messaging: 90e8a6db84b6e1e876cebce4f30f01dc495e7014
-  FirebaseCore: 2322423314d92f946219c8791674d2f3345b598f
-  FirebaseCoreInternal: df84dd300b561c27d5571684f389bf60b0a5c934
-  FirebaseInstallations: 913cf60d0400ebd5d6b63a28b290372ab44590dd
-  FirebaseMessaging: 9bc34a98d2e0237e1b121915120d4d48ddcf301e
+  Firebase: 98e6bf5278170668a7983e12971a66b2cd57fc8c
+  firebase_core: 2bedc3136ec7c7b8561c6123ed0239387b53f2af
+  firebase_messaging: 15d114e1a41fc31e4fbabcd48d765a19eec94a38
+  FirebaseCore: a282032ae9295c795714ded2ec9c522fc237f8da
+  FirebaseCoreExtension: cda74ddfb001224bd8fd1d6e74698b4ed07803de
+  FirebaseCoreInternal: ac26d09a70c730e497936430af4e60fb0c68ec4e
+  FirebaseFirestore: bce39d24776dad48f7fad4ac42a9e805971a71b2
+  FirebaseFirestoreAbseilBinary: fa2ebd2ed02cadef5382e4f7c93f1b265c812c85
+  FirebaseFirestoreBinary: 819db6b2586c6f974c7a1f9d8c870609edbf6e5a
+  FirebaseFirestoreGRPCBoringSSLBinary: d86ebbe2adc8d15d7ebf305fff7d6358385327f8
+  FirebaseFirestoreGRPCCoreBinary: 472bd808e1886a5efb2fd03dd09b98d34641a335
+  FirebaseFirestoreGRPCCPPBinary: db76d83d2b7517623f8426ed7f7a17bad2478084
+  FirebaseFirestoreInternalBinary: 4cf8180574159f20a2861a6e5c7e86745e4626d8
+  FirebaseInstallations: 58cf94dabf1e2bb2fa87725a9be5c2249171cda0
+  FirebaseMessaging: c9ec7b90c399c7a6100297e9d16f8a27fc7f7152
+  FirebaseSharedSwift: 7a0d78d155ede78407f0fdc89fbc914014c7c540
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_file_dialog: 4c014a45b105709a27391e266c277d7e588e9299
   flutter_local_notifications: 4cde75091f6327eb8517fa068a0a5950212d2086
   flutter_native_image: 9c0b7451838484458e5b0fae007b86a4c2d4bdfe
   fluttertoast: e9a18c7be5413da53898f660530c56f35edfba9c
-  GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
-  GoogleUtilities: ea963c370a38a8069cc5f7ba4ca849a60b6d7d15
+  GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
+  GoogleUtilities: 26a3abef001b6533cf678d3eb38fd3f614b7872d
   image_picker_ios: c560581cceedb403a6ff17f2f816d7fea1421fc1
+  leveldb-library: e8eadf9008a61f9e1dde3978c086d2b6d9b9dc28
   libphonenumber_plugin: 48bf4078546377eedaab4aa54978cd0f6fa23072
   location: 3a2eed4dd2fab25e7b7baf2a9efefe82b512d740
   MTBBarcodeScanner: f453b33c4b7dfe545d8c6484ed744d55671788cb
-  nanopb: d4d75c12cd1316f4a64e3c6963f879ecd4b5e0d5
+  nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   network_info_plus: 6d0c3eb8367b8164fa3fb0c19875e3f59d49697f
   package_info: 873975fc26034f0b863a300ad47e7f1ac6c7ec62
   package_info_plus: 58f0028419748fad15bf008b270aaa8e54380b1c
@@ -289,12 +351,12 @@ SPEC CHECKSUMS:
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   qr_code_scanner: bb67d64904c3b9658ada8c402e8b4d406d5d796e
   shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
-  sqflite: 673a0e54cc04b7d6dba8d24fb8095b31c3a99eec
+  sqflite_darwin: a553b1fd6fe66f53bbb0fe5b4f5bab93f08d7a13
   store_checker: a7be624ac44a4ba88e7917e71afe8433f197161e
-  SwiftProtobuf: cc47329e2a10c235e35ba4faed831742ae5135ce
+  SwiftProtobuf: 4dbaffec76a39a8dc5da23b40af1a5dc01a4c02d
   Toast: 1f5ea13423a1e6674c4abdac5be53587ae481c4e
   url_launcher_ios: 5334b05cef931de560670eeae103fd3e431ac3fe
 
-PODFILE CHECKSUM: 5e22010e27fa3a98bce23d9f5fba51369d74c34b
+PODFILE CHECKSUM: 6de922b8beab1e291979d1c25f0995a96aca2877
 
 COCOAPODS: 1.15.2

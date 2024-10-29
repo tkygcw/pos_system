@@ -105,6 +105,7 @@ class Categories {
   Map<String, Object?> toJson() => {
         CategoriesFields.category_sqlite_id: category_sqlite_id,
         CategoriesFields.category_id: category_id,
+        CategoriesFields.company_id: company_id,
         CategoriesFields.name: name,
         CategoriesFields.sequence: sequence,
         CategoriesFields.color: color,

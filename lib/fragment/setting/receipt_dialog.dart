@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/object/branch_link_modifier.dart';
 import 'package:pos_system/object/receipt.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
@@ -15,6 +16,7 @@ import '../../database/domain.dart';
 import '../../enumClass/receipt_dialog_enum.dart';
 import '../../main.dart';
 import '../../notifier/theme_color.dart';
+import '../../object/branch.dart';
 import '../printing_layout/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../translation/AppLocalizations.dart';
@@ -56,6 +58,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   bool isLogOut = false;
   bool showSKU = false;
   bool showBranchTel = true;
+  bool showBranchRegisterNo = false;
   Map? branchObject;
   double? fontSize;
   Receipt? testReceipt;
@@ -86,7 +89,6 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
 
   preload(){
     _isUpdate = true;
-    initialData(widget.receiptObject!);
     getSharePreferences();
     getAllPrinter();
   }
@@ -155,6 +157,8 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     receipt.header_font_size == 0 ? fontSize = 30.0 : fontSize = 12.0;
     receipt.show_product_sku == 0 ? showSKU = false : showSKU = true;
     receipt.show_branch_tel == 0 ? showBranchTel = false : showBranchTel = true;
+    receipt.show_register_no == 1 && branchObject![BranchFields.register_no] != '' ?
+    showBranchRegisterNo = true : showBranchRegisterNo = false;
   }
 
   getSharePreferences() async {
@@ -167,6 +171,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     if(branchObject!['address'] == '' && showAddress){
       showAddress = false;
     }
+    initialData(widget.receiptObject!);
     isLoad = true;
   }
 
@@ -251,6 +256,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       receipt_email: emailTextController.text,
       show_product_sku: showSKU ? 1 : 0,
       show_branch_tel: showBranchTel ? 1 : 0,
+      show_register_no: showBranchRegisterNo ? 1 : 0
     );
   }
 
@@ -301,7 +307,6 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                                 receiptView = newSelection.first;
                                 isLoad = false;
                                 reload();
-
                               },
                               selected: <String>{receiptView},
                             ),
@@ -511,6 +516,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       receipt_email: emailTextController.text,
       show_product_sku: showSKU == true ? 1 : 0,
       show_branch_tel: showBranchTel ? 1 : 0,
+      show_register_no: showBranchRegisterNo ? 1 : 0,
       sync_status: checkData!.sync_status == 0 ? 0 : 2,
       updated_at: dateTime
     );
@@ -595,6 +601,12 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     child: Center(
                       child: Text('${headerText}', style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold)),
                     )
+                ),
+                Visibility(
+                  visible: showBranchRegisterNo && branchObject![BranchFields.register_no] != '',
+                  child: Center(
+                    child: Text(branchObject![BranchFields.register_no]),
+                  ),
                 ),
                 Center(
                   child: Column(
@@ -968,6 +980,23 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
             ),
             Row(
               children: [
+                Text(AppLocalizations.of(context)!.translate('show_register_no'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                Spacer(),
+                Switch(
+                    value: showBranchRegisterNo,
+                    activeColor: color.backgroundColor,
+                    onChanged: branchObject![BranchFields.register_no] != '' ? (bool value){
+                      setState(() {
+                        showBranchRegisterNo = value;
+                      });
+                    } : (bool value){
+                      Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('show_register_no_error'));
+                    }
+                )
+              ],
+            ),
+            Row(
+              children: [
                 Container(
                   alignment: Alignment.topLeft,
                   child: Text(AppLocalizations.of(context)!.translate('show_address'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
@@ -993,7 +1022,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
-                  child: Text('Show branch Tel', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                  child: Text(AppLocalizations.of(context)!.translate('show_branch_tel'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
                 Container(
@@ -1007,7 +1036,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                         });
                       } :
                           (bool value){
-                        Fluttertoast.showToast(msg: 'No branch phone no added');
+                        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('show_branch_tel_error'));
                       }
                   ),
                 )
@@ -1215,6 +1244,12 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 Center(
                   child: Column(
                     children: [
+                      Visibility(
+                        visible: showBranchRegisterNo && branchObject![BranchFields.register_no] != '',
+                        child: Center(
+                          child: Text(branchObject![BranchFields.register_no]),
+                        ),
+                      ),
                       Visibility(
                         visible: showAddress,
                         child: Text(branchObject!['address'], textAlign: TextAlign.center,),
@@ -1583,6 +1618,23 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
             ),
             Row(
               children: [
+                Text(AppLocalizations.of(context)!.translate('show_register_no'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                Spacer(),
+                Switch(
+                    value: showBranchRegisterNo,
+                    activeColor: color.backgroundColor,
+                    onChanged: branchObject![BranchFields.register_no] != '' ? (bool value){
+                      setState(() {
+                        showBranchRegisterNo = value;
+                      });
+                    } : (bool value){
+                      Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('show_register_no_error'));
+                    }
+                )
+              ],
+            ),
+            Row(
+              children: [
                 Container(
                   alignment: Alignment.topLeft,
                   child: Text(AppLocalizations.of(context)!.translate('show_address'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
@@ -1606,7 +1658,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
-                  child: Text('Show branch Tel', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                  child: Text(AppLocalizations.of(context)!.translate('show_branch_tel'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
                 Container(
@@ -1619,7 +1671,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                         });
                       } :
                           (bool value){
-                        Fluttertoast.showToast(msg: 'No branch phone no added');
+                        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('show_branch_tel_error'));
                       }
                   ),
                 )
@@ -1863,6 +1915,27 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
         children: [
           Container(
             alignment: Alignment.topLeft,
+            child: Text(AppLocalizations.of(context)!.translate('show_register_no'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: showBranchRegisterNo,
+              activeColor: color.backgroundColor,
+              onChanged: branchObject![BranchFields.register_no] != '' ? (bool value){
+                setState(() {
+                  showBranchRegisterNo = value;
+                });
+              } :
+                  (bool value){
+                Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('show_register_no_error'));
+              }
+          )
+        ],
+      ),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
             child: Text(AppLocalizations.of(context)!.translate('show_address'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
           ),
           Spacer(),
@@ -1877,6 +1950,30 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                   (bool value){
                 Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_branch_address_added'));
               }
+          )
+        ],
+      ),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text(AppLocalizations.of(context)!.translate('show_branch_tel'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Container(
+            child: Switch(
+                value: showBranchTel,
+                activeColor: color.backgroundColor,
+                onChanged: branchObject!['phone'] != '' ? (bool value){
+                  setState(() {
+                    showBranchTel = value;
+                    print("show branch tel: ${showBranchTel}");
+                  });
+                } :
+                    (bool value){
+                  Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('show_branch_tel_error'));
+                }
+            ),
           )
         ],
       ),
@@ -2132,6 +2229,26 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
         children: [
           Container(
             alignment: Alignment.topLeft,
+            child: Text(AppLocalizations.of(context)!.translate('show_register_no'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: showBranchRegisterNo,
+              activeColor: color.backgroundColor,
+              onChanged: branchObject![BranchFields.register_no] != '' ? (bool value){
+                setState(() {
+                  showBranchRegisterNo = value;
+                });
+              } : (bool value){
+                Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('show_register_no_error'));
+              }
+          )
+        ],
+      ),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
             child: Text(AppLocalizations.of(context)!.translate('show_address'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
           ),
           Spacer(),
@@ -2146,6 +2263,29 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                   (bool value){
                 Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_branch_address_added'));
               }
+          )
+        ],
+      ),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text(AppLocalizations.of(context)!.translate('show_branch_tel'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Container(
+            child: Switch(
+                value: showBranchTel,
+                activeColor: color.backgroundColor,
+                onChanged: branchObject!['phone'] != '' ? (bool value){
+                  setState(() {
+                    showBranchTel = value;
+                  });
+                } :
+                    (bool value){
+                  Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('show_branch_tel_error'));
+                }
+            ),
           )
         ],
       ),

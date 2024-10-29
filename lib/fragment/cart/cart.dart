@@ -3,19 +3,20 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:assets_audio_player/assets_audio_player.dart';
-import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/fragment/cart/adjust_price.dart';
 import 'package:pos_system/fragment/cart/cart_dialog.dart';
 import 'package:pos_system/fragment/cart/promotion_dialog.dart';
 import 'package:pos_system/fragment/cart/remove_cart_dialog.dart';
 import 'package:pos_system/fragment/cart/reprint_dialog.dart';
 import 'package:pos_system/fragment/cart/reprint_kitchen_list_dialog.dart';
+import 'package:pos_system/fragment/custom_toastification.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/fail_print_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
@@ -57,7 +58,6 @@ import '../../object/table.dart';
 import '../../object/tax.dart';
 import '../../translation/AppLocalizations.dart';
 import '../../utils/Utils.dart';
-import '../custom_snackbar.dart';
 import '../logout_dialog.dart';
 import '../settlement/cash_dialog.dart';
 import '../payment/payment_select_dialog.dart';
@@ -73,6 +73,7 @@ class CartPage extends StatefulWidget {
 }
 
 class CartPageState extends State<CartPage> {
+  final PosFirestore posFirestore = PosFirestore.instance;
   final ScrollController _scrollController = ScrollController();
   late StreamController controller;
   late AppSettingModel _appSettingModel;
@@ -2401,10 +2402,8 @@ class CartPageState extends State<CartPage> {
         } else {
           cart.removeAllCartItem();
           cart.removeAllTable();
-          // Server.instance.sendRefreshMessage();
           Navigator.of(context).pop();
         }
-
         //syncAllToCloud();
         // print('finish sync');
         // if (this.isLogOut == true) {
@@ -2413,26 +2412,11 @@ class CartPageState extends State<CartPage> {
         // }
         asyncQ.addJob((_) => printKitchenList());
         isCartExpanded = !isCartExpanded;
-        // printKitchenList();
       } else {
         cart.removeAllCartItem();
         cart.removeAllTable();
-        // Server.instance.sendRefreshMessage();
         Navigator.of(context).pop();
-        CustomSnackBar.instance.showSnackBar(
-            title: "${AppLocalizations.of(context)!.translate('place_order_failed')}",
-            description: "${AppLocalizations.of(context)!.translate('table_is_used')}",
-            contentType: ContentType.failure,
-            playSound: true,
-            playtime: 2
-        );
-        // CustomFlushbar.instance.showFlushbar(
-        //     AppLocalizations.of(context)!.translate('place_order_failed'),
-        //     AppLocalizations.of(context)!.translate('table_is_used'),
-        //     Colors.red, (flushbar) async {
-        //       flushbar.dismiss(true);
-        //       },
-        //     duration: Duration(seconds: 3));
+        ShowPlaceOrderFailedToast.showToast(AppLocalizations.of(context)!.translate('table_is_used'));
       }
     }catch(e){
       FLog.error(
@@ -2481,7 +2465,6 @@ class CartPageState extends State<CartPage> {
           // }
           asyncQ.addJob((_) => printKitchenList());
           isCartExpanded = !isCartExpanded;
-          // printKitchenList();
         } else {
           Navigator.of(context).pop();
           showOutOfStockDialog(outOfStockItem);
@@ -2489,20 +2472,8 @@ class CartPageState extends State<CartPage> {
       } else {
         cart.removeAllCartItem();
         cart.removeAllTable();
-        // Server.instance.sendRefreshMessage();
         Navigator.of(context).pop();
-        CustomSnackBar.instance.showSnackBar(
-            title: "${AppLocalizations.of(context)!.translate('place_order_failed')}",
-            description: "${ AppLocalizations.of(context)!.translate('table_not_in_use')}",
-            contentType: ContentType.failure,
-            playSound: true,
-            playtime: 2
-        );
-        // CustomFlushbar.instance.showFlushbar(
-        //     AppLocalizations.of(context)!.translate('place_order_failed'),
-        //     AppLocalizations.of(context)!.translate('table_not_in_use'), Colors.red, (flushbar) async {
-        //   flushbar.dismiss(true);
-        // }, duration: Duration(seconds: 3));
+        ShowPlaceOrderFailedToast.showToast(AppLocalizations.of(context)!.translate('table_not_in_use'));
       }
     }catch(e){
       FLog.error(
@@ -2690,12 +2661,7 @@ class CartPageState extends State<CartPage> {
         if (returnData.isNotEmpty) {
           _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
           if(mounted){
-            CustomSnackBar.instance.showSnackBar(
-                title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
-                description: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
-                contentType: ContentType.failure,
-                playSound: true,
-                playtime: 2);
+            ShowFailedPrintKitchenToast.showToast();
           }
         }
       } else {
@@ -3314,8 +3280,8 @@ class CartPageState extends State<CartPage> {
         OrderDetail orderDetailData = await PosDatabase.instance.insertSqliteOrderDetail(object);
         BranchLinkProduct? branchLinkProductData = await updateProductStock(
             orderDetailData.branch_link_product_sqlite_id.toString(),
+            newOrderDetailList[j].branch_link_product_id!,
             int.tryParse(orderDetailData.quantity!) != null ? int.parse(orderDetailData.quantity!): double.parse(orderDetailData.quantity!),
-            // int.parse(orderDetailData.quantity!),
             dateTime);
         if(branchLinkProductData != null){
           _branchLinkProductValue.add(jsonEncode(branchLinkProductData.toJson()));
@@ -3364,7 +3330,7 @@ class CartPageState extends State<CartPage> {
     }
   }
 
-  updateProductStock(String branch_link_product_sqlite_id, num quantity, String dateTime) async {
+  updateProductStock(String branch_link_product_sqlite_id, int branchLinkProductId, num quantity, String dateTime) async {
     print("update product stock called!!!");
     num _totalStockQty = 0, updateStock = 0;
     BranchLinkProduct? object;
@@ -3376,16 +3342,26 @@ class CartPageState extends State<CartPage> {
             {
               _totalStockQty = int.parse(checkData[0].daily_limit!) - quantity;
               object = BranchLinkProduct(
-                  updated_at: dateTime, sync_status: 2, daily_limit: _totalStockQty.toString(), branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
+                  updated_at: dateTime,
+                  sync_status: 2,
+                  daily_limit: _totalStockQty.toString(),
+                  branch_link_product_id: branchLinkProductId,
+                  branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
               updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
+              posFirestore.updateBranchLinkProductDailyLimit(object);
             }
             break;
           case '2':
             {
               _totalStockQty = int.parse(checkData[0].stock_quantity!) - quantity;
               object = BranchLinkProduct(
-                  updated_at: dateTime, sync_status: 2, stock_quantity: _totalStockQty.toString(), branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
+                  updated_at: dateTime,
+                  sync_status: 2,
+                  stock_quantity: _totalStockQty.toString(),
+                  branch_link_product_id: branchLinkProductId,
+                  branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
               updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+              posFirestore.updateBranchLinkProductStock(object);
             }
             break;
           default:

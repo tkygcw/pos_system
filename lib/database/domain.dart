@@ -5,6 +5,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:pos_system/object/table.dart';
 
+import '../object/branch.dart';
+
 class Domain {
   // static var domain = 'https://pos.lkmng.com/';
   // static var backend_domain = 'https://pos.lkmng.com/';
@@ -52,18 +54,63 @@ class Domain {
   static Uri table_dynamic = Uri.parse(domain + 'mobile-api/table_dynamic/index.php');
   static Uri order_payment_split = Uri.parse(domain + 'mobile-api/order_payment_split/index.php');
   static Uri current_version = Uri.parse(domain + 'mobile-api/current_version/index.php');
+  //for transfer data use only
+  static Uri import_firebase = Uri.parse(domain + 'mobile-api/import_firebase/index.php');
+
+
+  transferDatabaseData(String tb_name) async {
+    try {
+      var response = await http.post(Domain.import_firebase, body: {
+        'import_firebase': '1',
+        'tb_name': tb_name
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      FLog.error(
+        className: "domain",
+        text: "transfer db data failed",
+        exception: "$error",
+      );
+      Fluttertoast.showToast(msg: error.toString());
+      return {'status': '2'};
+    }
+  }
+
+  /**
+   * update branch close qr status
+   * */
+  updateBranchCloseQrOrder(Branch branch) async {
+    try {
+      var response = await http.post(Domain.branch, body: {
+        'updateBranchCloseQrOrder': '1',
+        'close_qr_order': branch.close_qr_order.toString(),
+        'branch_id': branch.branch_id!.toString(),
+      }).timeout(Duration(seconds: 5), onTimeout: ()=> throw TimeoutException("Timeout"));
+      return jsonDecode(response.body);
+    } catch (error) {
+      FLog.error(
+        className: "domain",
+        text: "updateBranchCloseQrOrder failed",
+        exception: "$error",
+      );
+      Fluttertoast.showToast(msg: error.toString());
+      return {'status': '2'};
+    }
+  }
 
   /**
   * insert table dynamic qr
   * */
-  insertTableDynamicQr(PosTable posTable,) async {
+  insertTableDynamicQr(PosTable posTable) async {
     try {
       var response = await http.post(Domain.table_dynamic, body: {
+        'new_version': '1',
         'tb_dynamic_table_create': '1',
         'table_id': posTable.table_id.toString(),
         'branch_id': posTable.branch_id,
         'qr_url': posTable.dynamicQrHash,
-        'qr_expired_dateTime': posTable.dynamicQRExp
+        'qr_expired_dateTime': posTable.dynamicQRExp,
+        'invalid_after_payment': posTable.invalid_after_payment!.toString()
       }).timeout(Duration(seconds: 5), onTimeout: ()=> throw TimeoutException("Timeout"));
       return jsonDecode(response.body);
     } catch (error) {

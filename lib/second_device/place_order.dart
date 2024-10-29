@@ -6,14 +6,14 @@ import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/database/pos_firestore.dart';
+import 'package:pos_system/fragment/custom_toastification.dart';
 import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
-import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 
 import '../database/pos_database.dart';
-import '../fragment/custom_snackbar.dart';
 import '../main.dart';
 import '../notifier/app_setting_notifier.dart';
 import '../notifier/cart_notifier.dart';
@@ -36,6 +36,7 @@ import '../utils/Utils.dart';
 
 
 abstract class PlaceOrder {
+  final PosFirestore posFirestore = PosFirestore.instance;
   BuildContext context = MyApp.navigatorKey.currentContext!;
   PrintReceipt printReceipt = PrintReceipt();
   List<Printer> printerList = [];
@@ -221,45 +222,13 @@ abstract class PlaceOrder {
   printKitchenList(String address) async {
     try {
       final String batchId = DateTime.now().toString().replaceAll(RegExp(r'[^0-9]'), '');
-      String flushbarStatus = '';
       List<OrderDetail>? returnData = await printReceipt.printKitchenList(printerList, int.parse(this.orderCacheSqliteId));
       if(returnData != null){
         List<OrderDetail> updatedBatch = updateBatch(returnData, address, batchId);
         if (updatedBatch.isNotEmpty) {
           sendFailPrintOrderDetail(address: address, failList: updatedBatch);
           FailPrintModel.instance.addAllFailedOrderDetail(orderDetailList: updatedBatch);
-          CustomSnackBar.instance.showSnackBar(
-              title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
-              description: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
-              contentType: ContentType.failure,
-              playSound: true,
-              playtime: 2);
-          // playSound();
-          // Flushbar(
-          //   icon: Icon(Icons.error, size: 32, color: Colors.white),
-          //   shouldIconPulse: false,
-          //   title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
-          //   message: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
-          //   duration: Duration(seconds: 5),
-          //   backgroundColor: Colors.red,
-          //   messageColor: Colors.white,
-          //   flushbarPosition: FlushbarPosition.TOP,
-          //   maxWidth: 350,
-          //   margin: EdgeInsets.all(8),
-          //   borderRadius: BorderRadius.circular(8),
-          //   padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-          //   onTap: (flushbar) {
-          //     flushbar.dismiss(true);
-          //   },
-          //   onStatusChanged: (status) {
-          //     flushbarStatus = status.toString();
-          //   },
-          // )
-          //   ..show(context);
-          // Future.delayed(Duration(seconds: 3), () {
-          //   print("status change: ${flushbarStatus}");
-          //   if (flushbarStatus != "FlushbarStatus.IS_HIDING" && flushbarStatus != "FlushbarStatus.DISMISSED") playSound();
-          // });
+          ShowFailedPrintKitchenToast.showToast();
         }
       } else {
         //Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('no_printer_added')}");
@@ -463,6 +432,7 @@ abstract class PlaceOrder {
       OrderDetail orderDetailData = await PosDatabase.instance.insertSqliteOrderDetail(object);
       await updateProductStock(
           orderDetailData.branch_link_product_sqlite_id.toString(),
+          newOrderDetailList[j].branch_link_product_id!,
           int.tryParse(orderDetailData.quantity!) != null ? int.parse(orderDetailData.quantity!) : double.parse(orderDetailData.quantity!),
           dateTime);
 
@@ -498,7 +468,7 @@ abstract class PlaceOrder {
     return Utils.shortHashString(hashCode: md5Hash);
   }
 
-  Future<void> updateProductStock(String branch_link_product_sqlite_id, num quantity, String dateTime) async {
+  Future<void> updateProductStock(String branch_link_product_sqlite_id, int branchLinkProductId, num quantity, String dateTime) async {
     num _totalStockQty = 0, updateStock = 0;
     BranchLinkProduct? object;
     try {
@@ -509,16 +479,26 @@ abstract class PlaceOrder {
             {
               _totalStockQty = int.parse(checkData[0].daily_limit!) - quantity;
               object = BranchLinkProduct(
-                  updated_at: dateTime, sync_status: 2, daily_limit: _totalStockQty.toString(), branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
+                  updated_at: dateTime,
+                  sync_status: 2,
+                  daily_limit: _totalStockQty.toString(),
+                  branch_link_product_id: branchLinkProductId,
+                  branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
               updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
+              posFirestore.updateBranchLinkProductDailyLimit(object);
             }
             break;
           case '2':
             {
               _totalStockQty = int.parse(checkData[0].stock_quantity!) - quantity;
               object = BranchLinkProduct(
-                  updated_at: dateTime, sync_status: 2, stock_quantity: _totalStockQty.toString(), branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
+                  updated_at: dateTime,
+                  sync_status: 2,
+                  stock_quantity: _totalStockQty.toString(),
+                  branch_link_product_id: branchLinkProductId,
+                  branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
               updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+              posFirestore.updateBranchLinkProductStock(object);
             }
             break;
           default:
