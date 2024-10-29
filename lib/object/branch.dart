@@ -114,7 +114,7 @@ class Branch {
       branch_id: json['branch_id'],
       branch_url: json['branch_url'],
       name: json['name'] as String,
-      logo: json['logo'] as String,
+      logo: json['logo'] as String?,
       address: json['address'] as String,
       phone: json['phone'] as String,
       email: json['email'] as String,

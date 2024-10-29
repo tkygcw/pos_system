@@ -268,12 +268,16 @@ class _SetupPageState extends State<SetupPage> {
     if(this.token != null){
       savePref();
       await PosDatabase.instance.insertBranch(selectedBranch!);
-      await downloadBranchLogo(imageName: selectedBranch!.logo!);
+      if(selectedBranch!.logo! != '') {
+        await downloadBranchLogo(imageName: selectedBranch!.logo!);
+      }
       await updateBranchToken();
     } else {
       savePref();
       await PosDatabase.instance.insertBranch(selectedBranch!);
-      await downloadBranchLogo(imageName: selectedBranch!.logo!);
+      if(selectedBranch!.logo! != '') {
+        await downloadBranchLogo(imageName: selectedBranch!.logo!);
+      }
       // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => LoadingPage()));
       showDaysSelectionDialog(context);
     }
@@ -300,7 +304,7 @@ class _SetupPageState extends State<SetupPage> {
       var localPath = path + '/' + imageName;
       final imageFile = File(localPath);
       await imageFile.writeAsBytes(response.bodyBytes);
-        }catch(e){
+    }catch(e){
       print("download branch logo error: $e");
     }
   }

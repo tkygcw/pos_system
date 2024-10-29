@@ -227,6 +227,10 @@ class PosDatabaseUtils {
             print("case 27 call");
             await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.allow_firestore} $integerType DEFAULT 0 ");
           }break;
+          case 28: {
+            await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.logo} $textType DEFAULT ''");
+            await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.header_image_size} $integerType DEFAULT 0 ");
+          }break;
         }
       }
     }
@@ -622,6 +626,7 @@ class PosDatabaseUtils {
            ${BranchFields.branch_id} $idType,
            ${BranchFields.branch_url} $textType,
            ${BranchFields.name} $textType,
+           ${BranchFields.logo} $textType,
            ${BranchFields.address} $textType,
            ${BranchFields.phone} $textType,
            ${BranchFields.email} $textType,
@@ -751,6 +756,7 @@ class PosDatabaseUtils {
           ${ReceiptFields.receipt_key} $textType,
           ${ReceiptFields.branch_id} $textType,
           ${ReceiptFields.header_image} $textType,
+          ${ReceiptFields.header_image_size} $integerType,
           ${ReceiptFields.header_image_status} $integerType,
           ${ReceiptFields.header_text} $textType,
           ${ReceiptFields.header_text_status} $integerType,

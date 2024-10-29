@@ -185,6 +185,9 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       logoImage = false;
     }
     initialData(widget.receiptObject!);
+    if(logoImage){
+      getBranchLogo();
+    }
     isLoad = true;
   }
 
@@ -321,6 +324,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                                 receiptView = newSelection.first;
                                 isLoad = false;
                                 reload();
+
                               },
                               selected: <String>{receiptView},
                             ),
@@ -1065,7 +1069,10 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
             ),
             Row(
               children: [
-                Text(AppLocalizations.of(context)!.translate('show_register_no'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text(AppLocalizations.of(context)!.translate('show_register_no'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
                 Spacer(),
                 Switch(
                     value: showBranchRegisterNo,
@@ -1074,7 +1081,8 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       setState(() {
                         showBranchRegisterNo = value;
                       });
-                    } : (bool value){
+                    } :
+                        (bool value){
                       Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('show_register_no_error'));
                     }
                 )
@@ -1107,7 +1115,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
-                  child: Text(AppLocalizations.of(context)!.translate('show_branch_tel'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                  child: Text('Show branch Tel', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
                 Container(
@@ -1121,7 +1129,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                         });
                       } :
                           (bool value){
-                        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('show_branch_tel_error'));
+                        Fluttertoast.showToast(msg: 'No branch phone no added');
                       }
                   ),
                 )
@@ -1313,10 +1321,11 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 Visibility(
                     visible: logoImage ? true : false,
                     child: Center(
-                      child: CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.black,
-                        child: Text(AppLocalizations.of(context)!.translate('logo')),
+                      child: Container(
+                        margin: EdgeInsets.only(bottom: 10),
+                        // width: 380,
+                        height: logoSize,
+                        child: _imageData != null ? Image.memory(_imageData!) : null,
                       ),
                     )
                 ),
@@ -1329,12 +1338,6 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 Center(
                   child: Column(
                     children: [
-                      Visibility(
-                        visible: showBranchRegisterNo && branchObject![BranchFields.register_no] != '',
-                        child: Center(
-                          child: Text(branchObject![BranchFields.register_no]),
-                        ),
-                      ),
                       Visibility(
                         visible: showAddress,
                         child: Text(branchObject!['address'], textAlign: TextAlign.center,),
@@ -2378,74 +2381,31 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
 
   Widget MobileReceiptView2(ThemeColor color) => Column(
     children: [
-      Row(
-        children: [
-          Container(
-            alignment: Alignment.topLeft,
-            child: Text(AppLocalizations.of(context)!.translate('logo'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-          ),
-          Spacer(),
-          Switch(
-              value: logoImage,
-              activeColor: color.backgroundColor,
-              onChanged: (bool value) async {
-                if(value && branchObject!['logo'] == '') {
-                  Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_branch_logo_added'));
-                } else {
-                  await getBranchLogo();
-                  setState(() {
-                    logoImage = value;
-                  });
-                }
-              })
-        ],
+      Container(
+        alignment: Alignment.topLeft,
+        child: Text(AppLocalizations.of(context)!.translate('logo_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
       ),
-      Visibility(
-          visible: logoImage ? true : false,
-          child: Column(
-            children: [
-              Container(
-                alignment: Alignment.topLeft,
-                child: Text(AppLocalizations.of(context)!.translate('logo_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-              ),
-              RadioListTile<ReceiptDialogEnum?>(
-                value: ReceiptDialogEnum.big,
-                groupValue: headerImageSize,
-                onChanged: (value) async  {
-                  setState(() {
-                    headerImageSize = value;
-                    logoSize = 140.0;
-                  });
-                },
-                title: Text(AppLocalizations.of(context)!.translate('big')),
-                controlAffinity: ListTileControlAffinity.trailing,
-              ),
-              RadioListTile<ReceiptDialogEnum?>(
-                value: ReceiptDialogEnum.medium,
-                groupValue: headerImageSize,
-                onChanged: (value) async  {
-                  setState(() {
-                    headerImageSize = value;
-                    logoSize = 100.0;
-                  });
-                },
-                title: Text(AppLocalizations.of(context)!.translate('medium')),
-                controlAffinity: ListTileControlAffinity.trailing,
-              ),
-              RadioListTile<ReceiptDialogEnum?>(
-                value: ReceiptDialogEnum.small,
-                groupValue: headerImageSize,
-                onChanged: (value) async  {
-                  setState(() {
-                    headerImageSize = value;
-                    logoSize = 60.0;
-                  });
-                },
-                title: Text(AppLocalizations.of(context)!.translate('small')),
-                controlAffinity: ListTileControlAffinity.trailing,
-              ),
-            ],
-          )
+      RadioListTile<ReceiptDialogEnum?>(
+        value: ReceiptDialogEnum.big,
+        groupValue: headerFontSize,
+        onChanged: (value) async  {
+          setState(() {
+            headerFontSize = value;
+          });
+        },
+        title: Text(AppLocalizations.of(context)!.translate('big')),
+        controlAffinity: ListTileControlAffinity.trailing,
+      ),
+      RadioListTile<ReceiptDialogEnum?>(
+        value: ReceiptDialogEnum.small,
+        groupValue: headerFontSize,
+        onChanged: (value) async  {
+          setState(() {
+            headerFontSize = value;
+          });
+        },
+        title: Text(AppLocalizations.of(context)!.translate('small')),
+        controlAffinity: ListTileControlAffinity.trailing,
       ),
       Row(
         children: [
@@ -2530,26 +2490,6 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
             ),
           ],
         ),
-      ),
-      Row(
-        children: [
-          Container(
-            alignment: Alignment.topLeft,
-            child: Text(AppLocalizations.of(context)!.translate('show_register_no'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-          ),
-          Spacer(),
-          Switch(
-              value: showBranchRegisterNo,
-              activeColor: color.backgroundColor,
-              onChanged: branchObject![BranchFields.register_no] != '' ? (bool value){
-                setState(() {
-                  showBranchRegisterNo = value;
-                });
-              } : (bool value){
-                Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('show_register_no_error'));
-              }
-          )
-        ],
       ),
       Row(
         children: [
