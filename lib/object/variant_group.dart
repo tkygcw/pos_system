@@ -1,7 +1,7 @@
 
 import 'package:pos_system/object/variant_item.dart';
 
-String? tableVariantGroup = 'tb_variant_group ';
+String? tableVariantGroup = 'tb_variant_group';
 
 class VariantGroupFields {
   static List<String> values = [
@@ -110,19 +110,19 @@ class VariantGroup {
     );
   }
 
-  // Map<String, Object?> toJson() => {
-  //   VariantGroupFields.variant_group_sqlite_id: variant_group_sqlite_id,
-  //   VariantGroupFields.variant_group_id: variant_group_id,
-  //   VariantGroupFields.product_id: product_id,
-  //   VariantGroupFields.product_sqlite_id: product_sqlite_id,
-  //   VariantGroupFields.name: name,
-  //   VariantGroupFields.sync_status: sync_status,
-  //   VariantGroupFields.created_at: created_at,
-  //   VariantGroupFields.updated_at: updated_at,
-  //   VariantGroupFields.soft_delete: soft_delete,
-  // };
+  Map<String, Object?> toInsertJson() => {
+    VariantGroupFields.variant_group_sqlite_id: variant_group_sqlite_id,
+    VariantGroupFields.variant_group_id: variant_group_id,
+    VariantGroupFields.product_id: product_id,
+    VariantGroupFields.product_sqlite_id: product_sqlite_id,
+    VariantGroupFields.name: name,
+    VariantGroupFields.sync_status: sync_status,
+    VariantGroupFields.created_at: created_at,
+    VariantGroupFields.updated_at: updated_at,
+    VariantGroupFields.soft_delete: soft_delete,
+  };
 
-  Map toJson() {
+  Map<String, Object?> toJson() {
     List? variantChild = this.child != null ? this.child?.map((i) => i.toJson()).toList() : null;
     return {
       VariantGroupFields.variant_group_sqlite_id: variant_group_sqlite_id,
@@ -138,12 +138,4 @@ class VariantGroup {
       'variant_item_sqlite_id': variant_item_sqlite_id
     };
   }
-
-  // Map addToCartJSon() => {
-  //       VariantGroupFields.variant_group_sqlite_id: variant_group_sqlite_id,
-  //       VariantGroupFields.variant_group_id: variant_group_id,
-  //       VariantGroupFields.name: name,
-  //       VariantGroupFields.variant_item:
-  //           jsonEncode(child.map((e) => e.addToCartJSon()).toList()),
-  //     };
 }

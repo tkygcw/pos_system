@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
+import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/branch_link_dining_option.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/cash_record.dart';
@@ -1059,7 +1060,6 @@ class ReceiptLayout{
   Test print Receipt layout 80mm
 */
   printTestReceipt80mm(bool isUSB, Receipt receipt2, {value}) async {
-    String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
     Map branchObject = json.decode(branch!);
@@ -1084,7 +1084,6 @@ class ReceiptLayout{
 
       if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
         ///big font
-        // bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
         bytes += generator.row([
           PosColumn(
               text: '${receipt!.header_text}',
@@ -1104,6 +1103,13 @@ class ReceiptLayout{
       }
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
+      //register no
+      if(receipt!.show_register_no == 1){
+        bytes += generator.text(branchObject[BranchFields.register_no],
+            containsChinese: true,
+            styles: PosStyles(align: PosAlign.center, ),
+        );
+      }
       //Address
       if(receipt!.show_address == 1 && branchObject['address'].toString() != ''){
         bytes += generator.text('${branchObject['address']}', containsChinese: true, styles: PosStyles(align: PosAlign.center, ));
@@ -1267,7 +1273,6 @@ class ReceiptLayout{
   Test print Receipt layout 58mm
 */
   printTestReceipt58mm(bool isUSB, Receipt receipt2, {value}) async {
-    String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
     Map branchObject = json.decode(branch!);
@@ -1305,6 +1310,12 @@ class ReceiptLayout{
         }
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
+        if(receipt!.show_register_no == 1){
+          bytes += generator.text(branchObject[BranchFields.register_no],
+            containsChinese: true,
+            styles: PosStyles(align: PosAlign.center),
+          );
+        }
         if(receipt!.show_address == 1 && branchObject['address'].toString() != ''){
           //Address
           bytes += generator.text('${branchObject['address'].toString()}', containsChinese: true, styles: PosStyles(align: PosAlign.center));

@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
@@ -448,6 +450,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
         await deleteCurrentTableUseDetail(dateTime: dateTime);
         await deleteCurrentTableUseId(dateTime: dateTime);
         await updatePosTableStatus(dateTime: dateTime);
+        softDeletePosTableDynamicQr();
       }
     }
     await updateOrderCache(dateTime: dateTime);
@@ -710,6 +713,27 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
       }
     }catch(e){
       print("payment success update table error ${e}");
+    }
+  }
+
+  softDeletePosTableDynamicQr(){
+    try{
+      List<PosTable> selectedTableList = widget.selectedTableList.toList();
+      if (selectedTableList.isNotEmpty) {
+        for (int i = 0; i < selectedTableList.length; i++) {
+          PosTable posTable = PosTable(
+            soft_delete: Utils.dbCurrentDateTimeFormat(),
+            table_id: selectedTableList[i].table_id,
+          );
+          PosFirestore.instance.softDeleteTableDynamic(posTable);
+        }
+      }
+    }catch(e){
+      FLog.error(
+        className: "payment_success_dialog",
+        text: "softDeletePosTableDynamicQr failed",
+        exception: e,
+      );
     }
   }
 

@@ -7,6 +7,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:pos_system/database/pos_firestore.dart';
+import 'package:pos_system/firebase_sync/sync_to_firebase.dart';
 import 'package:pos_system/fragment/choose_branch.dart';
 import 'package:pos_system/fragment/device_register/device_register.dart';
 import 'package:pos_system/object/branch.dart';
@@ -275,6 +277,7 @@ class _SetupPageState extends State<SetupPage> {
       // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => LoadingPage()));
       showDaysSelectionDialog(context);
     }
+    SyncToFirebase.instance.checkBranchInFirestore(selectedBranch!);
   }
 
   downloadBranchLogo({required String imageName}) async {
@@ -309,7 +312,7 @@ class _SetupPageState extends State<SetupPage> {
 
   savePref() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('branch_id', selectedBranch!.branchID!);
+    await prefs.setInt('branch_id', selectedBranch!.branch_id!);
     await prefs.setInt('device_id', selectedDevice!.deviceID!);
     await prefs.setString("branch", json.encode(selectedBranch!));
     String userEmail = jsonDecode(prefs.getString('user') ?? '')['email'] ?? '';
@@ -325,14 +328,14 @@ class _SetupPageState extends State<SetupPage> {
       print("update branch token called");
       await PosDatabase.instance.updateBranchNotificationToken(Branch(
           notification_token: this.token,
-          branchID: selectedBranch!.branchID
+          branch_id: selectedBranch!.branch_id
       ));
 /*
       ------------------------sync to cloud--------------------------------
 */
       bool _hasInternetAccess = await Domain().isHostReachable();
       if(_hasInternetAccess){
-        Map response = await Domain().updateBranchNotificationToken(this.token, selectedBranch!.branchID);
+        Map response = await Domain().updateBranchNotificationToken(this.token, selectedBranch!.branch_id);
         if (response['status'] == '1') {
           showDaysSelectionDialog(context);
           // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => LoadingPage()));

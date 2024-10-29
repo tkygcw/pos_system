@@ -1,6 +1,5 @@
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
@@ -15,6 +14,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../main.dart';
+import '../../object/branch.dart';
 import '../../object/table_use.dart';
 import '../../object/table_use_detail.dart';
 import '../../translation/AppLocalizations.dart';
@@ -30,11 +30,20 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
   final adminPosPinController = TextEditingController();
   bool inProgress = false;
   bool isButtonDisabled = false;
-  bool _submitted = false;
+  bool _submitted = false, allowFirestore = false;
+  late Branch? branch;
 
   @override
   void initState() {
     super.initState();
+    initLoad();
+  }
+
+  initLoad() async {
+    branch = await PosDatabase.instance.readLocalBranch();
+    setState(() {
+      allowFirestore = branch!.allow_firestore == 1 ? true : false;
+    });
   }
 
   @override
@@ -69,8 +78,18 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
                 title: Text(AppLocalizations.of(context)!.translate('sync')),
                 trailing: Icon(Icons.sync),
                 onTap: () async {
-                  openSyncDialog();
+                  openSyncDialog(SyncType.sync);
                 },
+              ),
+              Visibility(
+                visible: allowFirestore,
+                child: ListTile(
+                  title: Text(AppLocalizations.of(context)!.translate('sync_to_firestore')),
+                  trailing: Icon(Icons.sync_alt),
+                  onTap: () {
+                    openSyncDialog(SyncType.firestore_sync);
+                  },
+                ),
               ),
               ListTile(
                 title: Text(AppLocalizations.of(context)!.translate('sync_reset')),
@@ -502,7 +521,7 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
         });
   }
 
-  Future<Future<Object?>> openSyncDialog() async {
+  Future<Future<Object?>> openSyncDialog(SyncType syncType) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -511,7 +530,7 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: SyncDialog(),
+              child: SyncDialog(syncType: syncType),
             ),
           );
         },

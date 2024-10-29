@@ -2,7 +2,7 @@ String? tableBranch = 'tb_branch';
 
 class BranchFields {
   static List<String> values = [
-    branchID,
+    branch_id,
     branch_url,
     name,
     logo,
@@ -14,10 +14,16 @@ class BranchFields {
     notification_token,
     qr_order_status,
     sub_pos_status,
-    attendance_status
+    attendance_status,
+    company_id,
+    working_day,
+    working_time,
+    close_qr_order,
+    register_no,
+    allow_firestore
   ];
 
-  static String branchID = 'branchID';
+  static String branch_id = 'branch_id';
   static String branch_url = 'branch_url';
   static String name = 'name';
   static String logo = 'logo';
@@ -30,10 +36,16 @@ class BranchFields {
   static String qr_order_status = 'qr_order_status';
   static String sub_pos_status = 'sub_pos_status';
   static String attendance_status = 'attendance_status';
+  static String company_id = 'company_id';
+  static String working_day = 'working_day';
+  static String working_time = 'working_time';
+  static String close_qr_order = 'close_qr_order';
+  static String register_no = 'register_no';
+  static String allow_firestore = 'allow_firestore';
 }
 
 class Branch {
-  int? branchID;
+  int? branch_id;
   String? branch_url;
   String? name;
   String? logo;
@@ -46,25 +58,37 @@ class Branch {
   String? qr_order_status;
   int? sub_pos_status;
   int? attendance_status;
+  String? company_id;
+  String? working_day;
+  String? working_time;
+  int? close_qr_order;
+  String? register_no;
+  int? allow_firestore;
 
-  Branch(
-      {this.branchID,
-      this.branch_url,
-      this.name,
-      this.logo,
-      this.address,
-      this.phone,
-      this.email,
-      this.ipay_merchant_code,
-      this.ipay_merchant_key,
-      this.notification_token,
-      this.qr_order_status,
-      this.sub_pos_status,
-      this.attendance_status
-      });
+  Branch({
+    this.branch_id,
+    this.branch_url,
+    this.name,
+    this.logo,
+    this.address,
+    this.phone,
+    this.email,
+    this.ipay_merchant_code,
+    this.ipay_merchant_key,
+    this.notification_token,
+    this.qr_order_status,
+    this.sub_pos_status,
+    this.attendance_status,
+    this.company_id,
+    this.working_day,
+    this.working_time,
+    this.close_qr_order,
+    this.register_no,
+    this.allow_firestore
+  });
 
-  Branch copy({int? branchID, String? name}) => Branch(
-    branchID: branchID ?? this.branchID,
+  Branch copy({int? branch_id, String? name}) => Branch(
+    branch_id: branch_id ?? this.branch_id,
     branch_url: branch_url ?? this.branch_url,
     name: name ?? this.name,
     logo: logo ?? this.logo,
@@ -77,11 +101,17 @@ class Branch {
     qr_order_status: qr_order_status ?? this.qr_order_status,
     sub_pos_status: sub_pos_status ?? this.sub_pos_status,
     attendance_status: attendance_status ?? this.attendance_status,
+    company_id: company_id ?? this.company_id,
+    working_day: working_day ?? this.working_day,
+    working_time: working_time ?? this.working_time,
+    close_qr_order: close_qr_order ?? this.close_qr_order,
+    register_no: register_no ?? this.register_no,
+    allow_firestore: allow_firestore ?? this.allow_firestore
   );
 
   factory Branch.fromJson(Map<String, dynamic> json) {
     return Branch(
-      branchID: json['branch_id'],
+      branch_id: json['branch_id'],
       branch_url: json['branch_url'],
       name: json['name'] as String,
       logo: json['logo'] as String,
@@ -93,12 +123,18 @@ class Branch {
       notification_token: json['notification_token'] as String,
       qr_order_status: json['qr_order_status'] as String?,
       sub_pos_status: json['sub_pos_status'] as int?,
-      attendance_status: json['attendance_status'] as int?
+      attendance_status: json['attendance_status'] as int?,
+      company_id: json[BranchFields.company_id] as String?,
+      working_day: json[BranchFields.working_day] as String?,
+      working_time: json[BranchFields.working_time] as String?,
+      close_qr_order: json[BranchFields.close_qr_order] as int?,
+      register_no: json[BranchFields.register_no] as String?,
+      allow_firestore: json[BranchFields.allow_firestore] as int?
     );
   }
 
   Map<String, Object?> toJson() => {
-    BranchFields.branchID: branchID,
+    BranchFields.branch_id: branch_id,
     BranchFields.branch_url: branch_url,
     BranchFields.name: name,
     BranchFields.logo: logo,
@@ -110,6 +146,12 @@ class Branch {
     BranchFields.notification_token: notification_token,
     BranchFields.qr_order_status: qr_order_status,
     BranchFields.sub_pos_status: sub_pos_status,
-    BranchFields.attendance_status: attendance_status
+    BranchFields.attendance_status: attendance_status,
+    BranchFields.company_id: company_id,
+    BranchFields.working_day: working_day,
+    BranchFields.working_time: working_time,
+    BranchFields.close_qr_order: close_qr_order,
+    BranchFields.register_no: register_no,
+    BranchFields.allow_firestore: allow_firestore
   };
 }

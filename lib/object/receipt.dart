@@ -25,6 +25,7 @@ class ReceiptFields {
     status,
     show_product_sku,
     show_branch_tel,
+    show_register_no,
     sync_status,
     created_at,
     updated_at,
@@ -54,6 +55,7 @@ class ReceiptFields {
   static String status = 'status';
   static String show_product_sku = 'show_product_sku';
   static String show_branch_tel = 'show_branch_tel';
+  static String show_register_no = 'show_register_no';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -85,6 +87,7 @@ class Receipt {
   int? status;
   int? show_product_sku;
   int? show_branch_tel;
+  int? show_register_no;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -114,6 +117,7 @@ class Receipt {
         this.status,
         this.show_product_sku,
         this.show_branch_tel,
+        this.show_register_no,
         this.sync_status,
         this.created_at,
         this.updated_at,
@@ -143,6 +147,7 @@ class Receipt {
     int? status,
     int? show_product_sku,
     int? show_branch_tel,
+    int? show_register_no,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -172,6 +177,7 @@ class Receipt {
           status: status ?? this.status,
           show_product_sku: show_product_sku ?? this.show_product_sku,
           show_branch_tel: show_branch_tel ?? this.show_branch_tel,
+          show_register_no: show_register_no ?? this.show_register_no,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -201,6 +207,7 @@ class Receipt {
     status: json[ReceiptFields.status] as int?,
     show_product_sku: json[ReceiptFields.show_product_sku] as int?,
     show_branch_tel: json[ReceiptFields.show_branch_tel] as int?,
+    show_register_no: json[ReceiptFields.show_register_no] as int?,
     sync_status: json[ReceiptFields.sync_status] as int?,
     created_at: json[ReceiptFields.created_at] as String?,
     updated_at: json[ReceiptFields.updated_at] as String?,
@@ -231,6 +238,7 @@ class Receipt {
     ReceiptFields.status: status,
     ReceiptFields.show_product_sku: show_product_sku,
     ReceiptFields.show_branch_tel: show_branch_tel,
+    ReceiptFields.show_register_no: show_register_no,
     ReceiptFields.sync_status: sync_status,
     ReceiptFields.created_at: created_at,
     ReceiptFields.updated_at: updated_at,

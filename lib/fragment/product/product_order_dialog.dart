@@ -45,7 +45,8 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   late StreamSubscription actionSubscription;
   late CartModel cart;
   Categories? categories;
-  String branchLinkProduct_id = '';
+  String branchLinkProductLocalId = '';
+  int? branchLinKProductId;
   String basePrice = '', finalPrice = '';
   String productStock = '';
   String dialogPrice = '', dialogStock = '';
@@ -1403,23 +1404,22 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     }
   }
 
-  Future<String?> getBranchLinkProductItem(Product product) async {
-    branchLinkProduct_id = '';
+  Future<void> getBranchLinkProductItem(Product product) async {
     try {
       List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(product.product_sqlite_id.toString());
       if(data.length == 1){
-        branchLinkProduct_id = data[0].branch_link_product_sqlite_id.toString();
+        branchLinkProductLocalId = data.first.branch_link_product_sqlite_id.toString();
+        branchLinKProductId = data.first.branch_link_product_id;
       } else {
         String productVariant = await getProductVariant();
         BranchLinkProduct? productData = await PosDatabase.instance.readBranchLinkProductByProductVariant(productVariant);
         if(productData != null){
-          branchLinkProduct_id = productData.branch_link_product_sqlite_id.toString();
+          branchLinkProductLocalId = productData.branch_link_product_sqlite_id.toString();
+          branchLinKProductId = productData.branch_link_product_id;
         }
       }
-      return branchLinkProduct_id;
     } catch (e) {
       Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('make_sure_stock_is_restock'));
-      return null;
     }
   }
 
@@ -1572,8 +1572,10 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     } else {
       checkedModifierLength = 0;
     }
+    await getBranchLinkProductItem(widget.productDetail!);
     var value = cartProductItem(
-        branch_link_product_sqlite_id: await getBranchLinkProductItem(widget.productDetail!),
+        branch_link_product_id: branchLinKProductId,
+        branch_link_product_sqlite_id: branchLinkProductLocalId,
         product_name: widget.productDetail!.name!,
         category_id: widget.productDetail!.category_id!,
         category_name: categories != null ? categories!.name : '',

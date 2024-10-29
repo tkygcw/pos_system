@@ -5,7 +5,7 @@ import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/product_variant.dart';
 import 'package:pos_system/object/variant_item.dart';
 
-String? tableOrderDetail = 'tb_order_detail ';
+String? tableOrderDetail = 'tb_order_detail';
 
 class OrderDetailFields {
   static List<String> values = [
