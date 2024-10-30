@@ -293,10 +293,11 @@ class _SetupPageState extends State<SetupPage> {
       final directory = await _localPath;
       final path = '$directory/assets/logo';
       final pathImg = Directory(path);
+      pathImg.create();
       await prefs.setString('logo_path', path);
 
       if (!(await pathImg.exists())) {
-        await pathImg.create(recursive: true);
+        await pathImg.create();
       }
 
       String url = '${Domain.backend_domain}api/logo/' + userObject['company_id'] + '/' + imageName;

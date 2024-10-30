@@ -1040,10 +1040,10 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableReceipt(soft_delete, updated_at, created_at, sync_status, show_branch_tel, '
-        'show_product_sku, header_font_size, status, paper_size, promotion_detail_status, '
+        'show_product_sku, second_header_font_size, header_font_size, status, paper_size, promotion_detail_status, '
         'footer_text_status, footer_text, footer_image_status, footer_image, show_break_down_price, receipt_email, show_email, show_address, '
-        'header_text_status, header_text, header_image_status, header_image_size, header_image, branch_id, receipt_key, receipt_id, show_register_no) '
-            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'second_header_text_status, second_header_text, header_text_status, header_text, header_image_status, header_image_size, header_image, branch_id, receipt_key, receipt_id, show_register_no) '
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.soft_delete,
           data.updated_at,
@@ -1051,6 +1051,7 @@ class PosDatabase {
           data.sync_status,
           data.show_branch_tel,
           data.show_product_sku,
+          data.second_header_font_size,
           data.header_font_size,
           data.status,
           data.paper_size,
@@ -1063,6 +1064,8 @@ class PosDatabase {
           data.receipt_email,
           data.show_email,
           data.show_address,
+          data.second_header_text_status,
+          data.second_header_text,
           data.header_text_status,
           data.header_text,
           data.header_image_status,
@@ -5662,8 +5665,8 @@ class PosDatabase {
   Future<int> updateReceiptLayout(Receipt data) async {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableReceipt SET header_image = ?, header_image_size = ?, header_image_status = ?, '
-        'header_text = ?, header_text_status = ?, header_font_size = ?, show_address = ?, show_email = ?, '
-        'receipt_email = ?, show_break_down_price = ?, footer_image = ?, footer_image_status = ?, footer_text = ?, footer_text_status = ?, '
+        'header_text = ?, header_text_status = ?, header_font_size = ?, second_header_text = ?, second_header_text_status = ?, second_header_font_size = ?, show_address = ?, '
+        'show_email = ?, receipt_email = ?, hide_dining_method_table_no = ?, show_break_down_price = ?, footer_image = ?, footer_image_status = ?, footer_text = ?, footer_text_status = ?, '
         'promotion_detail_status = ?, show_product_sku = ?, show_branch_tel = ?, show_register_no = ?, '
         'sync_status = ?, updated_at = ? WHERE receipt_sqlite_id = ?',
         [
@@ -5673,9 +5676,13 @@ class PosDatabase {
           data.header_text,
           data.header_text_status,
           data.header_font_size,
+          data.second_header_text,
+          data.second_header_text_status,
+          data.second_header_font_size,
           data.show_address,
           data.show_email,
           data.receipt_email,
+          data.hide_dining_method_table_no,
           data.show_break_down_price,
           data.footer_image,
           data.footer_image_status,

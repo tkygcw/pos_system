@@ -1101,6 +1101,25 @@ class ReceiptLayout{
               styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1)),
         ]);
       }
+
+      if(receipt!.second_header_text_status == 1) {
+        PosTextSize productFontSize = receipt!.second_header_font_size == 0 ? PosTextSize.size1 : PosTextSize.size2;
+        PosFontType productFontType = receipt!.second_header_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
+
+        bytes += generator.row([
+          PosColumn(
+              text: '${receipt!.second_header_text}',
+              width: 12,
+              containsChinese: true,
+              styles: PosStyles(
+                  align: PosAlign.center,
+                  fontType: productFontType,
+                  height: productFontSize,
+                  width: productFontSize)),
+        ]);
+        bytes += generator.reset();
+      }
+
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       //register no
@@ -1134,8 +1153,12 @@ class ReceiptLayout{
       //other order detail
       bytes += generator.text('Close at: 31/12/2021 00:00 AM');
       bytes += generator.text('Close by: Waiter');
-      bytes += generator.text('Table No: 1');
-      bytes += generator.text('Dine in');
+
+      if(receipt!.hide_dining_method_table_no == 0){
+        bytes += generator.text('Table No: 1');
+        bytes += generator.text('Dine in');
+      }
+
       bytes += generator.reset();
       /*
     *
@@ -1308,6 +1331,25 @@ class ReceiptLayout{
                 styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1)),
           ]);
         }
+
+        if(receipt!.second_header_text_status == 1) {
+          PosTextSize productFontSize = receipt!.second_header_font_size == 0 ? PosTextSize.size1 : PosTextSize.size2;
+          PosFontType productFontType = receipt!.second_header_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
+
+          bytes += generator.row([
+            PosColumn(
+                text: '${receipt!.second_header_text}',
+                width: 12,
+                containsChinese: true,
+                styles: PosStyles(
+                    align: PosAlign.center,
+                    fontType: productFontType,
+                    height: productFontSize,
+                    width: productFontSize)),
+          ]);
+          bytes += generator.reset();
+        }
+
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
         if(receipt!.show_register_no == 1){
@@ -1343,8 +1385,10 @@ class ReceiptLayout{
         bytes += generator.text('31/12/2021 00:00 AM', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Close by:', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Waiter', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('Table No: 1', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('Dine in', styles: PosStyles(align: PosAlign.center));
+        if(receipt!.hide_dining_method_table_no == 0) {
+          bytes += generator.text('Table No: 1', styles: PosStyles(align: PosAlign.center));
+          bytes += generator.text('Dine in', styles: PosStyles(align: PosAlign.center));
+        }
 
         bytes += generator.reset();
         /*

@@ -12,9 +12,13 @@ class ReceiptFields {
     header_text,
     header_text_status,
     header_font_size,
+    second_header_text,
+    second_header_text_status,
+    second_header_font_size,
     show_address,
     show_email,
     receipt_email,
+    hide_dining_method_table_no,
     show_break_down_price,
     footer_image,
     footer_image_status,
@@ -42,9 +46,13 @@ class ReceiptFields {
   static String header_text = 'header_text';
   static String header_text_status = 'header_text_status';
   static String header_font_size = 'header_font_size';
+  static String second_header_text = 'second_header_text';
+  static String second_header_text_status = 'second_header_text_status';
+  static String second_header_font_size = 'second_header_font_size';
   static String show_address = 'show_address';
   static String show_email = 'show_email';
   static String receipt_email = 'receipt_email';
+  static String hide_dining_method_table_no = 'hide_dining_method_table_no';
   static String show_break_down_price = 'show_break_down_price';
   static String footer_image = 'footer_image';
   static String footer_image_status = 'footer_image_status';
@@ -74,9 +82,13 @@ class Receipt {
   String? header_text;
   int? header_text_status;
   int? header_font_size;
+  String? second_header_text;
+  int? second_header_text_status;
+  int? second_header_font_size;
   int? show_address;
   int? show_email;
   String? receipt_email;
+  int? hide_dining_method_table_no;
   int? show_break_down_price;
   String? footer_image;
   int? footer_image_status;
@@ -104,9 +116,13 @@ class Receipt {
         this.header_text,
         this.header_text_status,
         this.header_font_size,
+        this.second_header_text,
+        this.second_header_text_status,
+        this.second_header_font_size,
         this.show_address,
         this.show_email,
         this.receipt_email,
+        this.hide_dining_method_table_no,
         this.show_break_down_price,
         this.footer_image,
         this.footer_image_status,
@@ -134,9 +150,13 @@ class Receipt {
     String? header_text,
     int? header_text_status,
     int? header_font_size,
+    String? second_header_text,
+    int? second_header_text_status,
+    int? second_header_font_size,
     int? show_address,
     int? show_email,
     String? receipt_email,
+    int? hide_dining_method_table_no,
     int? show_break_down_price,
     String? footer_image,
     int? footer_image_status,
@@ -164,9 +184,13 @@ class Receipt {
           header_text: header_text ?? this.header_text,
           header_text_status: header_text_status ?? this.header_text_status,
           header_font_size: header_font_size ?? this.header_font_size,
+          second_header_text: second_header_text ?? this.second_header_text,
+          second_header_text_status: second_header_text_status ?? this.second_header_text_status,
+          second_header_font_size: second_header_font_size ?? this.second_header_font_size,
           show_address: show_address ?? this.show_address,
           show_email: show_email ?? this.show_email,
           receipt_email: receipt_email ?? this.receipt_email,
+          hide_dining_method_table_no: hide_dining_method_table_no ?? this.hide_dining_method_table_no,
           show_break_down_price: show_break_down_price ?? this.show_break_down_price,
           footer_image: footer_image ?? this.footer_image,
           footer_image_status: footer_image_status ?? this.footer_image_status,
@@ -194,9 +218,13 @@ class Receipt {
     header_text: json[ReceiptFields.header_text] as String?,
     header_text_status: json[ReceiptFields.header_text_status] as int?,
     header_font_size: json[ReceiptFields.header_font_size] as int?,
+    second_header_text: json[ReceiptFields.second_header_text] as String?,
+    second_header_text_status: json[ReceiptFields.second_header_text_status] as int?,
+    second_header_font_size: json[ReceiptFields.second_header_font_size] as int?,
     show_address: json[ReceiptFields.show_address] as int?,
     show_email: json[ReceiptFields.show_email] as int?,
     receipt_email: json[ReceiptFields.receipt_email] as String?,
+    hide_dining_method_table_no: json[ReceiptFields.hide_dining_method_table_no] as int?,
     show_break_down_price: json[ReceiptFields.show_break_down_price] as int?,
     footer_image: json[ReceiptFields.footer_image] as String?,
     footer_image_status: json[ReceiptFields.footer_image_status] as int?,
@@ -225,9 +253,13 @@ class Receipt {
     ReceiptFields.header_text: header_text,
     ReceiptFields.header_text_status: header_text_status,
     ReceiptFields.header_font_size: header_font_size,
+    ReceiptFields.second_header_text: second_header_text,
+    ReceiptFields.second_header_text_status: second_header_text_status,
+    ReceiptFields.second_header_font_size: second_header_font_size,
     ReceiptFields.show_address: show_address,
     ReceiptFields.show_email: show_email,
     ReceiptFields.receipt_email: receipt_email,
+    ReceiptFields.hide_dining_method_table_no: hide_dining_method_table_no,
     ReceiptFields.show_break_down_price: show_break_down_price,
     ReceiptFields.footer_image: footer_image,
     ReceiptFields.footer_image_status: footer_image_status,

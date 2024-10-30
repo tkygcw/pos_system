@@ -479,6 +479,8 @@ class _LoadingPageState extends State<LoadingPage> {
         List responseJson = response['receipt'];
         for (var i = 0; i < responseJson.length; i++) {
           try {
+            print("getAllRceipt called");
+            print("Receiptlayout: ${jsonEncode(Receipt.fromJson(responseJson[i]))}");
             await PosDatabase.instance.insertReceipt(Receipt.fromJson(responseJson[i]));
           } catch(e) {
             FLog.error(
@@ -516,6 +518,7 @@ class _LoadingPageState extends State<LoadingPage> {
           receipt_key: '',
           branch_id: branch_id.toString(),
           header_text: branchObject['name'],
+          second_header_text: '',
           footer_text: 'Thank you, please come again',
           header_image: '',
           header_image_size: 0,
@@ -524,11 +527,14 @@ class _LoadingPageState extends State<LoadingPage> {
           show_email: branchObject['email'] != '' ? 1 : 0,
           receipt_email: branchObject['email'] != '' ? branchObject['email'] : '',
           show_break_down_price: 0,
+          hide_dining_method_table_no: 0,
           header_text_status: 1,
+          second_header_text_status: 0,
           footer_text_status: 1,
           header_image_status: 0,
           footer_image_status: 0,
           header_font_size: 0,
+          second_header_font_size: 0,
           promotion_detail_status: 0,
           paper_size: '80',
           status: 1,
@@ -607,6 +613,7 @@ class _LoadingPageState extends State<LoadingPage> {
           receipt_key: '',
           branch_id: branch_id.toString(),
           header_text: branchObject['name'],
+          second_header_text: '',
           footer_text: 'Thank you, please come again',
           header_image: '',
           header_image_size: 0,
@@ -615,11 +622,14 @@ class _LoadingPageState extends State<LoadingPage> {
           show_email: branchObject['email'] != '' ? 1 : 0,
           receipt_email: branchObject['email'] != '' ? branchObject['email'] : '',
           show_break_down_price: 0,
+          hide_dining_method_table_no: 0,
           header_text_status: 1,
+          second_header_text_status: 0,
           footer_text_status: 1,
           header_image_status: 0,
           footer_image_status: 0,
           header_font_size: 0,
+          second_header_font_size: 0,
           promotion_detail_status: 0,
           paper_size: '58',
           status: 1,

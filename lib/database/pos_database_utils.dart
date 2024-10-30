@@ -230,6 +230,10 @@ class PosDatabaseUtils {
           case 28: {
             await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.logo} $textType DEFAULT ''");
             await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.header_image_size} $integerType DEFAULT 0 ");
+            await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.second_header_text} $textType DEFAULT '' ");
+            await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.second_header_text_status} $integerType DEFAULT 0 ");
+            await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.second_header_font_size} $integerType DEFAULT 0 ");
+            await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.hide_dining_method_table_no} $integerType DEFAULT 0 ");
           }break;
         }
       }
@@ -761,9 +765,13 @@ class PosDatabaseUtils {
           ${ReceiptFields.header_text} $textType,
           ${ReceiptFields.header_text_status} $integerType,
           ${ReceiptFields.header_font_size} $integerType,
+          ${ReceiptFields.second_header_text} $textType,
+          ${ReceiptFields.second_header_text_status} $integerType,
+          ${ReceiptFields.second_header_font_size} $integerType,
           ${ReceiptFields.show_address} $integerType,
           ${ReceiptFields.show_email} $integerType,
           ${ReceiptFields.receipt_email} $textType,
+          ${ReceiptFields.hide_dining_method_table_no} $integerType,
           ${ReceiptFields.show_break_down_price} $integerType,
           ${ReceiptFields.footer_image} $textType,
           ${ReceiptFields.footer_image_status} $integerType,
