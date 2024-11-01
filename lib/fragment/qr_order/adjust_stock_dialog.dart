@@ -920,7 +920,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     String dateTime = dateFormat.format(DateTime.now());
     OrderCache orderCache = OrderCache(
         updated_at: dateTime,
-        sync_status: 2,
+        sync_status: widget.currentOrderCache!.sync_status == 0 ? 0 : 2,
         order_by: 'Qr order',
         order_by_user_id: '',
         accepted: 0,
@@ -950,7 +950,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       for(int i = 0; i < _orderDetail.length; i++){
         OrderDetail orderDetailObj = OrderDetail(
             updated_at: dateTime,
-            sync_status: 2,
+            sync_status: _orderDetail[i].sync_status == 0 ? 0 : 2,
             price: _orderDetail[i].price,
             quantity: _orderDetail[i].quantity,
             order_detail_key: _orderDetail[i].order_detail_key,
