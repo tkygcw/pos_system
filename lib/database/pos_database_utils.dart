@@ -227,6 +227,9 @@ class PosDatabaseUtils {
             print("case 27 call");
             await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.allow_firestore} $integerType DEFAULT 0 ");
           }break;
+          case 28: {
+            await dbVersion29Upgrade(db, prefs);
+          }break;
         }
       }
     }
@@ -1052,11 +1055,33 @@ class PosDatabaseUtils {
           ${CurrentVersionFields.soft_delete} $textType)''');
   }
 
-  static Future<bool> checkColumnExists(Database db, String tableName, String columnName) async {
-    // Query to check if the column already exists
-    var result = await db.rawQuery("PRAGMA table_info($tableName)");
-    bool columnExists = result.any((column) => column['name'] == columnName);
-    return columnExists;
+  static dbVersion29Upgrade(Database db, SharedPreferences prefs) async {
+    final int? branch_id = prefs.getInt('branch_id');
+    if(branch_id == 182 || branch_id == 176 || branch_id == 201){
+      await db.rawUpdate('UPDATE $tableOrderCache SET sync_status = ? WHERE qr_order = ? ', [0, 1]);
+      final result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE qr_order = ? AND soft_delete = ?', [1, '']);
+      List<OrderCache> orderCacheData = result.map((json) => OrderCache.fromJson(json)).toList();
+      for(var orderCache in orderCacheData){
+        await db.rawUpdate('UPDATE $tableOrderDetail SET sync_status = ? WHERE order_cache_sqlite_id = ? ', [0, orderCache.order_cache_sqlite_id]);
+        final result = await db.rawQuery('SELECT * FROM $tableOrderDetail WHERE sync_status = ? AND soft_delete = ?', [0, '']);
+        List<OrderDetail> orderDetailData = result.map((json) => OrderDetail.fromJson(json)).toList();
+        for(var orderDetail in orderDetailData){
+          await db.rawUpdate('UPDATE $tableOrderModifierDetail SET sync_status = ? WHERE order_detail_sqlite_id = ? ', [0, orderDetail.order_detail_sqlite_id]);
+        }
+      }
+    }
+  }
+
+  static dbVersion27Upgrade(Database db) async {
+    bool columnExists = await checkColumnExists(db, tableKitchenList!, KitchenListFields.kitchen_list_show_total_amount);
+    print("db 27 column exist: ${columnExists}");
+    if(!columnExists) {
+      print("perform upgrade");
+      await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
+      await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
+      await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
+      await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
+    }
   }
 
   static dbVersion26Upgrade(Database db, SharedPreferences prefs) async {
@@ -1107,15 +1132,10 @@ class PosDatabaseUtils {
     }
   }
 
-  static dbVersion27Upgrade(Database db) async {
-    bool columnExists = await checkColumnExists(db, tableKitchenList!, KitchenListFields.kitchen_list_show_total_amount);
-    print("db 27 column exist: ${columnExists}");
-    if(!columnExists) {
-      print("perform upgrade");
-      await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.kitchen_list_show_total_amount} $integerType DEFAULT 0 ");
-      await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_kitchen_checklist} $integerType DEFAULT 0 ");
-      await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.show_break_down_price} $integerType DEFAULT 0 ");
-      await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.settlement_after_all_order_paid} $integerType DEFAULT 0");
-    }
+  static Future<bool> checkColumnExists(Database db, String tableName, String columnName) async {
+    // Query to check if the column already exists
+    var result = await db.rawQuery("PRAGMA table_info($tableName)");
+    bool columnExists = result.any((column) => column['name'] == columnName);
+    return columnExists;
   }
 }

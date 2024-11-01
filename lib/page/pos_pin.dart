@@ -120,17 +120,6 @@ class _PosPinPageState extends State<PosPinPage> {
     await readAllPrinters();
     SyncToFirebase.instance.syncToFirebase();
     listenQROrder();
-    ///must remove before next version release
-    recoverQrOrderData();
-  }
-
-  ///must remove before next version release
-  Future<void> recoverQrOrderData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    if(branch_id == 182 || branch_id == 176 || branch_id == 201){
-      await PosDatabase.instance.resetQrOrderCacheSyncStatus();
-    }
   }
 
   initFirestoreStatus(bool hasGMS) async {
