@@ -73,7 +73,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 29, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
+    return await openDatabase(path, version: 30, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
   }
 
 /*
@@ -5391,6 +5391,14 @@ class PosDatabase {
   }
 
 /*
+  update hide dining method table no Setting
+*/
+  Future<int> updateHideDiningMethodTableNoSetting(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET hide_dining_method_table_no = ?, sync_status = ?, updated_at = ?', [data.hide_dining_method_table_no, 2, data.updated_at]);
+  }
+
+/*
   update show product description  Setting
 */
   Future<int> updateShowProDescSettings(AppSetting data) async {
@@ -5666,7 +5674,7 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableReceipt SET header_image = ?, header_image_size = ?, header_image_status = ?, '
         'header_text = ?, header_text_status = ?, header_font_size = ?, second_header_text = ?, second_header_text_status = ?, second_header_font_size = ?, show_address = ?, '
-        'show_email = ?, receipt_email = ?, hide_dining_method_table_no = ?, show_break_down_price = ?, footer_image = ?, footer_image_status = ?, footer_text = ?, footer_text_status = ?, '
+        'show_email = ?, receipt_email = ?, show_break_down_price = ?, footer_image = ?, footer_image_status = ?, footer_text = ?, footer_text_status = ?, '
         'promotion_detail_status = ?, show_product_sku = ?, show_branch_tel = ?, show_register_no = ?, '
         'sync_status = ?, updated_at = ? WHERE receipt_sqlite_id = ?',
         [
@@ -5682,7 +5690,6 @@ class PosDatabase {
           data.show_address,
           data.show_email,
           data.receipt_email,
-          data.hide_dining_method_table_no,
           data.show_break_down_price,
           data.footer_image,
           data.footer_image_status,

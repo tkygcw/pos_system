@@ -18,7 +18,6 @@ class ReceiptFields {
     show_address,
     show_email,
     receipt_email,
-    hide_dining_method_table_no,
     show_break_down_price,
     footer_image,
     footer_image_status,
@@ -52,7 +51,6 @@ class ReceiptFields {
   static String show_address = 'show_address';
   static String show_email = 'show_email';
   static String receipt_email = 'receipt_email';
-  static String hide_dining_method_table_no = 'hide_dining_method_table_no';
   static String show_break_down_price = 'show_break_down_price';
   static String footer_image = 'footer_image';
   static String footer_image_status = 'footer_image_status';
@@ -88,7 +86,6 @@ class Receipt {
   int? show_address;
   int? show_email;
   String? receipt_email;
-  int? hide_dining_method_table_no;
   int? show_break_down_price;
   String? footer_image;
   int? footer_image_status;
@@ -122,7 +119,6 @@ class Receipt {
         this.show_address,
         this.show_email,
         this.receipt_email,
-        this.hide_dining_method_table_no,
         this.show_break_down_price,
         this.footer_image,
         this.footer_image_status,
@@ -156,7 +152,6 @@ class Receipt {
     int? show_address,
     int? show_email,
     String? receipt_email,
-    int? hide_dining_method_table_no,
     int? show_break_down_price,
     String? footer_image,
     int? footer_image_status,
@@ -190,7 +185,6 @@ class Receipt {
           show_address: show_address ?? this.show_address,
           show_email: show_email ?? this.show_email,
           receipt_email: receipt_email ?? this.receipt_email,
-          hide_dining_method_table_no: hide_dining_method_table_no ?? this.hide_dining_method_table_no,
           show_break_down_price: show_break_down_price ?? this.show_break_down_price,
           footer_image: footer_image ?? this.footer_image,
           footer_image_status: footer_image_status ?? this.footer_image_status,
@@ -224,7 +218,6 @@ class Receipt {
     show_address: json[ReceiptFields.show_address] as int?,
     show_email: json[ReceiptFields.show_email] as int?,
     receipt_email: json[ReceiptFields.receipt_email] as String?,
-    hide_dining_method_table_no: json[ReceiptFields.hide_dining_method_table_no] as int?,
     show_break_down_price: json[ReceiptFields.show_break_down_price] as int?,
     footer_image: json[ReceiptFields.footer_image] as String?,
     footer_image_status: json[ReceiptFields.footer_image_status] as int?,
@@ -259,7 +252,6 @@ class Receipt {
     ReceiptFields.show_address: show_address,
     ReceiptFields.show_email: show_email,
     ReceiptFields.receipt_email: receipt_email,
-    ReceiptFields.hide_dining_method_table_no: hide_dining_method_table_no,
     ReceiptFields.show_break_down_price: show_break_down_price,
     ReceiptFields.footer_image: footer_image,
     ReceiptFields.footer_image_status: footer_image_status,

@@ -40,7 +40,7 @@ class _OrderSettingState extends State<OrderSetting> {
   Receipt? receiptObject;
   bool printCheckList = false, enableNumbering = false, printReceipt = false, hasQrAccess = true, printCancelReceipt = true,
       directPayment = false, qrOrderAutoAccept = false, cashDrawer = false, secondDisplay = false, invalidAfterPayment = true,
-      settlementAfterAllOrderPaid = false;
+      settlementAfterAllOrderPaid = false, hideDiningMethodTableNo = false;
   int startingNumber = 0, compareStartingNumber = 0;
   final List<String> tableModeOption = [
     'table_mode_no_table',
@@ -89,6 +89,11 @@ class _OrderSettingState extends State<OrderSetting> {
         break;
         case 'settlement_after_all_order_paid':{
           await updateSettlementAfterAllOrderPaidAppSetting();
+          controller.refresh(streamController);
+        }
+        break;
+        case 'hide_dining_method_table_no':{
+          await updateHideDiningMethodTableNoAppSetting();
           controller.refresh(streamController);
         }
         break;
@@ -172,6 +177,12 @@ class _OrderSettingState extends State<OrderSetting> {
         this.settlementAfterAllOrderPaid = true;
       } else {
         this.settlementAfterAllOrderPaid = false;
+      }
+
+      if(appSetting.hide_dining_method_table_no == 1){
+        this.hideDiningMethodTableNo = true;
+      } else {
+        this.hideDiningMethodTableNo = false;
       }
     }
   }
@@ -570,13 +581,26 @@ class _OrderSettingState extends State<OrderSetting> {
                                 openAdjustHourDialog(appSettingModel);
                               } : null
                           ),
-                          // Divider(
-                          //   color: Colors.grey,
-                          //   height: 1,
-                          //   thickness: 1,
-                          //   indent: 20,
-                          //   endIndent: 20,
-                          // ),
+                          Divider(
+                            color: Colors.grey,
+                            height: 1,
+                            thickness: 1,
+                            indent: 20,
+                            endIndent: 20,
+                          ),
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('hide_dining_method_table_no')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('hide_dining_method_table_no')),
+                            trailing: Switch(
+                              value: hideDiningMethodTableNo,
+                              activeColor: color.backgroundColor,
+                              onChanged: (value) {
+                                hideDiningMethodTableNo = value;
+                                appSettingModel.setSettlementAfterAllOrderPaidStatus(hideDiningMethodTableNo);
+                                actionController.sink.add("hide_dining_method_table_no");
+                              },
+                            ),
+                          ),
                           // ListTile(
                           //   title: Text(AppLocalizations.of(context)!.translate('settlement_after_all_order_paid')),
                           //   subtitle: Text(AppLocalizations.of(context)!.translate('settlement_after_all_order_paid_desc')),
@@ -699,6 +723,17 @@ class _OrderSettingState extends State<OrderSetting> {
         updated_at: dateTime
     );
     await PosDatabase.instance.updateSettlementAfterAllOrderPaidSetting(object);
+  }
+
+  updateHideDiningMethodTableNoAppSetting() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    AppSetting object = AppSetting(
+        hide_dining_method_table_no: this.hideDiningMethodTableNo == true ? 1 : 0,
+        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
+        updated_at: dateTime
+    );
+    await PosDatabase.instance.updateHideDiningMethodTableNoSetting(object);
   }
 
   Future<bool> anyTableUse() async {

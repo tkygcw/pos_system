@@ -159,7 +159,6 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     receipt.promotion_detail_status == 1 ? this.promoDetail = true : this.promoDetail = false;
     receipt.show_address == 1 ? showAddress = true : showAddress = false;
     receipt.show_email == 1 ? this.showEmail = true : this.showEmail = false;
-    receipt.hide_dining_method_table_no == 1 ? this.hideDiningMethodTableNo = true : this.hideDiningMethodTableNo = false;
     receipt.show_break_down_price == 1 ? this.showBreakDownPrice = true : this.showBreakDownPrice = false;
     headerText = receipt.header_text!;
     secondHeaderText = receipt.second_header_text!;
@@ -290,7 +289,6 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       show_address: showAddress == true ? 1 : 0,
       show_email: showEmail == true ? 1 : 0,
       receipt_email: emailTextController.text,
-      hide_dining_method_table_no: hideDiningMethodTableNo == true ? 1 : 0,
       show_product_sku: showSKU ? 1 : 0,
       show_branch_tel: showBranchTel ? 1 : 0,
       show_register_no: showBranchRegisterNo ? 1 : 0
@@ -553,7 +551,6 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       footer_image_status: footerImage == true ? 1 : 0,
       promotion_detail_status: promoDetail == true ? 1 : 0,
       show_break_down_price: showBreakDownPrice == true ? 1 : 0,
-      hide_dining_method_table_no: hideDiningMethodTableNo == true ? 1 : 0,
       show_address: showAddress == true ? 1 : 0,
       show_email: showEmail == true ? 1 : 0,
       receipt_email: emailTextController.text,
@@ -1329,23 +1326,6 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       ),
                     );
                   }),
-            ),
-            Row(
-              children: [
-                Container(
-                  alignment: Alignment.topLeft,
-                  child: Text(AppLocalizations.of(context)!.translate('hide_dining_method_table_no'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                ),
-                Spacer(),
-                Switch(
-                    value: hideDiningMethodTableNo,
-                    activeColor: color.backgroundColor,
-                    onChanged: (bool value){
-                      setState(() {
-                        hideDiningMethodTableNo = value;
-                      });
-                    })
-              ],
             ),
             Row(
               children: [
@@ -2164,23 +2144,6 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
-                  child: Text(AppLocalizations.of(context)!.translate('hide_dining_method_table_no'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                ),
-                Spacer(),
-                Switch(
-                    value: hideDiningMethodTableNo,
-                    activeColor: color.backgroundColor,
-                    onChanged: (bool value){
-                      setState(() {
-                        hideDiningMethodTableNo = value;
-                      });
-                    })
-              ],
-            ),
-            Row(
-              children: [
-                Container(
-                  alignment: Alignment.topLeft,
                   child: Text(AppLocalizations.of(context)!.translate('show_break_down_price'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
@@ -2657,23 +2620,6 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 ),
               );
             }),
-      ),
-      Row(
-        children: [
-          Container(
-            alignment: Alignment.topLeft,
-            child: Text(AppLocalizations.of(context)!.translate('hide_dining_method_table_no'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-          ),
-          Spacer(),
-          Switch(
-              value: hideDiningMethodTableNo,
-              activeColor: color.backgroundColor,
-              onChanged: (bool value){
-                setState(() {
-                  hideDiningMethodTableNo = value;
-                });
-              })
-        ],
       ),
       Row(
         children: [
@@ -3168,23 +3114,6 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 ),
               );
             }),
-      ),
-      Row(
-        children: [
-          Container(
-            alignment: Alignment.topLeft,
-            child: Text(AppLocalizations.of(context)!.translate('hide_dining_method_table_no'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-          ),
-          Spacer(),
-          Switch(
-              value: hideDiningMethodTableNo,
-              activeColor: color.backgroundColor,
-              onChanged: (bool value){
-                setState(() {
-                  hideDiningMethodTableNo = value;
-                });
-              })
-        ],
       ),
       Row(
         children: [
