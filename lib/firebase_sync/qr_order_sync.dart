@@ -198,7 +198,7 @@ class FirestoreQROrderSync {
           qr_order_table_id: data['table_id'] ?? '',
           payment_status: 0,
           accepted: 1,
-          sync_status: 1,
+          sync_status: 0,
           created_at: data['created_at'],
           updated_at: '',
           soft_delete: ''
@@ -250,7 +250,7 @@ class FirestoreQROrderSync {
           unit: 'each',
           per_quantity_unit: '',
           product_sku: data['product_sku'] ?? '',
-          sync_status: 1,
+          sync_status: 0,
           created_at: data['created_at']!,
           updated_at: '',
           soft_delete: '',
@@ -283,7 +283,7 @@ class FirestoreQROrderSync {
           mod_name: data['name']!,
           mod_price: data['price']!,
           mod_group_id: data['mod_group_id']!,
-          sync_status: 1,
+          sync_status: 0,
           created_at: data['created_at'],
           updated_at: '',
           soft_delete: ''
