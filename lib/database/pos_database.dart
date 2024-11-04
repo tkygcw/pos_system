@@ -7910,6 +7910,28 @@ class PosDatabase {
     return result.map((json) => VariantItem.fromJson(json)).toList();
   }
 
+/*
+  ----------------------Reset sync status query--------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
+/*
+  reset qr order data
+*/
+  Future<void> resetQrOrderCacheSyncStatus() async {
+    final db = await instance.database;
+    await db.rawUpdate('UPDATE $tableOrderCache SET sync_status = ? WHERE qr_order = ? ', [0, 1]);
+    final result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE qr_order = ? AND soft_delete = ?', [1, '']);
+    List<OrderCache> orderCacheData = result.map((json) => OrderCache.fromJson(json)).toList();
+    for(var orderCache in orderCacheData){
+      await db.rawUpdate('UPDATE $tableOrderDetail SET sync_status = ? WHERE order_cache_sqlite_id = ? ', [0, orderCache.order_cache_sqlite_id]);
+      final result = await db.rawQuery('SELECT * FROM $tableOrderDetail WHERE sync_status = ? AND soft_delete = ?', [0, '']);
+      List<OrderDetail> orderDetailData = result.map((json) => OrderDetail.fromJson(json)).toList();
+      for(var orderDetail in orderDetailData){
+        await db.rawUpdate('UPDATE $tableOrderModifierDetail SET sync_status = ? WHERE order_detail_sqlite_id = ? ', [0, orderDetail.order_detail_sqlite_id]);
+      }
+    }
+  }
+
   // Future<List<Categories>> readAllNotes() async {
   //   final db = await instance.database;
   //   final orderBy = '${UserFields.user_id} ASC';
