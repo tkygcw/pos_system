@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/branch_link_dining_option.dart';
 import 'package:pos_system/object/branch_link_modifier.dart';
@@ -31,6 +32,7 @@ class PosFirestore {
   static final BuildContext context = MyApp.navigatorKey.currentContext!;
   static FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static FirestoreStatus _firestore_status = FirestoreStatus.offline;
+  static PosDatabase _posDatabase = PosDatabase.instance;
   static final tb_table_dynamic = 'tb_table_dynamic';
 
   PosFirestore._init();
@@ -47,7 +49,8 @@ class PosFirestore {
     if(firestore_status == FirestoreStatus.offline){
       return;
     }
-    await firestore.collection(tableBranch!).doc(branch.branch_id.toString()).set(branch.toJson(), SetOptions(merge: true));
+    branch.firestore_db_version = await _posDatabase.dbVersion;
+    await firestore.collection(tableBranch!).doc(branch.branch_id.toString()).set(branch.toFirestoreJson(), SetOptions(merge: true));
   }
 
   insertBranchLinkDining(BranchLinkDining data) async {
@@ -179,10 +182,12 @@ class PosFirestore {
       Map<String, dynamic> jsonMap = {
         PosTableFields.soft_delete: data.soft_delete,
       };
-      final docRef = await firestore.collection(tb_table_dynamic).doc(data.table_id!.toString());
-      batch.update(docRef, jsonMap);
-      batch.commit();
-      status = 1;
+      final docSnapshot = await firestore.collection(tb_table_dynamic).doc(data.table_id!.toString()).get();
+      if(docSnapshot.exists) {
+        batch.update(docSnapshot.reference, jsonMap);
+        batch.commit();
+        status = 1;
+      }
     }catch(e){
       FLog.error(
         className: "pos_firestore",
