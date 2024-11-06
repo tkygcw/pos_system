@@ -63,8 +63,8 @@ class SyncToFirebase {
       } else {
         if(data.firestore_db_version == null){
           syncBranch();
-        } else {
-          PosFirestoreUtils.onUpgrade(data.firestore_db_version!, localDbVersion);
+        } else if(data.firestore_db_version! < localDbVersion) {
+          syncBranch();
         }
       }
     }

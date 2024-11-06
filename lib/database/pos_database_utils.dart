@@ -229,7 +229,8 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.allow_firestore} $integerType DEFAULT 0 ");
           }break;
           case 28: {
-            await dbVersion29Upgrade(db, prefs);
+            ///Temporarily close
+            // await dbVersion29Upgrade(db, prefs);
           }break;
           case 29: {
             await dbVersion30Upgrade(db, prefs);
