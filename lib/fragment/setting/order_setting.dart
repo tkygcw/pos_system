@@ -92,11 +92,6 @@ class _OrderSettingState extends State<OrderSetting> {
           controller.refresh(streamController);
         }
         break;
-        case 'hide_dining_method_table_no':{
-          await updateHideDiningMethodTableNoAppSetting();
-          controller.refresh(streamController);
-        }
-        break;
       }
     });
   }
@@ -177,12 +172,6 @@ class _OrderSettingState extends State<OrderSetting> {
         this.settlementAfterAllOrderPaid = true;
       } else {
         this.settlementAfterAllOrderPaid = false;
-      }
-
-      if(appSetting.hide_dining_method_table_no == 1){
-        this.hideDiningMethodTableNo = true;
-      } else {
-        this.hideDiningMethodTableNo = false;
       }
     }
   }
@@ -723,17 +712,6 @@ class _OrderSettingState extends State<OrderSetting> {
         updated_at: dateTime
     );
     await PosDatabase.instance.updateSettlementAfterAllOrderPaidSetting(object);
-  }
-
-  updateHideDiningMethodTableNoAppSetting() async {
-    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-    String dateTime = dateFormat.format(DateTime.now());
-    AppSetting object = AppSetting(
-        hide_dining_method_table_no: this.hideDiningMethodTableNo == true ? 1 : 0,
-        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
-        updated_at: dateTime
-    );
-    await PosDatabase.instance.updateHideDiningMethodTableNoSetting(object);
   }
 
   Future<bool> anyTableUse() async {

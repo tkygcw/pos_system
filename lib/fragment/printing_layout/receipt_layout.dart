@@ -1154,8 +1154,10 @@ class ReceiptLayout{
       bytes += generator.text('Close at: 31/12/2021 00:00 AM');
       bytes += generator.text('Close by: Waiter');
 
-      bytes += generator.text('Table No: 1');
-      bytes += generator.text('Dine in');
+      if(receipt!.hide_dining_method_table_no == 0){
+        bytes += generator.text('Table No: 1');
+        bytes += generator.text('Dine in');
+      }
 
       bytes += generator.reset();
       /*
@@ -1383,8 +1385,10 @@ class ReceiptLayout{
         bytes += generator.text('31/12/2021 00:00 AM', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Close by:', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Waiter', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('Table No: 1', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('Dine in', styles: PosStyles(align: PosAlign.center));
+        if(receipt!.hide_dining_method_table_no == 0){
+          bytes += generator.text('Table No: 1', styles: PosStyles(align: PosAlign.center));
+          bytes += generator.text('Dine in', styles: PosStyles(align: PosAlign.center));
+        }
         bytes += generator.reset();
         /*
     *

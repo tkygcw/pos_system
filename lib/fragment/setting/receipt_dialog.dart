@@ -160,6 +160,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     receipt.show_address == 1 ? showAddress = true : showAddress = false;
     receipt.show_email == 1 ? this.showEmail = true : this.showEmail = false;
     receipt.show_break_down_price == 1 ? this.showBreakDownPrice = true : this.showBreakDownPrice = false;
+    receipt.hide_dining_method_table_no == 1 ? this.hideDiningMethodTableNo = true : this.hideDiningMethodTableNo = false;
     headerText = receipt.header_text!;
     secondHeaderText = receipt.second_header_text!;
     headerTextController.text = receipt.header_text!;
@@ -280,6 +281,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       footer_image: footerImage == true ? 'branchFooter.jpg' : '',
       header_text_status: logoText == true ? 1 : 0,
       second_header_text_status: secondLogoText == true ? 1 : 0,
+      hide_dining_method_table_no: hideDiningMethodTableNo == true ? 1 : 0,
       footer_text_status: footerText == true ? 1 : 0,
       header_image_status: logoImage == true ? 1 : 0,
       footer_image_status: footerImage == true ? 1 : 0,
@@ -551,6 +553,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       footer_image_status: footerImage == true ? 1 : 0,
       promotion_detail_status: promoDetail == true ? 1 : 0,
       show_break_down_price: showBreakDownPrice == true ? 1 : 0,
+      hide_dining_method_table_no: hideDiningMethodTableNo == true ? 1 : 0,
       show_address: showAddress == true ? 1 : 0,
       show_email: showEmail == true ? 1 : 0,
       receipt_email: emailTextController.text,
@@ -1217,6 +1220,23 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('show_register_no_error'));
                     }
                 )
+              ],
+            ),
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text(AppLocalizations.of(context)!.translate('hide_dining_method_table_no'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Switch(
+                    value: hideDiningMethodTableNo,
+                    activeColor: color.backgroundColor,
+                    onChanged: (bool value){
+                      setState(() {
+                        hideDiningMethodTableNo = value;
+                      });
+                    })
               ],
             ),
             Row(
@@ -2038,6 +2058,23 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
+                  child: Text(AppLocalizations.of(context)!.translate('hide_dining_method_table_no'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Switch(
+                    value: hideDiningMethodTableNo,
+                    activeColor: color.backgroundColor,
+                    onChanged: (bool value){
+                      setState(() {
+                        hideDiningMethodTableNo = value;
+                      });
+                    })
+              ],
+            ),
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
                   child: Text(AppLocalizations.of(context)!.translate('show_address'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
@@ -2512,6 +2549,23 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('show_register_no_error'));
               }
           )
+        ],
+      ),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text(AppLocalizations.of(context)!.translate('hide_dining_method_table_no'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: hideDiningMethodTableNo,
+              activeColor: color.backgroundColor,
+              onChanged: (bool value){
+                setState(() {
+                  hideDiningMethodTableNo = value;
+                });
+              })
         ],
       ),
       Row(
@@ -3007,6 +3061,23 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('show_register_no_error'));
               }
           )
+        ],
+      ),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text(AppLocalizations.of(context)!.translate('hide_dining_method_table_no'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: hideDiningMethodTableNo,
+              activeColor: color.backgroundColor,
+              onChanged: (bool value){
+                setState(() {
+                  hideDiningMethodTableNo = value;
+                });
+              })
         ],
       ),
       Row(

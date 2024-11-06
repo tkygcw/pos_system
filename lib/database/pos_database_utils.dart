@@ -236,7 +236,7 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.second_header_text} $textType DEFAULT '' ");
             await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.second_header_text_status} $integerType DEFAULT 0 ");
             await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.second_header_font_size} $integerType DEFAULT 0 ");
-            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.hide_dining_method_table_no} INTEGER NOT NULL DEFAULT 0");
+            await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.hide_dining_method_table_no} $integerType DEFAULT 0 ");
             await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.use_printer_label_as_title} INTEGER NOT NULL DEFAULT 0");
           }break;
         }
@@ -776,6 +776,7 @@ class PosDatabaseUtils {
           ${ReceiptFields.show_email} $integerType,
           ${ReceiptFields.receipt_email} $textType,
           ${ReceiptFields.show_break_down_price} $integerType,
+          ${ReceiptFields.hide_dining_method_table_no} $integerType,
           ${ReceiptFields.footer_image} $textType,
           ${ReceiptFields.footer_image_status} $integerType,
           ${ReceiptFields.footer_text} $textType,
@@ -873,7 +874,6 @@ class PosDatabaseUtils {
           ${AppSettingFields.starting_number} $integerType,
           ${AppSettingFields.table_order} $integerType,
           ${AppSettingFields.settlement_after_all_order_paid} $integerType,
-          ${AppSettingFields.hide_dining_method_table_no} $integerType,
           ${AppSettingFields.show_product_desc} $integerType,
           ${AppSettingFields.print_cancel_receipt} $integerType,
           ${AppSettingFields.product_sort_by} $integerType,

@@ -15,7 +15,6 @@ class AppSettingFields {
     starting_number,
     table_order,
     settlement_after_all_order_paid,
-    hide_dining_method_table_no,
     show_product_desc,
     print_cancel_receipt,
     product_sort_by,
@@ -40,7 +39,6 @@ class AppSettingFields {
   static String starting_number = 'starting_number';
   static String table_order = 'table_order';
   static String settlement_after_all_order_paid = 'settlement_after_all_order_paid';
-  static String hide_dining_method_table_no = 'hide_dining_method_table_no';
   static String show_product_desc = 'show_product_desc';
   static String print_cancel_receipt = 'print_cancel_receipt';
   static String product_sort_by = 'product_sort_by';
@@ -66,7 +64,6 @@ class AppSetting{
   int? starting_number;
   int? table_order;
   int? settlement_after_all_order_paid;
-  int? hide_dining_method_table_no;
   int? show_product_desc;
   int? print_cancel_receipt;
   int? product_sort_by;
@@ -91,7 +88,6 @@ class AppSetting{
         this.starting_number,
         this.table_order,
         this.settlement_after_all_order_paid,
-        this.hide_dining_method_table_no,
         this.show_product_desc,
         this.print_cancel_receipt,
         this.product_sort_by,
@@ -117,7 +113,6 @@ class AppSetting{
     int? starting_number,
     int? table_order,
     int? settlement_after_all_order_paid,
-    int? hide_dining_method_table_no,
     int? show_product_desc,
     int? print_cancel_receipt,
     int? product_sort_by,
@@ -142,7 +137,6 @@ class AppSetting{
         starting_number: starting_number ?? this.starting_number,
         table_order: table_order ?? this.table_order,
         settlement_after_all_order_paid: settlement_after_all_order_paid ?? this.settlement_after_all_order_paid,
-        hide_dining_method_table_no: hide_dining_method_table_no ?? this.hide_dining_method_table_no,
         show_product_desc: show_product_desc ?? this.show_product_desc,
         print_cancel_receipt: print_cancel_receipt ?? this.print_cancel_receipt,
         product_sort_by: product_sort_by ?? this.product_sort_by,
@@ -168,7 +162,6 @@ class AppSetting{
     starting_number: json[AppSettingFields.starting_number] as int?,
     table_order: json[AppSettingFields.table_order] as int?,
     settlement_after_all_order_paid: json[AppSettingFields.settlement_after_all_order_paid] as int?,
-    hide_dining_method_table_no: json[AppSettingFields.hide_dining_method_table_no] as int?,
     show_product_desc: json[AppSettingFields.show_product_desc] as int?,
     print_cancel_receipt: json[AppSettingFields.print_cancel_receipt] as int?,
     product_sort_by: json[AppSettingFields.product_sort_by] as int?,
@@ -194,7 +187,6 @@ class AppSetting{
     AppSettingFields.starting_number: starting_number,
     AppSettingFields.table_order: table_order,
     AppSettingFields.settlement_after_all_order_paid: settlement_after_all_order_paid,
-    AppSettingFields.hide_dining_method_table_no: hide_dining_method_table_no,
     AppSettingFields.show_product_desc: show_product_desc,
     AppSettingFields.print_cancel_receipt: print_cancel_receipt,
     AppSettingFields.product_sort_by: product_sort_by,

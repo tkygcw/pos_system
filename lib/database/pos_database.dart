@@ -1041,9 +1041,9 @@ class PosDatabase {
     final id = db.rawInsert(
         'INSERT INTO $tableReceipt(soft_delete, updated_at, created_at, sync_status, show_branch_tel, '
         'show_product_sku, second_header_font_size, header_font_size, status, paper_size, promotion_detail_status, '
-        'footer_text_status, footer_text, footer_image_status, footer_image, show_break_down_price, receipt_email, show_email, show_address, '
+        'footer_text_status, footer_text, footer_image_status, footer_image, hide_dining_method_table_no, show_break_down_price, receipt_email, show_email, show_address, '
         'second_header_text_status, second_header_text, header_text_status, header_text, header_image_status, header_image_size, header_image, branch_id, receipt_key, receipt_id, show_register_no) '
-            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.soft_delete,
           data.updated_at,
@@ -1060,6 +1060,7 @@ class PosDatabase {
           data.footer_text,
           data.footer_image_status,
           data.footer_image,
+          data.hide_dining_method_table_no,
           data.show_break_down_price,
           data.receipt_email,
           data.show_email,
@@ -5428,14 +5429,6 @@ class PosDatabase {
   }
 
 /*
-  update hide dining method table no Setting
-*/
-  Future<int> updateHideDiningMethodTableNoSetting(AppSetting data) async {
-    final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableAppSetting SET hide_dining_method_table_no = ?, sync_status = ?, updated_at = ?', [data.hide_dining_method_table_no, 2, data.updated_at]);
-  }
-
-/*
   update show product description  Setting
 */
   Future<int> updateShowProDescSettings(AppSetting data) async {
@@ -5711,7 +5704,7 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableReceipt SET header_image = ?, header_image_size = ?, header_image_status = ?, '
         'header_text = ?, header_text_status = ?, header_font_size = ?, second_header_text = ?, second_header_text_status = ?, second_header_font_size = ?, show_address = ?, '
-        'show_email = ?, receipt_email = ?, show_break_down_price = ?, footer_image = ?, footer_image_status = ?, footer_text = ?, footer_text_status = ?, '
+        'show_email = ?, receipt_email = ?, show_break_down_price = ?, hide_dining_method_table_no = ?, footer_image = ?, footer_image_status = ?, footer_text = ?, footer_text_status = ?, '
         'promotion_detail_status = ?, show_product_sku = ?, show_branch_tel = ?, show_register_no = ?, '
         'sync_status = ?, updated_at = ? WHERE receipt_sqlite_id = ?',
         [
@@ -5728,6 +5721,7 @@ class PosDatabase {
           data.show_email,
           data.receipt_email,
           data.show_break_down_price,
+          data.hide_dining_method_table_no,
           data.footer_image,
           data.footer_image_status,
           data.footer_text,
