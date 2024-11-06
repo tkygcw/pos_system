@@ -64,7 +64,7 @@ class ProductReceiptLayout {
           PosColumn(text: 'Subtotal', width: 5, styles: PosStyles(bold: true)),
           PosColumn(text: ' ', width: 3, styles: PosStyles(bold: true)),
           PosColumn(text: category.category_item_sum.toString(), width: 2, styles: PosStyles(bold: true)),
-          PosColumn(text: Utils.to2Decimal(category.category_net_sales), width: 2, styles: PosStyles(align: PosAlign.right, bold: true)),
+          PosColumn(text: Utils.to2Decimal(category.category_gross_sales), width: 2, styles: PosStyles(align: PosAlign.right, bold: true)),
         ]);
         bytes += generator.hr();
       }
@@ -141,7 +141,7 @@ class ProductReceiptLayout {
           PosColumn(text: 'Subtotal', width: 5, styles: PosStyles(bold: true)),
           PosColumn(text: ' ', width: 3, styles: PosStyles(bold: true)),
           PosColumn(text: category.category_item_sum.toString(), width: 2, styles: PosStyles(bold: true)),
-          PosColumn(text: Utils.to2Decimal(category.category_net_sales), width: 2, styles: PosStyles(bold: true)),
+          PosColumn(text: Utils.to2Decimal(category.category_gross_sales), width: 2, styles: PosStyles(bold: true)),
         ]);
         bytes += generator.hr();
       }
