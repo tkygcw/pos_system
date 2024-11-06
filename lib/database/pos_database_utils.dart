@@ -69,6 +69,7 @@ class PosDatabaseUtils {
   static void onUpgrade (Database db, int oldVersion, int newVersion) async {
     //get pref
     final prefs = await SharedPreferences.getInstance();
+
     if (oldVersion < newVersion) {
       print("new version: $newVersion");
       for (int version = oldVersion; version <= newVersion; version++) {
@@ -228,7 +229,11 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.allow_firestore} $integerType DEFAULT 0 ");
           }break;
           case 28: {
-            await dbVersion29Upgrade(db, prefs);
+            ///Temporarily close
+            // await dbVersion29Upgrade(db, prefs);
+          }break;
+          case 29: {
+            await dbVersion30Upgrade(db, prefs);
           }break;
           case 29: {
             await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.logo} $textType DEFAULT ''");
@@ -649,7 +654,10 @@ class PosDatabaseUtils {
            ${BranchFields.working_time} $textType,
            ${BranchFields.close_qr_order} $integerType,
            ${BranchFields.register_no} $textType,
-           ${BranchFields.allow_firestore} $integerType)''');
+           ${BranchFields.allow_firestore} $integerType,
+           ${BranchFields.qr_show_sku} $integerType,
+           ${BranchFields.qr_product_sequence} $integerType,
+           ${BranchFields.show_qr_history} $textType)''');
 
 /*
     create app color table
@@ -1069,6 +1077,15 @@ class PosDatabaseUtils {
           ${CurrentVersionFields.created_at} $textType,
           ${CurrentVersionFields.updated_at} $textType,
           ${CurrentVersionFields.soft_delete} $textType)''');
+  }
+
+  static dbVersion30Upgrade(Database db, SharedPreferences prefs) async {
+    await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.qr_show_sku} $integerType DEFAULT 1");
+    await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.qr_product_sequence} $integerType DEFAULT 0");
+    await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.show_qr_history} $textType DEFAULT '0' ");
+    final branchResult = await db.rawQuery('SELECT * FROM $tableBranch LIMIT 1');
+    Branch branchData = Branch.fromJson(branchResult.first);
+    await prefs.setString("branch", json.encode(branchData));
   }
 
   static dbVersion29Upgrade(Database db, SharedPreferences prefs) async {

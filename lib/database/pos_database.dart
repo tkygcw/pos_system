@@ -70,6 +70,15 @@ class PosDatabase {
     return _database!;
   }
 
+  Future<int> get dbVersion async {
+    if (_database != null){
+      return await _database!.getVersion();
+    } else {
+      _database = await _initDB('pos.db');
+      return await _database!.getVersion();
+    }
+  }
+
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
@@ -5282,8 +5291,9 @@ class PosDatabase {
 */
   Future<int> updateBranch(Branch data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableBranch SET name = ?, logo = ?, address = ?, phone = ?, email = ?, '
-        'qr_order_status = ?, sub_pos_status = ?, attendance_status = ?, register_no = ?, allow_firestore = ? '
+    return await db.rawUpdate('UPDATE $tableBranch SET name = ?, logo = ?,  address = ?, phone = ?, email = ?, '
+        'qr_order_status = ?, sub_pos_status = ?, attendance_status = ?, register_no = ?, allow_firestore = ?, '
+        'qr_show_sku = ?, qr_product_sequence = ?, show_qr_history = ? '
         'WHERE branch_id = ? ',
         [
           data.name,
@@ -5296,6 +5306,9 @@ class PosDatabase {
           data.attendance_status,
           data.register_no,
           data.allow_firestore,
+          data.qr_show_sku,
+          data.qr_product_sequence,
+          data.show_qr_history,
           data.branch_id,
         ]);
   }
