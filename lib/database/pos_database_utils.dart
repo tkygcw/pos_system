@@ -238,6 +238,9 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.second_header_font_size} $integerType DEFAULT 0 ");
             await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.hide_dining_method_table_no} INTEGER NOT NULL DEFAULT 0");
           }break;
+          case 30: {
+            await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.use_printer_label_as_title} INTEGER NOT NULL DEFAULT 0");
+          }break;
         }
       }
     }
@@ -872,6 +875,7 @@ class PosDatabaseUtils {
           ${AppSettingFields.starting_number} $integerType,
           ${AppSettingFields.table_order} $integerType,
           ${AppSettingFields.settlement_after_all_order_paid} $integerType,
+          ${AppSettingFields.hide_dining_method_table_no} $integerType,
           ${AppSettingFields.show_product_desc} $integerType,
           ${AppSettingFields.print_cancel_receipt} $integerType,
           ${AppSettingFields.product_sort_by} $integerType,
@@ -1004,6 +1008,7 @@ class PosDatabaseUtils {
           ${KitchenListFields.product_name_font_size} $integerType,
           ${KitchenListFields.other_font_size} $integerType,
           ${KitchenListFields.paper_size} $textType,
+          ${KitchenListFields.use_printer_label_as_title} $integerType,
           ${KitchenListFields.kitchen_list_show_price} $integerType,
           ${KitchenListFields.print_combine_kitchen_list} $integerType,
           ${KitchenListFields.kitchen_list_item_separator} $integerType,

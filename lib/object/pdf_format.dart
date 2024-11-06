@@ -1465,7 +1465,7 @@ class ReportFormat {
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].payment_method}', style: pw.TextStyle(font: getFontFormat(valueList[j].payment_method))),
+                            child: pw.Text('${valueList[j].payment_method ?? ''}', style: pw.TextStyle(font: getFontFormat(valueList[j].payment_method))),
                           ),
                         ]
                     ),

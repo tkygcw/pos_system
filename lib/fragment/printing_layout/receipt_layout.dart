@@ -712,7 +712,7 @@ class ReceiptLayout{
     }
     List<int> bytes = [];
     try {
-      bytes += generator.text('** Kitchen list **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
+      bytes += generator.text(kitchen_list.use_printer_label_as_title == 0 ? '** Kitchen list **' : '(PRINTER LABEL)', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       bytes += generator.text('Dine In', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
@@ -869,7 +869,7 @@ class ReceiptLayout{
     List<int> bytes = [];
     try {
       bytes += generator.reset();
-      bytes += generator.text('** Kitchen list **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
+      bytes += generator.text(kitchen_list.use_printer_label_as_title == 0 ? '** Kitchen list **' : '(PRINTER LABEL)', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       //other order detail
