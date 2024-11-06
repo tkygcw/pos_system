@@ -234,8 +234,6 @@ class PosDatabaseUtils {
           }break;
           case 29: {
             await dbVersion30Upgrade(db, prefs);
-          }break;
-          case 29: {
             await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.logo} $textType DEFAULT ''");
             await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.header_image_size} $integerType DEFAULT 0 ");
             await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.second_header_text} $textType DEFAULT '' ");
