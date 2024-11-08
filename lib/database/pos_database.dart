@@ -2991,7 +2991,7 @@ class PosDatabase {
 */
   Future<List<OrderCache>> readAllNotDineInOrderCache() async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE table_use_sqlite_id = ? AND created_at != ? ORDER BY order_cache_sqlite_id DESC LIMIT 1', ['', '']);
+    final result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE table_use_sqlite_id = ? AND order_queue != ? AND created_at != ? ORDER BY order_cache_sqlite_id DESC LIMIT 1', ['', '', '']);
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
 
