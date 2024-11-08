@@ -526,6 +526,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
           first_cache_batch: orderCache.batch_id,
           first_cache_order_by: orderCache.order_by,
           first_cache_created_date_time: orderCache.created_at,
+          first_cache_other_order_key: orderCache.other_order_key,
           allow_ticket: orderDetailList[i].allow_ticket,
           ticket_count: orderDetailList[i].ticket_count,
           ticket_exp: orderDetailList[i].ticket_exp,

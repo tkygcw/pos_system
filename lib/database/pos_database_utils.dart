@@ -242,6 +242,9 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.hide_dining_method_table_no} $integerType DEFAULT 0 ");
             await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.use_printer_label_as_title} INTEGER NOT NULL DEFAULT 0");
           }break;
+          case 30: {
+            await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.other_order_key} $textType DEFAULT ''");
+          }
         }
       }
     }

@@ -68,8 +68,10 @@ class CartModel extends ChangeNotifier {
 
     if (data.any((item) => item.name == 'Dine in')) {
       selectedOption = 'Dine in';
+      selectedOptionId = data.firstWhere((element) => element.name == 'Dine in').dining_id.toString();
     } else {
       selectedOption = "Take Away";
+      selectedOptionId = data.firstWhere((element) => element.name == 'Take Away').dining_id.toString();
     }
   }
 
