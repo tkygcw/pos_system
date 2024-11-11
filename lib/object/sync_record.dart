@@ -503,6 +503,9 @@ class SyncRecord {
     Branch branchData = Branch.fromJson(data[0]);
     final prefs = await SharedPreferences.getInstance();
     try{
+      if(branchData.logo != ''){
+        await downloadBranchLogo(imageName: branchData.logo!);
+      }
       int data = await PosDatabase.instance.updateBranch(branchData);
       Branch? branch = await PosDatabase.instance.readSpecificBranch(branchData.branch_id!);
       await prefs.setString('branch', json.encode(branch!));
@@ -522,6 +525,36 @@ class SyncRecord {
       isComplete = true;
     }
     return isComplete;
+  }
+
+  downloadBranchLogo({required String imageName}) async {
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final String? user = prefs.getString('user');
+      final path;
+
+      if(prefs.getString('logo_path') == null) {
+        final directory = await _localPath;
+        path = '$directory/assets/logo';
+        final pathImg = Directory(path);
+        await prefs.setString('logo_path', path);
+
+        if (!(await pathImg.exists())) {
+          await pathImg.create(recursive: true);
+        }
+      } else {
+        path = prefs.getString('logo_path')!;
+      }
+
+      Map userObject = json.decode(user!);
+      String url = '${Domain.backend_domain}api/logo/' + userObject['company_id'] + '/' + imageName;
+      final response = await http.get(Uri.parse(url));
+      var localPath = path + '/' + imageName;
+      final imageFile = File(localPath);
+      await imageFile.writeAsBytes(response.bodyBytes);
+        }catch(e){
+      print("download branch logo error: $e");
+    }
   }
 
   callBranchLinkPromotionQuery({data, method}) async {

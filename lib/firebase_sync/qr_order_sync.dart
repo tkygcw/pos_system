@@ -137,12 +137,13 @@ class FirestoreQROrderSync {
             throw Exception("insertLocalOrderDetail error: order_cache_key: ${localOrderCache.order_cache_key}, order_detail_key: ${docSnapshot.id}");
           }
         }
-        QrOrder.instance.getAllNotAcceptedQrOrder();
         print("auto accept status: ${AppSettingModel.instance.qr_order_auto_accept}");
         if(AppSettingModel.instance.qr_order_auto_accept == true){
+          await QrOrder.instance.getAllNotAcceptedQrOrder(notify: false);
           asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
           return;
         }
+        await QrOrder.instance.getAllNotAcceptedQrOrder();
         ShowQRToast.showToast();
       } else {
         throw Exception("order detail collection is empty: order_cache_key: ${localOrderCache.order_cache_key}");
@@ -455,6 +456,34 @@ class FirestoreQROrderSync {
       FLog.error(
         className: "firebase_sync/qr_order_sync",
         text: "updateOrderCacheTotalAmount error",
+        exception: "Error: $e, order_cache_key: ${orderCache.order_cache_key}",
+      );
+      status = 0;
+    }
+    return status;
+  }
+
+  Future<int> updateOrderCachePaymentStatus(OrderCache orderCache) async {
+    int status = 0;
+    try{
+      if(firestore_status == FirestoreStatus.offline){
+        return 0;
+      }
+      final batch = firestore.batch();
+      Map<String, dynamic> jsonMap = {
+        OrderCacheFields.updated_at: orderCache.updated_at,
+        OrderCacheFields.payment_status: orderCache.payment_status,
+      };
+      final docSnapshot = await firestore.collection(_tb_qr_order_cache).doc(orderCache.order_cache_key).get();
+      if(docSnapshot.exists){
+        batch.update(docSnapshot.reference, jsonMap);
+        batch.commit();
+        status = 1;
+      }
+    }catch(e){
+      FLog.error(
+        className: "firebase_sync/qr_order_sync",
+        text: "updateOrderCachePaymentStatus error",
         exception: "Error: $e, order_cache_key: ${orderCache.order_cache_key}",
       );
       status = 0;

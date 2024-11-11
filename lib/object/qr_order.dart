@@ -25,10 +25,12 @@ class QrOrder extends ChangeNotifier {
 
   QrOrder.init();
 
-  getAllNotAcceptedQrOrder() async {
+  getAllNotAcceptedQrOrder({bool? notify = true}) async {
     List<OrderCache> data = await PosDatabase.instance.readNotAcceptedQROrderCache();
     qrOrderCacheList = data;
-    notifyListeners();
+    if(notify == true){
+      notifyListeners();
+    }
   }
 
   void removeSpecificQrOrder(int order_cache_sqlite_id){

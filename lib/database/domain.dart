@@ -99,6 +99,27 @@ class Domain {
   }
 
   /**
+   * soft_delete table dynamic qr (one-time qr)
+   * */
+  softDeleteTableDynamicQr(PosTable posTable) async {
+    try {
+      var response = await http.post(Domain.table_dynamic, body: {
+        'one_time_qr_soft_delete': '1',
+        'table_id': posTable.table_id.toString(),
+      }).timeout(Duration(seconds: 30), onTimeout: ()=> throw TimeoutException("Timeout"));
+      return jsonDecode(response.body);
+    } catch (error) {
+      FLog.error(
+        className: "domain",
+        text: "dynamic QR soft_delete failed",
+        exception: "$error",
+      );
+      Fluttertoast.showToast(msg: error.toString());
+      return {'status': '2'};
+    }
+  }
+
+  /**
   * insert table dynamic qr
   * */
   insertTableDynamicQr(PosTable posTable) async {

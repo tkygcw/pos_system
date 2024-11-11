@@ -216,8 +216,10 @@ class CartDialogState extends State<CartDialog> {
                               children: tableList.asMap().map((index, posTable) => MapEntry(index, tableItem(cart, color, index))).values.toList(),
                               onReorder: (int oldIndex, int newIndex) {
                                 if (oldIndex != newIndex) {
-                                  if (tableList[oldIndex].order_key == '') {
+                                  if (tableList[newIndex].order_key == '') {
                                     showSecondDialog(context, color, oldIndex, newIndex, cart);
+                                  } else if(tableList[newIndex].order_key == null) {
+                                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('merge_error_2')}");
                                   } else {
                                     Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
                                   }

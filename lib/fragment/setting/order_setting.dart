@@ -40,7 +40,7 @@ class _OrderSettingState extends State<OrderSetting> {
   Receipt? receiptObject;
   bool printCheckList = false, enableNumbering = false, printReceipt = false, hasQrAccess = true, printCancelReceipt = true,
       directPayment = false, qrOrderAutoAccept = false, cashDrawer = false, secondDisplay = false, invalidAfterPayment = true,
-      settlementAfterAllOrderPaid = false;
+      settlementAfterAllOrderPaid = false, hideDiningMethodTableNo = false;
   int startingNumber = 0, compareStartingNumber = 0;
   final List<String> tableModeOption = [
     'table_mode_no_table',
@@ -570,13 +570,26 @@ class _OrderSettingState extends State<OrderSetting> {
                                 openAdjustHourDialog(appSettingModel);
                               } : null
                           ),
-                          // Divider(
-                          //   color: Colors.grey,
-                          //   height: 1,
-                          //   thickness: 1,
-                          //   indent: 20,
-                          //   endIndent: 20,
-                          // ),
+                          Divider(
+                            color: Colors.grey,
+                            height: 1,
+                            thickness: 1,
+                            indent: 20,
+                            endIndent: 20,
+                          ),
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('hide_dining_method_table_no')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('hide_dining_method_table_no')),
+                            trailing: Switch(
+                              value: hideDiningMethodTableNo,
+                              activeColor: color.backgroundColor,
+                              onChanged: (value) {
+                                hideDiningMethodTableNo = value;
+                                appSettingModel.setSettlementAfterAllOrderPaidStatus(hideDiningMethodTableNo);
+                                actionController.sink.add("hide_dining_method_table_no");
+                              },
+                            ),
+                          ),
                           // ListTile(
                           //   title: Text(AppLocalizations.of(context)!.translate('settlement_after_all_order_paid')),
                           //   subtitle: Text(AppLocalizations.of(context)!.translate('settlement_after_all_order_paid_desc')),

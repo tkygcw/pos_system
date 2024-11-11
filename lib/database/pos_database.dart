@@ -70,10 +70,19 @@ class PosDatabase {
     return _database!;
   }
 
+  Future<int> get dbVersion async {
+    if (_database != null){
+      return await _database!.getVersion();
+    } else {
+      _database = await _initDB('pos.db');
+      return await _database!.getVersion();
+    }
+  }
+
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 29, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
+    return await openDatabase(path, version: 30, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
   }
 
 /*
@@ -1040,10 +1049,10 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableReceipt(soft_delete, updated_at, created_at, sync_status, show_branch_tel, '
-        'show_product_sku, header_font_size, status, paper_size, promotion_detail_status, '
-        'footer_text_status, footer_text, footer_image_status, footer_image, show_break_down_price, receipt_email, show_email, show_address, '
-        'header_text_status, header_text, header_image_status, header_image, branch_id, receipt_key, receipt_id, show_register_no) '
-            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'show_product_sku, second_header_font_size, header_font_size, status, paper_size, promotion_detail_status, '
+        'footer_text_status, footer_text, footer_image_status, footer_image, hide_dining_method_table_no, show_break_down_price, receipt_email, show_email, show_address, '
+        'second_header_text_status, second_header_text, header_text_status, header_text, header_image_status, header_image_size, header_image, branch_id, receipt_key, receipt_id, show_register_no) '
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.soft_delete,
           data.updated_at,
@@ -1051,6 +1060,7 @@ class PosDatabase {
           data.sync_status,
           data.show_branch_tel,
           data.show_product_sku,
+          data.second_header_font_size,
           data.header_font_size,
           data.status,
           data.paper_size,
@@ -1059,13 +1069,17 @@ class PosDatabase {
           data.footer_text,
           data.footer_image_status,
           data.footer_image,
+          data.hide_dining_method_table_no,
           data.show_break_down_price,
           data.receipt_email,
           data.show_email,
           data.show_address,
+          data.second_header_text_status,
+          data.second_header_text,
           data.header_text_status,
           data.header_text,
           data.header_image_status,
+          data.header_image_size,
           data.header_image,
           data.branch_id,
           data.receipt_key,
@@ -1089,6 +1103,33 @@ class PosDatabase {
 */
   Future<CashRecord> insertSqliteCashRecord(CashRecord data) async {
     final db = await instance.database;
+    final id = await db.insert(tableCashRecord!, data.toJson());
+    return data.copy(cash_record_sqlite_id: id);
+  }
+
+/*
+  add cash record cash in cash out opening balance data into local db
+*/
+  Future<CashRecord> insertSqliteCashRecordCashInOutOB(CashRecord data) async {
+    final db = await instance.database;
+
+    final existingRecords = await db.query(
+      tableCashRecord!,
+      where: 'created_at BETWEEN ? AND ?',
+      whereArgs: [
+        DateTime.parse(data.created_at!).subtract(Duration(seconds: 3)).toString(),
+        DateTime.parse(data.created_at!).add(Duration(seconds: 3)).toString()
+      ],
+    );
+
+    print("Existing Records: ${data.created_at}");
+
+    for (var record in existingRecords) {
+      if (record['remark'] == data.remark) {
+        return CashRecord.fromJson(record);
+      }
+    }
+
     final id = await db.insert(tableCashRecord!, data.toJson());
     return data.copy(cash_record_sqlite_id: id);
   }
@@ -1371,9 +1412,9 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableKitchenList(soft_delete, updated_at, created_at, sync_status, show_product_sku, '
-            'kitchen_list_show_total_amount, kitchen_list_item_separator, print_combine_kitchen_list, kitchen_list_show_price, '
+            'kitchen_list_show_total_amount, kitchen_list_item_separator, print_combine_kitchen_list, use_printer_label_as_title, kitchen_list_show_price, '
             'paper_size, other_font_size, product_name_font_size, branch_id, kitchen_list_key, kitchen_list_id) '
-            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           '',
           data.updated_at,
@@ -1383,6 +1424,7 @@ class PosDatabase {
           data.kitchen_list_show_total_amount,
           data.kitchen_list_item_separator,
           data.print_combine_kitchen_list,
+          data.use_printer_label_as_title,
           data.kitchen_list_show_price,
           data.paper_size,
           data.other_font_size,
@@ -2949,7 +2991,7 @@ class PosDatabase {
 */
   Future<List<OrderCache>> readAllNotDineInOrderCache() async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE table_use_sqlite_id = ? AND created_at != ? ORDER BY order_cache_sqlite_id DESC LIMIT 1', ['', '']);
+    final result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE table_use_sqlite_id = ? AND order_queue != ? AND created_at != ? ORDER BY order_cache_sqlite_id DESC LIMIT 1', ['', '', '']);
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
 
@@ -3139,7 +3181,7 @@ class PosDatabase {
 */
   Future<List<PaymentLinkCompany>> readPaymentMethods() async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tablePaymentLinkCompany WHERE soft_delete = ? ', ['']);
+    final result = await db.rawQuery('SELECT * FROM $tablePaymentLinkCompany WHERE soft_delete = ? ORDER BY CAST(payment_type_id AS INTEGER) ASC', ['']);
     return result.map((json) => PaymentLinkCompany.fromJson(json)).toList();
   }
 
@@ -3511,27 +3553,36 @@ class PosDatabase {
 /*
   read all cash record
 */
-  Future<List<CashRecord>> readAllTodayCashRecord(String date1, String date2) async {
+  Future<List<CashRecord>> readAllTodayCashRecord(String date1, String date2, int selectedPayment) async {
     final db = await instance.database;
-    final result = await db.rawQuery(
-        'SELECT a.created_at, a.type, a.user_id, a.amount, a.remark, a.payment_name, b.name AS name, c.name AS payment_method  FROM $tableCashRecord AS a JOIN $tableUser AS b on a.user_id = b.user_id '
-            'LEFT JOIN $tablePaymentLinkCompany AS c on a.payment_type_id = c.payment_type_id '
-            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND (c.soft_delete = ? OR c.soft_delete IS NULL) AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ?',
-        ['', '', '', date1, date2]);
+    String query = 'SELECT a.created_at, a.type, a.user_id, a.amount, a.remark, a.payment_name, b.name AS name, c.name AS payment_method  FROM $tableCashRecord AS a JOIN $tableUser AS b on a.user_id = b.user_id '
+        'LEFT JOIN $tablePaymentLinkCompany AS c on a.payment_type_id = c.payment_type_id '
+        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND '
+        '(c.soft_delete = ? OR c.soft_delete IS NULL) AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ?';
+    List<dynamic> args = ['', '', '', date1, date2];
+    if (selectedPayment != 0) {
+      query += ' AND c.payment_link_company_id = ?';
+      args.add(selectedPayment);
+    }
+    final result = await db.rawQuery(query, args);
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }
 
 /*
   read all cash record with opening balance
 */
-  Future<List<CashRecord>> readAllTodayCashRecordWithOB(String date1, String date2) async {
+  Future<List<CashRecord>> readAllTodayCashRecordWithOB(String date1, String date2, int selectedPayment) async {
     final db = await instance.database;
-    final result = await db.rawQuery(
-        'SELECT a.created_at, a.type, a.user_id, a.amount, a.remark, a.payment_name, b.name AS name, c.name AS payment_method FROM $tableCashRecord AS a JOIN $tableUser AS b on a.user_id = b.user_id '
-            'LEFT JOIN $tablePaymentLinkCompany AS c on a.payment_type_id = c.payment_type_id '
-            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND (c.soft_delete = ? OR c.soft_delete IS NULL) AND a.settlement_key IN (SELECT settlement_key FROM $tableCashRecord WHERE remark = ? AND '
-            'soft_delete = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ?)',
-        ['', '', '', 'Opening Balance', '', date1, date2]);
+    String query ='SELECT a.created_at, a.type, a.user_id, a.amount, a.remark, a.payment_name, b.name AS name, c.name AS payment_method FROM $tableCashRecord AS a JOIN $tableUser AS b on a.user_id = b.user_id '
+        'LEFT JOIN $tablePaymentLinkCompany AS c on a.payment_type_id = c.payment_type_id '
+        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND (c.soft_delete = ? OR c.soft_delete IS NULL) AND a.settlement_key IN (SELECT settlement_key FROM $tableCashRecord WHERE remark = ? AND '
+        'soft_delete = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ?)';
+    List<dynamic> args = ['', '', '', 'Opening Balance', '', date1, date2];
+    if (selectedPayment != 0) {
+      query += ' AND c.payment_link_company_id = ?';
+      args.add(selectedPayment);
+    }
+    final result = await db.rawQuery(query, args);
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }
 
@@ -5240,11 +5291,13 @@ class PosDatabase {
 */
   Future<int> updateBranch(Branch data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableBranch SET name = ?, address = ?, phone = ?, email = ?, '
-        'qr_order_status = ?, sub_pos_status = ?, attendance_status = ?, register_no = ?, allow_firestore = ? '
+    return await db.rawUpdate('UPDATE $tableBranch SET name = ?, logo = ?,  address = ?, phone = ?, email = ?, '
+        'qr_order_status = ?, sub_pos_status = ?, attendance_status = ?, register_no = ?, allow_firestore = ?, '
+        'qr_show_sku = ?, qr_product_sequence = ?, show_qr_history = ? '
         'WHERE branch_id = ? ',
         [
           data.name,
+          data.logo,
           data.address,
           data.phone,
           data.email,
@@ -5253,6 +5306,9 @@ class PosDatabase {
           data.attendance_status,
           data.register_no,
           data.allow_firestore,
+          data.qr_show_sku,
+          data.qr_product_sequence,
+          data.show_qr_history,
           data.branch_id,
         ]);
   }
@@ -5659,21 +5715,26 @@ class PosDatabase {
 */
   Future<int> updateReceiptLayout(Receipt data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableReceipt SET header_image = ?, header_image_status = ?, '
-        'header_text = ?, header_text_status = ?, header_font_size = ?, show_address = ?, show_email = ?, '
-        'receipt_email = ?, show_break_down_price = ?, footer_image = ?, footer_image_status = ?, footer_text = ?, footer_text_status = ?, '
+    return await db.rawUpdate('UPDATE $tableReceipt SET header_image = ?, header_image_size = ?, header_image_status = ?, '
+        'header_text = ?, header_text_status = ?, header_font_size = ?, second_header_text = ?, second_header_text_status = ?, second_header_font_size = ?, show_address = ?, '
+        'show_email = ?, receipt_email = ?, show_break_down_price = ?, hide_dining_method_table_no = ?, footer_image = ?, footer_image_status = ?, footer_text = ?, footer_text_status = ?, '
         'promotion_detail_status = ?, show_product_sku = ?, show_branch_tel = ?, show_register_no = ?, '
         'sync_status = ?, updated_at = ? WHERE receipt_sqlite_id = ?',
         [
           data.header_image,
+          data.header_image_size,
           data.header_image_status,
           data.header_text,
           data.header_text_status,
           data.header_font_size,
+          data.second_header_text,
+          data.second_header_text_status,
+          data.second_header_font_size,
           data.show_address,
           data.show_email,
           data.receipt_email,
           data.show_break_down_price,
+          data.hide_dining_method_table_no,
           data.footer_image,
           data.footer_image_status,
           data.footer_text,
@@ -5730,9 +5791,9 @@ class PosDatabase {
   Future<int> updateKitchenList(KitchenList data) async {
     final db = await instance.database;
     return await db.rawUpdate("UPDATE $tableKitchenList SET updated_at = ?, sync_status = ?, show_product_sku = ?, kitchen_list_show_total_amount = ?, kitchen_list_item_separator = ?, "
-        "print_combine_kitchen_list = ?, kitchen_list_show_price = ?, product_name_font_size = ?, other_font_size = ? WHERE kitchen_list_sqlite_id = ?",
-        [data.updated_at, data.sync_status, data.show_product_sku, data.kitchen_list_show_total_amount, data.kitchen_list_item_separator, data.print_combine_kitchen_list, data.kitchen_list_show_price,
-          data.product_name_font_size, data.other_font_size, data.kitchen_list_sqlite_id]);
+        "print_combine_kitchen_list = ?, use_printer_label_as_title = ?, kitchen_list_show_price = ?, product_name_font_size = ?, other_font_size = ? WHERE kitchen_list_sqlite_id = ?",
+        [data.updated_at, data.sync_status, data.show_product_sku, data.kitchen_list_show_total_amount, data.kitchen_list_item_separator, data.print_combine_kitchen_list,
+          data.use_printer_label_as_title, data.kitchen_list_show_price, data.product_name_font_size, data.other_font_size, data.kitchen_list_sqlite_id]);
   }
 
 /*

@@ -13,7 +13,7 @@ class CombineKitchenListLayout extends ReceiptLayout {
 /*
   combine kitchen layout 80mm
 */
-  printCombinedKitchenList80mm(bool isUSB, int localId, {value, required List<OrderDetail> orderDetailList, bool? isReprint, double? combineListTotal}) async {
+  printCombinedKitchenList80mm(bool isUSB, int localId, {value, required List<OrderDetail> orderDetailList, bool? isReprint, double? combineListTotal, String? printerLabel}) async {
     List<cartProductItem> cartItemList = [];
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
@@ -57,7 +57,7 @@ class CombineKitchenListLayout extends ReceiptLayout {
     List<int> bytes = [];
     try {
       bytes += generator.reset();
-      bytes += generator.text(isReprint != null ? '** Reprint List **' : '** kitchen list **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
+      bytes += generator.text(isReprint != null ? '** Reprint List **' : kitchenListLayout.use_printer_label_as_title == 0 ? '** kitchen list **' : '** $printerLabel **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       //other order detail
@@ -185,7 +185,7 @@ class CombineKitchenListLayout extends ReceiptLayout {
 /*
   combine kitchen layout 58mm
 */
-  printCombinedKitchenList58mm(bool isUSB, int localId, {value, required List<OrderDetail> orderDetailList, bool? isReprint, double? combineListTotal}) async {
+  printCombinedKitchenList58mm(bool isUSB, int localId, {value, required List<OrderDetail> orderDetailList, bool? isReprint, double? combineListTotal, String? printerLabel}) async {
     List<cartProductItem> cartItemList = [];
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
@@ -229,7 +229,7 @@ class CombineKitchenListLayout extends ReceiptLayout {
     List<int> bytes = [];
     try {
       bytes += generator.reset();
-      bytes += generator.text(isReprint != null ? '** Reprint List **' : '** kitchen list **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
+      bytes += generator.text(isReprint != null ? '** Reprint List **' : kitchenListLayout.use_printer_label_as_title == 0 ? '** kitchen list **' : '** $printerLabel **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       //other order detail

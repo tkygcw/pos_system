@@ -569,6 +569,16 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
       setState(() {
         isButtonDisabled = false;
       });
+    } finally {
+      try {
+        File(zipFilePath).deleteSync();
+      } catch (e) {
+        FLog.error(
+          className: "system_log_dialog",
+          text: "Failed to delete the zip file",
+          exception: e,
+        );
+      }
     }
   }
 

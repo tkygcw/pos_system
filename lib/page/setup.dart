@@ -6,6 +6,7 @@ import 'package:f_logs/model/flog/flog.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/firebase_sync/sync_to_firebase.dart';
 import 'package:pos_system/fragment/choose_branch.dart';
@@ -15,6 +16,7 @@ import 'package:pos_system/page/loading.dart';
 import 'package:pos_system/page/login.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import '../database/domain.dart';
 import '../database/pos_database.dart';
 import '../notifier/theme_color.dart';
@@ -266,14 +268,51 @@ class _SetupPageState extends State<SetupPage> {
     if(this.token != null){
       savePref();
       await PosDatabase.instance.insertBranch(selectedBranch!);
+      if(selectedBranch!.logo! != '') {
+        await downloadBranchLogo(imageName: selectedBranch!.logo!);
+      }
       await updateBranchToken();
     } else {
       savePref();
       await PosDatabase.instance.insertBranch(selectedBranch!);
+      if(selectedBranch!.logo! != '') {
+        await downloadBranchLogo(imageName: selectedBranch!.logo!);
+      }
       // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => LoadingPage()));
       showDaysSelectionDialog(context);
     }
     SyncToFirebase.instance.checkBranchInFirestore(selectedBranch!);
+  }
+
+  downloadBranchLogo({required String imageName}) async {
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final String? user = prefs.getString('user');
+      Map userObject = json.decode(user!);
+
+      final directory = await _localPath;
+      final path = '$directory/assets/logo';
+      final pathImg = Directory(path);
+      pathImg.create();
+      await prefs.setString('logo_path', path);
+
+      if (!(await pathImg.exists())) {
+        await pathImg.create();
+      }
+
+      String url = '${Domain.backend_domain}api/logo/' + userObject['company_id'] + '/' + imageName;
+      final response = await http.get(Uri.parse(url));
+      var localPath = path + '/' + imageName;
+      final imageFile = File(localPath);
+      await imageFile.writeAsBytes(response.bodyBytes);
+    }catch(e){
+      print("download branch logo error: $e");
+    }
+  }
+
+  Future<String> get _localPath async {
+    final directory = await getApplicationSupportDirectory();
+    return directory.path;
   }
 
   savePref() async {

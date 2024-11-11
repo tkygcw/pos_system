@@ -7,14 +7,19 @@ class ReceiptFields {
     receipt_key,
     branch_id,
     header_image,
+    header_image_size,
     header_image_status,
     header_text,
     header_text_status,
     header_font_size,
+    second_header_text,
+    second_header_text_status,
+    second_header_font_size,
     show_address,
     show_email,
     receipt_email,
     show_break_down_price,
+    hide_dining_method_table_no,
     footer_image,
     footer_image_status,
     footer_text,
@@ -36,14 +41,19 @@ class ReceiptFields {
   static String receipt_key = 'receipt_key';
   static String branch_id = 'branch_id';
   static String header_image = 'header_image';
+  static String header_image_size = 'header_image_size';
   static String header_image_status = 'header_image_status';
   static String header_text = 'header_text';
   static String header_text_status = 'header_text_status';
   static String header_font_size = 'header_font_size';
+  static String second_header_text = 'second_header_text';
+  static String second_header_text_status = 'second_header_text_status';
+  static String second_header_font_size = 'second_header_font_size';
   static String show_address = 'show_address';
   static String show_email = 'show_email';
   static String receipt_email = 'receipt_email';
   static String show_break_down_price = 'show_break_down_price';
+  static String hide_dining_method_table_no = 'hide_dining_method_table_no';
   static String footer_image = 'footer_image';
   static String footer_image_status = 'footer_image_status';
   static String footer_text = 'footer_text';
@@ -67,14 +77,19 @@ class Receipt {
   String? receipt_key;
   String? branch_id;
   String? header_image;
+  int? header_image_size;
   int? header_image_status;
   String? header_text;
   int? header_text_status;
   int? header_font_size;
+  String? second_header_text;
+  int? second_header_text_status;
+  int? second_header_font_size;
   int? show_address;
   int? show_email;
   String? receipt_email;
   int? show_break_down_price;
+  int? hide_dining_method_table_no;
   String? footer_image;
   int? footer_image_status;
   String? footer_text;
@@ -96,14 +111,19 @@ class Receipt {
         this.receipt_key,
         this.branch_id,
         this.header_image,
+        this.header_image_size,
         this.header_image_status,
         this.header_text,
         this.header_text_status,
         this.header_font_size,
+        this.second_header_text,
+        this.second_header_text_status,
+        this.second_header_font_size,
         this.show_address,
         this.show_email,
         this.receipt_email,
         this.show_break_down_price,
+        this.hide_dining_method_table_no,
         this.footer_image,
         this.footer_image_status,
         this.footer_text,
@@ -125,14 +145,19 @@ class Receipt {
     String? receipt_key,
     String? branch_id,
     String? header_image,
+    int? header_image_size,
     int? header_image_status,
     String? header_text,
     int? header_text_status,
     int? header_font_size,
+    String? second_header_text,
+    int? second_header_text_status,
+    int? second_header_font_size,
     int? show_address,
     int? show_email,
     String? receipt_email,
     int? show_break_down_price,
+    int? hide_dining_method_table_no,
     String? footer_image,
     int? footer_image_status,
     String? footer_text,
@@ -154,14 +179,19 @@ class Receipt {
           receipt_key: receipt_key ?? this.receipt_key,
           branch_id: branch_id ?? this.branch_id,
           header_image: header_image ?? this.header_image,
+          header_image_size: header_image_size ?? this.header_image_size,
           header_image_status: header_image_status ?? this.header_image_status,
           header_text: header_text ?? this.header_text,
           header_text_status: header_text_status ?? this.header_text_status,
           header_font_size: header_font_size ?? this.header_font_size,
+          second_header_text: second_header_text ?? this.second_header_text,
+          second_header_text_status: second_header_text_status ?? this.second_header_text_status,
+          second_header_font_size: second_header_font_size ?? this.second_header_font_size,
           show_address: show_address ?? this.show_address,
           show_email: show_email ?? this.show_email,
           receipt_email: receipt_email ?? this.receipt_email,
           show_break_down_price: show_break_down_price ?? this.show_break_down_price,
+          hide_dining_method_table_no: hide_dining_method_table_no ?? this.hide_dining_method_table_no,
           footer_image: footer_image ?? this.footer_image,
           footer_image_status: footer_image_status ?? this.footer_image_status,
           footer_text: footer_text ?? this.footer_text,
@@ -183,14 +213,19 @@ class Receipt {
     receipt_key: json[ReceiptFields.receipt_key] as String?,
     branch_id: json[ReceiptFields.branch_id] as String?,
     header_image: json[ReceiptFields.header_image] as String?,
+    header_image_size: json[ReceiptFields.header_image_size] as int?,
     header_image_status: json[ReceiptFields.header_image_status] as int?,
     header_text: json[ReceiptFields.header_text] as String?,
     header_text_status: json[ReceiptFields.header_text_status] as int?,
     header_font_size: json[ReceiptFields.header_font_size] as int?,
+    second_header_text: json[ReceiptFields.second_header_text] as String?,
+    second_header_text_status: json[ReceiptFields.second_header_text_status] as int?,
+    second_header_font_size: json[ReceiptFields.second_header_font_size] as int?,
     show_address: json[ReceiptFields.show_address] as int?,
     show_email: json[ReceiptFields.show_email] as int?,
     receipt_email: json[ReceiptFields.receipt_email] as String?,
     show_break_down_price: json[ReceiptFields.show_break_down_price] as int?,
+    hide_dining_method_table_no: json[ReceiptFields.hide_dining_method_table_no] as int?,
     footer_image: json[ReceiptFields.footer_image] as String?,
     footer_image_status: json[ReceiptFields.footer_image_status] as int?,
     footer_text: json[ReceiptFields.footer_text] as String?,
@@ -213,14 +248,19 @@ class Receipt {
     ReceiptFields.receipt_key: receipt_key,
     ReceiptFields.branch_id: branch_id,
     ReceiptFields.header_image: header_image,
+    ReceiptFields.header_image_size: header_image_size,
     ReceiptFields.header_image_status: header_image_status,
     ReceiptFields.header_text: header_text,
     ReceiptFields.header_text_status: header_text_status,
     ReceiptFields.header_font_size: header_font_size,
+    ReceiptFields.second_header_text: second_header_text,
+    ReceiptFields.second_header_text_status: second_header_text_status,
+    ReceiptFields.second_header_font_size: second_header_font_size,
     ReceiptFields.show_address: show_address,
     ReceiptFields.show_email: show_email,
     ReceiptFields.receipt_email: receipt_email,
     ReceiptFields.show_break_down_price: show_break_down_price,
+    ReceiptFields.hide_dining_method_table_no: hide_dining_method_table_no,
     ReceiptFields.footer_image: footer_image,
     ReceiptFields.footer_image_status: footer_image_status,
     ReceiptFields.footer_text: footer_text,

@@ -5,6 +5,7 @@ class BranchFields {
     branch_id,
     branch_url,
     name,
+    logo,
     address,
     phone,
     email,
@@ -19,12 +20,16 @@ class BranchFields {
     working_time,
     close_qr_order,
     register_no,
-    allow_firestore
+    allow_firestore,
+    qr_show_sku,
+    qr_product_sequence,
+    show_qr_history
   ];
 
   static String branch_id = 'branch_id';
   static String branch_url = 'branch_url';
   static String name = 'name';
+  static String logo = 'logo';
   static String address = 'address';
   static String phone = 'phone';
   static String email = 'email';
@@ -40,12 +45,17 @@ class BranchFields {
   static String close_qr_order = 'close_qr_order';
   static String register_no = 'register_no';
   static String allow_firestore = 'allow_firestore';
+  static String qr_show_sku = 'qr_show_sku';
+  static String qr_product_sequence = 'qr_product_sequence';
+  static String show_qr_history = 'show_qr_history';
+  static String firestore_db_version = 'firestore_db_version';
 }
 
 class Branch {
   int? branch_id;
   String? branch_url;
   String? name;
+  String? logo;
   String? address;
   String? phone;
   String? email;
@@ -61,11 +71,16 @@ class Branch {
   int? close_qr_order;
   String? register_no;
   int? allow_firestore;
+  int? qr_show_sku;
+  int? qr_product_sequence;
+  String? show_qr_history;
+  int? firestore_db_version;
 
   Branch({
     this.branch_id,
     this.branch_url,
     this.name,
+    this.logo,
     this.address,
     this.phone,
     this.email,
@@ -80,13 +95,18 @@ class Branch {
     this.working_time,
     this.close_qr_order,
     this.register_no,
-    this.allow_firestore
+    this.allow_firestore,
+    this.qr_show_sku,
+    this.qr_product_sequence,
+    this.show_qr_history,
+    this.firestore_db_version
   });
 
   Branch copy({int? branch_id, String? name}) => Branch(
     branch_id: branch_id ?? this.branch_id,
     branch_url: branch_url ?? this.branch_url,
     name: name ?? this.name,
+    logo: logo ?? this.logo,
     address: address ?? this.address,
     phone: phone ?? this.phone,
     email: email ?? this.email,
@@ -101,7 +121,10 @@ class Branch {
     working_time: working_time ?? this.working_time,
     close_qr_order: close_qr_order ?? this.close_qr_order,
     register_no: register_no ?? this.register_no,
-    allow_firestore: allow_firestore ?? this.allow_firestore
+    allow_firestore: allow_firestore ?? this.allow_firestore,
+    qr_show_sku: qr_show_sku ?? this.qr_show_sku,
+    qr_product_sequence: qr_product_sequence ?? this.qr_product_sequence,
+    show_qr_history: show_qr_history ?? this.show_qr_history
   );
 
   factory Branch.fromJson(Map<String, dynamic> json) {
@@ -109,6 +132,7 @@ class Branch {
       branch_id: json['branch_id'],
       branch_url: json['branch_url'],
       name: json['name'] as String,
+      logo: json['logo'] as String?,
       address: json['address'] as String,
       phone: json['phone'] as String,
       email: json['email'] as String,
@@ -123,11 +147,40 @@ class Branch {
       working_time: json[BranchFields.working_time] as String?,
       close_qr_order: json[BranchFields.close_qr_order] as int?,
       register_no: json[BranchFields.register_no] as String?,
-      allow_firestore: json[BranchFields.allow_firestore] as int?
+      allow_firestore: json[BranchFields.allow_firestore] as int?,
+      qr_show_sku: json[BranchFields.qr_show_sku] as int?,
+      qr_product_sequence: json[BranchFields.qr_product_sequence] as int?,
+      show_qr_history: json[BranchFields.show_qr_history] as String?,
+      firestore_db_version: json[BranchFields.firestore_db_version] as int?
     );
   }
 
   Map<String, Object?> toJson() => {
+    BranchFields.branch_id: branch_id,
+    BranchFields.branch_url: branch_url,
+    BranchFields.name: name,
+    BranchFields.logo: logo,
+    BranchFields.address: address,
+    BranchFields.phone: phone,
+    BranchFields.email: email,
+    BranchFields.ipay_merchant_code: ipay_merchant_code,
+    BranchFields.ipay_merchant_key: ipay_merchant_key,
+    BranchFields.notification_token: notification_token,
+    BranchFields.qr_order_status: qr_order_status,
+    BranchFields.sub_pos_status: sub_pos_status,
+    BranchFields.attendance_status: attendance_status,
+    BranchFields.company_id: company_id,
+    BranchFields.working_day: working_day,
+    BranchFields.working_time: working_time,
+    BranchFields.close_qr_order: close_qr_order,
+    BranchFields.register_no: register_no,
+    BranchFields.allow_firestore: allow_firestore,
+    BranchFields.qr_show_sku: qr_show_sku,
+    BranchFields.qr_product_sequence: qr_product_sequence,
+    BranchFields.show_qr_history: show_qr_history
+  };
+
+  Map<String, Object?> toFirestoreJson() => {
     BranchFields.branch_id: branch_id,
     BranchFields.branch_url: branch_url,
     BranchFields.name: name,
@@ -145,6 +198,10 @@ class Branch {
     BranchFields.working_time: working_time,
     BranchFields.close_qr_order: close_qr_order,
     BranchFields.register_no: register_no,
-    BranchFields.allow_firestore: allow_firestore
+    BranchFields.allow_firestore: allow_firestore,
+    BranchFields.qr_show_sku: qr_show_sku,
+    BranchFields.qr_product_sequence: qr_product_sequence,
+    BranchFields.show_qr_history: show_qr_history,
+    BranchFields.firestore_db_version: firestore_db_version
   };
 }

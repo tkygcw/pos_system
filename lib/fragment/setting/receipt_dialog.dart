@@ -1,16 +1,19 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/branch_link_modifier.dart';
 import 'package:pos_system/object/receipt.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image/image.dart' as img;
 
 import '../../database/domain.dart';
 import '../../enumClass/receipt_dialog_enum.dart';
@@ -34,36 +37,39 @@ class ReceiptDialog extends StatefulWidget {
 class _ReceiptDialogState extends State<ReceiptDialog> {
   List<Printer> printerList = [];
   final headerTextController = TextEditingController();
+  final secondHeaderTextController = TextEditingController();
   final emailTextController = TextEditingController();
   final footerTextController = TextEditingController();
   File? headerImage;
   File? footerImg;
   String? headerDir;
   String? footerDir;
-  String headerText = '';
+  String headerText = '', secondHeaderText = '';
   String footerTextString = '';
-  ReceiptDialogEnum? headerFontSize;
+  ReceiptDialogEnum? headerFontSize, secondHeaderFontSize, headerImageSize;
   String? emailAddress;
   bool isLoad = false, isButtonDisabled = false;
   bool _isUpdate = false;
   bool logoImage = false;
   bool footerImage = false;
-  bool logoText = false;
+  bool logoText = false, secondLogoText = false;
   bool footerText = false;
   bool showAddress = true;
-  bool showEmail = true, showBreakDownPrice = false;
+  bool showEmail = true, showBreakDownPrice = false, hideDiningMethodTableNo = false;
   bool showTaxDetail = true;
   bool promoDetail = true;
   bool _submitted = false;
   bool isLogOut = false;
   bool showSKU = false;
   bool showBranchTel = true;
+  bool branchLogoExist = false;
   bool showBranchRegisterNo = false;
   Map? branchObject;
-  double? fontSize;
+  double? fontSize, secondFontSize, logoSize;
   Receipt? testReceipt;
   Receipt receipt = Receipt();
   String receiptView = "80";
+  Uint8List? _imageData;
 
   @override
   void initState() {
@@ -83,6 +89,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     // TODO: implement dispose
     super.dispose();
     headerTextController.dispose();
+    secondHeaderTextController.dispose();
     emailTextController.dispose();
     footerTextController.dispose();
   }
@@ -90,6 +97,9 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   preload(){
     _isUpdate = true;
     getSharePreferences();
+    if(logoImage){
+      getBranchLogo();
+    }
     getAllPrinter();
   }
 
@@ -140,21 +150,29 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   initialData(Receipt data){
     receipt = data;
     receipt.header_image_status == 1 ? this.logoImage = true  : this.logoImage = false;
+    receipt.header_image_size == 0 ? headerImageSize = ReceiptDialogEnum.small : (receipt.header_image_size == 1 ? headerImageSize = ReceiptDialogEnum.medium : headerImageSize = ReceiptDialogEnum.big);
+    logoSize = receipt.header_image_size == 0 ? 60 : receipt.header_image_size == 1 ? 100 : 140;
     receipt.footer_image_status == 1 ? this.footerImage = true  : this.footerImage = false;
     receipt.header_text_status == 1 ? this.logoText = true : this.logoText = false;
+    receipt.second_header_text_status == 1 ? this.secondLogoText = true : this.secondLogoText = false;
     receipt.footer_text_status == 1 ? this.footerText = true : this.footerText = false;
     receipt.promotion_detail_status == 1 ? this.promoDetail = true : this.promoDetail = false;
     receipt.show_address == 1 ? showAddress = true : showAddress = false;
     receipt.show_email == 1 ? this.showEmail = true : this.showEmail = false;
     receipt.show_break_down_price == 1 ? this.showBreakDownPrice = true : this.showBreakDownPrice = false;
+    receipt.hide_dining_method_table_no == 1 ? this.hideDiningMethodTableNo = true : this.hideDiningMethodTableNo = false;
     headerText = receipt.header_text!;
+    secondHeaderText = receipt.second_header_text!;
     headerTextController.text = receipt.header_text!;
+    secondHeaderTextController.text = receipt.second_header_text!;
     receipt.show_email == 1 ? emailAddress = receipt.receipt_email : '';
     receipt.show_email == 1 ? emailTextController.text = receipt.receipt_email! : '';
     footerTextString = receipt.footer_text!;
     footerTextController.text = receipt.footer_text!;
     receipt.header_font_size == 0 ? headerFontSize = ReceiptDialogEnum.big : headerFontSize = ReceiptDialogEnum.small;
-    receipt.header_font_size == 0 ? fontSize = 30.0 : fontSize = 12.0;
+    receipt.header_font_size == 0 ? fontSize = 30.0 : fontSize = 16.0;
+    receipt.second_header_font_size == 0 ? secondHeaderFontSize = ReceiptDialogEnum.small : (receipt.second_header_font_size == 1 ? secondHeaderFontSize = ReceiptDialogEnum.medium : secondHeaderFontSize = ReceiptDialogEnum.big);
+    secondFontSize = receipt.second_header_font_size == 0 ? 16.0 : receipt.second_header_font_size == 1 ? 22.0 : 30.0;
     receipt.show_product_sku == 0 ? showSKU = false : showSKU = true;
     receipt.show_branch_tel == 0 ? showBranchTel = false : showBranchTel = true;
     receipt.show_register_no == 1 && branchObject![BranchFields.register_no] != '' ?
@@ -171,7 +189,13 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     if(branchObject!['address'] == '' && showAddress){
       showAddress = false;
     }
+    if(branchObject!['logo'] == '' && logoImage){
+      logoImage = false;
+    }
     initialData(widget.receiptObject!);
+    if(logoImage){
+      getBranchLogo();
+    }
     isLoad = true;
   }
 
@@ -182,6 +206,14 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   String? get errorHeaderText {
     final text = headerTextController.value.text;
     if (logoText == true && text.isEmpty) {
+      return 'header_text_required';
+    }
+    return null;
+  }
+
+  String? get errorSecondHeaderText {
+    final text = secondHeaderTextController.value.text;
+    if (secondLogoText == true && text.isEmpty) {
       return 'header_text_required';
     }
     return null;
@@ -242,14 +274,19 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   testReceiptLayout(){
     testReceipt = Receipt(
       header_text: logoText == true ? headerTextController.text : '',
+      second_header_text: secondLogoText == true ? secondHeaderTextController.text : '',
+      header_image_size: headerImageSize == ReceiptDialogEnum.small ? 0 : (headerImageSize == ReceiptDialogEnum.medium ? 1 : 2),
       footer_text: footerText == true ? footerTextController.text : '',
       header_image: logoImage == true ? 'branchLogo.jpg' : '',
       footer_image: footerImage == true ? 'branchFooter.jpg' : '',
       header_text_status: logoText == true ? 1 : 0,
+      second_header_text_status: secondLogoText == true ? 1 : 0,
+      hide_dining_method_table_no: hideDiningMethodTableNo == true ? 1 : 0,
       footer_text_status: footerText == true ? 1 : 0,
       header_image_status: logoImage == true ? 1 : 0,
       footer_image_status: footerImage == true ? 1 : 0,
       header_font_size: headerFontSize == ReceiptDialogEnum.big ? 0 : 1,
+      second_header_font_size: secondHeaderFontSize == ReceiptDialogEnum.small ? 0 : (secondHeaderFontSize == ReceiptDialogEnum.medium ? 1 : 2),
       promotion_detail_status: promoDetail == true ? 1 : 0,
       show_address: showAddress == true ? 1 : 0,
       show_email: showEmail == true ? 1 : 0,
@@ -307,6 +344,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                                 receiptView = newSelection.first;
                                 isLoad = false;
                                 reload();
+
                               },
                               selected: <String>{receiptView},
                             ),
@@ -501,16 +539,21 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       receipt_sqlite_id: receipt.receipt_sqlite_id,
       receipt_key: receipt.receipt_key,
       header_text: logoText == true ? headerTextController.text : '',
+      second_header_text: secondLogoText == true ? secondHeaderTextController.text : '',
       footer_text: footerText == true ? footerTextController.text : '',
       header_font_size: headerFontSize == ReceiptDialogEnum.big ? 0 : 1,
+      second_header_font_size: secondHeaderFontSize == ReceiptDialogEnum.small ? 0 : (secondHeaderFontSize == ReceiptDialogEnum.medium ? 1 : 2),
+      header_image_size: headerImageSize == ReceiptDialogEnum.small ? 0 : (headerImageSize == ReceiptDialogEnum.medium ? 1 : 2),
       header_image: logoImage == true ? 'branchLogo.jpg' : '',
       footer_image: footerImage == true ? 'branchFooter.jpg' : '',
       header_text_status: logoText == true ? 1 : 0,
+      second_header_text_status: secondLogoText == true && secondHeaderTextController.text != '' ? 1 : 0,
       footer_text_status: footerText == true ? 1 : 0,
       header_image_status: logoImage == true ? 1 : 0,
       footer_image_status: footerImage == true ? 1 : 0,
       promotion_detail_status: promoDetail == true ? 1 : 0,
       show_break_down_price: showBreakDownPrice == true ? 1 : 0,
+      hide_dining_method_table_no: hideDiningMethodTableNo == true ? 1 : 0,
       show_address: showAddress == true ? 1 : 0,
       show_email: showEmail == true ? 1 : 0,
       receipt_email: emailTextController.text,
@@ -520,6 +563,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       sync_status: checkData!.sync_status == 0 ? 0 : 2,
       updated_at: dateTime
     );
+    print('update data: ${jsonEncode(data)}');
     int status = await PosDatabase.instance.updateReceiptLayout(data);
     if(status == 1){
       widget.callBack();
@@ -589,10 +633,11 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 Visibility(
                     visible: logoImage ? true : false,
                     child: Center(
-                      child: CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.black,
-                        child: Text(AppLocalizations.of(context)!.translate('logo')),
+                      child: Container(
+                        margin: EdgeInsets.only(bottom: 10),
+                        // width: 380,
+                        height: logoSize,
+                        child: _imageData != null ? Image.memory(_imageData!) : null,
                       ),
                     )
                 ),
@@ -600,6 +645,12 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     visible: logoText ? true : false,
                     child: Center(
                       child: Text('${headerText}', style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold)),
+                    )
+                ),
+                Visibility(
+                    visible: secondLogoText ? true : false,
+                    child: Center(
+                      child: Text('${secondHeaderText}', style: TextStyle(fontSize: secondFontSize, fontWeight: FontWeight.bold)),
                     )
                 ),
                 Visibility(
@@ -636,8 +687,10 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     Text('Receipt No.: #00001-001-12345678', style: TextStyle(fontWeight: FontWeight.bold)),
                     Text('Close At: 31/12/2021 00:00 AM'),
                     Text('Close By: Waiter'),
-                    Text('Table No: 1'),
-                    Text('Dine In'),
+                    if(!hideDiningMethodTableNo)
+                      Text('Table No: 1'),
+                    if(!hideDiningMethodTableNo)
+                      Text('Dine In'),
                   ],
                 ),
                 DottedLine(),
@@ -889,6 +942,75 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
+                  child: Text(AppLocalizations.of(context)!.translate('logo'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Switch(
+                    value: logoImage,
+                    activeColor: color.backgroundColor,
+                    onChanged: (bool value) async {
+                      if(value && branchObject!['logo'] == '') {
+                        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_branch_logo_added'));
+                      } else {
+                        await getBranchLogo();
+                        setState(() {
+                          logoImage = value;
+                        });
+                      }
+                    })
+              ],
+            ),
+            Visibility(
+                visible: logoImage ? true : false,
+                child: Column(
+                  children: [
+                    Container(
+                      alignment: Alignment.topLeft,
+                      child: Text(AppLocalizations.of(context)!.translate('logo_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.big,
+                      groupValue: headerImageSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          headerImageSize = value;
+                          logoSize = 140.0;
+                        });
+                      },
+                      title: Text(AppLocalizations.of(context)!.translate('big')),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.medium,
+                      groupValue: headerImageSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          headerImageSize = value;
+                          logoSize = 100.0;
+                        });
+                      },
+                      title: Text(AppLocalizations.of(context)!.translate('medium')),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.small,
+                      groupValue: headerImageSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          headerImageSize = value;
+                          logoSize = 60.0;
+                        });
+                      },
+                      title: Text(AppLocalizations.of(context)!.translate('small')),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                  ],
+                )
+            ),
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
                   child: Text(AppLocalizations.of(context)!.translate('logo_text'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
@@ -969,7 +1091,112 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       onChanged: (value) async  {
                         setState(() {
                           headerFontSize = value;
-                          fontSize = 12.0;
+                          fontSize = 16.0;
+                        });
+                      },
+                      title: Text(AppLocalizations.of(context)!.translate('small')),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                  ],
+                )
+            ),
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text(AppLocalizations.of(context)!.translate('logo_text_second'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Switch(
+                    value: secondLogoText,
+                    activeColor: color.backgroundColor,
+                    onChanged: (bool value){
+                      setState(() {
+                        secondLogoText = value;
+                      });
+                    })
+              ],
+            ),
+            Visibility(
+              visible: secondLogoText ? true : false,
+              child: Container(
+                child: ValueListenableBuilder(
+                  // Note: pass _controller to the animation argument
+                    valueListenable: secondHeaderTextController,
+                    builder: (context, TextEditingValue value, __) {
+                      return SizedBox(
+                        height: 80,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextField(
+                            onChanged: (value){
+                              setState(() {
+                                secondHeaderText = value;
+                              });
+                            },
+                            controller: secondHeaderTextController,
+                            decoration: InputDecoration(
+                              errorText: _submitted
+                                  ? errorHeaderText == null
+                                  ? errorHeaderText
+                                  : AppLocalizations.of(context)
+                                  ?.translate(errorHeaderText!)
+                                  : null,
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: color.backgroundColor),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: color.backgroundColor),
+                              ),
+                              labelText: AppLocalizations.of(context)!.translate('logo_text_here'),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+              ),
+            ),
+            Visibility(
+                visible: secondLogoText ? true : false,
+                child: Column(
+                  children: [
+                    Container(
+                      alignment: Alignment.topLeft,
+                      child: Text(AppLocalizations.of(context)!.translate('logo_font_size_second'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.big,
+                      groupValue: secondHeaderFontSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          secondHeaderFontSize = value;
+                          secondFontSize = 30.0;
+                        });
+                      },
+                      title: Text(AppLocalizations.of(context)!.translate('big')),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.medium,
+                      groupValue: secondHeaderFontSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          secondHeaderFontSize = value;
+                          secondFontSize = 22.0;
+                        });
+                      },
+                      title: Text(AppLocalizations.of(context)!.translate('medium')),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.small,
+                      groupValue: secondHeaderFontSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          secondHeaderFontSize = value;
+                          secondFontSize = 16.0;
                         });
                       },
                       title: Text(AppLocalizations.of(context)!.translate('small')),
@@ -999,6 +1226,23 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
+                  child: Text(AppLocalizations.of(context)!.translate('hide_dining_method_table_no'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Switch(
+                    value: hideDiningMethodTableNo,
+                    activeColor: color.backgroundColor,
+                    onChanged: (bool value){
+                      setState(() {
+                        hideDiningMethodTableNo = value;
+                      });
+                    })
+              ],
+            ),
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
                   child: Text(AppLocalizations.of(context)!.translate('show_address'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
@@ -1022,7 +1266,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
-                  child: Text(AppLocalizations.of(context)!.translate('show_branch_tel'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                  child: Text('Show branch Tel', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
                 Container(
@@ -1036,7 +1280,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                         });
                       } :
                           (bool value){
-                        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('show_branch_tel_error'));
+                        Fluttertoast.showToast(msg: 'No branch phone no added');
                       }
                   ),
                 )
@@ -1228,10 +1472,11 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 Visibility(
                     visible: logoImage ? true : false,
                     child: Center(
-                      child: CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.black,
-                        child: Text(AppLocalizations.of(context)!.translate('logo')),
+                      child: Container(
+                        margin: EdgeInsets.only(bottom: 10),
+                        // width: 380,
+                        height: logoSize,
+                        child: _imageData != null ? Image.memory(_imageData!) : null,
                       ),
                     )
                 ),
@@ -1241,15 +1486,15 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       child: Text('${headerText}', style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold)),
                     )
                 ),
+                Visibility(
+                    visible: secondLogoText ? true : false,
+                    child: Center(
+                      child: Text('${secondHeaderText}', style: TextStyle(fontSize: secondFontSize, fontWeight: FontWeight.bold)),
+                    )
+                ),
                 Center(
                   child: Column(
                     children: [
-                      Visibility(
-                        visible: showBranchRegisterNo && branchObject![BranchFields.register_no] != '',
-                        child: Center(
-                          child: Text(branchObject![BranchFields.register_no]),
-                        ),
-                      ),
                       Visibility(
                         visible: showAddress,
                         child: Text(branchObject!['address'], textAlign: TextAlign.center,),
@@ -1279,8 +1524,10 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     Text('31/12/2021 00:00 AM'),
                     Text('Close By:'),
                     Text('Waiter'),
-                    Text('Table No: 1', textAlign: TextAlign.center),
-                    Text('Dine In', textAlign: TextAlign.center),
+                    if(!hideDiningMethodTableNo)
+                      Text('Table No: 1', textAlign: TextAlign.center),
+                    if(!hideDiningMethodTableNo)
+                      Text('Dine In', textAlign: TextAlign.center),
                   ],
                 ),
                 Padding(
@@ -1529,6 +1776,75 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
+                  child: Text(AppLocalizations.of(context)!.translate('logo'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Switch(
+                    value: logoImage,
+                    activeColor: color.backgroundColor,
+                    onChanged: (bool value) async {
+                      if(value && branchObject!['logo'] == '') {
+                        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_branch_logo_added'));
+                      } else {
+                        await getBranchLogo();
+                        setState(() {
+                          logoImage = value;
+                        });
+                      }
+                    })
+              ],
+            ),
+            Visibility(
+                visible: logoImage ? true : false,
+                child: Column(
+                  children: [
+                    Container(
+                      alignment: Alignment.topLeft,
+                      child: Text(AppLocalizations.of(context)!.translate('logo_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.big,
+                      groupValue: headerImageSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          headerImageSize = value;
+                          logoSize = 140.0;
+                        });
+                      },
+                      title: Text(AppLocalizations.of(context)!.translate('big')),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.medium,
+                      groupValue: headerImageSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          headerImageSize = value;
+                          logoSize = 100.0;
+                        });
+                      },
+                      title: Text(AppLocalizations.of(context)!.translate('medium')),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.small,
+                      groupValue: headerImageSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          headerImageSize = value;
+                          logoSize = 60.0;
+                        });
+                      },
+                      title: Text(AppLocalizations.of(context)!.translate('small')),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                  ],
+                )
+            ),
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
                   child: Text(AppLocalizations.of(context)!.translate('logo_text'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
@@ -1607,7 +1923,112 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       onChanged: (value) async  {
                         setState(() {
                           headerFontSize = value;
-                          fontSize = 12.0;
+                          fontSize = 16.0;
+                        });
+                      },
+                      title: Text(AppLocalizations.of(context)!.translate('small')),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                  ],
+                )
+            ),
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text(AppLocalizations.of(context)!.translate('logo_text_second'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Switch(
+                    value: secondLogoText,
+                    activeColor: color.backgroundColor,
+                    onChanged: (bool value){
+                      setState(() {
+                        secondLogoText = value;
+                      });
+                    })
+              ],
+            ),
+            Visibility(
+              visible: secondLogoText ? true : false,
+              child: Container(
+                child: ValueListenableBuilder(
+                  // Note: pass _controller to the animation argument
+                    valueListenable: secondHeaderTextController,
+                    builder: (context, TextEditingValue value, __) {
+                      return SizedBox(
+                        height: 80,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextField(
+                            onChanged: (value){
+                              setState(() {
+                                secondHeaderText = value;
+                              });
+                            },
+                            controller: secondHeaderTextController,
+                            decoration: InputDecoration(
+                              errorText: _submitted
+                                  ? errorHeaderText == null
+                                  ? errorHeaderText
+                                  : AppLocalizations.of(context)
+                                  ?.translate(errorHeaderText!)
+                                  : null,
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: color.backgroundColor),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: color.backgroundColor),
+                              ),
+                              labelText: AppLocalizations.of(context)!.translate('logo_text_here'),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+              ),
+            ),
+            Visibility(
+                visible: secondLogoText ? true : false,
+                child: Column(
+                  children: [
+                    Container(
+                      alignment: Alignment.topLeft,
+                      child: Text(AppLocalizations.of(context)!.translate('logo_font_size_second'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.big,
+                      groupValue: secondHeaderFontSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          secondHeaderFontSize = value;
+                          secondFontSize = 30.0;
+                        });
+                      },
+                      title: Text(AppLocalizations.of(context)!.translate('big')),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.medium,
+                      groupValue: secondHeaderFontSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          secondHeaderFontSize = value;
+                          secondFontSize = 22.0;
+                        });
+                      },
+                      title: Text(AppLocalizations.of(context)!.translate('medium')),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.small,
+                      groupValue: secondHeaderFontSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          secondHeaderFontSize = value;
+                          secondFontSize = 16.0;
                         });
                       },
                       title: Text(AppLocalizations.of(context)!.translate('small')),
@@ -1631,6 +2052,23 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('show_register_no_error'));
                     }
                 )
+              ],
+            ),
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text(AppLocalizations.of(context)!.translate('hide_dining_method_table_no'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Switch(
+                    value: hideDiningMethodTableNo,
+                    activeColor: color.backgroundColor,
+                    onChanged: (bool value){
+                      setState(() {
+                        hideDiningMethodTableNo = value;
+                      });
+                    })
               ],
             ),
             Row(
@@ -1834,31 +2272,74 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
 
   Widget MobileReceiptView1(ThemeColor color) => Column(
     children: [
-      Container(
-        alignment: Alignment.topLeft,
-        child: Text(AppLocalizations.of(context)!.translate('logo_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text(AppLocalizations.of(context)!.translate('logo'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: logoImage,
+              activeColor: color.backgroundColor,
+              onChanged: (bool value) async {
+                if(value && branchObject!['logo'] == '') {
+                  Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_branch_logo_added'));
+                } else {
+                  await getBranchLogo();
+                  setState(() {
+                    logoImage = value;
+                  });
+                }
+              })
+        ],
       ),
-      RadioListTile<ReceiptDialogEnum?>(
-        value: ReceiptDialogEnum.big,
-        groupValue: headerFontSize,
-        onChanged: (value) async  {
-          setState(() {
-            headerFontSize = value;
-          });
-        },
-        title: Text(AppLocalizations.of(context)!.translate('big')),
-        controlAffinity: ListTileControlAffinity.trailing,
-      ),
-      RadioListTile<ReceiptDialogEnum?>(
-        value: ReceiptDialogEnum.small,
-        groupValue: headerFontSize,
-        onChanged: (value) async  {
-         setState(() {
-           headerFontSize = value;
-         });
-        },
-        title: Text(AppLocalizations.of(context)!.translate('small')),
-        controlAffinity: ListTileControlAffinity.trailing,
+      Visibility(
+          visible: logoImage ? true : false,
+          child: Column(
+            children: [
+              Container(
+                alignment: Alignment.topLeft,
+                child: Text(AppLocalizations.of(context)!.translate('logo_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+              ),
+              RadioListTile<ReceiptDialogEnum?>(
+                value: ReceiptDialogEnum.big,
+                groupValue: headerImageSize,
+                onChanged: (value) async  {
+                  setState(() {
+                    headerImageSize = value;
+                    logoSize = 140.0;
+                  });
+                },
+                title: Text(AppLocalizations.of(context)!.translate('big')),
+                controlAffinity: ListTileControlAffinity.trailing,
+              ),
+              RadioListTile<ReceiptDialogEnum?>(
+                value: ReceiptDialogEnum.medium,
+                groupValue: headerImageSize,
+                onChanged: (value) async  {
+                  setState(() {
+                    headerImageSize = value;
+                    logoSize = 100.0;
+                  });
+                },
+                title: Text(AppLocalizations.of(context)!.translate('medium')),
+                controlAffinity: ListTileControlAffinity.trailing,
+              ),
+              RadioListTile<ReceiptDialogEnum?>(
+                value: ReceiptDialogEnum.small,
+                groupValue: headerImageSize,
+                onChanged: (value) async  {
+                  setState(() {
+                    headerImageSize = value;
+                    logoSize = 60.0;
+                  });
+                },
+                title: Text(AppLocalizations.of(context)!.translate('small')),
+                controlAffinity: ListTileControlAffinity.trailing,
+              ),
+            ],
+          )
       ),
       Row(
         children: [
@@ -1911,6 +2392,144 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               );
             }),
       ),
+      Visibility(
+        visible: logoText ? true : false,
+        child: Column(
+          children: [
+            Container(
+              alignment: Alignment.topLeft,
+              child: Text(AppLocalizations.of(context)!.translate('logo_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            ),
+            RadioListTile<ReceiptDialogEnum?>(
+              value: ReceiptDialogEnum.big,
+              groupValue: headerFontSize,
+              onChanged: (value) async  {
+                setState(() {
+                  headerFontSize = value;
+                });
+              },
+              title: Text(AppLocalizations.of(context)!.translate('big')),
+              controlAffinity: ListTileControlAffinity.trailing,
+            ),
+            RadioListTile<ReceiptDialogEnum?>(
+              value: ReceiptDialogEnum.small,
+              groupValue: headerFontSize,
+              onChanged: (value) async  {
+                setState(() {
+                  headerFontSize = value;
+                });
+              },
+              title: Text(AppLocalizations.of(context)!.translate('small')),
+              controlAffinity: ListTileControlAffinity.trailing,
+            ),
+          ],
+        ),
+      ),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text(AppLocalizations.of(context)!.translate('logo_text_second'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: secondLogoText,
+              activeColor: color.backgroundColor,
+              onChanged: (bool value){
+                setState(() {
+                  secondLogoText = value;
+                });
+              })
+        ],
+      ),
+      Visibility(
+        visible: secondLogoText ? true : false,
+        child: Container(
+          child: ValueListenableBuilder(
+            // Note: pass _controller to the animation argument
+              valueListenable: secondHeaderTextController,
+              builder: (context, TextEditingValue value, __) {
+                return SizedBox(
+                  height: 80,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextField(
+                      onChanged: (value){
+                        setState(() {
+                          secondHeaderText = value;
+                        });
+                      },
+                      controller: secondHeaderTextController,
+                      decoration: InputDecoration(
+                        errorText: _submitted
+                            ? errorHeaderText == null
+                            ? errorHeaderText
+                            : AppLocalizations.of(context)
+                            ?.translate(errorHeaderText!)
+                            : null,
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: color.backgroundColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: color.backgroundColor),
+                        ),
+                        labelText: AppLocalizations.of(context)!.translate('logo_text_here'),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+        ),
+      ),
+      Visibility(
+          visible: secondLogoText ? true : false,
+          child: Column(
+            children: [
+              Container(
+                alignment: Alignment.topLeft,
+                child: Text(AppLocalizations.of(context)!.translate('logo_font_size_second'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+              ),
+              RadioListTile<ReceiptDialogEnum?>(
+                value: ReceiptDialogEnum.big,
+                groupValue: secondHeaderFontSize,
+                onChanged: (value) async  {
+                  setState(() {
+                    secondHeaderFontSize = value;
+                    secondFontSize = 30.0;
+                  });
+                },
+                title: Text(AppLocalizations.of(context)!.translate('big')),
+                controlAffinity: ListTileControlAffinity.trailing,
+              ),
+              RadioListTile<ReceiptDialogEnum?>(
+                value: ReceiptDialogEnum.medium,
+                groupValue: secondHeaderFontSize,
+                onChanged: (value) async  {
+                  setState(() {
+                    secondHeaderFontSize = value;
+                    secondFontSize = 22.0;
+                  });
+                },
+                title: Text(AppLocalizations.of(context)!.translate('medium')),
+                controlAffinity: ListTileControlAffinity.trailing,
+              ),
+              RadioListTile<ReceiptDialogEnum?>(
+                value: ReceiptDialogEnum.small,
+                groupValue: secondHeaderFontSize,
+                onChanged: (value) async  {
+                  setState(() {
+                    secondHeaderFontSize = value;
+                    secondFontSize = 16.0;
+                  });
+                },
+                title: Text(AppLocalizations.of(context)!.translate('small')),
+                controlAffinity: ListTileControlAffinity.trailing,
+              ),
+            ],
+          )
+      ),
       Row(
         children: [
           Container(
@@ -1930,6 +2549,23 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('show_register_no_error'));
               }
           )
+        ],
+      ),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text(AppLocalizations.of(context)!.translate('hide_dining_method_table_no'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: hideDiningMethodTableNo,
+              activeColor: color.backgroundColor,
+              onChanged: (bool value){
+                setState(() {
+                  hideDiningMethodTableNo = value;
+                });
+              })
         ],
       ),
       Row(
@@ -2148,31 +2784,74 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
 
   Widget MobileReceiptView2(ThemeColor color) => Column(
     children: [
-      Container(
-        alignment: Alignment.topLeft,
-        child: Text(AppLocalizations.of(context)!.translate('logo_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text(AppLocalizations.of(context)!.translate('logo'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: logoImage,
+              activeColor: color.backgroundColor,
+              onChanged: (bool value) async {
+                if(value && branchObject!['logo'] == '') {
+                  Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_branch_logo_added'));
+                } else {
+                  await getBranchLogo();
+                  setState(() {
+                    logoImage = value;
+                  });
+                }
+              })
+        ],
       ),
-      RadioListTile<ReceiptDialogEnum?>(
-        value: ReceiptDialogEnum.big,
-        groupValue: headerFontSize,
-        onChanged: (value) async  {
-          setState(() {
-            headerFontSize = value;
-          });
-        },
-        title: Text(AppLocalizations.of(context)!.translate('big')),
-        controlAffinity: ListTileControlAffinity.trailing,
-      ),
-      RadioListTile<ReceiptDialogEnum?>(
-        value: ReceiptDialogEnum.small,
-        groupValue: headerFontSize,
-        onChanged: (value) async  {
-          setState(() {
-            headerFontSize = value;
-          });
-        },
-        title: Text(AppLocalizations.of(context)!.translate('small')),
-        controlAffinity: ListTileControlAffinity.trailing,
+      Visibility(
+          visible: logoImage ? true : false,
+          child: Column(
+            children: [
+              Container(
+                alignment: Alignment.topLeft,
+                child: Text(AppLocalizations.of(context)!.translate('logo_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+              ),
+              RadioListTile<ReceiptDialogEnum?>(
+                value: ReceiptDialogEnum.big,
+                groupValue: headerImageSize,
+                onChanged: (value) async  {
+                  setState(() {
+                    headerImageSize = value;
+                    logoSize = 140.0;
+                  });
+                },
+                title: Text(AppLocalizations.of(context)!.translate('big')),
+                controlAffinity: ListTileControlAffinity.trailing,
+              ),
+              RadioListTile<ReceiptDialogEnum?>(
+                value: ReceiptDialogEnum.medium,
+                groupValue: headerImageSize,
+                onChanged: (value) async  {
+                  setState(() {
+                    headerImageSize = value;
+                    logoSize = 100.0;
+                  });
+                },
+                title: Text(AppLocalizations.of(context)!.translate('medium')),
+                controlAffinity: ListTileControlAffinity.trailing,
+              ),
+              RadioListTile<ReceiptDialogEnum?>(
+                value: ReceiptDialogEnum.small,
+                groupValue: headerImageSize,
+                onChanged: (value) async  {
+                  setState(() {
+                    headerImageSize = value;
+                    logoSize = 60.0;
+                  });
+                },
+                title: Text(AppLocalizations.of(context)!.translate('small')),
+                controlAffinity: ListTileControlAffinity.trailing,
+              ),
+            ],
+          )
       ),
       Row(
         children: [
@@ -2225,6 +2904,144 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               );
             }),
       ),
+      Visibility(
+        visible: logoText ? true : false,
+        child: Column(
+          children: [
+            Container(
+              alignment: Alignment.topLeft,
+              child: Text(AppLocalizations.of(context)!.translate('logo_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            ),
+            RadioListTile<ReceiptDialogEnum?>(
+              value: ReceiptDialogEnum.big,
+              groupValue: headerFontSize,
+              onChanged: (value) async  {
+                setState(() {
+                  headerFontSize = value;
+                });
+              },
+              title: Text(AppLocalizations.of(context)!.translate('big')),
+              controlAffinity: ListTileControlAffinity.trailing,
+            ),
+            RadioListTile<ReceiptDialogEnum?>(
+              value: ReceiptDialogEnum.small,
+              groupValue: headerFontSize,
+              onChanged: (value) async  {
+                setState(() {
+                  headerFontSize = value;
+                });
+              },
+              title: Text(AppLocalizations.of(context)!.translate('small')),
+              controlAffinity: ListTileControlAffinity.trailing,
+            ),
+          ],
+        ),
+      ),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text(AppLocalizations.of(context)!.translate('logo_text_second'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: secondLogoText,
+              activeColor: color.backgroundColor,
+              onChanged: (bool value){
+                setState(() {
+                  secondLogoText = value;
+                });
+              })
+        ],
+      ),
+      Visibility(
+        visible: secondLogoText ? true : false,
+        child: Container(
+          child: ValueListenableBuilder(
+            // Note: pass _controller to the animation argument
+              valueListenable: secondHeaderTextController,
+              builder: (context, TextEditingValue value, __) {
+                return SizedBox(
+                  height: 80,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextField(
+                      onChanged: (value){
+                        setState(() {
+                          secondHeaderText = value;
+                        });
+                      },
+                      controller: secondHeaderTextController,
+                      decoration: InputDecoration(
+                        errorText: _submitted
+                            ? errorHeaderText == null
+                            ? errorHeaderText
+                            : AppLocalizations.of(context)
+                            ?.translate(errorHeaderText!)
+                            : null,
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: color.backgroundColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: color.backgroundColor),
+                        ),
+                        labelText: AppLocalizations.of(context)!.translate('logo_text_here'),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+        ),
+      ),
+      Visibility(
+          visible: secondLogoText ? true : false,
+          child: Column(
+            children: [
+              Container(
+                alignment: Alignment.topLeft,
+                child: Text(AppLocalizations.of(context)!.translate('logo_font_size_second'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+              ),
+              RadioListTile<ReceiptDialogEnum?>(
+                value: ReceiptDialogEnum.big,
+                groupValue: secondHeaderFontSize,
+                onChanged: (value) async  {
+                  setState(() {
+                    secondHeaderFontSize = value;
+                    secondFontSize = 30.0;
+                  });
+                },
+                title: Text(AppLocalizations.of(context)!.translate('big')),
+                controlAffinity: ListTileControlAffinity.trailing,
+              ),
+              RadioListTile<ReceiptDialogEnum?>(
+                value: ReceiptDialogEnum.medium,
+                groupValue: secondHeaderFontSize,
+                onChanged: (value) async  {
+                  setState(() {
+                    secondHeaderFontSize = value;
+                    secondFontSize = 22.0;
+                  });
+                },
+                title: Text(AppLocalizations.of(context)!.translate('medium')),
+                controlAffinity: ListTileControlAffinity.trailing,
+              ),
+              RadioListTile<ReceiptDialogEnum?>(
+                value: ReceiptDialogEnum.small,
+                groupValue: secondHeaderFontSize,
+                onChanged: (value) async  {
+                  setState(() {
+                    secondHeaderFontSize = value;
+                    secondFontSize = 16.0;
+                  });
+                },
+                title: Text(AppLocalizations.of(context)!.translate('small')),
+                controlAffinity: ListTileControlAffinity.trailing,
+              ),
+            ],
+          )
+      ),
       Row(
         children: [
           Container(
@@ -2239,10 +3056,28 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 setState(() {
                   showBranchRegisterNo = value;
                 });
-              } : (bool value){
+              } :
+                  (bool value){
                 Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('show_register_no_error'));
               }
           )
+        ],
+      ),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text(AppLocalizations.of(context)!.translate('hide_dining_method_table_no'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: hideDiningMethodTableNo,
+              activeColor: color.backgroundColor,
+              onChanged: (bool value){
+                setState(() {
+                  hideDiningMethodTableNo = value;
+                });
+              })
         ],
       ),
       Row(
@@ -2441,5 +3276,50 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       ),
     ],
   );
+
+  Future<img.Image> getBranchLogo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
+    String? path = '';
+
+    if(Platform.isIOS){
+      String dir = await _localPath;
+      path = dir + '/assets/logo';
+    } else {
+      if(prefs.getString('logo_path') != null)
+        path = prefs.getString('logo_path')!;
+    }
+
+    if(path != '') {
+      final File imageFile = File('$path/${branchObject['logo']}');
+      if (!await imageFile.exists()) {
+        branchLogoExist = false;
+        return img.Image(width: 1, height: 1);
+      }
+
+      branchLogoExist = true;
+      final Uint8List imageBytes = await imageFile.readAsBytes();
+      final img.Image decodedImage = img.decodeImage(imageBytes)!;
+      img.Image thumbnail = img.copyResize(decodedImage, height: 130);
+      img.Image originalImg = img.copyResize(decodedImage, width: 380, height: 130);
+      img.fill(originalImg, color: img.ColorRgb8(255, 255, 255));
+
+      var padding = (originalImg.width - thumbnail.width) / 2;
+      img.compositeImage(originalImg, thumbnail, dstX: padding.toInt());
+      img.Image processedImage = img.adjustColor(originalImg, saturation: -100, contrast: 100, gamma: 10);
+      setState(() {
+        _imageData = img.encodeJpg(processedImage);
+      });
+      return processedImage;
+    } else {
+      return img.Image(width: 1, height: 1);
+    }
+  }
+
+  Future<String> get _localPath async {
+    final directory = await getApplicationSupportDirectory();
+    return directory.path;
+  }
 
 }
