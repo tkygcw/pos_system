@@ -13,7 +13,8 @@ import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/second_device/cart_dialog_function.dart';
-import 'package:pos_system/second_device/place_order.dart';
+import 'package:pos_system/second_device/order/dine_in_order.dart';
+import 'package:pos_system/second_device/order/place_order.dart';
 import 'package:pos_system/second_device/reprint_kitchen_list_function.dart';
 import 'package:pos_system/second_device/table_function.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,6 +22,8 @@ import 'package:version/version.dart';
 
 import '../database/pos_database.dart';
 import '../main.dart';
+import '../second_device/order/add_on_order.dart';
+import '../second_device/order/not_dine_in_order.dart';
 import 'branch_link_promotion.dart';
 
 class ServerAction {
@@ -188,19 +191,9 @@ class ServerAction {
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam['cart']);
             if(cart.selectedOption == 'Dine in' && AppSettingModel.instance.table_order != 0){
-              PlaceNewDineInOrder order = PlaceNewDineInOrder();
-              Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
-              if(cartItem != null){
-                return result = cartItem;
-              }
-              result = await order.callCreateNewOrder(cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
+              result = await placeOrderFunction(PlaceDineInOrder(), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
             } else {
-              PlaceNotDineInOrder order = PlaceNotDineInOrder();
-              Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
-              if(cartItem != null){
-                return result = cartItem;
-              }
-              result = await order.callCreateNewNotDineOrder(cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
+              result = await placeOrderFunction(PlaceNotDineInOrder(), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
             }
           } catch(e){
             result = {'status': '4', 'exception': "New-order error: ${e.toString()}"};
@@ -215,14 +208,9 @@ class ServerAction {
         case '9': {
           try{
             CartModel cart = CartModel();
-            PlaceAddOrder order = PlaceAddOrder();
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam['cart']);
-            Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
-            if(cartItem != null){
-              return result = cartItem;
-            }
-            result = await order.callAddOrderCache(cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
+            result = await placeOrderFunction(PlaceAddOrder(), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
           } catch(e){
             result = {'status': '4', 'exception': "add-order error: ${e.toString()}"};
             FLog.error(
@@ -326,6 +314,10 @@ class ServerAction {
       result = {'status': '2'};
       return result;
     }
+  }
+
+  Future<Map<String, dynamic>>placeOrderFunction(PlaceOrder orderType, cart, address, orderBy, orderByUserId) async {
+    return await orderType.placeOrder(cart, address, orderBy, orderByUserId);
   }
 
   Future<List<Promotion>> getBranchPromotionData() async {

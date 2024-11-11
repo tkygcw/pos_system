@@ -13,30 +13,32 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 
-import '../database/pos_database.dart';
-import '../main.dart';
-import '../notifier/app_setting_notifier.dart';
-import '../notifier/cart_notifier.dart';
-import '../notifier/fail_print_notifier.dart';
-import '../notifier/table_notifier.dart';
-import '../object/branch_link_product.dart';
-import '../object/cart_product.dart';
-import '../object/modifier_item.dart';
-import '../object/order_cache.dart';
-import '../object/order_detail.dart';
-import '../object/order_modifier_detail.dart';
-import '../fragment/printing_layout/print_receipt.dart';
-import '../object/printer.dart';
-import '../object/table.dart';
-import '../object/table_use.dart';
-import '../object/table_use_detail.dart';
-import '../object/variant_group.dart';
-import '../translation/AppLocalizations.dart';
-import '../utils/Utils.dart';
+import '../../database/pos_database.dart';
+import '../../main.dart';
+import '../../notifier/app_setting_notifier.dart';
+import '../../notifier/cart_notifier.dart';
+import '../../notifier/fail_print_notifier.dart';
+import '../../notifier/table_notifier.dart';
+import '../../object/app_setting.dart';
+import '../../object/branch_link_product.dart';
+import '../../object/cart_product.dart';
+import '../../object/modifier_item.dart';
+import '../../object/order.dart';
+import '../../object/order_cache.dart';
+import '../../object/order_detail.dart';
+import '../../object/order_modifier_detail.dart';
+import '../../fragment/printing_layout/print_receipt.dart';
+import '../../object/printer.dart';
+import '../../object/table.dart';
+import '../../object/table_use.dart';
+import '../../object/table_use_detail.dart';
+import '../../object/variant_group.dart';
+import '../../translation/AppLocalizations.dart';
+import '../../utils/Utils.dart';
 
 
 abstract class PlaceOrder {
-  final PosFirestore posFirestore = PosFirestore.instance;
+  final DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
   BuildContext context = MyApp.navigatorKey.currentContext!;
   PrintReceipt printReceipt = PrintReceipt();
   List<Printer> printerList = [];
@@ -44,6 +46,11 @@ abstract class PlaceOrder {
   String localTableUseId = '';
   String tableUseKey = '', tableUseDetailKey = '', orderCacheSqliteId = '', orderCacheKey = '', orderDetailKey = '';
 
+  PosFirestore get posFirestore => PosFirestore.instance;
+
+  Future<void> createOrderCache(CartModel cart, String orderBy, String orderByUserId);
+
+  Future<Map<String, dynamic>> placeOrder(CartModel cart, String address, String orderBy, String orderByUserId);
 
   initData() async {
     printerList = await printReceipt.readAllPrinters();
@@ -345,11 +352,6 @@ abstract class PlaceOrder {
     }
   }
 
-  Future<void> createOrderCache(CartModel cart, String orderBy, String orderByUserId) {
-    // TODO: implement createOrderCache
-    throw UnimplementedError();
-  }
-
   Future<String> generateOrderCacheKey(OrderCache orderCache) async {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
@@ -582,397 +584,79 @@ abstract class PlaceOrder {
       print("update table error: $e");
     }
   }
-}
 
-class PlaceNewDineInOrder extends PlaceOrder {
-
-  Future<Map<String, dynamic>> callCreateNewOrder(CartModel cart, String address, String orderBy, String orderByUserId) async {
-    Map<String, dynamic> objectData;
-    await initData();
-    if(await checkTableStatus(cart) == false){
-      await createTableUseID();
-      await createTableUseDetail(cart);
-      await createOrderCache(cart, orderBy, orderByUserId);
-      await createOrderDetail(cart);
-      if(cart.selectedOption == 'Dine in' && AppSettingModel.instance.table_order == 1) {
-        await updatePosTable(cart);
-      }
-
-      //print check list
-      await printCheckList(orderBy);
-      List<cartProductItem> ticketProduct = cart.cartNotifierItem.where((e) => e.allow_ticket == 1).toList();
-      if(ticketProduct.isNotEmpty){
-        await printReceipt.printProductTicket(printerList, int.parse(orderCacheSqliteId), ticketProduct);
-      }
-      // if (_appSettingModel.autoPrintChecklist == true) {
-      //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
-      //   if (printStatus == 1) {
-      //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
-      //   } else if (printStatus == 2) {
-      //     Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
-      //   } else if (printStatus == 5) {
-      //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
-      //   }
-      // }
-      asyncQ.addJob((_) => printKitchenList(address));
-      objectData = {
-        'tb_branch_link_product': branchLinkProductList,
-      };
-      if(AppSettingModel.instance.table_order == 1) {
-        TableModel.instance.changeContent(true);
-      }
-
-      return {'status': '1', 'data': objectData};
-    } else {
-      // throw Exception("Contain table in-used");
-      branchLinkProductList = await PosDatabase.instance.readAllBranchLinkProduct();
-      objectData = {
-        'tb_branch_link_product': branchLinkProductList,
-      };
-      return {'status': '3', 'error': AppLocalizations.of(context)?.translate('table_is_used'), 'data': objectData};
-    }
-  }
-
-  @override
-  Future<void> createOrderCache(CartModel cart, String orderBy, String orderByUserId) async {
-    // TODO: implement createOrderCache
-    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-    String dateTime = dateFormat.format(DateTime.now());
+  Future<int?> generateOrderQueue(CartModel cart) async {
+    print("generateOrderQueue called");
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    final String? loginUser = prefs.getString('user');
-
-    List<TableUse> _tableUse = [];
-    Map loginUserObject = json.decode(loginUser!);
-    String _tableUseId = '';
-    String batch = '';
-    try {
-      batch = await batchChecking();
-      // if (isAddOrder == true) {
-      //   batch = cart.cartNotifierItem[0].first_cache_batch!;
-      // } else {
-      //   batch = await batchChecking();
-      // }
-      //check selected table is in use or not
-      if (cart.selectedOption == 'Dine in' && AppSettingModel.instance.table_order != 0) {
-        for (int i = 0; i < cart.selectedTable.length; i++) {
-          List<TableUseDetail> useDetail = await PosDatabase.instance.readSpecificTableUseDetail(cart.selectedTable[i].table_sqlite_id!);
-          if(AppSettingModel.instance.table_order == 1) {
-            if (useDetail.isNotEmpty) {
-              _tableUseId = useDetail[0].table_use_sqlite_id!;
+    AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
+    if(localSetting!.enable_numbering == 1 &&
+        ((localSetting.table_order != 0 && cart.selectedOption != 'Dine in') ||
+            localSetting.table_order == 0)) {
+      int orderQueue = localSetting.starting_number!;
+      try {
+        List<Order> orderList = await PosDatabase.instance.readLatestOrder();;
+        List<OrderCache> orderCacheList = await PosDatabase.instance.readAllOrderCache();;
+        List<Order> latestNotDineInOrder = await PosDatabase.instance.readLatestNotDineInOrder();
+        List<OrderCache> notDineInOrderCache = await PosDatabase.instance.readAllNotDineInOrderCache();
+        // not yet make settlement
+        if(orderList.isNotEmpty) {
+          if(localSetting.table_order != 0) {
+            if(latestNotDineInOrder.isNotEmpty) {
+              if(latestNotDineInOrder.first.settlement_key! == '') {
+                if(int.tryParse(notDineInOrderCache.first.order_queue!) == null || int.parse(notDineInOrderCache.first.order_queue!) >= 9999) {
+                  orderQueue = localSetting.starting_number!;
+                }
+                else {
+                  orderQueue = int.parse(notDineInOrderCache.first.order_queue!) + 1;
+                }
+              }
             } else {
-              _tableUseId = this.localTableUseId;
+              if(notDineInOrderCache.isNotEmpty && notDineInOrderCache.first.order_key == '') {
+                orderQueue = int.parse(notDineInOrderCache.first.order_queue!) + 1;
+              } else {
+                orderQueue = localSetting.starting_number!;
+              }
             }
           } else {
-            _tableUseId = this.localTableUseId;
+            if(orderList.first.settlement_key! == '') {
+              if(int.tryParse(orderCacheList.first.order_queue!) == null || int.parse(orderCacheList.first.order_queue!) >= 9999) {
+                orderQueue = localSetting.starting_number!;
+              }
+              else {
+                orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
+              }
+            } else {
+              // after settlement
+              if(orderCacheList.first.order_key == '' && orderCacheList.first.cancel_by == '') {
+                orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
+              } else {
+                orderQueue = localSetting.starting_number!;
+              }
+            }
+          }
+        } else {
+          if(localSetting.table_order != 0) {
+            if(notDineInOrderCache.isNotEmpty && notDineInOrderCache.first.order_key == '') {
+              orderQueue = int.parse(notDineInOrderCache.first.order_queue!) + 1;
+            } else {
+              orderQueue = localSetting.starting_number!;
+            }
+          } else {
+            if(orderCacheList.isNotEmpty && orderCacheList.first.order_key == '') {
+              orderQueue = int.parse(orderCacheList.first.order_queue!) + 1;
+            } else {
+              orderQueue = localSetting.starting_number!;
+            }
           }
         }
-        List<TableUse> tableUseData = await PosDatabase.instance.readSpecificTableUseId(int.parse(_tableUseId));
-        _tableUse = tableUseData;
+        return orderQueue;
+      } catch(e) {
+        print("generateOrderQueue error: $e");
+        return orderQueue = localSetting.starting_number!;
       }
-
-      // if (cart.selectedOption == 'Dine in') {
-      //   for (int i = 0; i < cart.selectedTable.length; i++) {
-      //     List<TableUseDetail> useDetail = await PosDatabase.instance.readSpecificTableUseDetail(cart.selectedTable[i].table_sqlite_id!);
-      //     if (useDetail.isNotEmpty) {
-      //       _tableUseId = useDetail[0].table_use_sqlite_id!;
-      //     } else {
-      //       _tableUseId = this.localTableUseId;
-      //     }
-      //   }
-      //   List<TableUse> tableUseData = await PosDatabase.instance.readSpecificTableUseId(int.parse(_tableUseId));
-      //   _tableUse = tableUseData;
-      // }
-      if (batch != '') {
-        //create order cache
-        OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(OrderCache(
-            order_cache_id: 0,
-            order_cache_key: '',
-            order_queue: '',
-            company_id: loginUserObject['company_id'].toString(),
-            branch_id: branch_id.toString(),
-            order_detail_id: '',
-            table_use_sqlite_id: _tableUseId,
-            table_use_key: _tableUse[0].table_use_key,
-            batch_id: batch.toString().padLeft(6, '0'),
-            dining_id: cart.selectedOptionId,//this.diningOptionID.toString(),
-            order_sqlite_id: '',
-            order_key: '',
-            order_by: orderBy,
-            order_by_user_id: orderByUserId,
-            cancel_by: '',
-            cancel_by_user_id: '',
-            customer_id: '0',
-            total_amount: cart.subtotal,  //newOrderSubtotal.toStringAsFixed(2),
-            qr_order: 0,
-            qr_order_table_sqlite_id: '',
-            qr_order_table_id: '',
-            accepted: 0,
-            payment_status: 0,
-            sync_status: 0,
-            created_at: dateTime,
-            updated_at: '',
-            soft_delete: ''));
-        orderCacheSqliteId = data.order_cache_sqlite_id.toString();
-        //orderNumber = data.order_queue.toString();
-        await insertOrderCacheKey(data, dateTime);
-        await insertOrderCacheKeyIntoTableUse(cart, data, dateTime);
-        // if(cart.selectedOption == 'Dine in'){
-        //   await insertOrderCacheKeyIntoTableUse(cart, data, dateTime);
-        // }
-        // sync to cloud
-        //syncOrderCacheToCloud(updatedCache);
-        //cart.addOrder(data);
-      }
-    } catch (e) {
-      print('createOrderCache error: ${e}');
     }
+    return null;
   }
-
 }
 
-class PlaceNotDineInOrder extends PlaceOrder {
-
-  Future<Map<String, dynamic>> callCreateNewNotDineOrder(CartModel cart, String address, String orderBy, String orderByUserId) async {
-    print("callCreateNewNotDineOrder");
-    Map<String, dynamic> objectData;
-
-    await initData();
-    await createOrderCache(cart, orderBy, orderByUserId);
-    await createOrderDetail(cart);
-    await printCheckList(orderBy);
-    List<cartProductItem> ticketProduct = cart.cartNotifierItem.where((e) => e.allow_ticket == 1).toList();
-    if(ticketProduct.isNotEmpty){
-      await printReceipt.printProductTicket(printerList, int.parse(orderCacheSqliteId), ticketProduct);
-    }
-    // if (_appSettingModel.autoPrintChecklist == true) {
-    //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
-    //   if (printStatus == 1) {
-    //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
-    //   } else if (printStatus == 2) {
-    //     Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
-    //   } else if (printStatus == 5) {
-    //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
-    //   }
-    // }
-    // if (this.isLogOut == true) {
-    //   openLogOutDialog();
-    //   return;
-    // }
-
-    asyncQ.addJob((_) => printKitchenList(address));
-    objectData = {
-      'tb_branch_link_product': branchLinkProductList,
-    };
-    return {'status': '1', 'data': objectData};
-  }
-
-  @override
-  Future<void> createOrderCache(CartModel cart, String orderBy, String orderByUserId) async {
-    // TODO: implement createOrderCache
-    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-    String dateTime = dateFormat.format(DateTime.now());
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    final String? loginUser = prefs.getString('user');
-
-    Map loginUserObject = json.decode(loginUser!);
-    String batch = '';
-    try {
-      batch = await batchChecking();
-      // if (isAddOrder == true) {
-      //   batch = cart.cartNotifierItem[0].first_cache_batch!;
-      // } else {
-      //   batch = await batchChecking();
-      // }
-      //check selected table is in use or not
-      // if (cart.selectedOption == 'Dine in') {
-      //   for (int i = 0; i < cart.selectedTable.length; i++) {
-      //     List<TableUseDetail> useDetail = await PosDatabase.instance.readSpecificTableUseDetail(cart.selectedTable[i].table_sqlite_id!);
-      //     if (useDetail.isNotEmpty) {
-      //       _tableUseId = useDetail[0].table_use_sqlite_id!;
-      //     } else {
-      //       _tableUseId = this.localTableUseId;
-      //     }
-      //   }
-      //   List<TableUse> tableUseData = await PosDatabase.instance.readSpecificTableUseId(int.parse(_tableUseId));
-      //   _tableUse = tableUseData;
-      // }
-      if (batch != '') {
-        //create order cache
-        OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(OrderCache(
-            order_cache_id: 0,
-            order_cache_key: '',
-            order_queue: '',
-            company_id: loginUserObject['company_id'].toString(),
-            branch_id: branch_id.toString(),
-            order_detail_id: '',
-            table_use_sqlite_id: '',
-            table_use_key: '',
-            batch_id: batch.toString().padLeft(6, '0'),
-            dining_id: cart.selectedOptionId,//this.diningOptionID.toString(),
-            order_sqlite_id: '',
-            order_key: '',
-            order_by: orderBy,
-            order_by_user_id: orderByUserId,
-            cancel_by: '',
-            cancel_by_user_id: '',
-            customer_id: '0',
-            total_amount: cart.subtotal,  //newOrderSubtotal.toStringAsFixed(2),
-            qr_order: 0,
-            qr_order_table_sqlite_id: '',
-            qr_order_table_id: '',
-            accepted: 0,
-            payment_status: 0,
-            sync_status: 0,
-            created_at: dateTime,
-            updated_at: '',
-            soft_delete: ''));
-        orderCacheSqliteId = data.order_cache_sqlite_id.toString();
-        //orderNumber = data.order_queue.toString();
-        await insertOrderCacheKey(data, dateTime);
-        //sync to cloud
-        //syncOrderCacheToCloud(updatedCache);
-        //cart.addOrder(data);
-      }
-    } catch (e) {
-      print('createOrderCache error: ${e}');
-    }
-  }
-
-}
-
-class PlaceAddOrder extends PlaceOrder {
-
-  Future<Map<String, dynamic>> callAddOrderCache(CartModel cart, String address, String orderBy, String orderByUserId) async {
-    Map<String, dynamic> objectData;
-    await initData();
-    if(await checkTableStatus(cart) == true){
-      if(checkIsTableSelectedInPaymentCart(cart) == false) {
-        await createOrderCache(cart, orderBy, orderByUserId);
-        await createOrderDetail(cart);
-        await printCheckList(orderBy);
-        List<cartProductItem> ticketProduct = cart.cartNotifierItem.where((e) => e.allow_ticket == 1 && e.status == 0).toList();
-        if(ticketProduct.isNotEmpty){
-          await printReceipt.printProductTicket(printerList, int.parse(orderCacheSqliteId), ticketProduct);
-        }
-        // if (_appSettingModel.autoPrintChecklist == true) {
-        //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
-        //   if (printStatus == 1) {
-        //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
-        //   } else if (printStatus == 2) {
-        //     Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
-        //   } else if (printStatus == 5) {
-        //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
-        //   }
-        // }
-        asyncQ.addJob((_) => printKitchenList(address));
-        Map<String, dynamic>? objectData = {'tb_branch_link_product': branchLinkProductList};
-        TableModel.instance.changeContent(true);
-        return {'status': '1', 'data': objectData};
-      } else {
-        branchLinkProductList = await PosDatabase.instance.readAllBranchLinkProduct();
-        objectData = {
-          'tb_branch_link_product': branchLinkProductList,
-        };
-        return {'status': '3', 'error': AppLocalizations.of(context)?.translate('table_is_in_payment'), 'data': objectData};
-        // result = {'status': '3', 'error': "Table is selected in payment cart"};
-        // branchLinkProductList = await PosDatabase.instance.readAllBranchLinkProduct();
-        // throw Exception("Table are selected in payment cart");
-      }
-    } else {
-      branchLinkProductList = await PosDatabase.instance.readAllBranchLinkProduct();
-      objectData = {
-        'tb_branch_link_product': branchLinkProductList,
-      };
-      return {'status': '3', 'error': AppLocalizations.of(context)?.translate('table_not_in_use'), 'data': objectData};
-      // branchLinkProductList = await PosDatabase.instance.readAllBranchLinkProduct();
-      // throw Exception("Table not in-used");
-    }
-  }
-
-  Future<List<PosTable>> checkCartTableStatus(List<PosTable> cartSelectedTable) async {
-    List<PosTable> inUsedTable = [];
-    for(int i = 0; i < cartSelectedTable.length; i++){
-      List<PosTable> table = await PosDatabase.instance.checkPosTableStatus(cartSelectedTable[i].table_sqlite_id!);
-      if(table[0].status == 1){
-        inUsedTable.add(table[0]);
-      }
-    }
-    return inUsedTable;
-  }
-
-
-  checkIsTableSelectedInPaymentCart(CartModel cart){
-    bool isTableSelected = false;
-    List<PosTable> inCartTableList = Provider.of<CartModel>(context, listen: false).selectedTable.where((e) => e.isInPaymentCart == true).toList();
-    if(inCartTableList.isNotEmpty){
-      for(int i = 0; i < cart.selectedTable.length; i++){
-        for(int j = 0; j < inCartTableList.length; j++){
-          if(cart.selectedTable[i].table_sqlite_id == inCartTableList[j].table_sqlite_id){
-            isTableSelected = true;
-            break;
-          }
-        }
-      }
-    }
-    return isTableSelected;
-  }
-
-  @override
-  Future<void> createOrderCache(CartModel cart, String orderBy, String orderByUserId) async {
-    // TODO: implement createOrderCache
-    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-    String dateTime = dateFormat.format(DateTime.now());
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    final String? loginUser = prefs.getString('user');
-
-    Map loginUserObject = json.decode(loginUser!);
-    String batch = '';
-    try {
-      batch = cart.cartNotifierItem[0].first_cache_batch!;
-      List<PosTable> inUsedTable = await checkCartTableStatus(cart.selectedTable);
-      TableUse tableUseData = await PosDatabase.instance.readSpecificTableUseByKey(inUsedTable[0].table_use_key!);
-      // List<TableUse> tableUseData = await PosDatabase.instance.readSpecificTableUseId(int.parse(_tableUseId));
-      TableUse _tableUse = tableUseData;
-      if (batch != '') {
-        //create order cache
-        OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(OrderCache(
-            order_cache_id: 0,
-            order_cache_key: '',
-            order_queue: '',
-            company_id: loginUserObject['company_id'].toString(),
-            branch_id: branch_id.toString(),
-            order_detail_id: '',
-            table_use_sqlite_id: _tableUse.table_use_sqlite_id.toString(),
-            table_use_key: _tableUse.table_use_key,
-            batch_id: batch.toString().padLeft(6, '0'),
-            dining_id: cart.selectedOptionId,
-            order_sqlite_id: '',
-            order_key: '',
-            order_by: orderBy,
-            order_by_user_id: orderByUserId,
-            cancel_by: '',
-            cancel_by_user_id: '',
-            customer_id: '0',
-            total_amount: cart.subtotal,
-            qr_order: 0,
-            qr_order_table_sqlite_id: '',
-            qr_order_table_id: '',
-            accepted: 0,
-            payment_status: 0,
-            sync_status: 0,
-            created_at: dateTime,
-            updated_at: '',
-            soft_delete: ''));
-        orderCacheSqliteId = data.order_cache_sqlite_id.toString();
-        await insertOrderCacheKey(data, dateTime);
-        await insertOrderCacheKeyIntoTableUse(cart, data, dateTime);
-      }
-    } catch (e) {
-      print('createOrderCache error: ${e}');
-    }
-  }
-
-}

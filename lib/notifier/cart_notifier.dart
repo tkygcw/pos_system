@@ -130,13 +130,23 @@ class CartModel extends ChangeNotifier {
   }
 
   void addItem(cartProductItem object) {
-    cartNotifierItem.add(object);
+    cartNotifierItem.insert(0, object);
+    // cartNotifierItem.add(object);
     notifyListeners();
   }
 
   void addAllItem({required List<cartProductItem> cartItemList}) {
     cartNotifierItem.addAll(cartItemList);
     notifyListeners();
+  }
+
+  void overrideItem({required List<cartProductItem> cartItem, bool? notify = true}) {
+    List<cartProductItem> notPlacedItem = cartNotifierItem.where((e) => e.status == 0).toList();
+    cartNotifierItem = notPlacedItem;
+    cartNotifierItem.addAll(cartItem);
+    if(notify = true){
+      notifyListeners();
+    }
   }
 
   void removeItem(cartProductItem object) {
@@ -199,6 +209,13 @@ class CartModel extends ChangeNotifier {
   void addTable(PosTable posTable) {
     selectedTable.add(posTable);
     notifyListeners();
+  }
+
+  void overrideSelectedTable(List<PosTable> tableList, {bool? notify = true}){
+    selectedTable = tableList.toList();
+    if(notify == true){
+      notifyListeners();
+    }
   }
 
   void removeAllTable() {
