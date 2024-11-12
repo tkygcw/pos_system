@@ -379,6 +379,7 @@ class PosDatabaseUtils {
           ${OrderCacheFields.order_detail_id} $textType, 
           ${OrderCacheFields.table_use_sqlite_id} $textType, 
           ${OrderCacheFields.table_use_key} $textType,
+          ${OrderCacheFields.other_order_key} $textType,
           ${OrderCacheFields.batch_id} $textType, 
           ${OrderCacheFields.dining_id} $textType, 
           ${OrderCacheFields.order_sqlite_id} $textType, 

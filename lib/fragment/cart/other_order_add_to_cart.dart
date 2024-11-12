@@ -2,9 +2,7 @@ import 'dart:convert';
 
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:intl/intl.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/branch_link_product.dart';
@@ -15,7 +13,6 @@ import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/order_payment_split.dart';
-import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/page/loading_dialog.dart';
@@ -25,12 +22,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
-import '../../object/branch_link_promotion.dart';
 import '../../translation/AppLocalizations.dart';
 
 class OtherOrderAddtoCart extends StatefulWidget {
   final String cartFinalAmount;
-  const OtherOrderAddtoCart({Key? key, required this.cartFinalAmount}) : super(key: key);
+  final String diningOptionId;
+  const OtherOrderAddtoCart({Key? key, required this.cartFinalAmount, required this.diningOptionId}) : super(key: key);
 
   @override
   State<OtherOrderAddtoCart> createState() => _OtherOrderAddtoCartState();
@@ -56,7 +53,6 @@ class _OtherOrderAddtoCartState extends State<OtherOrderAddtoCart> {
   void initState() {
     super.initState();
     getOrderList();
-    print('final amount = ${widget.cartFinalAmount}');
   }
 
   @override
@@ -122,6 +118,11 @@ class _OtherOrderAddtoCartState extends State<OtherOrderAddtoCart> {
                                 try {
                                   if(orderCacheList[index].is_selected == false){
                                     await Future.delayed(Duration(milliseconds: 300));
+                                    if(cart.cartNotifierItem.isEmpty) {
+                                      print('11cart empty');
+                                    } else {
+                                      print('11cart not empty');
+                                    }
                                     if(cart.cartNotifierItem.isEmpty){
                                       // orderCacheList[index].is_selected = true;
                                       // cart.selectedOptionId = orderCacheList[index].dining_id!;
@@ -138,12 +139,19 @@ class _OtherOrderAddtoCartState extends State<OtherOrderAddtoCart> {
                                           }
                                         }
                                       } else {
-                                        print('thissssss: ${orderCacheList[index].other_order_key}');
                                         orderCacheList[index].is_selected = true;
                                         cart.selectedOptionId = orderCacheList[index].dining_id!;
                                         cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
-                                        await getOrderDetail(orderCacheList[index]);
-                                        await addToCart(cart, orderCacheList[index]);
+                                        if(orderCacheList[index].other_order_key != ''){
+                                          List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[index].other_order_key!);
+                                          for(int i = 0; i < data.length; i++){
+                                            await getOrderDetail(data[i]);
+                                            await addToCart(cart, data[i]);
+                                          }
+                                        } else {
+                                          await getOrderDetail(orderCacheList[index]);
+                                          await addToCart(cart, orderCacheList[index]);
+                                        }
                                       }
                                     } else {
                                       if(orderCacheList[index].dining_id == cart.selectedOptionId){
@@ -299,23 +307,8 @@ class _OtherOrderAddtoCartState extends State<OtherOrderAddtoCart> {
     }
     final prefs = await SharedPreferences.getInstance();
     final String? user = prefs.getString('user');
-    Map userObject = json.decode(user!);
-    final int? branch_id = prefs.getInt('branch_id');
-    AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
 
-    if(localSetting!.table_order == 2) {
-      if (selectDiningOption == 'All') {
-        data = await PosDatabase.instance.readOrderCacheNoDineInAdvanced(branch_id.toString(), userObject['company_id']);
-      } else {
-        data = await PosDatabase.instance.readOrderCacheSpecialAdvanced(selectDiningOption!);
-      }
-    } else {
-      if (selectDiningOption == 'All') {
-        data = await PosDatabase.instance.readOrderCacheNoDineIn(branch_id.toString(), userObject['company_id']);
-      } else {
-        data = await PosDatabase.instance.readOrderCacheSpecial(selectDiningOption!);
-      }
-    }
+    data = await PosDatabase.instance.readOrderCacheByDiningOptionId(widget.diningOptionId);
 
     if(!mounted) return;
     setState(() {
@@ -339,6 +332,17 @@ class _OtherOrderAddtoCartState extends State<OtherOrderAddtoCart> {
           setState(() {
             orderCacheList[i].total_amount = total_amount.toString();
           });
+        } else {
+          if(orderCacheList[i].other_order_key !=''){
+            List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[i].other_order_key!);
+            double total_amount = 0;
+            for(int j = 0; j < data.length; j++){
+              total_amount += double.parse(data[j].total_amount!);
+            }
+            setState(() {
+              orderCacheList[i].total_amount = total_amount.toString();
+            });
+          }
         }
       }
       _isLoaded = true;

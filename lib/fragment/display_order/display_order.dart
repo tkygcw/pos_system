@@ -118,6 +118,17 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
         setState(() {
           orderCacheList[i].total_amount = total_amount.toString();
         });
+      } else {
+        if(orderCacheList[i].other_order_key !=''){
+          List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[i].other_order_key!);
+          double total_amount = 0;
+          for(int j = 0; j < data.length; j++){
+            total_amount += double.parse(data[j].total_amount!);
+          }
+          setState(() {
+            orderCacheList[i].total_amount = total_amount.toString();
+          });
+        }
       }
     }
   }
@@ -315,8 +326,17 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                                     orderCacheList[index].is_selected = true;
                                     cart.selectedOptionId = orderCacheList[index].dining_id!;
                                     cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
-                                    await getOrderDetail(orderCacheList[index]);
-                                    await addToCart(cart, orderCacheList[index]);
+                                    if(orderCacheList[index].other_order_key != ''){
+                                      List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[index].other_order_key!);
+                                      for(int i = 0; i < data.length; i++) {
+                                        await getOrderDetail(data[i]);
+                                        await addToCart(cart, data[i]);
+                                      }
+                                    } else {
+                                      await getOrderDetail(orderCacheList[index]);
+                                      await addToCart(cart, orderCacheList[index]);
+                                    }
+
                                   }
                                 } else {
                                   if(orderCacheList[index].dining_id == cart.selectedOptionId){
@@ -341,8 +361,17 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                                         orderCacheList[index].is_selected = true;
                                         cart.selectedOptionId = orderCacheList[index].dining_id!;
                                         cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
-                                        await getOrderDetail(orderCacheList[index]);
-                                        await addToCart(cart, orderCacheList[index]);
+
+                                        if(orderCacheList[index].other_order_key != ''){
+                                          List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[index].other_order_key!);
+                                          for(int i = 0; i < data.length; i++) {
+                                            await getOrderDetail(data[i]);
+                                            await addToCart(cart, data[i]);
+                                          }
+                                        } else {
+                                          await getOrderDetail(orderCacheList[index]);
+                                          await addToCart(cart, orderCacheList[index]);
+                                        }
                                       }
                                     } else {
                                       Fluttertoast.showToast(
@@ -367,6 +396,14 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                                 // }
 
                               } else if(orderCacheList[index].is_selected == true) {
+                                if(orderCacheList[index].other_order_key != ''){
+                                  List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[index].other_order_key!);
+                                  for(int i = 0; i < data.length; i++) {
+                                    data[i].is_selected = false;
+                                    cart.removePromotion();
+                                    cart.removeCartItemBasedOnOrderCache(data[i].order_cache_sqlite_id.toString());
+                                  }
+                                }
                                 if(orderCacheList[index].order_key != '') {
                                   for(int i = 0; i < orderCacheList.length; i++) {
                                     orderCacheList[i].is_selected = false;

@@ -757,10 +757,10 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableOrderCache(order_cache_id, order_cache_key, order_queue, company_id, branch_id, order_detail_id, '
-        'table_use_sqlite_id, table_use_key, batch_id, dining_id, order_sqlite_id, order_key, order_by, order_by_user_id, '
+        'table_use_sqlite_id, table_use_key, other_order_key, batch_id, dining_id, order_sqlite_id, order_key, order_by, order_by_user_id, '
         'cancel_by, cancel_by_user_id, customer_id, total_amount, qr_order, qr_order_table_sqlite_id, qr_order_table_id, accepted, '
             'payment_status, sync_status, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ',
+        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ',
         [
           data.order_cache_id,
           data.order_cache_key,
@@ -770,6 +770,7 @@ class PosDatabase {
           data.order_detail_id,
           data.table_use_sqlite_id,
           data.table_use_key,
+          data.other_order_key,
           data.batch_id,
           data.dining_id,
           data.order_sqlite_id,
@@ -2541,9 +2542,58 @@ class PosDatabase {
           'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a '
           'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
           'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
-          'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.table_use_key = ? AND a.other_order_key != ? GROUP BY other_order_key ORDER BY a.created_at DESC  ',
+          'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.table_use_key = ? AND a.other_order_key != ? GROUP BY a.other_order_key ORDER BY a.created_at DESC  ',
           ['1', '', '', branch_id, company_id, 0, '', '', '', '1', '', '', branch_id, company_id, 0, '', '', '']);
 
+      return result.map((json) => OrderCache.fromJson(json)).toList();
+    } catch (e) {
+      print(e);
+      return [];
+    }
+  }
+
+/*
+  get all order cache by other order key
+*/
+  Future<List<OrderCache>> readOrderCacheByOtherOrderKey(String otherOrderKey) async {
+    try {
+      final db = await instance.database;
+      final result = await db.rawQuery(
+          'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
+          'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
+          'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a '
+          'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
+          'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.other_order_key = ? '
+          'AND a.accepted = ? AND cancel_by = ?',
+          ['1', '', '', otherOrderKey, 0, '']);
+      return result.map((json) => OrderCache.fromJson(json)).toList();
+    } catch (e) {
+      print(e);
+      return [];
+    }
+  }
+
+/*
+  get all order cache by dining option id
+*/
+  Future<List<OrderCache>> readOrderCacheByDiningOptionId(String diningId) async {
+    try {
+      final db = await instance.database;
+      final result = await db.rawQuery(
+          'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
+          'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
+          'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM $tableOrderCache as a '
+          'JOIN $tableDiningOption as b ON a.dining_id = b.dining_id '
+          'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.payment_status != ? AND a.dining_id = ? AND '
+            'a.accepted = ? AND a.cancel_by = ? AND a.other_order_key = ? '
+          'UNION ALL '
+              'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
+              'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
+              'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM $tableOrderCache as a '
+              'JOIN $tableDiningOption as b ON a.dining_id = b.dining_id '
+              'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.payment_status != ? AND a.dining_id = ? AND '
+              'a.accepted = ? AND a.cancel_by = ? AND a.other_order_key != ? GROUP BY a.other_order_key ORDER BY a.created_at DESC ',
+          ['', '', '1', diningId, 0, '', '', '', '', '1', diningId, 0, '', '']);
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {
       print(e);

@@ -333,7 +333,8 @@ class CartPageState extends State<CartPage> {
                               ),
                               color: color.backgroundColor,
                               onPressed: () {
-                                cart.removePartialCartItem();
+                                cart.initialLoad();
+                                // cart.removePartialCartItem();
                                 //cart.removeAllTable();
                               },
                             ),
@@ -375,9 +376,10 @@ class CartPageState extends State<CartPage> {
                                                 print("diningList[index].name!: ${diningList[index].name!}");
                                                 print("cart.selectedOptionId: ${cart.selectedOptionId}");
                                                 print("diningList[index].dining_id: ${diningList[index].dining_id}");
-                                                if(cart.selectedOptionId == diningList[index].dining_id) {
-                                                  print('open other other dialog');
-                                                  openOtherOrderDialog();
+
+                                                if(cart.selectedOptionId == diningList[index].dining_id &&
+                                                    (diningList[index].name! == 'Dine in' && appSettingModel.table_order != 1 || diningList[index].name! != 'Dine in')) {
+                                                  openOtherOrderDialog(cart.selectedOptionId);
                                                 } else {
                                                   cart.selectedOption = diningList[index].name!;
                                                   cart.selectedOptionId = diningList[index].dining_id!;
@@ -2149,7 +2151,7 @@ class CartPageState extends State<CartPage> {
         });
   }
 
-  Future<Future<Object?>> openOtherOrderDialog() async {
+  Future<Future<Object?>> openOtherOrderDialog(String diningOptionId) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -2160,6 +2162,7 @@ class CartPageState extends State<CartPage> {
               opacity: a1.value,
               child: OtherOrderAddtoCart(
                 cartFinalAmount: finalAmount,
+                diningOptionId: diningOptionId
               ),
             ),
           );
@@ -2533,6 +2536,7 @@ class CartPageState extends State<CartPage> {
 */
   callAddNotDineInOrderCache(CartModel cart) async {
     try{
+      print("first_cache_other_order_key: ${cart.cartNotifierItem[0].first_cache_other_order_key}");
       resetValue();
       List<cartProductItem> outOfStockItem = await checkOrderStock(cart);
       if(outOfStockItem.isEmpty){
@@ -3132,17 +3136,15 @@ class CartPageState extends State<CartPage> {
 
             try {
               if(isAddOrder){
-                if(cart.selectedOption == 'Dine in' && localSetting.table_order != 0 || cart.selectedOption != 'Dine in') {
-                  if(cart.cartNotifierItem[0].order_cache_key! != ''){
-                    OrderCache? cacheData = await PosDatabase.instance.readOrderCacheSqliteID(cart.cartNotifierItem[0].order_cache_key!);
-                    if(cacheData!.other_order_key == ''){
-                      print("first cache other order key: ${cacheData.other_order_key}");
-                      await insertOtherOrderCacheKey(cacheData, dateTime);
-                    } else {
-                      cacheOtherOrderKey = cacheData.other_order_key!;
-                    }
-                    await insertOtherOrderCacheKey(data, dateTime);
+                if(cart.cartNotifierItem[0].order_cache_key! != ''){
+                  OrderCache? cacheData = await PosDatabase.instance.readOrderCacheSqliteID(cart.cartNotifierItem[0].order_cache_key!);
+                  if(cacheData!.other_order_key == ''){
+                    print("first cache other order key: ${cacheData.other_order_key}");
+                    await insertOtherOrderCacheKey(cacheData, dateTime);
+                  } else {
+                    cacheOtherOrderKey = cacheData.other_order_key!;
                   }
+                  await insertOtherOrderCacheKey(data, dateTime);
                 }
               }
 

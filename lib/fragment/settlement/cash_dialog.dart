@@ -622,6 +622,9 @@ class _CashDialogState extends State<CashDialog> {
   }
 
   callOpenCashDrawer() async {
+    if(paymentLists[selectedPayment!].split(':').last != 'Cash'){
+      return;
+    }
     int printStatus = await PrintReceipt().cashDrawer(printerList: this.printerList);
     if(printStatus == 1){
       Fluttertoast.showToast(

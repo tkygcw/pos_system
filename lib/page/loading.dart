@@ -2473,6 +2473,7 @@ class _LoadingPageState extends State<LoadingPage> {
                 order_detail_id: '',
                 table_use_sqlite_id: tableUseLocalId,
                 table_use_key: cloudData.table_use_key != '' && cloudData.table_use_key != null ? cloudData.table_use_key : '',
+                other_order_key: cloudData.other_order_key,
                 batch_id: cloudData.batch_id,
                 dining_id: cloudData.dining_id,
                 order_sqlite_id: orderLocalId,
