@@ -173,7 +173,7 @@ class ServerAction {
         break;
         case '7': {
           try{
-            CartDialogFunction function = CartDialogFunction();
+            SubPosCartDialogFunction function = SubPosCartDialogFunction();
             await function.readAllTable();
             objectData = {
               'table_list': function.tableList,
@@ -224,7 +224,7 @@ class ServerAction {
         case '10': {
           var decodeParam = jsonDecode(param);
           PosTable posTable = PosTable.fromJson(decodeParam);
-          CartDialogFunction function = CartDialogFunction();
+          SubPosCartDialogFunction function = SubPosCartDialogFunction();
           await function.readSpecificTableDetail(posTable);
           objectData = {
             'order_detail': function.orderDetailList,
@@ -236,7 +236,7 @@ class ServerAction {
         break;
         case '11': {
           try{
-            CartDialogFunction function = CartDialogFunction();
+            SubPosCartDialogFunction function = SubPosCartDialogFunction();
             var jsonValue = param;
             await function.callRemoveTableQuery(int.parse(jsonValue));
             result = {'status': '1', 'data': jsonValue};
@@ -248,7 +248,7 @@ class ServerAction {
         break;
         case '12': {
           try{
-            CartDialogFunction function = CartDialogFunction();
+            SubPosCartDialogFunction function = SubPosCartDialogFunction();
             var jsonValue = jsonDecode(param);
             print("json value: ${jsonValue['dragTableId']}");
             int status = await function.callMergeTableQuery(dragTableId: jsonValue['dragTableId'], targetTableId: jsonValue['targetTableId']);

@@ -1,6 +1,11 @@
 import '../../object/table.dart';
 
 class CartDialogFunction {
+
+  bool isTableInCart(PosTable posTable, List<PosTable> cartSelectedTableList){
+    return cartSelectedTableList.any((table) => table.number == posTable.number);
+  }
+
   bool isSameTable(List<PosTable> selectedTableList, List<PosTable> tableInCart){
     print("selected table length: ${selectedTableList.length}");
     print("table in cart length: ${tableInCart.length}");

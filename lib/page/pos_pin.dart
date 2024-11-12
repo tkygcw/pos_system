@@ -114,10 +114,10 @@ class _PosPinPageState extends State<PosPinPage> {
     bool hasGMS = await GmsCheck().checkGmsAvailability() ?? false;
     await initFirestoreStatus(hasGMS);
     await syncRecord.syncFromCloud();
+    await readAllPrinters();
     if(notificationModel.syncCountStarted == false){
       startTimers(hasGMS);
     }
-    await readAllPrinters();
     SyncToFirebase.instance.syncToFirebase();
     listenQROrder();
   }
@@ -647,15 +647,15 @@ class _PosPinPageState extends State<PosPinPage> {
           openPrinterDialog(devices: device);
         }
       } else {
-        await testPrintAllUsbPrinter();
+        await initAllUsbPrinter();
         await bluetoothPrinterConnect();
       }
     }
   }
 
-  testPrintAllUsbPrinter() async {
+  initAllUsbPrinter() async {
     List<Printer> usbPrinter = printerList.where((item) => item.type == 0).toList();
-    await printReceipt.selfTest(usbPrinter);
+    await printReceipt.initPrinter(usbPrinter);
   }
 
   bluetoothPrinterConnect() async {

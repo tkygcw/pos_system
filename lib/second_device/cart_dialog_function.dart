@@ -14,7 +14,7 @@ import '../object/order_modifier_detail.dart';
 import '../object/table.dart';
 import '../object/table_use_detail.dart';
 
-class CartDialogFunction {
+class SubPosCartDialogFunction {
   List<PosTable> tableList = [];
   List<OrderCache> orderCacheList = [];
   List<OrderDetail> orderDetailList = [];

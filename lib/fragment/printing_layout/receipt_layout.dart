@@ -90,8 +90,11 @@ class ReceiptLayout{
   openCashDrawer ({required isUSB, value}) async {
     var generator;
     if (isUSB) {
-      lcdDisplay.openCashDrawer();
+      final profile = await CapabilityProfile.load();
+      generator = Generator(PaperSize.mm80, profile);
       List<int> bytes = [];
+      bytes += generator.drawer();
+      iminLib.openCashDrawer();
       return bytes;
     } else {
       generator = value;
@@ -216,6 +219,7 @@ class ReceiptLayout{
     bytes += generator.feed(1);
     bytes += generator.drawer();
     bytes += generator.cut(mode: PosCutMode.full);
+    iminLib.openCashDrawer();
     return bytes;
   }
 
@@ -240,6 +244,7 @@ class ReceiptLayout{
     bytes += generator.feed(1);
     bytes += generator.drawer();
     bytes += generator.cut(mode: PosCutMode.partial);
+    iminLib.openCashDrawer();
     return bytes;
   }
 

@@ -15,7 +15,6 @@ import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
-import 'package:sqflite/sqflite.dart';
 
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
@@ -134,7 +133,7 @@ class CartDialogState extends State<CartDialog> {
                 if (tableList[targetIndex].status == 1 && tableList[dragIndex].status == 0) {
                   asyncQ.addJob((_) async {
                     try{
-                      await callAddNewTableQuery(tableList[targetIndex].table_sqlite_id!, tableList[dragIndex], cart);
+                      await callAddNewTableQuery(tableList[targetIndex], tableList[dragIndex], cart);
                     } catch(e){
                       FLog.error(
                         className: "card_dialog",
@@ -709,41 +708,42 @@ class CartDialogState extends State<CartDialog> {
     print("table id: ${posTable.table_sqlite_id!}");
     //Get specific table use detail
     List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(posTable.table_sqlite_id!);
-
-    //Get all order table cache
-    List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
-    //loop all table order cache
-    for (int i = 0; i < data.length; i++) {
-      if (!orderCacheList.contains(data)) {
-        orderCacheList = List.from(data);
+    if(tableUseDetailData.isNotEmpty){
+      //Get all order table cache
+      List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
+      //loop all table order cache
+      for (int i = 0; i < data.length; i++) {
+        if (!orderCacheList.contains(data)) {
+          orderCacheList = List.from(data);
+        }
+        //Get all order detail based on order cache id
+        List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(data[i].order_cache_key!);
+        //add all order detail from db
+        if (!orderDetailList.contains(detailData)) {
+          orderDetailList..addAll(detailData);
+        }
       }
-      //Get all order detail based on order cache id
-      List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(data[i].order_cache_key!);
-      //add all order detail from db
-      if (!orderDetailList.contains(detailData)) {
-        orderDetailList..addAll(detailData);
+      //loop all order detail
+      for (int k = 0; k < orderDetailList.length; k++) {
+        //Get data from branch link product
+        List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
+        if(data.isNotEmpty) {
+          orderDetailList[k].allow_ticket = data[0].allow_ticket;
+          orderDetailList[k].ticket_count = data[0].ticket_count;
+          orderDetailList[k].ticket_exp = data[0].ticket_exp;
+        }
+        //Get product category
+        if(orderDetailList[k].category_sqlite_id! == '0'){
+          orderDetailList[k].product_category_id = '0';
+        } else {
+          Categories category = await PosDatabase.instance.readSpecificCategoryByLocalId(orderDetailList[k].category_sqlite_id!);
+          orderDetailList[k].product_category_id = category.category_id.toString();
+        }
+        //check product modifier
+        await getOrderModifierDetail(orderDetailList[k]);
       }
+      addToCart(cart);
     }
-    //loop all order detail
-    for (int k = 0; k < orderDetailList.length; k++) {
-      //Get data from branch link product
-      List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
-      if(data.isNotEmpty) {
-        orderDetailList[k].allow_ticket = data[0].allow_ticket;
-        orderDetailList[k].ticket_count = data[0].ticket_count;
-        orderDetailList[k].ticket_exp = data[0].ticket_exp;
-      }
-      //Get product category
-      if(orderDetailList[k].category_sqlite_id! == '0'){
-        orderDetailList[k].product_category_id = '0';
-      } else {
-        Categories category = await PosDatabase.instance.readSpecificCategoryByLocalId(orderDetailList[k].category_sqlite_id!);
-        orderDetailList[k].product_category_id = category.category_id.toString();
-      }
-      //check product modifier
-      await getOrderModifierDetail(orderDetailList[k]);
-    }
-    addToCart(cart);
   }
 
   getOrderModifierDetail(OrderDetail orderDetail) async {
@@ -755,7 +755,7 @@ class CartDialogState extends State<CartDialog> {
     }
   }
 
-  addToCart(CartModel cart) async {
+  addToCart(CartModel cart) {
     cart.addAllCartOrderCache(orderCacheList);
     var value;
     List<cartProductItem> itemList = [];
@@ -799,7 +799,9 @@ class CartDialogState extends State<CartDialog> {
       await updatePosTableStatus(table_id, 0, '', '');
       selectedTable.isSelected = false;
       selectedTable.group = null;
-      cart.overrideSelectedTable(tableList.where((e) => e.isSelected == true).toList());
+      if(_cartDialogFunction.isTableInCart(selectedTable, cart.selectedTable) == true){
+        cart.overrideSelectedTable(tableList.where((e) => e.isSelected == true).toList(), notify: false);
+      }
       await readAllTable();
       // await syncAllToCloud();
       // if (this.isLogOut == true) {
@@ -904,13 +906,16 @@ class CartDialogState extends State<CartDialog> {
   //   }
   // }
 
-  callAddNewTableQuery(int targetTableId, PosTable dragedTable, CartModel cart) async {
+  callAddNewTableQuery(PosTable targetTable, PosTable dragedTable, CartModel cart) async {
     int dragTableId = dragedTable.table_sqlite_id!;
+    int targetTableId = targetTable.table_sqlite_id!;
     if(await checkTableStatus(dragTableId) == false && await checkTableStatus(targetTableId) == true){
       await createTableUseDetail(dragTableId, targetTableId);
       await updatePosTableStatus(dragTableId, 1, this.tableUseDetailKey!, tableUseKey!);
-      dragedTable.isSelected = true;
-      cart.overrideSelectedTable(tableList.where((e) => e.isSelected == true).toList());
+      if(_cartDialogFunction.isTableInCart(targetTable, cart.selectedTable)){
+        dragedTable.isSelected = true;
+        cart.overrideSelectedTable(tableList.where((e) => e.isSelected == true).toList(), notify: false);
+      }
       await readAllTable();
       // await syncAllToCloud();
       // if (this.isLogOut == true) {

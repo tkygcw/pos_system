@@ -1963,14 +1963,15 @@ class CartPageState extends State<CartPage> {
     await getAllPaymentSplit(cart);
     getAllTotal();
     checkCartItem(cart);
-    // if (cart.myCount == 0) {
-    //   WidgetsBinding.instance.addPostFrameCallback((_) {
-    //     setState(() {
-    //       _scrollDown();
-    //     });
-    //   });
-    //   cart.myCount++;
-    // }
+    print("cart mycount: ${cart.myCount }");
+    if (cart.myCount == 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _scrollDown();
+        });
+      });
+      cart.myCount++;
+    }
     if((widget.currentPage == 'table' || widget.currentPage == 'other_order') && cart.cartNotifierItem.isNotEmpty)
       isButtonDisabled = false;
     if (!controller.isClosed) {

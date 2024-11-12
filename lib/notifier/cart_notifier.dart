@@ -130,8 +130,8 @@ class CartModel extends ChangeNotifier {
   }
 
   void addItem(cartProductItem object) {
-    cartNotifierItem.insert(0, object);
-    // cartNotifierItem.add(object);
+    // cartNotifierItem.insert(0, object);
+    cartNotifierItem.add(object);
     notifyListeners();
   }
 
@@ -142,8 +142,9 @@ class CartModel extends ChangeNotifier {
 
   void overrideItem({required List<cartProductItem> cartItem, bool? notify = true}) {
     List<cartProductItem> notPlacedItem = cartNotifierItem.where((e) => e.status == 0).toList();
-    cartNotifierItem = notPlacedItem;
-    cartNotifierItem.addAll(cartItem);
+    cartNotifierItem = cartItem;
+    cartNotifierItem.addAll(notPlacedItem);
+    myCount = 0;
     if(notify = true){
       notifyListeners();
     }
