@@ -372,11 +372,6 @@ class CartPageState extends State<CartPage> {
                                                   ? cart.cartNotifierItem.isEmpty
                                                   ? setState(() {
                                                 cart.removeAllTable();
-                                                print("cart.selectedOption: ${cart.selectedOption}");
-                                                print("diningList[index].name!: ${diningList[index].name!}");
-                                                print("cart.selectedOptionId: ${cart.selectedOptionId}");
-                                                print("diningList[index].dining_id: ${diningList[index].dining_id}");
-
                                                 if(cart.selectedOptionId == diningList[index].dining_id &&
                                                     (diningList[index].name! == 'Dine in' && appSettingModel.table_order != 1 || diningList[index].name! != 'Dine in')) {
                                                   openOtherOrderDialog(cart.selectedOptionId);
@@ -385,9 +380,7 @@ class CartPageState extends State<CartPage> {
                                                   cart.selectedOptionId = diningList[index].dining_id!;
                                                 }
                                               })
-                                                  : cart.cartNotifierItem.isNotEmpty &&
-                                                  cart.cartNotifierItem[0].status != 1 &&
-                                                  cart.selectedOption != diningList[index].name!
+                                                  : cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status != 1 && cart.selectedOption != diningList[index].name!
                                                   ? setState(() {
                                                 showSecondDialog(
                                                     context, color, cart, diningList[index]);
@@ -790,7 +783,7 @@ class CartPageState extends State<CartPage> {
                                                           if (cart.cartNotifierItem.isNotEmpty) {
                                                             if(cart.cartNotifierItem[0].status == 1 && hasNewItem) {
                                                               // add on product in existing order
-                                                              asyncQ.addJob((_) async => await callAddNotDineInOrderCache(cart));
+                                                              asyncQ.addJob((_) async => await callAddNotDineInOrderCache(cart, appSettingModel));
                                                             } else if(cart.cartNotifierItem[0].status == 0) {
                                                               // create a new order
                                                               openLoadingDialogBox();
@@ -1131,7 +1124,9 @@ class CartPageState extends State<CartPage> {
 
   updateCartItem(CartModel cart) {
     for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-      cart.cartNotifierItem[i].order_cache_sqlite_id = orderCacheId;
+      if (cart.cartNotifierItem[i].order_cache_sqlite_id == null) {
+        cart.cartNotifierItem[i].order_cache_sqlite_id = orderCacheId;
+      }
       cart.cartNotifierItem[i].order_cache_key = orderCacheKey;
       cart.cartNotifierItem[i].order_queue = orderNumber;
     }
@@ -2534,7 +2529,7 @@ class CartPageState extends State<CartPage> {
 /*
   add-on call (not dine in)
 */
-  callAddNotDineInOrderCache(CartModel cart) async {
+  callAddNotDineInOrderCache(CartModel cart, AppSettingModel appSettingModel) async {
     try{
       print("first_cache_other_order_key: ${cart.cartNotifierItem[0].first_cache_other_order_key}");
       resetValue();
@@ -2556,8 +2551,8 @@ class CartPageState extends State<CartPage> {
         if(ticketProduct.isNotEmpty){
           asyncQ.addJob((_) => printReceipt.printProductTicket(printerList, int.parse(this.orderCacheId), ticketProduct));
         }
-        cart.removeAllCartItem();
-        // Navigator.of(context).pop();
+        // cart.removeAllCartItem();
+        checkDirectPayment(appSettingModel, cart);
 
         asyncQ.addJob((_) => printKitchenList());
         isCartExpanded = !isCartExpanded;

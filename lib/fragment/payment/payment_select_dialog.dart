@@ -160,7 +160,10 @@ class _PaymentSelectState extends State<PaymentSelect> {
                       if(widget.callBack != null){
                         widget.callBack!('');
                       }
-                      TableModel.instance.changeContent(true);
+
+                      // TableModel.instance.changeContent(true);
+                      cart.initialLoad();
+
                       if (canPop) {
                         Navigator.of(context).pop();
                         canPop = false;
@@ -271,6 +274,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                       if(widget.callBack != null){
                         widget.callBack!('');
                       }
+                      cart.initialLoad();
                       if (canPop) {
                         Navigator.of(context).pop();
                         canPop = false;

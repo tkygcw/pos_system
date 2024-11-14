@@ -15,6 +15,7 @@ import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/page/loading_dialog.dart';
+import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -47,6 +48,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
   List<ProductVariant> orderProductVariant = [];
   List<VariantGroup> variantGroup = [];
   List<ModifierGroup> modifierGroup = [];
+  bool _isLoad = false;
 
   @override
   void initState() {
@@ -73,6 +75,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
   }
 
   getOrderList({model}) async {
+    _isLoad = false;
     List<OrderCache> data = [];
     if (model != null) {
       model.changeContent2(false);
@@ -131,6 +134,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
         }
       }
     }
+    _isLoad = true;
   }
 
   // Future<Future<Object?>> openViewOrderDialog(OrderCache data) async {
@@ -282,7 +286,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                 ],
               ),
               resizeToAvoidBottomInset: false,
-              body: Container(
+              body: _isLoad ? Container(
                 padding: EdgeInsets.all(10),
                 child: orderCacheList.isNotEmpty ?
                 ListView.builder(
@@ -318,10 +322,19 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                                         orderCacheList[i].is_selected = true;
                                         cart.selectedOptionId = orderCacheList[i].dining_id!;
                                         cart.selectedOptionOrderKey = orderCacheList[i].order_key!;
-                                        await getOrderDetail(orderCacheList[i]);
-                                        await addToCart(cart, orderCacheList[i]);
+                                        if(orderCacheList[i].other_order_key != ''){
+                                          List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[i].other_order_key!);
+                                          for(int i = 0; i < data.length; i++) {
+                                            await getOrderDetail(data[i]);
+                                            await addToCart(cart, data[i]);
+                                          }
+                                        } else {
+                                          await getOrderDetail(orderCacheList[i]);
+                                          await addToCart(cart, orderCacheList[i]);
+                                        }
                                       }
                                     }
+
                                   } else {
                                     orderCacheList[index].is_selected = true;
                                     cart.selectedOptionId = orderCacheList[index].dining_id!;
@@ -498,7 +511,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                     ],
                   ),
                 ),
-              ),
+              ) : CustomProgressBar(),
             );
           }
           );

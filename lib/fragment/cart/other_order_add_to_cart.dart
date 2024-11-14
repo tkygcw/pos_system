@@ -74,9 +74,10 @@ class _OtherOrderAddtoCartState extends State<OtherOrderAddtoCart> {
                         itemBuilder: (BuildContext context, int index) {
                           return Card(
                             elevation: 5,
+                            color: orderCacheList[index].payment_status == 2 ? Color(0xFFFFB3B3) : Colors.white,
                             child: ListTile(
                               leading: CircleAvatar(
-                                backgroundColor: Colors.white,
+                                backgroundColor: orderCacheList[index].payment_status == 2 ? Color(0xFFFFB3B3) : Colors.white,
                                   child: orderCacheList[index].dining_name == 'Take Away' ? Icon(
                                     Icons.fastfood_sharp,
                                     color: color.backgroundColor,
@@ -118,26 +119,14 @@ class _OtherOrderAddtoCartState extends State<OtherOrderAddtoCart> {
                                 try {
                                   if(orderCacheList[index].is_selected == false){
                                     await Future.delayed(Duration(milliseconds: 300));
-                                    if(cart.cartNotifierItem.isEmpty) {
-                                      print('11cart empty');
-                                    } else {
-                                      print('11cart not empty');
-                                    }
                                     if(cart.cartNotifierItem.isEmpty){
                                       // orderCacheList[index].is_selected = true;
                                       // cart.selectedOptionId = orderCacheList[index].dining_id!;
                                       // await getOrderDetail(orderCacheList[index]);
                                       // await addToCart(cart, orderCacheList[index]);
                                       if (orderCacheList[index].order_key != '') {
-                                        for(int i = 0; i < orderCacheList.length; i ++) {
-                                          if(orderCacheList[i].order_key == orderCacheList[index].order_key && orderCacheList[index].order_key != '') {
-                                            orderCacheList[i].is_selected = true;
-                                            cart.selectedOptionId = orderCacheList[i].dining_id!;
-                                            cart.selectedOptionOrderKey = orderCacheList[i].order_key!;
-                                            await getOrderDetail(orderCacheList[i]);
-                                            await addToCart(cart, orderCacheList[i]);
-                                          }
-                                        }
+                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
+                                        return;
                                       } else {
                                         orderCacheList[index].is_selected = true;
                                         cart.selectedOptionId = orderCacheList[index].dining_id!;
@@ -427,6 +416,7 @@ class _OtherOrderAddtoCartState extends State<OtherOrderAddtoCart> {
         product_sku: orderDetailList[i].product_sku,
         order_key: orderCache.order_key,
       );
+      print("order_cache_sqlite_id: ${orderCache.order_cache_sqlite_id.toString()}");
       cartItemList.add(value);
       if(orderCache.dining_name == 'Take Away'){
         cart.selectedOption = 'Take Away';
