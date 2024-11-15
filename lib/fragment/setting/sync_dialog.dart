@@ -11,7 +11,8 @@ import '../../translation/AppLocalizations.dart';
 
 enum SyncType {
   sync,
-  firestore_sync
+  firestore_sync,
+  sync_updates_from_cloud
 }
 
 class SyncDialog extends StatefulWidget {
@@ -69,6 +70,10 @@ class _SyncDialogState extends State<SyncDialog> {
         break;
         case SyncType.firestore_sync: {
           manualSyncToFirestore();
+        }
+        break;
+        case SyncType.sync_updates_from_cloud: {
+          manualSyncUpdatesFromCloud();
         }
         break;
       }
@@ -166,6 +171,21 @@ class _SyncDialogState extends State<SyncDialog> {
       FLog.error(
         className: "sync_dialog",
         text: "manualSyncToFirestore error",
+        exception: e,
+      );
+    }
+  }
+
+  manualSyncUpdatesFromCloud(){
+    print("manualSyncUpdatesFromCloud called");
+    try{
+      syncRecord.syncFromCloud();
+      Future.delayed(Duration(seconds: 3), () => controller.sink.add("refresh"));
+    }catch(e){
+      controller.sink.add("refresh");
+      FLog.error(
+        className: "sync_dialog",
+        text: "manualSyncUpdatesFromCloud error",
         exception: e,
       );
     }

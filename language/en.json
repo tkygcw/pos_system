@@ -611,6 +611,7 @@
   "sync_reset": "Sync reset",
   "sync_reset_success": "Sync reset success",
   "sync_to_firestore": "Sync to firstore",
+  "sync_updates_from_cloud": "Sync updates from cloud",
   "system_log": "System Log",
   "system_log_empty_desc": "There are currently no system logs available",
   "table": "Table",
