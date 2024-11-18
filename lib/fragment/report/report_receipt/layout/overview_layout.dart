@@ -82,7 +82,7 @@ class OverviewReceiptLayout {
       ]);
       for(final payment in paymentList){
         bytes += generator.row([
-          PosColumn(text: payment.name!, width: 10, styles: PosStyles(align: PosAlign.left)),
+          PosColumn(text: payment.name!, width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
           PosColumn(text: Utils.to2Decimal(payment.totalAmount), width: 2, styles: PosStyles(align: PosAlign.right)),
         ]);
       }
@@ -182,7 +182,7 @@ class OverviewReceiptLayout {
       ]);
       for(final payment in paymentList){
         bytes += generator.row([
-          PosColumn(text: payment.name!, width: 8),
+          PosColumn(text: payment.name!, containsChinese: true, width: 8),
           PosColumn(text: Utils.to2Decimal(payment.totalAmount), width: 4),
         ]);
       }
