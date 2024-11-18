@@ -283,7 +283,7 @@ class BillLayout extends ReceiptLayout{
         for(int i = 0; i < paymentSplitList.length; i++) {
           //payment method
           bytes += generator.row([
-            PosColumn(text: '${paymentSplitList[i].payment_name}', width: 8, styles: PosStyles(align: PosAlign.right)),
+            PosColumn(text: '${paymentSplitList[i].payment_name}', width: 8, containsChinese: true, styles: PosStyles(align: PosAlign.right)),
             PosColumn(text: '${paymentSplitList[i].payment_received}', width: 4, styles: PosStyles(align: PosAlign.right)),
           ]);
         }
@@ -291,7 +291,7 @@ class BillLayout extends ReceiptLayout{
         //payment method
         bytes += generator.row([
           PosColumn(text: 'Payment method', width: 8, styles: PosStyles(align: PosAlign.right)),
-          PosColumn(text: '${this.paidOrder!.payment_name}', width: 4, styles: PosStyles(align: PosAlign.right)),
+          PosColumn(text: '${this.paidOrder!.payment_name}', width: 4, containsChinese: true, styles: PosStyles(align: PosAlign.right)),
         ]);
         //payment received
         bytes += generator.row([

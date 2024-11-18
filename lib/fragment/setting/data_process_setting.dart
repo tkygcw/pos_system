@@ -92,6 +92,13 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
                 ),
               ),
               ListTile(
+                title: Text('Sync updates from cloud'),
+                trailing: Icon(Icons.cloud_download),
+                onTap: () async {
+                  openSyncDialog(SyncType.sync_updates_from_cloud);
+                },
+              ),
+              ListTile(
                 title: Text(AppLocalizations.of(context)!.translate('sync_reset')),
                 trailing: Icon(Icons.refresh),
                 onTap: () async {

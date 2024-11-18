@@ -611,6 +611,7 @@
   "sync_reset": "同步重置",
   "sync_reset_success": "同步重置成功",
   "sync_to_firestore": "同步至firestore",
+  "sync_updates_from_cloud": "同步云端更新",
   "system_log": "系统日志",
   "system_log_empty_desc": "无系统日志",
   "table": "桌号",
