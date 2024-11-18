@@ -9,6 +9,7 @@ import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/cart/cart_dialog_function.dart';
+import 'package:pos_system/fragment/custom_toastification.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/page/progress_bar.dart';
@@ -938,6 +939,8 @@ class CartDialogState extends State<CartDialog> {
       //   openLogOutDialog();
       //   return;
       // }
+    } else {
+      CustomFailedFailedToast.showToast(title: AppLocalizations.of(context)!.translate('table_status_changed'), duration: 6);
     }
     await readAllTable();
     // await readAllTable(isReset: true);
