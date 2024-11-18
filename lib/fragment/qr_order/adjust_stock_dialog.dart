@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
@@ -849,7 +850,11 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       }
       this.branch_link_product_value = _branchLinkProductValue.toString();
     } catch(e){
-      print("update product stock in adjust stock dialog error: $e");
+      FLog.error(
+        className: "adjust_stock(QR)",
+        text: "updateProductStock error",
+        exception: e,
+      );
       branch_link_product_value = null;
     }
 
@@ -895,8 +900,11 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       this.table_value = _value.toString();
       //syncUpdatedTableToCloud(_value.toString());
     } catch (e) {
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('update_table_error')+" ${e}");
-      print("update table error: $e");
+      FLog.error(
+        className: "adjust_stock(QR)",
+        text: "updatePosTable error",
+        exception: e,
+      );
     }
   }
 
@@ -914,30 +922,38 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   // }
 
   updateOrderCache() async {
-    String currentBatch = widget.currentBatch;
-    List<String> _value = [];
-    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-    String dateTime = dateFormat.format(DateTime.now());
-    OrderCache orderCache = OrderCache(
-        updated_at: dateTime,
-        sync_status: widget.currentOrderCache!.sync_status == 0 ? 0 : 2,
-        order_by: 'Qr order',
-        order_by_user_id: '',
-        accepted: 0,
-        total_amount: newSubtotal.toStringAsFixed(2),
-        batch_id: tableInUsed ? this.batchNo : currentBatch,
-        table_use_key: this.tableUseKey,
-        table_use_sqlite_id: this.localTableUseId,
-        order_cache_key: widget.currentOrderCache!.order_cache_key,
-        order_cache_sqlite_id: widget.orderCacheLocalId);
-    int firestore = await firestoreQrOrderSync.acceptOrderCache(orderCache);
-    print("accept status: $firestore");
-    int status = await PosDatabase.instance.updateQrOrderCache(orderCache);
-    if (status == 1) {
-      //await acceptOrder(orderCache.order_cache_sqlite_id!);
-      OrderCache updatedCache = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCache.order_cache_sqlite_id!);
-      _value.add(jsonEncode(updatedCache));
-      this.order_cache_value = _value.toString();
+    try{
+      String currentBatch = widget.currentBatch;
+      List<String> _value = [];
+      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+      String dateTime = dateFormat.format(DateTime.now());
+      OrderCache orderCache = OrderCache(
+          updated_at: dateTime,
+          sync_status: widget.currentOrderCache!.sync_status == 0 ? 0 : 2,
+          order_by: 'Qr order',
+          order_by_user_id: '',
+          accepted: 0,
+          total_amount: newSubtotal.toStringAsFixed(2),
+          batch_id: tableInUsed ? this.batchNo : currentBatch,
+          table_use_key: this.tableUseKey,
+          table_use_sqlite_id: this.localTableUseId,
+          order_cache_key: widget.currentOrderCache!.order_cache_key,
+          order_cache_sqlite_id: widget.orderCacheLocalId);
+      int firestore = await firestoreQrOrderSync.acceptOrderCache(orderCache);
+      print("accept status: $firestore");
+      int status = await PosDatabase.instance.updateQrOrderCache(orderCache);
+      if (status == 1) {
+        //await acceptOrder(orderCache.order_cache_sqlite_id!);
+        OrderCache updatedCache = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCache.order_cache_sqlite_id!);
+        _value.add(jsonEncode(updatedCache));
+        this.order_cache_value = _value.toString();
+      }
+    }catch(e){
+      FLog.error(
+        className: "adjust_stock(QR)",
+        text: "updateOrderCache error",
+        exception: e,
+      );
     }
   }
 
@@ -970,8 +986,11 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       }
       this.order_detail_value = _value.toString();
     } catch(e){
-      print('qr update order detail error: ${e}');
-      return;
+      FLog.error(
+        className: "adjust_stock(QR)",
+        text: "updateOrderDetail error",
+        exception: e,
+      );
     }
   }
 
@@ -1000,8 +1019,11 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       //sync to cloud
       //syncTableUseDetailToCloud(_value.toString());
     } catch (e) {
-      print(e);
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('create_table_detail_error')+" ${e}");
+      FLog.error(
+        className: "adjust_stock(QR)",
+        text: "createTableUseDetail error",
+        exception: e,
+      );
     }
   }
 
@@ -1077,8 +1099,11 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
         //await syncTableUseIdToCloud(_updatedTableUseData);
       }
     } catch (e) {
-      print(e);
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('create_table_id_error')+" ${e}");
+      FLog.error(
+        className: "adjust_stock(QR)",
+        text: "createTableUseID error",
+        exception: e,
+      );
     }
   }
 
@@ -1358,8 +1383,11 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       // }
       //controller.sink.add('1');
     } catch (e) {
-      print(e);
-      print('delete order cache error: ${e}');
+      FLog.error(
+        className: "adjust_stock(QR)",
+        text: "rejectOrder error",
+        exception: e,
+      );
     }
   }
 
