@@ -12,7 +12,6 @@ import '../../object/cart_product.dart';
 import '../../object/order_cache.dart';
 import '../../object/table.dart';
 import '../../object/table_use.dart';
-import '../../translation/AppLocalizations.dart';
 
 class PlaceAddOrder extends PlaceOrder {
 
@@ -49,7 +48,7 @@ class PlaceAddOrder extends PlaceOrder {
           objectData = {
             'tb_branch_link_product': branchLinkProductList,
           };
-          return {'status': '3', 'error': AppLocalizations.of(context)?.translate('table_is_in_payment'), 'data': objectData};
+          return {'status': '3', 'error': 'table_is_in_payment', 'data': objectData};
           // result = {'status': '3', 'error': "Table is selected in payment cart"};
           // branchLinkProductList = await PosDatabase.instance.readAllBranchLinkProduct();
           // throw Exception("Table are selected in payment cart");
@@ -59,7 +58,7 @@ class PlaceAddOrder extends PlaceOrder {
         objectData = {
           'tb_branch_link_product': branchLinkProductList,
         };
-        return {'status': '3', 'error': AppLocalizations.of(context)?.translate('table_not_in_use'), 'data': objectData};
+        return {'status': '3', 'error': 'table_not_in_used', 'data': objectData};
         // branchLinkProductList = await PosDatabase.instance.readAllBranchLinkProduct();
         // throw Exception("Table not in-used");
       }
@@ -103,14 +102,15 @@ class PlaceAddOrder extends PlaceOrder {
     final int? branch_id = prefs.getInt('branch_id');
     final String? loginUser = prefs.getString('user');
     Map loginUserObject = json.decode(loginUser!);
+    OrderCache orderCache = super.orderCache!;
     String batch = '';
     try {
       int? orderQueue = await generateOrderQueue(cart);
-      batch = cart.cartNotifierItem[0].first_cache_batch!;
-      List<PosTable> inUsedTable = await checkCartTableStatus(cart.selectedTable);
-      TableUse tableUseData = await PosDatabase.instance.readSpecificTableUseByKey(inUsedTable[0].table_use_key!);
+      batch = orderCache.batch_id!;
+      // List<PosTable> inUsedTable = await checkCartTableStatus(cart.selectedTable);
+      TableUse _tableUse = await PosDatabase.instance.readSpecificTableUseByKey(orderCache.table_use_key!);
       // List<TableUse> tableUseData = await PosDatabase.instance.readSpecificTableUseId(int.parse(_tableUseId));
-      TableUse _tableUse = tableUseData;
+      // TableUse _tableUse = tableUseData;
       if (batch != '') {
         //create order cache
         OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(OrderCache(
@@ -122,7 +122,7 @@ class PlaceAddOrder extends PlaceOrder {
             order_detail_id: '',
             table_use_sqlite_id: _tableUse.table_use_sqlite_id.toString(),
             table_use_key: _tableUse.table_use_key,
-            batch_id: batch.toString().padLeft(6, '0'),
+            batch_id: batch,
             dining_id: cart.selectedOptionId,
             order_sqlite_id: '',
             order_key: '',

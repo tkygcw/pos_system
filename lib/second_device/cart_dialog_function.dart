@@ -1,11 +1,16 @@
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/notifier/table_notifier.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 
 import '../database/pos_database.dart';
+import '../main.dart';
+import '../notifier/cart_notifier.dart';
 import '../object/branch_link_product.dart';
 import '../object/categories.dart';
 import '../object/order_cache.dart';
@@ -19,10 +24,15 @@ class SubPosCartDialogFunction {
   List<OrderCache> orderCacheList = [];
   List<OrderDetail> orderDetailList = [];
   String? tableUseDetailKey, tableUseKey;
+  PosTable? inUsedTable;
+  BuildContext? context = MyApp.navigatorKey.currentContext;
 
+  PosDatabase get posDatabase => PosDatabase.instance;
+
+  TableModel get tableModel => TableModel.instance;
 
   readAllTable() async {
-    tableList = await PosDatabase.instance.readAllTable();
+    tableList = await posDatabase.readAllTable();
     sortTable();
     await readAllTableAmount();
   }
@@ -52,10 +62,10 @@ class SubPosCartDialogFunction {
     double tableAmount = 0.0;
     for (int i = 0; i < tableList.length; i++) {
       if(tableList[i].status == 1){
-        List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableList[i].table_sqlite_id!);
+        List<TableUseDetail> tableUseDetailData = await posDatabase.readSpecificTableUseDetail(tableList[i].table_sqlite_id!);
 
         if (tableUseDetailData.isNotEmpty) {
-          List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
+          List<OrderCache> data = await posDatabase.readTableOrderCache(tableUseDetailData[0].table_use_key!);
           tableList[i].group = data[0].table_use_sqlite_id;
           tableList[i].card_color = data[0].card_color;
           for (int j = 0; j < data.length; j++) {
@@ -67,46 +77,54 @@ class SubPosCartDialogFunction {
     }
   }
 
-  readSpecificTableDetail(PosTable posTable) async {
-    //Get specific table use detail
-    List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(posTable.table_sqlite_id!);
+  Future<int> readSpecificTableDetail(PosTable posTable) async {
+    try{
+      //Get specific table use detail
+      List<TableUseDetail> tableUseDetailData = await posDatabase.readSpecificTableUseDetail(posTable.table_sqlite_id!);
+      if(tableUseDetailData.isNotEmpty){
+        //Get all order table cache
+        List<OrderCache> data = await posDatabase.readTableOrderCache(tableUseDetailData[0].table_use_key!);
+        //loop all table order cache
+        for (int i = 0; i < data.length; i++) {
+          if (!orderCacheList.contains(data)) {
+            orderCacheList = List.from(data);
+          }
+          //Get all order detail based on order cache id
+          List<OrderDetail> detailData = await posDatabase.readTableOrderDetail(data[i].order_cache_key!);
+          //add all order detail from db
+          if (!orderDetailList.contains(detailData)) {
+            orderDetailList..addAll(detailData);
+          }
+        }
+        //loop all order detail
+        for (int k = 0; k < orderDetailList.length; k++) {
+          //Get data from branch link product
+          List<BranchLinkProduct> data = await posDatabase.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
+          orderDetailList[k].allow_ticket = data[0].allow_ticket;
+          orderDetailList[k].ticket_count = data[0].ticket_count;
+          orderDetailList[k].ticket_exp = data[0].ticket_exp;
+          //Get product category
+          if(orderDetailList[k].category_sqlite_id! == '0'){
+            orderDetailList[k].product_category_id = '0';
+          } else {
+            Categories category = await posDatabase.readSpecificCategoryByLocalId(orderDetailList[k].category_sqlite_id!);
+            orderDetailList[k].product_category_id = category.category_id.toString();
+          }
 
-    //Get all order table cache
-    List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
-    //loop all table order cache
-    for (int i = 0; i < data.length; i++) {
-      if (!orderCacheList.contains(data)) {
-        orderCacheList = List.from(data);
-      }
-      //Get all order detail based on order cache id
-      List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(data[i].order_cache_key!);
-      //add all order detail from db
-      if (!orderDetailList.contains(detailData)) {
-        orderDetailList..addAll(detailData);
-      }
-    }
-    //loop all order detail
-    for (int k = 0; k < orderDetailList.length; k++) {
-      //Get data from branch link product
-      List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
-      orderDetailList[k].allow_ticket = data[0].allow_ticket;
-      orderDetailList[k].ticket_count = data[0].ticket_count;
-      orderDetailList[k].ticket_exp = data[0].ticket_exp;
-      //Get product category
-      if(orderDetailList[k].category_sqlite_id! == '0'){
-        orderDetailList[k].product_category_id = '0';
+          //check product modifier
+          await getOrderModifierDetail(orderDetailList[k]);
+        }
+        return 1;
       } else {
-        Categories category = await PosDatabase.instance.readSpecificCategoryByLocalId(orderDetailList[k].category_sqlite_id!);
-        orderDetailList[k].product_category_id = category.category_id.toString();
+        return 0;
       }
-
-      //check product modifier
-      await getOrderModifierDetail(orderDetailList[k]);
+    }catch(e){
+      return 0;
     }
   }
 
   Future<void> getOrderModifierDetail(OrderDetail orderDetail) async {
-    List<OrderModifierDetail> modDetail = await PosDatabase.instance.readOrderModifierDetail(orderDetail.order_detail_sqlite_id.toString());
+    List<OrderModifierDetail> modDetail = await posDatabase.readOrderModifierDetail(orderDetail.order_detail_sqlite_id.toString());
     if (modDetail.isNotEmpty) {
       orderDetail.orderModifierDetail = modDetail;
     } else {
@@ -117,35 +135,48 @@ class SubPosCartDialogFunction {
   callRemoveTableQuery(int table_sqlite_id) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
-    if(await checkTableStatus(table_sqlite_id) == true){
-      await deleteCurrentTableUseDetail(table_sqlite_id, dateTime);
-      await updatePosTableStatus(table_sqlite_id, 0, '', '', dateTime);
-      //await readAllTable(isReset: true);
+    print("check table status: ${await _checkTableStatus(table_sqlite_id)}");
+    if(await _checkTableStatus(table_sqlite_id) == true){
+      if(await _checkIsLastTableUseDetaill() == false){
+        if(_checkIsTableInCart(table_sqlite_id) == false){
+          await deleteCurrentTableUseDetail(table_sqlite_id, dateTime);
+          await updatePosTableStatus(table_sqlite_id, 0, '', '', dateTime);
+          tableModel.changeContent(true);
+          return 1;
+        } else {
+          return 5;
+        }
+      } else {
+        return 3;
+      }
     } else {
-      return;
+      return 2;
     }
   }
 
-  Future<bool> checkTableStatus(int table_sqlite_id) async {
-    bool tableInUse = false;
-    List<PosTable> table = await PosDatabase.instance.checkPosTableStatus(table_sqlite_id);
-    if(table[0].status == 1) {
-      tableInUse = true;
+  Future<bool> _checkIsLastTableUseDetaill() async {
+    bool lastTable = false;
+    List<TableUseDetail> tableUseDetail = await posDatabase.readTableUseDetailByTableUseKey(inUsedTable!.table_use_key!);
+    if(tableUseDetail.length == 1) {
+      lastTable = true;
     }
-    // for(int i = 0; i < cart.selectedTable.length; i++){
-    //   List<PosTable> table = await PosDatabase.instance.checkPosTableStatus(cart.selectedTable[i].table_sqlite_id!);
-    //   if(table[0].status == 1){
-    //     tableInUse = true;
-    //     break;
-    //   }
-    // }
+    return lastTable;
+  }
+
+  Future<bool> _checkTableStatus(int table_sqlite_id) async {
+    bool tableInUse = false;
+    List<PosTable> table = await posDatabase.checkPosTableStatus(table_sqlite_id);
+    if(table.first.status == 1) {
+      tableInUse = true;
+      inUsedTable = table.first;
+    }
     return tableInUse;
   }
 
   deleteCurrentTableUseDetail(int currentTableId, String dateTime) async {
     print('current delete table local id: ${currentTableId}');
     try {
-      List<TableUseDetail> checkData = await PosDatabase.instance.readSpecificTableUseDetail(currentTableId);
+      List<TableUseDetail> checkData = await posDatabase.readSpecificTableUseDetail(currentTableId);
       print('check data length: ${checkData.length}');
       TableUseDetail tableUseDetailObject = TableUseDetail(
           soft_delete: dateTime,
@@ -154,7 +185,7 @@ class SubPosCartDialogFunction {
           table_sqlite_id: currentTableId.toString(),
           table_use_detail_key: checkData[0].table_use_detail_key,
           table_use_detail_sqlite_id: checkData[0].table_use_detail_sqlite_id);
-      int updatedData = await PosDatabase.instance.deleteTableUseDetailByKey(tableUseDetailObject);
+      int updatedData = await posDatabase.deleteTableUseDetailByKey(tableUseDetailObject);
     } catch (e) {
       print("delete table use detail error: $e");
     }
@@ -168,20 +199,48 @@ class SubPosCartDialogFunction {
         table_sqlite_id: dragTableId,
         status: status,
         updated_at: dateTime);
-    int updatedTable = await PosDatabase.instance.updatePosTableStatus(posTableData);
-    int updatedKey = await PosDatabase.instance.removePosTableTableUseDetailKey(posTableData);
+    int updatedTable = await posDatabase.updatePosTableStatus(posTableData);
+    int updatedKey = await posDatabase.removePosTableTableUseDetailKey(posTableData);
   }
 
-  Future<int> callMergeTableQuery({required int dragTableId, required int targetTableId}) async {
+  Future<int> callMergeTableQuery({required int dragTableId, required PosTable targetTable}) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
-    if(await checkTableStatus(dragTableId) == false && await checkTableStatus(targetTableId) == true){
-      await createTableUseDetail(dragTableId, targetTableId);
-      await updatePosTableStatus(dragTableId, 1, this.tableUseDetailKey!, tableUseKey!, dateTime);
-      return 1;
+    int targetTableId = targetTable.table_sqlite_id!;
+    if(await _checkTableStatus(dragTableId) == false && await _checkTableStatus(targetTableId) == true){
+      if(_checkTargetTableGroup(targetTable.table_use_key!) == true){
+        if(_checkIsTableInCart(targetTableId) == false){
+          await createTableUseDetail(dragTableId, targetTableId);
+          await updatePosTableStatus(dragTableId, 1, this.tableUseDetailKey!, tableUseKey!, dateTime);
+          tableModel.changeContent(true);
+          return 1;
+        } else {
+          return 3;
+        }
+      } else {
+        return 5;
+      }
     } else {
       return 2;
     }
+  }
+
+  bool _checkTargetTableGroup(String table_use_key){
+    if(table_use_key == inUsedTable!.table_use_key!){
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  bool _checkIsTableInCart(int table_sqlite_id) {
+    bool tableInCart = false;
+    CartModel cart = context!.read<CartModel>();
+    List<PosTable> inCartTableList = cart.selectedTable.where((e) => e.isInPaymentCart == true).toList();
+    if(inCartTableList.isNotEmpty){
+      tableInCart = inCartTableList.any((e) => e.table_sqlite_id == table_sqlite_id);
+    }
+    return tableInCart;
   }
 
   createTableUseDetail(int newTableId, int oldTableId) async {
@@ -189,11 +248,11 @@ class SubPosCartDialogFunction {
     String dateTime = dateFormat.format(DateTime.now());
     try {
       //read table use detail data based on target table id
-      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(oldTableId);
-      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(newTableId.toString());
+      List<TableUseDetail> tableUseDetailData = await posDatabase.readSpecificTableUseDetail(oldTableId);
+      List<PosTable> tableData = await posDatabase.readSpecificTable(newTableId.toString());
 
       //create table use detail
-      TableUseDetail insertData = await PosDatabase.instance.insertSqliteTableUseDetail(TableUseDetail(
+      TableUseDetail insertData = await posDatabase.insertSqliteTableUseDetail(TableUseDetail(
           table_use_detail_id: 0,
           table_use_detail_key: '',
           table_use_sqlite_id: tableUseDetailData[0].table_use_sqlite_id,
@@ -220,7 +279,7 @@ class SubPosCartDialogFunction {
           sync_status: 0,
           updated_at: dateTime,
           table_use_detail_sqlite_id: tableUseDetail.table_use_detail_sqlite_id);
-      int data = await PosDatabase.instance.updateTableUseDetailUniqueKey(tableUseDetailObject);
+      int data = await posDatabase.updateTableUseDetailUniqueKey(tableUseDetailObject);
     }
   }
 

@@ -73,12 +73,22 @@ class CartDialogFunction {
 
     for (var cartTable in cartSelectedTableList) {
       for (var table in inUseTables) {
-        if (table.table_sqlite_id == cartTable.table_sqlite_id) {
-          anyTableIncluded = true;
-          table.isSelected = true;
+        if(cartTable.status == 1){
+          if ((table.table_sqlite_id == cartTable.table_sqlite_id) && (table.table_use_key == cartTable.table_use_key)) {
+            anyTableIncluded = true;
+            table.isSelected = true;
 
-          // Mark all tables in the same group as selected
-          _selectTablesInGroup(table.group, tableList);
+            // Mark all tables in the same group as selected
+            _selectTablesInGroup(table.group, tableList);
+          }
+        } else {
+          if (table.table_sqlite_id == cartTable.table_sqlite_id) {
+            anyTableIncluded = true;
+            table.isSelected = true;
+
+            // Mark all tables in the same group as selected
+            _selectTablesInGroup(table.group, tableList);
+          }
         }
       }
     }

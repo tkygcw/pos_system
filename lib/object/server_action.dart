@@ -225,41 +225,77 @@ class ServerAction {
           var decodeParam = jsonDecode(param);
           PosTable posTable = PosTable.fromJson(decodeParam);
           SubPosCartDialogFunction function = SubPosCartDialogFunction();
-          await function.readSpecificTableDetail(posTable);
-          objectData = {
-            'order_detail': function.orderDetailList,
-            'order_cache': function.orderCacheList,
-            //'pos_table': data3,
-          };
-          result = {'status': '1', 'data':objectData};
+          int status = await function.readSpecificTableDetail(posTable);
+          if(status == 1){
+            objectData = {
+              'order_detail': function.orderDetailList,
+              'order_cache': function.orderCacheList,
+            };
+            result = {'status': '1', 'data':objectData};
+          } else {
+            result = {'status': '2'};
+          }
         }
         break;
         case '11': {
           try{
             SubPosCartDialogFunction function = SubPosCartDialogFunction();
             var jsonValue = param;
-            await function.callRemoveTableQuery(int.parse(jsonValue));
-            result = {'status': '1', 'data': jsonValue};
+            int status = await function.callRemoveTableQuery(int.parse(jsonValue));
+            switch(status){
+              case 1: {
+                result = {'status': '1', 'data': jsonValue};
+              }break;
+              case 2: {
+                ///table not in used
+                result = {'status': '2', 'error': 'table_not_in_used'};
+              }break;
+              case 3: {
+                ///cannot remove last table
+                print("case 3 called!!!");
+                result = {'status': '2', 'error': 'cannot_remove_this_table'};
+              }break;
+              case 5: {
+                ///table is in cart
+                result = {'status': '3', 'error': 'table_is_in_payment'};
+              }break;
+            }
           }catch(e){
             result = {'status': '4', 'exception': e.toString()};
-            print("cart dialog remove merged table request error: $e");
+            FLog.error(
+              className: "checkAction",
+              text: "Server action 11 error",
+              exception: "$e",
+            );
           }
         }
         break;
         case '12': {
           try{
             SubPosCartDialogFunction function = SubPosCartDialogFunction();
+            print("param: ${param}");
             var jsonValue = jsonDecode(param);
-            print("json value: ${jsonValue['dragTableId']}");
-            int status = await function.callMergeTableQuery(dragTableId: jsonValue['dragTableId'], targetTableId: jsonValue['targetTableId']);
+            print("json value: ${jsonValue['targetPosTable']}");
+            int status = await function.callMergeTableQuery(
+                dragTableId: jsonValue['dragTableId'],
+                targetTable: PosTable.fromJson(jsonValue['targetPosTable'])
+            );
             if(status == 1){
               result = {'status': '1'};
-            } else {
-              result = {'status': '2', 'error': "Table status changed"};
+            } else if (status == 2) {
+              result = {'status': '2', 'error': "table_status_changed"};
+            } else if (status == 3) {
+              result = {'status': '3', 'error': "table_is_in_payment"};
+            } else if (status == 5){
+              result = {'status': '2', 'error': "table_group_changed"};
             }
           }catch(e){
             result = {'status': '4', 'exception': e.toString()};
-            print("cart dialog remove merged table request error: $e");
+            FLog.error(
+              className: "checkAction",
+              text: "Server action 12 error",
+              exception: "$e",
+            );
           }
         }
         break;

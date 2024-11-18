@@ -158,7 +158,7 @@ class PlaceDineInOrder extends PlaceOrder {
         objectData = {
           'tb_branch_link_product': branchLinkProductList,
         };
-        return {'status': '3', 'error': AppLocalizations.of(context)?.translate('table_is_used'), 'data': objectData};
+        return {'status': '3', 'error': 'table_is_used', 'data': objectData};
       }
     } else {
        return stockResponse;

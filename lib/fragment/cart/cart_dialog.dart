@@ -72,6 +72,9 @@ class CartDialogState extends State<CartDialog> {
   String? table_use_detail_value, table_value, tableUseDetailKey, tableUseKey;
   String group = '';
   int initialTableStatus = 0;
+  PosTable? inUsedTable;
+
+  PosDatabase get posDatabase => PosDatabase.instance;
 
   @override
   void initState() {
@@ -560,11 +563,11 @@ class CartDialogState extends State<CartDialog> {
         updated_at: dateTime,
         table_sqlite_id: posTable.table_sqlite_id
     );
-    await PosDatabase.instance.resetPosTable(data);
+    await posDatabase.resetPosTable(data);
   }
 
   resetTableUseDetail(String dateTime, PosTable posTable) async {
-    TableUseDetail? tableUseDetailData = await PosDatabase.instance.readTableUseDetailByKey(posTable.table_use_detail_key!);
+    TableUseDetail? tableUseDetailData = await posDatabase.readTableUseDetailByKey(posTable.table_use_detail_key!);
     if(tableUseDetailData != null){
       TableUseDetail detailObject = TableUseDetail(
           status: 1,
@@ -572,15 +575,15 @@ class CartDialogState extends State<CartDialog> {
           sync_status: tableUseDetailData.sync_status == 0 ? 0 : 2,
           table_use_detail_key: posTable.table_use_detail_key
       );
-      await PosDatabase.instance.deleteTableUseDetailByKey(detailObject);
+      await posDatabase.deleteTableUseDetailByKey(detailObject);
     }
   }
 
   resetTableUse(String dateTime, PosTable posTable) async {
-    List<TableUseDetail> checkData = await PosDatabase.instance.readTableUseDetailByTableUseKey(posTable.table_use_key!);
+    List<TableUseDetail> checkData = await posDatabase.readTableUseDetailByTableUseKey(posTable.table_use_key!);
     //check is current table is merged table or not
     if(checkData.isEmpty){
-      TableUse? tableUseData = await PosDatabase.instance.readSpecificTableUseByKey2(posTable.table_use_key!);
+      TableUse? tableUseData = await posDatabase.readSpecificTableUseByKey2(posTable.table_use_key!);
       if(tableUseData != null){
         TableUse object = TableUse(
             status: 1,
@@ -588,7 +591,7 @@ class CartDialogState extends State<CartDialog> {
             sync_status: tableUseData.sync_status == 0 ? 0 : 2,
             table_use_key: posTable.table_use_key
         );
-        await PosDatabase.instance.deleteTableUseByKey(object);
+        await posDatabase.deleteTableUseByKey(object);
       }
     }
   }
@@ -620,7 +623,7 @@ class CartDialogState extends State<CartDialog> {
   readAllTable({isReset}) async {
     isLoad = false;
     CartModel cart = context.read<CartModel>();
-    tableList = await PosDatabase.instance.readAllTable();
+    tableList = await posDatabase.readAllTable();
     sortTable();
     await readAllTableAmount();
     if (widget.selectedTableList.isNotEmpty) {
@@ -680,10 +683,10 @@ class CartDialogState extends State<CartDialog> {
     double tableAmount = 0.0;
     for (int i = 0; i < tableList.length; i++) {
       if(tableList[i].status == 1){
-        List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableList[i].table_sqlite_id!);
+        List<TableUseDetail> tableUseDetailData = await posDatabase.readSpecificTableUseDetail(tableList[i].table_sqlite_id!);
 
         if (tableUseDetailData.isNotEmpty) {
-          List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
+          List<OrderCache> data = await posDatabase.readTableOrderCache(tableUseDetailData[0].table_use_key!);
 
           tableList[i].group = data[0].table_use_sqlite_id;
           tableList[i].card_color = data[0].card_color;
@@ -707,17 +710,17 @@ class CartDialogState extends State<CartDialog> {
     orderCacheList.clear();
     print("table id: ${posTable.table_sqlite_id!}");
     //Get specific table use detail
-    List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(posTable.table_sqlite_id!);
+    List<TableUseDetail> tableUseDetailData = await posDatabase.readSpecificTableUseDetail(posTable.table_sqlite_id!);
     if(tableUseDetailData.isNotEmpty){
       //Get all order table cache
-      List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
+      List<OrderCache> data = await posDatabase.readTableOrderCache(tableUseDetailData[0].table_use_key!);
       //loop all table order cache
       for (int i = 0; i < data.length; i++) {
         if (!orderCacheList.contains(data)) {
           orderCacheList = List.from(data);
         }
         //Get all order detail based on order cache id
-        List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(data[i].order_cache_key!);
+        List<OrderDetail> detailData = await posDatabase.readTableOrderDetail(data[i].order_cache_key!);
         //add all order detail from db
         if (!orderDetailList.contains(detailData)) {
           orderDetailList..addAll(detailData);
@@ -726,7 +729,7 @@ class CartDialogState extends State<CartDialog> {
       //loop all order detail
       for (int k = 0; k < orderDetailList.length; k++) {
         //Get data from branch link product
-        List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
+        List<BranchLinkProduct> data = await posDatabase.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
         if(data.isNotEmpty) {
           orderDetailList[k].allow_ticket = data[0].allow_ticket;
           orderDetailList[k].ticket_count = data[0].ticket_count;
@@ -736,7 +739,7 @@ class CartDialogState extends State<CartDialog> {
         if(orderDetailList[k].category_sqlite_id! == '0'){
           orderDetailList[k].product_category_id = '0';
         } else {
-          Categories category = await PosDatabase.instance.readSpecificCategoryByLocalId(orderDetailList[k].category_sqlite_id!);
+          Categories category = await posDatabase.readSpecificCategoryByLocalId(orderDetailList[k].category_sqlite_id!);
           orderDetailList[k].product_category_id = category.category_id.toString();
         }
         //check product modifier
@@ -747,7 +750,7 @@ class CartDialogState extends State<CartDialog> {
   }
 
   getOrderModifierDetail(OrderDetail orderDetail) async {
-    List<OrderModifierDetail> modDetail = await PosDatabase.instance.readOrderModifierDetail(orderDetail.order_detail_sqlite_id.toString());
+    List<OrderModifierDetail> modDetail = await posDatabase.readOrderModifierDetail(orderDetail.order_detail_sqlite_id.toString());
     if (modDetail.isNotEmpty) {
       orderDetail.orderModifierDetail = modDetail;
     } else {
@@ -795,14 +798,17 @@ class CartDialogState extends State<CartDialog> {
   callRemoveTableQuery(PosTable selectedTable, CartModel cart) async {
     int table_id = selectedTable.table_sqlite_id!;
     if(await checkTableStatus(table_id) == true){
-      await deleteCurrentTableUseDetail(table_id);
-      await updatePosTableStatus(table_id, 0, '', '');
-      selectedTable.isSelected = false;
-      selectedTable.group = null;
-      if(_cartDialogFunction.isTableInCart(selectedTable, cart.selectedTable) == true){
-        cart.overrideSelectedTable(tableList.where((e) => e.isSelected == true).toList(), notify: false);
+      if(await _checkIsLastTableUseDetaill() == false){
+        await deleteCurrentTableUseDetail(table_id);
+        await updatePosTableStatus(table_id, 0, '', '');
+        selectedTable.isSelected = false;
+        selectedTable.group = null;
+        if(_cartDialogFunction.isTableInCart(selectedTable, cart.selectedTable) == true){
+          cart.overrideSelectedTable(tableList.where((e) => e.isSelected == true).toList(), notify: false);
+        }
+      } else {
+        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('cannot_remove_this_table'));
       }
-      await readAllTable();
       // await syncAllToCloud();
       // if (this.isLogOut == true) {
       //   openLogOutDialog();
@@ -810,13 +816,24 @@ class CartDialogState extends State<CartDialog> {
       // }
       // await readAllTable(isReset: true);
     }
+    await readAllTable();
+  }
+
+  Future<bool> _checkIsLastTableUseDetaill() async {
+    bool lastTable = false;
+    List<TableUseDetail> tableUseDetail = await posDatabase.readTableUseDetailByTableUseKey(inUsedTable!.table_use_key!);
+    if(tableUseDetail.length == 1) {
+      lastTable = true;
+    }
+    return lastTable;
   }
 
   Future<bool> checkTableStatus(int table_id) async {
     bool tableInUse = false;
-    List<PosTable> table = await PosDatabase.instance.checkPosTableStatus(table_id);
-    if(table[0].status == 1){
+    List<PosTable> table = await posDatabase.checkPosTableStatus(table_id);
+    if(table.first.status == 1){
       tableInUse = true;
+      inUsedTable = table.first;
     }
     return tableInUse;
   }
@@ -827,7 +844,7 @@ class CartDialogState extends State<CartDialog> {
     String dateTime = dateFormat.format(DateTime.now());
     List<String> _value = [];
     try {
-      List<TableUseDetail> checkData = await PosDatabase.instance.readSpecificTableUseDetail(currentTableId);
+      List<TableUseDetail> checkData = await posDatabase.readSpecificTableUseDetail(currentTableId);
       print('check data length: ${checkData.length}');
       TableUseDetail tableUseDetailObject = TableUseDetail(
           soft_delete: dateTime,
@@ -836,10 +853,10 @@ class CartDialogState extends State<CartDialog> {
           table_sqlite_id: currentTableId.toString(),
           table_use_detail_key: checkData[0].table_use_detail_key,
           table_use_detail_sqlite_id: checkData[0].table_use_detail_sqlite_id);
-      int updatedData = await PosDatabase.instance.deleteTableUseDetailByKey(tableUseDetailObject);
+      int updatedData = await posDatabase.deleteTableUseDetailByKey(tableUseDetailObject);
       print('update status: ${updatedData}');
       if (updatedData == 1) {
-        TableUseDetail detailData = await PosDatabase.instance.readSpecificTableUseDetailByLocalId(tableUseDetailObject.table_use_detail_sqlite_id!);
+        TableUseDetail detailData = await posDatabase.readSpecificTableUseDetailByLocalId(tableUseDetailObject.table_use_detail_sqlite_id!);
         _value.add(jsonEncode(detailData));
       }
       print('tb use detail value: ${_value}');
@@ -849,7 +866,7 @@ class CartDialogState extends State<CartDialog> {
       // Map data = await Domain().SyncTableUseDetailToCloud(_value.toString());
       // if(data['status'] == 1){
       //   List responseJson = data['data'];
-      //   int tablaUseDetailData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[0]['table_use_detail_key']);
+      //   int tablaUseDetailData = await posDatabase.updateTableUseDetailSyncStatusFromCloud(responseJson[0]['table_use_detail_key']);
       // }
     } catch (e) {
       Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('delete_current_table_use_detail_error')+": ${e}");
@@ -862,7 +879,7 @@ class CartDialogState extends State<CartDialog> {
   //     Map data = await Domain().SyncTableUseDetailToCloud(value);
   //     if (data['status'] == '1') {
   //       List responseJson = data['data'];
-  //       int tablaUseDetailData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[0]['table_use_detail_key']);
+  //       int tablaUseDetailData = await posDatabase.updateTableUseDetailSyncStatusFromCloud(responseJson[0]['table_use_detail_key']);
   //     }
   //   }
   // }
@@ -878,10 +895,10 @@ class CartDialogState extends State<CartDialog> {
         table_sqlite_id: dragTableId,
         status: status,
         updated_at: dateTime);
-    int updatedTable = await PosDatabase.instance.updatePosTableStatus(posTableData);
-    int updatedKey = await PosDatabase.instance.removePosTableTableUseDetailKey(posTableData);
+    int updatedTable = await posDatabase.updatePosTableStatus(posTableData);
+    int updatedKey = await posDatabase.removePosTableTableUseDetailKey(posTableData);
     if (updatedTable == 1 && updatedKey == 1) {
-      List<PosTable> posTable = await PosDatabase.instance.readSpecificTable(posTableData.table_sqlite_id.toString());
+      List<PosTable> posTable = await posDatabase.readSpecificTable(posTableData.table_sqlite_id.toString());
       _value.add(jsonEncode(posTable[0]));
     }
     print('table value: ${_value}');
@@ -891,7 +908,7 @@ class CartDialogState extends State<CartDialog> {
     // Map response = await Domain().SyncUpdatedPosTableToCloud(_value.toString());
     // if (response['status'] == '1') {
     //   List responseJson = response['data'];
-    //   int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[0]['table_id']);
+    //   int syncData = await posDatabase.updatePosTableSyncStatusFromCloud(responseJson[0]['table_id']);
     // }
   }
 
@@ -901,7 +918,7 @@ class CartDialogState extends State<CartDialog> {
   //     Map response = await Domain().SyncUpdatedPosTableToCloud(value);
   //     if (response['status'] == '1') {
   //       List responseJson = response['data'];
-  //       int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[0]['table_id']);
+  //       int syncData = await posDatabase.updatePosTableSyncStatusFromCloud(responseJson[0]['table_id']);
   //     }
   //   }
   // }
@@ -916,13 +933,13 @@ class CartDialogState extends State<CartDialog> {
         dragedTable.isSelected = true;
         cart.overrideSelectedTable(tableList.where((e) => e.isSelected == true).toList(), notify: false);
       }
-      await readAllTable();
       // await syncAllToCloud();
       // if (this.isLogOut == true) {
       //   openLogOutDialog();
       //   return;
       // }
     }
+    await readAllTable();
     // await readAllTable(isReset: true);
   }
 
@@ -945,9 +962,9 @@ class CartDialogState extends State<CartDialog> {
           sync_status: 0,
           updated_at: dateTime,
           table_use_detail_sqlite_id: tableUseDetail.table_use_detail_sqlite_id);
-      int data = await PosDatabase.instance.updateTableUseDetailUniqueKey(tableUseDetailObject);
+      int data = await posDatabase.updateTableUseDetailUniqueKey(tableUseDetailObject);
       if (data == 1) {
-        TableUseDetail detailData = await PosDatabase.instance.readSpecificTableUseDetailByLocalId(tableUseDetailObject.table_use_detail_sqlite_id!);
+        TableUseDetail detailData = await posDatabase.readSpecificTableUseDetailByLocalId(tableUseDetailObject.table_use_detail_sqlite_id!);
         _tableUseDetailData = detailData;
       }
     }
@@ -960,11 +977,11 @@ class CartDialogState extends State<CartDialog> {
     List<String> _value = [];
     try {
       //read table use detail data based on target table id
-      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(oldTableId);
-      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(newTableId.toString());
+      List<TableUseDetail> tableUseDetailData = await posDatabase.readSpecificTableUseDetail(oldTableId);
+      List<PosTable> tableData = await posDatabase.readSpecificTable(newTableId.toString());
 
       //create table use detail
-      TableUseDetail insertData = await PosDatabase.instance.insertSqliteTableUseDetail(TableUseDetail(
+      TableUseDetail insertData = await posDatabase.insertSqliteTableUseDetail(TableUseDetail(
           table_use_detail_id: 0,
           table_use_detail_key: '',
           table_use_sqlite_id: tableUseDetailData[0].table_use_sqlite_id,
@@ -995,7 +1012,7 @@ class CartDialogState extends State<CartDialog> {
   //     Map data = await Domain().SyncTableUseDetailToCloud(value);
   //     if (data['status'] == '1') {
   //       List responseJson = data['data'];
-  //       int syncData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[0]['table_use_detail_key']);
+  //       int syncData = await posDatabase.updateTableUseDetailSyncStatusFromCloud(responseJson[0]['table_use_detail_key']);
   //     }
   //   }
   // }
@@ -1015,12 +1032,12 @@ class CartDialogState extends State<CartDialog> {
             switch (responseJson[i]['table_name']) {
               case 'tb_table_use_detail':
                 {
-                  await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+                  await posDatabase.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
                 }
                 break;
               case 'tb_table':
                 {
-                  await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+                  await posDatabase.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
                 }
                 break;
               default:

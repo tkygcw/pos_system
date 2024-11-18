@@ -45,8 +45,13 @@ abstract class PlaceOrder {
   List<BranchLinkProduct> branchLinkProductList = [];
   String localTableUseId = '';
   String tableUseKey = '', tableUseDetailKey = '', orderCacheSqliteId = '', orderCacheKey = '', orderDetailKey = '';
+  OrderCache? _orderCache;
+
+  OrderCache? get orderCache => _orderCache;
 
   PosFirestore get posFirestore => PosFirestore.instance;
+
+  PosDatabase get posDatabase => PosDatabase.instance;
 
   Future<void> createOrderCache(CartModel cart, String orderBy, String orderByUserId);
 
@@ -83,7 +88,7 @@ abstract class PlaceOrder {
     int diff = 0;
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    List<TableUse> data = await PosDatabase.instance.readAllTableUseId(branch_id!);
+    List<TableUse> data = await posDatabase.readAllTableUseId(branch_id!);
 
     while (colorFound == false) {
       /* change color */
@@ -128,7 +133,7 @@ abstract class PlaceOrder {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
 
-    List<OrderCache> data = await PosDatabase.instance.readBranchOrderCache(branch_id!);
+    List<OrderCache> data = await posDatabase.readBranchOrderCache(branch_id!);
     while (batchFound == false) {
       tempBatch = randomBatch();
       if (data.isNotEmpty) {
@@ -163,8 +168,12 @@ abstract class PlaceOrder {
   Future<bool> checkTableStatus(CartModel cart) async {
     bool tableInUse = false;
     for(int i = 0; i < cart.selectedTable.length; i++){
-      List<PosTable> table = await PosDatabase.instance.checkPosTableStatus(cart.selectedTable[i].table_sqlite_id!);
-      if(table[0].status == 1){
+      List<PosTable> table = await posDatabase.checkPosTableStatus(cart.selectedTable[i].table_sqlite_id!);
+      if(table.first.status == 1){
+        List<OrderCache> orderCache = await posDatabase.readTableOrderCache(table.first.table_use_key!);
+        if(orderCache.isNotEmpty){
+          _orderCache = orderCache.first;
+        }
         tableInUse = true;
         break;
       }
@@ -180,7 +189,7 @@ abstract class PlaceOrder {
     if(unitCartItem.isNotEmpty){
       for(int i = 0 ; i < unitCartItem.length; i++){
         print("loop: $i");
-        List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(unitCartItem[i].branch_link_product_sqlite_id!);
+        List<BranchLinkProduct> checkData = await posDatabase.readSpecificBranchLinkProduct(unitCartItem[i].branch_link_product_sqlite_id!);
         switch (checkData[0].stock_type) {
           case '1':
             {
@@ -284,7 +293,7 @@ abstract class PlaceOrder {
           updated_at: '',
           soft_delete: '');
       //create table use data
-      TableUse tableUseData = await PosDatabase.instance.insertSqliteTableUse(data);
+      TableUse tableUseData = await posDatabase.insertSqliteTableUse(data);
       localTableUseId = tableUseData.table_use_sqlite_id.toString();
       await insertTableUseKey(tableUseData, dateTime);
     } catch (e) {
@@ -304,7 +313,7 @@ abstract class PlaceOrder {
     tableUseKey = await generateTableUseKey(tableUse);
     if (tableUseKey != '') {
       TableUse tableUseObject = TableUse(table_use_key: tableUseKey, sync_status: 0, updated_at: dateTime, table_use_sqlite_id: tableUse.table_use_sqlite_id);
-      await PosDatabase.instance.updateTableUseUniqueKey(tableUseObject);
+      await posDatabase.updateTableUseUniqueKey(tableUseObject);
     }
   }
 
@@ -315,7 +324,7 @@ abstract class PlaceOrder {
       if(cart.selectedTable.isNotEmpty){
         for (int i = 0; i < cart.selectedTable.length; i++) {
           //create table use detail
-          TableUseDetail tableUseDetailData = await PosDatabase.instance.insertSqliteTableUseDetail(TableUseDetail(
+          TableUseDetail tableUseDetailData = await posDatabase.insertSqliteTableUseDetail(TableUseDetail(
               table_use_detail_id: 0,
               table_use_detail_key: '',
               table_use_sqlite_id: localTableUseId,
@@ -348,7 +357,7 @@ abstract class PlaceOrder {
     if (tableUseDetailKey != '') {
       TableUseDetail tableUseDetailObject =
       TableUseDetail(table_use_detail_key: tableUseDetailKey, sync_status: 0, updated_at: dateTime, table_use_detail_sqlite_id: tableUseDetail.table_use_detail_sqlite_id);
-      await PosDatabase.instance.updateTableUseDetailUniqueKey(tableUseDetailObject);
+      await posDatabase.updateTableUseDetailUniqueKey(tableUseDetailObject);
     }
   }
 
@@ -364,19 +373,19 @@ abstract class PlaceOrder {
     orderCacheKey = await generateOrderCacheKey(orderCache);
     if (orderCacheKey != '') {
       OrderCache orderCacheObject = OrderCache(order_cache_key: orderCacheKey, sync_status: 0, updated_at: dateTime, order_cache_sqlite_id: orderCache.order_cache_sqlite_id);
-      await PosDatabase.instance.updateOrderCacheUniqueKey(orderCacheObject);
+      await posDatabase.updateOrderCacheUniqueKey(orderCacheObject);
     }
   }
 
   Future<void> insertOrderCacheKeyIntoTableUse(CartModel cart, OrderCache orderCache, String dateTime) async {
     if (cart.selectedOption == "Dine in" && AppSettingModel.instance.table_order == 1) {
-      List<TableUse> checkTableUse = await PosDatabase.instance.readSpecificTableUseId(int.parse(orderCache.table_use_sqlite_id!));
+      List<TableUse> checkTableUse = await posDatabase.readSpecificTableUseId(int.parse(orderCache.table_use_sqlite_id!));
       TableUse tableUseObject = TableUse(
           order_cache_key: orderCacheKey,
           sync_status: checkTableUse[0].sync_status == 0 ? 0 : 2,
           updated_at: dateTime,
           table_use_sqlite_id: int.parse(orderCache.table_use_sqlite_id!));
-      await PosDatabase.instance.updateTableUseOrderCacheUniqueKey(tableUseObject);
+      await posDatabase.updateTableUseOrderCacheUniqueKey(tableUseObject);
     }
   }
 
@@ -431,7 +440,7 @@ abstract class PlaceOrder {
           created_at: dateTime,
           updated_at: '',
           soft_delete: '');
-      OrderDetail orderDetailData = await PosDatabase.instance.insertSqliteOrderDetail(object);
+      OrderDetail orderDetailData = await posDatabase.insertSqliteOrderDetail(object);
       await updateProductStock(
           orderDetailData.branch_link_product_sqlite_id.toString(),
           newOrderDetailList[j].branch_link_product_id!,
@@ -455,7 +464,7 @@ abstract class PlaceOrder {
       if (orderDetailKey != '') {
         OrderDetail orderDetailObject =
         OrderDetail(order_detail_key: orderDetailKey, sync_status: 0, updated_at: dateTime, order_detail_sqlite_id: orderDetail.order_detail_sqlite_id);
-        await PosDatabase.instance.updateOrderDetailUniqueKey(orderDetailObject);
+        await posDatabase.updateOrderDetailUniqueKey(orderDetailObject);
       }
     } catch (e) {
       print('insert order detail key error: ${e}');
@@ -474,7 +483,7 @@ abstract class PlaceOrder {
     num _totalStockQty = 0, updateStock = 0;
     BranchLinkProduct? object;
     try {
-      List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+      List<BranchLinkProduct> checkData = await posDatabase.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
       if (checkData.isNotEmpty) {
         switch (checkData[0].stock_type) {
           case '1':
@@ -486,7 +495,7 @@ abstract class PlaceOrder {
                   daily_limit: _totalStockQty.toString(),
                   branch_link_product_id: branchLinkProductId,
                   branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
-              updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
+              updateStock = await posDatabase.updateBranchLinkProductDailyLimit(object);
               posFirestore.updateBranchLinkProductDailyLimit(object);
             }
             break;
@@ -499,7 +508,7 @@ abstract class PlaceOrder {
                   stock_quantity: _totalStockQty.toString(),
                   branch_link_product_id: branchLinkProductId,
                   branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
-              updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+              updateStock = await posDatabase.updateBranchLinkProductStock(object);
               posFirestore.updateBranchLinkProductStock(object);
             }
             break;
@@ -511,7 +520,7 @@ abstract class PlaceOrder {
         }
         //return updated value
         if (updateStock == 1) {
-          List<BranchLinkProduct> updatedData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+          List<BranchLinkProduct> updatedData = await posDatabase.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
           branchLinkProductList.add(updatedData[0]);
         }
       }
@@ -522,7 +531,7 @@ abstract class PlaceOrder {
 
   Future<void> createOrderModDetail({required List<ModifierItem> modItem, required String orderDetailSqliteId, required String dateTime}) async {
     for (int k = 0; k < modItem.length; k++) {
-      OrderModifierDetail orderModifierDetailData = await PosDatabase.instance.insertSqliteOrderModifierDetail(OrderModifierDetail(
+      OrderModifierDetail orderModifierDetailData = await posDatabase.insertSqliteOrderModifierDetail(OrderModifierDetail(
           order_modifier_detail_id: 0,
           order_modifier_detail_key: '',
           order_detail_sqlite_id: orderDetailSqliteId,
@@ -549,7 +558,7 @@ abstract class PlaceOrder {
           updated_at: dateTime,
           sync_status: orderModifierDetail.sync_status == 0 ? 0 : 2,
           order_modifier_detail_sqlite_id: orderModifierDetail.order_modifier_detail_sqlite_id);
-      await PosDatabase.instance.updateOrderModifierDetailUniqueKey(orderModifierDetailData);
+      await posDatabase.updateOrderModifierDetailUniqueKey(orderModifierDetailData);
     }
   }
 
@@ -567,8 +576,8 @@ abstract class PlaceOrder {
       String dateTime = dateFormat.format(DateTime.now());
       if(cart.selectedTable.isNotEmpty){
         for (int i = 0; i < cart.selectedTable.length; i++) {
-          List<PosTable> result = await PosDatabase.instance.checkPosTableStatus(cart.selectedTable[i].table_sqlite_id!);
-          List<TableUseDetail> tableUseDetail = await PosDatabase.instance.readSpecificTableUseDetail(cart.selectedTable[i].table_sqlite_id!);
+          List<PosTable> result = await posDatabase.checkPosTableStatus(cart.selectedTable[i].table_sqlite_id!);
+          List<TableUseDetail> tableUseDetail = await posDatabase.readSpecificTableUseDetail(cart.selectedTable[i].table_sqlite_id!);
           if (result[0].status == 0) {
             PosTable posTableData = PosTable(
                 table_sqlite_id: cart.selectedTable[i].table_sqlite_id,
@@ -576,7 +585,7 @@ abstract class PlaceOrder {
                 table_use_key: tableUseKey,
                 status: 1,
                 updated_at: dateTime);
-            await PosDatabase.instance.updateCartPosTableStatus(posTableData);
+            await posDatabase.updateCartPosTableStatus(posTableData);
           }
         }
       }
@@ -589,16 +598,16 @@ abstract class PlaceOrder {
     print("generateOrderQueue called");
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
+    AppSetting? localSetting = await posDatabase.readLocalAppSetting(branch_id.toString());
     if(localSetting!.enable_numbering == 1 &&
         ((localSetting.table_order != 0 && cart.selectedOption != 'Dine in') ||
             localSetting.table_order == 0)) {
       int orderQueue = localSetting.starting_number!;
       try {
-        List<Order> orderList = await PosDatabase.instance.readLatestOrder();;
-        List<OrderCache> orderCacheList = await PosDatabase.instance.readAllOrderCache();;
-        List<Order> latestNotDineInOrder = await PosDatabase.instance.readLatestNotDineInOrder();
-        List<OrderCache> notDineInOrderCache = await PosDatabase.instance.readAllNotDineInOrderCache();
+        List<Order> orderList = await posDatabase.readLatestOrder();;
+        List<OrderCache> orderCacheList = await posDatabase.readAllOrderCache();;
+        List<Order> latestNotDineInOrder = await posDatabase.readLatestNotDineInOrder();
+        List<OrderCache> notDineInOrderCache = await posDatabase.readAllNotDineInOrderCache();
         // not yet make settlement
         if(orderList.isNotEmpty) {
           if(localSetting.table_order != 0) {
