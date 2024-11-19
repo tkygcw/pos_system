@@ -103,7 +103,7 @@ class _CancellationReportState extends State<CancellationReport> {
                                             DataColumn(
                                               label: Expanded(
                                                 child: Text(
-                                                  AppLocalizations.of(context)!.translate('total_sales'),
+                                                  AppLocalizations.of(context)!.translate('gross_sales'),
                                                   style: TextStyle(fontWeight: FontWeight.bold),
                                                 ),
                                               ),
@@ -196,7 +196,7 @@ class _CancellationReportState extends State<CancellationReport> {
                                         DataColumn(
                                           label: Expanded(
                                             child: Text(
-                                              AppLocalizations.of(context)!.translate('total_sales'),
+                                              AppLocalizations.of(context)!.translate('gross_sales'),
                                               style: TextStyle(fontWeight: FontWeight.bold),
                                             ),
                                           ),

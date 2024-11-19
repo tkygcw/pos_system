@@ -500,7 +500,7 @@ class ReportFormat {
                       ),
                       pw.Padding(
                         padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                        child: pw.Text('Total Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Gross Sales'))),
+                        child: pw.Text('Gross Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Gross Sales'))),
                       ),
                     ]
                 ),
@@ -588,7 +588,7 @@ class ReportFormat {
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Total Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Cross Sales'))),
+                          child: pw.Text('Gross Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Cross Sales'))),
                         ),
                       ]
                   ),
@@ -669,7 +669,7 @@ class ReportFormat {
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Total Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Net Sales'))),
+                          child: pw.Text('Gross Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Net Sales'))),
                         ),
                       ]
                   ),
@@ -884,7 +884,7 @@ class ReportFormat {
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Total Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Product'))),
+                          child: pw.Text('Gross Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Product'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
@@ -981,7 +981,7 @@ class ReportFormat {
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Total Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Modifier'))),
+                          child: pw.Text('Gross Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Modifier'))),
                         ),
                       ]
                   ),

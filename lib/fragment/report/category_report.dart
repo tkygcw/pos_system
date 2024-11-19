@@ -91,7 +91,7 @@ class _CategoryReportState extends State<CategoryReport> {
                                       DataColumn(
                                         label: Expanded(
                                           child: Text(
-                                            AppLocalizations.of(context)!.translate('total_sales'),
+                                            AppLocalizations.of(context)!.translate('gross_sales'),
                                             style: TextStyle(fontWeight: FontWeight.bold),
                                           ),
                                         ),
@@ -166,7 +166,7 @@ class _CategoryReportState extends State<CategoryReport> {
                                       DataColumn(
                                         label: Expanded(
                                           child: Text(
-                                            AppLocalizations.of(context)!.translate('total_sales'),
+                                            AppLocalizations.of(context)!.translate('gross_sales'),
                                             style: TextStyle(fontWeight: FontWeight.bold),
                                           ),
                                         ),
