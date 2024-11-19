@@ -2513,7 +2513,7 @@ class PosDatabase {
       final result = await db.rawQuery(
           'SELECT a.*, b.card_color FROM $tableOrderCache AS a JOIN $tableTableUse AS b ON a.table_use_key = b.table_use_key '
           'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.table_use_key = ? AND a.cancel_by = ? AND a.accepted = ? AND b.status = ? '
-          'ORDER BY a.order_cache_sqlite_id DESC',
+          'ORDER BY a.order_cache_sqlite_id ASC',
           ['', '', table_use_key, '', 0, 0]);
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {

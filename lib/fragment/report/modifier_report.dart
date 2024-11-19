@@ -92,7 +92,7 @@ class _ModifierReportState extends State<ModifierReport> {
                                       ),
                                       DataColumn(
                                         label: Expanded(
-                                          child: Text(AppLocalizations.of(context)!.translate('net_sales'),
+                                          child: Text(AppLocalizations.of(context)!.translate('total_sales'),
                                             style: TextStyle(fontWeight: FontWeight.bold),
                                           ),
                                         ),
@@ -164,7 +164,7 @@ class _ModifierReportState extends State<ModifierReport> {
                                       ),
                                       DataColumn(
                                         label: Expanded(
-                                          child: Text(AppLocalizations.of(context)!.translate('net_sales'),
+                                          child: Text(AppLocalizations.of(context)!.translate('total_sales'),
                                             style: TextStyle(fontWeight: FontWeight.bold),
                                           ),
                                         ),
