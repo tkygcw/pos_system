@@ -2534,7 +2534,7 @@ class PosDatabase {
           'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a '
           'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
           'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
-          'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.table_use_key = ? ORDER BY a.created_at DESC  ',
+          'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.table_use_key = ? ORDER BY a.created_at ASC  ',
           ['1', '', '', branch_id, company_id, 0, '', '']);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
@@ -2577,7 +2577,7 @@ class PosDatabase {
           'a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, a.payment_status,'
           'a.created_at, a.updated_at, a.soft_delete, b.name AS name '
           'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
-          'WHERE a.payment_status != ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ? AND a.table_use_key = ?',
+          'WHERE a.payment_status != ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ? AND a.table_use_key = ? ORDER BY a.created_at ASC',
           ['1', '', '', '', name, '']);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
@@ -3903,15 +3903,6 @@ class PosDatabase {
   Future<List<Order>> readAllPaidPaymentType(String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        // 'SELECT a.*, b.name AS name, COUNT(order_sqlite_id) AS item_sum, SUM(CASE WHEN a.payment_split = 0 THEN a.final_amount + 0.0 ELSE c.amount + 0.0 END) AS total_sales, '
-        //     'CASE WHEN a.payment_split = ? THEN a.payment_link_company_id ELSE c.payment_link_company_id END AS used_payment_method '
-        //     'FROM $tableOrder AS a '
-        //     'LEFT JOIN $tableOrderPaymentSplit AS c ON a.order_key = c.order_key '
-        //     'JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = used_payment_method '
-        //     'WHERE a.soft_delete = ? AND a.payment_status = ? '
-        //     'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY used_payment_method ',
-        // [0, '', 1, date1, date2]);
-
         'SELECT c.name, COUNT(a.order_sqlite_id) AS item_sum, SUM(CASE WHEN a.payment_split = 0 THEN a.final_amount + 0.0 ELSE b.amount + 0.0 END) AS total_sales, '
         'CASE WHEN a.payment_split = ? THEN a.payment_link_company_id ELSE b.payment_link_company_id END AS used_payment_method '
         'FROM $tableOrder AS a LEFT JOIN $tableOrderPaymentSplit AS b ON a.order_key = b.order_key '
@@ -3919,13 +3910,6 @@ class PosDatabase {
         'WHERE a.soft_delete = ? AND a.payment_status = ? AND SUBSTR(a.created_at, 1, 10) >= ? '
         'AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY used_payment_method ',
         [0, '', 1, date1, date2]);
-
-        // 'SELECT a.*, b.name AS name, COUNT(order_sqlite_id) AS item_sum, SUM(final_amount + 0.0) AS gross_sales, SUM(subtotal + 0.0) AS net_sales '
-        //     'FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
-        //     'WHERE a.soft_delete = ? AND a.payment_status = ? '
-        //     'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY a.payment_link_company_id ',
-        // ['', 1, date1, date2]);
-
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
