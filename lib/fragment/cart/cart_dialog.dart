@@ -760,7 +760,7 @@ class CartDialogState extends State<CartDialog> {
   }
 
   addToCart(CartModel cart) {
-    cart.addAllCartOrderCache(orderCacheList);
+    cart.overrideCartOrderCache(orderCacheList);
     var value;
     List<cartProductItem> itemList = [];
     print('order detail length: ${orderDetailList.length}');

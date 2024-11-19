@@ -421,7 +421,7 @@ abstract class PlaceOrder {
           category_sqlite_id: newOrderDetailList[j].category_sqlite_id,
           category_name: newOrderDetailList[j].category_name,
           productName: newOrderDetailList[j].product_name,
-          has_variant: newOrderDetailList[j].variant!.length == 0 ? '0' : '1',
+          has_variant: newOrderDetailList[j].productVariantName == '' ? '0' : '1',
           product_variant_name: newOrderDetailList[j].productVariantName,
           price: newOrderDetailList[j].price,
           original_price: newOrderDetailList[j].base_price,
