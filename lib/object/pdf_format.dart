@@ -884,11 +884,7 @@ class ReportFormat {
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Net Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Product'))),
-                        ),
-                        pw.Padding(
-                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Gross Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Product'))),
+                          child: pw.Text('Total Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Product'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
@@ -918,11 +914,6 @@ class ReportFormat {
                               padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
                               child: pw.Text('${getQuantityFormat(value: valueList[j].categoryOrderDetailList[i])}',
                                   style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[i].item_sum))),
-                            ),
-                            pw.Padding(
-                              padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                              child: pw.Text('${valueList[j].categoryOrderDetailList[i].double_price!.toStringAsFixed(2)}',
-                                  style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[i].double_price!.toStringAsFixed(2)))),
                             ),
                             pw.Padding(
                               padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
@@ -990,7 +981,7 @@ class ReportFormat {
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Net Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Modifier'))),
+                          child: pw.Text('Total Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Modifier'))),
                         ),
                       ]
                   ),
@@ -1141,11 +1132,7 @@ class ReportFormat {
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Net Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Net Sales'))),
-                        ),
-                        pw.Padding(
-                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Gross Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Gross Sales'))),
+                          child: pw.Text('Total Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Gross Sales'))),
                         ),
                       ]
                   ),
@@ -1162,11 +1149,7 @@ class ReportFormat {
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].net_sales.toStringAsFixed(2)}', style: pw.TextStyle(font: getFontFormat(valueList[j].net_sales.toStringAsFixed(2)))),
-                          ),
-                          pw.Padding(
-                            padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].gross_sales.toStringAsFixed(2)}', style: pw.TextStyle(font: getFontFormat(valueList[j].gross_sales.toStringAsFixed(2)))),
+                            child: pw.Text('${valueList[j].total_sales.toStringAsFixed(2)}', style: pw.TextStyle(font: getFontFormat(valueList[j].total_sales.toStringAsFixed(2)))),
                           ),
                         ]
                     ),
