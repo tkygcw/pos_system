@@ -212,7 +212,11 @@ class CartPageState extends State<CartPage> {
           return Consumer<CartModel>(builder: (context, CartModel cart, child) {
             return Consumer<NotificationModel>(builder: (context, NotificationModel notificationModel, child) {
               if(cart.cartNotifierItem.isEmpty){
-                isButtonDisabled = true;
+                if((cart.selectedOption == 'Dine in' && appSettingModel.table_order != 1 || cart.selectedOption != 'Dine in')){
+                  isButtonDisabled = false;
+                } else {
+                  isButtonDisabled = true;
+                }
               } else {
                 if(widget.currentPage != 'table' && widget.currentPage != 'other_order')
                   isButtonDisabled = false;
@@ -333,9 +337,10 @@ class CartPageState extends State<CartPage> {
                               ),
                               color: color.backgroundColor,
                               onPressed: () {
-                                cart.initialLoad();
+                                // cart.initialLoad();
+                                cart.removeAllCartItem();
                                 // cart.removePartialCartItem();
-                                //cart.removeAllTable();
+                                cart.removeAllTable();
                               },
                             ),
                           ),
@@ -372,15 +377,13 @@ class CartPageState extends State<CartPage> {
                                                   ? cart.cartNotifierItem.isEmpty
                                                   ? setState(() {
                                                 cart.removeAllTable();
-                                                if(cart.selectedOptionId == diningList[index].dining_id &&
-                                                    (diningList[index].name! == 'Dine in' && appSettingModel.table_order != 1 || diningList[index].name! != 'Dine in')) {
-                                                  openOtherOrderDialog(cart.selectedOptionId);
-                                                } else {
-                                                  cart.selectedOption = diningList[index].name!;
-                                                  cart.selectedOptionId = diningList[index].dining_id!;
-                                                }
+                                                cart.selectedOption = diningList[index].name!;
+                                                cart.selectedOptionId =
+                                                diningList[index].dining_id!;
                                               })
-                                                  : cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status != 1 && cart.selectedOption != diningList[index].name!
+                                                  : cart.cartNotifierItem.isNotEmpty &&
+                                                  cart.cartNotifierItem[0].status != 1 &&
+                                                  cart.selectedOption != diningList[index].name!
                                                   ? setState(() {
                                                 showSecondDialog(
                                                     context, color, cart, diningList[index]);
@@ -773,9 +776,13 @@ class CartPageState extends State<CartPage> {
                                                             // cart.removeAllCartItem();
                                                             // cart.removeAllTable();
                                                           } else {
-                                                            Fluttertoast.showToast(
-                                                                backgroundColor: Colors.red,
-                                                                msg: AppLocalizations.of(context)!.translate('make_sure_cart_is_not_empty_and_table_is_selected'));
+                                                            if((cart.selectedOption == 'Dine in' && appSettingModel.table_order != 1 || cart.selectedOption != 'Dine in')){
+                                                              openOtherOrderDialog(cart.selectedOptionId);
+                                                            }
+
+                                                            // Fluttertoast.showToast(
+                                                            //     backgroundColor: Colors.red,
+                                                            //     msg: AppLocalizations.of(context)!.translate('make_sure_cart_is_not_empty_and_table_is_selected'));
                                                           }
                                                         } else {
                                                           // not dine in call
@@ -793,7 +800,11 @@ class CartPageState extends State<CartPage> {
                                                             }
 
                                                           } else {
-                                                            Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                                            if((cart.selectedOption == 'Dine in' && appSettingModel.table_order != 1 || cart.selectedOption != 'Dine in')){
+                                                              openOtherOrderDialog(cart.selectedOptionId);
+                                                            }
+
+                                                            // Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                                           }
                                                         }
                                                       }
@@ -874,7 +885,9 @@ class CartPageState extends State<CartPage> {
                                                   },
                                                   child: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
                                                       ? widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
-                                                      ? Text(AppLocalizations.of(context)!.translate('place_order') + '\n (RM ${this.finalAmount})')
+                                                  ? cart.cartNotifierItem.isEmpty && (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 1 || cart.selectedOption != 'Dine in')
+                                                      ? Text(AppLocalizations.of(context)!.translate('select_order'))
+                                                      : Text(AppLocalizations.of(context)!.translate('place_order') + '\n (RM ${this.finalAmount})')
                                                       : widget.currentPage == 'table' || widget.currentPage == 'other_order'
                                                       ? Text(AppLocalizations.of(context)!.translate('pay') + ' (RM ${this.finalAmount})')
                                                       : Text(AppLocalizations.of(context)!.translate('print_receipt'))

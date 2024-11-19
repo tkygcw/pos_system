@@ -84,7 +84,8 @@ class QrOrder extends ChangeNotifier {
             sync_status: 1,
             created_at: dateTime,
             updated_at: '',
-            soft_delete: ''
+            soft_delete: '',
+            other_order_key: ''
         );
 
         OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(orderCache);

@@ -162,7 +162,9 @@ class _PaymentSelectState extends State<PaymentSelect> {
                       }
 
                       // TableModel.instance.changeContent(true);
-                      cart.initialLoad();
+                      // cart.initialLoad();
+                      cart.removeAllCartItem();
+                      cart.removeAllTable();
 
                       if (canPop) {
                         Navigator.of(context).pop();
@@ -274,7 +276,9 @@ class _PaymentSelectState extends State<PaymentSelect> {
                       if(widget.callBack != null){
                         widget.callBack!('');
                       }
-                      cart.initialLoad();
+                      // cart.initialLoad();
+                      cart.removeAllCartItem();
+                      cart.removeAllTable();
                       if (canPop) {
                         Navigator.of(context).pop();
                         canPop = false;

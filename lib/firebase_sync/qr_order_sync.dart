@@ -202,7 +202,8 @@ class FirestoreQROrderSync {
           sync_status: 0,
           created_at: data['created_at'],
           updated_at: '',
-          soft_delete: ''
+          soft_delete: '',
+          other_order_key: '',
       );
       return await PosDatabase.instance.insertSqLiteOrderCache(orderCache);
     }catch(e){
