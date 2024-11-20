@@ -88,7 +88,7 @@ class _CancelModifierReportState extends State<CancelModifierReport> {
                                           ),
                                           DataColumn(
                                             label: Expanded(
-                                              child: Text(AppLocalizations.of(context)!.translate('net_sales'),
+                                              child: Text(AppLocalizations.of(context)!.translate('gross_sales'),
                                                 style: TextStyle(fontWeight: FontWeight.bold),
                                               ),
                                             ),
@@ -159,7 +159,7 @@ class _CancelModifierReportState extends State<CancelModifierReport> {
                                       ),
                                       DataColumn(
                                         label: Expanded(
-                                          child: Text(AppLocalizations.of(context)!.translate('net_sales'),
+                                          child: Text(AppLocalizations.of(context)!.translate('gross_sales'),
                                             style: TextStyle(fontWeight: FontWeight.bold),
                                           ),
                                         ),
