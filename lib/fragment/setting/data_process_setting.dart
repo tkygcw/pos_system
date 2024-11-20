@@ -2,6 +2,7 @@ import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/custom_pin_dialog.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/setting/sync_dialog.dart';
 import 'package:pos_system/fragment/setting/system_log_dialog.dart';
@@ -87,7 +88,12 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
                   title: Text(AppLocalizations.of(context)!.translate('sync_to_firestore')),
                   trailing: Icon(Icons.sync_alt),
                   onTap: () {
-                    openSyncDialog(SyncType.firestore_sync);
+                    showDialog(
+                      context: context,
+                      builder: (context) => CustomPinDialog(callback: () => openSyncDialog(SyncType.firestore_sync),
+                      ),
+                    );
+                    // openSyncDialog(SyncType.firestore_sync);
                   },
                 ),
               ),
@@ -98,15 +104,16 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
                   openSyncDialog(SyncType.sync_updates_from_cloud);
                 },
               ),
-              ListTile(
-                title: Text(AppLocalizations.of(context)!.translate('sync_reset')),
-                trailing: Icon(Icons.refresh),
-                onTap: () async {
-                  syncRecord.count = 0;
-                  qrOrder.count = 0;
-                  Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('sync_reset_success'));
-                },
-              ),
+              ///temporally hide sync reset button
+              // ListTile(
+              //   title: Text(AppLocalizations.of(context)!.translate('sync_reset')),
+              //   trailing: Icon(Icons.refresh),
+              //   onTap: () async {
+              //     syncRecord.count = 0;
+              //     qrOrder.count = 0;
+              //     Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('sync_reset_success'));
+              //   },
+              // ),
               Divider(
                 color: Colors.grey,
                 height: 1,
