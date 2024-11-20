@@ -102,13 +102,6 @@ class _CancellationReportState extends State<CancellationReport> {
                                             ),
                                             DataColumn(
                                               label: Expanded(
-                                                child: Text(AppLocalizations.of(context)!.translate('net_sales'),
-                                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                                ),
-                                              ),
-                                            ),
-                                            DataColumn(
-                                              label: Expanded(
                                                 child: Text(
                                                   AppLocalizations.of(context)!.translate('gross_sales'),
                                                   style: TextStyle(fontWeight: FontWeight.bold),
@@ -202,13 +195,6 @@ class _CancellationReportState extends State<CancellationReport> {
                                         ),
                                         DataColumn(
                                           label: Expanded(
-                                            child: Text(AppLocalizations.of(context)!.translate('net_sales'),
-                                              style: TextStyle(fontWeight: FontWeight.bold),
-                                            ),
-                                          ),
-                                        ),
-                                        DataColumn(
-                                          label: Expanded(
                                             child: Text(
                                               AppLocalizations.of(context)!.translate('gross_sales'),
                                               style: TextStyle(fontWeight: FontWeight.bold),
@@ -285,7 +271,6 @@ class _CancellationReportState extends State<CancellationReport> {
               ),
               DataCell(Text('')),
               DataCell(Text(orderDetailCategoryData[i].category_item_sum is double ? '${orderDetailCategoryData[i].category_item_sum!.toStringAsFixed(2)}' : '${orderDetailCategoryData[i].category_item_sum}')),
-              DataCell(Text('${orderDetailCategoryData[i].category_net_sales!.toStringAsFixed(2)}')),
               DataCell(Text('${Utils.to2Decimal(orderDetailCategoryData[i].category_gross_sales!)}')),
               DataCell(Text('')),
             ],
@@ -300,7 +285,6 @@ class _CancellationReportState extends State<CancellationReport> {
                 DataCell(Text(orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum is double ?
                 '${orderDetailCategoryData[i].categoryOrderDetailList[j].item_qty}/${orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum!.toStringAsFixed(2)}(${orderDetailCategoryData[i].categoryOrderDetailList[j].unit})' :
                 '${orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum}')),
-                DataCell(Text('${orderDetailCategoryData[i].categoryOrderDetailList[j].double_price!.toStringAsFixed(2)}')),
                 // DataCell(Text('${categoryData[i].categoryOrderDetailList[j].gross_price!.toStringAsFixed(2)}')),
                 DataCell(Text('${Utils.to2Decimal(orderDetailCategoryData[i].categoryOrderDetailList[j].gross_price!)}')),
                 DataCell(Text('${orderDetailCategoryData[i].categoryOrderDetailList[j].cancel_by}')),
