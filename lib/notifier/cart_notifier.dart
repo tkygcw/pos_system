@@ -22,10 +22,16 @@ class CartModel extends ChangeNotifier {
   String selectedOptionOrderKey = '';
   String? subtotal;
   bool isInit = false;
-  int myCount = 0;
   bool isChange = false;
   List<String> groupList = [];
   List<OrderCache> _currentOrderCache = [];
+  int _scrollDown = 0;
+
+  int get scrollDown => _scrollDown;
+
+  set setScrollDown(int value) {
+    _scrollDown = value;
+  }
 
   List<OrderCache> get currentOrderCache => _currentOrderCache;
 
@@ -103,7 +109,7 @@ class CartModel extends ChangeNotifier {
   }
 
   void resetCount() {
-    myCount = 0;
+    _scrollDown = 0;
     notifyListeners();
   }
 
@@ -132,8 +138,8 @@ class CartModel extends ChangeNotifier {
   }
 
   void addItem(cartProductItem object) {
-    // cartNotifierItem.insert(0, object);
     cartNotifierItem.add(object);
+    _scrollDown = 0;
     notifyListeners();
   }
 
@@ -146,7 +152,7 @@ class CartModel extends ChangeNotifier {
     List<cartProductItem> notPlacedItem = cartNotifierItem.where((e) => e.status == 0).toList();
     cartNotifierItem = cartItem;
     cartNotifierItem.addAll(notPlacedItem);
-    myCount = 0;
+    _scrollDown = 0;
     if(notify = true){
       notifyListeners();
     }

@@ -1963,14 +1963,14 @@ class CartPageState extends State<CartPage> {
     await getAllPaymentSplit(cart);
     getAllTotal();
     checkCartItem(cart);
-    print("cart mycount: ${cart.myCount }");
-    if (cart.myCount == 0) {
+    print("cart scroll down: ${cart.scrollDown }");
+    if (cart.scrollDown == 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         setState(() {
           _scrollDown();
         });
       });
-      cart.myCount++;
+      cart.setScrollDown = 1;
     }
     if((widget.currentPage == 'table' || widget.currentPage == 'other_order') && cart.cartNotifierItem.isNotEmpty)
       isButtonDisabled = false;
