@@ -4,12 +4,12 @@ import 'dart:math';
 
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:collection/collection.dart';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/fragment/custom_toastification.dart';
 import 'package:pos_system/second_device/server.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 
@@ -18,7 +18,6 @@ import '../../main.dart';
 import '../../notifier/app_setting_notifier.dart';
 import '../../notifier/cart_notifier.dart';
 import '../../notifier/fail_print_notifier.dart';
-import '../../notifier/table_notifier.dart';
 import '../../object/app_setting.dart';
 import '../../object/branch_link_product.dart';
 import '../../object/cart_product.dart';
@@ -33,7 +32,6 @@ import '../../object/table.dart';
 import '../../object/table_use.dart';
 import '../../object/table_use_detail.dart';
 import '../../object/variant_group.dart';
-import '../../translation/AppLocalizations.dart';
 import '../../utils/Utils.dart';
 
 
@@ -604,8 +602,8 @@ abstract class PlaceOrder {
             localSetting.table_order == 0)) {
       int orderQueue = localSetting.starting_number!;
       try {
-        List<Order> orderList = await posDatabase.readLatestOrder();;
-        List<OrderCache> orderCacheList = await posDatabase.readAllOrderCache();;
+        List<Order> orderList = await posDatabase.readLatestOrder();
+        List<OrderCache> orderCacheList = await posDatabase.readAllOrderCache();
         List<Order> latestNotDineInOrder = await posDatabase.readLatestNotDineInOrder();
         List<OrderCache> notDineInOrderCache = await posDatabase.readAllNotDineInOrderCache();
         // not yet make settlement
@@ -661,7 +659,11 @@ abstract class PlaceOrder {
         }
         return orderQueue;
       } catch(e) {
-        print("generateOrderQueue error: $e");
+        FLog.error(
+          className: "place_order",
+          text: "(Sub pos)generateOrderQueue error",
+          exception: e,
+        );
         return orderQueue = localSetting.starting_number!;
       }
     }
