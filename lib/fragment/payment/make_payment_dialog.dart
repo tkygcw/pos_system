@@ -808,7 +808,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                                   ],
                                                                 );
                                                               },
-                                                            ) : null;
+                                                            ).then((_) {
+                                                              if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                                setState(() {
+                                                                  split_payment = false;
+                                                                });
+                                                              }
+                                                            }) : null;
                                                             setState(() {
                                                               isButtonDisabled = false;
                                                             });
@@ -1060,7 +1066,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                           ],
                                                         );
                                                       },
-                                                    ) : null;
+                                                    ).then((_) {
+                                                      if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                        setState(() {
+                                                          split_payment = false;
+                                                        });
+                                                      }
+                                                    }) : null;
                                                     setState(() {
                                                     isButtonDisabled = false;
                                                     });
@@ -1318,7 +1330,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                                 ],
                                                               );
                                                             },
-                                                          ) : null;
+                                                          ).then((_) {
+                                                            if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                              setState(() {
+                                                                split_payment = false;
+                                                              });
+                                                            }
+                                                          }) : null;
                                                           setState(() {
                                                             isButtonDisabled = false;
                                                           });
@@ -1829,7 +1847,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                         ],
                                                       );
                                                     },
-                                                  ) : null;
+                                                  ).then((_) {
+                                                    if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                      setState(() {
+                                                        split_payment = false;
+                                                      });
+                                                    }
+                                                  }) : null;
                                                   setState(() {
                                                     isButtonDisabled = false;
                                                   });
@@ -2080,7 +2104,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                       ],
                                                     );
                                                   },
-                                                ) : null;
+                                                ).then((_) {
+                                                  if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                    setState(() {
+                                                      split_payment = false;
+                                                    });
+                                                  }
+                                                }) : null;
                                                 setState(() {
                                                   isButtonDisabled = false;
                                                 });
@@ -2335,7 +2365,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                       ],
                                                     );
                                                   },
-                                                ) : null;
+                                                ).then((_) {
+                                                  if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                    setState(() {
+                                                      split_payment = false;
+                                                    });
+                                                  }
+                                                }) : null;
                                                 setState(() {
                                                   isButtonDisabled = false;
                                                 });
@@ -2816,7 +2852,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                             ],
                                                           );
                                                         },
-                                                      ) : null;
+                                                      ).then((_) {
+                                                        if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                          setState(() {
+                                                            split_payment = false;
+                                                          });
+                                                        }
+                                                      }) : null;
                                                       setState(() {
                                                         isButtonDisabled = false;
                                                       });
@@ -3056,7 +3098,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                         ],
                                                       );
                                                     },
-                                                  ) : null;
+                                                  ).then((_) {
+                                                    if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                      setState(() {
+                                                        split_payment = false;
+                                                      });
+                                                    }
+                                                  }) : null;
                                                   setState(() {
                                                     isButtonDisabled = false;
                                                   });
@@ -3297,7 +3345,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                       ],
                                                     );
                                                   },
-                                                ) : null;
+                                                ).then((_) {
+                                                  if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                    setState(() {
+                                                      split_payment = false;
+                                                    });
+                                                  }
+                                                }) : null;
                                                 setState(() {
                                                   isButtonDisabled = false;
                                                 });
