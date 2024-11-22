@@ -6,6 +6,7 @@ import 'package:pos_system/object/attendance.dart';
 import 'package:pos_system/object/bill.dart';
 import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/branch_link_user.dart';
+import 'package:pos_system/object/cancel_receipt.dart';
 import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/current_version.dart';
@@ -1653,6 +1654,25 @@ class PosDatabase {
           ${CurrentVersionFields.created_at} $textType,
           ${CurrentVersionFields.updated_at} $textType,
           ${CurrentVersionFields.soft_delete} $textType)''');
+
+/*
+    create cancel receipt table
+*/
+    await db.execute('''CREATE TABLE $tableCancelReceipt(
+          ${CancelReceiptFields.cancel_receipt_sqlite_id} $idType,
+          ${CancelReceiptFields.cancel_receipt_id} $integerType,
+          ${CancelReceiptFields.cancel_receipt_key} $textType,
+          ${CancelReceiptFields.branch_id} $textType,
+          ${CancelReceiptFields.product_name_font_size} $integerType,
+          ${CancelReceiptFields.other_font_size} $integerType,
+          ${CancelReceiptFields.paper_size} $textType,
+          ${CancelReceiptFields.show_product_sku} $integerType,
+          ${CancelReceiptFields.show_product_price} $integerType,
+          ${CancelReceiptFields.sync_status} $integerType,
+          ${CancelReceiptFields.created_at} $textType,
+          ${CancelReceiptFields.updated_at} $textType,
+          ${CancelReceiptFields.soft_delete} $textType)''');
+
   }
 
 
@@ -4490,6 +4510,23 @@ class PosDatabase {
     final result = await db.rawQuery('SELECT * FROM $tableKitchenList WHERE soft_delete = ? AND paper_size = ? ORDER BY kitchen_list_sqlite_id ', ['', paperSize]);
     if (result.isNotEmpty) {
       return KitchenList.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  ----------------------------Cancel receipt layout part------------------------------------------------------------------------------------------------
+*/
+
+/**
+  read specific cancel receipt layout by paper size
+*/
+  Future<CancelReceipt?> readSpecificCancelReceiptByPaperSize(String paperSize) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableCancelReceipt WHERE soft_delete = ? AND paper_size = ? ', ['', paperSize]);
+    if (result.isNotEmpty) {
+      return CancelReceipt.fromJson(result.first);
     } else {
       return null;
     }

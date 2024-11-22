@@ -9,8 +9,7 @@ class CancelReceiptFields {
     product_name_font_size,
     other_font_size,
     paper_size,
-    cancel_receipt_show_price,
-    show_product_dash,
+    show_product_price,
     show_product_sku,
     sync_status,
     created_at,
@@ -25,8 +24,7 @@ class CancelReceiptFields {
   static String product_name_font_size = 'product_name_font_size';
   static String other_font_size = 'other_font_size';
   static String paper_size = 'paper_size';
-  static String cancel_receipt_show_price = 'cancel_receipt_show_price';
-  static String show_product_dash = 'show_product_dash';
+  static String show_product_price = 'show_product_price';
   static String show_product_sku = 'show_product_sku';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
@@ -43,29 +41,27 @@ class CancelReceipt {
   int? product_name_font_size;
   int? other_font_size;
   String? paper_size;
-  int? cancel_receipt_show_price;
-  int? show_product_dash;
+  int? show_product_price;
   int? show_product_sku;
   int? sync_status;
   String? created_at;
   String? updated_at;
   String? soft_delete;
 
-  CancelReceipt(
-      {this.cancel_receipt_sqlite_id,
-        this.cancel_receipt_id,
-        this.cancel_receipt_key,
-        this.branch_id,
-        this.product_name_font_size,
-        this.other_font_size,
-        this.paper_size,
-        this.cancel_receipt_show_price,
-        this.show_product_dash,
-        this.show_product_sku,
-        this.sync_status,
-        this.created_at,
-        this.updated_at,
-        this.soft_delete});
+  CancelReceipt({
+    this.cancel_receipt_sqlite_id,
+    this.cancel_receipt_id,
+    this.cancel_receipt_key,
+    this.branch_id,
+    this.product_name_font_size,
+    this.other_font_size,
+    this.paper_size,
+    this.show_product_price,
+    this.show_product_sku,
+    this.sync_status,
+    this.created_at,
+    this.updated_at,
+    this.soft_delete});
 
   CancelReceipt copy({
     int? cancel_receipt_sqlite_id,
@@ -75,8 +71,7 @@ class CancelReceipt {
     int? product_name_font_size,
     int? other_font_size,
     String? paper_size,
-    int? cancel_receipt_show_price,
-    int? show_product_dash,
+    int? show_product_price,
     int? show_product_sku,
     int? sync_status,
     String? created_at,
@@ -91,8 +86,7 @@ class CancelReceipt {
           product_name_font_size: product_name_font_size ?? this.product_name_font_size,
           other_font_size: other_font_size ?? this.other_font_size,
           paper_size: paper_size ?? this.paper_size,
-          cancel_receipt_show_price: cancel_receipt_show_price ?? this.cancel_receipt_show_price,
-          show_product_dash: show_product_dash ?? this.show_product_dash,
+          show_product_price: show_product_price ?? this.show_product_price,
           show_product_sku: show_product_sku ?? this.show_product_sku,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
@@ -107,8 +101,7 @@ class CancelReceipt {
     product_name_font_size: json[CancelReceiptFields.product_name_font_size] as int?,
     other_font_size: json[CancelReceiptFields.other_font_size] as int?,
     paper_size: json[CancelReceiptFields.paper_size] as String?,
-    cancel_receipt_show_price: json[CancelReceiptFields.cancel_receipt_show_price] as int?,
-    show_product_dash: json[CancelReceiptFields.show_product_dash] as int?,
+    show_product_price: json[CancelReceiptFields.show_product_price] as int?,
     show_product_sku: json[CancelReceiptFields.show_product_sku] as int?,
     sync_status: json[CancelReceiptFields.sync_status] as int?,
     created_at: json[CancelReceiptFields.created_at] as String?,
@@ -124,8 +117,7 @@ class CancelReceipt {
     CancelReceiptFields.product_name_font_size: product_name_font_size,
     CancelReceiptFields.other_font_size: other_font_size,
     CancelReceiptFields.paper_size: paper_size,
-    CancelReceiptFields.cancel_receipt_show_price: cancel_receipt_show_price,
-    CancelReceiptFields.show_product_dash: show_product_dash,
+    CancelReceiptFields.show_product_price: show_product_price,
     CancelReceiptFields.show_product_sku: show_product_sku,
     CancelReceiptFields.sync_status: sync_status,
     CancelReceiptFields.created_at: created_at,
