@@ -13,7 +13,8 @@ import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/second_device/cart_dialog_function.dart';
-import 'package:pos_system/second_device/place_order.dart';
+import 'package:pos_system/second_device/order/dine_in_order.dart';
+import 'package:pos_system/second_device/order/place_order.dart';
 import 'package:pos_system/second_device/reprint_kitchen_list_function.dart';
 import 'package:pos_system/second_device/table_function.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,6 +22,8 @@ import 'package:version/version.dart';
 
 import '../database/pos_database.dart';
 import '../main.dart';
+import '../second_device/order/add_on_order.dart';
+import '../second_device/order/not_dine_in_order.dart';
 import 'branch_link_promotion.dart';
 
 class ServerAction {
@@ -55,7 +58,7 @@ class ServerAction {
   Future<Map<String, dynamic>?> checkAction({required String action, param, String? address}) async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    String minVersion = '1.0.21';
+    String minVersion = '1.0.22';
     Map<String, dynamic>? result;
     Map<String, dynamic>? objectData;
     try{
@@ -170,7 +173,7 @@ class ServerAction {
         break;
         case '7': {
           try{
-            CartDialogFunction function = CartDialogFunction();
+            SubPosCartDialogFunction function = SubPosCartDialogFunction();
             await function.readAllTable();
             objectData = {
               'table_list': function.tableList,
@@ -188,19 +191,9 @@ class ServerAction {
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam['cart']);
             if(cart.selectedOption == 'Dine in' && AppSettingModel.instance.table_order != 0){
-              PlaceNewDineInOrder order = PlaceNewDineInOrder();
-              Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
-              if(cartItem != null){
-                return result = cartItem;
-              }
-              result = await order.callCreateNewOrder(cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
+              result = await placeOrderFunction(PlaceDineInOrder(), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
             } else {
-              PlaceNotDineInOrder order = PlaceNotDineInOrder();
-              Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
-              if(cartItem != null){
-                return result = cartItem;
-              }
-              result = await order.callCreateNewNotDineOrder(cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
+              result = await placeOrderFunction(PlaceNotDineInOrder(), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
             }
           } catch(e){
             result = {'status': '4', 'exception': "New-order error: ${e.toString()}"};
@@ -215,14 +208,9 @@ class ServerAction {
         case '9': {
           try{
             CartModel cart = CartModel();
-            PlaceAddOrder order = PlaceAddOrder();
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam['cart']);
-            Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
-            if(cartItem != null){
-              return result = cartItem;
-            }
-            result = await order.callAddOrderCache(cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
+            result = await placeOrderFunction(PlaceAddOrder(), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
           } catch(e){
             result = {'status': '4', 'exception': "add-order error: ${e.toString()}"};
             FLog.error(
@@ -236,42 +224,78 @@ class ServerAction {
         case '10': {
           var decodeParam = jsonDecode(param);
           PosTable posTable = PosTable.fromJson(decodeParam);
-          CartDialogFunction function = CartDialogFunction();
-          await function.readSpecificTableDetail(posTable);
-          objectData = {
-            'order_detail': function.orderDetailList,
-            'order_cache': function.orderCacheList,
-            //'pos_table': data3,
-          };
-          result = {'status': '1', 'data':objectData};
+          SubPosCartDialogFunction function = SubPosCartDialogFunction();
+          int status = await function.readSpecificTableDetail(posTable);
+          if(status == 1){
+            objectData = {
+              'order_detail': function.orderDetailList,
+              'order_cache': function.orderCacheList,
+            };
+            result = {'status': '1', 'data':objectData};
+          } else {
+            result = {'status': '2'};
+          }
         }
         break;
         case '11': {
           try{
-            CartDialogFunction function = CartDialogFunction();
+            SubPosCartDialogFunction function = SubPosCartDialogFunction();
             var jsonValue = param;
-            await function.callRemoveTableQuery(int.parse(jsonValue));
-            result = {'status': '1', 'data': jsonValue};
+            int status = await function.callRemoveTableQuery(int.parse(jsonValue));
+            switch(status){
+              case 1: {
+                result = {'status': '1', 'data': jsonValue};
+              }break;
+              case 2: {
+                ///table not in used
+                result = {'status': '2', 'error': 'table_not_in_used'};
+              }break;
+              case 3: {
+                ///cannot remove last table
+                print("case 3 called!!!");
+                result = {'status': '2', 'error': 'cannot_remove_this_table'};
+              }break;
+              case 5: {
+                ///table is in cart
+                result = {'status': '3', 'error': 'table_is_in_payment'};
+              }break;
+            }
           }catch(e){
             result = {'status': '4', 'exception': e.toString()};
-            print("cart dialog remove merged table request error: $e");
+            FLog.error(
+              className: "checkAction",
+              text: "Server action 11 error",
+              exception: "$e",
+            );
           }
         }
         break;
         case '12': {
           try{
-            CartDialogFunction function = CartDialogFunction();
+            SubPosCartDialogFunction function = SubPosCartDialogFunction();
+            print("param: ${param}");
             var jsonValue = jsonDecode(param);
-            print("json value: ${jsonValue['dragTableId']}");
-            int status = await function.callMergeTableQuery(dragTableId: jsonValue['dragTableId'], targetTableId: jsonValue['targetTableId']);
+            print("json value: ${jsonValue['targetPosTable']}");
+            int status = await function.callMergeTableQuery(
+                dragTableId: jsonValue['dragTableId'],
+                targetTable: PosTable.fromJson(jsonValue['targetPosTable'])
+            );
             if(status == 1){
               result = {'status': '1'};
-            } else {
-              result = {'status': '2', 'error': "Table status changed"};
+            } else if (status == 2) {
+              result = {'status': '2', 'error': "table_status_changed"};
+            } else if (status == 3) {
+              result = {'status': '3', 'error': "table_is_in_payment"};
+            } else if (status == 5){
+              result = {'status': '2', 'error': "table_group_changed"};
             }
           }catch(e){
             result = {'status': '4', 'exception': e.toString()};
-            print("cart dialog remove merged table request error: $e");
+            FLog.error(
+              className: "checkAction",
+              text: "Server action 12 error",
+              exception: "$e",
+            );
           }
         }
         break;
@@ -326,6 +350,10 @@ class ServerAction {
       result = {'status': '2'};
       return result;
     }
+  }
+
+  Future<Map<String, dynamic>>placeOrderFunction(PlaceOrder orderType, cart, address, orderBy, orderByUserId) async {
+    return await orderType.placeOrder(cart, address, orderBy, orderByUserId);
   }
 
   Future<List<Promotion>> getBranchPromotionData() async {
