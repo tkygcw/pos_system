@@ -1963,13 +1963,14 @@ class CartPageState extends State<CartPage> {
     await getAllPaymentSplit(cart);
     getAllTotal();
     checkCartItem(cart);
-    if (cart.myCount == 0) {
+    print("cart scroll down: ${cart.scrollDown }");
+    if (cart.scrollDown == 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         setState(() {
           _scrollDown();
         });
       });
-      cart.myCount++;
+      cart.setScrollDown = 1;
     }
     if((widget.currentPage == 'table' || widget.currentPage == 'other_order') && cart.cartNotifierItem.isNotEmpty)
       isButtonDisabled = false;
@@ -2413,8 +2414,8 @@ class CartPageState extends State<CartPage> {
         asyncQ.addJob((_) => printKitchenList());
         isCartExpanded = !isCartExpanded;
       } else {
-        cart.removeAllCartItem();
-        cart.removeAllTable();
+        // cart.removeAllCartItem();
+        // cart.removeAllTable();
         Navigator.of(context).pop();
         ShowPlaceOrderFailedToast.showToast(AppLocalizations.of(context)!.translate('table_is_used'));
       }
@@ -2470,8 +2471,8 @@ class CartPageState extends State<CartPage> {
           showOutOfStockDialog(outOfStockItem);
         }
       } else {
-        cart.removeAllCartItem();
-        cart.removeAllTable();
+        // cart.removeAllCartItem();
+        // cart.removeAllTable();
         Navigator.of(context).pop();
         ShowPlaceOrderFailedToast.showToast(AppLocalizations.of(context)!.translate('table_not_in_use'));
       }

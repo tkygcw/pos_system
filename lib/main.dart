@@ -32,7 +32,7 @@ import 'notifier/cart_notifier.dart';
 import 'notifier/connectivity_change_notifier.dart';
 import 'notifier/printer_notifier.dart';
 import 'notifier/theme_color.dart';
-import 'object/lcd_display.dart';
+import 'object/imin_lib.dart';
 import 'page/loading.dart';
 import 'utils/notification_plugin.dart';
 
@@ -40,7 +40,7 @@ final NotificationModel notificationModel = NotificationModel();
 final SyncToCloud mainSyncToCloud = SyncToCloud();
 final SyncRecord syncRecord = SyncRecord();
 final QrOrder qrOrder = QrOrder.instance;
-final LCDDisplay lcdDisplay = LCDDisplay();
+final IminLib iminLib = IminLib();
 final asyncQ = AsyncQueue.autoStart();
 DisplayManager displayManager = DisplayManager();
 AppLanguage appLanguage = AppLanguage();
@@ -246,9 +246,9 @@ class MyApp extends StatelessWidget {
 }
 
 initLCDScreen() async {
-  int status = await lcdDisplay.checkLcdScreen();
+  int status = await iminLib.checkLcdScreen();
   if(status == 1){
-    await lcdDisplay.initLcd();
+    await iminLib.initLcd();
   }
 }
 

@@ -89,3 +89,16 @@ class ShowPlaceOrderFailedToast {
     );
   }
 }
+
+class CustomFailedFailedToast {
+  static showToast({required String title, String? description, int? duration}){
+    _CustomToastification.showToastificationAndSound(
+      title: title,
+      description: description != null ? Text(description) : null,
+      isError: true,
+      playSound: true,
+      playTimes: 2,
+      autoCloseDuration: duration
+    );
+  }
+}

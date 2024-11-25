@@ -120,7 +120,7 @@ class Server extends ChangeNotifier {
 
     clientSocket.listen(
       (List<int> data) async {
-        String receivedData = utf8.decode(data);
+        String receivedData = utf8.decode(data, allowMalformed: true);
         buffer.write(receivedData);
 
         List<String> messageList = buffer.toString().split(messageDelimiter);
@@ -197,7 +197,7 @@ class Server extends ChangeNotifier {
       asyncQ.addJob((_) async {
         try {
           print("socket2 called");
-          receivedData = utf8.decode(data);
+          receivedData = utf8.decode(data, allowMalformed: true);
           print("received data: ${receivedData}");
           buffer.write(receivedData);
 
