@@ -7913,6 +7913,15 @@ class PosDatabase {
   }
 
 /*
+  read local product
+*/
+  Future<List<Product>> readLocalUpdateProduct() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableProduct WHERE soft_delete = ?', ['']);
+    return result.map((json) => Product.fromJson(json)).toList();
+  }
+
+/*
   read local product variant
 */
   Future<List<ProductVariant>> readLocalProductVariant() async {

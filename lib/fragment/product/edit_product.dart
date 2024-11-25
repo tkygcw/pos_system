@@ -6,8 +6,10 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/controller/controllerObject.dart';
 import 'package:pos_system/database/domain.dart';
+import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/product.dart';
@@ -170,8 +172,19 @@ class _EditProductDialogState extends State<EditProductDialog> {
         updated_at: dateTime
     );
     await PosDatabase.instance.updateProductSetting(object);
-    _value.add(jsonEncode(object));
-    syncProductToCloud(_value.toString(), context);
+
+    Product? data = await PosDatabase.instance.checkSpecificProductId(widget.product!.product_id!);
+    if(data != null){
+      final prefs = await SharedPreferences.getInstance();
+      final String? branch = prefs.getString('branch');
+      Map branchObject = json.decode(branch!);
+      if(branchObject['allow_firestore'] == 1){
+        PosFirestore.instance.updateProduct(data);
+      }
+
+      _value.add(jsonEncode(data));
+      syncProductToCloud(_value.toString(), context);
+    }
   }
 
   syncProductToCloud(String value, BuildContext context) async {

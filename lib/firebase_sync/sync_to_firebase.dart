@@ -80,6 +80,7 @@ class SyncToFirebase {
       syncProductVariantDetail();
       syncProductVariant();
       syncProduct();
+      updateProduct();
       syncModifierLinkProduct();
       syncModifierItem();
       syncModifierGroup();
@@ -175,6 +176,13 @@ class SyncToFirebase {
     List<Product> product = await _posDatabase.readLocalProduct();
     for(final products in product){
       posFirestore.insertProduct(products);
+    }
+  }
+
+  updateProduct() async {
+    List<Product> product = await _posDatabase.readAllNotSyncUpdatedProduct();
+    for(final products in product){
+      posFirestore.updateProduct(products);
     }
   }
 
