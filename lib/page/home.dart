@@ -494,11 +494,14 @@ class _HomePageState extends State<HomePage> {
           isCollapsedNotifier.value = !isCollapsedNotifier.value;
         }),
       ),
-      // CollapsibleItem(
-      //   text: AppLocalizations.of(context)!.translate('product'),
-      //   icon: Icons.fastfood,
-      //   onPressed: () => setState(() => currentPage = 'product'),
-      // ),
+      CollapsibleItem(
+        text: AppLocalizations.of(context)!.translate('product'),
+        icon: Icons.fastfood,
+        onPressed: () => setState(() {
+          currentPage = 'product';
+          isCollapsedNotifier.value = !isCollapsedNotifier.value;
+        }),
+      ),
       CollapsibleItem(
         text: AppLocalizations.of(context)!.translate('setting'),
         icon: Icons.settings,

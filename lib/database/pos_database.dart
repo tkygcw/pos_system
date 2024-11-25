@@ -4980,7 +4980,7 @@ class PosDatabase {
         'UPDATE $tableProduct SET category_sqlite_id = ?, category_id = ?, name = ?, price = ?, description = ?, SKU = ?, '
         'image = ?, has_variant = ?, stock_type = ?, stock_quantity = ?, available = ?, graphic_type = ?, color = ?, '
         'daily_limit_amount = ?, daily_limit = ?, sync_status = ?, unit = ?, per_quantity_unit = ?, sequence_number = ?, allow_ticket = ?, '
-        'ticket_count = ?, ticket_exp = ?, updated_at = ?, soft_delete = ? WHERE product_id = ? ',
+        'ticket_count = ?, ticket_exp = ?, show_in_qr = ?, updated_at = ?, soft_delete = ? WHERE product_id = ? ',
         [
           data.category_sqlite_id,
           data.category_id,
@@ -5004,6 +5004,7 @@ class PosDatabase {
           data.allow_ticket,
           data.ticket_count,
           data.ticket_exp,
+          data.show_in_qr,
           data.updated_at,
           data.soft_delete,
           data.product_id,
@@ -5011,12 +5012,12 @@ class PosDatabase {
   }
 
 /*
-  update product available
+  update product setting
 */
-  Future<int> updateProductAvailability(Product data) async {
+  Future<int> updateProductSetting(Product data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableProduct SET available = ?, sync_status = ?, updated_at = ? WHERE product_sqlite_id = ?',
-        [data.available, data.sync_status, data.updated_at, data.product_sqlite_id]);
+    return await db.rawUpdate('UPDATE $tableProduct SET available = ?, show_in_qr = ?, sync_status = ?, updated_at = ? WHERE product_id = ?',
+        [data.available, data.show_in_qr, data.sync_status, data.updated_at, data.product_id]);
   }
 
 /*
@@ -6994,6 +6995,14 @@ class PosDatabase {
   }
 
 /*
+  update product sync status (from cloud)
+*/
+  Future<int> updateProductSyncStatusFromCloud(int product_id) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableProduct SET sync_status = ? WHERE product_id = ? AND soft_delete = ?', [1, product_id, '']);
+  }
+
+/*
   update settlement (from cloud)
 */
   Future<int> updateSettlementSyncStatusFromCloud(String settlement_key) async {
@@ -7080,6 +7089,12 @@ class PosDatabase {
     final result = await db.rawQuery('SELECT * FROM $tablePosTable WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ', ['', 1]);
 
     return result.map((json) => PosTable.fromJson(json)).toList();
+  }
+
+  Future<List<Product>> readAllNotSyncUpdatedProduct() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableProduct WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ', ['', 1]);
+    return result.map((json) => Product.fromJson(json)).toList();
   }
 
 /*
