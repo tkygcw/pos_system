@@ -729,7 +729,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
               soft_delete: Utils.dbCurrentDateTimeFormat(),
               table_id: selectedTableList[i].table_id,
             );
-            PosFirestore.instance.softDeleteTableDynamic(posTable);
+            PosFirestore.instance.softDeleteOneTimeQr(posTable);
           }
         }
       } else {

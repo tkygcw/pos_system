@@ -172,7 +172,7 @@ class PosFirestore {
     await firestore.collection(tb_table_dynamic).doc(data.table_id!.toString()).set(data.toTableDynamicJson(), SetOptions(merge: true));
   }
 
-  Future<int> softDeleteTableDynamic(PosTable data) async {
+  Future<int> softDeleteOneTimeQr(PosTable data) async {
     int status = 0;
     try{
       if(firestore_status == FirestoreStatus.offline){
@@ -184,9 +184,12 @@ class PosFirestore {
       };
       final docSnapshot = await firestore.collection(tb_table_dynamic).doc(data.table_id!.toString()).get();
       if(docSnapshot.exists) {
-        batch.update(docSnapshot.reference, jsonMap);
-        batch.commit();
-        status = 1;
+        final data = docSnapshot.data() as Map<String, dynamic>;
+        if(data['invalid_after_payment'] == 1){
+          batch.update(docSnapshot.reference, jsonMap);
+          batch.commit();
+          status = 1;
+        }
       }
     }catch(e){
       FLog.error(
