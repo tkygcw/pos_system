@@ -1,13 +1,19 @@
 import 'dart:convert';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
-import 'package:pos_system/fragment/setting/cancel_receipt_setting/mm80_receipt_view.dart';
+import 'package:pos_system/fragment/setting/cancel_receipt_setting/tablet_view/mm58_receipt_view.dart';
+import 'package:pos_system/fragment/setting/cancel_receipt_setting/tablet_view/mm80_receipt_view.dart';
+import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/cancel_receipt.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
+import 'package:sqflite/sqflite.dart';
 
 import '../../../database/pos_database.dart';
+import '../../../object/dynamic_qr.dart';
 import '../../../utils/Utils.dart';
 
 enum PaperSize {
@@ -23,10 +29,12 @@ class CancelReceiptDialog extends StatefulWidget {
 }
 
 class _CancelReceiptDialogState extends State<CancelReceiptDialog> {
+  final DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
   PrintReceipt printReceipt = PrintReceipt();
   PaperSize receiptView = PaperSize.mm80;
   PosDatabase posDatabase = PosDatabase.instance;
   CancelReceipt testPrintLayout = CancelReceipt(
+    paper_size: '80',
     product_name_font_size: 0,
     other_font_size: 0,
     show_product_sku: 0,
@@ -78,7 +86,8 @@ class _CancelReceiptDialogState extends State<CancelReceiptDialog> {
       ),
       content: Container(
         width: MediaQuery.of(context).size.width / 1.5,
-        child: receiptView == PaperSize.mm80 ? mm80ReceiptView(callback: testLayout): Container(),
+        child: receiptView == PaperSize.mm80 ?
+        mm80ReceiptView(callback: testLayout) : mm58ReceiptView(callback: testLayout),
       ),
       actions: [
         ElevatedButton(
@@ -93,29 +102,118 @@ class _CancelReceiptDialogState extends State<CancelReceiptDialog> {
             },
             child: Text('test print')),
         ElevatedButton(
-            onPressed: (){
-
-            }, child: Text('save'))
+            onPressed: () async {
+              await createCancelReceipt();
+              Navigator.of(context).pop();
+            },
+            child: Text('save'),
+        )
       ],
     );
   }
+
    createCancelReceipt() async {
-    var db = await posDatabase.database;
-    db.transaction((txn) async {
-      // CancelReceipt checkData = await txn.execute('');
-      var id = await txn.insert(tableCancelReceipt!, testPrintLayout.toJson());
-      CancelReceipt data = testPrintLayout.copy(cancel_receipt_sqlite_id: id);
-      data.cancel_receipt_key = await generateKey(data);
-      await txn.update(tableCancelReceipt!, data.toJson());
-    });
+     String paperSize = receiptView == PaperSize.mm80 ? '80':'58';
+     String dateTime = dateFormat.format(DateTime.now());
+     var db = await posDatabase.database;
+     final prefs = await SharedPreferences.getInstance();
+     final int? branch_id = prefs.getInt('branch_id');
+     if(branch_id == null){
+       return;
+     }
+     db.transaction((txn) async {
+       final existingReceipt = await _fetchExistingReceipt(txn, paperSize);
+       if(existingReceipt != null){
+         await _updateCancelReceipt(txn, existingReceipt, dateTime);
+       } else {
+         await _createCancelReceipt(txn, branch_id, dateTime);
+       }
+     });
    }
 
-  generateKey(CancelReceipt cancelReceipt) async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
+  generateKey(CancelReceipt cancelReceipt, int branch_id) async {
     var bytes = cancelReceipt.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + cancelReceipt.cancel_receipt_sqlite_id.toString() + branch_id.toString();
     var md5Hash = md5.convert(utf8.encode(bytes));
     return Utils.shortHashString(hashCode: md5Hash);
+  }
+
+  Future<void> _createCancelReceipt(txn, int branchId, String dateTime) async {
+    try{
+      CancelReceipt insertData = testPrintLayout.copy(
+        cancel_receipt_id: 0,
+        cancel_receipt_key: '',
+        branch_id: branchId.toString(),
+        sync_status: 0,
+        created_at: dateTime,
+        updated_at: dateTime,
+        soft_delete: '',
+      );
+      var id = await txn.insert(tableCancelReceipt!, insertData.toJson());
+      insertData.cancel_receipt_sqlite_id = id;
+      insertData.cancel_receipt_key = await generateKey(insertData, branchId);
+      await txn.rawUpdate('UPDATE $tableCancelReceipt SET cancel_receipt_key = ?, updated_at = ? WHERE cancel_receipt_sqlite_id = ?', [
+        insertData.cancel_receipt_key,
+        insertData.updated_at,
+        insertData.cancel_receipt_sqlite_id,
+      ]);
+    }catch(e, stackTrace){
+      FLog.error(
+        className: "cancel_receipt_dialog",
+        text: "create cancel receipt error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  /// Updates the existing cancel receipt with new data.
+  Future<void> _updateCancelReceipt(txn, CancelReceipt currentLayout, String dateTime) async {
+    try{
+      final updatedData = testPrintLayout.copy(
+        sync_status: currentLayout.sync_status == 0 ? 0 : 1,
+        updated_at: dateTime,
+        cancel_receipt_sqlite_id: currentLayout.cancel_receipt_sqlite_id,
+      );
+
+      await txn.rawUpdate(
+        'UPDATE $tableCancelReceipt SET '
+            'product_name_font_size = ?, other_font_size = ?, show_product_sku = ?, '
+            'show_product_price = ?, updated_at = ? WHERE cancel_receipt_sqlite_id = ?',
+        [
+          updatedData.product_name_font_size,
+          updatedData.other_font_size,
+          updatedData.show_product_sku,
+          updatedData.show_product_price,
+          updatedData.updated_at,
+          updatedData.cancel_receipt_sqlite_id,
+        ],
+      );
+    }catch(e, stackTrace){
+      FLog.error(
+        className: "cancel_receipt_dialog",
+        text: "update cancel receipt error",
+        exception: "$e, $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  /// Fetches the existing receipt layout for the given paper size.
+  Future<CancelReceipt?> _fetchExistingReceipt(txn, String paperSize) async {
+    try{
+      final result = await txn.rawQuery(
+        'SELECT * FROM $tableCancelReceipt WHERE soft_delete = ? AND paper_size = ?',
+        ['', paperSize],
+      );
+      return result.isNotEmpty ? CancelReceipt.fromJson(result.first) : null;
+    }catch(e, stackTrace){
+      FLog.error(
+        className: "cancel_receipt_dialog",
+        text: "fetch Existing Receipt error",
+        exception: "$e, $stackTrace",
+      );
+      rethrow;
+    }
   }
 
   testLayout(CancelReceipt layout){

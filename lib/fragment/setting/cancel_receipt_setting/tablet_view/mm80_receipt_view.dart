@@ -8,8 +8,8 @@ import 'package:pos_system/object/cancel_receipt.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 
-import '../../../enumClass/receipt_dialog_enum.dart';
-import '../../../translation/AppLocalizations.dart';
+import '../../../../enumClass/receipt_dialog_enum.dart';
+import '../../../../translation/AppLocalizations.dart';
 
 class mm80ReceiptView extends StatefulWidget {
   final Function(CancelReceipt layout) callback;
@@ -45,7 +45,16 @@ class _mm80ReceiptViewState extends State<mm80ReceiptView> {
       showSKU = cancelReceipt.show_product_sku == 1 ? true : false;
       cancelShowPrice = cancelReceipt.show_product_price == 1 ? true : false;
     }
-    actionController.sink.add("refresh");
+    widget.callback(CancelReceipt(
+        paper_size: '80',
+        product_name_font_size: productFontSize.index,
+        other_font_size: variantAddonFontSize.index,
+        show_product_sku: showSKU ? 1 : 0,
+        show_product_price: cancelShowPrice ? 1 : 0
+    ));
+    Future.delayed(Duration(milliseconds: 500), () {
+      actionController.sink.add("refresh");
+    });
   }
 
   listenAction() async{
@@ -53,12 +62,12 @@ class _mm80ReceiptViewState extends State<mm80ReceiptView> {
     actionStream.listen((event) async  {
       switch(event){
         case 'switch':{
-          widget.callback(CancelReceipt().copy(
-            paper_size: '80',
-            product_name_font_size: productFontSize.index,
-            other_font_size: variantAddonFontSize.index,
-            show_product_sku: showSKU ? 1 : 0,
-            show_product_price: cancelShowPrice ? 1 : 0
+          widget.callback(CancelReceipt(
+              paper_size: '80',
+              product_name_font_size: productFontSize.index,
+              other_font_size: variantAddonFontSize.index,
+              show_product_sku: showSKU ? 1 : 0,
+              show_product_price: cancelShowPrice ? 1 : 0
           ));
         }
         break;
@@ -84,11 +93,8 @@ class _mm80ReceiptViewState extends State<mm80ReceiptView> {
                     padding: MediaQuery.of(context).size.width > 1300 ? EdgeInsets.fromLTRB(40, 20, 40, 20) : EdgeInsets.fromLTRB(20, 20, 20, 20) ,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      // crossAxisAlignment: CrossAxisAlignment.center,
-                      // mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Text("CANCELLATION", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0)),
-                        Divider(color: Colors.black, thickness: 0.5, indent: 100, endIndent: 100, height: 0.10),
+                        Text("CANCELLATION", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0, backgroundColor: Colors.black, color: Colors.white)),
                         SizedBox(height: 10,),
                         Text("Table No: 5", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0)),
                         Text("Batch No: #123456-005"),

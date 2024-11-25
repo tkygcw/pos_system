@@ -1997,7 +1997,7 @@ class PrintReceipt{
       for (int i = 0; i < printerList.length; i++) {
         var printerDetail = jsonDecode(printerList[i].value!);
         if (printerList[i].type == 0) {
-          if(printerList[i].paper_size == 0){
+          if(cancelReceipt.paper_size == '80'){
             var data = Uint8List.fromList(await CancelReceiptLayout().testPrint80mmFormat(cancelReceipt: cancelReceipt, isUSB: true));
             bool? isConnected = await flutterUsbPrinter.connect(
                 int.parse(printerDetail['vendorId']),
@@ -2024,7 +2024,7 @@ class PrintReceipt{
           }
         } else if(printerList[i].type == 1) {
           //check paper size (print LAN)
-          if(printerList[i].paper_size == 0){
+          if(cancelReceipt.paper_size == '80'){
             //print LAN
             final profile = await CapabilityProfile.load();
             final printer = NetworkPrinter(PaperSize.mm80, profile);
@@ -2064,7 +2064,7 @@ class PrintReceipt{
         } else {
           //print bluetooth
           bool res = await bluetoothPrinterConnect(printerDetail);
-          if (printerList[i].paper_size == 0) {
+          if (cancelReceipt.paper_size == '80') {
             if (res) {
               await PrintBluetoothThermal.writeBytes(await CancelReceiptLayout().testPrint80mmFormat(cancelReceipt: cancelReceipt, isUSB: true));
               await Future.delayed(Duration(milliseconds: 100));

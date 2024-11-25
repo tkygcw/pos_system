@@ -24,7 +24,12 @@ class CancelReceiptLayout {
     try{
       bytes += generator.reset();
       bytes += generator.text('CANCELLATION',
-          styles: PosStyles(align: PosAlign.center, bold: true, fontType:PosFontType.fontA, underline: true, height: PosTextSize.size2, width: PosTextSize.size2));
+          styles: PosStyles(
+              align: PosAlign.center,
+              bold: true,
+              fontType:PosFontType.fontA,
+              reverse: true,
+              height: PosTextSize.size2, width: PosTextSize.size2));
       bytes += generator.emptyLines(1);
       bytes += generator.text('Table No: 5', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
       bytes += generator.text('Batch No: #123456-005', styles: PosStyles(align: PosAlign.center));
@@ -141,15 +146,20 @@ class CancelReceiptLayout {
         product_sku: 'SKU001',
         price: 'RM6.90'
     );
-    PosFontType productFontType = cancelReceipt.product_name_font_size == 2 ? PosFontType.fontB : PosFontType.fontA;
-    PosFontType otherFontType = cancelReceipt.other_font_size == 2 ? PosFontType.fontB : PosFontType.fontA;
-    PosTextSize productFontSize = cancelReceipt.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2;
-    PosTextSize otherFontSize = cancelReceipt.other_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2;
+    PosFontType productFontType = cancelReceipt.product_name_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
+    PosFontType otherFontType = cancelReceipt.other_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
+    PosTextSize productFontSize = cancelReceipt.product_name_font_size == 2 ? PosTextSize.size1 : PosTextSize.size2;
+    PosTextSize otherFontSize = cancelReceipt.other_font_size == 2 ? PosTextSize.size1 : PosTextSize.size2;
     List<int> bytes = [];
     try{
       bytes += generator.reset();
       bytes += generator.text('CANCELLATION',
-          styles: PosStyles(align: PosAlign.center, bold: true, fontType:PosFontType.fontA, underline: true, height: PosTextSize.size2, width: PosTextSize.size2));
+          styles: PosStyles(
+              align: PosAlign.center,
+              bold: true,
+              fontType:PosFontType.fontA,
+              reverse: true,
+              height: PosTextSize.size2, width: PosTextSize.size2));
       bytes += generator.emptyLines(1);
       bytes += generator.text('Table No: 5', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
       bytes += generator.text('Batch No: #123456-005', styles: PosStyles(align: PosAlign.center));
@@ -159,39 +169,87 @@ class CancelReceiptLayout {
       bytes += generator.row([
         PosColumn(
           text: getProductName(cancelReceipt, orderDetail),
-          width: 8,
+          width: 10,
           containsChinese: true,
           styles: PosStyles(
-              fontType: productFontType,
-              align: PosAlign.left,
-              height: productFontSize,
-              width: productFontSize,
+            fontType: productFontType,
+            height: productFontSize,
+            width: productFontSize,
           ),
         ),
         PosColumn(
-            text: '-1',
-            width: 4,
-            styles: PosStyles(align: PosAlign.right,  bold: true, height: PosTextSize.size2)),
+          text: '-1',
+          width: 2,
+          styles: PosStyles(
+              fontType: productFontType,
+              height: productFontSize,
+              width: productFontSize),
+        ),
       ]);
       bytes += generator.reset();
       bytes += generator.row([
-        PosColumn(text: '(big | small)', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left, height: PosTextSize.size1, width: PosTextSize.size2)),
         PosColumn(
-            text: '', width: 2, styles: PosStyles(align: PosAlign.right,
-          fontType: otherFontType,
-          height: otherFontSize,
-          width: otherFontSize,
-        )),
+          text: '(big | small)',
+          width: 10,
+          containsChinese: true,
+          styles: PosStyles(
+            fontType: otherFontType,
+            height: otherFontSize,
+            width: otherFontSize,
+          ),
+        ),
+        PosColumn(
+          text: '',
+          width: 2,
+          styles: PosStyles(
+              align: PosAlign.right,
+              fontType: productFontType,
+              height: productFontSize,
+              width: productFontSize),
+        ),
       ]);
       bytes += generator.reset();
       bytes += generator.row([
-        PosColumn(text: '+Spicy', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left, height: PosTextSize.size1, width: PosTextSize.size2)),
-        PosColumn(text: '', width: 2, styles: PosStyles(
-          align: PosAlign.right,
-          fontType: otherFontType,
-          height: otherFontSize,
-          width: otherFontSize,
-        )),
+        PosColumn(
+          text: '+Spicy',
+          width: 10,
+          containsChinese: true,
+          styles: PosStyles(
+            fontType: otherFontType,
+            height: otherFontSize,
+            width: otherFontSize,
+          ),
+        ),
+        PosColumn(
+          text: '',
+          width: 2,
+          styles: PosStyles(
+              align: PosAlign.right,
+              fontType: productFontType,
+              height: productFontSize,
+              width: productFontSize),
+        )
+      ]);
+      bytes += generator.row([
+        PosColumn(
+          text: '**Remark',
+          width: 10,
+          containsChinese: true,
+          styles: PosStyles(
+            fontType: otherFontType,
+            height: otherFontSize,
+            width: otherFontSize,
+          ),
+        ),
+        PosColumn(
+          text: '',
+          width: 2,
+          styles: PosStyles(
+              align: PosAlign.right,
+              fontType: productFontType,
+              height: productFontSize,
+              width: productFontSize),
+        )
       ]);
       bytes += generator.reset();
       bytes += generator.hr();
