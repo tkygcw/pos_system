@@ -3,10 +3,12 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:assets_audio_player/assets_audio_player.dart';
-import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/database/pos_firestore.dart';
+import 'package:pos_system/fragment/custom_toastification.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
@@ -19,6 +21,7 @@ import 'package:crypto/crypto.dart';
 
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
+import '../../firebase_sync/qr_order_sync.dart';
 import '../../main.dart';
 import '../../notifier/fail_print_notifier.dart';
 import '../../object/branch_link_product.dart';
@@ -28,15 +31,14 @@ import '../../object/order_detail.dart';
 import '../../object/table_use.dart';
 import '../../object/table_use_detail.dart';
 import '../../translation/AppLocalizations.dart';
-import '../custom_snackbar.dart';
 import '../logout_dialog.dart';
 
 class AdjustStockDialog extends StatefulWidget {
   final int orderCacheLocalId;
   final String tableLocalId;
   final String currentBatch;
-  final List<OrderCache> orderCacheList;
   final List<OrderDetail> orderDetailList;
+  final OrderCache? currentOrderCache;
   final Function() callBack;
 
   const AdjustStockDialog(
@@ -45,7 +47,7 @@ class AdjustStockDialog extends StatefulWidget {
         required this.orderCacheLocalId,
         required this.callBack,
         required this.tableLocalId,
-        required this.orderCacheList, required this.currentBatch})
+        required this.currentBatch, this.currentOrderCache})
       : super(key: key);
 
   @override
@@ -53,6 +55,7 @@ class AdjustStockDialog extends StatefulWidget {
 }
 
 class _AdjustStockDialogState extends State<AdjustStockDialog> {
+  FirestoreQROrderSync firestoreQrOrderSync = FirestoreQROrderSync.instance;
   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
   List<OrderDetail> orderDetailList = [], noStockOrderDetailList = [], removeDetailList = [];
   List<Printer> printerList = [];
@@ -224,7 +227,6 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                                       size: 40,
                                                     ),
                                                     onPressed: () {
-                                                      print('qty remove');
                                                       int qty = int.parse(widget.orderDetailList[index].quantity!);
                                                       int totalQty = qty - 1;
                                                       if (totalQty <= 0) {
@@ -452,7 +454,6 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                           direction: DismissDirection.startToEnd,
                           confirmDismiss: (direction) async {
                             if (direction == DismissDirection.startToEnd) {
-                              print('detail remove');
                               if (mounted) {
                                 setState(() {
                                   widget.orderDetailList[index].isRemove = true;
@@ -511,7 +512,6 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                                     size: 20,
                                                   ),
                                                   onPressed: () {
-                                                    print('qty remove');
                                                     int qty = int.parse(widget.orderDetailList[index].quantity!);
                                                     int totalQty = qty - 1;
                                                     if (totalQty <= 0) {
@@ -756,41 +756,11 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     try {
       print("callPrinter called");
       BuildContext _context = MyApp.navigatorKey.currentContext!;
-      String flushbarStatus = '';
       List<OrderDetail> returnData = await PrintReceipt().printQrKitchenList(printerList, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
       if(returnData.isNotEmpty){
         _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
-        CustomSnackBar.instance.showSnackBar(
-            title:"${AppLocalizations.of(_context)?.translate('error')}${AppLocalizations.of(_context)?.translate('kitchen_printer_timeout')}",
-            description: "${AppLocalizations.of(_context)?.translate('please_try_again_later')}",
-            playSound: true,
-            playtime: 2,
-            contentType: ContentType.failure);
+        ShowFailedPrintKitchenToast.showToast();
       }
-      // playSound();
-      // Flushbar(
-      //   icon: Icon(Icons.error, size: 32, color: Colors.white),
-      //   shouldIconPulse: false,
-      //   title: "${AppLocalizations.of(_context)?.translate('error')}${AppLocalizations.of(_context)?.translate('kitchen_printer_timeout')}",
-      //   message: "${AppLocalizations.of(_context)?.translate('please_try_again_later')}",
-      //   duration: Duration(seconds: 5),
-      //   backgroundColor: Colors.red,
-      //   messageColor: Colors.white,
-      //   flushbarPosition: FlushbarPosition.TOP,
-      //   maxWidth: 350,
-      //   margin: EdgeInsets.all(8),
-      //   borderRadius: BorderRadius.circular(8),
-      //   padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-      //   onTap: (flushbar) {
-      //     flushbar.dismiss(true);
-      //   },
-      //   onStatusChanged: (status) {
-      //     flushbarStatus = status.toString();
-      //   },
-      // )..show(_context);
-      // Future.delayed(Duration(seconds: 3), () {
-      //   playSound();
-      // });
     } catch(e) {
       print("callPrinter error: ${e}");
     }
@@ -834,6 +804,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   }
 
   updateProductStock() async {
+    PosFirestore posFirestore = PosFirestore.instance;
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     List<String> _branchLinkProductValue = [];
@@ -850,8 +821,10 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                   updated_at: dateTime,
                   sync_status: 2,
                   daily_limit: _totalStockQty.toString(),
+                  branch_link_product_id: orderDetailList[i].branch_link_product_id,
                   branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
               updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
+              posFirestore.updateBranchLinkProductDailyLimit(object);
             }break;
             case '2' :{
               _totalStockQty = int.parse(checkData[0].stock_quantity!) - int.parse(orderDetailList[i].quantity!);
@@ -859,8 +832,10 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                   updated_at: dateTime,
                   sync_status: 2,
                   stock_quantity: _totalStockQty.toString(),
+                  branch_link_product_id: orderDetailList[i].branch_link_product_id,
                   branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
               updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+              posFirestore.updateBranchLinkProductStock(object);
             }break;
             default: {
               updateStock = 0;
@@ -875,7 +850,11 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       }
       this.branch_link_product_value = _branchLinkProductValue.toString();
     } catch(e){
-      print("update product stock in adjust stock dialog error: $e");
+      FLog.error(
+        className: "adjust_stock(QR)",
+        text: "updateProductStock error",
+        exception: e,
+      );
       branch_link_product_value = null;
     }
 
@@ -921,8 +900,11 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       this.table_value = _value.toString();
       //syncUpdatedTableToCloud(_value.toString());
     } catch (e) {
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('update_table_error')+" ${e}");
-      print("update table error: $e");
+      FLog.error(
+        className: "adjust_stock(QR)",
+        text: "updatePosTable error",
+        exception: e,
+      );
     }
   }
 
@@ -940,27 +922,38 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   // }
 
   updateOrderCache() async {
-    String currentBatch = widget.currentBatch;
-    List<String> _value = [];
-    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-    String dateTime = dateFormat.format(DateTime.now());
-    OrderCache orderCache = OrderCache(
-        updated_at: dateTime,
-        sync_status: 2,
-        order_by: 'Qr order',
-        order_by_user_id: '',
-        accepted: 0,
-        total_amount: newSubtotal.toStringAsFixed(2),
-        batch_id: tableInUsed ? this.batchNo : currentBatch,
-        table_use_key: this.tableUseKey,
-        table_use_sqlite_id: this.localTableUseId,
-        order_cache_sqlite_id: widget.orderCacheLocalId);
-    int status = await PosDatabase.instance.updateQrOrderCache(orderCache);
-    if (status == 1) {
-      //await acceptOrder(orderCache.order_cache_sqlite_id!);
-      OrderCache updatedCache = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCache.order_cache_sqlite_id!);
-      _value.add(jsonEncode(updatedCache));
-      this.order_cache_value = _value.toString();
+    try{
+      String currentBatch = widget.currentBatch;
+      List<String> _value = [];
+      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+      String dateTime = dateFormat.format(DateTime.now());
+      OrderCache orderCache = OrderCache(
+          updated_at: dateTime,
+          sync_status: widget.currentOrderCache!.sync_status == 0 ? 0 : 2,
+          order_by: 'Qr order',
+          order_by_user_id: '',
+          accepted: 0,
+          total_amount: newSubtotal.toStringAsFixed(2),
+          batch_id: tableInUsed ? this.batchNo : currentBatch,
+          table_use_key: this.tableUseKey,
+          table_use_sqlite_id: this.localTableUseId,
+          order_cache_key: widget.currentOrderCache!.order_cache_key,
+          order_cache_sqlite_id: widget.orderCacheLocalId);
+      int firestore = await firestoreQrOrderSync.acceptOrderCache(orderCache);
+      print("accept status: $firestore");
+      int status = await PosDatabase.instance.updateQrOrderCache(orderCache);
+      if (status == 1) {
+        //await acceptOrder(orderCache.order_cache_sqlite_id!);
+        OrderCache updatedCache = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCache.order_cache_sqlite_id!);
+        _value.add(jsonEncode(updatedCache));
+        this.order_cache_value = _value.toString();
+      }
+    }catch(e){
+      FLog.error(
+        className: "adjust_stock(QR)",
+        text: "updateOrderCache error",
+        exception: e,
+      );
     }
   }
 
@@ -973,13 +966,17 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       for(int i = 0; i < _orderDetail.length; i++){
         OrderDetail orderDetailObj = OrderDetail(
             updated_at: dateTime,
-            sync_status: 2,
+            sync_status: _orderDetail[i].sync_status == 0 ? 0 : 2,
             price: _orderDetail[i].price,
             quantity: _orderDetail[i].quantity,
             order_detail_key: _orderDetail[i].order_detail_key,
+            order_cache_key: _orderDetail[i].order_cache_key,
             order_detail_sqlite_id: _orderDetail[i].order_detail_sqlite_id
         );
         newSubtotal += double.parse(orderDetailObj.price!) * int.parse(orderDetailObj.quantity!);
+        //update firestore order detail
+        int firestore = await firestoreQrOrderSync.updateOrderDetail(orderDetailObj);
+        print("accept status: $firestore");
         //update order detail
         int status = await PosDatabase.instance.updateOrderDetailQuantity(orderDetailObj);
         if(status == 1){
@@ -989,8 +986,11 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       }
       this.order_detail_value = _value.toString();
     } catch(e){
-      print('qr update order detail error: ${e}');
-      return;
+      FLog.error(
+        className: "adjust_stock(QR)",
+        text: "updateOrderDetail error",
+        exception: e,
+      );
     }
   }
 
@@ -1019,8 +1019,11 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       //sync to cloud
       //syncTableUseDetailToCloud(_value.toString());
     } catch (e) {
-      print(e);
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('create_table_detail_error')+" ${e}");
+      FLog.error(
+        className: "adjust_stock(QR)",
+        text: "createTableUseDetail error",
+        exception: e,
+      );
     }
   }
 
@@ -1096,8 +1099,11 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
         //await syncTableUseIdToCloud(_updatedTableUseData);
       }
     } catch (e) {
-      print(e);
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('create_table_id_error')+" ${e}");
+      FLog.error(
+        className: "adjust_stock(QR)",
+        text: "createTableUseID error",
+        exception: e,
+      );
     }
   }
 
@@ -1210,9 +1216,13 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
         status: 2,
         cancel_by: '',
         cancel_by_user_id: '',
+        order_cache_key: removeDetailList[i].order_cache_key,
         order_detail_key: removeDetailList[i].order_detail_key,
         order_detail_sqlite_id: removeDetailList[i].order_detail_sqlite_id,
       );
+      //update firestore order detail
+      int status = await firestoreQrOrderSync.removeOrderDetail(orderDetail);
+      print("update status: $status");
       int deleteOrderDetail = await PosDatabase.instance.updateOrderDetailStatus(orderDetail);
       if (deleteOrderDetail == 1) {
         OrderDetail data = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetail.order_detail_sqlite_id!);
@@ -1258,6 +1268,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     hasNoStockProduct = false;
     hasNotAvailableProduct = false;
     for (int i = 0; i < orderDetailList.length; i++) {
+      print("blp id in adj stock dialog: ${orderDetailList[i].branch_link_product_sqlite_id!}");
       BranchLinkProduct? data = await PosDatabase.instance.readSpecificAvailableBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
       if(data != null){
         orderDetailList[i].allow_ticket = data.allow_ticket;
@@ -1350,7 +1361,10 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
           order_by_user_id: '',
           sync_status: 2,
           accepted: 2,
+          order_cache_key: widget.currentOrderCache!.order_cache_key!,
           order_cache_sqlite_id: orderCacheLocalId);
+      int status = await firestoreQrOrderSync.rejectOrderCache(orderCache);
+      print("reject status: $status");
       int rejectOrderCache = await PosDatabase.instance.updateOrderCacheAccept(orderCache);
       OrderCache updatedCache = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCache.order_cache_sqlite_id!);
       _value.add(jsonEncode(updatedCache));
@@ -1369,8 +1383,11 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       // }
       //controller.sink.add('1');
     } catch (e) {
-      print(e);
-      print('delete order cache error: ${e}');
+      FLog.error(
+        className: "adjust_stock(QR)",
+        text: "rejectOrder error",
+        exception: e,
+      );
     }
   }
 

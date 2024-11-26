@@ -6,6 +6,7 @@ import 'package:pos_system/object/colorCode.dart';
 import 'package:pos_system/object/product.dart';
 
 import '../fragment/product/product_order_dialog.dart';
+import '../translation/AppLocalizations.dart';
 
 class ProductSearchDelegate extends SearchDelegate{
   // Demo list to show querying
@@ -94,28 +95,33 @@ class ProductSearchDelegate extends SearchDelegate{
         matchQuery.add(productList![i]);
       }
     }
-    return ListView.builder(
-      itemCount: matchQuery.length,
-      itemBuilder: (context, index) {
-        var result = matchQuery[index].SKU! + ' ' + matchQuery[index].name!;
-        return ListTile(
-          title: Text(result),
-          leading: matchQuery[index].graphic_type == '2'?
-          CircleAvatar(
-            backgroundColor: Colors.grey.shade200,
-            foregroundImage: FileImage(File(imagePath! + '/' + matchQuery[index].image!)),
-          ):
-          CircleAvatar(
-              backgroundColor: HexColor(matchQuery[index].color!)
-          ),
-          onTap: (){
-            close(context, null);
-            openProductOrderDialog(matchQuery[index], cartModel!, context);
-          },
-        );
-      },
-    );
-    throw UnimplementedError();
+    if(matchQuery.isNotEmpty){
+      return ListView.builder(
+        itemCount: matchQuery.length,
+        itemBuilder: (context, index) {
+          var result = matchQuery[index].SKU! + ' ' + matchQuery[index].name!;
+          return ListTile(
+            title: Text(result),
+            leading: matchQuery[index].graphic_type == '2'?
+            CircleAvatar(
+              backgroundColor: Colors.grey.shade200,
+              foregroundImage: FileImage(File(imagePath! + '/' + matchQuery[index].image!)),
+            ):
+            CircleAvatar(
+                backgroundColor: HexColor(matchQuery[index].color!)
+            ),
+            onTap: (){
+              close(context, null);
+              openProductOrderDialog(matchQuery[index], cartModel!, context);
+            },
+          );
+        },
+      );
+    } else {
+      return Center(
+        child: Text(AppLocalizations.of(context)!.translate('no_record_found')),
+      );
+    }
   }
 
   @override
@@ -129,7 +135,7 @@ class ProductSearchDelegate extends SearchDelegate{
         matchQuery.add(productList![i]);
       }
     }
-    if(query.isNotEmpty){
+    if(matchQuery.isNotEmpty){
       return ListView.builder(
         itemCount: matchQuery.length,
         itemBuilder: (context, index) {
@@ -153,7 +159,9 @@ class ProductSearchDelegate extends SearchDelegate{
         },
       );
     } else {
-      return Container();
+      return Center(
+        child: Text(AppLocalizations.of(context)!.translate('no_record_found')),
+      );
     }
   }
   

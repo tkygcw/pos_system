@@ -77,7 +77,7 @@ class _PosPinDialogState extends State<PosPinDialog> {
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))
                         ],
-                        keyboardType: TextInputType.number,
+                        keyboardType: TextInputType.numberWithOptions(decimal: true),
                         controller: adminPosPinController,
                         decoration: InputDecoration(
                           errorText: _submitted

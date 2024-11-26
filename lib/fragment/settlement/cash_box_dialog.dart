@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
-import '../../object/lcd_display.dart';
+import '../../object/imin_lib.dart';
 import '../printing_layout/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../object/user.dart';
@@ -22,7 +22,7 @@ class CashBoxDialog extends StatefulWidget {
 }
 
 class _CashBoxDialogState extends State<CashBoxDialog> {
-  LCDDisplay lcdDisplay = LCDDisplay();
+  IminLib lcdDisplay = IminLib();
   final adminPosPinController = TextEditingController();
   List<Printer> printerList = [];
   bool _submitted = false;
@@ -101,7 +101,7 @@ class _CashBoxDialogState extends State<CashBoxDialog> {
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))
                         ],
-                        keyboardType: TextInputType.number,
+                        keyboardType: TextInputType.numberWithOptions(decimal: true),
                         controller: adminPosPinController,
                         decoration: InputDecoration(
                           errorText: _submitted

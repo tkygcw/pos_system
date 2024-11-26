@@ -15,10 +15,13 @@ import 'package:pos_system/fragment/settlement/history_dialog.dart';
 import 'package:pos_system/fragment/settlement/pos_pin_dialog.dart';
 import 'package:pos_system/fragment/settlement/reprint_settlement_dialog.dart';
 import 'package:pos_system/fragment/settlement/settlement_dialog.dart';
+import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/settlement.dart';
+import 'package:pos_system/object/table.dart';
+import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/user.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:pos_system/page/progress_bar.dart';
@@ -195,16 +198,29 @@ class _SettlementPageState extends State<SettlementPage> {
                             ElevatedButton(
                               child: Text(AppLocalizations.of(context)!.translate('settlement')),
                               onPressed: () async {
-                                List<OrderCache> dataPaymentNotComplete = await PosDatabase.instance.readAllOrderCachePaymentNotComplete();
-                                if(dataPaymentNotComplete.isEmpty){
+                                final prefs = await SharedPreferences.getInstance();
+                                final String? user = prefs.getString('user');
+                                final int? branch_id = prefs.getInt('branch_id');
+                                AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
+
+                                if(await checkSplitNotComplete()) {
+                                  Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('please_make_sure_all_payment_split_is_complete'));
+                                } else {
                                   if (cashRecordList.isNotEmpty) {
                                     openSettlementDialog(cashRecordList);
                                   } else {
                                     Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
                                   }
-                                } else {
-                                  Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('please_make_sure_all_payment_split_is_complete'));
                                 }
+                                // if(dataPaymentNotComplete.isEmpty){
+                                //   if (cashRecordList.isNotEmpty) {
+                                //     openSettlementDialog(cashRecordList);
+                                //   } else {
+                                //     Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
+                                //   }
+                                // } else {
+                                //   Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('please_make_sure_all_payment_split_is_complete'));
+                                // }
                               },
                               style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                             ),
@@ -557,11 +573,20 @@ class _SettlementPageState extends State<SettlementPage> {
                                     ),
                                     ElevatedButton(
                                       child: Text(AppLocalizations.of(context)!.translate('settlement')),
-                                      onPressed: () {
-                                        if (cashRecordList.isNotEmpty) {
-                                          openSettlementDialog(cashRecordList);
+                                      onPressed: () async {
+                                        final prefs = await SharedPreferences.getInstance();
+                                        final String? user = prefs.getString('user');
+                                        final int? branch_id = prefs.getInt('branch_id');
+                                        AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
+
+                                        if(await checkSplitNotComplete()) {
+                                          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('please_make_sure_all_payment_split_is_complete'));
                                         } else {
-                                          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
+                                          if (cashRecordList.isNotEmpty) {
+                                            openSettlementDialog(cashRecordList);
+                                          } else {
+                                            Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
+                                          }
                                         }
                                       },
                                       style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
@@ -1282,5 +1307,24 @@ class _SettlementPageState extends State<SettlementPage> {
           msg:
           "${AppLocalizations.of(context)?.translate('no_cashier_printer')}");
     }
+  }
+
+  Future<bool> checkSplitNotComplete() async {
+    bool splitNotComplete = false;
+    List<PosTable>tableList = await PosDatabase.instance.readAllTable();
+    for (int i = 0; i < tableList.length; i++) {
+      if(tableList[i].status == 1) {
+        List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableList[i].table_sqlite_id!);
+        if (tableUseDetailData.isNotEmpty) {
+          List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
+          for(int j = 0; j < data.length; j++) {
+            if(data[j].payment_status == 2) {
+              splitNotComplete = true;
+            }
+          }
+        }
+      }
+    }
+    return splitNotComplete;
   }
 }

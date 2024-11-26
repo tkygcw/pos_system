@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:assets_audio_player/assets_audio_player.dart';
-import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -31,11 +30,14 @@ import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../fragment/custom_snackbar.dart';
+import '../database/pos_firestore.dart';
+import '../firebase_sync/qr_order_sync.dart';
+import '../fragment/custom_toastification.dart';
 import '../notifier/cart_notifier.dart';
 import '../utils/Utils.dart';
 
 class QrOrderAutoAccept {
+  FirestoreQROrderSync firestoreQrOrderSync = FirestoreQROrderSync.instance;
   BuildContext context = MyApp.navigatorKey.currentContext!;
   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
   List<Printer> printerList = [];
@@ -106,39 +108,9 @@ class QrOrderAutoAccept {
   }
 
   failedPrintAlert() async {
-    String flushbarStatus = '';
     final _failPrintModel = Provider.of<FailPrintModel>(context, listen: false);
     if(_failPrintModel.failedPrintOrderDetail.length >= 1) {
-      CustomSnackBar.instance.showSnackBar(
-          title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
-          description: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
-          contentType: ContentType.failure,
-          playSound: true,
-          playtime: 2);
-      // playSound();
-      // Flushbar(
-      //   icon: Icon(Icons.error, size: 32, color: Colors.white),
-      //   shouldIconPulse: false,
-      //   title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
-      //   message: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
-      //   duration: Duration(seconds: 5),
-      //   backgroundColor: Colors.red,
-      //   messageColor: Colors.white,
-      //   flushbarPosition: FlushbarPosition.TOP,
-      //   maxWidth: 350,
-      //   margin: EdgeInsets.all(8),
-      //   borderRadius: BorderRadius.circular(8),
-      //   padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-      //   onTap: (flushbar) {
-      //     flushbar.dismiss(true);
-      //   },
-      //   onStatusChanged: (status) {
-      //     flushbarStatus = status.toString();
-      //   },
-      // )..show(context);
-      // Future.delayed(Duration(seconds: 3), () {
-      //   playSound();
-      // });
+      ShowFailedPrintKitchenToast.showToast();
     }
   }
 
@@ -196,6 +168,7 @@ class QrOrderAutoAccept {
 
   getAllNotAcceptedQrOrder() async {
     qrOrderCacheList.addAll(QrOrder.instance.qrOrderCacheList);
+    print("qr order cache length: ${qrOrderCacheList.length}");
     if (qrOrderCacheList.isNotEmpty) {
       for (int i = 0; i < qrOrderCacheList.length; i++) {
         if (qrOrderCacheList[i].qr_order_table_id != '') {
@@ -228,6 +201,7 @@ class QrOrderAutoAccept {
 
       orderDetailList[i].orderModifierDetail = modDetailData;
       if(data.isNotEmpty){
+        orderDetailList[i].branch_link_product_id = data[0].branch_link_product_id;
         orderDetailList[i].allow_ticket = data[0].allow_ticket;
         orderDetailList[i].ticket_count = data[0].ticket_count;
         orderDetailList[i].ticket_exp = data[0].ticket_exp;
@@ -269,10 +243,11 @@ class QrOrderAutoAccept {
           if (tableInUsed == true) {
             if(checkIsTableSelectedInPaymentCart(qrOrderCacheList.qr_order_table_sqlite_id!) == true){
               QrOrder.instance.getAllNotAcceptedQrOrder();
+              ShowQRToast.showToast();
               return;
             } else {
               await updateOrderDetail();
-              await updateOrderCache(qrOrderCacheList.batch_id!, qrOrderCacheList.order_cache_sqlite_id!);
+              await updateOrderCache(qrOrderCacheList);
               await updateProductStock();
             }
           } else {
@@ -394,7 +369,7 @@ class QrOrderAutoAccept {
       for(int i = 0; i < _orderDetail.length; i++){
         OrderDetail orderDetailObj = OrderDetail(
             updated_at: dateTime,
-            sync_status: 2,
+            sync_status: _orderDetail[i].sync_status== 0 ? 0 : 2,
             price: _orderDetail[i].price,
             quantity: _orderDetail[i].quantity,
             order_detail_key: _orderDetail[i].order_detail_key,
@@ -415,21 +390,24 @@ class QrOrderAutoAccept {
     }
   }
 
-  updateOrderCache(String currentBatch, int order_cache_sqlite_id) async {
+  updateOrderCache(OrderCache selectedOrderCache) async {
     List<String> _value = [];
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     OrderCache orderCache = OrderCache(
         updated_at: dateTime,
-        sync_status: 2,
+        sync_status: selectedOrderCache.sync_status == 0 ? 0 : 2,
         order_by: 'Qr order',
         order_by_user_id: '',
         accepted: 0,
         total_amount: newSubtotal.toStringAsFixed(2),
-        batch_id: tableInUsed ? this.batchNo : currentBatch,
+        batch_id: tableInUsed ? this.batchNo : selectedOrderCache.batch_id,
         table_use_key: this.tableUseKey,
         table_use_sqlite_id: this.localTableUseId,
-        order_cache_sqlite_id: order_cache_sqlite_id);
+        order_cache_key: selectedOrderCache.order_cache_key,
+        order_cache_sqlite_id: selectedOrderCache.order_cache_sqlite_id);
+    int firestore = await firestoreQrOrderSync.acceptOrderCache(orderCache);
+    print("accept status: $firestore");
     int status = await PosDatabase.instance.updateQrOrderCache(orderCache);
     if (status == 1) {
       OrderCache updatedCache = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCache.order_cache_sqlite_id!);
@@ -439,6 +417,7 @@ class QrOrderAutoAccept {
   }
 
   updateProductStock() async {
+    PosFirestore posFirestore = PosFirestore.instance;
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     List<String> _branchLinkProductValue = [];
@@ -455,8 +434,10 @@ class QrOrderAutoAccept {
                   updated_at: dateTime,
                   sync_status: 2,
                   daily_limit: _totalStockQty.toString(),
+                  branch_link_product_id: orderDetailList[i].branch_link_product_id,
                   branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
               updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
+              posFirestore.updateBranchLinkProductDailyLimit(object);
             }break;
             case '2' :{
               _totalStockQty = int.parse(checkData[0].stock_quantity!) - int.parse(orderDetailList[i].quantity!);
@@ -464,8 +445,10 @@ class QrOrderAutoAccept {
                   updated_at: dateTime,
                   sync_status: 2,
                   stock_quantity: _totalStockQty.toString(),
+                  branch_link_product_id: orderDetailList[i].branch_link_product_id,
                   branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
               updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+              posFirestore.updateBranchLinkProductStock(object);
             }break;
             default: {
               updateStock = 0;
@@ -500,7 +483,7 @@ class QrOrderAutoAccept {
     await createTableUseID();
     await createTableUseDetail(qrOrderCacheList.qr_order_table_sqlite_id!);
     await updateOrderDetail();
-    await updateOrderCache(qrOrderCacheList.batch_id!, qrOrderCacheList.order_cache_sqlite_id!);
+    await updateOrderCache(qrOrderCacheList);
     await updatePosTable(qrOrderCacheList.qr_order_table_sqlite_id!);
   }
 

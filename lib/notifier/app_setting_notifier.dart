@@ -9,6 +9,7 @@ class AppSettingModel extends ChangeNotifier {
   bool? autoPrintReceipt;
   bool? show_sku;
   bool? qr_order_auto_accept;
+  bool? settlement_after_all_order_paid;
   bool? enable_numbering;
   int? starting_number;
   int? table_order;
@@ -17,6 +18,7 @@ class AppSettingModel extends ChangeNotifier {
   int? product_sort_by;
   int? dynamic_qr_default_exp_after_hour;
   int? variant_item_sort_by;
+  bool? dynamic_qr_invalid_after_payment;
 
   AppSettingModel({
     this.directPaymentStatus,
@@ -24,6 +26,7 @@ class AppSettingModel extends ChangeNotifier {
     this.autoPrintReceipt,
     this.show_sku,
     this.qr_order_auto_accept,
+    this.settlement_after_all_order_paid,
     this.enable_numbering,
     this.starting_number,
     this.table_order,
@@ -31,7 +34,8 @@ class AppSettingModel extends ChangeNotifier {
     this.autoPrintCancelReceipt,
     this.product_sort_by,
     this.dynamic_qr_default_exp_after_hour,
-    this.variant_item_sort_by
+    this.variant_item_sort_by,
+    this.dynamic_qr_invalid_after_payment
   });
 
   void initialLoad() async {
@@ -42,6 +46,7 @@ class AppSettingModel extends ChangeNotifier {
       autoPrintReceipt = data.print_receipt == 0 ? false : true;
       show_sku = data.show_sku == 0 ? false : true;
       qr_order_auto_accept = data.qr_order_auto_accept == 0 ? false : true;
+      settlement_after_all_order_paid = data.settlement_after_all_order_paid == 0 ? false : true;
       enable_numbering = data.enable_numbering == null || data.enable_numbering == 0 ? false : true;
       starting_number = data.starting_number != null || data.starting_number != 0 ? data.starting_number : 0;
       table_order = data.table_order;
@@ -50,6 +55,7 @@ class AppSettingModel extends ChangeNotifier {
       product_sort_by = data.product_sort_by;
       dynamic_qr_default_exp_after_hour = data.dynamic_qr_default_exp_after_hour;
       variant_item_sort_by = data.variant_item_sort_by;
+      dynamic_qr_invalid_after_payment = data.dynamic_qr_invalid_after_payment == 1 ? true : false;
     }
   }
 
@@ -75,6 +81,11 @@ class AppSettingModel extends ChangeNotifier {
 
   void setQrOrderAutoAcceptStatus(bool status) {
     qr_order_auto_accept = status;
+    notifyListeners();
+  }
+
+  void setSettlementAfterAllOrderPaidStatus(bool status) {
+    settlement_after_all_order_paid = status;
     notifyListeners();
   }
 
@@ -111,5 +122,9 @@ class AppSettingModel extends ChangeNotifier {
   void setDynamicQrDefaultExpAfterHour(int hour) {
     dynamic_qr_default_exp_after_hour = hour;
     notifyListeners();
+  }
+
+  void setDynamicQrInvalidAfterPayment(bool status){
+    dynamic_qr_invalid_after_payment = status;
   }
 }

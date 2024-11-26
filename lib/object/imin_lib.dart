@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 
-class LCDDisplay {
+class IminLib {
   static const MethodChannel channel = MethodChannel('com.example.pos_system/lcdDisplay');
 
   checkLcdScreen() async {

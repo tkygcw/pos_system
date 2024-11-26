@@ -54,13 +54,18 @@ class MakePayment extends StatefulWidget {
   final int payment_link_company_id;
   final String dining_id;
   final String dining_name;
+  final String order_key;
+  final Function(String)? callBack;
 
   const MakePayment(
       {Key? key,
       required this.type,
       required this.payment_link_company_id,
       required this.dining_id,
-      required this.dining_name})
+      required this.dining_name,
+      required this.order_key,
+      this.callBack
+      })
       : super(key: key);
 
   @override
@@ -93,6 +98,7 @@ class _MakePaymentState extends State<MakePayment> {
   List<Order> orderList = [];
   List<Tax> taxList = [];
   List<cartProductItem> itemList = [];
+  List<OrderPaymentSplit> paymentSplitList = [];
   bool scanning = false;
   bool isopen = false;
   bool chipSelected = false;
@@ -113,6 +119,7 @@ class _MakePaymentState extends State<MakePayment> {
   double totalAmount = 0.0;
   double tableOrderPrice = 0.0;
   double rounding = 0.0;
+  double paymentSplitAmount = 0.0;
   String diningName = '';
   String selectedPromoRate = '';
   String promoName = '';
@@ -177,6 +184,7 @@ class _MakePaymentState extends State<MakePayment> {
     readSpecificPaymentMethod();
     readAllOrder();
     readPaymentMethod();
+    getAllPaymentSplit(widget.order_key);
   }
 
   @override
@@ -307,71 +315,74 @@ class _MakePaymentState extends State<MakePayment> {
                           width: double.maxFinite,
                           child: Row(
                             children: [
-                              Expanded(child: Column(
-                                children: [
-                                  Container(
-                                    margin: EdgeInsets.only(bottom: 20),
-                                    alignment: Alignment.center,
-                                    // child: Text(AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
-                                    child: Text(_appSettingModel.table_order == 0 ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
-                                        : AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
-                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
-                                  ),
-                                  Card(
+                              Expanded(
+                                  child: Card(
                                     elevation: 5,
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Container(
-                                          height: MediaQuery.of(context).size.width < 1300
-                                              ? MediaQuery.of(context).size.width / 4.5
-                                              : MediaQuery.of(context).size.width / 5,
-                                          child: ListView.builder(
-                                              shrinkWrap: true,
-                                              itemCount: itemList.length,
-                                              itemBuilder: (context, index) {
-                                                return ListTile(
-                                                  hoverColor: Colors.transparent,
-                                                  onTap: null,
-                                                  isThreeLine: true,
-                                                  title: RichText(
-                                                    text: TextSpan(
-                                                      children: <TextSpan>[
-                                                        TextSpan(
-                                                          text: '${itemList[index].product_name!} (${itemList[index].price!}/${itemList[index].per_quantity_unit!}${itemList[index].unit! == 'each' || itemList[index].unit! == 'each_c' ? 'each' : itemList[index].unit!})\n',
-                                                          style: TextStyle(
-                                                            fontSize: MediaQuery.of(context).size.height > 500 ? 20 : 15,
-                                                            color: color.backgroundColor,
-                                                            fontWeight: FontWeight.bold,
-                                                          ),
-                                                        ),
-                                                        TextSpan(
-                                                            text: "RM" + getItemTotalPrice(productItem: itemList[index]),
-                                                            style: TextStyle(fontSize: 15, color: color.backgroundColor)),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  subtitle: Text(getVariant(itemList[index]) +
-                                                          getModifier(itemList[index]) +
-                                                          getRemark(itemList[index]),
-                                                      style: TextStyle(fontSize: 12)),
-                                                  trailing: Container(
-                                                    child: FittedBox(
-                                                      child: Row(
-                                                        children: [
-                                                          Text(
-                                                            'x${itemList[index].quantity.toString()}',
+                                          padding: EdgeInsets.all(20),
+                                          alignment: Alignment.center,
+                                          child: Text(_appSettingModel.table_order == 0 ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
+                                              : AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
+                                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                                        ),
+                                        Divider(
+                                          color: Colors.grey,
+                                          height: 1,
+                                          thickness: 1,
+                                          indent: 20,
+                                          endIndent: 20,
+                                        ),
+                                        Expanded(
+                                            child: ListView.builder(
+                                                padding: EdgeInsets.only(top: 10),
+                                                shrinkWrap: true,
+                                                itemCount: itemList.length,
+                                                itemBuilder: (context, index) {
+                                                  return ListTile(
+                                                    hoverColor: Colors.transparent,
+                                                    onTap: null,
+                                                    isThreeLine: true,
+                                                    title: RichText(
+                                                      text: TextSpan(
+                                                        children: <TextSpan>[
+                                                          TextSpan(
+                                                            text: '${itemList[index].product_name!} (${itemList[index].price!}/${itemList[index].per_quantity_unit!}${itemList[index].unit! == 'each' || itemList[index].unit! == 'each_c' ? 'each' : itemList[index].unit!})\n',
                                                             style: TextStyle(
-                                                                color: color.backgroundColor,
-                                                                fontWeight: FontWeight.bold,
-                                                                fontSize: 20),
+                                                              fontSize: MediaQuery.of(context).size.height > 500 ? 20 : 15,
+                                                              color: color.backgroundColor,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
                                                           ),
+                                                          TextSpan(
+                                                              text: "RM" + getItemTotalPrice(productItem: itemList[index]),
+                                                              style: TextStyle(fontSize: 15, color: color.backgroundColor)),
                                                         ],
                                                       ),
                                                     ),
-                                                  ),
-                                                );
-                                              }),
+                                                    subtitle: Text(getVariant(itemList[index]) +
+                                                        getModifier(itemList[index]) +
+                                                        getRemark(itemList[index]),
+                                                        style: TextStyle(fontSize: 12)),
+                                                    trailing: Container(
+                                                      child: FittedBox(
+                                                        child: Row(
+                                                          children: [
+                                                            Text(
+                                                              'x${itemList[index].quantity.toString()}',
+                                                              style: TextStyle(
+                                                                  color: color.backgroundColor,
+                                                                  fontWeight: FontWeight.bold,
+                                                                  fontSize: 20),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  );
+                                                }),
                                         ),
                                         SizedBox(height: 10),
                                         Divider(
@@ -467,6 +478,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                 visualDensity: VisualDensity(vertical: -4),
                                                 dense: true,
                                               ),
+                                              for (int index = 0; index < paymentSplitList.length; index++)
+                                                ListTile(
+                                                  title: Text('${paymentSplitList[index].payment_name}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                                  visualDensity: VisualDensity(vertical: -4),
+                                                  dense: true,
+                                                  trailing: Text('${paymentSplitList[index].payment_received!}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                                ),
                                               ListTile(
                                                 visualDensity: VisualDensity(vertical: -4),
                                                 title: Text('Final Amount',
@@ -492,8 +510,7 @@ class _MakePaymentState extends State<MakePayment> {
                                       ],
                                     ),
                                   ),
-                                ],
-                              )),
+                              ),
                               //divider
                               Container(
                                 padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
@@ -614,29 +631,27 @@ class _MakePaymentState extends State<MakePayment> {
                                               Container(
                                                 margin: EdgeInsets.only(top: 10),
                                                 child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisAlignment: MainAxisAlignment.center,
                                                   children: [
-                                                    Container(
-                                                        child: SizedBox(
-                                                          height: 70,
-                                                          width: 150,
-                                                          child:
-                                                              ElevatedButton.icon(
-                                                                  onPressed: isButtonDisable || itemList.isEmpty ? null : () async => makePayment(),
-                                                                  style: ElevatedButton.styleFrom(
-                                                                    backgroundColor: color.backgroundColor,
-                                                                    elevation: 5,
-                                                                  ),
-                                                                  icon: Icon(Icons.payments, size: 24),
-                                                                  label: Text(
-                                                                    AppLocalizations.of(context)!.translate('make_payment'),
-                                                                    style: TextStyle(fontSize: 20),
-                                                                  )),
-                                                        )
+                                                    SizedBox(
+                                                      height: 70,
+                                                      width: 150,
+                                                      child: ElevatedButton.icon(
+                                                          onPressed: isButtonDisable || itemList.isEmpty ? null : () async => makePayment(),
+                                                          style: ElevatedButton.styleFrom(
+                                                            backgroundColor: color.backgroundColor,
+                                                            elevation: 5,
+                                                          ),
+                                                          icon: Icon(Icons.payments, size: 24),
+                                                          label: Text(
+                                                            AppLocalizations.of(context)!.translate('make_payment'),
+                                                            style: TextStyle(fontSize: 20),
+                                                          ),
+                                                      ),
                                                     ),
                                                     SizedBox(
-                                                      width: 10,
+                                                      width: 5,
                                                     ),
                                                     SizedBox(
                                                       height: 70,
@@ -656,7 +671,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                       ),
                                                     ),
                                                     SizedBox(
-                                                      width: 10,
+                                                      width: 5,
                                                     ),
                                                     SizedBox(
                                                       height: 70,
@@ -703,7 +718,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                               }
                                                                             },
                                                                             controller: splitAmountController,
-                                                                            keyboardType: TextInputType.number,
+                                                                            keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                                             inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                                             decoration: InputDecoration(
                                                                               border: OutlineInputBorder(
@@ -793,7 +808,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                                   ],
                                                                 );
                                                               },
-                                                            ) : null;
+                                                            ).then((_) {
+                                                              if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                                setState(() {
+                                                                  split_payment = false;
+                                                                });
+                                                              }
+                                                            }) : null;
                                                             setState(() {
                                                               isButtonDisabled = false;
                                                             });
@@ -955,7 +976,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                       }
                                                                     },
                                                                     controller: splitAmountController,
-                                                                    keyboardType: TextInputType.number,
+                                                                    keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                                     inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                                     decoration: InputDecoration(
                                                                       border: OutlineInputBorder(
@@ -1045,7 +1066,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                           ],
                                                         );
                                                       },
-                                                    ) : null;
+                                                    ).then((_) {
+                                                      if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                        setState(() {
+                                                          split_payment = false;
+                                                        });
+                                                      }
+                                                    }) : null;
                                                     setState(() {
                                                     isButtonDisabled = false;
                                                     });
@@ -1213,7 +1240,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                             }
                                                                           },
                                                                           controller: splitAmountController,
-                                                                          keyboardType: TextInputType.number,
+                                                                          keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                                           inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                                           decoration: InputDecoration(
                                                                             border: OutlineInputBorder(
@@ -1303,7 +1330,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                                 ],
                                                               );
                                                             },
-                                                          ) : null;
+                                                          ).then((_) {
+                                                            if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                              setState(() {
+                                                                split_payment = false;
+                                                              });
+                                                            }
+                                                          }) : null;
                                                           setState(() {
                                                             isButtonDisabled = false;
                                                           });
@@ -1567,6 +1600,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                   visualDensity: VisualDensity(vertical: -4),
                                                   dense: true,
                                                 ),
+                                                for (int index = 0; index < paymentSplitList.length; index++)
+                                                  ListTile(
+                                                    title: Text('${paymentSplitList[index].payment_name}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                                    visualDensity: VisualDensity(vertical: -4),
+                                                    dense: true,
+                                                    trailing: Text('${paymentSplitList[index].payment_received!}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                                  ),
                                                 ListTile(
                                                   visualDensity: VisualDensity(vertical: -4),
                                                   title: Text('Final Amount',
@@ -1633,7 +1673,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                         onChanged: (value) {
                                                           calcChange(value);
                                                         },
-                                                        keyboardType: TextInputType.number,
+                                                        keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                         textAlign: TextAlign.right,
                                                         enabled: MediaQuery.of(context).size.height > 500 ? false : true,
                                                         maxLines: 1,
@@ -1656,26 +1696,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                 children: [
                                                   ElevatedButton.icon(
                                                       style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                                                      onPressed: isButtonDisable || itemList.isEmpty ? null : () async {
-                                                        if (double.parse(inputController.text) >= double.parse(finalAmount)) {
-                                                          setState(() {
-                                                            isButtonDisable = true;
-                                                          });
-                                                          await callCreateOrder(inputController.text, orderChange: change);
-                                                          if (this.isLogOut == true) {
-                                                            openLogOutDialog();
-                                                            return;
-                                                          }
-                                                          openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: true, diningName: widget.dining_name);
-                                                        } else {
-                                                          Fluttertoast.showToast(
-                                                              backgroundColor: Color(0xFFFF0000),
-                                                              msg: AppLocalizations.of(context)!.translate('insufficient_balance'));
-                                                          setState(() {
-                                                            inputController.text = '0.00';
-                                                          });
-                                                        }
-                                                      },
+                                                      onPressed: isButtonDisable || itemList.isEmpty ? null : () async => makePayment(),
                                                       icon: Icon(Icons.payments, size: 20),
                                                       label: Text(AppLocalizations.of(context)!.translate('make_payment'))),
                                                   SizedBox(
@@ -1736,7 +1757,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                     }
                                                                   },
                                                                   controller: splitAmountController,
-                                                                  keyboardType: TextInputType.number,
+                                                                  keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                                   inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                                   decoration: InputDecoration(
                                                                     border: OutlineInputBorder(
@@ -1826,7 +1847,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                         ],
                                                       );
                                                     },
-                                                  ) : null;
+                                                  ).then((_) {
+                                                    if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                      setState(() {
+                                                        split_payment = false;
+                                                      });
+                                                    }
+                                                  }) : null;
                                                   setState(() {
                                                     isButtonDisabled = false;
                                                   });
@@ -1987,7 +2014,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                   }
                                                                 },
                                                                 controller: splitAmountController,
-                                                                keyboardType: TextInputType.number,
+                                                                keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                                 inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                                 decoration: InputDecoration(
                                                                   border: OutlineInputBorder(
@@ -2077,7 +2104,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                       ],
                                                     );
                                                   },
-                                                ) : null;
+                                                ).then((_) {
+                                                  if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                    setState(() {
+                                                      split_payment = false;
+                                                    });
+                                                  }
+                                                }) : null;
                                                 setState(() {
                                                   isButtonDisabled = false;
                                                 });
@@ -2242,7 +2275,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                   }
                                                                 },
                                                                 controller: splitAmountController,
-                                                                keyboardType: TextInputType.number,
+                                                                keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                                 inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                                 decoration: InputDecoration(
                                                                   border: OutlineInputBorder(
@@ -2332,7 +2365,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                       ],
                                                     );
                                                   },
-                                                ) : null;
+                                                ).then((_) {
+                                                  if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                    setState(() {
+                                                      split_payment = false;
+                                                    });
+                                                  }
+                                                }) : null;
                                                 setState(() {
                                                   isButtonDisabled = false;
                                                 });
@@ -2567,6 +2606,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                     visualDensity: VisualDensity(vertical: -4),
                                                     dense: true,
                                                   ),
+                                                  for (int index = 0; index < paymentSplitList.length; index++)
+                                                    ListTile(
+                                                      title: Text('${paymentSplitList[index].payment_name}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                                      visualDensity: VisualDensity(vertical: -4),
+                                                      dense: true,
+                                                      trailing: Text('${paymentSplitList[index].payment_received!}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                                    ),
                                                   ListTile(
                                                     visualDensity: VisualDensity(vertical: -4),
                                                     title: Text('Final Amount', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -2626,10 +2672,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                         builder: (context, TextEditingValue value, __) {
                                                           return Container(
                                                             child: TextField(
+                                                              onSubmitted: (value) {
+                                                                makePayment();
+                                                              },
                                                               onChanged: (value) {
                                                                 calcChange(value);
                                                               },
-                                                              keyboardType: TextInputType.number,
+                                                              keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                               textAlign: TextAlign.right,
                                                               maxLines: 1,
                                                               controller: inputController,
@@ -2654,27 +2703,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                           ),
                                                           onPressed: isButtonDisable || itemList.isEmpty
                                                               ? null
-                                                              : () async {
-                                                            if (double.parse(inputController.text) >= double.parse(finalAmount)) {
-                                                              setState(() {
-                                                                isButtonDisable = true;
-                                                              });
-                                                              await callCreateOrder(inputController.text, orderChange: change);
-                                                              if (this.isLogOut == true) {
-                                                                openLogOutDialog();
-                                                                return;
-                                                              }
-                                                              openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: true, diningName: widget.dining_name);
-                                                            } else {
-                                                              Fluttertoast.showToast(
-                                                                backgroundColor: Color(0xFFFF0000),
-                                                                msg: AppLocalizations.of(context)!.translate('insufficient_balance'),
-                                                              );
-                                                              setState(() {
-                                                                inputController.text = '0.00';
-                                                              });
-                                                            }
-                                                          },
+                                                              : () async => makePayment(),
                                                           icon: Icon(Icons.payments, size: 20),
                                                           label: Text(AppLocalizations.of(context)!.translate('make_payment')),
                                                         ),
@@ -2735,7 +2764,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                         }
                                                                       },
                                                                       controller: splitAmountController,
-                                                                      keyboardType: TextInputType.number,
+                                                                      keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                                       inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                                       decoration: InputDecoration(
                                                                         border: OutlineInputBorder(
@@ -2823,7 +2852,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                             ],
                                                           );
                                                         },
-                                                      ) : null;
+                                                      ).then((_) {
+                                                        if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                          setState(() {
+                                                            split_payment = false;
+                                                          });
+                                                        }
+                                                      }) : null;
                                                       setState(() {
                                                         isButtonDisabled = false;
                                                       });
@@ -2975,7 +3010,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                     }
                                                                   },
                                                                   controller: splitAmountController,
-                                                                  keyboardType: TextInputType.number,
+                                                                  keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                                   inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                                   decoration: InputDecoration(
                                                                     border: OutlineInputBorder(
@@ -3063,7 +3098,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                         ],
                                                       );
                                                     },
-                                                  ) : null;
+                                                  ).then((_) {
+                                                    if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                      setState(() {
+                                                        split_payment = false;
+                                                      });
+                                                    }
+                                                  }) : null;
                                                   setState(() {
                                                     isButtonDisabled = false;
                                                   });
@@ -3216,7 +3257,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                   }
                                                                 },
                                                                 controller: splitAmountController,
-                                                                keyboardType: TextInputType.number,
+                                                                keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                                 inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                                 decoration: InputDecoration(
                                                                   border: OutlineInputBorder(
@@ -3304,7 +3345,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                       ],
                                                     );
                                                   },
-                                                ) : null;
+                                                ).then((_) {
+                                                  if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                    setState(() {
+                                                      split_payment = false;
+                                                    });
+                                                  }
+                                                }) : null;
                                                 setState(() {
                                                   isButtonDisabled = false;
                                                 });
@@ -3521,7 +3568,9 @@ class _MakePaymentState extends State<MakePayment> {
                 dining_id: dining_id,
                 orderCacheIdList: orderCacheIdList,
                 selectedTableList: selectedTableList,
-                callback: () => {},
+                callback: (orderKeyValue) async {
+                  await getCallback(orderKeyValue);
+                },
                 orderId: orderId!,
                 orderKey: orderKey!,
                 change: change,
@@ -3539,6 +3588,10 @@ class _MakePaymentState extends State<MakePayment> {
           // ignore: null_check_always_fails
           return null!;
         });
+  }
+
+  getCallback(String orderKeyValue) {
+    widget.callBack!(orderKeyValue);
   }
 
 /*
@@ -4419,5 +4472,21 @@ class _MakePaymentState extends State<MakePayment> {
     setState(() {
       isload = true;
     });
+  }
+
+  getAllPaymentSplit(String order_key) async {
+    try {
+      paymentSplitList = [];
+      paymentSplitAmount = 0.0;
+      if(order_key != '') {
+        List<OrderPaymentSplit> orderSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(order_key);
+        for(int k = 0; k < orderSplit.length; k++){
+          paymentSplitAmount += double.parse(orderSplit[k].amount!);
+          paymentSplitList.add(orderSplit[k]);
+        }
+      }
+    } catch(e) {
+      print("Total payment split error: $e");
+    }
   }
 }

@@ -103,14 +103,6 @@ class _ProductReportState extends State<ProductReport> {
                                           DataColumn(
                                             label: Expanded(
                                               child: Text(
-                                                AppLocalizations.of(context)!.translate('net_sales'),
-                                                style: TextStyle(fontWeight: FontWeight.bold),
-                                              ),
-                                            ),
-                                          ),
-                                          DataColumn(
-                                            label: Expanded(
-                                              child: Text(
                                                 AppLocalizations.of(context)!.translate('gross_sales'),
                                                 style: TextStyle(fontWeight: FontWeight.bold),
                                               ),
@@ -198,14 +190,6 @@ class _ProductReportState extends State<ProductReport> {
                                           DataColumn(
                                             label: Expanded(
                                               child: Text(
-                                                AppLocalizations.of(context)!.translate('net_sales'),
-                                                style: TextStyle(fontWeight: FontWeight.bold),
-                                              ),
-                                            ),
-                                          ),
-                                          DataColumn(
-                                            label: Expanded(
-                                              child: Text(
                                                 AppLocalizations.of(context)!.translate('gross_sales'),
                                                 style: TextStyle(fontWeight: FontWeight.bold),
                                               ),
@@ -279,7 +263,6 @@ class _ProductReportState extends State<ProductReport> {
               DataCell(Container()),
               DataCell(Container()),
               DataCell(Text(calcGrandQty(orderDetailList: orderDetailCategoryData))),
-              DataCell(Text(calcGrandNetAmount(orderDetailList: orderDetailCategoryData))),
               DataCell(Text(calcGrandGrossAmount(orderDetailList: orderDetailCategoryData))),
             ]
         ),
@@ -300,7 +283,6 @@ class _ProductReportState extends State<ProductReport> {
               ),
               DataCell(Text('')),
               DataCell(Text('${orderDetailCategoryData[i].category_item_sum.toString()}')),
-              DataCell(Text('${orderDetailCategoryData[i].category_net_sales!.toStringAsFixed(2)}')),
               //DataCell(Text('${categoryData[i].gross_sales!.toStringAsFixed(2)}')),
               DataCell(Text('${Utils.to2Decimal(orderDetailCategoryData[i].category_gross_sales!)}'))
             ],
@@ -314,7 +296,6 @@ class _ProductReportState extends State<ProductReport> {
                 DataCell(Text(orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum is double ?
                 '${orderDetailCategoryData[i].categoryOrderDetailList[j].item_qty}/${orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum!.toStringAsFixed(2)}(${orderDetailCategoryData[i].categoryOrderDetailList[j].unit})' :
                 '${orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum}')),
-                DataCell(Text('${orderDetailCategoryData[i].categoryOrderDetailList[j].double_price!.toStringAsFixed(2)}')),
                 //DataCell(Text('${categoryData[i].categoryOrderDetailList[j].gross_price!.toStringAsFixed(2)}')),
                 DataCell(Text('${Utils.to2Decimal(orderDetailCategoryData[i].categoryOrderDetailList[j].gross_price!)}'))
               ],

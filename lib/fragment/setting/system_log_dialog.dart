@@ -240,7 +240,7 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                                       height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
                                       child: ElevatedButton(
                                         onPressed: () async {
-                                          Navigator.pop(context);
+                                          // Navigator.pop(context);
                                           // await showSecondDialog(context, color);
                                           setState(() {
                                             inProgress = true;
@@ -369,12 +369,14 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                                         height: MediaQuery.of(context).size.height / 16,
                                         child: ElevatedButton(
                                           onPressed: () async {
-                                            Navigator.pop(context);
+                                            // Navigator.pop(context);
                                             // await showSecondDialog(context, color);
                                             setState(() {
                                               inProgress = true;
                                             });
                                             await dataZip(3);
+                                            FLog.clearLogs();
+                                            logs.clear();
                                             if(mounted){
                                               setState(() {
                                                 inProgress = false;
@@ -435,7 +437,12 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
     String zipFilePath = '${tempDir.path}/optimy_data_export_$timestamp.zip';
 
     String sourceFlogPath = appDocDir.path + '/flog.db';
-    String sourceDBPath = appDocDir.parent.path + '/databases/pos.db';
+    String sourceDBPath;
+    if(Platform.isAndroid) {
+      sourceDBPath = appDocDir.parent.path + '/databases/pos.db';
+    } else {
+      sourceDBPath = appDocDir.path + '/pos.db';
+    }
 
     var encoder = ZipFileEncoder();
     encoder.create(zipFilePath);
@@ -562,6 +569,16 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
       setState(() {
         isButtonDisabled = false;
       });
+    } finally {
+      try {
+        File(zipFilePath).deleteSync();
+      } catch (e) {
+        FLog.error(
+          className: "system_log_dialog",
+          text: "Failed to delete the zip file",
+          exception: e,
+        );
+      }
     }
   }
 
@@ -599,7 +616,7 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                               },
                               obscureText: true,
                               controller: adminPosPinController,
-                              keyboardType: TextInputType.number,
+                              keyboardType: TextInputType.numberWithOptions(decimal: true),
                               decoration: InputDecoration(
                                 errorText: _submitted
                                     ? errorPassword == null

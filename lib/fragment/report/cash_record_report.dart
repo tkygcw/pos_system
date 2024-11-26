@@ -1,7 +1,10 @@
 import 'dart:async';
 
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
+import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/cash_record.dart';
+import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 
@@ -25,11 +28,13 @@ class _CashRecordReportState extends State<CashRecordReport> {
   List<DataRow> _dataRow = [];
   String currentStDate = '';
   String currentEdDate = '';
-
+  final List<String> paymentLists = ['all'];
+  int? selectedPayment = 0;
 
   @override
   void initState() {
     super.initState();
+    readPaymentMethod();
     contentStream = controller.stream;
   }
 
@@ -45,15 +50,16 @@ class _CashRecordReportState extends State<CashRecordReport> {
             appBar: AppBar(
               elevation: 0.0,
               backgroundColor: Colors.transparent,
-              title: Text(AppLocalizations.of(context)!.translate('cash_record_report'), style: TextStyle(fontSize: 25)),
+              title: Text(AppLocalizations.of(context)!.translate('cashflow_report'), style: TextStyle(fontSize: 25)),
               titleSpacing: 0.0,
               centerTitle: false,
               automaticallyImplyLeading: false,
               bottom: PreferredSize(
                 preferredSize: Size.zero,
                 child: Divider(
-                height: 10,
-                color: Colors.grey),
+                    height: 10,
+                    color: Colors.grey
+                ),
               ),
             ),
             body: StreamBuilder(
@@ -61,59 +67,115 @@ class _CashRecordReportState extends State<CashRecordReport> {
                 builder: (context, snapshot) {
                   if(snapshot.hasData){
                     if(_dataRow.isNotEmpty){
-                      return Container(
-                        padding: EdgeInsets.all(10),
-                        child: SingleChildScrollView(
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: DataTable(
-                                border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
-                                headingTextStyle: TextStyle(color: Colors.white),
-                                headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
-                                columns: <DataColumn>[
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('date_time'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
+                      return SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton2(
+                                  isExpanded: true,
+                                  buttonStyleData: ButtonStyleData(
+                                    height: 55,
+                                    width: 200,
+                                    padding: const EdgeInsets.only(left: 14, right: 14),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: Border.all(
+                                        color: Colors.black26,
                                       ),
                                     ),
                                   ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(AppLocalizations.of(context)!.translate('user'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
+                                  dropdownStyleData: DropdownStyleData(
+                                    maxHeight: 200,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      color: Colors.grey.shade100,
+                                    ),
+                                    scrollbarTheme: ScrollbarThemeData(
+                                        thickness: WidgetStateProperty.all(5),
+                                        mainAxisMargin: 20,
+                                        crossAxisMargin: 5
                                     ),
                                   ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('remark'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                  items: paymentLists.asMap().entries.map((sort) => DropdownMenuItem<int>(
+                                    value: int.tryParse(sort.value.split(':').first) ?? sort.key,
+                                    child: Text(sort.value.contains(':') ? sort.value.split(':').last : AppLocalizations.of(context)!.translate(sort.value),
+                                      overflow: TextOverflow.visible,
+                                      style: const TextStyle(
+                                        fontSize: 14,
                                       ),
                                     ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('amount'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('payment_method'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                                rows: _dataRow
+                                  )).toList(),
+                                  value: selectedPayment,
+                                  onChanged: (int? value) {
+                                    setState(() {
+                                      selectedPayment = value;
+                                      print("selectedPayment: $selectedPayment");
+                                    });
+                                  },
+                                ),
+                              ),
                             ),
-                          ),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Container(
+                                padding: EdgeInsets.all(10),
+                                child: SingleChildScrollView(
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: DataTable(
+                                        border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
+                                        headingTextStyle: TextStyle(color: Colors.white),
+                                        headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
+                                        columns: <DataColumn>[
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('date_time'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(AppLocalizations.of(context)!.translate('user'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('remark'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('amount'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('payment_method'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                        rows: _dataRow
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     } else {
@@ -148,7 +210,7 @@ class _CashRecordReportState extends State<CashRecordReport> {
 
   Future<List<CashRecord>>getAllCashRecord() async {
     _dataRow.clear();
-    List<CashRecord> cashRecord = await ReportObject().getAllCashRecord(currentStDate: currentStDate, currentEdDate: currentEdDate);
+    List<CashRecord> cashRecord = await ReportObject().getAllCashRecord(currentStDate: currentStDate, currentEdDate: currentEdDate, selectedPayment: selectedPayment);
     if(_dataRow.isEmpty){
       _dataRow.add(
         DataRow(
@@ -173,7 +235,7 @@ class _CashRecordReportState extends State<CashRecordReport> {
                 DataCell(Text(cashRecord[i].userName!)),
                 DataCell(Text(cashRecord[i].remark!)),
                 DataCell(Text(formatAmount(cashRecord: cashRecord[i]))),
-                DataCell(Text(cashRecord[i].payment_method!)),
+                DataCell(Text(cashRecord[i].payment_method ?? '')),
               ],
             ),
           ]);
@@ -218,6 +280,11 @@ class _CashRecordReportState extends State<CashRecordReport> {
       print("calc total cash drawer error: $e");
       return "0.00";
     }
+  }
+
+  readPaymentMethod() async {
+    List<PaymentLinkCompany> data = await PosDatabase.instance.readPaymentMethods();
+    paymentLists.addAll(data.map((payment) => '${payment.payment_link_company_id}:${payment.name!}').toList());
   }
 
 }

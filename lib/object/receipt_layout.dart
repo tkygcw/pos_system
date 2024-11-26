@@ -62,7 +62,7 @@ class ReceiptLayout{
   openCashDrawer ({required isUSB, value}) async {
     var generator;
     if (isUSB) {
-      lcdDisplay.openCashDrawer();
+      iminLib.openCashDrawer();
     } else {
       generator = value;
       List<int> bytes = [];

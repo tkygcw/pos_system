@@ -8,7 +8,10 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gms_check/gms_check.dart';
 import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:pos_system/firebase_sync/qr_order_sync.dart';
+import 'package:pos_system/firebase_sync/sync_to_firebase.dart';
 import 'package:pos_system/fragment/setting/sync_dialog.dart';
+import 'package:pos_system/fragment/setting/system_log_dialog.dart';
 import 'package:pos_system/fragment/subscription_expired.dart';
 import 'package:pos_system/fragment/update_dialog.dart';
 import 'package:pos_system/main.dart';
@@ -17,6 +20,7 @@ import 'package:pos_system/object/subscription.dart';
 import 'package:pos_system/object/transfer_owner.dart';
 import 'package:pos_system/page/home.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
+import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:provider/provider.dart';
 import 'package:custom_pin_screen/custom_pin_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,9 +30,11 @@ import 'package:store_checker/store_checker.dart';
 import 'package:version/version.dart';
 import '../database/domain.dart';
 import '../database/pos_database.dart';
+import '../database/pos_firestore.dart';
 import '../fragment/logout_dialog.dart';
 import '../fragment/setting/printer_dialog.dart';
 import '../notifier/theme_color.dart';
+import '../object/branch.dart';
 import '../object/cash_record.dart';
 import '../fragment/printing_layout/print_receipt.dart';
 import '../object/printer.dart';
@@ -46,6 +52,7 @@ class PosPinPage extends StatefulWidget {
 }
 
 class _PosPinPageState extends State<PosPinPage> {
+  PosFirestore pos_firestore = PosFirestore.instance;
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   PrintReceipt printReceipt = PrintReceipt();
   List response = [];
@@ -97,12 +104,31 @@ class _PosPinPageState extends State<PosPinPage> {
     }
   }
 
+  listenQROrder() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    FirestoreQROrderSync.instance.realtimeQROrder(branch_id.toString());
+  }
+
   preload() async {
-    syncRecord.syncFromCloud();
-    if(notificationModel.syncCountStarted == false){
-      startTimers();
-    }
+    bool hasGMS = await GmsCheck().checkGmsAvailability() ?? false;
+    await initFirestoreStatus(hasGMS);
+    await syncRecord.syncFromCloud();
     await readAllPrinters();
+    if(notificationModel.syncCountStarted == false){
+      startTimers(hasGMS);
+    }
+    SyncToFirebase.instance.syncToFirebase();
+    listenQROrder();
+  }
+
+  initFirestoreStatus(bool hasGMS) async {
+    Branch? data = await PosDatabase.instance.readLocalBranch();
+    if(data!.allow_firestore == 1 && hasGMS == true){
+      pos_firestore.setFirestoreStatus = FirestoreStatus.online;
+    } else {
+      pos_firestore.setFirestoreStatus = FirestoreStatus.offline;
+    }
   }
 
 /*
@@ -205,6 +231,7 @@ class _PosPinPageState extends State<PosPinPage> {
   }
 
   checkVersion() async {
+    print("check version called");
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
@@ -229,13 +256,12 @@ class _PosPinPageState extends State<PosPinPage> {
         isGms = GmsCheck().isGmsAvailable ? 1 : 0;
       }
 
-      print("isGmsAvailable: $isGms");
       CurrentVersion? item = await PosDatabase.instance.readCurrentVersion();
       if(item == null){
         CurrentVersion object = CurrentVersion(
             current_version_id: 0,
             branch_id: branch_id.toString(),
-            current_version: version,
+            current_version: appVersionCode,
             platform: defaultTargetPlatform == TargetPlatform.android ? 0 : 1,
             is_gms: isGms,
             source: source,
@@ -246,10 +272,10 @@ class _PosPinPageState extends State<PosPinPage> {
         await PosDatabase.instance.insertSqliteCurrentVersion(object);
         print("Current Version: insert");
       } else {
-        if(item.current_version != version || item.platform != (defaultTargetPlatform == TargetPlatform.android ? 0 : 1) || item.source != source || item.is_gms != isGms){
+        if(item.current_version != appVersionCode || item.platform != (defaultTargetPlatform == TargetPlatform.android ? 0 : 1) || item.source != source || item.is_gms != isGms){
           CurrentVersion object = CurrentVersion(
               branch_id: branch_id.toString(),
-              current_version: version,
+              current_version: appVersionCode,
               platform: defaultTargetPlatform == TargetPlatform.android ? 0 : 1,
               is_gms: isGms,
               source: source,
@@ -388,7 +414,7 @@ class _PosPinPageState extends State<PosPinPage> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: SyncDialog(),
+              child: SyncDialog(syncType: SyncType.sync),
             ),
           );
         },
@@ -403,7 +429,7 @@ class _PosPinPageState extends State<PosPinPage> {
     });
   }
 
-  startTimers() {
+  startTimers(bool hasGMS) async {
     int timerCount = 0;
     notificationModel.setSyncCountAsStarted();
     notificationModel.resetTimer();
@@ -423,26 +449,38 @@ class _PosPinPageState extends State<PosPinPage> {
         return;
       }
       // print("sync to cloud count in 30 sec: ${mainSyncToCloud.count}");
-      // print('timer count: ${timerCount}');
+      // print('has gms service: ${hasGMS}');
       //sync qr order
-      if(qrOrder.count == 0){
-        qrOrder.count = 1;
-        await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
-        qrOrder.count = 0;
-      }
-
-      //sync subscription
-      if(syncRecord.count == 0){
-        // print('subscription sync');
-        syncRecord.count = 1;
-        int syncStatus = await syncRecord.syncSubscriptionFromCloud();
-        syncRecord.count = 0;
-        // print('is log out: ${syncStatus}');
-        if (syncStatus == 1) {
-          openLogOutDialog();
-          return;
+      if(hasGMS == true) {
+        print("firestore status: ${pos_firestore.firestore_status}");
+        if(pos_firestore.firestore_status == FirestoreStatus.offline) {
+          if(qrOrder.count == 0 ){
+            print("qr sync call!!!");
+            qrOrder.count = 1;
+            await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
+            qrOrder.count = 0;
+          }
+        }
+      } else {
+        if(qrOrder.count == 0 ){
+          print("qr sync call!!!");
+          qrOrder.count = 1;
+          await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
+          qrOrder.count = 0;
         }
       }
+      //sync subscription
+      // if(syncRecord.count == 0){
+      //   // print('subscription sync');
+      //   syncRecord.count = 1;
+      //   int syncStatus = await syncRecord.syncSubscriptionFromCloud();
+      //   syncRecord.count = 0;
+      //   // print('is log out: ${syncStatus}');
+      //   if (syncStatus == 1) {
+      //     openLogOutDialog();
+      //     return;
+      //   }
+      // }
       //30 sec sync
       // if (timerCount == 0) {
       //   //sync to cloud
@@ -609,14 +647,31 @@ class _PosPinPageState extends State<PosPinPage> {
           openPrinterDialog(devices: device);
         }
       } else {
-        await testPrintAllUsbPrinter();
+        await initAllUsbPrinter();
+        await bluetoothPrinterConnect();
       }
     }
   }
 
-  testPrintAllUsbPrinter() async {
+  initAllUsbPrinter() async {
     List<Printer> usbPrinter = printerList.where((item) => item.type == 0).toList();
-    await printReceipt.selfTest(usbPrinter);
+    await printReceipt.initPrinter(usbPrinter);
+  }
+
+  bluetoothPrinterConnect() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? lastBtConnection = prefs.getString('lastBtConnection');
+
+    bool bluetoothIsOn = await PrintBluetoothThermal.bluetoothEnabled;
+    if(bluetoothIsOn) {
+      bool connectionStatus = await PrintBluetoothThermal.connectionStatus;
+      if (!connectionStatus && lastBtConnection != null) {
+        bool result = await PrintBluetoothThermal.connect(macPrinterAddress: lastBtConnection);
+        if(result) {
+          await prefs.setString('lastBtConnection', lastBtConnection);
+        }
+      }
+    }
   }
 
   @override
@@ -627,48 +682,70 @@ class _PosPinPageState extends State<PosPinPage> {
           return PopScope(
             canPop: false,
             child: Scaffold(
-              body: Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage("drawable/login_background.jpg"),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Container(
-                          child: Theme(
-                            data: Theme.of(context).copyWith(
-                                textTheme: TextTheme(
-                              bodyMedium: TextStyle(color: Colors.white),
-                            )),
-                            child: PinAuthentication(
-                              pinTheme: PinTheme(
-                                shape: PinCodeFieldShape.box,
-                                selectedFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
-                                inactiveFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
-                                borderRadius: BorderRadius.circular(5),
-                                backgroundColor: Colors.black87,
-                                keysColor: Colors.white,
-                                activeFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
+              body: Stack(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage("drawable/login_background.jpg"),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Container(
+                            child: Theme(
+                              data: Theme.of(context).copyWith(
+                                  textTheme: TextTheme(
+                                    bodyMedium: TextStyle(color: Colors.white),
+                                  )),
+                              child: PinAuthentication(
+                                pinTheme: PinTheme(
+                                  shape: PinCodeFieldShape.box,
+                                  selectedFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
+                                  inactiveFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
+                                  borderRadius: BorderRadius.circular(5),
+                                  backgroundColor: Colors.black87,
+                                  keysColor: Colors.white,
+                                  activeFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
+                                ),
+                                specialKey: Icon(
+                                  Icons.build,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                                onSpecialKeyTap: () {
+                                  openSystemLog();
+                                },
+                                onChanged: (v) {},
+                                onCompleted: (v) {
+                                  if (v.length == 6) {
+                                    userCheck(v);
+                                  }
+                                },
+                                maxLength: 6,
                               ),
-                              onChanged: (v) {},
-                              onCompleted: (v) {
-                                if (v.length == 6) {
-                                  userCheck(v);
-                                }
-                              },
-                              maxLength: 6,
                             ),
                           ),
-                        ),
-                      )
-                    ],
+                        )
+                      ],
+                    ),
                   ),
-                ),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0), // Adjust the value as needed
+                      child: Text(
+                        appVersionCode,
+                        style: TextStyle(
+                          color: Colors.white54,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           );
@@ -678,39 +755,63 @@ class _PosPinPageState extends State<PosPinPage> {
             child: Scaffold(
               backgroundColor: color.backgroundColor,
               body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                child: Stack(
                   children: [
-                    Expanded(
-                      child: Theme(
-                        data: Theme.of(context).copyWith(
-                            textTheme: TextTheme(
-                          bodyMedium: TextStyle(color: Colors.white),
-                        )),
-                        child: SingleChildScrollView(
-                            child: Container(
-                              height: MediaQuery.of(context).size.height,
-                              child: PinAuthentication(
-                                pinTheme: PinTheme(
-                                shape: PinCodeFieldShape.box,
-                                fieldOuterPadding: EdgeInsets.zero,
-                                fieldWidth: 40,
-                                selectedFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
-                                inactiveFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
-                                borderRadius: BorderRadius.circular(5),
-                                backgroundColor: color.backgroundColor,
-                                keysColor: Colors.white,
-                                activeFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
-                              ),
-                            onChanged: (v) {},
-                            onCompleted: (v) {
-                              if (v.length == 6) {
-                                userCheck(v);
-                              }
-                            },
-                            maxLength: 6,
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Theme(
+                            data: Theme.of(context).copyWith(
+                                textTheme: TextTheme(
+                                  bodyMedium: TextStyle(color: Colors.white),
+                                )),
+                            child: SingleChildScrollView(
+                                child: Container(
+                                  height: MediaQuery.of(context).size.height,
+                                  child: PinAuthentication(
+                                    pinTheme: PinTheme(
+                                      shape: PinCodeFieldShape.box,
+                                      fieldOuterPadding: EdgeInsets.zero,
+                                      fieldWidth: 40,
+                                      selectedFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
+                                      inactiveFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
+                                      borderRadius: BorderRadius.circular(5),
+                                      backgroundColor: color.backgroundColor,
+                                      keysColor: Colors.white,
+                                      activeFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
+                                    ),
+                                    specialKey: Icon(
+                                      Icons.build,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                    onSpecialKeyTap: () {
+                                      openSystemLog();
+                                    },
+                                    onChanged: (v) {},
+                                    onCompleted: (v) {
+                                      if (v.length == 6) {
+                                        userCheck(v);
+                                      }
+                                    },
+                                    maxLength: 6,
+                                  ),
+                                )),
                           ),
-                        )),
+                        ),
+                      ],
+                    ),
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0), // Adjust the value as needed
+                        child: Text(
+                          appVersionCode,
+                          style: TextStyle(
+                            color: Colors.white54,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -721,6 +822,28 @@ class _PosPinPageState extends State<PosPinPage> {
         }
       });
     });
+  }
+
+  Future<Future<Object?>> openSystemLog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: SystemLogDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
 /*

@@ -1839,7 +1839,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                   child: TextField(
                                     enabled: false,
                                     controller: dailyLimitController,
-                                    keyboardType: TextInputType.number,
+                                    keyboardType: TextInputType.numberWithOptions(decimal: true),
                                     inputFormatters: [
                                       FilteringTextInputFormatter.digitsOnly
                                     ],
@@ -1868,7 +1868,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                   child: TextField(
                                     enabled: false,
                                     controller: stockQuantityController,
-                                    keyboardType: TextInputType.number,
+                                    keyboardType: TextInputType.numberWithOptions(decimal: true),
                                     inputFormatters: [
                                       FilteringTextInputFormatter.digitsOnly
                                     ],
@@ -1897,7 +1897,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                               child: TextField(
                                 enabled: false,
                                 controller: priceController,
-                                keyboardType: TextInputType.number,
+                                keyboardType: TextInputType.numberWithOptions(decimal: true),
                                 inputFormatters: [
                                   FilteringTextInputFormatter.allow(
                                       RegExp(r'^\d+\.?\d{0,2}'))
@@ -1925,7 +1925,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                               child: TextField(
                                 enabled: isAdd? true : false,
                                 controller: skuController,
-                                keyboardType: TextInputType.number,
+                                keyboardType: TextInputType.numberWithOptions(decimal: true),
                                 inputFormatters: [
                                   FilteringTextInputFormatter.digitsOnly
                                 ],
@@ -2092,7 +2092,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                                                   padding: const EdgeInsets.all(8.0),
                                                                   child:
                                                                       TextField(
-                                                                    keyboardType: TextInputType.number,
+                                                                    keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                                     readOnly: true,
                                                                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                                                                     controller: TextEditingController(text: productVariantList[index]['quantity']),
@@ -2112,7 +2112,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                                                   padding: const EdgeInsets.all(8.0),
                                                                   child:
                                                                       TextField(
-                                                                    keyboardType: TextInputType.number,
+                                                                    keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                                     readOnly: true,
                                                                     inputFormatters: [
                                                                       FilteringTextInputFormatter.digitsOnly

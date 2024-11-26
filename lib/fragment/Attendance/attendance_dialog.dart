@@ -85,11 +85,12 @@ class _AttendanceDialogState extends State<AttendanceDialog> {
                   ],
                 ),
                 content: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Card(
                       elevation: 0,
                       child: Container(
-                        height: MediaQuery.of(context).size.height / 2.5,
+                        height: MediaQuery.of(context).size.height / 2,
                         width: MediaQuery.of(context).size.width / 2.5,
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -320,7 +321,7 @@ class _AttendanceDialogState extends State<AttendanceDialog> {
                               },
                               obscureText: _obscureText,
                               controller: adminPosPinController,
-                              keyboardType: TextInputType.number,
+                              keyboardType: TextInputType.numberWithOptions(decimal: true),
                               decoration: InputDecoration(
                                 errorText: _submitted
                                     ? errorPassword == null

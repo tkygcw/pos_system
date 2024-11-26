@@ -353,7 +353,7 @@ class _ReportPageState extends State<ReportPage> {
                         ),
                         SideNavigationBarItem(
                           icon: Icons.monetization_on,
-                          label: AppLocalizations.of(context)!.translate('cash_record_report'),
+                          label: AppLocalizations.of(context)!.translate('cashflow_report'),
                         ),
                         SideNavigationBarItem(
                           icon: Icons.person,
@@ -412,7 +412,7 @@ class _ReportPageState extends State<ReportPage> {
                                 },
                                 obscureText: _obscureText,
                                 controller: adminPosPinController,
-                                keyboardType: TextInputType.number,
+                                keyboardType: TextInputType.numberWithOptions(decimal: true),
                                 decoration: InputDecoration(
                                   suffixIcon: IconButton(
                                     icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility),
@@ -913,7 +913,7 @@ class _ReportPageState extends State<ReportPage> {
                           ),
                           DropdownMenuItem(
                             value: 11,
-                            child: Text(AppLocalizations.of(context)!.translate('cash_record_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('cashflow_report')),
                           ),
                           DropdownMenuItem(
                             value: 12,
@@ -972,7 +972,7 @@ class _ReportPageState extends State<ReportPage> {
                                 },
                                 obscureText: _obscureText,
                                 controller: adminPosPinController,
-                                keyboardType: TextInputType.number,
+                                keyboardType: TextInputType.numberWithOptions(decimal: true),
                                 decoration: InputDecoration(
                                   suffixIcon: IconButton(
                                     icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility),

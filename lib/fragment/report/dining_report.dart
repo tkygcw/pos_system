@@ -89,15 +89,8 @@ class _DiningReportState extends State<DiningReport> {
                                       ),
                                       DataColumn(
                                         label: Expanded(
-                                          child: Text(AppLocalizations.of(context)!.translate('net_sales'),
-                                            style: TextStyle(fontWeight: FontWeight.bold),
-                                          ),
-                                        ),
-                                      ),
-                                      DataColumn(
-                                        label: Expanded(
                                           child: Text(
-                                            AppLocalizations.of(context)!.translate('gross_sales'),
+                                            AppLocalizations.of(context)!.translate('total_sales'),
                                             style: TextStyle(fontWeight: FontWeight.bold),
                                           ),
                                         ),
@@ -169,15 +162,8 @@ class _DiningReportState extends State<DiningReport> {
                                           ),
                                           DataColumn(
                                             label: Expanded(
-                                              child: Text(AppLocalizations.of(context)!.translate('net_sales'),
-                                                style: TextStyle(fontWeight: FontWeight.bold),
-                                              ),
-                                            ),
-                                          ),
-                                          DataColumn(
-                                            label: Expanded(
                                               child: Text(
-                                                AppLocalizations.of(context)!.translate('gross_sales'),
+                                                AppLocalizations.of(context)!.translate('total_sales'),
                                                 style: TextStyle(fontWeight: FontWeight.bold),
                                               ),
                                             ),
@@ -236,7 +222,6 @@ class _DiningReportState extends State<DiningReport> {
                 Text('${diningList[i].dining_name}'),
               ),
               DataCell(Text('${diningList[i].item_sum}')),
-              DataCell(Text('${diningList[i].net_sales!.toStringAsFixed(2)}')),
               // DataCell(Text('${diningList[i].gross_sales!.toStringAsFixed(2)}')),
               DataCell(Text('${Utils.to2Decimal(diningList[i].gross_sales!)}')),
             ],
