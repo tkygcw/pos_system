@@ -636,6 +636,7 @@
   "table_order_desc": "为餐馆堂食启用餐桌下单",
   "table_qr_generate": "生成桌位二维码",
   "table_setting": "桌位设置",
+  "table_status_changed": "桌位状态发生变化",
   "take_away": "外卖",
   "tax": "税费",
   "test": "测试",

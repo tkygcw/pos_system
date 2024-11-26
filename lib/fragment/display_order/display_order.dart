@@ -292,7 +292,6 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                         child: InkWell(
                           onTap: () async {
                             openLoadingDialogBox();
-
                             try {
                               if(orderCacheList[index].is_selected == false){
                                 await Future.delayed(Duration(milliseconds: 300));
@@ -370,11 +369,13 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                                 if(orderCacheList[index].order_key != '') {
                                   for(int i = 0; i < orderCacheList.length; i++) {
                                     orderCacheList[i].is_selected = false;
+                                    cart.removeSpecificOrderCache(orderCacheList[i]);
                                     cart.removePromotion();
                                     cart.removeCartItemBasedOnOrderCache(orderCacheList[i].order_cache_sqlite_id.toString());
                                   }
                                 } else {
                                   orderCacheList[index].is_selected = false;
+                                  cart.removeSpecificOrderCache(orderCacheList[index]);
                                   cart.removePromotion();
                                   cart.removeCartItemBasedOnOrderCache(orderCacheList[index].order_cache_sqlite_id.toString());
                                 }
