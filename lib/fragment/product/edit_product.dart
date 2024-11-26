@@ -81,8 +81,8 @@ class _EditProductDialogState extends State<EditProductDialog> {
           ],
         ),
         content: isLoaded ? Container(
-          height: 450.0, // Change as per your requirement
-          width: 480.0,
+          // height: 450.0,
+          width: 400.0,
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -95,7 +95,6 @@ class _EditProductDialogState extends State<EditProductDialog> {
                     value: productAvailable,
                     activeColor: color.backgroundColor,
                     onChanged: (value) {
-                      // switch off
                       setState(() {
                         productAvailable = value;
                       });
@@ -109,7 +108,6 @@ class _EditProductDialogState extends State<EditProductDialog> {
                     value: showInQr,
                     activeColor: color.backgroundColor,
                     onChanged: (value) {
-                      // switch off
                       setState(() {
                         showInQr = value;
                       });
