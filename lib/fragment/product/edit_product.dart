@@ -171,16 +171,18 @@ class _EditProductDialogState extends State<EditProductDialog> {
     );
     await PosDatabase.instance.updateProductSetting(object);
 
-    Product? data = await PosDatabase.instance.checkSpecificProductId(widget.product!.product_id!);
-    if(data != null){
+    List<Product> data = await PosDatabase.instance.readAllNotSyncUpdatedProduct();
+    if(data.isNotEmpty){
       final prefs = await SharedPreferences.getInstance();
       final String? branch = prefs.getString('branch');
       Map branchObject = json.decode(branch!);
-      if(branchObject['allow_firestore'] == 1){
-        PosFirestore.instance.updateProduct(data);
+      for(int i = 0; i < data.length; i++){
+        if(branchObject['allow_firestore'] == 1){
+          PosFirestore.instance.updateProduct(data[i]);
+        }
+        _value.add(jsonEncode(data[i]));
       }
 
-      _value.add(jsonEncode(data));
       syncProductToCloud(_value.toString(), context);
     }
   }
