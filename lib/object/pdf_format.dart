@@ -276,7 +276,7 @@ class ReportFormat {
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(10, 5, 10, 5),
-                          child: pw.Text('Total Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Total Sales'))),
+                          child: pw.Text('Gross Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Total Sales'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(10, 5, 10, 5),
@@ -300,7 +300,7 @@ class ReportFormat {
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(10, 5, 10, 5),
-                          child: pw.Text('Total Cancellation', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Total Cancellation'))),
+                          child: pw.Text('Gross Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Total Cancellation'))),
                         ),
                       ]
                   ),
@@ -318,7 +318,7 @@ class ReportFormat {
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].all_sales?.toStringAsFixed(2)}', style: pw.TextStyle(font: getFontFormat(valueList[j].all_sales?.toStringAsFixed(2)))),
+                            child: pw.Text('${(valueList[j].all_sales-valueList[j].all_charge_amount-valueList[j].all_tax_amount+valueList[j].all_discount).toStringAsFixed(2)}', style: pw.TextStyle(font: getFontFormat(valueList[j].all_sales?.toStringAsFixed(2)))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
@@ -342,7 +342,7 @@ class ReportFormat {
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].all_cancellation}', style: pw.TextStyle(font: getFontFormat(valueList[j].all_cancellation))),
+                            child: pw.Text('${valueList[j].all_sales?.toStringAsFixed(2)}', style: pw.TextStyle(font: getFontFormat(valueList[j].all_sales?.toStringAsFixed(2)))),
                           ),
                         ]
                     ),
