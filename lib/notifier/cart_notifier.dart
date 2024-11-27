@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:pos_system/fragment/product_cancel/cancel_query.dart';
 import 'package:pos_system/object/cart_payment.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/order_cache.dart';
@@ -145,11 +146,11 @@ class CartModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateItemQty(cartProductItem object, {bool? notify = false}) async {
+  Future<void> updateItemQty(cartProductItem object, CancelQuery cancelQuery, {bool? notify = false}) async {
     if(cartNotifierItem.isNotEmpty){
       cartProductItem cartItem = cartNotifierItem.firstWhere((e) => e == object) ;
-      OrderDetail orderDetail =
-      await PosDatabase.instance.readSpecificOrderDetailByLocalIdNoJoin(cartItem.order_detail_sqlite_id!);
+      OrderDetail orderDetail = await cancelQuery.readSpecificOrderDetailByLocalIdNoJoin(cartItem.order_detail_sqlite_id!);
+      // await PosDatabase.instance.readSpecificOrderDetailByLocalIdNoJoin(cartItem.order_detail_sqlite_id!);
       cartItem.quantity = int.tryParse(orderDetail.quantity!) ?? double.parse(orderDetail.quantity!);
       if(notify == true){
         notifyListeners();
@@ -214,9 +215,12 @@ class CartModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void removeAllTable() {
+  void removeAllTable({bool? notify = true}) {
     selectedTable.clear();
-    notifyListeners();
+    groupList.clear();
+    if(notify == true){
+      notifyListeners();
+    }
   }
 
   void removeSpecificTable(PosTable posTable) {

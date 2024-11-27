@@ -135,113 +135,116 @@ class _mm80ReceiptViewState extends State<mm80ReceiptView> {
               ),
               SizedBox(width: 25),
               Expanded(
-                child: Column(
-                  children: [
-                    Container(
-                      alignment: Alignment.topLeft,
-                      child: Text(AppLocalizations.of(context)!.translate('product_name_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                    ),
-                    RadioListTile<ReceiptDialogEnum?>(
-                      activeColor: color.backgroundColor,
-                      value: ReceiptDialogEnum.big,
-                      groupValue: productFontSize,
-                      onChanged: (value) async  {
-                        productFontSize = value!;
-                        fontSize = 20.0;
-                        actionController.sink.add("switch");
-                      },
-                      title: Text(AppLocalizations.of(context)!.translate('big')),
-                      controlAffinity: ListTileControlAffinity.trailing,
-                    ),
-                    RadioListTile<ReceiptDialogEnum?>(
-                      activeColor: color.backgroundColor,
-                      value: ReceiptDialogEnum.medium,
-                      groupValue: productFontSize,
-                      onChanged: (value) async  {
-                        productFontSize = value!;
-                        fontSize = 18.0;
-                        actionController.sink.add("switch");
-                      },
-                      title: Text(AppLocalizations.of(context)!.translate('medium')),
-                      controlAffinity: ListTileControlAffinity.trailing,
-                    ),
-                    RadioListTile<ReceiptDialogEnum?>(
-                      activeColor: color.backgroundColor,
-                      value: ReceiptDialogEnum.small,
-                      groupValue: productFontSize,
-                      onChanged: (value) async  {
-                        productFontSize = value!;
-                        fontSize = 14.0;
-                        actionController.sink.add("switch");
-                      },
-                      title: Text(AppLocalizations.of(context)!.translate('small')),
-                      controlAffinity: ListTileControlAffinity.trailing,
-                    ),
-                    Container(
-                      alignment: Alignment.topLeft,
-                      child: Text(AppLocalizations.of(context)!.translate('other_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                    ),
-                    RadioListTile<ReceiptDialogEnum?>(
-                      activeColor: color.backgroundColor,
-                      value: ReceiptDialogEnum.big,
-                      groupValue: variantAddonFontSize,
-                      onChanged: (value) async  {
-                        variantAddonFontSize = value!;
-                        otherFontSize = 20.0;
-                        actionController.sink.add("switch");
-                      },
-                      title: Text(AppLocalizations.of(context)!.translate('big')),
-                      controlAffinity: ListTileControlAffinity.trailing,
-                    ),
-                    RadioListTile<ReceiptDialogEnum?>(
-                      activeColor: color.backgroundColor,
-                      value: ReceiptDialogEnum.medium,
-                      groupValue: variantAddonFontSize,
-                      onChanged: (value) async  {
-                        variantAddonFontSize = value!;
-                        otherFontSize = 18.0;
-                        actionController.sink.add("switch");
-                      },
-                      title: Text(AppLocalizations.of(context)!.translate('medium')),
-                      controlAffinity: ListTileControlAffinity.trailing,
-                    ),
-                    RadioListTile<ReceiptDialogEnum?>(
-                      activeColor: color.backgroundColor,
-                      value: ReceiptDialogEnum.small,
-                      groupValue: variantAddonFontSize,
-                      onChanged: (value) async  {
-                        variantAddonFontSize = value!;
-                        otherFontSize = 14.0;
-                        actionController.sink.add("switch");
-                      },
-                      title: Text(AppLocalizations.of(context)!.translate('small')),
-                      controlAffinity: ListTileControlAffinity.trailing,
-                    ),
-                    ListTile(
-                      title: Text(AppLocalizations.of(context)!.translate('cancel_show_price')),
-                      subtitle: Text(AppLocalizations.of(context)!.translate('cancel_show_price_desc')),
-                      trailing: Switch(
-                        value: cancelShowPrice,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        alignment: Alignment.topLeft,
+                        child: Text(AppLocalizations.of(context)!.translate('product_name_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                      ),
+                      RadioListTile<ReceiptDialogEnum?>(
                         activeColor: color.backgroundColor,
-                        onChanged: (value) async {
-                          cancelShowPrice = value;
+                        value: ReceiptDialogEnum.big,
+                        groupValue: productFontSize,
+                        onChanged: (value) async  {
+                          productFontSize = value!;
+                          fontSize = 20.0;
                           actionController.sink.add("switch");
                         },
+                        title: Text(AppLocalizations.of(context)!.translate('big')),
+                        controlAffinity: ListTileControlAffinity.trailing,
                       ),
-                    ),
-                    ListTile(
-                      title: Text(AppLocalizations.of(context)!.translate('show_product_sku')),
-                      subtitle: Text(AppLocalizations.of(context)!.translate('show_product_sku_desc')),
-                      trailing: Switch(
-                        value: showSKU,
+                      RadioListTile<ReceiptDialogEnum?>(
                         activeColor: color.backgroundColor,
-                        onChanged: (value) {
-                          showSKU = value;
+                        value: ReceiptDialogEnum.medium,
+                        groupValue: productFontSize,
+                        onChanged: (value) async  {
+                          productFontSize = value!;
+                          fontSize = 18.0;
                           actionController.sink.add("switch");
                         },
+                        title: Text(AppLocalizations.of(context)!.translate('medium')),
+                        controlAffinity: ListTileControlAffinity.trailing,
                       ),
-                    ),
-                  ],
+                      RadioListTile<ReceiptDialogEnum?>(
+                        activeColor: color.backgroundColor,
+                        value: ReceiptDialogEnum.small,
+                        groupValue: productFontSize,
+                        onChanged: (value) async  {
+                          productFontSize = value!;
+                          fontSize = 14.0;
+                          actionController.sink.add("switch");
+                        },
+                        title: Text(AppLocalizations.of(context)!.translate('small')),
+                        controlAffinity: ListTileControlAffinity.trailing,
+                      ),
+                      Container(
+                        alignment: Alignment.topLeft,
+                        child: Text(AppLocalizations.of(context)!.translate('other_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                      ),
+                      RadioListTile<ReceiptDialogEnum?>(
+                        activeColor: color.backgroundColor,
+                        value: ReceiptDialogEnum.big,
+                        groupValue: variantAddonFontSize,
+                        onChanged: (value) async  {
+                          variantAddonFontSize = value!;
+                          otherFontSize = 20.0;
+                          actionController.sink.add("switch");
+                        },
+                        title: Text(AppLocalizations.of(context)!.translate('big')),
+                        controlAffinity: ListTileControlAffinity.trailing,
+                      ),
+                      RadioListTile<ReceiptDialogEnum?>(
+                        activeColor: color.backgroundColor,
+                        value: ReceiptDialogEnum.medium,
+                        groupValue: variantAddonFontSize,
+                        onChanged: (value) async  {
+                          variantAddonFontSize = value!;
+                          otherFontSize = 18.0;
+                          actionController.sink.add("switch");
+                        },
+                        title: Text(AppLocalizations.of(context)!.translate('medium')),
+                        controlAffinity: ListTileControlAffinity.trailing,
+                      ),
+                      RadioListTile<ReceiptDialogEnum?>(
+                        activeColor: color.backgroundColor,
+                        value: ReceiptDialogEnum.small,
+                        groupValue: variantAddonFontSize,
+                        onChanged: (value) async  {
+                          variantAddonFontSize = value!;
+                          otherFontSize = 14.0;
+                          actionController.sink.add("switch");
+                        },
+                        title: Text(AppLocalizations.of(context)!.translate('small')),
+                        controlAffinity: ListTileControlAffinity.trailing,
+                      ),
+                      ListTile(
+                        title: Text(AppLocalizations.of(context)!.translate('cancel_show_price')),
+                        subtitle: Text(AppLocalizations.of(context)!.translate('cancel_show_price_desc')),
+                        trailing: Switch(
+                          value: cancelShowPrice,
+                          activeColor: color.backgroundColor,
+                          onChanged: (value) async {
+                            cancelShowPrice = value;
+                            actionController.sink.add("switch");
+                          },
+                        ),
+                      ),
+                      ListTile(
+                        title: Text(AppLocalizations.of(context)!.translate('show_product_sku')),
+                        subtitle: Text(AppLocalizations.of(context)!.translate('show_product_sku_desc')),
+                        trailing: Switch(
+                          value: showSKU,
+                          activeColor: color.backgroundColor,
+                          onChanged: (value) {
+                            showSKU = value;
+                            actionController.sink.add("switch");
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               )
             ],

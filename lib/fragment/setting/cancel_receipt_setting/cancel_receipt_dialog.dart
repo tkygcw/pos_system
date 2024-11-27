@@ -2,18 +2,22 @@ import 'dart:convert';
 
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_login/flutter_login.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
 import 'package:pos_system/fragment/setting/cancel_receipt_setting/tablet_view/mm58_receipt_view.dart';
 import 'package:pos_system/fragment/setting/cancel_receipt_setting/tablet_view/mm80_receipt_view.dart';
+import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/cancel_receipt.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../../../database/pos_database.dart';
 import '../../../object/dynamic_qr.dart';
+import '../../../translation/AppLocalizations.dart';
 import '../../../utils/Utils.dart';
 
 enum PaperSize {
@@ -40,6 +44,7 @@ class _CancelReceiptDialogState extends State<CancelReceiptDialog> {
     show_product_sku: 0,
     show_product_price: 0
   );
+  bool _isButtonDisabled = false;
 
   @override
   void initState() {
@@ -50,66 +55,207 @@ class _CancelReceiptDialogState extends State<CancelReceiptDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Row(
-        children: [
-          Text('Cancel receipt layout'),
-          SizedBox(width: 10),
-          SegmentedButton(
-            style: ButtonStyle(
-                side: WidgetStateProperty.all(
-                  BorderSide.lerp(BorderSide(
-                    style: BorderStyle.solid,
-                    color: Colors.blueGrey,
-                    width: 1,
-                  ),
-                      BorderSide(
-                        style: BorderStyle.solid,
-                        color: Colors.blueGrey,
-                        width: 1,
-                      ),
-                      1),
-                )
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    var color = context.watch<ThemeColor>();
+    if(screenWidth > 800 && screenHeight > 500){
+      return AlertDialog(
+        title: Row(
+          children: [
+            Text('Cancel receipt layout'),
+            SizedBox(width: 10),
+            SegmentedButton(
+              style: ButtonStyle(
+                  side: WidgetStateProperty.all(
+                    BorderSide.lerp(BorderSide(
+                      style: BorderStyle.solid,
+                      color: Colors.blueGrey,
+                      width: 1,
+                    ),
+                        BorderSide(
+                          style: BorderStyle.solid,
+                          color: Colors.blueGrey,
+                          width: 1,
+                        ),
+                        1),
+                  )
+              ),
+              segments: <ButtonSegment<PaperSize>>[
+                ButtonSegment(value: PaperSize.mm80, label: Text("80mm")),
+                ButtonSegment(value: PaperSize.mm58, label: Text("58mm"))
+              ],
+              onSelectionChanged: (Set<PaperSize> newSelection) async{
+                setState(() {
+                  receiptView = newSelection.first;
+                });
+              },
+              selected: <PaperSize>{receiptView},
             ),
-            segments: <ButtonSegment<PaperSize>>[
-              ButtonSegment(value: PaperSize.mm80, label: Text("80mm")),
-              ButtonSegment(value: PaperSize.mm58, label: Text("58mm"))
-            ],
-            onSelectionChanged: (Set<PaperSize> newSelection) async{
-              setState(() {
-                receiptView = newSelection.first;
-              });
-            },
-            selected: <PaperSize>{receiptView},
-          ),
-        ],
-      ),
-      content: Container(
-        width: MediaQuery.of(context).size.width / 1.5,
-        child: receiptView == PaperSize.mm80 ?
-        mm80ReceiptView(callback: testLayout) : mm58ReceiptView(callback: testLayout),
-      ),
-      actions: [
-        ElevatedButton(
-          onPressed: (){
-            Navigator.of(context).pop();
-          },
-          child: Text('close'),
+          ],
         ),
-        ElevatedButton(
-            onPressed: (){
-              printReceipt.testPrintCancelReceipt(testPrintLayout);
-            },
-            child: Text('test print')),
-        ElevatedButton(
-            onPressed: () async {
-              await createCancelReceipt();
-              Navigator.of(context).pop();
-            },
-            child: Text('save'),
-        )
-      ],
-    );
+        content: Container(
+          width: MediaQuery.of(context).size.width / 1.5,
+          child: receiptView == PaperSize.mm80 ?
+          mm80ReceiptView(callback: testLayout) : mm58ReceiptView(callback: testLayout),
+        ),
+        actions: [
+          SizedBox(
+            width: MediaQuery.of(context).size.width / 4,
+            height: MediaQuery.of(context).size.height / 12,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+              ),
+              onPressed: _isButtonDisabled ? null : () {
+                setState(() {
+                  _isButtonDisabled = true;
+                });
+                Navigator.of(context).pop();
+              },
+              child: Text('close'),
+            ),
+          ),
+          SizedBox(
+            width: MediaQuery.of(context).size.width / 4,
+            height: MediaQuery.of(context).size.height / 12,
+            child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: color.backgroundColor,
+                ),
+                onPressed: () {
+                  printReceipt.testPrintCancelReceipt(testPrintLayout);
+                },
+                child: Text('test print')),
+          ),
+          SizedBox(
+            width: MediaQuery.of(context).size.width / 4,
+            height: MediaQuery.of(context).size.height / 12,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: color.backgroundColor,
+              ),
+              onPressed: _isButtonDisabled ? null : () async {
+                setState(() {
+                  _isButtonDisabled = true;
+                });
+                await createCancelReceipt();
+                Navigator.of(context).pop();
+              },
+              child: Text(AppLocalizations.of(context)!.translate('save')),
+            ),
+          ),
+          // ElevatedButton(
+          //   onPressed: () async {
+          //     await deleteCancelReceipt();
+          //     Navigator.of(context).pop();
+          //   },
+          //   child: Text('delete'),
+          // )
+        ],
+      );
+    } else {
+      return AlertDialog(
+        title: Row(
+          children: [
+            Text('Cancel receipt layout'),
+            SizedBox(width: 10),
+            SegmentedButton(
+              style: ButtonStyle(
+                  side: WidgetStateProperty.all(
+                    BorderSide.lerp(BorderSide(
+                      style: BorderStyle.solid,
+                      color: Colors.blueGrey,
+                      width: 1,
+                    ),
+                        BorderSide(
+                          style: BorderStyle.solid,
+                          color: Colors.blueGrey,
+                          width: 1,
+                        ),
+                        1),
+                  )
+              ),
+              segments: <ButtonSegment<PaperSize>>[
+                ButtonSegment(value: PaperSize.mm80, label: Text("80mm")),
+                ButtonSegment(value: PaperSize.mm58, label: Text("58mm"))
+              ],
+              onSelectionChanged: (Set<PaperSize> newSelection) async{
+                setState(() {
+                  receiptView = newSelection.first;
+                });
+              },
+              selected: <PaperSize>{receiptView},
+            ),
+          ],
+        ),
+        content: Container(
+          width: MediaQuery.of(context).size.width / 1.5,
+          child: receiptView == PaperSize.mm80 ?
+          mm80ReceiptView(callback: testLayout) : mm58ReceiptView(callback: testLayout),
+        ),
+        actions: [
+          SizedBox(
+            width: MediaQuery.of(context).size.width / 4,
+            height: MediaQuery.of(context).size.height / 12,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+              ),
+              onPressed: _isButtonDisabled ? null : () {
+                setState(() {
+                  _isButtonDisabled = true;
+                });
+                Navigator.of(context).pop();
+              },
+              child: Text('close'),
+            ),
+          ),
+          SizedBox(
+            width: MediaQuery.of(context).size.width / 4,
+            height: MediaQuery.of(context).size.height / 12,
+            child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: color.backgroundColor,
+                ),
+                onPressed: () {
+                  printReceipt.testPrintCancelReceipt(testPrintLayout);
+                },
+                child: Text('test print')),
+          ),
+          SizedBox(
+            width: MediaQuery.of(context).size.width / 4,
+            height: MediaQuery.of(context).size.height / 12,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: color.backgroundColor,
+              ),
+              onPressed: _isButtonDisabled ? null : () async {
+                setState(() {
+                  _isButtonDisabled = true;
+                });
+                await createCancelReceipt();
+                Navigator.of(context).pop();
+              },
+              child: Text(AppLocalizations.of(context)!.translate('save')),
+            ),
+          ),
+          // ElevatedButton(
+          //   onPressed: () async {
+          //     await deleteCancelReceipt();
+          //     Navigator.of(context).pop();
+          //   },
+          //   child: Text('delete'),
+          // )
+        ],
+      );
+    }
+  }
+  
+  deleteCancelReceipt() async {
+    var db = await posDatabase.database;
+    db.transaction((txn) async {
+      await txn.rawDelete('DELETE FROM $tableCancelReceipt');
+    });
   }
 
    createCancelReceipt() async {

@@ -69,7 +69,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     super.initState();
     readAllPrinters();
     if(widget.currentPage != 'menu'){
-      readCartItemInfo();
+      // readCartItemInfo();
     }
 
   }
@@ -456,7 +456,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
             }
           }
           table_value = _posTableValue.toString();
-          callPrinter(dateTime, cart);
+          // callPrinter(dateTime, cart);
           // await PrintReceipt().printDeleteList(printerList, widget.cartItem!.order_cache_sqlite_id!, dateTime);
           // await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem!.order_cache_sqlite_id!, widget.cartItem!.category_sqlite_id!, dateTime, cart);
           // if(connectivity.isConnect){
@@ -518,7 +518,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
       }
     }
     table_value = _posTableValue.toString();
-    callPrinter(dateTime, cart);
+    // callPrinter(dateTime, cart);
 
     Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(globalContext)!.translate('delete_successful'));
     tableModel.changeContent(true);

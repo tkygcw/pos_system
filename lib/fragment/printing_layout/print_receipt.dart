@@ -1888,7 +1888,7 @@ class PrintReceipt{
           var printerDetail = jsonDecode(printerList[i].value!);
           if (printerList[i].type == 0) {
             if(printerList[i].paper_size == 0){
-              var data = Uint8List.fromList(await ReceiptLayout().printDeleteItemList80mm(true, orderCacheId, dateTime));
+              var data = Uint8List.fromList(await CancelReceiptLayout().printCancelReceipt80mm(true, orderCacheId, dateTime));
               bool? isConnected = await flutterUsbPrinter.connect(
                   int.parse(printerDetail['vendorId']),
                   int.parse(printerDetail['productId']));
@@ -1921,7 +1921,7 @@ class PrintReceipt{
               final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
 
               if (res == PosPrintResult.success) {
-                await ReceiptLayout().printDeleteItemList80mm(false, orderCacheId, dateTime, value: printer);
+                await CancelReceiptLayout().printCancelReceipt80mm(false, orderCacheId, dateTime, value: printer);
                 await Future.delayed(Duration(milliseconds: 100));
                 printer.disconnect();
                 printStatus = 0;
@@ -1962,7 +1962,7 @@ class PrintReceipt{
             bool res = await bluetoothPrinterConnect(printerDetail);
             if (printerList[i].paper_size == 0) {
               if (res) {
-                await PrintBluetoothThermal.writeBytes(await ReceiptLayout().printDeleteItemList80mm(true, orderCacheId, dateTime, value: printerDetail));
+                await PrintBluetoothThermal.writeBytes(await CancelReceiptLayout().printCancelReceipt80mm(true, orderCacheId, dateTime, value: printerDetail));
                 await Future.delayed(Duration(milliseconds: 100));
                 printStatus = 0;
               } else {
@@ -1985,6 +1985,7 @@ class PrintReceipt{
       return printStatus;
     } catch (e) {
       print('Printer Connection Error');
+      rethrow;
       return 0;
       //response = 'Failed to get platform version.';
     }

@@ -7099,7 +7099,7 @@ class PosDatabase {
   Future<int> updatePosTableStatus(PosTable data) async {
     final db = await instance.database;
     return await db
-        .rawUpdate('UPDATE $tablePosTable SET sync_status = ?, status = ?, updated_at = ? WHER\E table_sqlite_id = ?', [2, data.status, data.updated_at, data.table_sqlite_id]);
+        .rawUpdate('UPDATE $tablePosTable SET sync_status = ?, status = ?, updated_at = ? WHERE table_sqlite_id = ?', [2, data.status, data.updated_at, data.table_sqlite_id]);
   }
 
 /*
