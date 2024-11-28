@@ -4186,7 +4186,7 @@ class PosDatabase {
   Future<List<OrderDetail>> readDeletedOrderDetail(String order_cache_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.remark, a.product_variant_name, a.has_variant, a.product_name, a.category_sqlite_id, a.per_quantity_unit, a.unit, '
+        'SELECT a.remark, a.price, a.product_sku, a.product_variant_name, a.has_variant, a.product_name, a.category_sqlite_id, a.per_quantity_unit, a.unit, '
         'a.branch_link_product_sqlite_id, a.order_cache_key, a.order_cache_key, a.order_detail_key, a.order_detail_sqlite_id, '
         'b.quantity AS item_cancel, b.cancel_by FROM $tableOrderDetail AS a JOIN $tableOrderDetailCancel AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
         'WHERE a.order_cache_sqlite_id = ? AND a.soft_delete = ? ORDER BY b.order_detail_cancel_sqlite_id DESC LIMIT 1',

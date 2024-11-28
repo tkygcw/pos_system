@@ -331,7 +331,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                               cart.removeAllTable();
                             }
                           } else {
-                            openDialog(cartItem: widget.cartItem, currentPage: widget.currentPage);
+                            // openDialog(cartItem: widget.cartItem, currentPage: widget.currentPage);
                             // if(widget.cartItem!.quantity == 1 || widget.cartItem!.quantity! is double ){
                             //   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
                             //   String dateTime = dateFormat.format(DateTime.now());
@@ -490,69 +490,69 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     }
   }
 
-  callUpdateCart(User userData, String dateTime, CartModel cart) async {
-    List<String> _posTableValue = [];
-    if(cartTableCacheList.length <= 1 && cartOrderDetailList.length > 1){
-      print('delete order detail called');
-      await callDeleteOrderDetail(userData, dateTime, cart);
-
-    } else if(cartTableCacheList.length > 1 && cartOrderDetailList.length <= 1 ){
-      print('delete partial order called');
-      await callDeletePartialOrder(userData, dateTime, cart);
-
-    } else if (cartTableCacheList.length > 1 && cartOrderDetailList.length > 1) {
-      print('delete order detail 2 called');
-      await callDeleteOrderDetail(userData, dateTime, cart);
-
-    } else if(widget.currentPage == 'other order' && cartOrderDetailList.length > 1){
-      print('delete not dine in called');
-      await callDeleteOrderDetail(userData, dateTime, cart);
-
-    } else {
-      print('delete all called');
-      await callDeleteAllOrder(userData, cartCacheList[0].table_use_sqlite_id!, dateTime, cart);
-      for (int i = 0; i < cartTableUseDetail.length; i++) {
-        //update all table to unused
-        PosTable posTableData = await updatePosTableStatus(int.parse(cartTableUseDetail[i].table_sqlite_id!), 0, dateTime);
-        _posTableValue.add(jsonEncode(posTableData));
-      }
-    }
-    table_value = _posTableValue.toString();
-    // callPrinter(dateTime, cart);
-
-    Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(globalContext)!.translate('delete_successful'));
-    tableModel.changeContent(true);
-    // cart.removeAllTable();
-    // cart.removeAllCartItem();
-    cart.removeItem(widget.cartItem!);
-    cart.removePromotion();
-    // syncAllToCloud();
-  }
-
-  callPrinter(String dateTime, CartModel cart) async {
-    if(AppSettingModel.instance.autoPrintCancelReceipt!){
-      int printStatus = await PrintReceipt().printCancelReceipt(printerList, widget.cartItem!.order_cache_sqlite_id!, dateTime);
-      if(printStatus == 1){
-        Fluttertoast.showToast(
-            backgroundColor: Colors.red,
-            msg: "${AppLocalizations.of(globalContext)?.translate('printer_not_connected')}");
-      } else if (printStatus == 2){
-        Fluttertoast.showToast(
-            backgroundColor: Colors.orangeAccent,
-            msg: "${AppLocalizations.of(globalContext)?.translate('printer_connection_timeout')}");
-      }
-      int kitchenPrintStatus = await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem!.order_cache_sqlite_id!, widget.cartItem!.category_sqlite_id!, dateTime, cart);
-      if(kitchenPrintStatus == 1){
-        Fluttertoast.showToast(
-            backgroundColor: Colors.red,
-            msg: "${AppLocalizations.of(globalContext)?.translate('printer_not_connected')}");
-      } else if (kitchenPrintStatus == 2){
-        Fluttertoast.showToast(
-            backgroundColor: Colors.orangeAccent,
-            msg: "${AppLocalizations.of(globalContext)?.translate('printer_connection_timeout')}");
-      }
-    }
-  }
+  // callUpdateCart(User userData, String dateTime, CartModel cart) async {
+  //   List<String> _posTableValue = [];
+  //   if(cartTableCacheList.length <= 1 && cartOrderDetailList.length > 1){
+  //     print('delete order detail called');
+  //     await callDeleteOrderDetail(userData, dateTime, cart);
+  //
+  //   } else if(cartTableCacheList.length > 1 && cartOrderDetailList.length <= 1 ){
+  //     print('delete partial order called');
+  //     await callDeletePartialOrder(userData, dateTime, cart);
+  //
+  //   } else if (cartTableCacheList.length > 1 && cartOrderDetailList.length > 1) {
+  //     print('delete order detail 2 called');
+  //     await callDeleteOrderDetail(userData, dateTime, cart);
+  //
+  //   } else if(widget.currentPage == 'other order' && cartOrderDetailList.length > 1){
+  //     print('delete not dine in called');
+  //     await callDeleteOrderDetail(userData, dateTime, cart);
+  //
+  //   } else {
+  //     print('delete all called');
+  //     await callDeleteAllOrder(userData, cartCacheList[0].table_use_sqlite_id!, dateTime, cart);
+  //     for (int i = 0; i < cartTableUseDetail.length; i++) {
+  //       //update all table to unused
+  //       PosTable posTableData = await updatePosTableStatus(int.parse(cartTableUseDetail[i].table_sqlite_id!), 0, dateTime);
+  //       _posTableValue.add(jsonEncode(posTableData));
+  //     }
+  //   }
+  //   table_value = _posTableValue.toString();
+  //   // callPrinter(dateTime, cart);
+  //
+  //   Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(globalContext)!.translate('delete_successful'));
+  //   tableModel.changeContent(true);
+  //   // cart.removeAllTable();
+  //   // cart.removeAllCartItem();
+  //   cart.removeItem(widget.cartItem!);
+  //   cart.removePromotion();
+  //   // syncAllToCloud();
+  // }
+  //
+  // callPrinter(String dateTime, CartModel cart) async {
+  //   if(AppSettingModel.instance.autoPrintCancelReceipt!){
+  //     int printStatus = await PrintReceipt().printCancelReceipt(printerList, widget.cartItem!.order_cache_sqlite_id!, dateTime);
+  //     if(printStatus == 1){
+  //       Fluttertoast.showToast(
+  //           backgroundColor: Colors.red,
+  //           msg: "${AppLocalizations.of(globalContext)?.translate('printer_not_connected')}");
+  //     } else if (printStatus == 2){
+  //       Fluttertoast.showToast(
+  //           backgroundColor: Colors.orangeAccent,
+  //           msg: "${AppLocalizations.of(globalContext)?.translate('printer_connection_timeout')}");
+  //     }
+  //     int kitchenPrintStatus = await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem!.order_cache_sqlite_id!, widget.cartItem!.category_sqlite_id!, dateTime, cart);
+  //     if(kitchenPrintStatus == 1){
+  //       Fluttertoast.showToast(
+  //           backgroundColor: Colors.red,
+  //           msg: "${AppLocalizations.of(globalContext)?.translate('printer_not_connected')}");
+  //     } else if (kitchenPrintStatus == 2){
+  //       Fluttertoast.showToast(
+  //           backgroundColor: Colors.orangeAccent,
+  //           msg: "${AppLocalizations.of(globalContext)?.translate('printer_connection_timeout')}");
+  //     }
+  //   }
+  // }
 
   updateOrderDetailQuantity(String dateTime, CartModel cart) async {
     List<String> _value = [];

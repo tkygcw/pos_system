@@ -16,6 +16,7 @@ import 'package:pos_system/fragment/cart/promotion_dialog.dart';
 import 'package:pos_system/fragment/cart/remove_cart_dialog.dart';
 import 'package:pos_system/fragment/cart/reprint_dialog.dart';
 import 'package:pos_system/fragment/cart/reprint_kitchen_list_dialog.dart';
+import 'package:pos_system/fragment/product_cancel/adjust_quantity.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/fail_print_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
@@ -2140,10 +2141,12 @@ class CartPageState extends State<CartPage> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: CartRemoveDialog(
+              child: currentPage == 'menu' ?
+              CartRemoveDialog(
                 cartItem: item,
                 currentPage: currentPage,
-              ),
+              ) :
+              AdjustQuantityDialog(cartItem: item, currentPage: currentPage)
             ),
           );
         },

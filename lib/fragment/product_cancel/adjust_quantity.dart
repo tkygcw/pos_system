@@ -51,6 +51,7 @@ class AdjustQuantityDialog extends StatefulWidget {
 }
 
 class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
+  PrintReceipt _printReceipt = PrintReceipt();
   PosDatabase posDatabase = PosDatabase.instance;
   AppSettingModel appSettingModel = AppSettingModel.instance;
   BuildContext globalContext = MyApp.navigatorKey.currentContext!;
@@ -58,7 +59,6 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   late num currentQuantity;
   final adminPosPinController = TextEditingController();
   List<User> adminData = [];
-  List<Printer> printerList = [];
   List<OrderCache> cartCacheList = [], cartTableCacheList = [];
   List<OrderDetail> cartOrderDetailList = [];
   List<OrderModifierDetail> cartOrderModDetailList = [];
@@ -388,7 +388,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   }
 
   readAllPrinters() async {
-    printerList = await PrintReceipt().readAllPrinters();
+    await _printReceipt.readAllPrinters();
   }
 
   readCartItemInfo() async {
@@ -513,7 +513,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   callPrinter(String dateTime, CartModel cart) async {
     try{
       if(appSettingModel.autoPrintCancelReceipt!){
-        int printStatus = await PrintReceipt().printCancelReceipt(printerList, widget.cartItem.order_cache_sqlite_id!, dateTime);
+        int printStatus = await _printReceipt.printCancelReceipt(widget.cartItem.order_cache_sqlite_id!, dateTime);
         if (printStatus == 1) {
           Fluttertoast.showToast(
               backgroundColor: Colors.red,
@@ -525,12 +525,12 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
               msg:
               "${AppLocalizations.of(globalContext)?.translate('printer_connection_timeout')}");
         }
-        int kitchenPrintStatus = await PrintReceipt().printKitchenDeleteList(
-            printerList,
+        int kitchenPrintStatus = await _printReceipt.printKitchenDeleteList(
             widget.cartItem.order_cache_sqlite_id!,
             widget.cartItem.category_sqlite_id!,
             dateTime,
-            cart);
+            cart,
+        );
         if (kitchenPrintStatus == 1) {
           Fluttertoast.showToast(
               backgroundColor: Colors.red,

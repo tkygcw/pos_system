@@ -1,26 +1,18 @@
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
 import 'package:pos_system/object/cancel_receipt.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:pos_system/object/order_detail.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../utils/Utils.dart';
 
 class CancelReceiptLayout extends ReceiptLayout {
-  final defaultCancelReceiptLayout = CancelReceipt(
-      product_name_font_size: 0,
-      other_font_size: 0,
-      show_product_sku: 0,
-      show_product_price: 0
-  );
+  final _defaultCancelReceiptLayout = Utils.defaultCancelReceiptLayout();
 
-  printCancelReceipt80mm(bool isUSB, String orderCacheId, String deleteDateTime, {value}) async {
-    print('delete printer called');
+  Future<List<int>> printCancelReceipt80mm(bool isUSB, String orderCacheId, String deleteDateTime, {value}) async {
     String dateTime = dateFormat.format(DateTime.now());
     await readSpecificOrderCache(orderCacheId, deleteDateTime);
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    var cancelReceipt = await posDatabase.readSpecificCancelReceiptByPaperSize('80') ?? defaultCancelReceiptLayout;
+    var cancelReceipt = await posDatabase.readSpecificCancelReceiptByPaperSize('80') ?? _defaultCancelReceiptLayout;
     var generator;
     if (isUSB) {
       final profile = await CapabilityProfile.load();
@@ -50,14 +42,14 @@ class CancelReceiptLayout extends ReceiptLayout {
         for(int i = 0; i < tableList.length; i++){
           bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
         }
-      } else{
+      } else {
         bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
       }
       //order queue
       if(int.tryParse(orderCache!.order_queue!) != null) {
         bytes += generator.text('Order No: ${orderCache!.order_queue}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
       }
-      bytes += generator.text('Batch No: #${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('Batch No: #${orderCache!.batch_id}-${orderCache!.branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
       bytes += generator.text('Cancel time: ${Utils.formatDate(dateTime)}', styles: PosStyles(align: PosAlign.center));
       bytes += generator.hr();
       bytes += generator.reset();
@@ -152,7 +144,155 @@ class CancelReceiptLayout extends ReceiptLayout {
       bytes += generator.cut(mode: PosCutMode.partial);
       return bytes;
     } catch (e, stackTrace) {
-      print('cancel layout error: $e, $stackTrace');
+      FLog.error(
+        className: "cancel_receipt/layout",
+        text: "printCancelReceipt80mm error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  printCancelReceipt58mm(bool isUSB, String orderCacheId, String deleteDateTime, {value}) async {
+    String dateTime = dateFormat.format(DateTime.now());
+    await readSpecificOrderCache(orderCacheId, deleteDateTime);
+    var cancelReceipt = await posDatabase.readSpecificCancelReceiptByPaperSize('58') ?? _defaultCancelReceiptLayout;
+    var generator;
+    if (isUSB) {
+      final profile = await CapabilityProfile.load();
+      generator = Generator(PaperSize.mm58, profile);
+    } else {
+      generator = value;
+    }
+
+    List<int> bytes = [];
+    try {
+      PosFontType productFontType = cancelReceipt.product_name_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
+      PosFontType otherFontType = cancelReceipt.other_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
+      PosTextSize productFontSize = cancelReceipt.product_name_font_size == 2 ? PosTextSize.size1 : PosTextSize.size2;
+      PosTextSize otherFontSize = cancelReceipt.other_font_size == 2 ? PosTextSize.size1 : PosTextSize.size2;
+
+      bytes += generator.text('CANCELLATION',
+          styles: PosStyles(
+              align: PosAlign.center,
+              bold: true,
+              fontType:PosFontType.fontA,
+              reverse: true,
+              height: PosTextSize.size2, width: PosTextSize.size2));
+      bytes += generator.emptyLines(1);
+      bytes += generator.reset();
+      //other order detail
+      if(tableList.isNotEmpty){
+        for(int i = 0; i < tableList.length; i++){
+          bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+        }
+      } else{
+        bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+      }
+      //order queue
+      if(int.tryParse(orderCache!.order_queue!) != null) {
+        bytes += generator.text('Order No: ${orderCache!.order_queue}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+      }
+      bytes += generator.text('Batch No: #${orderCache!.batch_id}-${orderCache!.branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('Cancel time: ${Utils.formatDate(dateTime)}', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.hr();
+      bytes += generator.reset();
+      /*
+    *
+    * body
+    *
+    * */
+      //order product
+      for(int i = 0; i < orderDetailList.length; i++){
+        bytes += generator.reset();
+        bytes += generator.row([
+          PosColumn(
+            text: getProductName(cancelReceipt, orderDetailList[i]),
+            width: 8,
+            containsChinese: true,
+            styles: PosStyles(
+              fontType: productFontType,
+              height: productFontSize,
+              width: productFontSize,
+            ),
+          ),
+          PosColumn(
+            text: getProductUnit(cancelReceipt, orderDetailList[i]),
+            width: 4,
+            styles: PosStyles(
+              fontType: productFontType,
+              height: productFontSize,
+              width: productFontSize,
+            ),
+          ),
+        ]);
+        bytes += generator.reset();
+        if(orderDetailList[i].has_variant == '1'){
+          bytes += generator.row([
+            PosColumn(
+              text: '(${orderDetailList[i].product_variant_name})',
+              width: 10,
+              containsChinese: true,
+              styles: PosStyles(
+                fontType: otherFontType,
+                height: otherFontSize,
+                width: otherFontSize,
+              ),
+            ),
+            PosColumn(text: '', width: 2),
+          ]);
+        }
+        bytes += generator.reset();
+        await getDeletedOrderModifierDetail(orderDetailList[i]);
+        if(orderModifierDetailList.isNotEmpty){
+          for(int j = 0; j < orderModifierDetailList.length; j++){
+            //modifier
+            bytes += generator.row([
+              PosColumn(
+                text: '+${orderModifierDetailList[j].mod_name}',
+                width: 10,
+                containsChinese: true,
+                styles: PosStyles(
+                  fontType: otherFontType,
+                  height: otherFontSize,
+                  width: otherFontSize,
+                ),
+              ),
+              PosColumn(text: '', width: 2),
+            ]);
+          }
+        }
+        /*
+        * product remark
+        * */
+        bytes += generator.reset();
+        if (orderDetailList[i].remark != '') {
+          bytes += generator.row([
+            PosColumn(
+              text: '**${orderDetailList[i].remark}',
+              width: 10,
+              containsChinese: true,
+              styles: PosStyles(
+                fontType: otherFontType,
+                height: otherFontSize,
+                width: otherFontSize,
+              ),
+            ),
+            PosColumn(text: '', width: 2),
+          ]);
+        }
+        bytes += generator.hr();
+        bytes += generator.text('cancel by: ${orderDetailList[i].cancel_by}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
+      }
+
+      bytes += generator.cut(mode: PosCutMode.partial);
+      return bytes;
+    } catch (e, stackTrace) {
+      FLog.error(
+        className: "cancel_receipt/layout",
+        text: "printCancelReceipt58mm error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
       rethrow;
     }
   }

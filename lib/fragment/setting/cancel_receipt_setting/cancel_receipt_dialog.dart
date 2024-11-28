@@ -37,12 +37,8 @@ class _CancelReceiptDialogState extends State<CancelReceiptDialog> {
   PrintReceipt printReceipt = PrintReceipt();
   PaperSize receiptView = PaperSize.mm80;
   PosDatabase posDatabase = PosDatabase.instance;
-  CancelReceipt testPrintLayout = CancelReceipt(
+  CancelReceipt testPrintLayout = Utils.defaultCancelReceiptLayout().copy(
     paper_size: '80',
-    product_name_font_size: 0,
-    other_font_size: 0,
-    show_product_sku: 0,
-    show_product_price: 0
   );
   bool _isButtonDisabled = false;
 
