@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -8,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/object/cash_record.dart';
+import 'package:pos_system/object/payment_link_company.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -43,6 +45,9 @@ class _CashDialogState extends State<CashDialog> {
   bool _isLoad = false;
   bool _submitted = false;
   bool isButtonDisabled = false, isLogOut = false;
+  final List<String> paymentLists = [];
+  int? selectedPayment = 0;
+  String selectedPaymentTypeId = '';
 
   @override
   void initState() {
@@ -50,6 +55,7 @@ class _CashDialogState extends State<CashDialog> {
     readAllPrinters();
     readLastSettlement();
     getAllAppSetting();
+    readPaymentMethod();
   }
 
   @override
@@ -118,7 +124,7 @@ class _CashDialogState extends State<CashDialog> {
                         ? Text(AppLocalizations.of(context)!.translate('cash_in'))
                         : Text(AppLocalizations.of(context)!.translate('cash_out')),
                 content: Container(
-                  height: widget.isNewDay ? MediaQuery.of(context).size.height / 6 : MediaQuery.of(context).size.height / 4,
+                  height: widget.isNewDay ? MediaQuery.of(context).size.height / 6 : MediaQuery.of(context).size.height / 3,
                   width: widget.isNewDay ? MediaQuery.of(context).size.height / 2 : MediaQuery.of(context).size.width / 4,
                   child: SingleChildScrollView(
                     child: Column(
@@ -127,12 +133,62 @@ class _CashDialogState extends State<CashDialog> {
                         Container(
                           child: Visibility(
                             visible: widget.isNewDay ? false : true,
+                            child: DropdownButtonHideUnderline(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: DropdownButton2(
+                                  isExpanded: true,
+                                  buttonStyleData: ButtonStyleData(
+                                    height: 60,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: Border.all(
+                                        color: Colors.black26,
+                                      ),
+                                    ),
+                                  ),
+                                  dropdownStyleData: DropdownStyleData(
+                                    maxHeight: 200,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      color: Colors.grey.shade100,
+                                    ),
+                                    scrollbarTheme: ScrollbarThemeData(
+                                        thickness: WidgetStateProperty.all(5),
+                                        mainAxisMargin: 20,
+                                        crossAxisMargin: 5
+                                    ),
+                                  ),
+                                  items: paymentLists.asMap().entries.map((sort) => DropdownMenuItem<int>(
+                                    value: sort.key,
+                                    child: Text(sort.value.split(':').last,
+                                      overflow: TextOverflow.visible,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  )).toList(),
+                                  value: selectedPayment,
+                                  onChanged: (int? value) {
+                                    setState(() {
+                                      selectedPayment = value;
+                                      selectedPaymentTypeId = paymentLists[selectedPayment!].split(':').first;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          child: Visibility(
+                            visible: widget.isNewDay ? false : true,
                             child: ValueListenableBuilder(
                                 // Note: pass _controller to the animation argument
                                 valueListenable: remarkController,
                                 builder: (context, TextEditingValue value, __) {
                                   return SizedBox(
-                                    height: 100,
+                                    height: 85,
                                     child: Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: TextField(
@@ -259,6 +315,9 @@ class _CashDialogState extends State<CashDialog> {
                             ? null
                             : () async {
                           try {
+                            setState(() {
+                              isButtonDisabled = true;
+                            });
                             double.parse(amountController.text);
                             await _submit(context);
                           } catch (e) {
@@ -304,6 +363,56 @@ class _CashDialogState extends State<CashDialog> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Container(
+                            child: Visibility(
+                              visible: widget.isNewDay ? false : true,
+                              child: DropdownButtonHideUnderline(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: DropdownButton2(
+                                    isExpanded: true,
+                                    buttonStyleData: ButtonStyleData(
+                                      height: 60,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(5),
+                                        border: Border.all(
+                                          color: Colors.black26,
+                                        ),
+                                      ),
+                                    ),
+                                    dropdownStyleData: DropdownStyleData(
+                                      maxHeight: 200,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: Colors.grey.shade100,
+                                      ),
+                                      scrollbarTheme: ScrollbarThemeData(
+                                          thickness: WidgetStateProperty.all(5),
+                                          mainAxisMargin: 20,
+                                          crossAxisMargin: 5
+                                      ),
+                                    ),
+                                    items: paymentLists.asMap().entries.map((sort) => DropdownMenuItem<int>(
+                                      value: sort.key,
+                                      child: Text(sort.value.split(':').last,
+                                        overflow: TextOverflow.visible,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    )).toList(),
+                                    value: selectedPayment,
+                                    onChanged: (int? value) {
+                                      setState(() {
+                                        selectedPayment = value;
+                                        selectedPaymentTypeId = paymentLists[selectedPayment!].split(':').first;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                           Container(
                             child: Visibility(
                               visible: widget.isNewDay ? false : true,
@@ -408,6 +517,9 @@ class _CashDialogState extends State<CashDialog> {
                       onPressed: isButtonDisabled
                           ? null
                           : () async {
+                              setState(() {
+                                isButtonDisabled = true;
+                              });
                               await _submit(context);
                             },
                     )
@@ -470,7 +582,7 @@ class _CashDialogState extends State<CashDialog> {
           remark: widget.isNewDay ? 'Opening Balance' : remarkController.text,
           amount: amountController.text,
           payment_name: '',
-          payment_type_id: '',
+          payment_type_id: widget.isNewDay ? await getCashPaymentId() : selectedPaymentTypeId ?? '',
           type: widget.isNewDay ? 0 : type,
           user_id: userObject['user_id'].toString(),
           settlement_key: '',
@@ -480,7 +592,7 @@ class _CashDialogState extends State<CashDialog> {
           updated_at: '',
           soft_delete: '');
 
-      CashRecord data = await PosDatabase.instance.insertSqliteCashRecord(cashRecordObject);
+      CashRecord data = await PosDatabase.instance.insertSqliteCashRecordCashInOutOB(cashRecordObject);
       CashRecord updatedData = await insertCashRecordKey(data, dateTime);
       _value.add(jsonEncode(updatedData));
       //sync to cloud
@@ -510,6 +622,9 @@ class _CashDialogState extends State<CashDialog> {
   }
 
   callOpenCashDrawer() async {
+    if(paymentLists[selectedPayment!].split(':').last != 'Cash'){
+      return;
+    }
     int printStatus = await PrintReceipt().cashDrawer(printerList: this.printerList);
     if(printStatus == 1){
       Fluttertoast.showToast(
@@ -595,5 +710,24 @@ class _CashDialogState extends State<CashDialog> {
     setState(() {
       _isLoad = true;
     });
+  }
+
+  readPaymentMethod() async {
+    List<PaymentLinkCompany> data = await PosDatabase.instance.readPaymentMethods();
+    paymentLists.addAll(data.map((payment) => '${payment.payment_type_id}:${payment.name!}').toList());
+    if(paymentLists.isNotEmpty){
+      selectedPaymentTypeId = paymentLists[0].split(':').first;
+    }
+  }
+
+  Future<String> getCashPaymentId() async {
+    String paymentTypeId = '';
+    List<PaymentLinkCompany> data = await PosDatabase.instance.readPaymentMethods();
+    for(int i = 0; i < data.length; i++){
+      if(data[i].name == 'Cash'){
+        paymentTypeId = data[i].payment_type_id!;
+      }
+    }
+    return paymentTypeId;
   }
 }

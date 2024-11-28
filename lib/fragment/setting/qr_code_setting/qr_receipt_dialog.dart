@@ -13,6 +13,7 @@ import 'package:crypto/crypto.dart';
 
 import '../../../database/pos_database.dart';
 import '../../../notifier/theme_color.dart';
+import '../../../object/branch.dart';
 import '../../../translation/AppLocalizations.dart';
 import '../../../utils/Utils.dart';
 import '../../dynamic_qr/print_dynamic_qr.dart';
@@ -303,11 +304,12 @@ class _DynamicQrReceiptDialogState extends State<DynamicQrReceiptDialog> {
       String dateTime = dateFormat.format(DateTime.now());
       final prefs = await SharedPreferences.getInstance();
       final String? branch = prefs.getString('branch');
-      var branchObject = json.decode(branch!);
+      Map<String, dynamic> branchMap = json.decode(branch!);
+      Branch branchObject = Branch.fromJson(branchMap);
 
       DynamicQR data = await PosDatabase.instance.insertSqliteDynamicQR(DynamicQR(
        dynamic_qr_id: 0,
-       branch_id: branchObject['branchID'].toString(),
+       branch_id: branchObject.branch_id!.toString(),
        qr_code_size: testPrintLayout!.qr_code_size,
        dynamic_qr_key: '',
        paper_size: receiptView,

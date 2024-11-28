@@ -137,7 +137,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: SyncDialog(),
+              child: SyncDialog(syncType: SyncType.sync),
             ),
           );
         },
@@ -815,11 +815,11 @@ class _SettlementDialogState extends State<SettlementDialog> {
     if (orderData.isNotEmpty) {
       this.orderList = orderData;
       this.totalBill = orderData.length;
-      this.totalSales = orderData[0].gross_sales!;
+      this.totalSales = orderData[0].gross_sales ?? 0;
     }
     if (refundData.isNotEmpty) {
       this.totalRefundBill = refundData.length;
-      this.totalRefundAmount = refundData[0].gross_sales!;
+      this.totalRefundAmount = refundData[0].gross_sales ?? 0;
     }
     if (orderCharge.isNotEmpty) {
       this.totalCharge = orderCharge[0].total_charge_amount!;

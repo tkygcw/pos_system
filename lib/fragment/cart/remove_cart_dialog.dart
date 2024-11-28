@@ -850,12 +850,10 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
   getOrderCacheValue(OrderCache orderCacheObject) async {
     List<String> _orderCacheValue = [];
     OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCacheObject.order_cache_sqlite_id!);
-    print('order cache return data: ${orderCacheData.sync_status}');
     if(orderCacheData.sync_status != 1){
       _orderCacheValue.add(jsonEncode(orderCacheData));
     }
     order_cache_value = _orderCacheValue.toString();
-    print('order cache subtotal value: $order_cache_value');
   }
 
   // syncOrderCacheToCloud(String value) async {

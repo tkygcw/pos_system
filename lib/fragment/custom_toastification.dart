@@ -35,7 +35,7 @@ class _CustomToastification {
       alignment: Alignment.topCenter,
       showProgressBar: showProgressBar,
       closeOnClick: true,
-      icon: isError != null ? Icon(Icons.cancel) : Icon(Icons.check_circle_rounded),
+      icon: isError != null ? Icon(Icons.cancel_rounded) : Icon(Icons.check_circle_rounded),
       title: Text(title),
       description: description,
       autoCloseDuration: Duration(seconds: autoCloseDuration!),
@@ -55,7 +55,7 @@ class _CustomToastification {
   }
 }
 
-class ShowQRToast {
+class ShowQRToast extends _CustomToastification {
   static showToast(){
     _CustomToastification.showToastificationAndSound(
         title: AppLocalizations.of(_CustomToastification.context)!.translate('new_qr_order_received'),
@@ -90,14 +90,15 @@ class ShowPlaceOrderFailedToast {
   }
 }
 
-class CustomFailedToast {
-  static showToast({required String title, String? description}){
+class CustomFailedFailedToast {
+  static showToast({required String title, String? description, int? duration}){
     _CustomToastification.showToastificationAndSound(
       title: title,
-      description: description != null? Text(description) : null,
+      description: description != null ? Text(description) : null,
       isError: true,
       playSound: true,
       playTimes: 2,
+      autoCloseDuration: duration
     );
   }
 

@@ -1,4 +1,4 @@
-String? tableProductVariant = 'tb_product_variant ';
+String? tableProductVariant = 'tb_product_variant';
 
 class ProductVariantFields {
   static List<String> values = [

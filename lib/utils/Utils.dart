@@ -143,6 +143,11 @@ class Utils {
     return shortHash(hashCode).toString()+shortHash(DateTime.now()).toString();
   }
 
+  static String dbCurrentDateTimeFormat(){
+    final DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    return dateFormat.format(DateTime.now());
+  }
+
   static CancelReceipt defaultCancelReceiptLayout(){
     return CancelReceipt(
         product_name_font_size: 0,

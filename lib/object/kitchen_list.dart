@@ -9,6 +9,7 @@ class KitchenListFields {
     product_name_font_size,
     other_font_size,
     paper_size,
+    use_printer_label_as_title,
     kitchen_list_show_price,
     print_combine_kitchen_list,
     kitchen_list_item_separator,
@@ -27,6 +28,7 @@ class KitchenListFields {
   static String product_name_font_size = 'product_name_font_size';
   static String other_font_size = 'other_font_size';
   static String paper_size = 'paper_size';
+  static String use_printer_label_as_title = 'use_printer_label_as_title';
   static String kitchen_list_show_price = 'kitchen_list_show_price';
   static String print_combine_kitchen_list = 'print_combine_kitchen_list';
   static String kitchen_list_item_separator = 'kitchen_list_item_separator';
@@ -47,6 +49,7 @@ class KitchenList {
   int? product_name_font_size;
   int? other_font_size;
   String? paper_size;
+  int? use_printer_label_as_title;
   int? kitchen_list_show_price;
   int? print_combine_kitchen_list;
   int? kitchen_list_item_separator;
@@ -65,6 +68,7 @@ class KitchenList {
         this.product_name_font_size,
         this.other_font_size,
         this.paper_size,
+        this.use_printer_label_as_title,
         this.kitchen_list_show_price,
         this.print_combine_kitchen_list,
         this.kitchen_list_item_separator,
@@ -83,6 +87,7 @@ class KitchenList {
     int? product_name_font_size,
     int? other_font_size,
     String? paper_size,
+    int? use_printer_label_as_title,
     int? kitchen_list_show_price,
     int? print_combine_kitchen_list,
     int? kitchen_list_item_separator,
@@ -101,6 +106,7 @@ class KitchenList {
           product_name_font_size: product_name_font_size ?? this.product_name_font_size,
           other_font_size: other_font_size ?? this.other_font_size,
           paper_size: paper_size ?? this.paper_size,
+          use_printer_label_as_title: use_printer_label_as_title ?? this.use_printer_label_as_title,
           kitchen_list_show_price: kitchen_list_show_price ?? this.kitchen_list_show_price,
           print_combine_kitchen_list: print_combine_kitchen_list ?? this.print_combine_kitchen_list,
           kitchen_list_item_separator: kitchen_list_item_separator ?? this.kitchen_list_item_separator,
@@ -119,6 +125,7 @@ class KitchenList {
     product_name_font_size: json[KitchenListFields.product_name_font_size] as int?,
     other_font_size: json[KitchenListFields.other_font_size] as int?,
     paper_size: json[KitchenListFields.paper_size] as String?,
+    use_printer_label_as_title: json[KitchenListFields.use_printer_label_as_title] as int?,
     kitchen_list_show_price: json[KitchenListFields.kitchen_list_show_price] as int?,
     print_combine_kitchen_list: json[KitchenListFields.print_combine_kitchen_list] as int?,
     kitchen_list_item_separator: json[KitchenListFields.kitchen_list_item_separator] as int?,
@@ -138,6 +145,7 @@ class KitchenList {
     KitchenListFields.product_name_font_size: product_name_font_size,
     KitchenListFields.other_font_size: other_font_size,
     KitchenListFields.paper_size: paper_size,
+    KitchenListFields.use_printer_label_as_title: use_printer_label_as_title,
     KitchenListFields.kitchen_list_show_price: kitchen_list_show_price,
     KitchenListFields.print_combine_kitchen_list: print_combine_kitchen_list,
     KitchenListFields.kitchen_list_item_separator: kitchen_list_item_separator,

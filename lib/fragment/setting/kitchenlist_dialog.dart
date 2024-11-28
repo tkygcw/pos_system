@@ -17,6 +17,7 @@ import '../../database/pos_database.dart';
 import '../../enumClass/receipt_dialog_enum.dart';
 import '../../main.dart';
 import '../../notifier/theme_color.dart';
+import '../../object/branch.dart';
 import '../printing_layout/print_receipt.dart';
 import '../../translation/AppLocalizations.dart';
 import '../../utils/Utils.dart';
@@ -41,7 +42,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
   String kitchen_listView = "80";
   String? kitchen_list_value;
   double? fontSize, otherFontSize;
-  bool isButtonDisabled = false, submitted = false, kitchenListShowPrice = false,
+  bool isButtonDisabled = false, submitted = false, kitchenListShowPrice = false, usePrinterLabelAsTitle = false,
       printCombineKitchenList = false, kitchenListItemSeparator = false, showSKU = false, kitchenListShowTotalPrice = false;
   List<Printer> kitchenPrinter = [];
 
@@ -93,6 +94,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         variantAddonFontSize = data.other_font_size == 0 ? ReceiptDialogEnum.big : (data.other_font_size == 1 ? ReceiptDialogEnum.small : ReceiptDialogEnum.medium);
         otherFontSize = data.other_font_size == 0 ? 20 : data.other_font_size == 1 ? 14 : 18;
         kitchenListShowPrice = data.kitchen_list_show_price == 0 ? false : true;
+        usePrinterLabelAsTitle = data.use_printer_label_as_title == 0 ? false : true;
         printCombineKitchenList = data.print_combine_kitchen_list == 0 ? false : true;
         kitchenListItemSeparator = data.kitchen_list_item_separator == 0 ? false : true;
         kitchenListShowTotalPrice = data.kitchen_list_show_total_amount == 0 ? false : true;
@@ -382,6 +384,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         KitchenList data = KitchenList(
           product_name_font_size: productFontSize == ReceiptDialogEnum.big ? 0 : (productFontSize == ReceiptDialogEnum.small ? 1 : 2),
           other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : (variantAddonFontSize == ReceiptDialogEnum.small ? 1 : 2),
+          use_printer_label_as_title: usePrinterLabelAsTitle == true ? 1: 0,
           kitchen_list_show_price: kitchenListShowPrice == true ? 1: 0,
           print_combine_kitchen_list: printCombineKitchenList == true ? 1: 0,
           kitchen_list_item_separator: kitchenListItemSeparator == true ? 1: 0,
@@ -414,15 +417,17 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
       String dateTime = dateFormat.format(DateTime.now());
       final prefs = await SharedPreferences.getInstance();
       final String? branch = prefs.getString('branch');
-      var branchObject = json.decode(branch!);
+      Map<String, dynamic> branchMap = json.decode(branch!);
+      Branch branchObject = Branch.fromJson(branchMap);
 
       KitchenList data = await PosDatabase.instance.insertSqliteKitchenList(KitchenList(
         kitchen_list_id: 0,
         kitchen_list_key: '',
-        branch_id: branchObject['branchID'].toString(),
+        branch_id: branchObject.branch_id!.toString(),
         product_name_font_size: productFontSize == ReceiptDialogEnum.big ? 0 : 1,
         other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : 1,
         paper_size: kitchen_listView,
+        use_printer_label_as_title: usePrinterLabelAsTitle == true ? 1 : 0,
         kitchen_list_show_price: kitchenListShowPrice == true ? 1 : 0,
         print_combine_kitchen_list: printCombineKitchenList == true ? 1 : 0,
         kitchen_list_item_separator: kitchenListItemSeparator == true ? 1 : 0,
@@ -488,6 +493,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
     testPrintLayout = KitchenList(
         product_name_font_size: productFontSize == ReceiptDialogEnum.big ? 0 : (productFontSize == ReceiptDialogEnum.small ? 1 : 2),
         other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : (variantAddonFontSize == ReceiptDialogEnum.small ? 1 : 2),
+        use_printer_label_as_title: usePrinterLabelAsTitle == true ? 1: 0,
         kitchen_list_show_price: kitchenListShowPrice == true ? 1: 0,
         print_combine_kitchen_list: printCombineKitchenList == true ? 1: 0,
         kitchen_list_item_separator: kitchenListItemSeparator == true ? 1: 0,
@@ -572,6 +578,8 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Text(usePrinterLabelAsTitle ? "(PRINTER LABEL)" : "** Kitchen list **", style: TextStyle(fontSize: 24.0)),
+              Text(""),
               Text("Dine In", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0)),
               Text("Table No: 5", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0)),
               Text("Batch No: #123456-005"),
@@ -693,6 +701,22 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         flex: 1,
         child: Column(
           children: [
+            Container(
+              alignment: Alignment.topLeft,
+              child: Text(AppLocalizations.of(context)!.translate('title_setting'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            ),
+            ListTile(
+              title: Text(AppLocalizations.of(context)!.translate('use_printer_label_as_title')),
+              subtitle: Text(AppLocalizations.of(context)!.translate('use_printer_label_as_title_desc')),
+              trailing: Switch(
+                value: usePrinterLabelAsTitle,
+                activeColor: color.backgroundColor,
+                onChanged: (value) async {
+                  usePrinterLabelAsTitle = value;
+                  actionController.sink.add("switch");
+                },
+              ),
+            ),
             Container(
               alignment: Alignment.topLeft,
               child: Text(AppLocalizations.of(context)!.translate('product_name_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
@@ -878,6 +902,8 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Text(usePrinterLabelAsTitle ? "(PRINTER LABEL)" : "** Kitchen list **", style: TextStyle(fontSize: 24.0)),
+              Text(""),
               Text("Dine In", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0)),
               Text("Table No: 5", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0)),
               Text("Batch No"),
@@ -1001,6 +1027,22 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         flex: 1,
         child: Column(
           children: [
+            Container(
+              alignment: Alignment.topLeft,
+              child: Text(AppLocalizations.of(context)!.translate('title_setting'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            ),
+            ListTile(
+              title: Text(AppLocalizations.of(context)!.translate('use_printer_label_as_title')),
+              subtitle: Text(AppLocalizations.of(context)!.translate('use_printer_label_as_title_desc')),
+              trailing: Switch(
+                value: usePrinterLabelAsTitle,
+                activeColor: color.backgroundColor,
+                onChanged: (value) async {
+                  usePrinterLabelAsTitle = value;
+                  actionController.sink.add("switch");
+                },
+              ),
+            ),
             Container(
               alignment: Alignment.topLeft,
               child: Text(AppLocalizations.of(context)!.translate('product_name_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
@@ -1177,6 +1219,22 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
     children: [
       Container(
         alignment: Alignment.topLeft,
+        child: Text(AppLocalizations.of(context)!.translate('title_setting'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+      ),
+      ListTile(
+        title: Text(AppLocalizations.of(context)!.translate('use_printer_label_as_title')),
+        subtitle: Text(AppLocalizations.of(context)!.translate('use_printer_label_as_title_desc')),
+        trailing: Switch(
+          value: usePrinterLabelAsTitle,
+          activeColor: color.backgroundColor,
+          onChanged: (value) async {
+            usePrinterLabelAsTitle = value;
+            actionController.sink.add("switch");
+          },
+        ),
+      ),
+      Container(
+        alignment: Alignment.topLeft,
         child: Text(AppLocalizations.of(context)!.translate('product_name_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
       ),
       RadioListTile<ReceiptDialogEnum?>(
@@ -1345,6 +1403,22 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
   //mobile layout 58mm
   Widget mobileView2(ThemeColor color) => Column(
     children: [
+      Container(
+        alignment: Alignment.topLeft,
+        child: Text(AppLocalizations.of(context)!.translate('title_setting'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+      ),
+      ListTile(
+        title: Text(AppLocalizations.of(context)!.translate('use_printer_label_as_title')),
+        subtitle: Text(AppLocalizations.of(context)!.translate('use_printer_label_as_title_desc')),
+        trailing: Switch(
+          value: usePrinterLabelAsTitle,
+          activeColor: color.backgroundColor,
+          onChanged: (value) async {
+            usePrinterLabelAsTitle = value;
+            actionController.sink.add("switch");
+          },
+        ),
+      ),
       Container(
         alignment: Alignment.topLeft,
         child: Text(AppLocalizations.of(context)!.translate('product_name_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),

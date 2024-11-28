@@ -1,9 +1,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:io';
 
+import 'package:image/image.dart' as img;
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:esc_pos_utils_plus/gbk_codec/gbk_codec.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/branch.dart';
@@ -89,8 +93,11 @@ class ReceiptLayout{
   openCashDrawer ({required isUSB, value}) async {
     var generator;
     if (isUSB) {
-      lcdDisplay.openCashDrawer();
+      final profile = await CapabilityProfile.load();
+      generator = Generator(PaperSize.mm80, profile);
       List<int> bytes = [];
+      bytes += generator.drawer();
+      iminLib.openCashDrawer();
       return bytes;
     } else {
       generator = value;
@@ -215,6 +222,7 @@ class ReceiptLayout{
     bytes += generator.feed(1);
     bytes += generator.drawer();
     bytes += generator.cut(mode: PosCutMode.full);
+    iminLib.openCashDrawer();
     return bytes;
   }
 
@@ -239,6 +247,7 @@ class ReceiptLayout{
     bytes += generator.feed(1);
     bytes += generator.drawer();
     bytes += generator.cut(mode: PosCutMode.partial);
+    iminLib.openCashDrawer();
     return bytes;
   }
 
@@ -711,7 +720,7 @@ class ReceiptLayout{
     }
     List<int> bytes = [];
     try {
-      bytes += generator.text('** Kitchen list **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
+      bytes += generator.text(kitchen_list.use_printer_label_as_title == 0 ? '** Kitchen list **' : '(PRINTER LABEL)', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       bytes += generator.text('Dine In', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
@@ -868,7 +877,7 @@ class ReceiptLayout{
     List<int> bytes = [];
     try {
       bytes += generator.reset();
-      bytes += generator.text('** Kitchen list **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
+      bytes += generator.text(kitchen_list.use_printer_label_as_title == 0 ? '** Kitchen list **' : '(PRINTER LABEL)', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       //other order detail
@@ -1014,6 +1023,47 @@ class ReceiptLayout{
     }
   }
 
+  Future<String> get _localPath async {
+    final directory = await getApplicationSupportDirectory();
+    return directory.path;
+  }
+
+  Future<img.Image> getBranchLogo(int header_image_size) async {
+    int imageSize = header_image_size == 0 ? 100 : header_image_size == 1 ? 160 : 220;
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
+    String? path = '';
+
+    if(Platform.isIOS){
+      String dir = await _localPath;
+      path = dir + '/assets/logo';
+    } else {
+      if(prefs.getString('logo_path') != null)
+        path = prefs.getString('logo_path')!;
+    }
+
+    if(path != '') {
+      final File imageFile = File('$path/${branchObject['logo']}');
+      if (!await imageFile.exists()) {
+        return img.Image(width: 1, height: 1);
+      }
+      final Uint8List imageBytes = await imageFile.readAsBytes();
+      final img.Image decodedImage = img.decodeImage(imageBytes)!;
+      img.Image thumbnail = img.copyResize(decodedImage, height: imageSize);
+      img.Image originalImg = img.copyResize(decodedImage, width: 380, height: imageSize);
+      img.fill(originalImg, color: img.ColorRgb8(255, 255, 255));
+
+      var padding = (originalImg.width - thumbnail.width) / 2;
+      img.compositeImage(originalImg, thumbnail, dstX: padding.toInt());
+      img.Image processedImage = img.adjustColor(originalImg, saturation: -100, contrast: 100, gamma: 10);
+
+      return processedImage;
+    } else {
+      return img.Image(width: 1, height: 1);
+    }
+  }
+
 /*
   Test print Receipt layout 80mm
 */
@@ -1033,7 +1083,13 @@ class ReceiptLayout{
     List<int> bytes = [];
     try {
       bytes += generator.reset();
-      //bytes += generator.image(decodedImage);
+
+      if(receipt!.header_image_status == 1){
+        img.Image processedImage = await getBranchLogo(receipt!.header_image_size!);
+        bytes += generator.imageRaster(processedImage, align: PosAlign.center);
+        bytes += generator.emptyLines(1);
+      }
+
       if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
         ///big font
         bytes += generator.row([
@@ -1053,6 +1109,25 @@ class ReceiptLayout{
               styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1)),
         ]);
       }
+
+      if(receipt!.second_header_text_status == 1) {
+        PosTextSize productFontSize = receipt!.second_header_font_size == 0 ? PosTextSize.size1 : PosTextSize.size2;
+        PosFontType productFontType = receipt!.second_header_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
+
+        bytes += generator.row([
+          PosColumn(
+              text: '${receipt!.second_header_text}',
+              width: 12,
+              containsChinese: true,
+              styles: PosStyles(
+                  align: PosAlign.center,
+                  fontType: productFontType,
+                  height: productFontSize,
+                  width: productFontSize)),
+        ]);
+        bytes += generator.reset();
+      }
+
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       //register no
@@ -1086,8 +1161,12 @@ class ReceiptLayout{
       //other order detail
       bytes += generator.text('Close at: 31/12/2021 00:00 AM');
       bytes += generator.text('Close by: Waiter');
-      bytes += generator.text('Table No: 1');
-      bytes += generator.text('Dine in');
+
+      if(receipt!.hide_dining_method_table_no == 0){
+        bytes += generator.text('Table No: 1');
+        bytes += generator.text('Dine in');
+      }
+
       bytes += generator.reset();
       /*
     *
@@ -1260,6 +1339,25 @@ class ReceiptLayout{
                 styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1)),
           ]);
         }
+
+        if(receipt!.second_header_text_status == 1) {
+          PosTextSize productFontSize = receipt!.second_header_font_size == 0 ? PosTextSize.size1 : PosTextSize.size2;
+          PosFontType productFontType = receipt!.second_header_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
+
+          bytes += generator.row([
+            PosColumn(
+                text: '${receipt!.second_header_text}',
+                width: 12,
+                containsChinese: true,
+                styles: PosStyles(
+                    align: PosAlign.center,
+                    fontType: productFontType,
+                    height: productFontSize,
+                    width: productFontSize)),
+          ]);
+          bytes += generator.reset();
+        }
+
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
         if(receipt!.show_register_no == 1){
@@ -1295,9 +1393,10 @@ class ReceiptLayout{
         bytes += generator.text('31/12/2021 00:00 AM', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Close by:', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Waiter', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('Table No: 1', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('Dine in', styles: PosStyles(align: PosAlign.center));
-
+        if(receipt!.hide_dining_method_table_no == 0){
+          bytes += generator.text('Table No: 1', styles: PosStyles(align: PosAlign.center));
+          bytes += generator.text('Dine in', styles: PosStyles(align: PosAlign.center));
+        }
         bytes += generator.reset();
         /*
     *
@@ -2685,11 +2784,11 @@ class ReceiptLayout{
     try{
       List<CashRecord> data = await PosDatabase.instance.readSpecificSettlementCashRecord(branch_id.toString(), dateTime, settlement.settlement_key!);
       for (int i = 0; i < data.length; i++) {
-        if (data[i].type == 1 && data[i].payment_type_id == '') {
+        if (data[i].type == 1) {
           totalCashIn += double.parse(data[i].amount!);
-        } else if (data[i].type == 2 && data[i].payment_type_id == '') {
+        } else if (data[i].type == 2) {
           totalCashOut += double.parse(data[i].amount!);
-        } else if(data[i].type == 0 && data[i].payment_type_id == ''){
+        } else if(data[i].type == 0){
           totalOpeningCash = double.parse(data[i].amount!);
         } else if(data[i].type == 3 && data[i].payment_type_id == '1'){
           _cashTotal += double.parse(data[i].amount!);

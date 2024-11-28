@@ -121,7 +121,7 @@ class ReportObject{
     return orderData;
   }
 
-  Future<List<CashRecord>> getAllCashRecord({currentStDate, currentEdDate}) async {
+  Future<List<CashRecord>> getAllCashRecord({currentStDate, currentEdDate, selectedPayment}) async {
     await getPrefData();
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
@@ -132,9 +132,9 @@ class ReportObject{
     List<CashRecord> cashRecordData = [];
 
     if(_isChecked) {
-      cashRecordData = await PosDatabase.instance.readAllTodayCashRecordWithOB(stringStDate, stringEdDate);
+      cashRecordData = await PosDatabase.instance.readAllTodayCashRecordWithOB(stringStDate, stringEdDate, selectedPayment);
     } else {
-      cashRecordData = await PosDatabase.instance.readAllTodayCashRecord(stringStDate, stringEdDate);
+      cashRecordData = await PosDatabase.instance.readAllTodayCashRecord(stringStDate, stringEdDate, selectedPayment);
     }
 
     return cashRecordData;

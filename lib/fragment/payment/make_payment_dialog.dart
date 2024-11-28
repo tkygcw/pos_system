@@ -315,71 +315,74 @@ class _MakePaymentState extends State<MakePayment> {
                           width: double.maxFinite,
                           child: Row(
                             children: [
-                              Expanded(child: Column(
-                                children: [
-                                  Container(
-                                    margin: EdgeInsets.only(bottom: 20),
-                                    alignment: Alignment.center,
-                                    // child: Text(AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
-                                    child: Text(_appSettingModel.table_order == 0 ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
-                                        : AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
-                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
-                                  ),
-                                  Card(
+                              Expanded(
+                                  child: Card(
                                     elevation: 5,
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Container(
-                                          height: MediaQuery.of(context).size.width < 1300
-                                              ? MediaQuery.of(context).size.width / 4.5
-                                              : MediaQuery.of(context).size.width / 5,
-                                          child: ListView.builder(
-                                              shrinkWrap: true,
-                                              itemCount: itemList.length,
-                                              itemBuilder: (context, index) {
-                                                return ListTile(
-                                                  hoverColor: Colors.transparent,
-                                                  onTap: null,
-                                                  isThreeLine: true,
-                                                  title: RichText(
-                                                    text: TextSpan(
-                                                      children: <TextSpan>[
-                                                        TextSpan(
-                                                          text: '${itemList[index].product_name!} (${itemList[index].price!}/${itemList[index].per_quantity_unit!}${itemList[index].unit! == 'each' || itemList[index].unit! == 'each_c' ? 'each' : itemList[index].unit!})\n',
-                                                          style: TextStyle(
-                                                            fontSize: MediaQuery.of(context).size.height > 500 ? 20 : 15,
-                                                            color: color.backgroundColor,
-                                                            fontWeight: FontWeight.bold,
-                                                          ),
-                                                        ),
-                                                        TextSpan(
-                                                            text: "RM" + getItemTotalPrice(productItem: itemList[index]),
-                                                            style: TextStyle(fontSize: 15, color: color.backgroundColor)),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  subtitle: Text(getVariant(itemList[index]) +
-                                                          getModifier(itemList[index]) +
-                                                          getRemark(itemList[index]),
-                                                      style: TextStyle(fontSize: 12)),
-                                                  trailing: Container(
-                                                    child: FittedBox(
-                                                      child: Row(
-                                                        children: [
-                                                          Text(
-                                                            'x${itemList[index].quantity.toString()}',
+                                          padding: EdgeInsets.all(20),
+                                          alignment: Alignment.center,
+                                          child: Text(_appSettingModel.table_order == 0 ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
+                                              : AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
+                                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                                        ),
+                                        Divider(
+                                          color: Colors.grey,
+                                          height: 1,
+                                          thickness: 1,
+                                          indent: 20,
+                                          endIndent: 20,
+                                        ),
+                                        Expanded(
+                                            child: ListView.builder(
+                                                padding: EdgeInsets.only(top: 10),
+                                                shrinkWrap: true,
+                                                itemCount: itemList.length,
+                                                itemBuilder: (context, index) {
+                                                  return ListTile(
+                                                    hoverColor: Colors.transparent,
+                                                    onTap: null,
+                                                    isThreeLine: true,
+                                                    title: RichText(
+                                                      text: TextSpan(
+                                                        children: <TextSpan>[
+                                                          TextSpan(
+                                                            text: '${itemList[index].product_name!} (${itemList[index].price!}/${itemList[index].per_quantity_unit!}${itemList[index].unit! == 'each' || itemList[index].unit! == 'each_c' ? 'each' : itemList[index].unit!})\n',
                                                             style: TextStyle(
-                                                                color: color.backgroundColor,
-                                                                fontWeight: FontWeight.bold,
-                                                                fontSize: 20),
+                                                              fontSize: MediaQuery.of(context).size.height > 500 ? 20 : 15,
+                                                              color: color.backgroundColor,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
                                                           ),
+                                                          TextSpan(
+                                                              text: "RM" + getItemTotalPrice(productItem: itemList[index]),
+                                                              style: TextStyle(fontSize: 15, color: color.backgroundColor)),
                                                         ],
                                                       ),
                                                     ),
-                                                  ),
-                                                );
-                                              }),
+                                                    subtitle: Text(getVariant(itemList[index]) +
+                                                        getModifier(itemList[index]) +
+                                                        getRemark(itemList[index]),
+                                                        style: TextStyle(fontSize: 12)),
+                                                    trailing: Container(
+                                                      child: FittedBox(
+                                                        child: Row(
+                                                          children: [
+                                                            Text(
+                                                              'x${itemList[index].quantity.toString()}',
+                                                              style: TextStyle(
+                                                                  color: color.backgroundColor,
+                                                                  fontWeight: FontWeight.bold,
+                                                                  fontSize: 20),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  );
+                                                }),
                                         ),
                                         SizedBox(height: 10),
                                         Divider(
@@ -507,8 +510,7 @@ class _MakePaymentState extends State<MakePayment> {
                                       ],
                                     ),
                                   ),
-                                ],
-                              )),
+                              ),
                               //divider
                               Container(
                                 padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
@@ -629,29 +631,27 @@ class _MakePaymentState extends State<MakePayment> {
                                               Container(
                                                 margin: EdgeInsets.only(top: 10),
                                                 child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisAlignment: MainAxisAlignment.center,
                                                   children: [
-                                                    Container(
-                                                        child: SizedBox(
-                                                          height: 70,
-                                                          width: 150,
-                                                          child:
-                                                              ElevatedButton.icon(
-                                                                  onPressed: isButtonDisable || itemList.isEmpty ? null : () async => makePayment(),
-                                                                  style: ElevatedButton.styleFrom(
-                                                                    backgroundColor: color.backgroundColor,
-                                                                    elevation: 5,
-                                                                  ),
-                                                                  icon: Icon(Icons.payments, size: 24),
-                                                                  label: Text(
-                                                                    AppLocalizations.of(context)!.translate('make_payment'),
-                                                                    style: TextStyle(fontSize: 20),
-                                                                  )),
-                                                        )
+                                                    SizedBox(
+                                                      height: 70,
+                                                      width: 150,
+                                                      child: ElevatedButton.icon(
+                                                          onPressed: isButtonDisable || itemList.isEmpty ? null : () async => makePayment(),
+                                                          style: ElevatedButton.styleFrom(
+                                                            backgroundColor: color.backgroundColor,
+                                                            elevation: 5,
+                                                          ),
+                                                          icon: Icon(Icons.payments, size: 24),
+                                                          label: Text(
+                                                            AppLocalizations.of(context)!.translate('make_payment'),
+                                                            style: TextStyle(fontSize: 20),
+                                                          ),
+                                                      ),
                                                     ),
                                                     SizedBox(
-                                                      width: 10,
+                                                      width: 5,
                                                     ),
                                                     SizedBox(
                                                       height: 70,
@@ -671,7 +671,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                       ),
                                                     ),
                                                     SizedBox(
-                                                      width: 10,
+                                                      width: 5,
                                                     ),
                                                     SizedBox(
                                                       height: 70,
@@ -808,7 +808,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                                   ],
                                                                 );
                                                               },
-                                                            ) : null;
+                                                            ).then((_) {
+                                                              if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                                setState(() {
+                                                                  split_payment = false;
+                                                                });
+                                                              }
+                                                            }) : null;
                                                             setState(() {
                                                               isButtonDisabled = false;
                                                             });
@@ -1060,7 +1066,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                           ],
                                                         );
                                                       },
-                                                    ) : null;
+                                                    ).then((_) {
+                                                      if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                        setState(() {
+                                                          split_payment = false;
+                                                        });
+                                                      }
+                                                    }) : null;
                                                     setState(() {
                                                     isButtonDisabled = false;
                                                     });
@@ -1318,7 +1330,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                                 ],
                                                               );
                                                             },
-                                                          ) : null;
+                                                          ).then((_) {
+                                                            if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                              setState(() {
+                                                                split_payment = false;
+                                                              });
+                                                            }
+                                                          }) : null;
                                                           setState(() {
                                                             isButtonDisabled = false;
                                                           });
@@ -1829,7 +1847,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                         ],
                                                       );
                                                     },
-                                                  ) : null;
+                                                  ).then((_) {
+                                                    if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                      setState(() {
+                                                        split_payment = false;
+                                                      });
+                                                    }
+                                                  }) : null;
                                                   setState(() {
                                                     isButtonDisabled = false;
                                                   });
@@ -2080,7 +2104,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                       ],
                                                     );
                                                   },
-                                                ) : null;
+                                                ).then((_) {
+                                                  if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                    setState(() {
+                                                      split_payment = false;
+                                                    });
+                                                  }
+                                                }) : null;
                                                 setState(() {
                                                   isButtonDisabled = false;
                                                 });
@@ -2335,7 +2365,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                       ],
                                                     );
                                                   },
-                                                ) : null;
+                                                ).then((_) {
+                                                  if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                    setState(() {
+                                                      split_payment = false;
+                                                    });
+                                                  }
+                                                }) : null;
                                                 setState(() {
                                                   isButtonDisabled = false;
                                                 });
@@ -2816,7 +2852,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                             ],
                                                           );
                                                         },
-                                                      ) : null;
+                                                      ).then((_) {
+                                                        if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                          setState(() {
+                                                            split_payment = false;
+                                                          });
+                                                        }
+                                                      }) : null;
                                                       setState(() {
                                                         isButtonDisabled = false;
                                                       });
@@ -3056,7 +3098,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                         ],
                                                       );
                                                     },
-                                                  ) : null;
+                                                  ).then((_) {
+                                                    if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                      setState(() {
+                                                        split_payment = false;
+                                                      });
+                                                    }
+                                                  }) : null;
                                                   setState(() {
                                                     isButtonDisabled = false;
                                                   });
@@ -3297,7 +3345,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                       ],
                                                     );
                                                   },
-                                                ) : null;
+                                                ).then((_) {
+                                                  if(splitAmountController.text == '' || double.parse(splitAmountController.text) == 0.0){
+                                                    setState(() {
+                                                      split_payment = false;
+                                                    });
+                                                  }
+                                                }) : null;
                                                 setState(() {
                                                   isButtonDisabled = false;
                                                 });

@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/database/pos_firestore.dart';
+import 'package:pos_system/firebase_sync/qr_order_sync.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
@@ -448,6 +451,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
         await deleteCurrentTableUseDetail(dateTime: dateTime);
         await deleteCurrentTableUseId(dateTime: dateTime);
         await updatePosTableStatus(dateTime: dateTime);
+        softDeletePosTableDynamicQr();
       }
     }
     await updateOrderCache(dateTime: dateTime);
@@ -642,10 +646,12 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
             order_key: widget.orderKey,
             sync_status: checkData.sync_status == 0 ? 0 : 2,
             updated_at: dateTime,
+            order_cache_key: checkData.order_cache_key,
             order_cache_sqlite_id: int.parse(widget.orderCacheIdList[j]),
             payment_status: checkData.payment_status == 2 ? widget.split_payment! ? 2 : 1 : widget.split_payment! ? 2 : 1
         );
         int updatedOrderCache = await PosDatabase.instance.updateOrderCacheOrderId(cacheObject);
+        FirestoreQROrderSync.instance.updateOrderCachePaymentStatus(cacheObject);
         if (updatedOrderCache == 1) {
           OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId2(cacheObject.order_cache_sqlite_id!);
           _value.add(jsonEncode(orderCacheData));
@@ -710,6 +716,36 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
       }
     }catch(e){
       print("payment success update table error ${e}");
+    }
+  }
+
+  softDeletePosTableDynamicQr() async {
+    try{
+      if(PosFirestore.instance.firestore_status == FirestoreStatus.online){
+        List<PosTable> selectedTableList = widget.selectedTableList.toList();
+        if (selectedTableList.isNotEmpty) {
+          for (int i = 0; i < selectedTableList.length; i++) {
+            PosTable posTable = PosTable(
+              soft_delete: Utils.dbCurrentDateTimeFormat(),
+              table_id: selectedTableList[i].table_id,
+            );
+            PosFirestore.instance.softDeleteOneTimeQr(posTable);
+          }
+        }
+      } else {
+        List<PosTable> selectedTableList = widget.selectedTableList.toList();
+        if (selectedTableList.isNotEmpty) {
+          for (int i = 0; i < selectedTableList.length; i++) {
+            await Domain().softDeleteTableDynamicQr(selectedTableList[i]);
+          }
+        }
+      }
+    }catch(e){
+      FLog.error(
+        className: "payment_success_dialog",
+        text: "softDeletePosTableDynamicQr failed",
+        exception: e,
+      );
     }
   }
 
