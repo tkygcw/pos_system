@@ -29,6 +29,7 @@ class _CustomToastification {
     bool? playSound,
     int? playTimes = 1
   }){
+    print("auto close duration: ${autoCloseDuration}");
     toastification.show(
       type: isError != null ? ToastificationType.error : ToastificationType.success,
       style: ToastificationStyle.fillColored,
@@ -38,7 +39,7 @@ class _CustomToastification {
       icon: isError != null ? Icon(Icons.cancel_rounded) : Icon(Icons.check_circle_rounded),
       title: Text(title),
       description: description,
-      autoCloseDuration: Duration(seconds: autoCloseDuration!),
+      autoCloseDuration: Duration(seconds: autoCloseDuration ?? 4),
     );
     if(playSound == true){
       int k = 0;
@@ -55,7 +56,7 @@ class _CustomToastification {
   }
 }
 
-class ShowQRToast extends _CustomToastification {
+class ShowQRToast {
   static showToast(){
     _CustomToastification.showToastificationAndSound(
         title: AppLocalizations.of(_CustomToastification.context)!.translate('new_qr_order_received'),
@@ -90,7 +91,7 @@ class ShowPlaceOrderFailedToast {
   }
 }
 
-class CustomFailedFailedToast {
+class CustomFailedToast {
   static showToast({required String title, String? description, int? duration}){
     _CustomToastification.showToastificationAndSound(
       title: title,

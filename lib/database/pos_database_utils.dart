@@ -14,6 +14,7 @@ import '../object/branch_link_product.dart';
 import '../object/branch_link_promotion.dart';
 import '../object/branch_link_tax.dart';
 import '../object/branch_link_user.dart';
+import '../object/cancel_receipt.dart';
 import '../object/cash_record.dart';
 import '../object/categories.dart';
 import '../object/checklist.dart';
@@ -240,6 +241,11 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.second_header_font_size} $integerType DEFAULT 0 ");
             await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.hide_dining_method_table_no} $integerType DEFAULT 0 ");
             await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.use_printer_label_as_title} INTEGER NOT NULL DEFAULT 0");
+          }break;
+          case 30: {
+            //tb app setting required cancel reason
+            // new table cancel_receipt
+            //tb order cancel new field: quantity before cancel
           }break;
         }
       }
@@ -885,6 +891,7 @@ class PosDatabaseUtils {
           ${AppSettingFields.dynamic_qr_default_exp_after_hour} $integerType,
           ${AppSettingFields.variant_item_sort_by} $integerType,
           ${AppSettingFields.dynamic_qr_invalid_after_payment} $integerType,
+          ${AppSettingFields.required_cancel_reason} $integerType,
           ${AppSettingFields.sync_status} $integerType,
           ${AppSettingFields.created_at} $textType,
           ${AppSettingFields.updated_at} $textType)''');
@@ -959,8 +966,10 @@ class PosDatabaseUtils {
           ${OrderDetailCancelFields.order_detail_sqlite_id} $textType,
           ${OrderDetailCancelFields.order_detail_key} $textType,
           ${OrderDetailCancelFields.quantity} $textType,
+          ${OrderDetailCancelFields.quantity_before_cancel} $textType,
           ${OrderDetailCancelFields.cancel_by} $textType,
           ${OrderDetailCancelFields.cancel_by_user_id} $textType,
+          ${OrderDetailCancelFields.cancel_reason} $textType,
           ${OrderDetailCancelFields.settlement_sqlite_id} $textType,
           ${OrderDetailCancelFields.settlement_key} $textType,
           ${OrderDetailCancelFields.status} $integerType,
@@ -1074,6 +1083,25 @@ class PosDatabaseUtils {
           ${CurrentVersionFields.created_at} $textType,
           ${CurrentVersionFields.updated_at} $textType,
           ${CurrentVersionFields.soft_delete} $textType)''');
+
+/*
+    create cancel receipt table
+*/
+    await db.execute('''CREATE TABLE $tableCancelReceipt(
+          ${CancelReceiptFields.cancel_receipt_sqlite_id} $idType,
+          ${CancelReceiptFields.cancel_receipt_id} $integerType,
+          ${CancelReceiptFields.cancel_receipt_key} $textType,
+          ${CancelReceiptFields.branch_id} $textType,
+          ${CancelReceiptFields.product_name_font_size} $integerType,
+          ${CancelReceiptFields.other_font_size} $integerType,
+          ${CancelReceiptFields.paper_size} $textType,
+          ${CancelReceiptFields.show_product_sku} $integerType,
+          ${CancelReceiptFields.show_product_price} $integerType,
+          ${CancelReceiptFields.sync_status} $integerType,
+          ${CancelReceiptFields.created_at} $textType,
+          ${CancelReceiptFields.updated_at} $textType,
+          ${CancelReceiptFields.soft_delete} $textType)''');
+
   }
 
   static dbVersion30Upgrade(Database db, SharedPreferences prefs) async {
