@@ -1325,6 +1325,7 @@ class SyncRecord {
     bool isComplete = false;
     try{
       Categories category = Categories.fromJson(data[0]);
+      pos_firestore.insertCategory(category);
       if(method == '0'){
         Categories? checkData = await PosDatabase.instance.checkSpecificCategoryId(category.category_id!);
         if(checkData == null){
