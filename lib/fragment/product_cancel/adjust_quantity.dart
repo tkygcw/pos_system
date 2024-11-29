@@ -293,7 +293,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     List<String> _posTableValue = [];
     int updateStatus = await db.transaction((txn) async {
       try {
-        var cancelQuery = CancelQuery(transaction: txn);
+        final cancelQuery = CancelQuery(transaction: txn);
         if (simpleIntInput == widget.cartItem.quantity || (widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c')) {
           if (cartTableCacheList.length <= 1 && cartOrderDetailList.length > 1) {
             await callDeleteOrderDetail(userData, dateTime, cancelQuery);
@@ -333,6 +333,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     print("update status: ${updateStatus}");
     try{
       if(updateStatus == 1){
+        syncToFirestore();
         callPrinter(dateTime, cart);
         Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(globalContext)!.translate('delete_successful'));
         tableModel.changeContent(true);
@@ -350,6 +351,27 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     // cart.removeItem(widget.cartItem!);
     // cart.removePromotion();
     // syncAllToCloud();
+  }
+
+  syncToFirestore() async {
+    try{
+      OrderDetail orderDetailData = await posDatabase.readSpecificOrderDetailByLocalId(orderDetail.order_detail_sqlite_id!);
+      OrderCache? orderCacheData = await posDatabase.readSpecificOrderCacheByKey(orderDetail.order_cache_key!);
+      BranchLinkProduct? branchLinkProductData = await posDatabase.readSpecificBranchLinkProduct2(orderDetail.branch_link_product_sqlite_id!.toString());
+      if(restock && branchLinkProductData!.stock_type != 3){
+        _posFirestore.insertBranchLinkProduct(branchLinkProductData);
+      }
+      if(orderCacheData!.qr_order == 1){
+        _firestoreQROrderSync.updateOrderDetailAndOrderCache(orderDetailData, orderCacheData);
+      }
+    }catch(e, stackTrace){
+      FLog.error(
+        className: "adjust_qty_dialog",
+        text: "syncToFirestore error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
   }
 
   callPrinter(String dateTime, CartModel cart) async {
@@ -529,7 +551,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
         if(restock){
           await updateProductStock(updatedOrderDetail.branch_link_product_sqlite_id!, simpleIntInput, dateTime, cancelQuery);
         }
-        _firestoreQROrderSync.updateOrderDetailAndCacheSubtotal(updatedOrderDetail, orderCache!);
+        // _firestoreQROrderSync.updateOrderDetailAndCacheSubtotal(updatedOrderDetail, orderCache!);
         _value.add(jsonEncode(updatedOrderDetail.syncJson()));
       }
       order_detail_value = _value.toString();
@@ -651,7 +673,6 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                 daily_limit: _totalStockQty.toString(),
                 branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
             updateStock = await cancelQuery.updateBranchLinkProductDailyLimit(object);
-            _posFirestore.updateBranchLinkProductDailyLimit(object);
             // updateStock = await posDatabase.updateBranchLinkProductDailyLimit(object);
           }break;
           case'2': {
@@ -662,7 +683,6 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                 stock_quantity: _totalStockQty.toString(),
                 branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
             updateStock = await cancelQuery.updateBranchLinkProductStock(object);
-            _posFirestore.updateBranchLinkProductStock(object);
             // updateStock = await posDatabase.updateBranchLinkProductStock(object);
           }break;
           default: {
@@ -789,8 +809,8 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
           sync_status: cartCacheList[0].sync_status == 0 ? 0 : 2,
           cancel_by: user.name,
           cancel_by_user_id: user.user_id.toString(),
-          order_cache_sqlite_id:
-          int.parse(widget.cartItem.order_cache_sqlite_id!));
+          order_cache_sqlite_id: int.parse(widget.cartItem.order_cache_sqlite_id!),
+      );
       int deletedOrderCache = await cancelQuery.cancelOrderCache(orderCacheObject);
       // int deletedOrderCache = await posDatabase.cancelOrderCache(orderCacheObject);
       //sync to cloud

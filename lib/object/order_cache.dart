@@ -1,3 +1,5 @@
+import 'package:pos_system/object/table.dart';
+
 String? tableOrderCache = 'tb_order_cache ';
 
 class OrderCacheFields {
@@ -250,6 +252,32 @@ class OrderCache{
     OrderCacheFields.accepted: accepted,
     OrderCacheFields.payment_status: payment_status,
     OrderCacheFields.sync_status: sync_status,
+    OrderCacheFields.created_at: created_at,
+    OrderCacheFields.updated_at: updated_at,
+    OrderCacheFields.soft_delete: soft_delete,
+  };
+
+  Map<String, Object?> toFirestoreJson() => {
+    OrderCacheFields.order_cache_id: order_cache_id,
+    OrderCacheFields.order_cache_key: order_cache_key,
+    OrderCacheFields.order_queue: order_queue,
+    OrderCacheFields.company_id: company_id,
+    OrderCacheFields.branch_id: branch_id,
+    OrderCacheFields.order_detail_id: order_detail_id,
+    OrderCacheFields.table_use_key: table_use_key,
+    OrderCacheFields.batch_id: batch_id,
+    OrderCacheFields.dining_id: dining_id,
+    OrderCacheFields.order_key: order_key,
+    OrderCacheFields.order_by: order_by,
+    OrderCacheFields.order_by_user_id: order_by_user_id,
+    OrderCacheFields.cancel_by: cancel_by,
+    OrderCacheFields.cancel_by_user_id: cancel_by_user_id,
+    OrderCacheFields.customer_id: customer_id,
+    OrderCacheFields.total_amount: total_amount,
+    OrderCacheFields.qr_order: qr_order,
+    PosTableFields.table_id : qr_order_table_id,
+    OrderCacheFields.accepted: accepted,
+    OrderCacheFields.payment_status: payment_status,
     OrderCacheFields.created_at: created_at,
     OrderCacheFields.updated_at: updated_at,
     OrderCacheFields.soft_delete: soft_delete,

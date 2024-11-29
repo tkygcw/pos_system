@@ -64,7 +64,7 @@ class CancelQuery{
   Future<OrderDetail> readSpecificOrderDetailByLocalId(int order_detail_sqlite_id) async {
     try{
       final result = await transaction.rawQuery(
-          'SELECT a.soft_delete, a.updated_at, a.created_at, a.per_quantity_unit, a.unit, a.sync_status, a.status, a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, '
+          'SELECT a.soft_delete, a.updated_at, a.created_at, a.product_sku, a.per_quantity_unit, a.unit, a.sync_status, a.status, a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, '
               'a.account, a.remark, a.quantity, a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.category_name, a.order_cache_key, a.order_cache_sqlite_id, '
               'a.order_detail_key, a.branch_link_product_sqlite_id, IFNULL( (SELECT category_id FROM $tableCategories WHERE category_sqlite_id = a.category_sqlite_id), 0) AS category_id,'
               'c.branch_link_product_id FROM $tableOrderDetail AS a '
@@ -180,6 +180,8 @@ class CancelQuery{
       rethrow;
     }
   }
+
+
 
   Future<int> updateOrderDetailStatus(OrderDetail data) async {
     try{

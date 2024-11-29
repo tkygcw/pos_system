@@ -580,25 +580,22 @@ class FirestoreQROrderSync {
     return status;
   }
 
-  Future<void> updateOrderDetailAndCacheSubtotal(OrderDetail orderDetail, OrderCache orderCache) async {
-    final orderDetailDocRef = await firestore.collection(_tb_qr_order_cache).doc(orderDetail.order_cache_key).
+  Future<void> updateOrderDetailAndOrderCache(OrderDetail orderDetail, OrderCache orderCache) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
+    final orderDetailDocRef = firestore.collection(_tb_qr_order_cache).doc(orderDetail.order_cache_key).
     collection(tableOrderDetail!).doc(orderDetail.order_detail_key);
-    final orderCacheDocRef = await firestore.collection(_tb_qr_order_cache).doc(orderDetail.order_cache_key);
+    final orderCacheDocRef = firestore.collection(_tb_qr_order_cache).doc(orderDetail.order_cache_key);
     //perform transaction
     try{
       await firestore.runTransaction((transaction) async {
         var orderDetailDocSnapshot = await transaction.get(orderDetailDocRef);
         var orderCacheDocSnapshot = await transaction.get(orderCacheDocRef);
-        Map<String, dynamic> orderDetailMap = {
-          OrderDetailFields.updated_at: orderDetail.updated_at,
-          OrderDetailFields.quantity: orderDetail.quantity,
-        };
-        Map<String, dynamic> orderCacheMap = {
-          OrderCacheFields.updated_at: orderCache.updated_at,
-          OrderCacheFields.total_amount: orderCache.total_amount,
-        };
-        transaction.update(orderDetailDocSnapshot.reference, orderDetailMap);
-        transaction.update(orderCacheDocSnapshot.reference, orderCacheMap);
+        if(orderDetailDocSnapshot.exists){
+          transaction.set(orderDetailDocSnapshot.reference, orderDetail.toFirestoreJson(), SetOptions(merge: true));
+          transaction.set(orderCacheDocSnapshot.reference, orderCache.toFirestoreJson(), SetOptions(merge: true));
+        }
       });
     }catch(e, stackTrace){
       FLog.error(
@@ -606,6 +603,7 @@ class FirestoreQROrderSync {
         text: "updateOrderDetailAndCacheSubtotal error",
         exception: "Error: $e, StackTrace: $stackTrace",
       );
+      rethrow;
     }
   }
 }

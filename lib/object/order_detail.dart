@@ -408,4 +408,31 @@ class OrderDetail{
     CategoriesFields.category_id: category_id,
     BranchLinkProductFields.branch_link_product_id: branch_link_product_id
   };
+
+  Map<String, Object?> toFirestoreJson() => {
+    OrderDetailFields.order_detail_key: order_detail_key,
+    OrderDetailFields.order_cache_key: order_cache_key,
+    OrderDetailFields.category_name: category_name,
+    OrderDetailFields.productName: productName,
+    OrderDetailFields.has_variant: has_variant,
+    OrderDetailFields.product_variant_name: product_variant_name,
+    OrderDetailFields.price: price,
+    OrderDetailFields.original_price: original_price,
+    OrderDetailFields.quantity: quantity,
+    OrderDetailFields.remark: remark,
+    OrderDetailFields.account: account,
+    OrderDetailFields.edited_by: edited_by,
+    OrderDetailFields.edited_by_user_id: edited_by_user_id,
+    OrderDetailFields.cancel_by: cancel_by,
+    OrderDetailFields.cancel_by_user_id: cancel_by_user_id,
+    OrderDetailFields.status: status,
+    OrderDetailFields.unit: unit,
+    OrderDetailFields.per_quantity_unit: per_quantity_unit,
+    OrderDetailFields.product_sku: product_sku,
+    OrderDetailFields.created_at: created_at,
+    OrderDetailFields.updated_at: updated_at,
+    OrderDetailFields.soft_delete: soft_delete,
+    CategoriesFields.category_id: category_id,
+    BranchLinkProductFields.branch_link_product_id: branch_link_product_id
+  };
 }
