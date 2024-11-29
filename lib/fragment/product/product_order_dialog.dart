@@ -1103,14 +1103,12 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   bool checkModifierMinSelect(List<ModifierGroup> modifierGroup){
     int checkedModifiersCount = 0;
     for(int i = 0; i < modifierGroup.length; i++){
-      for(int j = 0; j < modifierGroup[i].modifierChild!.length;){
+      for(int j = 0; j < modifierGroup[i].modifierChild!.length; j++){
         if(modifierGroup[i].modifierChild![i].isChecked!){
           checkedModifiersCount++;
         }
         if(modifierGroup[i].min_select != 0)
           if (checkedModifiersCount <= modifierGroup[i].min_select!) {
-            print('mix select: ${modifierGroup[i].min_select}');
-            print('checkedModifiersCount: ${checkedModifiersCount}');
             return false;
           }
       }
