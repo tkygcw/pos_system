@@ -722,6 +722,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
               child: Text(AppLocalizations.of(context)!.translate('product_name_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.big,
               groupValue: productFontSize,
               onChanged: (value) async  {
@@ -733,6 +734,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.medium,
               groupValue: productFontSize,
               onChanged: (value) async  {
@@ -744,6 +746,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.small,
               groupValue: productFontSize,
               onChanged: (value) async  {
@@ -759,6 +762,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
               child: Text(AppLocalizations.of(context)!.translate('other_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.big,
               groupValue: variantAddonFontSize,
               onChanged: (value) async  {
@@ -770,6 +774,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.medium,
               groupValue: variantAddonFontSize,
               onChanged: (value) async  {
@@ -781,6 +786,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.small,
               groupValue: variantAddonFontSize,
               onChanged: (value) async  {
@@ -1048,6 +1054,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
               child: Text(AppLocalizations.of(context)!.translate('product_name_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.big,
               groupValue: productFontSize,
               onChanged: (value) async  {
@@ -1059,6 +1066,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.medium,
               groupValue: productFontSize,
               onChanged: (value) async  {
@@ -1070,6 +1078,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.small,
               groupValue: productFontSize,
               onChanged: (value) async  {
@@ -1085,6 +1094,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
               child: Text(AppLocalizations.of(context)!.translate('other_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.big,
               groupValue: variantAddonFontSize,
               onChanged: (value) async  {
@@ -1096,6 +1106,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.medium,
               groupValue: variantAddonFontSize,
               onChanged: (value) async  {
@@ -1107,6 +1118,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.small,
               groupValue: variantAddonFontSize,
               onChanged: (value) async  {
@@ -1238,6 +1250,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         child: Text(AppLocalizations.of(context)!.translate('product_name_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        activeColor: color.backgroundColor,
         value: ReceiptDialogEnum.big,
         groupValue: productFontSize,
         onChanged: (value) async  {
@@ -1249,6 +1262,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        activeColor: color.backgroundColor,
         value: ReceiptDialogEnum.medium,
         groupValue: productFontSize,
         onChanged: (value) async  {
@@ -1260,6 +1274,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        activeColor: color.backgroundColor,
         value: ReceiptDialogEnum.small,
         groupValue: productFontSize,
         onChanged: (value) async  {
@@ -1275,6 +1290,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         child: Text(AppLocalizations.of(context)!.translate('other_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        activeColor: color.backgroundColor,
         value: ReceiptDialogEnum.big,
         groupValue: variantAddonFontSize,
         onChanged: (value) async  {
@@ -1286,6 +1302,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        activeColor: color.backgroundColor,
         value: ReceiptDialogEnum.medium,
         groupValue: variantAddonFontSize,
         onChanged: (value) async  {
@@ -1297,6 +1314,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        activeColor: color.backgroundColor,
         value: ReceiptDialogEnum.small,
         groupValue: variantAddonFontSize,
         onChanged: (value) async  {
@@ -1424,6 +1442,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         child: Text(AppLocalizations.of(context)!.translate('product_name_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        activeColor: color.backgroundColor,
         value: ReceiptDialogEnum.big,
         groupValue: productFontSize,
         onChanged: (value) async  {
@@ -1435,6 +1454,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        activeColor: color.backgroundColor,
         value: ReceiptDialogEnum.medium,
         groupValue: productFontSize,
         onChanged: (value) async  {
@@ -1446,6 +1466,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        activeColor: color.backgroundColor,
         value: ReceiptDialogEnum.small,
         groupValue: productFontSize,
         onChanged: (value) async  {
@@ -1461,6 +1482,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         child: Text(AppLocalizations.of(context)!.translate('other_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        activeColor: color.backgroundColor,
         value: ReceiptDialogEnum.big,
         groupValue: variantAddonFontSize,
         onChanged: (value) async  {
@@ -1472,6 +1494,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        activeColor: color.backgroundColor,
         value: ReceiptDialogEnum.medium,
         groupValue: variantAddonFontSize,
         onChanged: (value) async  {
@@ -1483,6 +1506,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        activeColor: color.backgroundColor,
         value: ReceiptDialogEnum.small,
         groupValue: variantAddonFontSize,
         onChanged: (value) async  {

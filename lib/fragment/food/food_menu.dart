@@ -107,7 +107,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
               centerTitle: false,
               actions: [
                 IconButton(
-                  color: color.buttonColor,
+                  color: color.backgroundColor,
                   onPressed: (){
                     showSearch(context: context, delegate: ProductSearchDelegate(productList: allProduct, imagePath: imagePath, cartModel: widget.cartModel));
                   },

@@ -67,6 +67,8 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
         return WillPopScope(
           onWillPop: () async => false,
           child: AlertDialog(
+            titlePadding: EdgeInsets.fromLTRB(24, 12, 24, 0),
+            contentPadding: EdgeInsets.fromLTRB(12, 10, 12, 0),
             title: Wrap(
             children: [
               Text(AppLocalizations.of(context)!.translate('fail_print_order_detail')),
@@ -182,7 +184,7 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
                                   int itemIndex = entry.key;
                                   OrderDetail item = entry.value;
                                   return CheckboxListTile(
-                                    isThreeLine: true,
+                                    // isThreeLine: true,
                                     secondary: Text("x${item.quantity}"),
                                     title: Text("${item.productName}"),
                                     subtitle: Column(
@@ -237,6 +239,25 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
                           ? MediaQuery.of(context).size.height / 12
                           : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
                           : MediaQuery.of(context).size.height / 20,
+                        child: ElevatedButton(
+                            onPressed: closeButtonDisable ? null : (){
+                              setState(() {
+                                closeButtonDisable = true;
+                              });
+                              closeDialog();
+                            },
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                            child: Text(AppLocalizations.of(context)!.translate('close')))
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    flex: 1,
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                          ? MediaQuery.of(context).size.height / 12
+                          : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+                          : MediaQuery.of(context).size.height / 20,
                       child: ElevatedButton(
                           onPressed: isButtonDisable || orderDetail.isEmpty  ? null : () async {
                             disableButton();
@@ -249,28 +270,8 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
                             });
                             //await callPrinter();
                           },
+                          style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                           child: Text(AppLocalizations.of(context)!.translate('reprint'))),
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    flex: 1,
-                    child: SizedBox(
-                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
-                          ? MediaQuery.of(context).size.height / 12
-                          : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
-                          : MediaQuery.of(context).size.height / 20,
-                        child: ElevatedButton(
-                            onPressed: closeButtonDisable ? null : (){
-                              setState(() {
-                                closeButtonDisable = true;
-                              });
-                              closeDialog();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: color.backgroundColor,
-                            ),
-                            child: Text(AppLocalizations.of(context)!.translate('close')))
                     ),
                   ),
                 ],

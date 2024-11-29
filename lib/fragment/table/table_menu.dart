@@ -548,6 +548,7 @@ class _TableMenuState extends State<TableMenu> {
               ),
               Switch(
                 value: showAdvanced,
+                activeColor: color.backgroundColor,
                 onChanged: (value) async {
                   if(MediaQuery.of(context).size.height > 500) {
                     if (isUpdated()) {

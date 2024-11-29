@@ -198,11 +198,12 @@ class _HomePageState extends State<HomePage> {
                             title: widget.user!.name! + "\n" + _truncateTitle((branchName ?? ''), 17) + "\n" + AppLocalizations.of(context)!.translate(role.toLowerCase()),
                             backgroundColor: color.backgroundColor,
                             selectedTextColor: color.iconColor,
+                            unselectedTextColor: Colors.white,
                             textStyle: TextStyle(fontSize: 15, fontStyle: FontStyle.italic),
                             titleStyle: TextStyle(fontSize: 17, fontStyle: FontStyle.italic, fontWeight: FontWeight.bold),
                             toggleTitleStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                             customItemOffsetX: 20,
-                            selectedIconColor: color.iconColor,
+                            selectedIconColor: Colors.white,
                             selectedIconBox: color.buttonColor,
                             unselectedIconColor: Colors.white,
                             body: Row(

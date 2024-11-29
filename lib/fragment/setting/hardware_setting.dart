@@ -305,6 +305,9 @@ class _HardwareSettingState extends State<HardwareSetting> {
                                 onPressed: () async {
                                   await displayManager.transferDataToPresentation("init");
                                 },
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor: color.backgroundColor
+                                ),
                                 child: Icon(Icons.reset_tv))
                           ),
 

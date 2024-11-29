@@ -3,6 +3,7 @@ import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:pos_system/fragment/cart/reprint_kitchen_dialog.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
@@ -122,9 +123,10 @@ class _ReprintDialogState extends State<ReprintDialog> {
     try{
       List<OrderCache> orderCacheList = widget.cart.currentOrderCache;
       print("order cache list length: ${orderCacheList.length}");
-      for(final cache in orderCacheList){
-        asyncQ.addJob((_) async => await printReceipt.printKitchenList(widget.printerList, cache.order_cache_sqlite_id!, isReprint: true));
-      }
+      openReprintKitchenDialog(orderCacheList);
+      // for(final cache in orderCacheList){
+      //   asyncQ.addJob((_) async => await printReceipt.printKitchenList(widget.printerList, cache.order_cache_sqlite_id!, isReprint: true));
+      // }
     }catch(e){
       FLog.error(
         className: "reprint dialog",
@@ -132,6 +134,33 @@ class _ReprintDialogState extends State<ReprintDialog> {
         exception: "$e",
       );
     }
+  }
+
+  openReprintKitchenDialog(List<OrderCache> orderCacheList) async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: ReprintKitchenDialog(
+                  printerList: this.widget.printerList,
+                  orderCacheList: orderCacheList,
+                  callback: () {  },
+                  // callback: openReprintKitchenDialog
+              ),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: widget.parentContext!,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   printReviewReceipt() async {
