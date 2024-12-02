@@ -219,6 +219,10 @@ class _mm80ReceiptViewState extends State<mm80ReceiptView> {
                         title: Text(AppLocalizations.of(context)!.translate('small')),
                         controlAffinity: ListTileControlAffinity.trailing,
                       ),
+                      Container(
+                        alignment: Alignment.topLeft,
+                        child: Text(AppLocalizations.of(context)!.translate('cancel_receipt_setting'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                      ),
                       ListTile(
                         title: Text(AppLocalizations.of(context)!.translate('cancel_show_price')),
                         subtitle: Text(AppLocalizations.of(context)!.translate('cancel_show_price_desc')),

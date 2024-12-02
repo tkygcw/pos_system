@@ -293,30 +293,51 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     List<String> _posTableValue = [];
     int updateStatus = await db.transaction((txn) async {
       try {
-        final cancelQuery = CancelQuery(transaction: txn);
+        final cancelQuery = CancelQuery(
+            transaction: txn,
+            user: userData,
+            orderDetail: this.orderDetail,
+            simpleIntInput: this.simpleIntInput,
+            widgetCartItem: widget.cartItem,
+            reason: this.reason,
+            restock: restock
+        );
         if (simpleIntInput == widget.cartItem.quantity || (widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c')) {
           if (cartTableCacheList.length <= 1 && cartOrderDetailList.length > 1) {
-            await callDeleteOrderDetail(userData, dateTime, cancelQuery);
+            await cancelQuery.callDeleteOrderDetail();
+            // await callDeleteOrderDetail(userData, dateTime, cancelQuery);
 
           } else if (cartTableCacheList.length > 1 && cartOrderDetailList.length <= 1) {
-            await callDeletePartialOrder(userData, dateTime, cancelQuery);
+            await cancelQuery.callDeleteOrderDetail(deleteOrderCache: true, cartOrderCache: cartCacheList.first);
+            // await callDeletePartialOrder(userData, dateTime, cancelQuery);
 
           } else if (cartTableCacheList.length > 1 && cartOrderDetailList.length > 1) {
-            await callDeleteOrderDetail(userData, dateTime, cancelQuery);
+            await cancelQuery.callDeleteOrderDetail();
+            // await callDeleteOrderDetail(userData, dateTime, cancelQuery);
 
           } else if (widget.currentPage == 'other order' && cartOrderDetailList.length > 1) {
-            await callDeleteOrderDetail(userData, dateTime, cancelQuery);
+            await cancelQuery.callDeleteOrderDetail();
+            // await callDeleteOrderDetail(userData, dateTime, cancelQuery);
 
           } else {
-            await callDeleteAllOrder(userData, cartCacheList[0].table_use_sqlite_id!, dateTime, cancelQuery);
-            if (widget.currentPage != 'other order') {
-              await updatePosTableStatus(dateTime, cancelQuery);
-              cart.removeAllTable(notify: false);
-            }
+            await cancelQuery.callDeleteAllOrder(
+                currentTableUseId: cartCacheList.first.table_use_sqlite_id!,
+                currentPage: widget.currentPage,
+                orderCache: cartCacheList.first,
+                cartTableUseDetail: cartTableUseDetail
+            );
+            cart.removeAllTable(notify: false);
+            // await callDeleteAllOrder(userData, cartCacheList[0].table_use_sqlite_id!, dateTime, cancelQuery);
+            // if (widget.currentPage != 'other order') {
+            //   await cancelQuery.updatePosTableStatus(cartTableUseDetail: cartTableUseDetail);
+            //   await updatePosTableStatus(dateTime, cancelQuery);
+            //   cart.removeAllTable(notify: false);
+            // }
           }
           cart.removeItem(widget.cartItem);
         } else {
-          await callUpdateOrderDetail(userData, dateTime, cancelQuery);
+          await cancelQuery.callUpdateOrderDetail();
+          // await callUpdateOrderDetail(userData, dateTime, cancelQuery);
           await cart.updateItemQty(widget.cartItem, cancelQuery, notify: true);
         }
         return 1;
@@ -417,10 +438,10 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     }
   }
 
-  callUpdateOrderDetail(User user, String dateTime, CancelQuery cancelQuery) async {
-    await createOrderDetailCancel(user, dateTime, cancelQuery);
-    await updateOrderDetailQuantity(dateTime, cancelQuery);
-  }
+  // callUpdateOrderDetail(User user, String dateTime, CancelQuery cancelQuery) async {
+  //   await createOrderDetailCancel(user, dateTime, cancelQuery);
+  //   await updateOrderDetailQuantity(dateTime, cancelQuery);
+  // }
 
   generateOrderDetailCancelKey(OrderDetailCancel orderDetailCancel) async {
     final prefs = await SharedPreferences.getInstance();
@@ -432,78 +453,78 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     return md5.convert(utf8.encode(bytes)).toString();
   }
 
-  insertOrderDetailCancelKey(OrderDetailCancel orderDetailCancel, String dateTime, CancelQuery cancelQuery) async {
-    try{
-      OrderDetailCancel? data;
-      String? key = await generateOrderDetailCancelKey(orderDetailCancel);
-      if (key != null) {
-        OrderDetailCancel object = OrderDetailCancel(
-            order_detail_cancel_key: key,
-            sync_status: 0,
-            updated_at: dateTime,
-            order_detail_cancel_sqlite_id:
-            orderDetailCancel.order_detail_cancel_sqlite_id);
-        int uniqueKey = await cancelQuery.updateOrderDetailCancelUniqueKey(object);
-        // await posDatabase.updateOrderDetailCancelUniqueKey(object);
-        if (uniqueKey == 1) {
-          // OrderDetailCancel orderDetailCancelData = await posDatabase.readSpecificOrderDetailCancelByLocalId(object.order_detail_cancel_sqlite_id!);
-          data = orderDetailCancel.copy(
-            order_detail_cancel_key: object.order_detail_cancel_key,
-            sync_status: object.sync_status,
-            updated_at: object.updated_at
-          );
-        }
-      }
-      return data;
-    }catch(e, stackTrace){
-      FLog.error(
-        className: "adjust_qty_dialog",
-        text: "insertOrderDetailCancelKey error",
-        exception: "Error: $e, StackTrace: $stackTrace",
-      );
-      rethrow;
-    }
-  }
+  // insertOrderDetailCancelKey(OrderDetailCancel orderDetailCancel, String dateTime, CancelQuery cancelQuery) async {
+  //   try{
+  //     OrderDetailCancel? data;
+  //     String? key = await generateOrderDetailCancelKey(orderDetailCancel);
+  //     if (key != null) {
+  //       OrderDetailCancel object = OrderDetailCancel(
+  //           order_detail_cancel_key: key,
+  //           sync_status: 0,
+  //           updated_at: dateTime,
+  //           order_detail_cancel_sqlite_id:
+  //           orderDetailCancel.order_detail_cancel_sqlite_id);
+  //       int uniqueKey = await cancelQuery.updateOrderDetailCancelUniqueKey(object);
+  //       // await posDatabase.updateOrderDetailCancelUniqueKey(object);
+  //       if (uniqueKey == 1) {
+  //         // OrderDetailCancel orderDetailCancelData = await posDatabase.readSpecificOrderDetailCancelByLocalId(object.order_detail_cancel_sqlite_id!);
+  //         data = orderDetailCancel.copy(
+  //           order_detail_cancel_key: object.order_detail_cancel_key,
+  //           sync_status: object.sync_status,
+  //           updated_at: object.updated_at
+  //         );
+  //       }
+  //     }
+  //     return data;
+  //   }catch(e, stackTrace){
+  //     FLog.error(
+  //       className: "adjust_qty_dialog",
+  //       text: "insertOrderDetailCancelKey error",
+  //       exception: "Error: $e, StackTrace: $stackTrace",
+  //     );
+  //     rethrow;
+  //   }
+  // }
 
-  createOrderDetailCancel(User user, String dateTime, CancelQuery cancelQuery) async {
-    try{
-      List<String> _value = [];
-      // OrderDetail data = await cancelQuery.readSpecificOrderDetailByLocalId(int.parse(widget.cartItem.order_detail_sqlite_id!));
-      // OrderDetail data = await posDatabase.readSpecificOrderDetailByLocalId(int.parse(widget.cartItem.order_detail_sqlite_id!));
-      OrderDetailCancel object = OrderDetailCancel(
-        order_detail_cancel_id: 0,
-        order_detail_cancel_key: '',
-        order_detail_sqlite_id: widget.cartItem.order_detail_sqlite_id,
-        order_detail_key: orderDetail.order_detail_key,
-        quantity: simpleIntInput.toString(),
-        quantity_before_cancel: widget.cartItem.quantity! is double ?
-        widget.cartItem.quantity!.toStringAsFixed(2): widget.cartItem.quantity!.toString(),
-        cancel_by: user.name,
-        cancel_by_user_id: user.user_id.toString(),
-        cancel_reason: reason,
-        settlement_sqlite_id: '',
-        settlement_key: '',
-        status: 0,
-        sync_status: 0,
-        created_at: dateTime,
-        updated_at: '',
-        soft_delete: '',
-      );
-      OrderDetailCancel orderDetailCancel = await cancelQuery.insertSqliteOrderDetailCancel(object);
-      // OrderDetailCancel orderDetailCancel = await posDatabase.insertSqliteOrderDetailCancel(object);
-      OrderDetailCancel updateData = await insertOrderDetailCancelKey(orderDetailCancel, dateTime, cancelQuery);
-      // _value.add(jsonEncode(updateData));
-      // order_detail_cancel_value = _value.toString();
-      //syncOrderDetailCancelToCloud(_value.toString());
-    }catch(e, stackTrace){
-      FLog.error(
-        className: "adjust_qty_dialog",
-        text: "insertOrderDetailCancelKey error",
-        exception: "Error: $e, StackTrace: $stackTrace",
-      );
-      rethrow;
-    }
-  }
+  // createOrderDetailCancel(User user, String dateTime, CancelQuery cancelQuery) async {
+  //   try{
+  //     List<String> _value = [];
+  //     // OrderDetail data = await cancelQuery.readSpecificOrderDetailByLocalId(int.parse(widget.cartItem.order_detail_sqlite_id!));
+  //     // OrderDetail data = await posDatabase.readSpecificOrderDetailByLocalId(int.parse(widget.cartItem.order_detail_sqlite_id!));
+  //     OrderDetailCancel object = OrderDetailCancel(
+  //       order_detail_cancel_id: 0,
+  //       order_detail_cancel_key: '',
+  //       order_detail_sqlite_id: widget.cartItem.order_detail_sqlite_id,
+  //       order_detail_key: orderDetail.order_detail_key,
+  //       quantity: simpleIntInput.toString(),
+  //       quantity_before_cancel: widget.cartItem.quantity! is double ?
+  //       widget.cartItem.quantity!.toStringAsFixed(2): widget.cartItem.quantity!.toString(),
+  //       cancel_by: user.name,
+  //       cancel_by_user_id: user.user_id.toString(),
+  //       cancel_reason: reason,
+  //       settlement_sqlite_id: '',
+  //       settlement_key: '',
+  //       status: 0,
+  //       sync_status: 0,
+  //       created_at: dateTime,
+  //       updated_at: '',
+  //       soft_delete: '',
+  //     );
+  //     OrderDetailCancel orderDetailCancel = await cancelQuery.insertSqliteOrderDetailCancel(object);
+  //     // OrderDetailCancel orderDetailCancel = await posDatabase.insertSqliteOrderDetailCancel(object);
+  //     OrderDetailCancel updateData = await insertOrderDetailCancelKey(orderDetailCancel, dateTime, cancelQuery);
+  //     // _value.add(jsonEncode(updateData));
+  //     // order_detail_cancel_value = _value.toString();
+  //     //syncOrderDetailCancelToCloud(_value.toString());
+  //   }catch(e, stackTrace){
+  //     FLog.error(
+  //       className: "adjust_qty_dialog",
+  //       text: "insertOrderDetailCancelKey error",
+  //       exception: "Error: $e, StackTrace: $stackTrace",
+  //     );
+  //     rethrow;
+  //   }
+  // }
 
   // syncOrderDetailCancelToCloud(String value) async {
   //   bool _hasInternetAccess = await Domain().isHostReachable();
@@ -529,41 +550,41 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     return totalQty.toString();
   }
 
-  updateOrderDetailQuantity(String dateTime, CancelQuery cancelQuery) async {
-    List<String> _value = [];
-    try{
-      OrderDetail orderDetail = OrderDetail(
-        updated_at: dateTime,
-        sync_status: this.orderDetail.sync_status == 0 ? 0 : 2,
-        status: 0,
-        quantity: getTotalQty(),
-        order_detail_sqlite_id: int.parse(widget.cartItem.order_detail_sqlite_id!),
-        branch_link_product_sqlite_id: widget.cartItem.branch_link_product_sqlite_id,
-      );
-      // updateOrderDetailQuantity
-      num data = await cancelQuery.updateOrderDetailQuantity(orderDetail);
-      // num data = await posDatabase.updateOrderDetailQuantity(orderDetail);
-      if (data == 1) {
-        // readSpecificOrderDetailByLocalId
-        OrderDetail updatedOrderDetail = await cancelQuery.readSpecificOrderDetailByLocalId(orderDetail.order_detail_sqlite_id!);
-        // OrderDetail detailData = await posDatabase.readSpecificOrderDetailByLocalId(orderDetail.order_detail_sqlite_id!);
-        OrderCache? orderCache = await updateOrderCacheSubtotal(updatedOrderDetail.order_cache_sqlite_id!, updatedOrderDetail.price!, simpleIntInput, dateTime, cancelQuery);
-        if(restock){
-          await updateProductStock(updatedOrderDetail.branch_link_product_sqlite_id!, simpleIntInput, dateTime, cancelQuery);
-        }
-        // _firestoreQROrderSync.updateOrderDetailAndCacheSubtotal(updatedOrderDetail, orderCache!);
-        _value.add(jsonEncode(updatedOrderDetail.syncJson()));
-      }
-      order_detail_value = _value.toString();
-    }catch(e, stackTrace){
-      FLog.error(
-        className: "adjust_qty_dialog",
-        text: "updateOrderDetailQuantity error",
-        exception: "Error: $e, StackTrace: $stackTrace",
-      );
-      rethrow;
-    }
-  }
+  // updateOrderDetailQuantity(String dateTime, CancelQuery cancelQuery) async {
+  //   List<String> _value = [];
+  //   try{
+  //     OrderDetail orderDetail = OrderDetail(
+  //       updated_at: dateTime,
+  //       sync_status: this.orderDetail.sync_status == 0 ? 0 : 2,
+  //       status: 0,
+  //       quantity: getTotalQty(),
+  //       order_detail_sqlite_id: int.parse(widget.cartItem.order_detail_sqlite_id!),
+  //       branch_link_product_sqlite_id: widget.cartItem.branch_link_product_sqlite_id,
+  //     );
+  //     // updateOrderDetailQuantity
+  //     num data = await cancelQuery.updateOrderDetailQuantity(orderDetail);
+  //     // num data = await posDatabase.updateOrderDetailQuantity(orderDetail);
+  //     if (data == 1) {
+  //       // readSpecificOrderDetailByLocalId
+  //       OrderDetail updatedOrderDetail = await cancelQuery.readSpecificOrderDetailByLocalId(orderDetail.order_detail_sqlite_id!);
+  //       // OrderDetail detailData = await posDatabase.readSpecificOrderDetailByLocalId(orderDetail.order_detail_sqlite_id!);
+  //       OrderCache? orderCache = await updateOrderCacheSubtotal(updatedOrderDetail.order_cache_sqlite_id!, updatedOrderDetail.price!, simpleIntInput, dateTime, cancelQuery);
+  //       if(restock){
+  //         await updateProductStock(updatedOrderDetail.branch_link_product_sqlite_id!, simpleIntInput, dateTime, cancelQuery);
+  //       }
+  //       // _firestoreQROrderSync.updateOrderDetailAndCacheSubtotal(updatedOrderDetail, orderCache!);
+  //       _value.add(jsonEncode(updatedOrderDetail.syncJson()));
+  //     }
+  //     order_detail_value = _value.toString();
+  //   }catch(e, stackTrace){
+  //     FLog.error(
+  //       className: "adjust_qty_dialog",
+  //       text: "updateOrderDetailQuantity error",
+  //       exception: "Error: $e, StackTrace: $stackTrace",
+  //     );
+  //     rethrow;
+  //   }
+  // }
 
   String getSubtotal(double totalAmount, String price, num quantity){
     double subtotal = 0.0;
@@ -576,36 +597,36 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     return subtotal.toStringAsFixed(2);
   }
 
-  Future<OrderCache?> updateOrderCacheSubtotal(String orderCacheLocalId, String price, num quantity, String dateTime, CancelQuery cancelQuery) async {
-    try{
-      // readSpecificOrderCacheByLocalId
-      OrderCache data = await cancelQuery.readSpecificOrderCacheByLocalId(int.parse(orderCacheLocalId));
-      // OrderCache data = await posDatabase.readSpecificOrderCacheByLocalId(int.parse(orderCacheLocalId));
-      OrderCache orderCache = data.copy(
-          order_cache_sqlite_id: data.order_cache_sqlite_id,
-          total_amount: getSubtotal(double.parse(data.total_amount!), price, quantity),
-          sync_status: data.sync_status == 0 ? 0 : 2,
-          updated_at: dateTime);
-      // updateOrderCacheSubtotal
-      int status = await cancelQuery.updateOrderCacheSubtotal(orderCache);
-      if (status == 1) {
-        return data;
-      } else {
-        return null;
-      }
-      // int status = await posDatabase.updateOrderCacheSubtotal(orderCache);
-      // if (status == 1) {
-      //   getOrderCacheValue(orderCache);
-      // }
-    }catch(e, stackTrace){
-      FLog.error(
-        className: "adj_quantity",
-        text: "updateOrderCacheSubtotal error",
-        exception: "Error: $e, StackTrace: $stackTrace",
-      );
-      rethrow;
-    }
-  }
+  // Future<OrderCache?> updateOrderCacheSubtotal(String orderCacheLocalId, String price, num quantity, String dateTime, CancelQuery cancelQuery) async {
+  //   try{
+  //     // readSpecificOrderCacheByLocalId
+  //     OrderCache data = await cancelQuery.readSpecificOrderCacheByLocalId(int.parse(orderCacheLocalId));
+  //     // OrderCache data = await posDatabase.readSpecificOrderCacheByLocalId(int.parse(orderCacheLocalId));
+  //     OrderCache orderCache = data.copy(
+  //         order_cache_sqlite_id: data.order_cache_sqlite_id,
+  //         total_amount: getSubtotal(double.parse(data.total_amount!), price, quantity),
+  //         sync_status: data.sync_status == 0 ? 0 : 2,
+  //         updated_at: dateTime);
+  //     // updateOrderCacheSubtotal
+  //     int status = await cancelQuery.updateOrderCacheSubtotal(orderCache);
+  //     if (status == 1) {
+  //       return data;
+  //     } else {
+  //       return null;
+  //     }
+  //     // int status = await posDatabase.updateOrderCacheSubtotal(orderCache);
+  //     // if (status == 1) {
+  //     //   getOrderCacheValue(orderCache);
+  //     // }
+  //   }catch(e, stackTrace){
+  //     FLog.error(
+  //       className: "adj_quantity",
+  //       text: "updateOrderCacheSubtotal error",
+  //       exception: "Error: $e, StackTrace: $stackTrace",
+  //     );
+  //     rethrow;
+  //   }
+  // }
 
   // syncUpdatedPosTableToCloud(String posTableValue) async {
   //   bool _hasInternetAccess = await Domain().isHostReachable();
@@ -620,94 +641,94 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   //   }
   // }
 
-  callDeleteOrderDetail(User user, String dateTime, CancelQuery cancelQuery) async {
-    try{
-      await createOrderDetailCancel(user, dateTime, cancelQuery);
-      await updateOrderDetailQuantity(dateTime, cancelQuery);
-      List<String> _value = [];
-      OrderDetail orderDetailObject = OrderDetail(
-        updated_at: dateTime,
-        sync_status: orderDetail.sync_status == 0 ? 0 : 2,
-        status: 1,
-        cancel_by: user.name,
-        cancel_by_user_id: user.user_id.toString(),
-        order_detail_sqlite_id: int.parse(widget.cartItem.order_detail_sqlite_id!),
-      );
-      int deleteOrderDetailData = await cancelQuery.updateOrderDetailStatus(orderDetailObject);
-      // int deleteOrderDetailData = await posDatabase.updateOrderDetailStatus(orderDetailObject);
-      // if (deleteOrderDetailData == 1) {
-      //   //await updateProductStock(orderDetailObject.branch_link_product_sqlite_id!, int.parse(orderDetailObject.quantity!), dateTime);
-      //   //sync to cloud
-      //   OrderDetail detailData = await cancelQuery.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
-      //   OrderDetail detailData = await posDatabase.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
-      //   _value.add(jsonEncode(detailData.syncJson()));
-      //   order_detail_value = _value.toString();
-      //   print('value: ${_value.toString()}');
-      // }
-      //syncUpdatedOrderDetailToCloud(_value.toString());
-    }catch(e, stackTrace){
-      FLog.error(
-        className: "adjust_qty_dialog",
-        text: "callDeleteOrderDetail error",
-        exception: "Error: $e, StackTrace: $stackTrace",
-      );
-      rethrow;
-    }
-  }
+  // callDeleteOrderDetail(User user, String dateTime, CancelQuery cancelQuery) async {
+  //   try{
+  //     await createOrderDetailCancel(user, dateTime, cancelQuery);
+  //     await updateOrderDetailQuantity(dateTime, cancelQuery);
+  //     List<String> _value = [];
+  //     OrderDetail orderDetailObject = OrderDetail(
+  //       updated_at: dateTime,
+  //       sync_status: orderDetail.sync_status == 0 ? 0 : 2,
+  //       status: 1,
+  //       cancel_by: user.name,
+  //       cancel_by_user_id: user.user_id.toString(),
+  //       order_detail_sqlite_id: int.parse(widget.cartItem.order_detail_sqlite_id!),
+  //     );
+  //     int deleteOrderDetailData = await cancelQuery.updateOrderDetailStatus(orderDetailObject);
+  //     // int deleteOrderDetailData = await posDatabase.updateOrderDetailStatus(orderDetailObject);
+  //     // if (deleteOrderDetailData == 1) {
+  //     //   //await updateProductStock(orderDetailObject.branch_link_product_sqlite_id!, int.parse(orderDetailObject.quantity!), dateTime);
+  //     //   //sync to cloud
+  //     //   OrderDetail detailData = await cancelQuery.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
+  //     //   OrderDetail detailData = await posDatabase.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
+  //     //   _value.add(jsonEncode(detailData.syncJson()));
+  //     //   order_detail_value = _value.toString();
+  //     //   print('value: ${_value.toString()}');
+  //     // }
+  //     //syncUpdatedOrderDetailToCloud(_value.toString());
+  //   }catch(e, stackTrace){
+  //     FLog.error(
+  //       className: "adjust_qty_dialog",
+  //       text: "callDeleteOrderDetail error",
+  //       exception: "Error: $e, StackTrace: $stackTrace",
+  //     );
+  //     rethrow;
+  //   }
+  // }
 
-  updateProductStock(String branch_link_product_sqlite_id, num quantity, String dateTime, CancelQuery cancelQuery) async {
-    List<String> _value = [];
-    num _totalStockQty = 0, updateStock = 0;
-    BranchLinkProduct? object;
-    try{
-      // readSpecificBranchLinkProduct
-      List<BranchLinkProduct> checkData = await cancelQuery.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
-      // List<BranchLinkProduct> checkData = await posDatabase.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
-      if(checkData.isNotEmpty){
-        switch(checkData.first.stock_type){
-          case '1': {
-            _totalStockQty = int.parse(checkData[0].daily_limit!) + quantity;
-            object = checkData.first.copy(
-                updated_at: dateTime,
-                sync_status: 2,
-                daily_limit: _totalStockQty.toString(),
-                branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
-            updateStock = await cancelQuery.updateBranchLinkProductDailyLimit(object);
-            // updateStock = await posDatabase.updateBranchLinkProductDailyLimit(object);
-          }break;
-          case'2': {
-            _totalStockQty = int.parse(checkData[0].stock_quantity!) + quantity;
-            object = checkData.first.copy(
-                updated_at: dateTime,
-                sync_status: 2,
-                stock_quantity: _totalStockQty.toString(),
-                branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
-            updateStock = await cancelQuery.updateBranchLinkProductStock(object);
-            // updateStock = await posDatabase.updateBranchLinkProductStock(object);
-          }break;
-          default: {
-            updateStock = 0;
-          }
-        }
-        // if (updateStock == 1) {
-        //   List<BranchLinkProduct> updatedData = await posDatabase.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
-        //   _value.add(jsonEncode(updatedData[0]));
-        //   branch_link_product_value = _value.toString();
-        // }
-      }
-    }catch(e, stackTrace){
-      FLog.error(
-        className: "cancel query",
-        text: "updateProductStock error",
-        exception: "Error: $e, StackTrace: $stackTrace",
-      );
-      rethrow;
-    }
-
-    //print('branch link product value in function: ${branch_link_product_value}');
-    //sync to cloud
-    //syncBranchLinkProductStock(value.toString());
-  }
+  // updateProductStock(String branch_link_product_sqlite_id, num quantity, String dateTime, CancelQuery cancelQuery) async {
+  //   List<String> _value = [];
+  //   num _totalStockQty = 0, updateStock = 0;
+  //   BranchLinkProduct? object;
+  //   try{
+  //     // readSpecificBranchLinkProduct
+  //     List<BranchLinkProduct> checkData = await cancelQuery.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+  //     // List<BranchLinkProduct> checkData = await posDatabase.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+  //     if(checkData.isNotEmpty){
+  //       switch(checkData.first.stock_type){
+  //         case '1': {
+  //           _totalStockQty = int.parse(checkData[0].daily_limit!) + quantity;
+  //           object = checkData.first.copy(
+  //               updated_at: dateTime,
+  //               sync_status: 2,
+  //               daily_limit: _totalStockQty.toString(),
+  //               branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
+  //           updateStock = await cancelQuery.updateBranchLinkProductDailyLimit(object);
+  //           // updateStock = await posDatabase.updateBranchLinkProductDailyLimit(object);
+  //         }break;
+  //         case'2': {
+  //           _totalStockQty = int.parse(checkData[0].stock_quantity!) + quantity;
+  //           object = checkData.first.copy(
+  //               updated_at: dateTime,
+  //               sync_status: 2,
+  //               stock_quantity: _totalStockQty.toString(),
+  //               branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
+  //           updateStock = await cancelQuery.updateBranchLinkProductStock(object);
+  //           // updateStock = await posDatabase.updateBranchLinkProductStock(object);
+  //         }break;
+  //         default: {
+  //           updateStock = 0;
+  //         }
+  //       }
+  //       // if (updateStock == 1) {
+  //       //   List<BranchLinkProduct> updatedData = await posDatabase.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+  //       //   _value.add(jsonEncode(updatedData[0]));
+  //       //   branch_link_product_value = _value.toString();
+  //       // }
+  //     }
+  //   }catch(e, stackTrace){
+  //     FLog.error(
+  //       className: "cancel query",
+  //       text: "updateProductStock error",
+  //       exception: "Error: $e, StackTrace: $stackTrace",
+  //     );
+  //     rethrow;
+  //   }
+  //
+  //   //print('branch link product value in function: ${branch_link_product_value}');
+  //   //sync to cloud
+  //   //syncBranchLinkProductStock(value.toString());
+  // }
 
   // syncBranchLinkProductStock(String value) async {
   //   bool _hasInternetAccess = await Domain().isHostReachable();
@@ -733,105 +754,105 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   //   }
   // }
 
-  callDeleteAllOrder(User user, String currentTableUseId, String dateTime, CancelQuery cancelQuery) async {
-    try{
-      print('delete all order called');
-      if (widget.currentPage != 'other_order') {
-        await deleteCurrentTableUseDetail(currentTableUseId, dateTime, cancelQuery);
-        await deleteCurrentTableUseId(int.parse(currentTableUseId), dateTime, cancelQuery);
-      }
-      await callDeleteOrderDetail(user, dateTime, cancelQuery);
-      await deleteCurrentOrderCache(user, dateTime, cancelQuery);
-    }catch(e, stackTrace){
-      FLog.error(
-        className: "adjust_qty_dialog",
-        text: "callDeleteAllOrder error",
-        exception: "Error: $e, StackTrace: $stackTrace",
-      );
-      rethrow;
-    }
-  }
+  // callDeleteAllOrder(User user, String currentTableUseId, String dateTime, CancelQuery cancelQuery) async {
+  //   try{
+  //     print('delete all order called');
+  //     if (widget.currentPage != 'other_order') {
+  //       await deleteCurrentTableUseDetail(currentTableUseId, dateTime, cancelQuery);
+  //       await deleteCurrentTableUseId(int.parse(currentTableUseId), dateTime, cancelQuery);
+  //     }
+  //     await callDeleteOrderDetail(user, dateTime, cancelQuery);
+  //     await deleteCurrentOrderCache(user, dateTime, cancelQuery);
+  //   }catch(e, stackTrace){
+  //     FLog.error(
+  //       className: "adjust_qty_dialog",
+  //       text: "callDeleteAllOrder error",
+  //       exception: "Error: $e, StackTrace: $stackTrace",
+  //     );
+  //     rethrow;
+  //   }
+  // }
 
-  callDeletePartialOrder(User user, String dateTime, CancelQuery cancelQuery) async {
-    try{
-      await callDeleteOrderDetail(user, dateTime, cancelQuery);
-      await deleteCurrentOrderCache(user, dateTime, cancelQuery);
-    }catch(e, stackTrace){
-      FLog.error(
-        className: "adjust_qty_dialog",
-        text: "callDeletePartialOrder error",
-        exception: "Error: $e, StackTrace: $stackTrace",
-      );
-      rethrow;
-    }
-  }
+  // callDeletePartialOrder(User user, String dateTime, CancelQuery cancelQuery) async {
+  //   try{
+  //     await callDeleteOrderDetail(user, dateTime, cancelQuery);
+  //     await deleteCurrentOrderCache(user, dateTime, cancelQuery);
+  //   }catch(e, stackTrace){
+  //     FLog.error(
+  //       className: "adjust_qty_dialog",
+  //       text: "callDeletePartialOrder error",
+  //       exception: "Error: $e, StackTrace: $stackTrace",
+  //     );
+  //     rethrow;
+  //   }
+  // }
 
-  updatePosTableStatus(String dateTime, CancelQuery cancelQuery) async {
-    try{
-      // PosTable? _data;
-      for (int i = 0; i < cartTableUseDetail.length; i++) {
-        //update all table to unused
-        PosTable posTableData = PosTable(
-          table_use_detail_key: '',
-          table_use_key: '',
-          status: 0,
-          updated_at: dateTime,
-          table_sqlite_id: int.parse(cartTableUseDetail[i].table_sqlite_id!),
-        );
-        int updatedStatus = await cancelQuery.updatePosTableStatus(posTableData);
-        // int updatedStatus = await posDatabase.updatePosTableStatus(posTableData);
-        // int removeKey = await posDatabase.removePosTableTableUseDetailKey(posTableData);
-        // if (updatedStatus == 1) {
-        //   List<PosTable> posTable = await posDatabase.readSpecificTable(posTableData.table_sqlite_id.toString());
-        //   if (posTable[0].sync_status == 2) {
-        //     _data = posTable[0];
-        //   }
-        // }
-        // _posTableValue.add(jsonEncode(posTableData));
-      }
-      // table_value = _posTableValue.toString();
-      // return _data;
-    }catch(e, stackTrace){
-      FLog.error(
-        className: "adjust_qty_dialog",
-        text: "updatePosTableStatus error",
-        exception: "Error: $e, StackTrace: $stackTrace",
-      );
-      rethrow;
-    }
-  }
+  // updatePosTableStatus(String dateTime, CancelQuery cancelQuery) async {
+  //   try{
+  //     // PosTable? _data;
+  //     for (int i = 0; i < cartTableUseDetail.length; i++) {
+  //       //update all table to unused
+  //       PosTable posTableData = PosTable(
+  //         table_use_detail_key: '',
+  //         table_use_key: '',
+  //         status: 0,
+  //         updated_at: dateTime,
+  //         table_sqlite_id: int.parse(cartTableUseDetail[i].table_sqlite_id!),
+  //       );
+  //       int updatedStatus = await cancelQuery.updatePosTableStatus(posTableData);
+  //       // int updatedStatus = await posDatabase.updatePosTableStatus(posTableData);
+  //       // int removeKey = await posDatabase.removePosTableTableUseDetailKey(posTableData);
+  //       // if (updatedStatus == 1) {
+  //       //   List<PosTable> posTable = await posDatabase.readSpecificTable(posTableData.table_sqlite_id.toString());
+  //       //   if (posTable[0].sync_status == 2) {
+  //       //     _data = posTable[0];
+  //       //   }
+  //       // }
+  //       // _posTableValue.add(jsonEncode(posTableData));
+  //     }
+  //     // table_value = _posTableValue.toString();
+  //     // return _data;
+  //   }catch(e, stackTrace){
+  //     FLog.error(
+  //       className: "adjust_qty_dialog",
+  //       text: "updatePosTableStatus error",
+  //       exception: "Error: $e, StackTrace: $stackTrace",
+  //     );
+  //     rethrow;
+  //   }
+  // }
 
-  deleteCurrentOrderCache(User user, String dateTime, CancelQuery cancelQuery) async {
-    print('delete order cache called');
-    List<String> _orderCacheValue = [];
-    try {
-      OrderCache orderCacheObject = OrderCache(
-          sync_status: cartCacheList[0].sync_status == 0 ? 0 : 2,
-          cancel_by: user.name,
-          cancel_by_user_id: user.user_id.toString(),
-          order_cache_sqlite_id: int.parse(widget.cartItem.order_cache_sqlite_id!),
-      );
-      int deletedOrderCache = await cancelQuery.cancelOrderCache(orderCacheObject);
-      // int deletedOrderCache = await posDatabase.cancelOrderCache(orderCacheObject);
-      //sync to cloud
-      // if (deletedOrderCache == 1) {
-      //   // await getOrderCacheValue(orderCacheObject);
-      //   // OrderCache orderCacheData = await posDatabase.readSpecificOrderCacheByLocalId(orderCacheObject.order_cache_sqlite_id!);
-      //   // if(orderCacheData.sync_status != 1){
-      //   //   _orderCacheValue.add(jsonEncode(orderCacheData));
-      //   // }
-      //   // order_cache_value = _orderCacheValue.toString();
-      //   //syncOrderCacheToCloud(_orderCacheValue.toString());
-      // }
-    }catch(e, stackTrace){
-      FLog.error(
-        className: "adjust_qty_dialog",
-        text: "deleteCurrentOrderCache error",
-        exception: "Error: $e, StackTrace: $stackTrace",
-      );
-      rethrow;
-    }
-  }
+  // deleteCurrentOrderCache(User user, String dateTime, CancelQuery cancelQuery) async {
+  //   print('delete order cache called');
+  //   List<String> _orderCacheValue = [];
+  //   try {
+  //     OrderCache orderCacheObject = OrderCache(
+  //         sync_status: cartCacheList[0].sync_status == 0 ? 0 : 2,
+  //         cancel_by: user.name,
+  //         cancel_by_user_id: user.user_id.toString(),
+  //         order_cache_sqlite_id: int.parse(widget.cartItem.order_cache_sqlite_id!),
+  //     );
+  //     int deletedOrderCache = await cancelQuery.cancelOrderCache(orderCacheObject);
+  //     // int deletedOrderCache = await posDatabase.cancelOrderCache(orderCacheObject);
+  //     //sync to cloud
+  //     // if (deletedOrderCache == 1) {
+  //     //   // await getOrderCacheValue(orderCacheObject);
+  //     //   // OrderCache orderCacheData = await posDatabase.readSpecificOrderCacheByLocalId(orderCacheObject.order_cache_sqlite_id!);
+  //     //   // if(orderCacheData.sync_status != 1){
+  //     //   //   _orderCacheValue.add(jsonEncode(orderCacheData));
+  //     //   // }
+  //     //   // order_cache_value = _orderCacheValue.toString();
+  //     //   //syncOrderCacheToCloud(_orderCacheValue.toString());
+  //     // }
+  //   }catch(e, stackTrace){
+  //     FLog.error(
+  //       className: "adjust_qty_dialog",
+  //       text: "deleteCurrentOrderCache error",
+  //       exception: "Error: $e, StackTrace: $stackTrace",
+  //     );
+  //     rethrow;
+  //   }
+  // }
 
   getOrderCacheValue(OrderCache orderCacheObject) async {
     List<String> _orderCacheValue = [];
@@ -855,35 +876,35 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   //   }
   // }
 
-  deleteCurrentTableUseDetail(String currentTableUseId, String dateTime, CancelQuery cancelQuery) async {
-    List<String> _value = [];
-    try {
-      List<TableUseDetail> checkData = await cancelQuery.readAllTableUseDetail(currentTableUseId);
-      // List<TableUseDetail> checkData = await posDatabase.readAllTableUseDetail(currentTableUseId);
-      for (int i = 0; i < checkData.length; i++) {
-        TableUseDetail tableUseDetailObject = checkData[i].copy(
-            updated_at: dateTime,
-            sync_status: checkData[i].sync_status == 0 ? 0 : 2,
-            status: 1,
-        );
-        int deleteStatus = await cancelQuery.deleteTableUseDetail(tableUseDetailObject);
-        // int deleteStatus = await posDatabase.deleteTableUseDetail(tableUseDetailObject);
-        if (deleteStatus == 1) {
-          _value.add(jsonEncode(tableUseDetailObject));
-          table_use_detail_value = _value.toString();
-        }
-      }
-      //sync to cloud
-      //syncTableUseDetail(_value.toString());
-    } catch(e, stackTrace){
-      FLog.error(
-        className: "adjust_qty_dialog",
-        text: "deleteCurrentTableUseDetail error",
-        exception: "Error: $e, StackTrace: $stackTrace",
-      );
-      rethrow;
-    }
-  }
+  // deleteCurrentTableUseDetail(String currentTableUseId, String dateTime, CancelQuery cancelQuery) async {
+  //   List<String> _value = [];
+  //   try {
+  //     List<TableUseDetail> checkData = await cancelQuery.readAllTableUseDetail(currentTableUseId);
+  //     // List<TableUseDetail> checkData = await posDatabase.readAllTableUseDetail(currentTableUseId);
+  //     for (int i = 0; i < checkData.length; i++) {
+  //       TableUseDetail tableUseDetailObject = checkData[i].copy(
+  //           updated_at: dateTime,
+  //           sync_status: checkData[i].sync_status == 0 ? 0 : 2,
+  //           status: 1,
+  //       );
+  //       int deleteStatus = await cancelQuery.deleteTableUseDetail(tableUseDetailObject);
+  //       // int deleteStatus = await posDatabase.deleteTableUseDetail(tableUseDetailObject);
+  //       if (deleteStatus == 1) {
+  //         _value.add(jsonEncode(tableUseDetailObject));
+  //         table_use_detail_value = _value.toString();
+  //       }
+  //     }
+  //     //sync to cloud
+  //     //syncTableUseDetail(_value.toString());
+  //   } catch(e, stackTrace){
+  //     FLog.error(
+  //       className: "adjust_qty_dialog",
+  //       text: "deleteCurrentTableUseDetail error",
+  //       exception: "Error: $e, StackTrace: $stackTrace",
+  //     );
+  //     rethrow;
+  //   }
+  // }
 
   // syncTableUseDetail(String value) async {
   //   bool _hasInternetAccess = await Domain().isHostReachable();
@@ -898,34 +919,34 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   //   }
   // }
 
-  deleteCurrentTableUseId(int currentTableUseId, String dateTime, CancelQuery cancelQuery) async {
-    List<String> _value = [];
-    try {
-      TableUse? checkData = await cancelQuery.readSpecificTableUseIdByLocalId(currentTableUseId);
-      // TableUse checkData = await posDatabase.readSpecificTableUseIdByLocalId(currentTableUseId);
-      TableUse tableUseObject = checkData!.copy(
-        updated_at: dateTime,
-        sync_status: checkData.sync_status == 0 ? 0 : 2,
-        status: 1,
-      );
-      int deletedTableUse = await cancelQuery.deleteTableUseID(tableUseObject);
-      // int deletedTableUse = await posDatabase.deleteTableUseID(tableUseObject);
-      if (deletedTableUse == 1) {
-        //sync to cloud
-        // TableUse tableUseData = await posDatabase.readSpecificTableUseIdByLocalId(tableUseObject.table_use_sqlite_id!);
-        _value.add(jsonEncode(tableUseObject));
-        table_use_value = _value.toString();
-        //syncTableUseIdToCloud(_value.toString());
-      }
-    } catch(e, stackTrace){
-      FLog.error(
-        className: "adjust_qty_dialog",
-        text: "deleteCurrentTableUseId error",
-        exception: "Error: $e, StackTrace: $stackTrace",
-      );
-      rethrow;
-    }
-  }
+  // deleteCurrentTableUseId(int currentTableUseId, String dateTime, CancelQuery cancelQuery) async {
+  //   List<String> _value = [];
+  //   try {
+  //     TableUse? checkData = await cancelQuery.readSpecificTableUseIdByLocalId(currentTableUseId);
+  //     // TableUse checkData = await posDatabase.readSpecificTableUseIdByLocalId(currentTableUseId);
+  //     TableUse tableUseObject = checkData!.copy(
+  //       updated_at: dateTime,
+  //       sync_status: checkData.sync_status == 0 ? 0 : 2,
+  //       status: 1,
+  //     );
+  //     int deletedTableUse = await cancelQuery.deleteTableUseID(tableUseObject);
+  //     // int deletedTableUse = await posDatabase.deleteTableUseID(tableUseObject);
+  //     if (deletedTableUse == 1) {
+  //       //sync to cloud
+  //       // TableUse tableUseData = await posDatabase.readSpecificTableUseIdByLocalId(tableUseObject.table_use_sqlite_id!);
+  //       _value.add(jsonEncode(tableUseObject));
+  //       table_use_value = _value.toString();
+  //       //syncTableUseIdToCloud(_value.toString());
+  //     }
+  //   } catch(e, stackTrace){
+  //     FLog.error(
+  //       className: "adjust_qty_dialog",
+  //       text: "deleteCurrentTableUseId error",
+  //       exception: "Error: $e, StackTrace: $stackTrace",
+  //     );
+  //     rethrow;
+  //   }
+  // }
 
   // syncTableUseIdToCloud(String value) async {
   //   bool _hasInternetAccess = await Domain().isHostReachable();

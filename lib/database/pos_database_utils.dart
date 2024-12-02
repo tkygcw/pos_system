@@ -243,9 +243,7 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.use_printer_label_as_title} INTEGER NOT NULL DEFAULT 0");
           }break;
           case 30: {
-            //tb app setting required cancel reason
-            // new table cancel_receipt
-            //tb order cancel new field: quantity before cancel
+            await dbVersion31Upgrade(db);
           }break;
         }
       }
@@ -1102,6 +1100,29 @@ class PosDatabaseUtils {
           ${CancelReceiptFields.updated_at} $textType,
           ${CancelReceiptFields.soft_delete} $textType)''');
 
+  }
+
+  static dbVersion31Upgrade(Database db) async {
+    //tb app setting required cancel reason
+    await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.required_cancel_reason} $integerType DEFAULT 0");
+    //tb order cancel new field: quantity before cancel
+    await db.execute("ALTER TABLE $tableOrderDetailCancel ADD ${OrderDetailCancelFields.quantity_before_cancel} $textType DEFAULT '' ");
+    await db.execute("ALTER TABLE $tableOrderDetailCancel ADD ${OrderDetailCancelFields.cancel_reason} $textType DEFAULT '' ");
+    // new table cancel_receipt
+    await db.execute('''CREATE TABLE $tableCancelReceipt(
+            ${CancelReceiptFields.cancel_receipt_sqlite_id} $idType,
+            ${CancelReceiptFields.cancel_receipt_id} $integerType,
+            ${CancelReceiptFields.cancel_receipt_key} $textType,
+            ${CancelReceiptFields.branch_id} $textType,
+            ${CancelReceiptFields.product_name_font_size} $integerType,
+            ${CancelReceiptFields.other_font_size} $integerType,
+            ${CancelReceiptFields.paper_size} $textType,
+            ${CancelReceiptFields.show_product_sku} $integerType,
+            ${CancelReceiptFields.show_product_price} $integerType,
+            ${CancelReceiptFields.sync_status} $integerType,
+            ${CancelReceiptFields.created_at} $textType,
+            ${CancelReceiptFields.updated_at} $textType,
+            ${CancelReceiptFields.soft_delete} $textType)''');
   }
 
   static dbVersion30Upgrade(Database db, SharedPreferences prefs) async {

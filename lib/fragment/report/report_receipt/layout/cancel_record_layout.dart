@@ -1,8 +1,6 @@
 import 'dart:convert';
 
 import 'package:pos_system/fragment/report/cancel_record_report_utils.dart';
-import 'package:pos_system/object/order_detail.dart';
-import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 
@@ -66,21 +64,22 @@ class CancelRecordLayout {
           PosColumn(text: getProductQty(record), width: 2, styles: PosStyles()),
           PosColumn(text: Utils.to2Decimal(record.price!), width: 2, styles: PosStyles()),
         ]);
-        bytes += generator.row([
-          PosColumn(text: Utils.formatDate(record.created_at!), width: 12, containsChinese: true, styles: PosStyles())
-        ]);
         if(record.product_variant_name != null && record.product_variant_name != ''){
           bytes += generator.row([
             PosColumn(text: getProductVariant(record), width: 12, containsChinese: true, styles: PosStyles()),
           ]);
         }
         bytes += generator.row([
-          PosColumn(text: 'By: ${record.cancel_by}', width: 12, containsChinese: true, styles: PosStyles()),
+          PosColumn(text: Utils.formatDate(record.created_at!), width: 12, containsChinese: true, styles: PosStyles())
         ]);
         bytes += generator.row([
-          PosColumn(text: 'Reason: ${record.cancel_reason}', width: 12, containsChinese: true, styles: PosStyles()),
+          PosColumn(text: 'By: ${record.cancel_by}', width: 12, containsChinese: true, styles: PosStyles()),
         ]);
-
+        if(record.cancel_reason != ''){
+          bytes += generator.row([
+            PosColumn(text: 'Reason: ${record.cancel_reason}', width: 12, containsChinese: true, styles: PosStyles()),
+          ]);
+        }
         bytes += generator.hr();
       }
       bytes += generator.row([

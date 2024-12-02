@@ -220,9 +220,13 @@ class _mm58ReceiptViewState extends State<mm58ReceiptView> {
                           title: Text(AppLocalizations.of(context)!.translate('small')),
                           controlAffinity: ListTileControlAffinity.trailing,
                         ),
+                        Container(
+                          alignment: Alignment.topLeft,
+                          child: Text(AppLocalizations.of(context)!.translate('cancel_receipt_setting'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                        ),
                         ListTile(
-                          title: Text(AppLocalizations.of(context)!.translate('show_product_price')),
-                          subtitle: Text(AppLocalizations.of(context)!.translate('show_product_price_desc')),
+                          title: Text(AppLocalizations.of(context)!.translate('cancel_show_price')),
+                          subtitle: Text(AppLocalizations.of(context)!.translate('cancel_show_price_desc')),
                           trailing: Switch(
                             value: cancelShowPrice,
                             activeColor: color.backgroundColor,

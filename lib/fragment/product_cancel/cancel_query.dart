@@ -1,4 +1,10 @@
+import 'dart:convert';
+
 import 'package:f_logs/model/flog/flog.dart';
+import 'package:intl/intl.dart';
+import 'package:pos_system/object/cart_product.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:crypto/crypto.dart';
 
 import '../../object/branch_link_product.dart';
 import '../../object/categories.dart';
@@ -10,14 +16,479 @@ import '../../object/product.dart';
 import '../../object/table.dart';
 import '../../object/table_use.dart';
 import '../../object/table_use_detail.dart';
+import '../../object/user.dart';
+import '../../utils/Utils.dart';
 
 class CancelQuery{
-  late final transaction;
-  CancelQuery({required this.transaction});
+  final DateFormat _dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+  String _dateTime = '';
+  String _reason = '';
+  bool _restock = false;
+  late final OrderDetail _orderDetail;
+  late final cartProductItem _cartItem;
+  late final num _cancelQuantity;
+  late final User _user;
+  late final _transaction;
 
-  Future<OrderDetailCancel> insertSqliteOrderDetailCancel(OrderDetailCancel data) async {
+  CancelQuery({
+    required User user,
+    required var transaction,
+    required cartProductItem widgetCartItem,
+    required num simpleIntInput,
+    required OrderDetail orderDetail,
+    bool? restock,
+    String? reason
+  }) {
+    this._user = user;
+    this._transaction = transaction;
+    this._dateTime = _dateFormat.format(DateTime.now());
+    this._cartItem = widgetCartItem;
+    this._cancelQuantity = simpleIntInput;
+    this._orderDetail = orderDetail;
+    this._restock = restock ?? this._restock;
+    this._reason = reason ?? this._reason;
+ }
+
+  Future<void> callDeleteAllOrder({
+    required List<TableUseDetail> cartTableUseDetail,
+    required String currentTableUseId,
+    required String currentPage,
+    required OrderCache orderCache}) async {
     try{
-      final id = await transaction.insert(tableOrderDetailCancel!, data.toJson());
+      print('delete all order called');
+      if (currentPage != 'other_order') {
+        await _deleteCurrentTableUseDetail(currentTableUseId);
+        await _deleteCurrentTableUseId(int.parse(currentTableUseId));
+        await _updatePosTableStatus(cartTableUseDetail: cartTableUseDetail);
+      }
+      await callDeleteOrderDetail(deleteOrderCache: true, cartOrderCache: orderCache);
+    }catch(e, stackTrace){
+      FLog.error(
+        className: "adjust_qty_dialog",
+        text: "callDeleteAllOrder error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  _updatePosTableStatus({required List<TableUseDetail> cartTableUseDetail}) async {
+    try{
+      // PosTable? _data;
+      for (int i = 0; i < cartTableUseDetail.length; i++) {
+        //update all table to unused
+        PosTable posTableData = PosTable(
+          table_use_detail_key: '',
+          table_use_key: '',
+          status: 0,
+          updated_at: _dateTime,
+          table_sqlite_id: int.parse(cartTableUseDetail[i].table_sqlite_id!),
+        );
+        int updatedStatus = await _updateSqlitePosTableStatus(posTableData);
+        // int updatedStatus = await posDatabase.updatePosTableStatus(posTableData);
+        // int removeKey = await posDatabase.removePosTableTableUseDetailKey(posTableData);
+        // if (updatedStatus == 1) {
+        //   List<PosTable> posTable = await posDatabase.readSpecificTable(posTableData.table_sqlite_id.toString());
+        //   if (posTable[0].sync_status == 2) {
+        //     _data = posTable[0];
+        //   }
+        // }
+        // _posTableValue.add(jsonEncode(posTableData));
+      }
+      // table_value = _posTableValue.toString();
+      // return _data;
+    }catch(e, stackTrace){
+      FLog.error(
+        className: "adjust_qty_dialog",
+        text: "updatePosTableStatus error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  _deleteCurrentTableUseDetail(String currentTableUseId) async {
+    List<String> _value = [];
+    try {
+      List<TableUseDetail> checkData = await _readAllTableUseDetail(currentTableUseId);
+      // List<TableUseDetail> checkData = await posDatabase.readAllTableUseDetail(currentTableUseId);
+      for (int i = 0; i < checkData.length; i++) {
+        TableUseDetail tableUseDetailObject = checkData[i].copy(
+          updated_at: _dateTime,
+          sync_status: checkData[i].sync_status == 0 ? 0 : 2,
+          status: 1,
+        );
+        int deleteStatus = await _deleteTableUseDetail(tableUseDetailObject);
+        // int deleteStatus = await posDatabase.deleteTableUseDetail(tableUseDetailObject);
+        // if (deleteStatus == 1) {
+        //   _value.add(jsonEncode(tableUseDetailObject));
+        //   table_use_detail_value = _value.toString();
+        // }
+      }
+      //sync to cloud
+      //syncTableUseDetail(_value.toString());
+    } catch(e, stackTrace){
+      FLog.error(
+        className: "adjust_qty_dialog",
+        text: "deleteCurrentTableUseDetail error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  _deleteCurrentTableUseId(int currentTableUseId) async {
+    List<String> _value = [];
+    try {
+      TableUse? checkData = await _readSpecificTableUseIdByLocalId(currentTableUseId);
+      // TableUse checkData = await posDatabase.readSpecificTableUseIdByLocalId(currentTableUseId);
+      TableUse tableUseObject = checkData!.copy(
+        updated_at: _dateTime,
+        sync_status: checkData.sync_status == 0 ? 0 : 2,
+        status: 1,
+      );
+      int deletedTableUse = await _deleteTableUseID(tableUseObject);
+      // int deletedTableUse = await posDatabase.deleteTableUseID(tableUseObject);
+      // if (deletedTableUse == 1) {
+      //   //sync to cloud
+      //   TableUse tableUseData = await posDatabase.readSpecificTableUseIdByLocalId(tableUseObject.table_use_sqlite_id!);
+      //   _value.add(jsonEncode(tableUseObject));
+      //   table_use_value = _value.toString();
+      //   syncTableUseIdToCloud(_value.toString());
+      // }
+    } catch(e, stackTrace){
+      FLog.error(
+        className: "adjust_qty_dialog",
+        text: "deleteCurrentTableUseId error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  Future<void> callDeleteOrderDetail({bool? deleteOrderCache, OrderCache? cartOrderCache}) async {
+    try{
+      await callUpdateOrderDetail();
+      List<String> _value = [];
+      OrderDetail orderDetailObject = OrderDetail(
+        updated_at: _dateTime,
+        sync_status: _orderDetail.sync_status == 0 ? 0 : 2,
+        status: 1,
+        cancel_by: _user.name,
+        cancel_by_user_id: _user.user_id.toString(),
+        order_detail_sqlite_id: int.parse(_cartItem.order_detail_sqlite_id!),
+      );
+      int deleteOrderDetailData = await _updateOrderDetailStatus(orderDetailObject);
+      if(deleteOrderCache == true && deleteOrderDetailData == 1){
+        await _deleteCurrentOrderCache(cartOrderCache!);
+      }
+      // int deleteOrderDetailData = await posDatabase.updateOrderDetailStatus(orderDetailObject);
+      // if (deleteOrderDetailData == 1) {
+      //   //await updateProductStock(orderDetailObject.branch_link_product_sqlite_id!, int.parse(orderDetailObject.quantity!), dateTime);
+      //   //sync to cloud
+      //   OrderDetail detailData = await cancelQuery.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
+      //   OrderDetail detailData = await posDatabase.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
+      //   _value.add(jsonEncode(detailData.syncJson()));
+      //   order_detail_value = _value.toString();
+      //   print('value: ${_value.toString()}');
+      // }
+      //syncUpdatedOrderDetailToCloud(_value.toString());
+    }catch(e, stackTrace){
+      FLog.error(
+        className: "adjust_qty_dialog",
+        text: "callDeleteOrderDetail error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  _deleteCurrentOrderCache(OrderCache cartOrderCache) async {
+    print('delete order cache called');
+    List<String> _orderCacheValue = [];
+    try {
+      OrderCache orderCacheObject = OrderCache(
+        sync_status: cartOrderCache.sync_status == 0 ? 0 : 2,
+        cancel_by: _user.name,
+        cancel_by_user_id: _user.user_id.toString(),
+        order_cache_sqlite_id: int.parse(_cartItem.order_cache_sqlite_id!),
+      );
+      int deletedOrderCache = await _cancelOrderCache(orderCacheObject);
+      // int deletedOrderCache = await posDatabase.cancelOrderCache(orderCacheObject);
+      //sync to cloud
+      // if (deletedOrderCache == 1) {
+      //   // await getOrderCacheValue(orderCacheObject);
+      //   // OrderCache orderCacheData = await posDatabase.readSpecificOrderCacheByLocalId(orderCacheObject.order_cache_sqlite_id!);
+      //   // if(orderCacheData.sync_status != 1){
+      //   //   _orderCacheValue.add(jsonEncode(orderCacheData));
+      //   // }
+      //   // order_cache_value = _orderCacheValue.toString();
+      //   //syncOrderCacheToCloud(_orderCacheValue.toString());
+      // }
+    }catch(e, stackTrace){
+      FLog.error(
+        className: "adjust_qty_dialog",
+        text: "deleteCurrentOrderCache error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  Future<void> callUpdateOrderDetail() async {
+    await _createOrderDetailCancel();
+    await _updateOrderDetailQuantity();
+  }
+
+  _updateOrderDetailQuantity() async {
+    List<String> _value = [];
+    try{
+      OrderDetail orderDetail = OrderDetail(
+        updated_at: _dateTime,
+        sync_status: _orderDetail.sync_status == 0 ? 0 : 2,
+        status: 0,
+        quantity: _getTotalQty(),
+        order_detail_sqlite_id: int.parse(_cartItem.order_detail_sqlite_id!),
+        branch_link_product_sqlite_id: _cartItem.branch_link_product_sqlite_id,
+      );
+      // updateOrderDetailQuantity
+      num data = await _updateSqliteOrderDetailQuantity(orderDetail);
+      // num data = await posDatabase.updateOrderDetailQuantity(orderDetail);
+      if (data == 1) {
+        // readSpecificOrderDetailByLocalId
+        OrderDetail updatedOrderDetail = await _readSpecificOrderDetailByLocalId(orderDetail.order_detail_sqlite_id!);
+        // OrderDetail detailData = await posDatabase.readSpecificOrderDetailByLocalId(orderDetail.order_detail_sqlite_id!);
+        OrderCache? orderCache = await _updateOrderCacheSubtotal(updatedOrderDetail.order_cache_sqlite_id!, updatedOrderDetail.price!);
+        if(_restock){
+          await _updateProductStock(updatedOrderDetail.branch_link_product_sqlite_id!);
+        }
+        // _firestoreQROrderSync.updateOrderDetailAndCacheSubtotal(updatedOrderDetail, orderCache!);
+        // _value.add(jsonEncode(updatedOrderDetail.syncJson()));
+      }
+      // order_detail_value = _value.toString();
+    }catch(e, stackTrace){
+      FLog.error(
+        className: "adjust_qty_dialog",
+        text: "updateOrderDetailQuantity error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  _updateProductStock(String branch_link_product_sqlite_id) async {
+    List<String> _value = [];
+    num _totalStockQty = 0, updateStock = 0;
+    BranchLinkProduct? object;
+    try{
+      // readSpecificBranchLinkProduct
+      List<BranchLinkProduct> checkData = await _readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+      // List<BranchLinkProduct> checkData = await posDatabase.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+      if(checkData.isNotEmpty){
+        switch(checkData.first.stock_type){
+          case '1': {
+            _totalStockQty = int.parse(checkData[0].daily_limit!) + _cancelQuantity;
+            object = checkData.first.copy(
+                updated_at: _dateTime,
+                sync_status: 2,
+                daily_limit: _totalStockQty.toString(),
+                branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
+            updateStock = await _updateBranchLinkProductDailyLimit(object);
+            // updateStock = await posDatabase.updateBranchLinkProductDailyLimit(object);
+          }break;
+          case'2': {
+            _totalStockQty = int.parse(checkData[0].stock_quantity!) + _cancelQuantity;
+            object = checkData.first.copy(
+                updated_at: _dateTime,
+                sync_status: 2,
+                stock_quantity: _totalStockQty.toString(),
+                branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
+            updateStock = await _updateBranchLinkProductStock(object);
+            // updateStock = await posDatabase.updateBranchLinkProductStock(object);
+          }break;
+          default: {
+            updateStock = 0;
+          }
+        }
+        // if (updateStock == 1) {
+        //   List<BranchLinkProduct> updatedData = await posDatabase.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+        //   _value.add(jsonEncode(updatedData[0]));
+        //   branch_link_product_value = _value.toString();
+        // }
+      }
+    }catch(e, stackTrace){
+      FLog.error(
+        className: "cancel query",
+        text: "updateProductStock error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+
+    //print('branch link product value in function: ${branch_link_product_value}');
+    //sync to cloud
+    //syncBranchLinkProductStock(value.toString());
+  }
+
+  Future<OrderCache?> _updateOrderCacheSubtotal(String orderCacheLocalId, String price) async {
+    try{
+      // readSpecificOrderCacheByLocalId
+      OrderCache data = await _readSpecificOrderCacheByLocalId(int.parse(orderCacheLocalId));
+      // OrderCache data = await posDatabase.readSpecificOrderCacheByLocalId(int.parse(orderCacheLocalId));
+      OrderCache orderCache = data.copy(
+          order_cache_sqlite_id: data.order_cache_sqlite_id,
+          total_amount: _getSubtotal(double.parse(data.total_amount!), price, _cancelQuantity),
+          sync_status: data.sync_status == 0 ? 0 : 2,
+          updated_at: _dateTime);
+      // updateOrderCacheSubtotal
+      int status = await _updateSqliteOrderCacheSubtotal(orderCache);
+      if (status == 1) {
+        return data;
+      } else {
+        return null;
+      }
+      // int status = await posDatabase.updateOrderCacheSubtotal(orderCache);
+      // if (status == 1) {
+      //   getOrderCacheValue(orderCache);
+      // }
+    }catch(e, stackTrace){
+      FLog.error(
+        className: "adj_quantity",
+        text: "updateOrderCacheSubtotal error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  String _getSubtotal(double totalAmount, String price, num quantity){
+    double subtotal = 0.0;
+    if(_cartItem.unit != 'each' && _cartItem.unit != 'each_c'){
+      subtotal = totalAmount - double.parse(price);
+    } else {
+      subtotal = totalAmount - double.parse(price) * quantity;
+    }
+    print("subtotal: ${subtotal.toStringAsFixed(2)}");
+    return subtotal.toStringAsFixed(2);
+  }
+
+
+  String _getTotalQty(){
+    num totalQty = 0;
+    if(_cartItem.unit != 'each' && _cartItem.unit != 'each_c'){
+      if(_cancelQuantity != 0){
+        totalQty = 0;
+      }
+    } else {
+      totalQty = _cartItem.quantity! - _cancelQuantity;
+    }
+    print("total qty: ${totalQty}");
+    return totalQty.toString();
+  }
+
+  _createOrderDetailCancel() async {
+    try{
+      List<String> _value = [];
+      // OrderDetail data = await cancelQuery.readSpecificOrderDetailByLocalId(int.parse(widget.cartItem.order_detail_sqlite_id!));
+      // OrderDetail data = await posDatabase.readSpecificOrderDetailByLocalId(int.parse(widget.cartItem.order_detail_sqlite_id!));
+      OrderDetailCancel object = OrderDetailCancel(
+        order_detail_cancel_id: 0,
+        order_detail_cancel_key: '',
+        order_detail_sqlite_id: _cartItem.order_detail_sqlite_id,
+        order_detail_key: _orderDetail.order_detail_key,
+        quantity: _cancelQuantity.toString(),
+        quantity_before_cancel: _cartItem.quantity! is double ?
+        _cartItem.quantity!.toStringAsFixed(2): _cartItem.quantity!.toString(),
+        cancel_by: _user.name,
+        cancel_by_user_id: _user.user_id.toString(),
+        cancel_reason: _reason,
+        settlement_sqlite_id: '',
+        settlement_key: '',
+        status: 0,
+        sync_status: 0,
+        created_at: _dateTime,
+        updated_at: '',
+        soft_delete: '',
+      );
+      OrderDetailCancel orderDetailCancel = await _insertSqliteOrderDetailCancel(object);
+      // OrderDetailCancel orderDetailCancel = await posDatabase.insertSqliteOrderDetailCancel(object);
+      OrderDetailCancel updateData = await _insertOrderDetailCancelKey(orderDetailCancel);
+      // _value.add(jsonEncode(updateData));
+      // order_detail_cancel_value = _value.toString();
+      //syncOrderDetailCancelToCloud(_value.toString());
+    }catch(e, stackTrace){
+      FLog.error(
+        className: "adjust_qty_dialog",
+        text: "insertOrderDetailCancelKey error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  _generateOrderDetailCancelKey(OrderDetailCancel orderDetailCancel) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    var bytes = orderDetailCancel.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') +
+            orderDetailCancel.order_detail_cancel_sqlite_id.toString() +
+            device_id.toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
+  }
+
+  _insertOrderDetailCancelKey(OrderDetailCancel orderDetailCancel) async {
+    try{
+      OrderDetailCancel? data;
+      String? key = await _generateOrderDetailCancelKey(orderDetailCancel);
+      if (key != null) {
+        OrderDetailCancel object = OrderDetailCancel(
+            order_detail_cancel_key: key,
+            sync_status: 0,
+            updated_at: _dateTime,
+            order_detail_cancel_sqlite_id:
+            orderDetailCancel.order_detail_cancel_sqlite_id);
+        int uniqueKey = await _updateOrderDetailCancelUniqueKey(object);
+        // await posDatabase.updateOrderDetailCancelUniqueKey(object);
+        if (uniqueKey == 1) {
+          // OrderDetailCancel orderDetailCancelData = await posDatabase.readSpecificOrderDetailCancelByLocalId(object.order_detail_cancel_sqlite_id!);
+          data = orderDetailCancel.copy(
+              order_detail_cancel_key: object.order_detail_cancel_key,
+              sync_status: object.sync_status,
+              updated_at: object.updated_at
+          );
+        }
+      }
+      return data;
+    }catch(e, stackTrace){
+      FLog.error(
+        className: "adjust_qty_dialog",
+        text: "insertOrderDetailCancelKey error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  Future<OrderDetail> readSpecificOrderDetailByLocalIdNoJoin(String order_detail_sqlite_id) async {
+    try{
+      final result = await _transaction.rawQuery(
+          'SELECT * FROM $tableOrderDetail WHERE order_detail_sqlite_id = ? ',
+          [order_detail_sqlite_id]);
+
+      return OrderDetail.fromJson(result.first);
+    }catch(e, stackTrace){
+      FLog.error(
+        className: "cancel query",
+        text: "readSpecificOrderDetailByLocalIdNoJoin error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  Future<OrderDetailCancel> _insertSqliteOrderDetailCancel(OrderDetailCancel data) async {
+    try{
+      final id = await _transaction.insert(tableOrderDetailCancel!, data.toJson());
       return data.copy(order_detail_cancel_sqlite_id: id);
     }catch(e, stackTrace){
       FLog.error(
@@ -29,9 +500,9 @@ class CancelQuery{
     }
   }
 
-  Future<int> updateOrderDetailCancelUniqueKey(OrderDetailCancel data) async {
+  Future<int> _updateOrderDetailCancelUniqueKey(OrderDetailCancel data) async {
     try{
-      return await transaction.rawUpdate('UPDATE $tableOrderDetailCancel SET order_detail_cancel_key = ?, sync_status = ?, updated_at = ? WHERE order_detail_cancel_sqlite_id = ?', [
+      return await _transaction.rawUpdate('UPDATE $tableOrderDetailCancel SET order_detail_cancel_key = ?, sync_status = ?, updated_at = ? WHERE order_detail_cancel_sqlite_id = ?', [
         data.order_detail_cancel_key,
         data.sync_status,
         data.updated_at,
@@ -47,9 +518,9 @@ class CancelQuery{
     }
   }
 
-  Future<int> updateOrderDetailQuantity(OrderDetail data) async {
+  Future<int> _updateSqliteOrderDetailQuantity(OrderDetail data) async {
     try{
-      return transaction.rawUpdate('UPDATE $tableOrderDetail SET updated_at = ?, sync_status = ?, quantity = ? WHERE order_detail_sqlite_id = ?',
+      return _transaction.rawUpdate('UPDATE $tableOrderDetail SET updated_at = ?, sync_status = ?, quantity = ? WHERE order_detail_sqlite_id = ?',
           [data.updated_at, data.sync_status, data.quantity, data.order_detail_sqlite_id]);
     }catch(e, stackTrace){
       FLog.error(
@@ -61,9 +532,9 @@ class CancelQuery{
     }
   }
 
-  Future<OrderDetail> readSpecificOrderDetailByLocalId(int order_detail_sqlite_id) async {
+  Future<OrderDetail> _readSpecificOrderDetailByLocalId(int order_detail_sqlite_id) async {
     try{
-      final result = await transaction.rawQuery(
+      final result = await _transaction.rawQuery(
           'SELECT a.soft_delete, a.updated_at, a.created_at, a.product_sku, a.per_quantity_unit, a.unit, a.sync_status, a.status, a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, '
               'a.account, a.remark, a.quantity, a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.category_name, a.order_cache_key, a.order_cache_sqlite_id, '
               'a.order_detail_key, a.branch_link_product_sqlite_id, IFNULL( (SELECT category_id FROM $tableCategories WHERE category_sqlite_id = a.category_sqlite_id), 0) AS category_id,'
@@ -83,9 +554,9 @@ class CancelQuery{
     }
   }
 
-  Future<OrderCache> readSpecificOrderCacheByLocalId(int order_cache_sqlite_id) async {
+  Future<OrderCache> _readSpecificOrderCacheByLocalId(int order_cache_sqlite_id) async {
     try{
-      final result = await transaction.rawQuery(
+      final result = await _transaction.rawQuery(
           'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.accepted, a.qr_order_table_id, a.qr_order_table_sqlite_id, a.qr_order, a.total_amount, '
               'a.customer_id, a.cancel_by_user_id, a.cancel_by, '
               'a.order_by_user_id, a.order_by, a.order_key, a.order_sqlite_id, a.dining_id, a.batch_id, a.table_use_key, a.table_use_sqlite_id, a.order_detail_id, a.branch_id, '
@@ -103,9 +574,9 @@ class CancelQuery{
     }
   }
 
-  Future<int> updateOrderCacheSubtotal(OrderCache data) async {
+  Future<int> _updateSqliteOrderCacheSubtotal(OrderCache data) async {
     try{
-      return await transaction.rawUpdate('UPDATE $tableOrderCache SET sync_status = ?, total_amount = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
+      return await _transaction.rawUpdate('UPDATE $tableOrderCache SET sync_status = ?, total_amount = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
           [data.sync_status, data.total_amount, data.updated_at, data.order_cache_sqlite_id]);
     }catch(e, stackTrace){
       FLog.error(
@@ -117,9 +588,9 @@ class CancelQuery{
     }
   }
 
-  Future<List<BranchLinkProduct>> readSpecificBranchLinkProduct(String branch_link_product_sqlite_id) async {
+  Future<List<BranchLinkProduct>> _readSpecificBranchLinkProduct(String branch_link_product_sqlite_id) async {
     try{
-      final result = await transaction.rawQuery(
+      final result = await _transaction.rawQuery(
           'SELECT a.*, b.name, b.allow_ticket, b.ticket_count, b.ticket_exp '
               'FROM $tableBranchLinkProduct AS a JOIN $tableProduct AS b ON a.product_id = b.product_id '
               'WHERE b.soft_delete = ? AND a.branch_link_product_sqlite_id = ?',
@@ -136,9 +607,9 @@ class CancelQuery{
     }
   }
 
-  Future<int> updateBranchLinkProductDailyLimit(BranchLinkProduct data) async {
+  Future<int> _updateBranchLinkProductDailyLimit(BranchLinkProduct data) async {
     try{
-      return await transaction.rawUpdate('UPDATE $tableBranchLinkProduct SET updated_at = ?, sync_status = ?, daily_limit = ? WHERE branch_link_product_sqlite_id = ?',
+      return await _transaction.rawUpdate('UPDATE $tableBranchLinkProduct SET updated_at = ?, sync_status = ?, daily_limit = ? WHERE branch_link_product_sqlite_id = ?',
           [data.updated_at, data.sync_status, data.daily_limit, data.branch_link_product_sqlite_id]);
     }catch(e, stackTrace){
       FLog.error(
@@ -150,9 +621,9 @@ class CancelQuery{
     }
   }
 
-  Future<int> updateBranchLinkProductStock(BranchLinkProduct data) async {
+  Future<int> _updateBranchLinkProductStock(BranchLinkProduct data) async {
     try{
-      return await transaction.rawUpdate('UPDATE $tableBranchLinkProduct SET updated_at = ?, sync_status = ?, stock_quantity = ? WHERE branch_link_product_sqlite_id = ?',
+      return await _transaction.rawUpdate('UPDATE $tableBranchLinkProduct SET updated_at = ?, sync_status = ?, stock_quantity = ? WHERE branch_link_product_sqlite_id = ?',
           [data.updated_at, data.sync_status, data.stock_quantity, data.branch_link_product_sqlite_id]);
     }catch(e, stackTrace){
       FLog.error(
@@ -164,28 +635,9 @@ class CancelQuery{
     }
   }
 
-  Future<OrderDetail> readSpecificOrderDetailByLocalIdNoJoin(String order_detail_sqlite_id) async {
+  Future<int> _updateOrderDetailStatus(OrderDetail data) async {
     try{
-      final result = await transaction.rawQuery(
-          'SELECT * FROM $tableOrderDetail WHERE order_detail_sqlite_id = ? ',
-          [order_detail_sqlite_id]);
-
-      return OrderDetail.fromJson(result.first);
-    }catch(e, stackTrace){
-      FLog.error(
-        className: "cancel query",
-        text: "readSpecificOrderDetailByLocalIdNoJoin error",
-        exception: "Error: $e, StackTrace: $stackTrace",
-      );
-      rethrow;
-    }
-  }
-
-
-
-  Future<int> updateOrderDetailStatus(OrderDetail data) async {
-    try{
-      return await transaction.rawUpdate('UPDATE $tableOrderDetail SET updated_at = ?, sync_status = ?, status = ?, cancel_by = ?, cancel_by_user_id = ? WHERE order_detail_sqlite_id = ?',
+      return await _transaction.rawUpdate('UPDATE $tableOrderDetail SET updated_at = ?, sync_status = ?, status = ?, cancel_by = ?, cancel_by_user_id = ? WHERE order_detail_sqlite_id = ?',
           [data.updated_at, data.sync_status, data.status, data.cancel_by, data.cancel_by_user_id, data.order_detail_sqlite_id]);
     }catch(e, stackTrace){
       FLog.error(
@@ -197,9 +649,9 @@ class CancelQuery{
     }
   }
 
-  Future<int> cancelOrderCache(OrderCache data) async {
+  Future<int> _cancelOrderCache(OrderCache data) async {
     try{
-      return await transaction.rawUpdate('UPDATE $tableOrderCache SET sync_status = ?, cancel_by = ?, cancel_by_user_id = ? WHERE order_cache_sqlite_id = ?',
+      return await _transaction.rawUpdate('UPDATE $tableOrderCache SET sync_status = ?, cancel_by = ?, cancel_by_user_id = ? WHERE order_cache_sqlite_id = ?',
           [data.sync_status, data.cancel_by, data.cancel_by_user_id, data.order_cache_sqlite_id]);
     }catch(e, stackTrace){
       FLog.error(
@@ -211,9 +663,9 @@ class CancelQuery{
     }
   }
 
-  Future<List<TableUseDetail>> readAllTableUseDetail(String table_use_sqlite_id) async {
+  Future<List<TableUseDetail>> _readAllTableUseDetail(String table_use_sqlite_id) async {
     try{
-      final result = await transaction.rawQuery('SELECT * '
+      final result = await _transaction.rawQuery('SELECT * '
           'FROM $tableTableUseDetail WHERE soft_delete = ? AND status = ? AND table_use_sqlite_id = ?',
           ['', 0, table_use_sqlite_id]) as List<Map<String, Object?>>;
 
@@ -228,9 +680,9 @@ class CancelQuery{
     }
   }
 
-  Future<int> deleteTableUseDetail(TableUseDetail data) async {
+  Future<int> _deleteTableUseDetail(TableUseDetail data) async {
     try{
-      return await transaction.rawUpdate('UPDATE $tableTableUseDetail SET updated_at = ?, sync_status = ?, status = ? WHERE table_use_sqlite_id = ? AND table_use_detail_sqlite_id = ?',
+      return await _transaction.rawUpdate('UPDATE $tableTableUseDetail SET updated_at = ?, sync_status = ?, status = ? WHERE table_use_sqlite_id = ? AND table_use_detail_sqlite_id = ?',
           [data.updated_at, data.sync_status, data.status, data.table_use_sqlite_id, data.table_use_detail_sqlite_id]);
     }catch(e, stackTrace){
       FLog.error(
@@ -242,9 +694,9 @@ class CancelQuery{
     }
   }
 
-  Future<TableUse?> readSpecificTableUseIdByLocalId(int table_use_sqlite_id) async {
+  Future<TableUse?> _readSpecificTableUseIdByLocalId(int table_use_sqlite_id) async {
     try{
-      final result = await transaction.rawQuery('SELECT * FROM $tableTableUse '
+      final result = await _transaction.rawQuery('SELECT * FROM $tableTableUse '
           'WHERE table_use_sqlite_id = ? ', [table_use_sqlite_id]) as List<Map<String, Object?>>;
       if(result.isNotEmpty){
         return TableUse.fromJson(result.first);
@@ -261,9 +713,9 @@ class CancelQuery{
     }
   }
 
-  Future<int> deleteTableUseID(TableUse data) async {
+  Future<int> _deleteTableUseID(TableUse data) async {
     try{
-      return await transaction.rawUpdate('UPDATE $tableTableUse SET updated_at = ?, status = ?, sync_status = ? WHERE table_use_sqlite_id = ?',
+      return await _transaction.rawUpdate('UPDATE $tableTableUse SET updated_at = ?, status = ?, sync_status = ? WHERE table_use_sqlite_id = ?',
           [data.updated_at, data.status, data.sync_status, data.table_use_sqlite_id]);
     }catch(e, stackTrace){
       FLog.error(
@@ -275,9 +727,9 @@ class CancelQuery{
     }
   }
 
-  Future<int> updatePosTableStatus(PosTable data) async {
+  Future<int> _updateSqlitePosTableStatus(PosTable data) async {
     try{
-      return await transaction.rawUpdate('UPDATE $tablePosTable SET '
+      return await _transaction.rawUpdate('UPDATE $tablePosTable SET '
           'sync_status = ?, table_use_detail_key = ?, table_use_key = ?, status = ?, updated_at = ? WHERE table_sqlite_id = ?',
           [2, data.table_use_detail_key, data.table_use_key, data.status, data.updated_at, data.table_sqlite_id]);
     }catch(e, stackTrace){

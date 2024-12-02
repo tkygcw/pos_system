@@ -374,8 +374,8 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                             },
                           ),
                           ListTile(
-                            title: Text('Cancel receipt setting'),
-                            subtitle: Text('customize your cancel receipt look'),
+                            title: Text(AppLocalizations.of(context)!.translate('cancel_receipt_setting')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('customize_your_cancel_receipt_look')),
                             trailing: Icon(Icons.navigate_next),
                             onTap: (){
                               openCancelReceiptDialog();

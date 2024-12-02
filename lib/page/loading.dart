@@ -15,6 +15,7 @@ import 'package:pos_system/object/branch_link_modifier.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
+import 'package:pos_system/object/cancel_receipt.dart';
 import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/kitchen_list.dart';
@@ -96,6 +97,7 @@ class _LoadingPageState extends State<LoadingPage> {
 
   startLoad() async {
     try{
+      await getAllCancelReceipt();
       await getDateRetrieveDate();
       await getCashRecord();
       await getAllDynamicQr();
@@ -145,6 +147,30 @@ class _LoadingPageState extends State<LoadingPage> {
     Timer(Duration(seconds: 2), () {
       Navigator.push(context, MaterialPageRoute(builder: (_) => PosPinPage()));
     });
+  }
+
+/*
+  get cancel receipt from cloud
+*/
+  getAllCancelReceipt() async {
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+      Map data = await Domain().getCancelReceipt(branch_id: branch_id.toString());
+      if(data['status'] == '1'){
+        List responseJson = data['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          CancelReceipt cancelReceipt = CancelReceipt.fromJson(responseJson[i]);
+          await PosDatabase.instance.insertSqliteCancelReceipt(cancelReceipt);
+        }
+      }
+    }catch(e, stackTrace){
+      FLog.error(
+        className: "loading",
+        text: "dynamic qr insert failed",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+    }
   }
 
   getDateRetrieveDate() async {

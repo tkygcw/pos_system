@@ -9,7 +9,8 @@ import 'fragment/custom_toastification.dart';
 import 'object/user.dart';
 
 enum Permission {
-  editPrice
+  editPrice,
+  adminOnly
 }
 
 class CustomPinDialog extends StatefulWidget {
@@ -59,21 +60,20 @@ class _CustomPinDialogState extends State<CustomPinDialog> {
       User? userData = await posDatabase.readSpecificUserWithPin(pin);
       if (userData != null) {
         if(widget.permission == null){
-          if (userData.role == 0) {
-            Navigator.of(context).pop();
-            widget.callback();
-          } else {
-            showToastResetTextFieldButton('no_permission');
-            // Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('no_permission')}");
-            // adminPosPinController.clear();
-            // setState(() {
-            //   isButtonDisabled = false;
-            // });
-          }
+          Navigator.of(context).pop();
+          widget.callback();
         } else {
           switch(widget.permission!) {
             case Permission.editPrice: {
               if(userData.edit_price_without_pin == 1){
+                Navigator.of(context).pop();
+                widget.callback();
+              } else {
+                showToastResetTextFieldButton('no_permission');
+              }
+            }break;
+            case Permission.adminOnly: {
+              if(userData.role == 0){
                 Navigator.of(context).pop();
                 widget.callback();
               } else {
@@ -105,7 +105,7 @@ class _CustomPinDialogState extends State<CustomPinDialog> {
   Widget build(BuildContext context) {
     var color = context.watch<ThemeColor>();
     return AlertDialog(
-      title: Text(AppLocalizations.of(context)!.translate('enter_admin_pin')),
+      title: Text(AppLocalizations.of(context)!.translate('enter_your_pin')),
       content: ValueListenableBuilder(
           valueListenable: adminPosPinController,
           builder: (context, TextEditingValue value, __) {

@@ -83,7 +83,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 30, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
+    return await openDatabase(path, version: 31, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
   }
 
 /*
@@ -1455,6 +1455,15 @@ class PosDatabase {
     final db = await instance.database;
     final id = await db.insert(tableDynamicQR!, data.toJson());
     return data.copy(dynamic_qr_sqlite_id: id);
+  }
+
+/*
+  add cancel receipt data into local db
+*/
+  Future<CancelReceipt> insertSqliteCancelReceipt(CancelReceipt data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableCancelReceipt!, data.toJson());
+    return data.copy(cancel_receipt_sqlite_id: id);
   }
 
 /*
@@ -7133,6 +7142,14 @@ class PosDatabase {
   }
 
 /*
+  update cancel receipt sync status (from cloud)
+*/
+  Future<int> updateCancelReceiptSyncStatusFromCloud(String cancel_receipt_key) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableCancelReceipt SET sync_status = ? WHERE cancel_receipt_key = ?', [1, cancel_receipt_key]);
+  }
+
+/*
   ----------------------Sync to cloud(update)--------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
@@ -7248,6 +7265,16 @@ class PosDatabase {
 /*
   ----------------------Sync to cloud(create)--------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  read all not yet sync cancel receipt
+*/
+  Future<List<CancelReceipt>> readAllNotSyncCancelReceipt() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableCancelReceipt WHERE sync_status != ? LIMIT 10 ', [1]);
+
+    return result.map((json) => CancelReceipt.fromJson(json)).toList();
+  }
 
 /*
   read all not yet sync dynamic qr

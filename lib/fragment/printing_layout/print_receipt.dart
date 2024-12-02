@@ -49,7 +49,7 @@ class PrintReceipt{
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   Duration duration = Duration(seconds: 1);
   double combineListTotal = 0;
-  List<Printer> printerList = [];
+  List<Printer> activePrinterList = [];
 
   getDeviceList() async {
     List<Map<String, dynamic>> results = [];
@@ -63,8 +63,8 @@ class PrintReceipt{
 
   readAllPrinters() async {
     List<Printer> data = await PosDatabase.instance.readAllBranchPrinter();
-    printerList = List<Printer>.from(data).where((e) => e.printer_status == 1).toList();
-    return printerList;
+    activePrinterList = List<Printer>.from(data).where((e) => e.printer_status == 1).toList();
+    return data;
   }
 
   initPrinter(List<Printer> printerList) async {
@@ -1860,7 +1860,7 @@ class PrintReceipt{
 
   printCancelReceipt(String orderCacheId, String dateTime) async {
     try {
-      List<Printer> printerList = this.printerList.where((e) => e.is_counter == 1).toList();
+      List<Printer> printerList = this.activePrinterList.where((e) => e.is_counter == 1).toList();
       int printStatus = 0;
       for (int i = 0; i < printerList.length; i++) {
         var printerDetail = jsonDecode(printerList[i].value!);
@@ -1970,7 +1970,7 @@ class PrintReceipt{
 
   testPrintCancelReceipt(CancelReceipt cancelReceipt) async {
     try {
-      List<Printer> printerList = this.printerList.where((e) => e.is_counter == 1).toList();
+      List<Printer> printerList = this.activePrinterList.where((e) => e.is_counter == 1).toList();
       int printStatus = 0;
       for (int i = 0; i < printerList.length; i++) {
         var printerDetail = jsonDecode(printerList[i].value!);
@@ -2073,7 +2073,7 @@ class PrintReceipt{
 
   Future<int> printKitchenDeleteList(String orderCacheId, String category_id, String dateTime, CartModel cart) async {
     try {
-      List<Printer> printerList = this.printerList;
+      List<Printer> printerList = this.activePrinterList;
       int printStatus = 0;
       for (int i = 0; i < printerList.length; i++) {
         List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
