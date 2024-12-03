@@ -1036,7 +1036,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                           backgroundColor: color.buttonColor,
                                         ),
                                         child: Text('${AppLocalizations.of(context)?.translate('add')}'),
-                                        onPressed: isButtonDisabled
+                                        onPressed: isButtonDisabled || isAddButtonDisabled
                                             ? null
                                             : () async {
                                           if(widget.productDetail!.name!.isNotEmpty && widget.productDetail!.name!.trim().isNotEmpty) {
@@ -1051,6 +1051,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                       setState(() {
                                                         isButtonDisabled = true;
                                                       });
+                                                      checkModifierMinSelect(modifierGroup);
                                                       await addToCart(cart);
                                                       Navigator.of(context).pop();
                                                     } else {
