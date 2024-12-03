@@ -6,9 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/fragment/payment/ipay_api.dart';
 import 'package:pos_system/object/refund.dart';
+import 'package:pos_system/object/sync_to_cloud.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -45,7 +47,7 @@ class _RefundDialogState extends State<RefundDialog> {
   bool isButtonDisabled = false, isLogOut = false, canPop = true;
   int tapCount = 0;
   late SharedPreferences prefs;
-
+  SyncToCloud syncToCloud = SyncToCloud();
 
   String? get errorPassword {
     final text = adminPosPinController.value.text;
@@ -228,6 +230,26 @@ class _RefundDialogState extends State<RefundDialog> {
                       Navigator.of(context).pop();
                       Navigator.of(context).pop();
                     }
+                    Branch? data = await PosDatabase.instance.readLocalBranch();
+                    if(data != null && data.allow_livedata == 1){
+                      if(!isSyncing){
+                        isSyncing = true;
+                        Fluttertoast.showToast(msg: 'sync status started: ${DateTime.now()}');
+                        print('sync status started: ${DateTime.now()}');
+                        do{
+                          await syncToCloud.syncAllToCloud(isManualSync: true);
+                        }while(syncToCloud.emptyResponse == false);
+                        if(syncToCloud.emptyResponse == true){
+                          print('sync status finished: ${DateTime.now()}');
+                          isSyncing = false;
+                        }
+                      } else {
+                        print("syncing");
+                      }
+                    } else {
+                      Fluttertoast.showToast(msg: 'live data not allowed');
+                      print("live data not allowed");
+                    }
                   }
                 }
               },
@@ -248,6 +270,26 @@ class _RefundDialogState extends State<RefundDialog> {
           Navigator.of(context).pop(true);
           Navigator.of(context).pop(true);
           Navigator.of(context).pop(true);
+          Branch? data = await PosDatabase.instance.readLocalBranch();
+          if(data != null && data.allow_livedata == 1){
+            if(!isSyncing){
+              isSyncing = true;
+              Fluttertoast.showToast(msg: 'sync status started: ${DateTime.now()}');
+              print('sync status started: ${DateTime.now()}');
+              do{
+                await syncToCloud.syncAllToCloud(isManualSync: true);
+              }while(syncToCloud.emptyResponse == false);
+              if(syncToCloud.emptyResponse == true){
+                print('sync status finished: ${DateTime.now()}');
+                isSyncing = false;
+              }
+            } else {
+              print("syncing");
+            }
+          } else {
+            Fluttertoast.showToast(msg: 'live data not allowed');
+            print("live data not allowed");
+          }
         } else {
           Fluttertoast.showToast(
               backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_permission'));
@@ -266,6 +308,7 @@ class _RefundDialogState extends State<RefundDialog> {
     await updateOrderPaymentStatus();
     await createRefundedCashRecord(userData);
     // await syncAllToCloud();
+
     if(this.isLogOut == true){
       openLogOutDialog();
       return;

@@ -772,8 +772,6 @@ class _ReportOverviewState extends State<ReportOverview> {
       for (int j = 0; j < paymentList.length; j++) {
         for (int i = 0; i < dateOrderList.length; i++) {
           if (dateOrderList[i].payment_status == 1) {
-            print("paymentList[j].payment_link_company_id: ${paymentList[j].payment_link_company_id}");
-            print("dateOrderList[i].payment_link_company_id!: ${dateOrderList[i].payment_link_company_id!}");
             if (paymentList[j].payment_link_company_id == int.parse(dateOrderList[i].payment_link_company_id!)) {
               paymentList[j].total_bill++;
               paymentList[j].totalAmount += double.parse(dateOrderList[i].final_amount!);

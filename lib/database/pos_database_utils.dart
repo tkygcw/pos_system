@@ -241,6 +241,9 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.hide_dining_method_table_no} $integerType DEFAULT 0 ");
             await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.use_printer_label_as_title} INTEGER NOT NULL DEFAULT 0");
           }break;
+          case 30: {
+            await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.allow_livedata} $integerType DEFAULT 0 ");
+          }break;
         }
       }
     }
@@ -652,6 +655,7 @@ class PosDatabaseUtils {
            ${BranchFields.close_qr_order} $integerType,
            ${BranchFields.register_no} $textType,
            ${BranchFields.allow_firestore} $integerType,
+           ${BranchFields.allow_livedata} $integerType,
            ${BranchFields.qr_show_sku} $integerType,
            ${BranchFields.qr_product_sequence} $integerType,
            ${BranchFields.show_qr_history} $textType)''');
