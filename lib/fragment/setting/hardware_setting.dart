@@ -59,7 +59,7 @@ class _HardwareSettingState extends State<HardwareSetting> {
   int? variantSelectedValue = 0;
   int? tableMode = 0;
   bool cashDrawer = false, secondDisplay = false, directPayment = false, showSKU = false,
-      qrOrderAutoAccept = false, showProductDesc = false, hasQrAccess = true, requiredReason = false;
+      qrOrderAutoAccept = false, showProductDesc = false, hasQrAccess = true;
   String subscriptionEndDate = '', source = "";
   int daysLeft = 0;
 
@@ -110,11 +110,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
         break;
         case 'variant_item_sort_by':{
           await updateVariantItemSortBySetting();
-          controller.refresh(streamController);
-        }
-        break;
-        case 'required_reason':{
-          await updateRequiredReasonSetting();
           controller.refresh(streamController);
         }
         break;
@@ -175,10 +170,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
 
       if(appSetting.variant_item_sort_by != null){
         variantSelectedValue = appSetting.variant_item_sort_by;
-      }
-
-      if(appSetting.required_cancel_reason == 1) {
-        requiredReason = true;
       }
     }
   }
@@ -447,19 +438,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
                             indent: 20,
                             endIndent: 20,
                           ),
-                          ListTile(
-                            title: Text(AppLocalizations.of(context)!.translate('cancel_require_reason')),
-                            subtitle: Text(AppLocalizations.of(context)!.translate('cancel_require_reason_desc')),
-                            trailing: Switch(
-                                value: requiredReason,
-                                activeColor: color.backgroundColor,
-                                onChanged: (value) {
-                                  requiredReason = value;
-                                  appSettingModel.setRequiredCancelReasonStatus(requiredReason);
-                                  actionController.sink.add("required_reason");
-                                }
-                            ),
-                          ),
                         ],
                       ),
                     );
@@ -545,17 +523,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
         updated_at: dateTime
     );
     int data = await PosDatabase.instance.updateVariantItemSortBySettings(object);
-  }
-
-  updateRequiredReasonSetting() async {
-    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-    String dateTime = dateFormat.format(DateTime.now());
-    AppSetting object = AppSetting(
-        required_cancel_reason: requiredReason == true ? 1 : 0,
-        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
-        updated_at: dateTime
-    );
-    int data = await PosDatabase.instance.updateRequiredCancelReasonSettings(object);
   }
 
 

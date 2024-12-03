@@ -307,9 +307,10 @@ class CancelReceiptLayout extends ReceiptLayout {
       generator = value;
     }
     OrderDetail orderDetail = OrderDetail(
-      productName: 'Product 1',
-      product_sku: 'SKU001',
-      price: 'RM6.90'
+        unit: 'each',
+        productName: 'Product 1',
+        product_sku: 'SKU001',
+        price: 'RM6.90'
     );
     PosFontType productFontType = cancelReceipt.product_name_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
     PosFontType otherFontType = cancelReceipt.other_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
@@ -437,6 +438,7 @@ class CancelReceiptLayout extends ReceiptLayout {
       generator = value;
     }
     OrderDetail orderDetail = OrderDetail(
+        unit: 'each',
         productName: 'Product 1',
         product_sku: 'SKU001',
         price: 'RM6.90'
@@ -563,18 +565,32 @@ class CancelReceiptLayout extends ReceiptLayout {
       return orderDetail.productName;
     } else {
       if(cancelReceipt.show_product_price == 1 && cancelReceipt.show_product_sku == 1){
-        return '${orderDetail.product_sku} ${orderDetail.productName}(${orderDetail.price})';
+        if(orderDetail.unit != 'each' && orderDetail.unit != 'each_c'){
+          var price = double.parse(orderDetail.price!) * double.parse(orderDetail.quantity_before_cancel!);
+          return '${orderDetail.product_sku} ${orderDetail.productName}(RM$price)';
+        } else {
+          return '${orderDetail.product_sku} ${orderDetail.productName}(${orderDetail.price})';
+        }
       } else if (cancelReceipt.show_product_sku == 1) {
         return '${orderDetail.product_sku}${orderDetail.productName}';
       } else {
-        return '${orderDetail.productName}(${orderDetail.price})';
+        if(orderDetail.unit != 'each' && orderDetail.unit != 'each_c'){
+          var price = double.parse(orderDetail.price!) * double.parse(orderDetail.quantity_before_cancel!);
+          return '${orderDetail.product_sku} ${orderDetail.productName}(RM$price)';
+        } else {
+          return '${orderDetail.productName}(${orderDetail.price})';
+        }
       }
     }
   }
 
   getProductUnit(CancelReceipt cancelReceipt, OrderDetail orderDetail){
     if(orderDetail.unit != 'each' && orderDetail.unit != 'each_c'){
-      return '-${(double.parse(orderDetail.item_cancel!)*int.parse(orderDetail.per_quantity_unit!)).toStringAsFixed(2)}${orderDetail.unit}';
+      if(orderDetail.quantity_before_cancel != ''){
+        return '-${(double.parse(orderDetail.quantity_before_cancel!)*int.parse(orderDetail.per_quantity_unit!)).toStringAsFixed(2)}${orderDetail.unit}';
+      } else {
+        return '-${(double.parse(orderDetail.item_cancel!)*int.parse(orderDetail.per_quantity_unit!)).toStringAsFixed(2)}${orderDetail.unit}';
+      }
     } else {
       return '-${orderDetail.item_cancel}';
     }

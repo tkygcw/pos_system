@@ -64,6 +64,7 @@ class OrderDetailCancel{
   String? product_variant_name;
   num? price;
   String? unit;
+  String? per_quantity_unit;
 
   OrderDetailCancel(
       {this.order_detail_sqlite_id,
@@ -88,7 +89,8 @@ class OrderDetailCancel{
         this.product_name,
         this.product_variant_name,
         this.price,
-        this.unit
+        this.unit,
+        this.per_quantity_unit
       });
 
   OrderDetailCancel copy({
@@ -152,7 +154,8 @@ class OrderDetailCancel{
     product_name: json['product_name'] as String?,
     product_variant_name: json['product_variant_name'] as String?,
     price: json['price'] as num?,
-    unit: json['unit'] as String?
+    unit: json['unit'] as String?,
+    per_quantity_unit: json['per_quantity_unit'] as String?
   );
 
   Map<String, Object?> toJson() => {

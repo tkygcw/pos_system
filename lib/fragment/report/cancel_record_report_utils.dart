@@ -7,11 +7,19 @@ class CancelRecordReportUtils {
       return orderDetailCancel.quantity!;
     } else {
       if(orderDetailCancel.quantity_before_cancel != ''){
-        return '${orderDetailCancel.quantity!}(${orderDetailCancel.quantity_before_cancel!})';
+        return '${orderDetailCancel.quantity!}/'
+            '${totalUnitQty(orderDetailCancel.quantity_before_cancel!, orderDetailCancel.per_quantity_unit!).toStringAsFixed(2)}'
+            '(${orderDetailCancel.unit})';
       } else {
-        return '1(${double.parse(orderDetailCancel.quantity!).toStringAsFixed(2)})';
+        return '1/${totalUnitQty(orderDetailCancel.quantity!, orderDetailCancel.per_quantity_unit!).toStringAsFixed(2)}(${orderDetailCancel.unit})';
       }
     }
+  }
+
+  static double totalUnitQty(String qtyBeforeCancel, String per_quantity_unit){
+    double parsedQtyBeforeCancel = double.parse(qtyBeforeCancel);
+    double parsedPerQtyUnit = double.parse(per_quantity_unit);
+    return parsedQtyBeforeCancel * parsedPerQtyUnit;
   }
 
   static String getProductVariant(OrderDetailCancel orderDetailCancel){

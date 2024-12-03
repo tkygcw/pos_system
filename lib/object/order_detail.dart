@@ -132,6 +132,7 @@ class OrderDetail{
   int? allow_ticket;
   int? ticket_count;
   String? ticket_exp;
+  String? quantity_before_cancel;
 
   OrderDetail(
       {this.order_detail_sqlite_id,
@@ -184,6 +185,7 @@ class OrderDetail{
         this.allow_ticket,
         this.ticket_count,
         this.ticket_exp,
+        this.quantity_before_cancel,
         List<String>? tableNumber,
         bool? isSelected
       }) {
@@ -307,7 +309,8 @@ class OrderDetail{
       isSelected: json['isSelected'] as bool?,
       allow_ticket: json['allow_ticket'] as int?,
       ticket_count: json['ticket_count'] as int?,
-      ticket_exp: json['ticket_exp'] as String?
+      ticket_exp: json['ticket_exp'] as String?,
+      quantity_before_cancel: json['quantity_before_cancel'] as String?
     );
   }
 

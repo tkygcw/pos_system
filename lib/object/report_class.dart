@@ -82,10 +82,7 @@ class ReportObject{
     DateTime addEndDate = addDays(date: _endDate);
     String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
     String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
-    print('string start date: ${stringStDate}');
-    print('string end date: ${stringEdDate}');
     List<OrderDetailCancel> orderDetailCancel = [];
-    print("advance mode: ${_isChecked}");
     if(_isChecked) {
       orderDetailCancel = await PosDatabase.instance.readOrderDetailCancelWithOB(stringStDate, stringEdDate);
     } else {
@@ -94,8 +91,6 @@ class ReportObject{
     if(orderDetailCancel.isNotEmpty){
       final totalQty = orderDetailCancel.fold(0, (int sum, e) => sum + (int.tryParse(e.quantity!) ?? 1));
       final totalPrice = orderDetailCancel.fold(0, (num sum, e) => sum + e.price!);
-      print("total qty: ${totalQty}");
-      print("total price: ${totalPrice}");
       orderDetailCancel.first.total_item = totalQty;
       orderDetailCancel.first.total_amount = totalPrice;
     }
