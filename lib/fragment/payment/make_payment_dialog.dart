@@ -929,6 +929,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                     Branch? data = await PosDatabase.instance.readLocalBranch();
                                                     if(data != null && data.allow_livedata == 1){
                                                       if(!isSyncing){
+                                                        print("sync called from make payment");
                                                         isSyncing = true;
                                                         Fluttertoast.showToast(msg: 'sync status started: ${DateTime.now()}');
                                                         print('sync status started: ${DateTime.now()}');
