@@ -569,7 +569,7 @@ class CancelReceiptLayout extends ReceiptLayout {
           var price = double.parse(orderDetail.price!) * double.parse(orderDetail.quantity_before_cancel!);
           return '${orderDetail.product_sku} ${orderDetail.productName}(RM$price)';
         } else {
-          return '${orderDetail.product_sku} ${orderDetail.productName}(${orderDetail.price})';
+          return '${orderDetail.product_sku} ${orderDetail.productName}(RM${orderDetail.price})';
         }
       } else if (cancelReceipt.show_product_sku == 1) {
         return '${orderDetail.product_sku}${orderDetail.productName}';
@@ -578,7 +578,7 @@ class CancelReceiptLayout extends ReceiptLayout {
           var price = double.parse(orderDetail.price!) * double.parse(orderDetail.quantity_before_cancel!);
           return '${orderDetail.product_sku} ${orderDetail.productName}(RM$price)';
         } else {
-          return '${orderDetail.productName}(${orderDetail.price})';
+          return '${orderDetail.productName}(RM${orderDetail.price})';
         }
       }
     }

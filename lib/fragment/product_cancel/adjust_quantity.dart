@@ -213,6 +213,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
           Navigator.of(context).pop();
           showDialog(
             context: context,
+            barrierDismissible: false,
             builder: (context) => CustomPinDialog(
               permission: Permission.editPrice,
               callback: () async => await callUpdateCart(userData, dateTime, cart),
