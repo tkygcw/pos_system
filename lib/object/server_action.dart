@@ -182,10 +182,10 @@ class ServerAction {
               if(tableList[i].status == 1){
                 List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableList[i].table_use_key!);
                 if(data.isNotEmpty){
-                  if(data.first.order_key != ''){
+                  if(data.first.order_key != null){
                     tableOrderKeyList.add({
                       'table_id': tableList[i].table_id.toString(),
-                      'order_key': data.first.order_key ?? '',
+                      'order_key': data.first.order_key ?? 'aa',
                     });
                   }
                 }
