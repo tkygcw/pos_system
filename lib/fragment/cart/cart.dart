@@ -52,6 +52,7 @@ import '../../object/app_setting.dart';
 import '../../object/cart_payment.dart';
 import '../../object/cash_record.dart';
 import '../../object/order_modifier_detail.dart';
+import '../../object/second_display_data.dart';
 import '../printing_layout/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../object/table.dart';
@@ -202,6 +203,751 @@ class CartPageState extends State<CartPage> {
 
   @override
   Widget build(BuildContext context) {
+    return Consumer5<ThemeColor, AppSettingModel, FailPrintModel, CartModel, NotificationModel>(
+        builder: (context, color, appSettingModel, failPrintModel, cart, notificationModel, child) {
+          _appSettingModel = appSettingModel;
+          _failPrintModel = failPrintModel;
+          if(cart.cartNotifierItem.isEmpty){
+            isButtonDisabled = true;
+          } else {
+            if(widget.currentPage != 'table' && widget.currentPage != 'other_order')
+              isButtonDisabled = false;
+          }
+          if(lastDiningOption == false) readAllBranchLinkDiningOption(cart: cart);
+
+          if (notificationModel.cartContentLoaded == true) {
+            notificationModel.resetCartContentLoaded();
+            WidgetsBinding.instance.addPostFrameCallback((_){
+              cart.removeAllCartItem();
+              cart.removeAllTable();
+              cart.removeAllPromotion();
+              cart.removePaymentDetail();
+            });
+            Future.delayed(const Duration(seconds: 1), () {
+              readAllBranchLinkDiningOption(cart: cart);
+              getPromotionData();
+              getSubTotal(cart);
+              getReceiptPaymentDetail(cart);
+            });
+          }
+          widget.currentPage == 'menu' || widget.currentPage == 'table' || widget.currentPage == 'qr_order' || widget.currentPage == 'other_order'
+              ? getSubTotal(cart)
+              : getReceiptPaymentDetail(cart);
+          return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Scaffold(
+                resizeToAvoidBottomInset: false,
+                appBar: AppBar(
+                  automaticallyImplyLeading: false,
+                  title: Row(
+                    children: [
+                      Visibility(
+                        visible: widget.currentPage == 'table' ? true: true,
+                        child: Text('${getSelectedTable(cart, appSettingModel)}'),
+                      ),
+                      // MediaQuery.of(context).size.height > 500
+                      //     ? Text(AppLocalizations.of(context)!.translate('bill'), style: TextStyle(fontSize: 20, color: Colors.black))
+                      //     : SizedBox.shrink(),
+                      // Visibility(
+                      //   visible: widget.currentPage == 'table' ? true: false,
+                      //   child: Expanded(
+                      //     child: Padding(
+                      //       padding: const EdgeInsets.all(8.0),
+                      //       child: Text(AppLocalizations.of(context)!.translate('table')+': ${getSelectedTable(cart)}'),
+                      //     ),
+                      //   ),
+                      // ),
+                    ],
+                  ),
+                  backgroundColor: Colors.white,
+                  actions: [
+                    Visibility(
+                      visible: widget.currentPage == 'menu' ? true : false,
+                      child: Expanded(
+                        child: IconButton(
+                          tooltip: 'kitchen print',
+                          icon: Badge(
+                            isLabelVisible: failPrintModel.failedPrintOrderDetail.isEmpty ? false : true,
+                            label: Text(failPrintModel.failedPrintOrderDetail.length.toString()),
+                            child: const Icon(
+                              Icons.print,
+                            ),
+                          ),
+                          color: color.backgroundColor,
+                          onPressed: () {
+                            //tableDialog(context);
+                            openReprintKitchenDialog();
+                          },
+                        ),
+                      ),
+                    ),
+                    Visibility(
+                      visible: cart.selectedOption == 'Dine in' && widget.currentPage == 'menu' && appSettingModel.table_order != 0
+                          ? true
+                          : false,
+                      child: Expanded(
+                        child: IconButton(
+                          tooltip: 'table',
+                          icon: Badge(
+                            isLabelVisible: cart.selectedTable.isEmpty ? false : true,
+                            label: Text("${cart.selectedTable.length}"),
+                            child: const Icon(
+                              Icons.table_restaurant,
+                            ),
+                          ),
+                          color: color.backgroundColor,
+                          onPressed: () {
+                            //tableDialog(context);
+                            openChooseTableDialog(cart);
+                          },
+                        ),
+                      ),
+                    ),
+                    Visibility(
+                      visible: (widget.currentPage == 'menu' && cart.selectedOption == 'Dine in' && appSettingModel.table_order != 0) ||
+                          (widget.currentPage == 'menu' && cart.selectedOption != 'Dine in' && appSettingModel.directPaymentStatus == false) ||
+                          widget.currentPage == 'qr_order' || widget.currentPage == 'bill' || ((widget.currentPage == 'table' || widget.currentPage == 'other_order') && orderKey != '')
+                          ? false
+                          : true,
+                      child: IconButton(
+                        tooltip: 'promotion',
+                        icon: Icon(Icons.discount),
+                        color: color.backgroundColor,
+                        onPressed: () {
+                          print("app setting: ${appSettingModel.directPaymentStatus}");
+                          openPromotionDialog();
+                        },
+                      ),
+                    ),
+                    Visibility(
+                      visible: widget.currentPage == 'menu' ? true : false,
+                      child: Expanded(
+                        child: IconButton(
+                          tooltip: 'clear cart',
+                          icon: const Icon(
+                            Icons.delete,
+                          ),
+                          color: color.backgroundColor,
+                          onPressed: () {
+                            cart.removePartialCartItem();
+                            //cart.removeAllTable();
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                body: StreamBuilder(
+                    stream: controller.stream,
+                    builder: (context, snapshot) {
+                      if(snapshot.hasData && notificationModel.contentLoad == false){
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(color: Colors.grey.shade100, width: 3.0),
+                          ),
+                          child: Column(
+                            children: [
+                              Container(
+                                margin: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
+                                    ? EdgeInsets.only(bottom: 10)
+                                    : EdgeInsets.zero,
+                                child: GridView(
+                                    physics: NeverScrollableScrollPhysics(),
+                                    shrinkWrap: true,
+                                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: diningList.length == 3 ?  3 : 2,
+                                        childAspectRatio: 2.0,
+                                        mainAxisExtent: 50
+                                    ),
+                                    children: List.generate(diningList.length, (index) {
+                                      return InkWell(
+                                        onTap: () {
+                                          widget.currentPage == 'menu'
+                                              ? cart.cartNotifierItem.isEmpty
+                                              ? setState(() {
+                                            cart.removeAllTable();
+                                            cart.selectedOption = diningList[index].name!;
+                                            cart.selectedOptionId =
+                                            diningList[index].dining_id!;
+                                          })
+                                              : cart.cartNotifierItem.isNotEmpty &&
+                                              cart.cartNotifierItem[0].status != 1 &&
+                                              cart.selectedOption != diningList[index].name!
+                                              ? setState(() {
+                                            showSecondDialog(
+                                                context, color, cart, diningList[index]);
+                                          })
+                                              : null
+                                              : null;
+                                        },
+                                        child: Container(
+                                            color: cart.selectedOption == diningList[index].name!
+                                                ? color.buttonColor
+                                                : color.backgroundColor,
+                                            alignment: Alignment.center,
+                                            child: Text(
+                                              diningList[index].name!,
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  color: cart.selectedOption == diningList[index].name!
+                                                      ? color.iconColor
+                                                      : Colors.white,
+                                                  fontSize: 16),
+                                            )),
+                                      );
+                                    })),
+                              ),
+                              Expanded(
+                                child: ListView.builder(
+                                    controller: _scrollController,
+                                    shrinkWrap: true,
+                                    itemCount: cart.cartNotifierItem.length,
+                                    itemBuilder: (context, index) {
+                                      return Dismissible(
+                                        background: Container(
+                                          color: Colors.red,
+                                          padding: EdgeInsets.only(left: 25.0),
+                                          child: Row(
+                                            children: [
+                                              Icon(Icons.delete, color: Colors.white),
+                                            ],
+                                          ),
+                                        ),
+                                        key: ValueKey(cart.cartNotifierItem[index].product_name),
+                                        direction: widget.currentPage == 'menu' && cart.cartNotifierItem[index].status == 0 ||
+                                            widget.currentPage == 'table' && orderKey == ''||
+                                            widget.currentPage == 'other_order' && orderKey == ''
+                                            ? DismissDirection.startToEnd
+                                            : DismissDirection.none,
+                                        confirmDismiss: (direction) async {
+                                          if (direction == DismissDirection.startToEnd) {
+                                            await openRemoveCartItemDialog(cart.cartNotifierItem[index], widget.currentPage);
+                                          }
+                                          return null;
+                                        },
+                                        child: ListTile(
+                                          hoverColor: Colors.transparent,
+                                          isThreeLine: true,
+                                          title: RichText(
+                                            text: TextSpan(
+                                              children: <TextSpan>[
+                                                TextSpan(
+                                                  text: cart.cartNotifierItem[index].product_name! + '\n',
+                                                  style: TextStyle(
+                                                      fontSize: 14,
+                                                      color: cart.cartNotifierItem[index].status == 1 ? font : cart.cartNotifierItem[index].refColor,
+                                                      fontWeight: FontWeight.bold),
+                                                ),
+                                                TextSpan(
+                                                  // text: "RM" + cart.cartNotifierItem[index].price! + " (" +  ,
+                                                    text:
+                                                    "RM ${cart.cartNotifierItem[index].price!} (${cart.cartNotifierItem[index].unit! != 'each' && cart.cartNotifierItem[index].unit! != 'each_c' ? cart.cartNotifierItem[index].per_quantity_unit! + cart.cartNotifierItem[index].unit! : 'each'})",
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                      color: cart.cartNotifierItem[index].status == 1 ? font : cart.cartNotifierItem[index].refColor,
+                                                    )),
+                                              ],
+                                            ),
+                                          ),
+                                          subtitle: Text(
+                                              getVariant(cart.cartNotifierItem[index]) + getModifier(cart.cartNotifierItem[index]) + getRemark(cart.cartNotifierItem[index]),
+                                              style: TextStyle(fontSize: 10)),
+                                          onTap: () async {
+                                            // if(widget.currentPage == 'menu' && cart.cartNotifierItem[index].status == 0 ||
+                                            //     widget.currentPage == 'table' || widget.currentPage == 'other_order')
+                                            if(orderKey == '') {
+                                              if(widget.currentPage == 'table' || widget.currentPage == 'other_order')
+                                                await openAdjustPriceDialog(cart, cart.cartNotifierItem[index], widget.currentPage, index);
+                                            }
+                                          },
+                                          trailing: Container(
+                                            child: FittedBox(
+                                              child: Row(
+                                                children: [
+                                                  Visibility(
+                                                    visible: widget.currentPage == 'menu' ? true : false,
+                                                    child: IconButton(
+                                                        hoverColor: Colors.transparent,
+                                                        icon: Icon(Icons.remove),
+                                                        onPressed: () {
+                                                          if (cart.cartNotifierItem[index].status == 0) {
+                                                            if (cart.cartNotifierItem[index].quantity! > 1) {
+                                                              if (cart.cartNotifierItem[index].unit != 'each' && cart.cartNotifierItem[index].unit != 'each_c') {
+                                                                setState(() {
+                                                                  cart.cartNotifierItem[index].quantity = (cart.cartNotifierItem[index].quantity! - 1).ceilToDouble();
+                                                                });
+                                                              } else {
+                                                                setState(() {
+                                                                  cart.cartNotifierItem[index].quantity = (cart.cartNotifierItem[index].quantity! - 1);
+                                                                });
+                                                              }
+                                                            } else {
+                                                              cart.removeItem(cart.cartNotifierItem[index]);
+                                                            }
+                                                          } else {
+                                                            Fluttertoast.showToast(
+                                                              backgroundColor: Colors.red,
+                                                              msg: AppLocalizations.of(context)!.translate('order_already_placed'),
+                                                            );
+                                                          }
+                                                        }),
+                                                  ),
+                                                  Text(
+                                                    cart.cartNotifierItem[index].quantity.toString(),
+                                                    style: TextStyle(color: cart.cartNotifierItem[index].refColor),
+                                                  ),
+                                                  widget.currentPage == 'menu'
+                                                      ? IconButton(
+                                                      hoverColor: Colors.transparent,
+                                                      icon: Icon(Icons.add),
+                                                      onPressed: () async {
+                                                        if (cart.cartNotifierItem[index].status == 0) {
+                                                          if (await checkProductStock(cart, cart.cartNotifierItem[index]) == true) {
+                                                            setState(() {
+                                                              cart.cartNotifierItem[index].quantity = cart.cartNotifierItem[index].quantity! + 1;
+                                                            });
+                                                          } else {
+                                                            Fluttertoast.showToast(
+                                                                backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('product_out_of_stock'));
+                                                          }
+                                                        } else {
+                                                          Fluttertoast.showToast(
+                                                              backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('order_already_placed'));
+                                                        }
+                                                        controller.add('refresh');
+                                                      })
+                                                      : Container()
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                              ),
+                              SizedBox(height: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 20 : 5),
+                              Divider(
+                                color: Colors.grey,
+                                height: 1,
+                                thickness: 1,
+                                indent: 20,
+                                endIndent: 20,
+                              ),
+                              SizedBox(height: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 10 : 5),
+                              Container(
+                                height: MediaQuery.of(context).size.height > 500
+                                    ? widget.currentPage == 'menu' || widget.currentPage == 'table' || widget.currentPage == 'other_order' || widget.currentPage == 'bill'
+                                    ? MediaQuery.of(context).orientation == Orientation.landscape
+                                    ? 130
+                                    : 100
+                                    : null
+                                    : 25,
+                                child: ListView(
+                                  physics: ClampingScrollPhysics(),
+                                  children: [
+                                    ListTile(
+                                      title: Text('Subtotal', style: TextStyle(fontSize: 14)),
+                                      trailing: Text('${total.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
+                                      visualDensity: VisualDensity(vertical: -4),
+                                      dense: true,
+                                    ),
+                                    Visibility(
+                                        visible: hasPromo == true ? true : false,
+                                        child: ListView.builder(
+                                            shrinkWrap: true,
+                                            physics: NeverScrollableScrollPhysics(),
+                                            itemCount: autoApplyPromotionList.length,
+                                            itemBuilder: (context, index) {
+                                              return ListTile(
+                                                  title: Text('${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})', style: TextStyle(fontSize: 14)),
+                                                  visualDensity: VisualDensity(vertical: -4),
+                                                  dense: true,
+                                                  trailing: Text('-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)));
+                                            })),
+                                    Visibility(
+                                      visible: cart.selectedPromotion != null ? true : false,
+                                      child: ListTile(
+                                        title: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            children: [
+                                              Text('${allPromo} (${selectedPromoRate})', style: TextStyle(fontSize: 14)),
+                                              Visibility(
+                                                visible: orderKey == '' ? true : false,
+                                                child: IconButton(
+                                                  padding: EdgeInsets.only(left: 10),
+                                                  constraints: BoxConstraints(),
+                                                  icon: Icon(Icons.close),
+                                                  iconSize: 20.0,
+                                                  color: Colors.red,
+                                                  onPressed: () {
+                                                    cart.removePromotion();
+                                                    selectedPromo = 0.0;
+                                                    hasSelectedPromo = false;
+                                                  },
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        trailing: Text('-${selectedPromo.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
+                                        visualDensity: VisualDensity(vertical: -4),
+                                        dense: true,
+                                      ),
+                                    ),
+                                    Visibility(
+                                      visible: widget.currentPage == 'bill' ? true : false,
+                                      child: ListView.builder(
+                                          shrinkWrap: true,
+                                          physics: NeverScrollableScrollPhysics(),
+                                          itemCount: orderPromotionList.length,
+                                          itemBuilder: (context, index) {
+                                            return ListTile(
+                                                title: Text('${orderPromotionList[index].promotion_name} (${orderPromotionList[index].rate})', style: TextStyle(fontSize: 14)),
+                                                visualDensity: VisualDensity(vertical: -4),
+                                                dense: true,
+                                                trailing: Text('-${orderPromotionList[index].promotion_amount}', style: TextStyle(fontSize: 14)));
+                                          }),
+                                    ),
+                                    Visibility(
+                                      visible:
+                                      widget.currentPage == 'menu' || widget.currentPage == 'table' || widget.currentPage == 'qr_order' || widget.currentPage == 'other_order'
+                                          ? true
+                                          : false,
+                                      child: ListView.builder(
+                                          shrinkWrap: true,
+                                          physics: NeverScrollableScrollPhysics(),
+                                          itemCount: taxRateList.length,
+                                          itemBuilder: (context, index) {
+                                            return ListTile(
+                                              title: Text('${taxRateList[index].name}(${taxRateList[index].tax_rate}%)', style: TextStyle(fontSize: 14)),
+                                              trailing: Text('${taxRateList[index].tax_amount?.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
+                                              //Text(''),
+                                              visualDensity: VisualDensity(vertical: -4),
+                                              dense: true,
+                                            );
+                                          }),
+                                    ),
+                                    Visibility(
+                                      visible: widget.currentPage == 'bill' ? true : false,
+                                      child: ListView.builder(
+                                          shrinkWrap: true,
+                                          physics: NeverScrollableScrollPhysics(),
+                                          itemCount: orderTaxList.length,
+                                          itemBuilder: (context, index) {
+                                            return ListTile(
+                                              title: Text('${orderTaxList[index].tax_name}(${orderTaxList[index].rate}%)', style: TextStyle(fontSize: 14)),
+                                              trailing: Text('${orderTaxList[index].tax_amount}', style: TextStyle(fontSize: 14)),
+                                              //Text(''),
+                                              visualDensity: VisualDensity(vertical: -4),
+                                              dense: true,
+                                            );
+                                          }),
+                                    ),
+                                    ListTile(
+                                      title: Text('Amount', style: TextStyle(fontSize: 14)),
+                                      trailing: Text('${totalAmount.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
+                                      visualDensity: VisualDensity(vertical: -4),
+                                      dense: true,
+                                    ),
+                                    ListTile(
+                                      title: Text('Rounding', style: TextStyle(fontSize: 14)),
+                                      trailing: Text('${rounding.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
+                                      visualDensity: VisualDensity(vertical: -4),
+                                      dense: true,
+                                    ),
+                                    Visibility(
+                                        visible: orderKey != '' ? true : false,
+                                        child: ListView.builder(
+                                            shrinkWrap: true,
+                                            physics: NeverScrollableScrollPhysics(),
+                                            itemCount: paymentSplitList.length,
+                                            itemBuilder: (context, index) {
+                                              return ListTile(
+                                                  title: Text('${paymentSplitList[index].payment_name}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                                  visualDensity: VisualDensity(vertical: -4),
+                                                  dense: true,
+                                                  trailing: Text('${paymentSplitList[index].payment_received!}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)));
+                                            }
+                                        )
+                                    ),
+                                    ListTile(
+                                      visualDensity: VisualDensity(vertical: -4),
+                                      title: Text('Final Amount', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                      trailing: Text("${finalAmount}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                      dense: true,
+                                    ),
+                                    Visibility(
+                                        visible: widget.currentPage == 'bill' ? true : false,
+                                        child: Column(
+                                          children: [
+                                            Container(
+                                              child: ListTile(
+                                                visualDensity: VisualDensity(vertical: -4),
+                                                title: Text('Payment received', style: TextStyle(fontSize: 14)),
+                                                trailing: Text("${paymentReceived.toStringAsFixed(2)}", style: TextStyle(fontSize: 14)),
+                                                dense: true,
+                                              ),
+                                            ),
+                                            Container(
+                                              child: ListTile(
+                                                visualDensity: VisualDensity(vertical: -4),
+                                                title: Text('Change', style: TextStyle(fontSize: 14)),
+                                                trailing: Text("${paymentChange.toStringAsFixed(2)}", style: TextStyle(fontSize: 14)),
+                                                dense: true,
+                                              ),
+                                            )
+                                          ],
+                                        ))
+                                  ],
+                                  shrinkWrap: true,
+                                ),
+                              ),
+                              SizedBox(height: 10),
+                              Divider(
+                                color: Colors.grey,
+                                height: 1,
+                                thickness: 1,
+                                indent: 20,
+                                endIndent: 20,
+                              ),
+                              SizedBox(height: 10),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  children: [
+                                    Visibility(
+                                      visible: widget.currentPage != 'bill' ? true : false,
+                                      child: Expanded(
+                                          child: ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: color.backgroundColor,
+                                                minimumSize: const Size.fromHeight(50), // NEW
+                                              ),
+                                              onPressed: isButtonDisabled
+                                                  ? null
+                                                  : () async {
+                                                // setState(() {
+                                                //   isButtonDisabled = true;
+                                                // });
+                                                await checkCashRecord();
+                                                if (widget.currentPage == 'menu' || widget.currentPage == 'qr_order') {
+                                                  if (_isSettlement == true) {
+                                                    showDialog(
+                                                        barrierDismissible: false,
+                                                        context: context,
+                                                        builder: (BuildContext context) {
+                                                          return PopScope(
+                                                              canPop: false,
+                                                              child: CashDialog(isCashIn: true, callBack: () {}, isCashOut: false, isNewDay: true));
+                                                        });
+                                                    _isSettlement = false;
+                                                  } else {
+                                                    disableButton();
+                                                    if (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 0) {
+                                                      if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
+                                                        openLoadingDialogBox();
+                                                        //_startTimer();
+                                                        print('has new item ${hasNewItem}');
+                                                        if (cart.cartNotifierItem[0].status == 1 && hasNewItem == true) {
+                                                          asyncQ.addJob((_) async => await callAddOrderCache(cart));
+                                                        } else if (cart.cartNotifierItem[0].status == 0) {
+                                                          asyncQ.addJob((_) async {
+                                                            await callCreateNewOrder(cart, appSettingModel);
+                                                            print("local: cart add new order done");
+                                                          });
+                                                        } else {
+                                                          Fluttertoast.showToast(
+                                                              backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('cannot_replace_same_order'));
+                                                          Navigator.of(context).pop();
+                                                        }
+                                                        // cart.removeAllCartItem();
+                                                        // cart.removeAllTable();
+                                                      } else {
+                                                        Fluttertoast.showToast(
+                                                            backgroundColor: Colors.red,
+                                                            msg: AppLocalizations.of(context)!.translate('make_sure_cart_is_not_empty_and_table_is_selected'));
+                                                      }
+                                                    } else {
+                                                      // not dine in call
+                                                      print("Not dine in called");
+                                                      cart.removeAllTable();
+                                                      if (cart.cartNotifierItem.isNotEmpty) {
+                                                        openLoadingDialogBox();
+                                                        asyncQ.addJob((_) async => await callCreateNewNotDineOrder(cart, appSettingModel));
+                                                      } else {
+                                                        Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                                      }
+                                                    }
+                                                  }
+                                                } else if (widget.currentPage == 'table') {
+                                                  if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
+                                                    if (_isSettlement == true) {
+                                                      showDialog(
+                                                          barrierDismissible: false,
+                                                          context: context,
+                                                          builder: (BuildContext context) {
+                                                            return PopScope(
+                                                                canPop: false,
+                                                                child: CashDialog(isCashIn: true, callBack: () {}, isCashOut: false, isNewDay: true));
+                                                          });
+                                                      _isSettlement = false;
+                                                    } else {
+                                                      if (cart.selectedTable.length > 1) {
+                                                        if (await confirm(
+                                                          context,
+                                                          title: Text('${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
+                                                          content: Text('${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
+                                                          textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                                                          textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                                                        )) {
+                                                          paymentAddToCart(cart);
+                                                          return openPaymentSelect(cart);
+                                                        }
+                                                      } else {
+                                                        paymentAddToCart(cart);
+                                                        openPaymentSelect(cart);
+                                                      }
+                                                    }
+                                                  } else {
+                                                    Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                                  }
+                                                } else if (widget.currentPage == 'other_order') {
+                                                  if (cart.cartNotifierItem.isNotEmpty) {
+                                                    if (_isSettlement == true) {
+                                                      showDialog(
+                                                          barrierDismissible: false,
+                                                          context: context,
+                                                          builder: (BuildContext context) {
+                                                            return PopScope(
+                                                                canPop: false,
+                                                                child: CashDialog(isCashIn: true, callBack: () {}, isCashOut: false, isNewDay: true));
+                                                          });
+                                                      _isSettlement = false;
+                                                    } else {
+                                                      paymentAddToCart(cart);
+                                                      openPaymentSelect(cart);
+                                                    }
+                                                  } else {
+                                                    Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                                  }
+                                                } else {
+                                                  if (cart.cartNotifierItem.isNotEmpty) {
+                                                    if (_isSettlement == true) {
+                                                      showDialog(
+                                                          barrierDismissible: false,
+                                                          context: context,
+                                                          builder: (BuildContext context) {
+                                                            return PopScope(
+                                                                canPop: false,
+                                                                child: CashDialog(isCashIn: true, callBack: () {}, isCashOut: false, isNewDay: true));
+                                                          });
+                                                      _isSettlement = false;
+                                                    } else {
+                                                      int printStatus = await printReceipt.printCartReceiptList(printerList, cart, this.localOrderId);
+                                                      checkPrinterStatus(printStatus);
+                                                      cart.initialLoad();
+                                                      cart.changInit(true);
+                                                    }
+                                                  } else {
+                                                    Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                                  }
+                                                }
+                                                enableButton();
+                                              },
+                                              child: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
+                                                  ? widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
+                                                  ? Text(AppLocalizations.of(context)!.translate('place_order') + '\n (RM ${this.finalAmount})')
+                                                  : widget.currentPage == 'table' || widget.currentPage == 'other_order'
+                                                  ? Text(AppLocalizations.of(context)!.translate('pay') + ' (RM ${this.finalAmount})')
+                                                  : Text(AppLocalizations.of(context)!.translate('print_receipt'))
+                                              // mobile
+                                                  : widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
+                                                  ? MediaQuery.of(context).orientation == Orientation.landscape
+                                                  ? Text(AppLocalizations.of(context)!.translate('place_order'))
+                                                  : Text(AppLocalizations.of(context)!.translate('place_order') + '\n (RM ${this.finalAmount})')
+                                                  : widget.currentPage == 'table' || widget.currentPage == 'other_order'
+                                                  ? MediaQuery.of(context).orientation == Orientation.landscape
+                                                  ? Text(AppLocalizations.of(context)!.translate('pay'))
+                                                  : Text(AppLocalizations.of(context)!.translate('pay') + ' (RM ${this.finalAmount})')
+                                                  : Text(AppLocalizations.of(context)!.translate('print_receipt')))),
+                                    ),
+                                    Visibility(
+                                        child: SizedBox(
+                                          width: 10,
+                                        ),
+                                        visible: widget.currentPage == "table" || widget.currentPage == "other_order"
+                                            ? true
+                                            : widget.currentPage == "menu"
+                                            ? cart.cartNotifierItem.any((item) => item.status == 1)
+                                            ? true
+                                            : false
+                                            : false),
+                                    Visibility(
+                                      visible: widget.currentPage == "menu" && cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status == 1 ? true : false,
+                                      child: Expanded(
+                                        child: ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: color.backgroundColor,
+                                            minimumSize: const Size.fromHeight(50),
+                                          ),
+                                          onPressed: () {
+                                            bool hasNotPlacedOrder = cart.cartNotifierItem.any((item) => item.status == 0);
+                                            if (hasNotPlacedOrder) {
+                                              Fluttertoast.showToast(
+                                                  backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('make_sure_all_product_is_placed_order'));
+                                            } else {
+                                              openReprintDialog(printerList, cart);
+                                            }
+                                          },
+                                          child: Text(AppLocalizations.of(context)!.translate('reprint')),
+                                        ),
+                                      ),
+                                    ),
+                                    Visibility(
+                                      visible: widget.currentPage == "table" || widget.currentPage == "other_order" || widget.currentPage == "bill" ? true : false,
+                                      child: Expanded(
+                                          child: ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: color.backgroundColor,
+                                                minimumSize: const Size.fromHeight(50),
+                                              ),
+                                              onPressed: cart.cartNotifierItem.isEmpty || isLoading
+                                                  ? null
+                                                  : () async {
+                                                setState(() {
+                                                  isLoading = true;
+                                                });
+                                                if(widget.currentPage != 'bill'){
+                                                  paymentAddToCart(cart);
+                                                }
+                                                openReprintDialog(printerList, cart);
+
+                                                setState(() {
+                                                  isLoading = false;
+                                                });
+                                              },
+                                              child: isLoading
+                                                  ? CircularProgressIndicator(
+                                                color: Colors.white,
+                                                strokeWidth: 3,
+                                              )
+                                                  : Text(AppLocalizations.of(context)!.translate('reprint')))),
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      } else {
+                        return CustomProgressBar();
+                      }
+                    }),
+              ));
+        });
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<AppSettingModel>(builder: (context, AppSettingModel appSettingModel, child) {
         _appSettingModel = appSettingModel;
@@ -1974,9 +2720,31 @@ class CartPageState extends State<CartPage> {
     }
     if((widget.currentPage == 'table' || widget.currentPage == 'other_order') && cart.cartNotifierItem.isNotEmpty)
       isButtonDisabled = false;
+    if(cart.cartNotifierItem.isNotEmpty){
+      reInitSecondDisplay(cart, false);
+    } else {
+      reInitSecondDisplay(cart, true);
+    }
     if (!controller.isClosed) {
       controller.sink.add('refresh');
       print("refresh called");
+    }
+  }
+
+  reInitSecondDisplay(CartModel cart, bool cartEmpty) async {
+    if(cartEmpty){
+      await displayManager.transferDataToPresentation("init");
+    } else {
+      SecondDisplayData data = SecondDisplayData(
+          tableNo: cart.selectedTable.isEmpty ? null : cart.selectedTable.map((e) => e.number).toList().toString().replaceAll('[', '').replaceAll(']', ''),
+          itemList: cart.cartNotifierItem,
+          subtotal: cart.cartSubTotal.toStringAsFixed(2),
+          totalDiscount: promoAmount.toStringAsFixed(2),
+          totalTax: priceIncAllTaxes.toStringAsFixed(2),
+          rounding: rounding.toStringAsFixed(2),
+          finalAmount: finalAmount
+      );
+      await displayManager.transferDataToPresentation(jsonEncode(data));
     }
   }
 
