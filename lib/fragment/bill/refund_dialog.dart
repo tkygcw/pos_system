@@ -246,9 +246,6 @@ class _RefundDialogState extends State<RefundDialog> {
                       } else {
                         print("syncing");
                       }
-                    } else {
-                      Fluttertoast.showToast(msg: 'live data not allowed');
-                      print("live data not allowed");
                     }
                   }
                 }
@@ -286,9 +283,6 @@ class _RefundDialogState extends State<RefundDialog> {
             } else {
               print("syncing");
             }
-          } else {
-            Fluttertoast.showToast(msg: 'live data not allowed');
-            print("live data not allowed");
           }
         } else {
           Fluttertoast.showToast(

@@ -942,9 +942,6 @@ class _MakePaymentState extends State<MakePayment> {
                                                       } else {
                                                         print("syncing");
                                                       }
-                                                    } else {
-                                                      Fluttertoast.showToast(msg: 'live data not allowed');
-                                                      print("live data not allowed");
                                                     }
                                                   },
                                                   icon: Icon(Icons.call_received),
@@ -2001,9 +1998,6 @@ class _MakePaymentState extends State<MakePayment> {
                                                   } else {
                                                     print("syncing");
                                                   }
-                                                } else {
-                                                  Fluttertoast.showToast(msg: 'live data not allowed');
-                                                  print("live data not allowed");
                                                 }
                                               },
                                               icon: Icon(Icons.call_received, size: 20),
@@ -3018,9 +3012,6 @@ class _MakePaymentState extends State<MakePayment> {
                                                     } else {
                                                       print("syncing");
                                                     }
-                                                  } else {
-                                                    Fluttertoast.showToast(msg: 'live data not allowed');
-                                                    print("live data not allowed");
                                                   }
                                                 },
                                                 icon: Icon(Icons.call_received, size: 20),
