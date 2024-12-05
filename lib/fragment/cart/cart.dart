@@ -2220,10 +2220,7 @@ class CartPageState extends State<CartPage> {
                   dining_name: cart.selectedOption,
                   order_key: orderKey,
                   callBack: (orderKeyValue) async {
-                    if (this.widget.currentPage == "menu" || this.widget.currentPage == 'bill') {
-                      cart.removeAllCartItem();
-                      cart.removeAllTable();
-                    }
+
                     if(orderKeyValue != '') {
                       cart.cartNotifierItem.forEach((element) {
                         element.order_key = orderKeyValue;
@@ -2231,6 +2228,10 @@ class CartPageState extends State<CartPage> {
                       await getSubTotal(cart);
                       await paymentAddToCart(cart);
                       print("final amount: $finalAmount");
+                    } else {
+                      cart.removeAllCartItem();
+                      cart.removeAllTable();
+                      cart.removeAllGroupList();
                     }
 
                   }),
