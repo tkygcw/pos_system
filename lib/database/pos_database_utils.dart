@@ -247,7 +247,7 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableModifierGroup ADD ${ModifierGroupFields.max_select} $integerType DEFAULT 1");
           }break;
           case 31: {
-            await dbVersion31Upgrade(db);
+            await dbVersion32Upgrade(db);
           }break;
         }
       }
@@ -1108,7 +1108,7 @@ class PosDatabaseUtils {
 
   }
 
-  static dbVersion31Upgrade(Database db) async {
+  static dbVersion32Upgrade(Database db) async {
     //tb app setting required cancel reason
     await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.required_cancel_reason} $integerType DEFAULT 0");
     //tb order cancel new field: quantity before cancel
