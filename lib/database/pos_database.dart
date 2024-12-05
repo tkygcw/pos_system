@@ -5210,8 +5210,8 @@ class PosDatabase {
 */
   Future<int> updateModifierGroup(ModifierGroup data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableModifierGroup SET company_id = ?, name = ?, dining_id = ?, compulsory = ?, sequence_number = ?, updated_at = ?, soft_delete = ? WHERE mod_group_id = ? ',
-        [data.company_id, data.name, data.dining_id, data.compulsory, data.sequence_number, data.updated_at, data.soft_delete, data.mod_group_id]);
+    return await db.rawUpdate('UPDATE $tableModifierGroup SET company_id = ?, name = ?, dining_id = ?, compulsory = ?, sequence_number = ?, min_select = ?, max_select = ?, updated_at = ?, soft_delete = ? WHERE mod_group_id = ? ',
+        [data.company_id, data.name, data.dining_id, data.compulsory, data.sequence_number, data.min_select, data.max_select, data.updated_at, data.soft_delete, data.mod_group_id]);
   }
 
   /*

@@ -243,6 +243,10 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.use_printer_label_as_title} INTEGER NOT NULL DEFAULT 0");
           }break;
           case 30: {
+            await db.execute("ALTER TABLE $tableModifierGroup ADD ${ModifierGroupFields.min_select} $integerType DEFAULT 1");
+            await db.execute("ALTER TABLE $tableModifierGroup ADD ${ModifierGroupFields.max_select} $integerType DEFAULT 1");
+          }break;
+          case 31: {
             await dbVersion31Upgrade(db);
           }break;
         }
@@ -316,6 +320,8 @@ class PosDatabaseUtils {
         ${ModifierGroupFields.dining_id} $textType, 
         ${ModifierGroupFields.compulsory} $textType, 
         ${ModifierGroupFields.sequence_number} $textType,
+        ${ModifierGroupFields.min_select} $integerType,
+        ${ModifierGroupFields.max_select} $integerType,
         ${ModifierGroupFields.created_at} $textType, ${ModifierGroupFields.updated_at} $textType, ${ModifierGroupFields.soft_delete} $textType)''');
 /*
     create modifier item table

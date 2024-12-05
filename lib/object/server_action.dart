@@ -8,6 +8,7 @@ import 'package:pos_system/fragment/product/product_order_dialog.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/branch_link_product.dart';
+import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/promotion.dart';
@@ -29,6 +30,7 @@ import 'branch_link_promotion.dart';
 class ServerAction {
   String? action;
   String? imagePath;
+  List<PosTable> tableList = [];
 
   ServerAction({this.action});
 
@@ -174,9 +176,25 @@ class ServerAction {
         case '7': {
           try{
             SubPosCartDialogFunction function = SubPosCartDialogFunction();
+            tableList = await PosDatabase.instance.readAllTable();
+            List<Map<String, String>> tableOrderKeyList = [];
+            for(int i = 0; i < tableList.length; i++){
+              if(tableList[i].status == 1){
+                List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableList[i].table_use_key!);
+                if(data.isNotEmpty){
+                  if(data.first.order_key != null){
+                    tableOrderKeyList.add({
+                      'table_id': tableList[i].table_id.toString(),
+                      'order_key': data.first.order_key ?? 'aa',
+                    });
+                  }
+                }
+              }
+            }
             await function.readAllTable();
             objectData = {
               'table_list': function.tableList,
+              'table_order_key_list': tableOrderKeyList,
             };
             result = {'status': '1', 'data': objectData};
           }catch(e){

@@ -105,6 +105,8 @@
   "check_list_show_price": "清单显示价格",
   "check_list_show_price_desc": "在打印清单时显示产品单价",
   "choose_an_option": "选择一个选项",
+  "choose_at_least": "至少选择",
+  "choose_maximum": "最多选择",
   "choose_qr_type": "选择二维码种类",
   "choose_your_branch": "选择您的分店",
   "choose_your_store": "选择您的商店",
@@ -703,5 +705,6 @@
   "with_table": "与桌子",
   "would_you_like_to_remove": "确定是否删除？",
   "wrong_pin_please_insert_valid_pin": "PIN 错误，请输入有效的 PIN",
-  "yes": "是"
+  "yes": "是",
+  "ge": "个"
 }
