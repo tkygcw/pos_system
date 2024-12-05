@@ -239,34 +239,36 @@ class CartDialogState extends State<CartDialog> {
                                 }
                               },
                             ))
-                      : Expanded(
-                        child: SingleChildScrollView(
-                          child: Stack(
-                            children: [
-                              Container(
-                                height: getScrollContainerHeight(),
-                                // width: 900,
-                                width: MediaQuery.of(context).size.width / 1.4,
-                              ),
-                              for (int i = 0; i < tableList.length; i++)
-                                AdvancedTableView(
-                                  cart: cart,
-                                  position: i,
-                                  table: tableList[i],
-                                  tableList: tableList,
-                                  tableLength: tableList.length,
-                                  editingMode: false,
-                                  callBack: (action, value) {
-                                    if (action == 'on_tap')
-                                      onSelect(i, cart, color);
-                                    else if (action == 'on_double_tap')
-                                      openChangeTableDialog(tableList[i], printerList: printerList);
-                                    },
-                                ),
-                            ],
+                      : Container(
+                    child: SingleChildScrollView(
+                      child: Stack(
+                        children: [
+                          Container(
+                            height: getScrollContainerHeight(),
+                            // width: 900,
+                            width: MediaQuery.of(context).size.width / 1.4,
                           ),
-                        ),
-                      )
+                          for (int i = 0; i < tableList.length; i++)
+                            AdvancedTableView(
+                              cart: cart,
+                              position: i,
+                              table: tableList[i],
+                              tableList: tableList,
+                              tableLength: tableList.length,
+                              editingMode: false,
+                              callBack: (action, value) {
+                                if (action == 'on_tap')
+                                  onSelect(i, cart, color);
+                                else if (action == 'on_double_tap')
+                                  openChangeTableDialog(tableList[i], printerList: printerList);
+                                },
+                            ),
+                        ],
+                      ),
+                    ),
+                  )
+
+
                       : CustomProgressBar(),
                   actions: <Widget>[
                     Row(
