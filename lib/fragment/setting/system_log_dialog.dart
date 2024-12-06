@@ -235,30 +235,34 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                                       ),
                                     ),
                                     SizedBox(height: 15),
-                                    SizedBox(
-                                      width: MediaQuery.of(context).size.width / 4,
-                                      height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
-                                      child: ElevatedButton(
-                                        onPressed: () async {
-                                          // Navigator.pop(context);
-                                          // await showSecondDialog(context, color);
-                                          setState(() {
-                                            inProgress = true;
-                                          });
-                                          await dataZip(3);
-                                          FLog.clearLogs();
-                                          logs.clear();
-                                          if(mounted){
+                                    Visibility(
+                                      visible: Platform.isAndroid,
+                                      child: SizedBox(
+                                        width: MediaQuery.of(context).size.width / 4,
+                                        height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
+                                        child: ElevatedButton(
+                                          onPressed: () async {
+                                            // Navigator.pop(context);
+                                            // await showSecondDialog(context, color);
                                             setState(() {
-                                              inProgress = false;
+                                              inProgress = true;
                                             });
-                                          }
-                                          Navigator.of(context).pop();
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: Text(AppLocalizations.of(context)!.translate('debug')),
-                                      ),
-                                    ),
+                                            await dataZip(3);
+                                            FLog.clearLogs();
+                                            logs.clear();
+                                            if(mounted){
+                                              setState(() {
+                                                inProgress = false;
+                                              });
+                                            }
+                                            Navigator.of(context).pop();
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text(AppLocalizations.of(context)!.translate('debug')),
+                                        ),
+                                      )
+                                    )
+
                                   ],
                                 )
                                     : Container(
@@ -364,30 +368,33 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                                         ),
                                       ),
                                       SizedBox(height: 15),
-                                      SizedBox(
-                                        width: 300,
-                                        height: MediaQuery.of(context).size.height / 16,
-                                        child: ElevatedButton(
-                                          onPressed: () async {
-                                            // Navigator.pop(context);
-                                            // await showSecondDialog(context, color);
-                                            setState(() {
-                                              inProgress = true;
-                                            });
-                                            await dataZip(3);
-                                            FLog.clearLogs();
-                                            logs.clear();
-                                            if(mounted){
-                                              setState(() {
-                                                inProgress = false;
-                                              });
-                                            }
-                                            Navigator.of(context).pop();
-                                            Navigator.of(context).pop();
-                                          },
-                                          child: Text(AppLocalizations.of(context)!.translate('debug')),
-                                        ),
-                                      ),
+                                      Visibility(
+                                          visible: Platform.isAndroid,
+                                          child: SizedBox(
+                                            width: 300,
+                                            height: MediaQuery.of(context).size.height / 16,
+                                            child: ElevatedButton(
+                                              onPressed: () async {
+                                                // Navigator.pop(context);
+                                                // await showSecondDialog(context, color);
+                                                setState(() {
+                                                  inProgress = true;
+                                                });
+                                                await dataZip(3);
+                                                FLog.clearLogs();
+                                                logs.clear();
+                                                if(mounted){
+                                                  setState(() {
+                                                    inProgress = false;
+                                                  });
+                                                }
+                                                Navigator.of(context).pop();
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: Text(AppLocalizations.of(context)!.translate('debug')),
+                                            ),
+                                          ))
+
                                     ],
                                   )
                                       : Container(
@@ -447,7 +454,7 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
     var encoder = ZipFileEncoder();
     encoder.create(zipFilePath);
     if(exportType == 3) {
-      await addDirectoryToZip(encoder, appDocDir.parent, ['flutter_assets', 'cache', 'lib']);
+      await addDirectoryToZip(encoder, appDocDir.parent, ['flutter_assets', 'cache', 'lib', 'assets']);
     } else {
       encoder.addFile(File(sourceFlogPath));
       encoder.addFile(File(sourceDBPath));
