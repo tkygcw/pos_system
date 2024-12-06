@@ -185,7 +185,7 @@ class ServerAction {
                   if(data.first.order_key != null){
                     tableOrderKeyList.add({
                       'table_id': tableList[i].table_id.toString(),
-                      'order_key': data.first.order_key ?? 'aa',
+                      'order_key': data.first.order_key ?? '',
                     });
                   }
                 }

@@ -2121,6 +2121,7 @@ class CartPageState extends State<CartPage> {
               opacity: a1.value,
               child: PromotionDialog(
                 cartFinalAmount: finalAmount,
+                subtotal: newOrderSubtotal.toString(),
               ),
             ),
           );

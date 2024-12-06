@@ -103,43 +103,46 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
   }
 
   checkBluetooth() async {
-    bluetoothIsOn = await PrintBluetoothThermal.bluetoothEnabled;
-    if (!bluetoothIsOn) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text(
-                '${AppLocalizations.of(context)?.translate('bluetooth_is_off')}'),
-            content: Text(
-                '${AppLocalizations.of(context)?.translate('bluetooth_is_off_desc')}'),
-            actions: <Widget>[
-              TextButton(
-                child: Text(
-                    '${AppLocalizations.of(context)?.translate('cancel')}'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: Text(
-                    '${AppLocalizations.of(context)?.translate('setting')}'),
-                onPressed: () {
-                  AppSettings.openAppSettings(type: AppSettingsType.bluetooth);
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-    } else {
-      if (this.mounted) {
-        this.getBluetoots();
-        setState(() {
-          isLoad = false;
-        });
+    bool bluetoothIsGranted = await PrintBluetoothThermal.isPermissionBluetoothGranted;
+    if(bluetoothIsGranted){
+      bluetoothIsOn = await PrintBluetoothThermal.bluetoothEnabled;
+      if (!bluetoothIsOn) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(
+                  '${AppLocalizations.of(context)?.translate('bluetooth_is_off')}'),
+              content: Text(
+                  '${AppLocalizations.of(context)?.translate('bluetooth_is_off_desc')}'),
+              actions: <Widget>[
+                TextButton(
+                  child: Text(
+                      '${AppLocalizations.of(context)?.translate('cancel')}'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: Text(
+                      '${AppLocalizations.of(context)?.translate('setting')}'),
+                  onPressed: () {
+                    AppSettings.openAppSettings(type: AppSettingsType.bluetooth);
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        if (this.mounted) {
+          this.getBluetoots();
+          setState(() {
+            isLoad = false;
+          });
+        }
       }
     }
   }
