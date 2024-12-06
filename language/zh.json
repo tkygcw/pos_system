@@ -235,6 +235,7 @@
   "enter_admin_pin": "输入管理员PIN",
   "enter_current_user_pin": "输入当前用户PIN码",
   "enter_debug_pin": "输入调试PIN",
+  "enter_promotion_amount": "输入促销金额",
   "enter_yes": "请输入YES以继续",
   "enter_your_pin": "输入您的PIN",
   "error": "错误: ",
