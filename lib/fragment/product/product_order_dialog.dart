@@ -1552,6 +1552,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                     setState(() {
                       isButtonDisabled = true;
                     });
+                    checkModifierMinSelect(modifierGroup);
                     await addToCart(cart);
                     Navigator.of(this.context).pop();
                   }
