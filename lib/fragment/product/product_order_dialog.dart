@@ -1105,7 +1105,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     int checkedModifiersCount = 0;
     for(int i = 0; i < modifierGroup.length; i++){
       for(int j = 0; j < modifierGroup[i].modifierChild!.length; j++){
-        if(modifierGroup[i].modifierChild![i].isChecked!){
+        if(modifierGroup[i].modifierChild![j].isChecked!){
           checkedModifiersCount++;
         }
         if(modifierGroup[i].min_select != 0)
