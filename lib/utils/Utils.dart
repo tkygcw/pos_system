@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/object/cancel_receipt.dart';
 
 import '../translation/AppLocalizations.dart';
 
@@ -145,6 +146,15 @@ class Utils {
   static String dbCurrentDateTimeFormat(){
     final DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     return dateFormat.format(DateTime.now());
+  }
+
+  static CancelReceipt defaultCancelReceiptLayout(){
+    return CancelReceipt(
+        product_name_font_size: 0,
+        other_font_size: 0,
+        show_product_sku: 0,
+        show_product_price: 0
+    );
   }
 
 }

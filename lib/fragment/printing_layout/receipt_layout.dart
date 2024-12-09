@@ -12,6 +12,7 @@ import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/branch_link_dining_option.dart';
+import 'package:pos_system/object/cancel_receipt.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/checklist.dart';
@@ -60,6 +61,9 @@ class ReceiptLayout{
   double totalOpeningCash = 0.0;
   bool _isLoad = false;
   List<OrderPaymentSplit> paymentSplitList = [];
+  PosDatabase _posDatabase = PosDatabase.instance;
+
+  PosDatabase get posDatabase => _posDatabase;
 
   final Checklist checklistDefaultLayout = Checklist(
     product_name_font_size: 0,
@@ -81,7 +85,6 @@ class ReceiptLayout{
   getCartTableNumber(List<PosTable> tableList){
     return tableList.map((e) => e.number).toList();
   }
-
 
 
 /*

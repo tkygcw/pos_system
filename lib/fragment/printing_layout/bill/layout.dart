@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:f_logs/model/flog/flog.dart';
 
+import '../../../object/branch.dart';
 import '../../../object/table.dart';
 import '../../../utils/Utils.dart';
 

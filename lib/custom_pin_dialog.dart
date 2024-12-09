@@ -1,15 +1,22 @@
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 
 import 'database/pos_database.dart';
+import 'fragment/custom_toastification.dart';
 import 'object/user.dart';
 
+enum Permission {
+  editPrice,
+  adminOnly
+}
+
 class CustomPinDialog extends StatefulWidget {
+  final Permission? permission;
   final Function() callback;
-  const CustomPinDialog({Key? key, required this.callback}) : super(key: key);
+  const CustomPinDialog({Key? key, required this.callback, this.permission}) : super(key: key);
 
   @override
   State<CustomPinDialog> createState() => _CustomPinDialogState();
@@ -40,30 +47,57 @@ class _CustomPinDialogState extends State<CustomPinDialog> {
     }
   }
 
+  void showToastResetTextFieldButton(String title){
+    CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate(title));
+    adminPosPinController.clear();
+    setState(() {
+      isButtonDisabled = false;
+    });
+  }
+
   readAdminData(String pin) async {
     try {
       User? userData = await posDatabase.readSpecificUserWithPin(pin);
       if (userData != null) {
-        if (userData.role == 0) {
+        if(widget.permission == null){
           Navigator.of(context).pop();
           widget.callback();
         } else {
-          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('no_permission')}");
-          adminPosPinController.clear();
-          setState(() {
-            isButtonDisabled = false;
-          });
+          switch(widget.permission!) {
+            case Permission.editPrice: {
+              if(userData.edit_price_without_pin == 1){
+                Navigator.of(context).pop();
+                widget.callback();
+              } else {
+                showToastResetTextFieldButton('no_permission');
+              }
+            }break;
+            case Permission.adminOnly: {
+              if(userData.role == 0){
+                Navigator.of(context).pop();
+                widget.callback();
+              } else {
+                showToastResetTextFieldButton('no_permission');
+              }
+            }break;
+          }
         }
       } else {
-        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('user_not_found')}");
-        adminPosPinController.clear();
-        setState(() {
-          isButtonDisabled = false;
-        });
+        showToastResetTextFieldButton('user_not_found');
+        // Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('user_not_found')}");
+        // adminPosPinController.clear();
+        // setState(() {
+        //   isButtonDisabled = false;
+        // });
       }
-    } catch (e) {
-      print('user checking error ${e}');
-      return;
+    } catch(e, stackTrace){
+      FLog.error(
+        className: "custom_pin_dialog",
+        text: "readAdminData error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      Navigator.of(context).pop();
+      rethrow;
     }
   }
 
@@ -71,7 +105,7 @@ class _CustomPinDialogState extends State<CustomPinDialog> {
   Widget build(BuildContext context) {
     var color = context.watch<ThemeColor>();
     return AlertDialog(
-      title: Text(AppLocalizations.of(context)!.translate('enter_admin_pin')),
+      title: Text(AppLocalizations.of(context)!.translate('enter_your_pin')),
       content: ValueListenableBuilder(
           valueListenable: adminPosPinController,
           builder: (context, TextEditingValue value, __) {
