@@ -1968,100 +1968,104 @@ class PrintReceipt{
     }
   }
 
-  testPrintCancelReceipt(CancelReceipt cancelReceipt) async {
+  Future<int> testPrintCancelReceipt(CancelReceipt cancelReceipt) async {
     try {
       List<Printer> printerList = this.activePrinterList.where((e) => e.is_counter == 1).toList();
       int printStatus = 0;
-      for (int i = 0; i < printerList.length; i++) {
-        var printerDetail = jsonDecode(printerList[i].value!);
-        if (printerList[i].type == 0) {
-          if(cancelReceipt.paper_size == '80'){
-            var data = Uint8List.fromList(await CancelReceiptLayout().testPrint80mmFormat(cancelReceipt: cancelReceipt, isUSB: true));
-            bool? isConnected = await flutterUsbPrinter.connect(
-                int.parse(printerDetail['vendorId']),
-                int.parse(printerDetail['productId']));
-            if (isConnected == true) {
-              await flutterUsbPrinter.write(data);
-              printStatus = 0;
+      if(printerList.isNotEmpty){
+        for (int i = 0; i < printerList.length; i++) {
+          var printerDetail = jsonDecode(printerList[i].value!);
+          if (printerList[i].type == 0) {
+            if(cancelReceipt.paper_size == '80'){
+              var data = Uint8List.fromList(await CancelReceiptLayout().testPrint80mmFormat(cancelReceipt: cancelReceipt, isUSB: true));
+              bool? isConnected = await flutterUsbPrinter.connect(
+                  int.parse(printerDetail['vendorId']),
+                  int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
+                printStatus = 0;
+              } else {
+                print('not connected');
+                printStatus = 1;
+              }
             } else {
-              print('not connected');
-              printStatus = 1;
+              var data = Uint8List.fromList(await CancelReceiptLayout().testPrint58mmFormat(cancelReceipt: cancelReceipt, isUSB: true));
+              bool? isConnected = await flutterUsbPrinter.connect(
+                  int.parse(printerDetail['vendorId']),
+                  int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
+                printStatus = 0;
+              } else {
+                print('not connected');
+                printStatus = 1;
+              }
             }
-          } else {
-            var data = Uint8List.fromList(await CancelReceiptLayout().testPrint58mmFormat(cancelReceipt: cancelReceipt, isUSB: true));
-            bool? isConnected = await flutterUsbPrinter.connect(
-                int.parse(printerDetail['vendorId']),
-                int.parse(printerDetail['productId']));
-            if (isConnected == true) {
-              await flutterUsbPrinter.write(data);
-              printStatus = 0;
-            } else {
-              print('not connected');
-              printStatus = 1;
-            }
-          }
-        } else if(printerList[i].type == 1) {
-          //check paper size (print LAN)
-          if(cancelReceipt.paper_size == '80'){
-            //print LAN
-            final profile = await CapabilityProfile.load();
-            final printer = NetworkPrinter(PaperSize.mm80, profile);
-            final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
+          } else if(printerList[i].type == 1) {
+            //check paper size (print LAN)
+            if(cancelReceipt.paper_size == '80'){
+              //print LAN
+              final profile = await CapabilityProfile.load();
+              final printer = NetworkPrinter(PaperSize.mm80, profile);
+              final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
 
-            if (res == PosPrintResult.success) {
-              await CancelReceiptLayout().testPrint80mmFormat(cancelReceipt: cancelReceipt, isUSB: false, value: printer);
-              await Future.delayed(Duration(milliseconds: 100));
-              printer.disconnect();
-              printStatus = 0;
-            } else if (res == PosPrintResult.timeout){
-              print('printer time out');
-              printStatus = 2;
+              if (res == PosPrintResult.success) {
+                await CancelReceiptLayout().testPrint80mmFormat(cancelReceipt: cancelReceipt, isUSB: false, value: printer);
+                await Future.delayed(Duration(milliseconds: 100));
+                printer.disconnect();
+                printStatus = 0;
+              } else if (res == PosPrintResult.timeout){
+                print('printer time out');
+                printStatus = 2;
+              } else {
+                print('not connected');
+                printStatus = 1;
+              }
             } else {
-              print('not connected');
-              printStatus = 1;
-            }
-          } else {
-            //print LAN
-            final profile = await CapabilityProfile.load();
-            final printer = NetworkPrinter(PaperSize.mm58, profile);
-            final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
+              //print LAN
+              final profile = await CapabilityProfile.load();
+              final printer = NetworkPrinter(PaperSize.mm58, profile);
+              final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
 
-            if (res == PosPrintResult.success) {
-              await CancelReceiptLayout().testPrint58mmFormat(cancelReceipt: cancelReceipt, isUSB: false, value: printer);
-              await Future.delayed(Duration(milliseconds: 100));
-              printer.disconnect();
-              printStatus = 0;
-            } else if (res == PosPrintResult.timeout){
-              print('printer time out');
-              printStatus = 2;
-            } else {
-              print('not connected');
-              printStatus = 1;
-            }
-          }
-        } else {
-          //print bluetooth
-          bool res = await bluetoothPrinterConnect(printerDetail);
-          if (cancelReceipt.paper_size == '80') {
-            if (res) {
-              await PrintBluetoothThermal.writeBytes(await CancelReceiptLayout().testPrint80mmFormat(cancelReceipt: cancelReceipt, isUSB: true));
-              await Future.delayed(Duration(milliseconds: 100));
-              printStatus = 0;
-            } else {
-              print('not connected');
-              printStatus = 1;
+              if (res == PosPrintResult.success) {
+                await CancelReceiptLayout().testPrint58mmFormat(cancelReceipt: cancelReceipt, isUSB: false, value: printer);
+                await Future.delayed(Duration(milliseconds: 100));
+                printer.disconnect();
+                printStatus = 0;
+              } else if (res == PosPrintResult.timeout){
+                print('printer time out');
+                printStatus = 2;
+              } else {
+                print('not connected');
+                printStatus = 1;
+              }
             }
           } else {
-            if (res) {
-              await PrintBluetoothThermal.writeBytes(await CancelReceiptLayout().testPrint58mmFormat(cancelReceipt: cancelReceipt, isUSB: true));
-              await Future.delayed(Duration(milliseconds: 100));
-              printStatus = 0;
+            //print bluetooth
+            bool res = await bluetoothPrinterConnect(printerDetail);
+            if (cancelReceipt.paper_size == '80') {
+              if (res) {
+                await PrintBluetoothThermal.writeBytes(await CancelReceiptLayout().testPrint80mmFormat(cancelReceipt: cancelReceipt, isUSB: true));
+                await Future.delayed(Duration(milliseconds: 100));
+                printStatus = 0;
+              } else {
+                print('not connected');
+                printStatus = 1;
+              }
             } else {
-              print('not connected');
-              printStatus = 1;
+              if (res) {
+                await PrintBluetoothThermal.writeBytes(await CancelReceiptLayout().testPrint58mmFormat(cancelReceipt: cancelReceipt, isUSB: true));
+                await Future.delayed(Duration(milliseconds: 100));
+                printStatus = 0;
+              } else {
+                print('not connected');
+                printStatus = 1;
+              }
             }
           }
         }
+      } else {
+        printStatus = 1;
       }
       return printStatus;
     } catch (e) {

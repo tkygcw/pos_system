@@ -243,11 +243,7 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableKitchenList ADD ${KitchenListFields.use_printer_label_as_title} INTEGER NOT NULL DEFAULT 0");
           }break;
           case 30: {
-            await db.execute("ALTER TABLE $tableModifierGroup ADD ${ModifierGroupFields.min_select} $integerType DEFAULT 0");
-            await db.execute("ALTER TABLE $tableModifierGroup ADD ${ModifierGroupFields.max_select} $integerType DEFAULT 0");
-          }break;
-          case 31: {
-            await dbVersion32Upgrade(db);
+            await dbVersion31Upgrade(db);
           }break;
         }
       }
@@ -1108,7 +1104,10 @@ class PosDatabaseUtils {
 
   }
 
-  static dbVersion32Upgrade(Database db) async {
+  static dbVersion31Upgrade(Database db) async {
+    //modifier quantity
+    await db.execute("ALTER TABLE $tableModifierGroup ADD ${ModifierGroupFields.min_select} $integerType DEFAULT 0");
+    await db.execute("ALTER TABLE $tableModifierGroup ADD ${ModifierGroupFields.max_select} $integerType DEFAULT 0");
     //tb app setting required cancel reason
     await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.required_cancel_reason} $integerType DEFAULT 0");
     //tb order cancel new field: quantity before cancel

@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_login/flutter_login.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
 import 'package:pos_system/fragment/setting/cancel_receipt_setting/mobile_view/mm58_receipt_view.dart';
@@ -10,15 +10,12 @@ import 'package:pos_system/fragment/setting/cancel_receipt_setting/mobile_view/m
 import 'package:pos_system/fragment/setting/cancel_receipt_setting/tablet_view/mm58_receipt_view.dart';
 import 'package:pos_system/fragment/setting/cancel_receipt_setting/tablet_view/mm80_receipt_view.dart';
 import 'package:pos_system/notifier/theme_color.dart';
-import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/cancel_receipt.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
-import 'package:sqflite/sqflite.dart';
 
 import '../../../database/pos_database.dart';
-import '../../../object/dynamic_qr.dart';
 import '../../../translation/AppLocalizations.dart';
 import '../../../utils/Utils.dart';
 
@@ -105,10 +102,16 @@ class _CancelReceiptDialogState extends State<CancelReceiptDialog> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: color.backgroundColor,
                   ),
-                  onPressed: () {
-                    printReceipt.testPrintCancelReceipt(testPrintLayout);
+                  onPressed: () async {
+                    int status = await printReceipt.testPrintCancelReceipt(testPrintLayout);
+                    if(status != 0){
+                      Fluttertoast.showToast(
+                          backgroundColor: Colors.red,
+                          msg: "${AppLocalizations.of(context)?.translate('no_cashier_printer')}");
+                    }
                   },
-                  child: Text('test print')),
+                  child: Text(AppLocalizations.of(context)!.translate('test_print')),
+              ),
             ),
             SizedBox(
               width: MediaQuery.of(context).size.width / 4,
@@ -123,7 +126,7 @@ class _CancelReceiptDialogState extends State<CancelReceiptDialog> {
                   });
                   Navigator.of(context).pop();
                 },
-                child: Text('close'),
+                child: Text(AppLocalizations.of(context)!.translate('close')),
               ),
             ),
             SizedBox(
