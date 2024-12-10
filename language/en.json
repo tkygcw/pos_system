@@ -548,6 +548,8 @@
   "restock": "Restock",
   "retry": "Retry",
   "rounding": "Rounding",
+  "rounding_absorb": "Rounding Absorb",
+  "rounding_absorb_desc": "Prices round down below 8 cents (e.g., 1.07 -> 1.00) and up at 8/9 cents (e.g., 1.08 -> 1.10)",
   "save": "Save",
   "same_payment_method_error": "Cannot update to same payment method",
   "scan": "Scan",

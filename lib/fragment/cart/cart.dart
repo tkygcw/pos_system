@@ -1963,7 +1963,7 @@ class CartPageState extends State<CartPage> {
     getTaxAmount();
     getRounding();
     await getAllPaymentSplit(cart);
-    getAllTotal();
+    await getAllTotal();
     checkCartItem(cart);
     print("cart scroll down: ${cart.scrollDown }");
     if (cart.scrollDown == 0) {
@@ -2008,13 +2008,22 @@ class CartPageState extends State<CartPage> {
     return priceIncAllTaxes;
   }
 
-  getRounding() {
+  getRounding() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
+
     getAllTaxAmount();
     double _round = 0.0;
     totalAmount = 0.0;
     discountPrice = total - promoAmount;
     totalAmount = discountPrice + priceIncAllTaxes;
-    _round = Utils.roundToNearestFiveSen(double.parse(totalAmount.toStringAsFixed(2))) - double.parse(totalAmount.toStringAsFixed(2));
+    if(localSetting!.rounding_absorb == 1) {
+      _round = double.parse(absorbAmount(totalAmount)) - double.parse(totalAmount.toStringAsFixed(2));
+    } else {
+      _round = Utils.roundToNearestFiveSen(double.parse(totalAmount.toStringAsFixed(2))) - double.parse(totalAmount.toStringAsFixed(2));
+    }
+
     rounding = _round;
 
     // if (!controller.isClosed) {
@@ -2022,9 +2031,18 @@ class CartPageState extends State<CartPage> {
     // }
   }
 
-  getAllTotal() {
+  getAllTotal() async {
     try {
-      finalAmount = Utils.roundToNearestFiveSen(double.parse((totalAmount-paymentSplitAmount).toStringAsFixed(2))).toStringAsFixed(2);
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+      AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
+
+      if(localSetting!.rounding_absorb == 1){
+        finalAmount = absorbAmount(double.parse((totalAmount-paymentSplitAmount).toStringAsFixed(2)));
+      } else {
+        finalAmount = Utils.roundToNearestFiveSen(double.parse((totalAmount-paymentSplitAmount).toStringAsFixed(2))).toStringAsFixed(2);
+      }
+
     } catch (error) {
       print('Total calc error: $error');
     }
@@ -2032,6 +2050,18 @@ class CartPageState extends State<CartPage> {
     // if (!controller.isClosed) {
     //   controller.sink.add('refresh');
     // }
+  }
+
+  String absorbAmount(double amount) {
+    int cents = (amount * 100).round();
+    int lastDigit = cents % 10;
+
+    if (lastDigit >= 8) {
+      cents = (cents / 10).ceil() * 10;
+    } else {
+      cents = (cents / 10).floor() * 10;
+    }
+    return (cents / 100).toStringAsFixed(2);
   }
 
   getAllPaymentSplit(CartModel cart) async {

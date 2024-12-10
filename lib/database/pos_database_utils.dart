@@ -245,6 +245,9 @@ class PosDatabaseUtils {
           case 30: {
             await dbVersion31Upgrade(db);
           }break;
+          case 31: {
+            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.rounding_absorb} $integerType DEFAULT 0");
+          }break;
         }
       }
     }
@@ -892,6 +895,7 @@ class PosDatabaseUtils {
           ${AppSettingFields.variant_item_sort_by} $integerType,
           ${AppSettingFields.dynamic_qr_invalid_after_payment} $integerType,
           ${AppSettingFields.required_cancel_reason} $integerType,
+          ${AppSettingFields.rounding_absorb} $integerType,
           ${AppSettingFields.sync_status} $integerType,
           ${AppSettingFields.created_at} $textType,
           ${AppSettingFields.updated_at} $textType)''');

@@ -83,7 +83,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 31, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
+    return await openDatabase(path, version: 32, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
   }
 
 /*
@@ -5549,6 +5549,14 @@ class PosDatabase {
   Future<int> updatePrintCancelReceiptSettings(AppSetting data) async {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableAppSetting SET print_cancel_receipt = ?, sync_status = ?, updated_at = ?', [data.print_cancel_receipt, 2, data.updated_at]);
+  }
+
+/*
+  update rounding absorb Setting
+*/
+  Future<int> updateRoundingAbsorbSettings(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET rounding_absorb = ?, sync_status = ?, updated_at = ?', [data.rounding_absorb, 2, data.updated_at]);
   }
 
 /*

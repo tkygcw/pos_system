@@ -353,6 +353,7 @@ class _LoadingPageState extends State<LoadingPage> {
             variant_item_sort_by: 0,
             dynamic_qr_invalid_after_payment: 1,
             required_cancel_reason: 0,
+            rounding_absorb: 0,
             sync_status: 0,
             created_at: dateTime,
             updated_at: ''
@@ -393,6 +394,7 @@ class _LoadingPageState extends State<LoadingPage> {
       variant_item_sort_by: item.variant_item_sort_by,
       dynamic_qr_invalid_after_payment: item.dynamic_qr_invalid_after_payment,
       required_cancel_reason: item.required_cancel_reason ?? 0,
+      rounding_absorb: item.rounding_absorb ?? 0,
       sync_status: 1,
       created_at: item.created_at,
       updated_at: item.updated_at,
