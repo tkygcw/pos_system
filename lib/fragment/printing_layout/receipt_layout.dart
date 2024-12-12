@@ -1320,8 +1320,14 @@ class ReceiptLayout{
 
       List<int> bytes = [];
       try {
-        //bytes += generator.image(image);
         bytes += generator.reset();
+
+        if(receipt!.header_image_status == 1){
+          img.Image processedImage = await getBranchLogo(receipt!.header_image_size!);
+          bytes += generator.imageRaster(processedImage, align: PosAlign.center);
+          bytes += generator.emptyLines(1);
+        }
+
         if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
           bytes += generator.row([
             PosColumn(

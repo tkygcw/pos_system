@@ -373,6 +373,12 @@ class BillLayout extends ReceiptLayout{
         bytes += generator.emptyLines(1);
       }
 
+      if(receipt!.header_image_status == 1){
+        img.Image processedImage = await getBranchLogo(receipt!.header_image_size!);
+        bytes += generator.imageRaster(processedImage, align: PosAlign.center);
+        bytes += generator.emptyLines(1);
+      }
+
       if(int.tryParse(this.paidOrder!.order_queue!) != null){
         bytes += generator.text('---------------', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
         bytes += generator.emptyLines(1);
