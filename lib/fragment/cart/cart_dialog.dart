@@ -942,7 +942,7 @@ class CartDialogState extends State<CartDialog> {
       //   return;
       // }
     } else {
-      CustomFailedFailedToast.showToast(title: AppLocalizations.of(context)!.translate('table_status_changed'), duration: 6);
+      CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('table_status_changed'), duration: 6);
     }
     await readAllTable();
     // await readAllTable(isReset: true);

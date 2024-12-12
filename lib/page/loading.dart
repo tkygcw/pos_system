@@ -15,6 +15,7 @@ import 'package:pos_system/object/branch_link_modifier.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
+import 'package:pos_system/object/cancel_receipt.dart';
 import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/kitchen_list.dart';
@@ -96,6 +97,7 @@ class _LoadingPageState extends State<LoadingPage> {
 
   startLoad() async {
     try{
+      await getAllCancelReceipt();
       await getDateRetrieveDate();
       await getCashRecord();
       await getAllDynamicQr();
@@ -145,6 +147,30 @@ class _LoadingPageState extends State<LoadingPage> {
     Timer(Duration(seconds: 2), () {
       Navigator.push(context, MaterialPageRoute(builder: (_) => PosPinPage()));
     });
+  }
+
+/*
+  get cancel receipt from cloud
+*/
+  getAllCancelReceipt() async {
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+      Map data = await Domain().getCancelReceipt(branch_id: branch_id.toString());
+      if(data['status'] == '1'){
+        List responseJson = data['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          CancelReceipt cancelReceipt = CancelReceipt.fromJson(responseJson[i]);
+          await PosDatabase.instance.insertSqliteCancelReceipt(cancelReceipt);
+        }
+      }
+    }catch(e, stackTrace){
+      FLog.error(
+        className: "loading",
+        text: "dynamic qr insert failed",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+    }
   }
 
   getDateRetrieveDate() async {
@@ -326,6 +352,7 @@ class _LoadingPageState extends State<LoadingPage> {
             dynamic_qr_default_exp_after_hour: 1,
             variant_item_sort_by: 0,
             dynamic_qr_invalid_after_payment: 1,
+            required_cancel_reason: 0,
             sync_status: 0,
             created_at: dateTime,
             updated_at: ''
@@ -365,6 +392,7 @@ class _LoadingPageState extends State<LoadingPage> {
       dynamic_qr_default_exp_after_hour: item.dynamic_qr_default_exp_after_hour,
       variant_item_sort_by: item.variant_item_sort_by,
       dynamic_qr_invalid_after_payment: item.dynamic_qr_invalid_after_payment,
+      required_cancel_reason: item.required_cancel_reason ?? 0,
       sync_status: 1,
       created_at: item.created_at,
       updated_at: item.updated_at,
@@ -2585,59 +2613,61 @@ class _LoadingPageState extends State<LoadingPage> {
 /*
   save order detail cancel to database
 */
-  getAllOrderDetailCancel() async {
-    try {
-      Settlement? settlement;
-      final prefs = await SharedPreferences.getInstance();
-      final int? branch_id = prefs.getInt('branch_id');
-      final String? user = prefs.getString('user');
-      Map userObject = json.decode(user!);
-      Map data = await Domain().getAllOrderDetailCancel(userObject['company_id'], branch_id.toString());
-      if (data['status'] == '1') {
-        List responseJson = data['order'];
-        for (var i = 0; i < responseJson.length; i++) {
-          if (responseJson[i]['settlement_key'] != '') {
-            Settlement settlementData = await PosDatabase.instance.readSettlementSqliteID(responseJson[i]['settlement_key']);
-            settlement = settlementData;
-          }
-          OrderDetail? detailData = await PosDatabase.instance.readOrderDetailSqliteID(responseJson[i]['order_detail_key']);
-          if(detailData == null){
-            continue;
-          }
-          try {
-            await PosDatabase.instance.insertOrderDetailCancel(OrderDetailCancel(
-              order_detail_cancel_id: responseJson[i]['order_detail_cancel_id'],
-              order_detail_cancel_key: responseJson[i]['order_detail_cancel_key'],
-              order_detail_sqlite_id: detailData.order_detail_sqlite_id.toString(),
-              order_detail_key: responseJson[i]['order_detail_key'],
-              quantity: responseJson[i]['quantity'],
-              cancel_by: responseJson[i]['cancel_by'],
-              cancel_by_user_id: responseJson[i]['cancel_by_user_id'],
-              settlement_sqlite_id: responseJson[i]['settlement_key'] != '' ? settlement?.settlement_sqlite_id.toString() : '',
-              settlement_key: responseJson[i]['settlement_key'],
-              status: responseJson[i]['status'],
-              sync_status: 1,
-              created_at: responseJson[i]['created_at'],
-              updated_at: responseJson[i]['updated_at'],
-              soft_delete: responseJson[i]['soft_delete'],
-            ));
-          } catch(e) {
-            FLog.error(
-              className: "loading",
-              text: "order detail cancel insert failed (order_detail_cancel_id: ${responseJson[i]['order_detail_cancel_id']})",
-              exception: "$e\n${responseJson[i].toJson()}",
-            );
-          }
+getAllOrderDetailCancel() async {
+  try {
+    Settlement? settlement;
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    final String? user = prefs.getString('user');
+    Map userObject = json.decode(user!);
+    Map data = await Domain().getAllOrderDetailCancel(userObject['company_id'], branch_id.toString());
+    if (data['status'] == '1') {
+      List responseJson = data['order'];
+      for (var i = 0; i < responseJson.length; i++) {
+        if (responseJson[i]['settlement_key'] != '') {
+          Settlement settlementData = await PosDatabase.instance.readSettlementSqliteID(responseJson[i]['settlement_key']);
+          settlement = settlementData;
+        }
+        OrderDetail? detailData = await PosDatabase.instance.readOrderDetailSqliteID(responseJson[i]['order_detail_key']);
+        if(detailData == null){
+          continue;
+        }
+        try {
+          await PosDatabase.instance.insertOrderDetailCancel(OrderDetailCancel(
+            order_detail_cancel_id: responseJson[i]['order_detail_cancel_id'],
+            order_detail_cancel_key: responseJson[i]['order_detail_cancel_key'],
+            order_detail_sqlite_id: detailData.order_detail_sqlite_id.toString(),
+            order_detail_key: responseJson[i]['order_detail_key'],
+            quantity: responseJson[i]['quantity'],
+            quantity_before_cancel: responseJson[i]['quantity_before_cancel'] ?? '',
+            cancel_by: responseJson[i]['cancel_by'],
+            cancel_by_user_id: responseJson[i]['cancel_by_user_id'],
+            cancel_reason: responseJson[i]['cancel_reason'] ?? '',
+            settlement_sqlite_id: responseJson[i]['settlement_key'] != '' ? settlement?.settlement_sqlite_id.toString() : '',
+            settlement_key: responseJson[i]['settlement_key'],
+            status: responseJson[i]['status'],
+            sync_status: 1,
+            created_at: responseJson[i]['created_at'],
+            updated_at: responseJson[i]['updated_at'],
+            soft_delete: responseJson[i]['soft_delete'],
+          ));
+        } catch(e) {
+          FLog.error(
+            className: "loading",
+            text: "order detail cancel insert failed (order_detail_cancel_id: ${responseJson[i]['order_detail_cancel_id']})",
+            exception: "$e\n${responseJson[i].toJson()}",
+          );
         }
       }
-    } catch(e) {
-      FLog.error(
-        className: "loading",
-        text: "getAllOrderDetailCancel error",
-        exception: e,
-      );
     }
+  } catch(e) {
+    FLog.error(
+      className: "loading",
+      text: "getAllOrderDetailCancel error",
+      exception: e,
+    );
   }
+}
 
 /*
   save order modifier detail to database

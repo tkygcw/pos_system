@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:f_logs/model/flog/flog.dart';
 
+import '../../../object/branch.dart';
 import '../../../object/table.dart';
 import '../../../utils/Utils.dart';
 
@@ -369,6 +370,12 @@ class BillLayout extends ReceiptLayout{
       bytes += generator.reset();
       if(paidOrder!.payment_status == 2){
         bytes += generator.text('** Refund **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
+        bytes += generator.emptyLines(1);
+      }
+
+      if(receipt!.header_image_status == 1){
+        img.Image processedImage = await getBranchLogo(receipt!.header_image_size!);
+        bytes += generator.imageRaster(processedImage, align: PosAlign.center);
         bytes += generator.emptyLines(1);
       }
 

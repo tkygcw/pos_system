@@ -90,7 +90,9 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
                   onTap: () {
                     showDialog(
                       context: context,
-                      builder: (context) => CustomPinDialog(callback: () => openSyncDialog(SyncType.firestore_sync),
+                      builder: (context) => CustomPinDialog(
+                        permission: Permission.adminOnly,
+                        callback: () => openSyncDialog(SyncType.firestore_sync,),
                       ),
                     );
                     // openSyncDialog(SyncType.firestore_sync);

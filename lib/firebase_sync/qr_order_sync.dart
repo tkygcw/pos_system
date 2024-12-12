@@ -579,4 +579,31 @@ class FirestoreQROrderSync {
     }
     return status;
   }
+
+  Future<void> updateOrderDetailAndOrderCache(OrderDetail orderDetail, OrderCache orderCache) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
+    final orderDetailDocRef = firestore.collection(_tb_qr_order_cache).doc(orderDetail.order_cache_key).
+    collection(tableOrderDetail!).doc(orderDetail.order_detail_key);
+    final orderCacheDocRef = firestore.collection(_tb_qr_order_cache).doc(orderDetail.order_cache_key);
+    //perform transaction
+    try{
+      await firestore.runTransaction((transaction) async {
+        var orderDetailDocSnapshot = await transaction.get(orderDetailDocRef);
+        var orderCacheDocSnapshot = await transaction.get(orderCacheDocRef);
+        if(orderDetailDocSnapshot.exists){
+          transaction.set(orderDetailDocSnapshot.reference, orderDetail.toFirestoreJson(), SetOptions(merge: true));
+          transaction.set(orderCacheDocSnapshot.reference, orderCache.toFirestoreJson(), SetOptions(merge: true));
+        }
+      });
+    }catch(e, stackTrace){
+      FLog.error(
+        className: "firestore qr order sync ",
+        text: "updateOrderDetailAndCacheSubtotal error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+  }
 }
