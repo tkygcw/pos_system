@@ -136,7 +136,6 @@ class _MakePaymentState extends State<MakePayment> {
   int myCount = 0, initLoad = 0;
   late Map branchObject;
   bool isButtonDisable = false, willPop = true;
-  String tableNo = 'N/A';
   String orderCacheSqliteId = '';
   bool isload = false;
   late bool split_payment = false;
@@ -204,22 +203,25 @@ class _MakePaymentState extends State<MakePayment> {
     }
   }
 
-  reInitSecondDisplay({isWillPop, cart}) async {
+  reInitSecondDisplay({isWillPop, CartModel? cart}) async {
     if (isWillPop == true) {
       await displayManager.transferDataToPresentation("init");
     } else {
-      SecondDisplayData data = SecondDisplayData(
-        tableNo: getSelectedTable(),
-        itemList: cart.cartNotifierItem,
-        subtotal: cart.cartNotifierPayment[0].subtotal.toStringAsFixed(2),
-        totalDiscount: getTotalDiscount(),
-        totalTax: getTotalTax(),
-        amount: cart.cartNotifierPayment[0].amount.toStringAsFixed(2),
-        rounding: cart.cartNotifierPayment[0].rounding.toStringAsFixed(2),
-        finalAmount: cart.cartNotifierPayment[0].finalAmount,
-        payment_link_company_id: widget.payment_link_company_id
-      );
-      await displayManager.transferDataToPresentation(jsonEncode(data));
+      if(cart != null){
+        SecondDisplayData data = SecondDisplayData(
+            tableNo: getSelectedTable(),
+            itemList: cart.cartNotifierItem,
+            subtotal: cart.cartNotifierPayment[0].subtotal.toStringAsFixed(2),
+            totalDiscount: getTotalDiscount(),
+            totalTax: getTotalTax(),
+            amount: cart.cartNotifierPayment[0].amount.toStringAsFixed(2),
+            rounding: cart.cartNotifierPayment[0].rounding.toStringAsFixed(2),
+            finalAmount: cart.cartNotifierPayment[0].finalAmount,
+            payment_link_company_id: widget.payment_link_company_id,
+            selectedOption: cart.selectedOption
+        );
+        await displayManager.transferDataToPresentation(jsonEncode(data));
+      }
     }
   }
 
@@ -3619,9 +3621,9 @@ class _MakePaymentState extends State<MakePayment> {
       if(orderQueue != '')
         return orderQueue;
       else
-        return 'N/A';
+        return '-';
     } else {
-      return 'N/A';
+      return '-';
     }
   }
 
@@ -3632,7 +3634,7 @@ class _MakePaymentState extends State<MakePayment> {
     List<String> result = [];
     if (widget.dining_name == 'Dine in') {
       if (selectedTableList.isEmpty) {
-        result.add('No table');
+        result.add('-');
       } else {
         for (int i = 0; i < selectedTableList.length; i++) {
           result.add('${selectedTableList[i].number}');
@@ -3640,7 +3642,7 @@ class _MakePaymentState extends State<MakePayment> {
       }
       return result.toString().replaceAll('[', '').replaceAll(']', '');
     } else {
-      return 'N/A';
+      return '-';
     }
   }
 

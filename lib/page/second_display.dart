@@ -134,7 +134,13 @@ class _SecondDisplayState extends State<SecondDisplay> {
                   padding: EdgeInsets.all(10),
                   child: Column(
                     children: [
-                      Text(AppLocalizations.of(context)!.translate('table_no')+': ${obj?.tableNo ?? 'N/A'}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(AppLocalizations.of(context)!.translate('table_no')+': ${obj?.tableNo ?? '-'}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                          Text(obj?.selectedOption ?? '', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                        ],
+                      ),
                       Card(
                         elevation: 5,
                         child: Container(
