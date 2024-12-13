@@ -102,7 +102,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                                           DataColumn(
                                             label: Expanded(
                                               child: Text(
-                                                AppLocalizations.of(context)!.translate('total_sales'),
+                                                AppLocalizations.of(context)!.translate('gross_sales'),
                                                 style: TextStyle(fontWeight: FontWeight.bold),
                                               ),
                                             ),
@@ -150,7 +150,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                                           DataColumn(
                                             label: Expanded(
                                               child: Text(
-                                                AppLocalizations.of(context)!.translate('total_cancellation'),
+                                                AppLocalizations.of(context)!.translate('total_sales'),
                                                 style: TextStyle(fontWeight: FontWeight.bold),
                                               ),
                                             ),
@@ -235,7 +235,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                                         DataColumn(
                                           label: Expanded(
                                             child: Text(
-                                              AppLocalizations.of(context)!.translate('total_sales'),
+                                              AppLocalizations.of(context)!.translate('gross_sales'),
                                               style: TextStyle(fontWeight: FontWeight.bold),
                                             ),
                                           ),
@@ -283,7 +283,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                                         DataColumn(
                                           label: Expanded(
                                             child: Text(
-                                              AppLocalizations.of(context)!.translate('total_cancellation'),
+                                              AppLocalizations.of(context)!.translate('total_sales'),
                                               style: TextStyle(fontWeight: FontWeight.bold),
                                             ),
                                           ),
@@ -369,13 +369,13 @@ class _DailySalesReportState extends State<DailySalesReport> {
             cells: <DataCell>[
               DataCell(Text('${settlementList[i].created_at}')),
               DataCell(Text('${settlementList[i].all_bill}')),
-              DataCell(Text('${settlementList[i].all_sales?.toStringAsFixed(2)}')),
+              DataCell(Text('${(settlementList[i].all_sales!-settlementList[i].all_charge_amount!-settlementList[i].all_tax_amount!+settlementList[i].all_discount!).toStringAsFixed(2)}')),
               DataCell(Text('${settlementList[i].all_refund_bill}')),
               DataCell(Text('${settlementList[i].all_refund_amount?.toStringAsFixed(2)}')),
               DataCell(Text('${settlementList[i].all_discount?.toStringAsFixed(2)}')),
               DataCell(Text('${settlementList[i].all_charge_amount?.toStringAsFixed(2)}')),
               DataCell(Text('${settlementList[i].all_tax_amount?.toStringAsFixed(2)}')),
-              DataCell(Text('${settlementList[i].all_cancellation}')),
+              DataCell(Text('${settlementList[i].all_sales?.toStringAsFixed(2)}')),
               for(int j = 0; j < paymentLinkCompanyList.length; j++)
                 DataCell(Text('${settlementLinkPaymentList[j].all_payment_sales?.toStringAsFixed(2)}')),
 

@@ -21,6 +21,7 @@ class BranchFields {
     close_qr_order,
     register_no,
     allow_firestore,
+    allow_livedata,
     qr_show_sku,
     qr_product_sequence,
     show_qr_history
@@ -45,6 +46,7 @@ class BranchFields {
   static String close_qr_order = 'close_qr_order';
   static String register_no = 'register_no';
   static String allow_firestore = 'allow_firestore';
+  static String allow_livedata = 'allow_livedata';
   static String qr_show_sku = 'qr_show_sku';
   static String qr_product_sequence = 'qr_product_sequence';
   static String show_qr_history = 'show_qr_history';
@@ -71,6 +73,7 @@ class Branch {
   int? close_qr_order;
   String? register_no;
   int? allow_firestore;
+  int? allow_livedata;
   int? qr_show_sku;
   int? qr_product_sequence;
   String? show_qr_history;
@@ -96,6 +99,7 @@ class Branch {
     this.close_qr_order,
     this.register_no,
     this.allow_firestore,
+    this.allow_livedata,
     this.qr_show_sku,
     this.qr_product_sequence,
     this.show_qr_history,
@@ -122,6 +126,7 @@ class Branch {
     close_qr_order: close_qr_order ?? this.close_qr_order,
     register_no: register_no ?? this.register_no,
     allow_firestore: allow_firestore ?? this.allow_firestore,
+    allow_livedata: allow_livedata ?? this.allow_livedata,
     qr_show_sku: qr_show_sku ?? this.qr_show_sku,
     qr_product_sequence: qr_product_sequence ?? this.qr_product_sequence,
     show_qr_history: show_qr_history ?? this.show_qr_history
@@ -148,6 +153,7 @@ class Branch {
       close_qr_order: json[BranchFields.close_qr_order] as int?,
       register_no: json[BranchFields.register_no] as String?,
       allow_firestore: json[BranchFields.allow_firestore] as int?,
+      allow_livedata: json[BranchFields.allow_livedata] as int?,
       qr_show_sku: json[BranchFields.qr_show_sku] as int?,
       qr_product_sequence: json[BranchFields.qr_product_sequence] as int?,
       show_qr_history: json[BranchFields.show_qr_history] as String?,
@@ -175,6 +181,7 @@ class Branch {
     BranchFields.close_qr_order: close_qr_order,
     BranchFields.register_no: register_no,
     BranchFields.allow_firestore: allow_firestore,
+    BranchFields.allow_livedata: allow_livedata,
     BranchFields.qr_show_sku: qr_show_sku,
     BranchFields.qr_product_sequence: qr_product_sequence,
     BranchFields.show_qr_history: show_qr_history
@@ -199,6 +206,7 @@ class Branch {
     BranchFields.close_qr_order: close_qr_order,
     BranchFields.register_no: register_no,
     BranchFields.allow_firestore: allow_firestore,
+    BranchFields.allow_livedata: allow_livedata,
     BranchFields.qr_show_sku: qr_show_sku,
     BranchFields.qr_product_sequence: qr_product_sequence,
     BranchFields.show_qr_history: show_qr_history,
