@@ -36,7 +36,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
   AppSetting appSetting = AppSetting();
   late StreamController streamController;
   late Stream actionStream;
-  Receipt? receiptObject;
   final List<String> sortBy = [
     'default',
     'product_name',
@@ -81,7 +80,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
         case 'init':{
           await checkStatus();
           await getAllAppSetting();
-          await read80mmReceiptLayout();
           controller.refresh(streamController);
         }
         break;
@@ -128,13 +126,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
     }
   }
 
-  read80mmReceiptLayout() async {
-    Receipt? data = await PosDatabase.instance.readSpecificReceipt("80");
-    if(data != null){
-      receiptObject = data;
-    }
-  }
-
   getAllAppSetting() async {
     AppSetting? data = await PosDatabase.instance.readAppSetting();
     if(data != null){
@@ -178,7 +169,7 @@ class _HardwareSettingState extends State<HardwareSetting> {
       }
 
       if(appSetting.variant_item_sort_by != null){
-        variantSelectedValue = appSetting.variant_item_sort_by!;
+        variantSelectedValue = appSetting.variant_item_sort_by;
       }
     }
   }
@@ -307,7 +298,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
                                 },
                                 child: Icon(Icons.reset_tv))
                           ),
-
                           Divider(
                             color: Colors.grey,
                             height: 1,
@@ -441,6 +431,13 @@ class _HardwareSettingState extends State<HardwareSetting> {
                               ),
                             ),
                           ),
+                          Divider(
+                            color: Colors.grey,
+                            height: 1,
+                            thickness: 1,
+                            indent: 20,
+                            endIndent: 20,
+                          ),
                         ],
                       ),
                     );
@@ -527,6 +524,7 @@ class _HardwareSettingState extends State<HardwareSetting> {
     );
     int data = await PosDatabase.instance.updateVariantItemSortBySettings(object);
   }
+
 
   Future<bool> anyTableUse() async {
     List<PosTable> tableList = await PosDatabase.instance.readAllTable();
