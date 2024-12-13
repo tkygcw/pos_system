@@ -83,7 +83,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 31, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
+    return await openDatabase(path, version: 32, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
   }
 
 /*
@@ -5501,6 +5501,14 @@ class PosDatabase {
   Future<int> updateQrOrderAutoAcceptSetting(AppSetting data) async {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableAppSetting SET qr_order_auto_accept = ?, sync_status = ?, updated_at = ?', [data.qr_order_auto_accept, 2, data.updated_at]);
+  }
+
+/*
+  update qr order alert Setting
+*/
+  Future<int> updateQrOrderAlertSetting(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET qr_order_alert = ?, sync_status = ?, updated_at = ?', [data.qr_order_alert, 2, data.updated_at]);
   }
 
 /*

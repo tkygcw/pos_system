@@ -40,7 +40,7 @@ class _OrderSettingState extends State<OrderSetting> {
   Receipt? receiptObject;
   bool printCheckList = false, enableNumbering = false, printReceipt = false, hasQrAccess = true, printCancelReceipt = true,
       directPayment = false, qrOrderAutoAccept = false, cashDrawer = false, secondDisplay = false, invalidAfterPayment = true,
-      settlementAfterAllOrderPaid = false, hideDiningMethodTableNo = false, requiredReason = false;
+      settlementAfterAllOrderPaid = false, hideDiningMethodTableNo = false, requiredReason = false, qrOrderAlert = false;
   int startingNumber = 0, compareStartingNumber = 0;
   final List<String> tableModeOption = [
     'table_mode_no_table',
@@ -74,6 +74,11 @@ class _OrderSettingState extends State<OrderSetting> {
         break;
         case 'direct_payment':{
           await updateDirectPaymentAppSetting();
+          controller.refresh(streamController);
+        }
+        break;
+        case 'qr_order_alert':{
+          await updateQrOrderAlertSetting();
           controller.refresh(streamController);
         }
         break;
@@ -181,6 +186,10 @@ class _OrderSettingState extends State<OrderSetting> {
 
       if(appSetting.required_cancel_reason == 1) {
         requiredReason = true;
+      }
+
+      if(appSetting.qr_order_alert == 1) {
+        qrOrderAlert = true;
       }
     }
   }
@@ -545,6 +554,19 @@ class _OrderSettingState extends State<OrderSetting> {
                             endIndent: 20,
                           ),
                           ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('qr_order_alert')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('qr_order_alert_desc')),
+                            trailing: Switch(
+                              value: qrOrderAlert,
+                              activeColor: color.backgroundColor,
+                              onChanged: (value) {
+                                qrOrderAlert = value;
+                                appSettingModel.setQrOrderAlertStatus(qrOrderAlert);
+                                actionController.sink.add("qr_order_alert");
+                              },
+                            ),
+                          ),
+                          ListTile(
                             title: Text(AppLocalizations.of(context)!.translate('auto_accept_qr_order')),
                             subtitle: Text(AppLocalizations.of(context)!.translate('auto_accept_qr_order_desc')),
                             trailing: Switch(
@@ -712,6 +734,17 @@ class _OrderSettingState extends State<OrderSetting> {
         updated_at: dateTime
     );
     await PosDatabase.instance.updateQrOrderAutoAcceptSetting(object);
+  }
+
+  updateQrOrderAlertSetting() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    AppSetting object = AppSetting(
+        qr_order_alert: this.qrOrderAlert == true ? 1 : 0,
+        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
+        updated_at: dateTime
+    );
+    await PosDatabase.instance.updateQrOrderAlertSetting(object);
   }
 
   updateDynamicQrInvalidAfterPaymentAppSetting() async {

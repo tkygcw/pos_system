@@ -20,6 +20,7 @@ class AppSettingModel extends ChangeNotifier {
   int? variant_item_sort_by;
   bool? dynamic_qr_invalid_after_payment;
   bool? required_cancel_reason;
+  bool? qr_order_alert;
 
   AppSettingModel({
     this.directPaymentStatus,
@@ -84,6 +85,11 @@ class AppSettingModel extends ChangeNotifier {
 
   void setQrOrderAutoAcceptStatus(bool status) {
     qr_order_auto_accept = status;
+    notifyListeners();
+  }
+
+  void setQrOrderAlertStatus(bool status) {
+    qr_order_alert = status;
     notifyListeners();
   }
 

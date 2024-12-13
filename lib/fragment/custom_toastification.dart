@@ -67,6 +67,17 @@ class ShowQRToast {
   }
 }
 
+class ShowOfflineToast {
+  static showToast(){
+    _CustomToastification.showToastificationAndSound(
+        title: AppLocalizations.of(_CustomToastification.context)!.translate('offline_mode'),
+        isError: true,
+        showProgressBar: false,
+        playSound: false,
+        autoCloseDuration: 5);
+  }
+}
+
 class ShowFailedPrintKitchenToast {
   static showToast(){
     _CustomToastification.showToastificationAndSound(

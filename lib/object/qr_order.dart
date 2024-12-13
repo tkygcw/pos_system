@@ -162,7 +162,9 @@ class QrOrder extends ChangeNotifier {
         asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
         return;
       }
-      ShowQRToast.showToast();
+      if(localSetting.qr_order_alert == 1){
+        ShowQRToast.showToast();
+      }
     }
   }
 
