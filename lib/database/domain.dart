@@ -209,8 +209,12 @@ class Domain {
         'platform': platform,
       });
       return jsonDecode(response.body);
-    } catch(e){
-      Fluttertoast.showToast(msg: e.toString());
+    } catch(e, s){
+      FLog.error(
+        className: "loading",
+        text: "dynamic qr insert failed",
+        exception: "Error: $e, StackTrace: $s",
+      );
     }
   }
 
@@ -2548,8 +2552,12 @@ class Domain {
       });
       print(jsonDecode(response.body));
       return jsonDecode(response.body);
-    } catch (error) {
-      Fluttertoast.showToast(msg: error.toString());
+    } catch (error, s) {
+      FLog.error(
+        className: "loading",
+        text: "dynamic qr insert failed",
+        exception: "Error: $error, StackTrace: $s",
+      );
     }
   }
 
