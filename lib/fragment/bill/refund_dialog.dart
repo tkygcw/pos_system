@@ -234,17 +234,12 @@ class _RefundDialogState extends State<RefundDialog> {
                     if(data != null && data.allow_livedata == 1){
                       if(!isSyncing){
                         isSyncing = true;
-                        Fluttertoast.showToast(msg: 'sync status started: ${DateTime.now()}');
-                        print('sync status started: ${DateTime.now()}');
                         do{
                           await syncToCloud.syncAllToCloud(isManualSync: true);
                         }while(syncToCloud.emptyResponse == false);
                         if(syncToCloud.emptyResponse == true){
-                          print('sync status finished: ${DateTime.now()}');
                           isSyncing = false;
                         }
-                      } else {
-                        print("syncing");
                       }
                     }
                   }
@@ -271,17 +266,12 @@ class _RefundDialogState extends State<RefundDialog> {
           if(data != null && data.allow_livedata == 1){
             if(!isSyncing){
               isSyncing = true;
-              Fluttertoast.showToast(msg: 'sync status started: ${DateTime.now()}');
-              print('sync status started: ${DateTime.now()}');
               do{
                 await syncToCloud.syncAllToCloud(isManualSync: true);
               }while(syncToCloud.emptyResponse == false);
               if(syncToCloud.emptyResponse == true){
-                print('sync status finished: ${DateTime.now()}');
                 isSyncing = false;
               }
-            } else {
-              print("syncing");
             }
           }
         } else {
