@@ -780,7 +780,7 @@ class _ReportOverviewState extends State<ReportOverview> {
               for(int k = 0; k < orderPaymentSplit.length; k++) {
                 if (paymentList[j].payment_link_company_id == int.parse(orderPaymentSplit[k].payment_link_company_id!)) {
                   paymentList[j].total_bill++;
-                  paymentList[j].totalAmount += double.parse(orderPaymentSplit[k].payment_received!);
+                  paymentList[j].totalAmount += double.parse(orderPaymentSplit[k].amount!);
                 }
               }
             }

@@ -202,6 +202,8 @@ class _LogoutConfirmDialogState extends State<LogoutConfirmDialog> {
     PosDatabase.instance.clearAllAttendance();
     //clear current version
     PosDatabase.instance.clearAllCurrentVersion();
+    //clear checklist layout
+    PosDatabase.instance.clearAllCancelReceipt();
   }
 
   Future<String> get _localPath async {

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/fragment/setting/cancel_receipt_setting/cancel_receipt_dialog.dart';
 import 'package:pos_system/fragment/setting/kitchenlist_dialog.dart';
 import 'package:pos_system/fragment/setting/qr_code_setting/qr_receipt_dialog.dart';
 import 'package:pos_system/fragment/setting/receipt_dialog.dart';
@@ -278,6 +279,28 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
         });
   }
 
+  Future<Future<Object?>> openCancelReceiptDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: CancelReceiptDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
   Future<Future<Object?>> openDynamicQRDialog() async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
@@ -348,6 +371,14 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                             trailing: Icon(Icons.navigate_next),
                             onTap: (){
                               openKitchenlistDialog();
+                            },
+                          ),
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('cancel_receipt_setting')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('customize_your_cancel_receipt_look')),
+                            trailing: Icon(Icons.navigate_next),
+                            onTap: (){
+                              openCancelReceiptDialog();
                             },
                           ),
                           ListTile(
