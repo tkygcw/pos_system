@@ -141,6 +141,8 @@ PODS:
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
+  - permission_handler_apple (9.3.0):
+    - Flutter
   - PhoneNumberKit (3.7.11):
     - PhoneNumberKit/PhoneNumberKitCore (= 3.7.11)
     - PhoneNumberKit/UIKit (= 3.7.11)
@@ -195,6 +197,7 @@ DEPENDENCIES:
   - package_info (from `.symlinks/plugins/package_info/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
+  - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - presentation_displays (from `.symlinks/plugins/presentation_displays/ios`)
   - print_bluetooth_thermal (from `.symlinks/plugins/print_bluetooth_thermal/ios`)
   - printing (from `.symlinks/plugins/printing/ios`)
@@ -279,6 +282,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/package_info_plus/ios"
   path_provider_foundation:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
+  permission_handler_apple:
+    :path: ".symlinks/plugins/permission_handler_apple/ios"
   presentation_displays:
     :path: ".symlinks/plugins/presentation_displays/ios"
   print_bluetooth_thermal:
@@ -344,6 +349,7 @@ SPEC CHECKSUMS:
   package_info: 873975fc26034f0b863a300ad47e7f1ac6c7ec62
   package_info_plus: 58f0028419748fad15bf008b270aaa8e54380b1c
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
+  permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
   PhoneNumberKit: ced55861269312a5e3bc2ef82a58d6255b1c976a
   presentation_displays: 02a9b05f708afe31d23564988f285b4d8019ddcd
   print_bluetooth_thermal: 54a9ba9436479dd633d18f393669ee793ee498fa

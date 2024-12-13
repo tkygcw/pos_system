@@ -2011,6 +2011,18 @@ class PosDatabase {
   }
 
 /*
+  read branch not-auto apply promotion
+*/
+  Future<List<Promotion>> readNotAutoApplyPromotion() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT a.* FROM $tablePromotion AS a JOIN $tableBranchLinkPromotion AS b ''ON a.promotion_id == b.promotion_id '
+        'WHERE a.auto_apply = ? AND a.soft_delete = ? AND b.soft_delete = ?',
+        [0, '', '']);
+
+    return result.map((json) => Promotion.fromJson(json)).toList();
+  }
+
+/*
   read all branch link modifier price
 */
   Future<List<BranchLinkModifier>> readAllBranchLinkModifier() async {

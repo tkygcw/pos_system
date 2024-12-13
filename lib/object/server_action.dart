@@ -10,12 +10,15 @@ import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
+import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/second_device/cart_dialog_function.dart';
 import 'package:pos_system/second_device/order/dine_in_order.dart';
 import 'package:pos_system/second_device/order/place_order.dart';
+import 'package:pos_system/second_device/payment/payment_function.dart';
+import 'package:pos_system/second_device/promotion/promotion_function.dart';
 import 'package:pos_system/second_device/reprint_kitchen_list_function.dart';
 import 'package:pos_system/second_device/table_function.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -327,7 +330,11 @@ class ServerAction {
             result = {'status': '1', 'data': objectData};
           }catch(e){
             result = {'status': '4'};
-            print("cart dialog remove merged table request error: $e");
+            FLog.error(
+              className: "checkAction",
+              text: "Server action 13 error",
+              exception: "$e",
+            );
           }
         }
         break;
@@ -354,6 +361,65 @@ class ServerAction {
           }catch(e){
             result = {'status': '4'};
             print("resend branch link product request error: $e");
+          }
+        }
+        break;
+        case '16': {
+          try{
+            var decodeParam = jsonDecode(param);
+            PosTable posTable = PosTable.fromJson(decodeParam);
+            TableFunction function = TableFunction();
+            await function.readSpecificTableDetail(posTable);
+            objectData = {
+              'orderCacheList': function.orderCacheList,
+              'orderDetailList': function.orderDetailList
+            };
+            result = {'status': '1', 'action': '16', 'data': objectData};
+          }catch(e, s){
+            result = {'status': '4'};
+            FLog.error(
+              className: "checkAction",
+              text: "Server action 16 error",
+              exception: "Error: $e, StackTrace: $s",
+            );
+          }
+        }
+        break;
+        case '17': {
+          //get company payment method
+          try{
+            var function = PaymentFunction();
+            List<PaymentLinkCompany> paymentMethod = await function.getCompanyPaymentMethod();
+            objectData = {
+              'paymentMethod': paymentMethod,
+            };
+            result = {'status': '1', 'action': '17', 'data': objectData};
+          }catch(e, s){
+            result = {'status': '4'};
+            FLog.error(
+              className: "checkAction",
+              text: "Server action 17 error",
+              exception: "Error: $e, StackTrace: $s",
+            );
+          }
+        }
+        break;
+        case '18': {
+          //get branch selected promotion
+          try{
+            var function = PromotionFunction();
+            List<Promotion> promotion = await function.getBranchPromotion();
+            objectData = {
+              'promotion': promotion,
+            };
+            result = {'status': '1', 'action': '18', 'data': objectData};
+          }catch(e, s){
+            result = {'status': '4'};
+            FLog.error(
+              className: "checkAction",
+              text: "Server action 18 error",
+              exception: "Error: $e, StackTrace: $s",
+            );
           }
         }
         break;
