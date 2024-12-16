@@ -118,6 +118,8 @@ class Order {
   List<OrderTaxDetail> taxDetailList = [];
   String? counterOpenDate;
   String? amountSplit;
+  double? total_charge_amount;
+  double? total_promo_amount;
 
   generateOrderNumber(){
     String orderNum = '';
@@ -170,7 +172,9 @@ class Order {
         this.total_tax_amount,
         this.tax_id,
         this.counterOpenDate,
-        this.amountSplit
+        this.amountSplit,
+        this.total_charge_amount,
+        this.total_promo_amount
       });
 
   Order copy({
@@ -287,6 +291,8 @@ class Order {
       tax_id: json['tax_id'] as String?,
       counterOpenDate: json['counterOpenDate'] as String?,
       amountSplit: json['amountSplit'] as String?,
+      total_charge_amount: json['total_charge_amount'] as double?,
+      total_promo_amount: json['total_promo_amount'] as double?
   );
 
   Map<String, Object?> toJson() => {

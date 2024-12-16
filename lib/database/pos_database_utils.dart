@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:pos_system/object/sales_per_day.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -1101,6 +1102,25 @@ class PosDatabaseUtils {
           ${CancelReceiptFields.created_at} $textType,
           ${CancelReceiptFields.updated_at} $textType,
           ${CancelReceiptFields.soft_delete} $textType)''');
+
+/*
+    create sales per day table
+*/
+    await db.execute('''CREATE TABLE $tableSalesPerDay(
+          ${SalesPerDayFields.sales_per_day_sqlite_id} $idType,
+          ${SalesPerDayFields.sales_per_day_id} $integerType,
+          ${SalesPerDayFields.branch_id} $textType,
+          ${SalesPerDayFields.total_amount} $textType,
+          ${SalesPerDayFields.tax} $textType,
+          ${SalesPerDayFields.charge} $textType,
+          ${SalesPerDayFields.promotion} $textType,
+          ${SalesPerDayFields.date} $textType,
+          ${SalesPerDayFields.payment_method} $textType,
+          ${SalesPerDayFields.payment_method_sales} $textType,
+          ${SalesPerDayFields.sync_status} $integerType,
+          ${SalesPerDayFields.created_at} $textType,
+          ${SalesPerDayFields.updated_at} $textType,
+          ${SalesPerDayFields.soft_delete} $textType)''');
 
   }
 

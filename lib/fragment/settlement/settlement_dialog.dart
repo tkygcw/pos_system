@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/custom_pin_dialog.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:pos_system/object/order_payment_split.dart';
@@ -239,6 +240,27 @@ class _SettlementDialogState extends State<SettlementDialog> {
     return Navigator.of(context).pop(true);
   }
 
+  showCustomPinDialog(){
+    return showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) {
+          return PopScope(
+              canPop: willPop,
+              child: CustomPinDialog(
+                permission: Permission.settlement,
+                callback: () async {
+                  willPop = false;
+                  currentSettlementDateTime = dateFormat.format(DateTime.now());
+                  await callSettlement();
+                  await openSyncToCloudDialog();
+                }
+              ),
+          );
+        },
+    );
+  }
+
   Future showSecondDialog(BuildContext context, ThemeColor color) {
     return showDialog(
         barrierDismissible: false,
@@ -359,30 +381,13 @@ class _SettlementDialogState extends State<SettlementDialog> {
               User userData = User.fromJson(userMap);
 
               if(userData.settlement_permission != 1) {
-                await showSecondDialog(context, color);
-                closeDialog(context);
+                // closeDialog(context);
+                showCustomPinDialog();
+                // await showSecondDialog(context, color);
               } else {
                 currentSettlementDateTime = dateFormat.format(DateTime.now());
                 await callSettlement();
-                if (await confirm(
-                  context,
-                  title: Text('${AppLocalizations.of(context)?.translate('confirm_sync')}'),
-                  content: Text('${AppLocalizations.of(context)?.translate('confirm_sync_desc')}'),
-                  textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                  textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
-                )) {
-                  bool? status = await openSyncDialog();
-                  if(status != null && status == true){
-                    widget.callBack();
-                    Navigator.of(context).pop();
-                  } else {
-                    widget.callBack();
-                    Navigator.of(context).pop();
-                  }
-                } else {
-                  widget.callBack();
-                  Navigator.of(context).pop();
-                }
+                openSyncToCloudDialog();
                 // Navigator.of(context).pop();
               }
             },
@@ -390,6 +395,28 @@ class _SettlementDialogState extends State<SettlementDialog> {
         ],
       );
     });
+  }
+
+  openSyncToCloudDialog() async {
+    if (await confirm(
+      context,
+      title: Text('${AppLocalizations.of(context)?.translate('confirm_sync')}'),
+      content: Text('${AppLocalizations.of(context)?.translate('confirm_sync_desc')}'),
+      textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+      textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+    )) {
+      bool? status = await openSyncDialog();
+      if(status != null && status == true){
+        widget.callBack();
+        Navigator.of(context).pop();
+      } else {
+        widget.callBack();
+        Navigator.of(context).pop();
+      }
+    } else {
+      widget.callBack();
+      Navigator.of(context).pop();
+    }
   }
 
 /*
@@ -612,12 +639,10 @@ class _SettlementDialogState extends State<SettlementDialog> {
             updated_at: currentSettlementDateTime,
             sync_status: _orderList[i].sync_status == 0 ? 0 : 2,
             settlement_key: this.settlement!.settlement_key,
-            settlement_sqlite_id:
-                this.settlement!.settlement_sqlite_id.toString(),
+            settlement_sqlite_id: this.settlement!.settlement_sqlite_id.toString(),
             order_sqlite_id: _orderList[i].order_sqlite_id);
         int status = await PosDatabase.instance.updateOrderSettlement(object);
-        Order order = await PosDatabase.instance
-            .readSpecificOrder(_orderList[i].order_sqlite_id!);
+        Order order = await PosDatabase.instance.readSpecificOrder(_orderList[i].order_sqlite_id!);
         _value.add(jsonEncode(order));
       }
       this.order_value = _value.toString();

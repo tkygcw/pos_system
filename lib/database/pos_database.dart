@@ -4620,6 +4620,23 @@ class PosDatabase {
 /*
   get not yet settlement order
 */
+  Future<List<Order>> readAllNotSettlementOrderSpecial() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT o.created_at, SUM(o.final_amount) AS total_sales, '
+            'SUM(opd.promotion_amount) as total_promo_amount, '
+            'SUM(CASE WHEN td.type = ? THEN td.tax_amount ELSE 0 END) as total_charge_amount, '
+            'SUM(CASE WHEN td.type = ? THEN td.tax_amount ELSE 0 END) AS total_tax_amount '
+            'FROM $tableOrder as o '
+            'LEFT JOIN $tableOrderPromotionDetail as opd ON o.order_sqlite_id = opd.order_sqlite_id '
+            'LEFT JOIN $tableOrderTaxDetail td ON opd.order_sqlite_id = td.order_sqlite_id GROUP BY SUBSTR(o.created_at, 1, 10)',
+        ['0', '1']);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  get not yet settlement order
+*/
   Future<List<Order>> readAllNotSettlementPaidOrder() async {
     final db = await instance.database;
     final result = await db.rawQuery(
