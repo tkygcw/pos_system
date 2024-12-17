@@ -157,7 +157,7 @@ class BillLayout extends ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: 'Qty ', width: 2, styles: PosStyles(bold: true)),
         PosColumn(text: 'Item', width: 7, styles: PosStyles(bold: true)),
-        PosColumn(text: 'Price', width: 3, styles: PosStyles(bold: true, align: PosAlign.right)),
+        PosColumn(text: 'Price(MYR)', width: 3, styles: PosStyles(bold: true, align: PosAlign.right)),
       ]);
       bytes += generator.hr();
       //order product
@@ -273,7 +273,7 @@ class BillLayout extends ReceiptLayout{
       //total
       bytes += generator.hr();
       bytes += generator.row([
-        PosColumn(text: 'Final Amount', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2)),
+        PosColumn(text: 'Final Amount(MYR)', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2)),
         PosColumn(
             text: '${this.paidOrder!.final_amount}',
             width: 4,
@@ -490,7 +490,7 @@ class BillLayout extends ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: 'Qty ', width: 2, styles: PosStyles(bold: true)),
         PosColumn(text: 'Item', width: 6, styles: PosStyles(bold: true)),
-        PosColumn(text: 'Price', width: 4, styles: PosStyles(bold: true)),
+        PosColumn(text: 'Price(MYR)', width: 4, styles: PosStyles(bold: true)),
       ]);
       bytes += generator.hr();
       //order product
@@ -591,7 +591,7 @@ class BillLayout extends ReceiptLayout{
       //total
       bytes += generator.hr();
       bytes += generator.row([
-        PosColumn(text: 'Final Amount', width: 8),
+        PosColumn(text: 'Final Amount(MYR)', width: 8),
         PosColumn(
             text: '${this.paidOrder!.final_amount}',
             width: 4,

@@ -37,6 +37,11 @@ class CartModel extends ChangeNotifier {
 
   List<OrderCache> get currentOrderCache => _currentOrderCache;
 
+  double get cartSubTotal {
+    return cartNotifierItem.fold(0.0, (sum, item) => sum + (double.parse(item.price!) * item.quantity!));
+  }
+
+
   CartModel({
     List<cartProductItem>? cartNotifierItem,
     List<cartPaymentDetail>? cartNotifierPayment,

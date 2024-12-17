@@ -134,7 +134,13 @@ class _SecondDisplayState extends State<SecondDisplay> {
                   padding: EdgeInsets.all(10),
                   child: Column(
                     children: [
-                      Text(AppLocalizations.of(context)!.translate('table_no')+': ${obj?.tableNo}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(AppLocalizations.of(context)!.translate('table_no')+': ${obj?.tableNo ?? '-'}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                          Text(obj?.selectedOption ?? '', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                        ],
+                      ),
                       Card(
                         elevation: 5,
                         child: Container(
@@ -237,25 +243,27 @@ class _SecondDisplayState extends State<SecondDisplay> {
   initPaymentImage({required SecondDisplayData secondDisplayData}) async {
     try{
       paymentImg = null;
-      PaymentLinkCompany? data = await PosDatabase.instance.readSpecificPaymentLinkCompany(secondDisplayData.payment_link_company_id!);
-      if(data != null && data.allow_image == 1 && data.image_name != null && data.image_name != ''){
-        final folderName = secondDisplayData.payment_link_company_id.toString();
-        final directory = await _localPath;
-        final path = '$directory/assets/payment_qr/$folderName';
-        bool isPathExisted = await Directory(path).exists();
-        if(isPathExisted){
-          //check is image file exist or not
-          if(await FileImage(File(path + '/' + data.image_name!)).file.exists() == true){
-            print("Payment qr image found!!!");
-            paymentImg = FileImage(File(path + '/' + data.image_name!));
+      if(secondDisplayData.payment_link_company_id != null){
+        PaymentLinkCompany? data = await PosDatabase.instance.readSpecificPaymentLinkCompany(secondDisplayData.payment_link_company_id!);
+        if(data != null && data.allow_image == 1 && data.image_name != null && data.image_name != ''){
+          final folderName = secondDisplayData.payment_link_company_id.toString();
+          final directory = await _localPath;
+          final path = '$directory/assets/payment_qr/$folderName';
+          bool isPathExisted = await Directory(path).exists();
+          if(isPathExisted){
+            //check is image file exist or not
+            if(await FileImage(File(path + '/' + data.image_name!)).file.exists() == true){
+              print("Payment qr image found!!!");
+              paymentImg = FileImage(File(path + '/' + data.image_name!));
+            } else {
+              //download payment image
+              await _downloadPaymentImage(path, data);
+              paymentImg = FileImage(File(path + '/' + data.image_name!));
+            }
           } else {
-            //download payment image
-            await _downloadPaymentImage(path, data);
+            await _createPaymentQrFolder(paymentLinkCompany: data);
             paymentImg = FileImage(File(path + '/' + data.image_name!));
           }
-        } else {
-          await _createPaymentQrFolder(paymentLinkCompany: data);
-          paymentImg = FileImage(File(path + '/' + data.image_name!));
         }
       }
     }catch(e){
