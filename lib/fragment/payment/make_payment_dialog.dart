@@ -3561,6 +3561,18 @@ class _MakePaymentState extends State<MakePayment> {
           );
           //pass trans id from api res to payment success dialog
           openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name, ipayTransId: apiRes['data']);
+          Branch? data = await PosDatabase.instance.readLocalBranch();
+          if(data != null && data.allow_livedata == 1){
+            if(!isSyncing){
+              isSyncing = true;
+              do{
+                await syncToCloud.syncAllToCloud(isManualSync: true);
+              }while(syncToCloud.emptyResponse == false);
+              if(syncToCloud.emptyResponse == true){
+                isSyncing = false;
+              }
+            }
+          }
         } else {
           assetsAudioPlayer.open(
             Audio("audio/error_sound.mp3"),
@@ -4489,6 +4501,18 @@ class _MakePaymentState extends State<MakePayment> {
         return;
       }
       openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: true, diningName: widget.dining_name);
+      Branch? data = await PosDatabase.instance.readLocalBranch();
+      if(data != null && data.allow_livedata == 1){
+        if(!isSyncing){
+          isSyncing = true;
+          do{
+            await syncToCloud.syncAllToCloud(isManualSync: true);
+          }while(syncToCloud.emptyResponse == false);
+          if(syncToCloud.emptyResponse == true){
+            isSyncing = false;
+          }
+        }
+      }
     } else if (inputController.text.isEmpty) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
