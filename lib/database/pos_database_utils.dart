@@ -1,7 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:pos_system/object/sales_per_day.dart';
+import 'package:pos_system/object/sales_per_day/category_sales_per_day.dart';
+import 'package:pos_system/object/sales_per_day/dining_sales_per_day.dart';
+import 'package:pos_system/object/sales_per_day/product_sales_per_day.dart';
+import 'package:pos_system/object/sales_per_day/sales_per_day.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -48,6 +51,7 @@ import '../object/promotion.dart';
 import '../object/receipt.dart';
 import '../object/refund.dart';
 import '../object/sale.dart';
+import '../object/sales_per_day/modifier_sales_per_day.dart';
 import '../object/second_screen.dart';
 import '../object/settlement.dart';
 import '../object/settlement_link_payment.dart';
@@ -248,6 +252,9 @@ class PosDatabaseUtils {
           }break;
           case 31: {
             await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.allow_livedata} $integerType DEFAULT 0 ");
+          }break;
+          case 32: {
+            await dbVersion33Upgrade(db);
           }break;
         }
       }
@@ -1126,6 +1133,157 @@ class PosDatabaseUtils {
           ${SalesPerDayFields.updated_at} $textType,
           ${SalesPerDayFields.soft_delete} $textType)''');
 
+/*
+    create category sales per day table
+*/
+    await db.execute('''CREATE TABLE $tableSalesCategoryPerDay(
+          ${SalesCategoryPerDayFields.sales_category_per_day_sqlite_id} $idType,
+          ${SalesCategoryPerDayFields.sales_category_per_day_id} $integerType,
+          ${SalesCategoryPerDayFields.branch_id} $textType,
+          ${SalesCategoryPerDayFields.category_id} $textType,
+          ${SalesCategoryPerDayFields.category_name} $textType,
+          ${SalesCategoryPerDayFields.amount_sold} $textType,
+          ${SalesCategoryPerDayFields.total_amount} $textType,
+          ${SalesCategoryPerDayFields.total_ori_amount} $textType,
+          ${SalesCategoryPerDayFields.date} $textType,
+          ${SalesCategoryPerDayFields.sync_status} $integerType,
+          ${SalesCategoryPerDayFields.created_at} $textType,
+          ${SalesCategoryPerDayFields.updated_at} $textType,
+          ${SalesCategoryPerDayFields.soft_delete} $textType)''');
+
+/*
+    create product sales per day table
+*/
+    await db.execute('''CREATE TABLE $tableSalesProductPerDay(
+          ${SalesProductPerDayFields.sales_product_per_day_sqlite_id} $idType,
+          ${SalesProductPerDayFields.sales_product_per_day_id} $integerType,
+          ${SalesProductPerDayFields.branch_id} $textType,
+          ${SalesProductPerDayFields.product_id} $textType,
+          ${SalesProductPerDayFields.product_name} $textType,
+          ${SalesProductPerDayFields.amount_sold} $textType,
+          ${SalesProductPerDayFields.total_amount} $textType,
+          ${SalesProductPerDayFields.total_ori_amount} $textType,
+          ${SalesProductPerDayFields.date} $textType,
+          ${SalesProductPerDayFields.sync_status} $integerType,
+          ${SalesProductPerDayFields.created_at} $textType,
+          ${SalesProductPerDayFields.updated_at} $textType,
+          ${SalesProductPerDayFields.soft_delete} $textType)''');
+
+/*
+    create modifier sales per day table
+*/
+    await db.execute('''CREATE TABLE $tableSalesModifierPerDay(
+          ${SalesModifierPerDayFields.sales_modifier_per_day_sqlite_id} $idType,
+          ${SalesModifierPerDayFields.sales_modifier_per_day_id} $integerType,
+          ${SalesModifierPerDayFields.branch_id} $textType,
+          ${SalesModifierPerDayFields.mod_item_id} $textType,
+          ${SalesModifierPerDayFields.mod_group_id} $textType,
+          ${SalesModifierPerDayFields.modifier_name} $textType,
+          ${SalesModifierPerDayFields.modifier_group_name} $textType,
+          ${SalesModifierPerDayFields.amount_sold} $textType,
+          ${SalesModifierPerDayFields.total_amount} $textType,
+          ${SalesModifierPerDayFields.total_ori_amount} $textType,
+          ${SalesModifierPerDayFields.date} $textType,
+          ${SalesModifierPerDayFields.sync_status} $integerType,
+          ${SalesModifierPerDayFields.created_at} $textType,
+          ${SalesModifierPerDayFields.updated_at} $textType,
+          ${SalesModifierPerDayFields.soft_delete} $textType)''');
+
+/*
+    create dining sales per day table
+*/
+    await db.execute('''CREATE TABLE $tableSalesDiningPerDay(
+          ${SalesDiningPerDayFields.sales_dining_per_day_sqlite_id} $idType,
+          ${SalesDiningPerDayFields.sales_dining_per_day_id} $integerType,
+          ${SalesDiningPerDayFields.branch_id} $textType,
+          ${SalesDiningPerDayFields.dine_in} $textType,
+          ${SalesDiningPerDayFields.take_away} $textType,
+          ${SalesDiningPerDayFields.delivery} $textType,
+          ${SalesDiningPerDayFields.date} $textType,
+          ${SalesDiningPerDayFields.sync_status} $integerType,
+          ${SalesDiningPerDayFields.created_at} $textType,
+          ${SalesDiningPerDayFields.updated_at} $textType,
+          ${SalesDiningPerDayFields.soft_delete} $textType)''');
+
+  }
+
+  static dbVersion33Upgrade(Database db) async {
+    //create sales per day table
+    await db.execute('''CREATE TABLE $tableSalesPerDay(
+          ${SalesPerDayFields.sales_per_day_sqlite_id} $idType,
+          ${SalesPerDayFields.sales_per_day_id} $integerType,
+          ${SalesPerDayFields.branch_id} $textType,
+          ${SalesPerDayFields.total_amount} $textType,
+          ${SalesPerDayFields.tax} $textType,
+          ${SalesPerDayFields.charge} $textType,
+          ${SalesPerDayFields.promotion} $textType,
+          ${SalesPerDayFields.date} $textType,
+          ${SalesPerDayFields.payment_method} $textType,
+          ${SalesPerDayFields.payment_method_sales} $textType,
+          ${SalesPerDayFields.sync_status} $integerType,
+          ${SalesPerDayFields.created_at} $textType,
+          ${SalesPerDayFields.updated_at} $textType,
+          ${SalesPerDayFields.soft_delete} $textType)''');
+    //create category sales per day table
+    await db.execute('''CREATE TABLE $tableSalesCategoryPerDay(
+          ${SalesCategoryPerDayFields.sales_category_per_day_sqlite_id} $idType,
+          ${SalesCategoryPerDayFields.sales_category_per_day_id} $integerType,
+          ${SalesCategoryPerDayFields.branch_id} $textType,
+          ${SalesCategoryPerDayFields.category_id} $textType,
+          ${SalesCategoryPerDayFields.category_name} $textType,
+          ${SalesCategoryPerDayFields.amount_sold} $textType,
+          ${SalesCategoryPerDayFields.total_amount} $textType,
+          ${SalesCategoryPerDayFields.total_ori_amount} $textType,
+          ${SalesCategoryPerDayFields.date} $textType,
+          ${SalesCategoryPerDayFields.sync_status} $integerType,
+          ${SalesCategoryPerDayFields.created_at} $textType,
+          ${SalesCategoryPerDayFields.updated_at} $textType,
+          ${SalesCategoryPerDayFields.soft_delete} $textType)''');
+    //create product sales per day
+    await db.execute('''CREATE TABLE $tableSalesProductPerDay(
+          ${SalesProductPerDayFields.sales_product_per_day_sqlite_id} $idType,
+          ${SalesProductPerDayFields.sales_product_per_day_id} $integerType,
+          ${SalesProductPerDayFields.branch_id} $textType,
+          ${SalesProductPerDayFields.product_id} $textType,
+          ${SalesProductPerDayFields.product_name} $textType,
+          ${SalesProductPerDayFields.amount_sold} $textType,
+          ${SalesProductPerDayFields.total_amount} $textType,
+          ${SalesProductPerDayFields.total_ori_amount} $textType,
+          ${SalesProductPerDayFields.date} $textType,
+          ${SalesProductPerDayFields.sync_status} $integerType,
+          ${SalesProductPerDayFields.created_at} $textType,
+          ${SalesProductPerDayFields.updated_at} $textType,
+          ${SalesProductPerDayFields.soft_delete} $textType)''');
+    //create modifier sales per day
+    await db.execute('''CREATE TABLE $tableSalesModifierPerDay(
+          ${SalesModifierPerDayFields.sales_modifier_per_day_sqlite_id} $idType,
+          ${SalesModifierPerDayFields.sales_modifier_per_day_id} $integerType,
+          ${SalesModifierPerDayFields.branch_id} $textType,
+          ${SalesModifierPerDayFields.mod_item_id} $textType,
+          ${SalesModifierPerDayFields.mod_group_id} $textType,
+          ${SalesModifierPerDayFields.modifier_name} $textType,
+          ${SalesModifierPerDayFields.modifier_group_name} $textType,
+          ${SalesModifierPerDayFields.amount_sold} $textType,
+          ${SalesModifierPerDayFields.total_amount} $textType,
+          ${SalesModifierPerDayFields.total_ori_amount} $textType,
+          ${SalesModifierPerDayFields.date} $textType,
+          ${SalesModifierPerDayFields.sync_status} $integerType,
+          ${SalesModifierPerDayFields.created_at} $textType,
+          ${SalesModifierPerDayFields.updated_at} $textType,
+          ${SalesModifierPerDayFields.soft_delete} $textType)''');
+    //create dining sales per day table
+    await db.execute('''CREATE TABLE $tableSalesDiningPerDay(
+          ${SalesDiningPerDayFields.sales_dining_per_day_sqlite_id} $idType,
+          ${SalesDiningPerDayFields.sales_dining_per_day_id} $integerType,
+          ${SalesDiningPerDayFields.branch_id} $textType,
+          ${SalesDiningPerDayFields.dine_in} $textType,
+          ${SalesDiningPerDayFields.take_away} $textType,
+          ${SalesDiningPerDayFields.delivery} $textType,
+          ${SalesDiningPerDayFields.date} $textType,
+          ${SalesDiningPerDayFields.sync_status} $integerType,
+          ${SalesDiningPerDayFields.created_at} $textType,
+          ${SalesDiningPerDayFields.updated_at} $textType,
+          ${SalesDiningPerDayFields.soft_delete} $textType)''');
   }
 
   static dbVersion31Upgrade(Database db) async {

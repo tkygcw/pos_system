@@ -7,6 +7,7 @@ import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/custom_pin_dialog.dart';
+import 'package:pos_system/fragment/settlement/settlment_query.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:pos_system/object/order_payment_split.dart';
@@ -450,10 +451,17 @@ class _SettlementDialogState extends State<SettlementDialog> {
     await createSettlement();
     await createSettlementLinkPayment();
     //update all today cash record settlement date
+    await generateSales();
     await updateTodaySettlementOrder();
     await updateTodaySettlementOrderDetailCancel();
     await updateAllCashRecordSettlement();
     await callPrinter();
+  }
+
+  Future<void> generateSales() async{
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    await SettlementQuery(branch_id: branch_id.toString()).generateSalesPerDay();
   }
 
   callPrinter() async {

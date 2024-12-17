@@ -83,7 +83,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 32, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
+    return await openDatabase(path, version: 33, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
   }
 
 /*
@@ -4069,14 +4069,16 @@ class PosDatabase {
   Future<List<OrderModifierDetail>> readAllPaidModifier(String mod_group_id, String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, COUNT(a.order_modifier_detail_sqlite_id) AS item_sum, SUM(a.mod_price + 0.0) AS net_sales '
+        'SELECT a.*, '
+            'SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN 1 ELSE b.quantity END) AS item_sum, '
+            'SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN a.mod_price * 1 ELSE a.mod_price * b.quantity END) AS net_sales '
         'FROM $tableOrderModifierDetail AS a JOIN $tableOrderDetail AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
         'JOIN $tableOrderCache AS c ON b.order_cache_sqlite_id = c.order_cache_sqlite_id '
         'JOIN $tableOrder AS d ON c.order_sqlite_id = d.order_sqlite_id '
         'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND c.accepted = ? AND c.cancel_by = ? AND d.soft_delete = ? '
         'AND a.mod_group_id = ? AND b.status = ? AND d.payment_status = ? '
         'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY a.mod_name  ',
-        ['', '', '', 0, '', '', mod_group_id, 0, 1, date1, date2]);
+        ['each', 'each_c', 'each', 'each_c', '', '', '', 0, '', '', mod_group_id, 0, 1, date1, date2]);
     return result.map((json) => OrderModifierDetail.fromJson(json)).toList();
   }
 
@@ -4102,8 +4104,9 @@ class PosDatabase {
 */
   Future<List<ModifierGroup>> readAllPaidModifierGroup(String date1, String date2) async {
     final db = await instance.database;
-    final result = await db.rawQuery(
-        'SELECT a.created_at, b.*, SUM(a.mod_price + 0.0) AS net_sales, COUNT(a.order_modifier_detail_sqlite_id) AS item_sum '
+    final result = await db.rawQuery('SELECT a.created_at, b.*, '
+        'SUM(CASE WHEN c.unit != ? AND c.unit != ? THEN 1 ELSE c.quantity END) AS item_sum, '
+        'SUM(CASE WHEN c.unit != ? AND c.unit != ? THEN a.mod_price * 1 ELSE a.mod_price * c.quantity END) AS net_sales '
         'FROM $tableOrderModifierDetail AS a JOIN $tableModifierGroup AS b ON a.mod_group_id = b.mod_group_id '
         'JOIN $tableOrderDetail AS c ON a.order_detail_sqlite_id = c.order_detail_sqlite_id '
         'JOIN $tableOrderCache AS d ON c.order_cache_sqlite_id = d.order_cache_sqlite_id '
@@ -4111,7 +4114,7 @@ class PosDatabase {
         'WHERE a.soft_delete = ? AND c.soft_delete = ? AND d.soft_delete = ? AND e.soft_delete = ? '
         'AND c.status = ? AND d.accepted = ? AND d.cancel_by = ? AND e.payment_status = ? '
         'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY b.mod_group_id  ',
-        ['', '', '', '', 0, 0, '', 1, date1, date2]);
+        ['each', 'each_c', 'each', 'each_c', '', '', '', '', 0, 0, '', 1, date1, date2]);
     return result.map((json) => ModifierGroup.fromJson(json)).toList();
   }
 
