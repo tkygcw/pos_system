@@ -15,6 +15,7 @@ import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/app_setting.dart';
+import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
 import 'package:pos_system/object/order.dart';
@@ -24,6 +25,7 @@ import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/printer.dart';
+import 'package:pos_system/object/sync_to_cloud.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
@@ -80,6 +82,7 @@ class _MakePaymentState extends State<MakePayment> {
   late AppSettingModel _appSettingModel;
   late int _type;
   late int _payment_link_company_id;
+  SyncToCloud syncToCloud = SyncToCloud();
 
   // var type ="0";
   var userInput = '0.00';
@@ -136,7 +139,6 @@ class _MakePaymentState extends State<MakePayment> {
   int myCount = 0, initLoad = 0;
   late Map branchObject;
   bool isButtonDisable = false, willPop = true;
-  String tableNo = 'N/A';
   String orderCacheSqliteId = '';
   bool isload = false;
   late bool split_payment = false;
@@ -204,22 +206,25 @@ class _MakePaymentState extends State<MakePayment> {
     }
   }
 
-  reInitSecondDisplay({isWillPop, cart}) async {
+  reInitSecondDisplay({isWillPop, CartModel? cart}) async {
     if (isWillPop == true) {
       await displayManager.transferDataToPresentation("init");
     } else {
-      SecondDisplayData data = SecondDisplayData(
-        tableNo: getSelectedTable(),
-        itemList: cart.cartNotifierItem,
-        subtotal: cart.cartNotifierPayment[0].subtotal.toStringAsFixed(2),
-        totalDiscount: getTotalDiscount(),
-        totalTax: getTotalTax(),
-        amount: cart.cartNotifierPayment[0].amount.toStringAsFixed(2),
-        rounding: cart.cartNotifierPayment[0].rounding.toStringAsFixed(2),
-        finalAmount: cart.cartNotifierPayment[0].finalAmount,
-        payment_link_company_id: widget.payment_link_company_id
-      );
-      await displayManager.transferDataToPresentation(jsonEncode(data));
+      if(cart != null){
+        SecondDisplayData data = SecondDisplayData(
+            tableNo: getSelectedTable(),
+            itemList: cart.cartNotifierItem,
+            subtotal: cart.cartNotifierPayment[0].subtotal.toStringAsFixed(2),
+            totalDiscount: getTotalDiscount(),
+            totalTax: getTotalTax(),
+            amount: cart.cartNotifierPayment[0].amount.toStringAsFixed(2),
+            rounding: cart.cartNotifierPayment[0].rounding.toStringAsFixed(2),
+            finalAmount: cart.cartNotifierPayment[0].finalAmount,
+            payment_link_company_id: widget.payment_link_company_id,
+            selectedOption: cart.selectedOption
+        );
+        await displayManager.transferDataToPresentation(jsonEncode(data));
+      }
     }
   }
 
@@ -923,6 +928,18 @@ class _MakePaymentState extends State<MakePayment> {
                                                       return;
                                                     }
                                                     openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
+                                                    Branch? data = await PosDatabase.instance.readLocalBranch();
+                                                    if(data != null && data.allow_livedata == 1){
+                                                      if(!isSyncing){
+                                                        isSyncing = true;
+                                                        do{
+                                                          await syncToCloud.syncAllToCloud(isManualSync: true);
+                                                        }while(syncToCloud.emptyResponse == false);
+                                                        if(syncToCloud.emptyResponse == true){
+                                                          isSyncing = false;
+                                                        }
+                                                      }
+                                                    }
                                                   },
                                                   icon: Icon(Icons.call_received),
                                                   label: Text(
@@ -1962,6 +1979,18 @@ class _MakePaymentState extends State<MakePayment> {
                                                     split_payment,
                                                     isCashMethod: false,
                                                     diningName: widget.dining_name);
+                                                Branch? data = await PosDatabase.instance.readLocalBranch();
+                                                if(data != null && data.allow_livedata == 1){
+                                                  if(!isSyncing){
+                                                    isSyncing = true;
+                                                    do{
+                                                      await syncToCloud.syncAllToCloud(isManualSync: true);
+                                                    }while(syncToCloud.emptyResponse == false);
+                                                    if(syncToCloud.emptyResponse == true){
+                                                      isSyncing = false;
+                                                    }
+                                                  }
+                                                }
                                               },
                                               icon: Icon(Icons.call_received, size: 20),
                                               label: Text(
@@ -2959,6 +2988,18 @@ class _MakePaymentState extends State<MakePayment> {
                                                     return;
                                                   }
                                                   openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
+                                                  Branch? data = await PosDatabase.instance.readLocalBranch();
+                                                  if(data != null && data.allow_livedata == 1){
+                                                    if(!isSyncing){
+                                                      isSyncing = true;
+                                                      do{
+                                                        await syncToCloud.syncAllToCloud(isManualSync: true);
+                                                      }while(syncToCloud.emptyResponse == false);
+                                                      if(syncToCloud.emptyResponse == true){
+                                                        isSyncing = false;
+                                                      }
+                                                    }
+                                                  }
                                                 },
                                                 icon: Icon(Icons.call_received, size: 20),
                                                 label: Text(AppLocalizations.of(context)!.translate('payment_received'), style: TextStyle(fontSize: 16)),
@@ -3619,9 +3660,9 @@ class _MakePaymentState extends State<MakePayment> {
       if(orderQueue != '')
         return orderQueue;
       else
-        return 'N/A';
+        return '-';
     } else {
-      return 'N/A';
+      return '-';
     }
   }
 
@@ -3632,7 +3673,7 @@ class _MakePaymentState extends State<MakePayment> {
     List<String> result = [];
     if (widget.dining_name == 'Dine in') {
       if (selectedTableList.isEmpty) {
-        result.add('No table');
+        result.add('-');
       } else {
         for (int i = 0; i < selectedTableList.length; i++) {
           result.add('${selectedTableList[i].number}');
@@ -3640,7 +3681,7 @@ class _MakePaymentState extends State<MakePayment> {
       }
       return result.toString().replaceAll('[', '').replaceAll(']', '');
     } else {
-      return 'N/A';
+      return '-';
     }
   }
 

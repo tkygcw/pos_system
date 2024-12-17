@@ -218,17 +218,24 @@ class _SyncDialogState extends State<SyncDialog> {
       if(mainSyncToCloud.count == 0){
         mainSyncToCloud.count = 1;
         //start sync
-        do{
-          status = await syncToCloud.syncAllToCloud(isManualSync: true);
-        }while(syncToCloud.emptyResponse == false);
-        mainSyncToCloud.count = 0;
-        Future.delayed(const Duration(seconds: 2), () {
-          if(status == 0){
-            controller.sink.add("refresh");
-          } else {
-            controller.sink.addError(Exception("Sync failed"));
-          }
-        });
+        if(!isSyncing){
+          print("sync called from sync dialog");
+          isSyncing = true;
+          do{
+            status = await syncToCloud.syncAllToCloud(isManualSync: true);
+          }while(syncToCloud.emptyResponse == false);
+          mainSyncToCloud.count = 0;
+          Future.delayed(const Duration(seconds: 2), () {
+            if(status == 0){
+              controller.sink.add("refresh");
+            } else {
+              controller.sink.addError(Exception("Sync failed"));
+            }
+          });
+        } else {
+          isSyncing = true;
+          print("sync to cloud is running");
+        }
       } else {
         //if auto sync is running, check every 2 second
         timer = Timer.periodic(Duration(seconds: 2), (timer) async {

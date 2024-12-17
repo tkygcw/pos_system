@@ -257,6 +257,7 @@ class QrOrderAutoAccept {
         } else {
           await callOtherOrder(qrOrderCacheList);
         }
+        ShowQRToast.showToast();
         QrOrder.instance.removeSpecificQrOrder(qrOrderCacheList.order_cache_sqlite_id!);
         final prefs = await SharedPreferences.getInstance();
         final int? branch_id = prefs.getInt('branch_id');
