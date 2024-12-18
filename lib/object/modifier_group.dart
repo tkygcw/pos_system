@@ -13,6 +13,8 @@ class ModifierGroupFields {
     dining_id,
     compulsory,
     sequence_number,
+    min_select,
+    max_select,
     created_at,
     updated_at,
     soft_delete
@@ -24,6 +26,8 @@ class ModifierGroupFields {
   static String dining_id = 'dining_id';
   static String compulsory = 'compulsory';
   static String sequence_number = 'sequence_number';
+  static String min_select = 'min_select';
+  static String max_select = 'max_select';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
@@ -39,6 +43,8 @@ class ModifierGroup{
   int? modifier_item_id;
   List<ModifierItem>? modifierChild;
   String? sequence_number;
+  int? min_select;
+  int? max_select;
   String? created_at;
   String? updated_at;
   String? soft_delete;
@@ -55,6 +61,8 @@ class ModifierGroup{
         this.compulsory,
         this.name,
         this.sequence_number,
+        this.min_select,
+        this.max_select,
         this.created_at,
         this.updated_at,
         this.soft_delete,
@@ -69,6 +77,8 @@ class ModifierGroup{
     String? dining_id,
     String? compulsory,
     String? sequence_number,
+    int? min_select,
+    int? max_select,
     String? created_at,
     String? updated_at,
     String? soft_delete,
@@ -80,6 +90,8 @@ class ModifierGroup{
           dining_id: dining_id ?? this.dining_id,
           compulsory: compulsory ?? this.compulsory,
           sequence_number: sequence_number ?? this.sequence_number,
+          min_select: min_select ?? this.min_select,
+          max_select: max_select ?? this.max_select,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete);
@@ -108,6 +120,8 @@ class ModifierGroup{
         dining_id: json[ModifierGroupFields.dining_id] as String?,
         compulsory: json[ModifierGroupFields.compulsory] as String?,
         sequence_number: json[ModifierGroupFields.sequence_number] as String?,
+        min_select: json[ModifierGroupFields.min_select] as int?,
+        max_select: json[ModifierGroupFields.max_select] as int?,
         created_at: json[ModifierGroupFields.created_at] as String?,
         updated_at: json[ModifierGroupFields.updated_at] as String?,
         soft_delete: json[ModifierGroupFields.soft_delete] as String?,
@@ -125,6 +139,8 @@ class ModifierGroup{
       ModifierGroupFields.dining_id: dining_id,
       ModifierGroupFields.compulsory: compulsory,
       ModifierGroupFields.sequence_number: sequence_number,
+      ModifierGroupFields.min_select: min_select,
+      ModifierGroupFields.max_select: max_select,
       ModifierGroupFields.created_at: created_at,
       ModifierGroupFields.updated_at: updated_at,
       ModifierGroupFields.soft_delete: soft_delete,
@@ -139,14 +155,16 @@ class ModifierGroup{
     ModifierGroupFields.dining_id: dining_id,
     ModifierGroupFields.compulsory: compulsory,
     ModifierGroupFields.sequence_number: sequence_number,
+    ModifierGroupFields.min_select: min_select,
+    ModifierGroupFields.max_select: max_select,
     ModifierGroupFields.created_at: created_at,
     ModifierGroupFields.updated_at: updated_at,
     ModifierGroupFields.soft_delete: soft_delete,
   };
 
-  // Map addToCartJSon() => {
-  //   ModifierGroupFields.mod_group_id: mod_group_id,
-  //   ModifierGroupFields.name: name,
-  //   ModifierGroupFields.modifier_item: jsonEncode(modifierChild.map((e) => e.addToCartJSon()).toList()),
-  // };
+// Map addToCartJSon() => {
+//   ModifierGroupFields.mod_group_id: mod_group_id,
+//   ModifierGroupFields.name: name,
+//   ModifierGroupFields.modifier_item: jsonEncode(modifierChild.map((e) => e.addToCartJSon()).toList()),
+// };
 }

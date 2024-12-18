@@ -40,7 +40,7 @@ class _OrderSettingState extends State<OrderSetting> {
   Receipt? receiptObject;
   bool printCheckList = false, enableNumbering = false, printReceipt = false, hasQrAccess = true, printCancelReceipt = true,
       directPayment = false, qrOrderAutoAccept = false, cashDrawer = false, secondDisplay = false, invalidAfterPayment = true,
-      settlementAfterAllOrderPaid = false, hideDiningMethodTableNo = false;
+      settlementAfterAllOrderPaid = false, hideDiningMethodTableNo = false, requiredReason = false;
   int startingNumber = 0, compareStartingNumber = 0;
   final List<String> tableModeOption = [
     'table_mode_no_table',
@@ -89,6 +89,11 @@ class _OrderSettingState extends State<OrderSetting> {
         break;
         case 'settlement_after_all_order_paid':{
           await updateSettlementAfterAllOrderPaidAppSetting();
+          controller.refresh(streamController);
+        }
+        break;
+        case 'required_reason':{
+          await updateRequiredReasonSetting();
           controller.refresh(streamController);
         }
         break;
@@ -172,6 +177,10 @@ class _OrderSettingState extends State<OrderSetting> {
         this.settlementAfterAllOrderPaid = true;
       } else {
         this.settlementAfterAllOrderPaid = false;
+      }
+
+      if(appSetting.required_cancel_reason == 1) {
+        requiredReason = true;
       }
     }
   }
@@ -407,10 +416,12 @@ class _OrderSettingState extends State<OrderSetting> {
                                         if (await anyTableUse()) {
                                           Fluttertoast.showToast(
                                               msg: AppLocalizations.of(context)!.translate('please_settle_the_bill_for_all_tables'));
-                                        } else if (appSettingModel.enable_numbering == false) {
-                                          Fluttertoast.showToast(
-                                              msg: AppLocalizations.of(context)!.translate('please_enable_order_number'));
-                                        } else if (appSettingModel.directPaymentStatus == false) {
+                                        }
+                                        // else if (appSettingModel.enable_numbering == false) {
+                                        //   Fluttertoast.showToast(
+                                        //       msg: AppLocalizations.of(context)!.translate('please_enable_order_number'));
+                                        // }
+                                        else if (appSettingModel.directPaymentStatus == false) {
                                           Fluttertoast.showToast(
                                               msg: AppLocalizations.of(context)!.translate('please_enable_direct_payment'));
                                         } else {
@@ -494,19 +505,9 @@ class _OrderSettingState extends State<OrderSetting> {
                               value: enableNumbering,
                               activeColor: color.backgroundColor,
                               onChanged: (value) async {
-                                if(!value) {
-                                  if(appSettingModel.table_order != 1) {
-                                    Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_enable_table_order_in_general_setting'));
-                                  } else {
-                                    enableNumbering = value;
-                                    appSettingModel.setOrderNumberingStatus(enableNumbering);
-                                    actionController.sink.add("switch");
-                                  }
-                                } else {
-                                  enableNumbering = value;
-                                  appSettingModel.setOrderNumberingStatus(enableNumbering);
-                                  actionController.sink.add("switch");
-                                }
+                                enableNumbering = value;
+                                appSettingModel.setOrderNumberingStatus(enableNumbering);
+                                actionController.sink.add("switch");
                               },
                             ),
                           ),
@@ -588,6 +589,19 @@ class _OrderSettingState extends State<OrderSetting> {
                                 appSettingModel.setSettlementAfterAllOrderPaidStatus(hideDiningMethodTableNo);
                                 actionController.sink.add("hide_dining_method_table_no");
                               },
+                            ),
+                          ),
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('cancel_require_reason')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('cancel_require_reason_desc')),
+                            trailing: Switch(
+                                value: requiredReason,
+                                activeColor: color.backgroundColor,
+                                onChanged: (value) {
+                                  requiredReason = value;
+                                  appSettingModel.setRequiredCancelReasonStatus(requiredReason);
+                                  actionController.sink.add("required_reason");
+                                }
                             ),
                           ),
                           // ListTile(
@@ -712,6 +726,17 @@ class _OrderSettingState extends State<OrderSetting> {
         updated_at: dateTime
     );
     await PosDatabase.instance.updateSettlementAfterAllOrderPaidSetting(object);
+  }
+
+  updateRequiredReasonSetting() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    AppSetting object = AppSetting(
+        required_cancel_reason: requiredReason == true ? 1 : 0,
+        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
+        updated_at: dateTime
+    );
+    int data = await PosDatabase.instance.updateRequiredCancelReasonSettings(object);
   }
 
   Future<bool> anyTableUse() async {

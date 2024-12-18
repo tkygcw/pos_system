@@ -7,6 +7,7 @@ import 'package:page_transition/page_transition.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/report/attedance_report.dart';
 import 'package:pos_system/fragment/report/cancel_modifier_report.dart';
+import 'package:pos_system/fragment/report/cancel_record_report.dart';
 import 'package:pos_system/fragment/report/cancellation_report.dart';
 import 'package:pos_system/fragment/report/cash_record_report.dart';
 import 'package:pos_system/fragment/report/category_report.dart';
@@ -19,6 +20,7 @@ import 'package:pos_system/fragment/report/product_edited_report.dart';
 import 'package:pos_system/fragment/report/product_report.dart';
 import 'package:pos_system/fragment/report/refund_report.dart';
 import 'package:pos_system/fragment/report/report_overview.dart';
+import 'package:pos_system/fragment/report/report_receipt/layout/cancel_record_layout.dart';
 import 'package:pos_system/fragment/report/report_receipt/layout/cancellation_layout.dart';
 import 'package:pos_system/fragment/report/report_receipt/layout/cancelled_mod_layout.dart';
 import 'package:pos_system/fragment/report/report_receipt/layout/category_layout.dart';
@@ -157,7 +159,7 @@ class _ReportPageState extends State<ReportPage> {
                     Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 25, color: Colors.black)),
                     Spacer(),
                     Visibility(
-                      visible: currentPage != 13 && currentPage != 14 ? true : false,
+                      visible: currentPage != 14 && currentPage != 15 ? true : false,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
@@ -188,7 +190,7 @@ class _ReportPageState extends State<ReportPage> {
                     ),
                     SizedBox(width: 25),
                     Visibility(
-                      visible: currentPage != 14 ? true : false,
+                      visible: currentPage != 15 ? true : false,
                       child: Container(
                         child: IconButton(
                           icon: Icon(Icons.print),
@@ -206,7 +208,7 @@ class _ReportPageState extends State<ReportPage> {
                       ),
                     ),
                     Visibility(
-                      visible: currentPage != 1 && currentPage != 5 && currentPage != 10 && currentPage != 11 && currentPage != 13 && currentPage != 14  ? true : false,
+                      visible: currentPage != 1 && currentPage != 5 && currentPage != 11 && currentPage != 12 && currentPage != 14 && currentPage != 15  ? true : false,
                       child: Container(
                         child: IconButton(
                           icon: Icon(Icons.receipt),
@@ -334,6 +336,10 @@ class _ReportPageState extends State<ReportPage> {
                         SideNavigationBarItem(
                           icon: Icons.no_food,
                           label: AppLocalizations.of(context)!.translate('cancel_report'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.no_food,
+                          label: AppLocalizations.of(context)!.translate('cancel_record_report'),
                         ),
                         SideNavigationBarItem(
                           icon: Icons.no_food,
@@ -500,7 +506,7 @@ class _ReportPageState extends State<ReportPage> {
                     Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 20, color: color.backgroundColor)),
                     Spacer(),
                     Visibility(
-                      visible: currentPage != 13 ? true : false,
+                      visible: currentPage != 14 && currentPage != 15 ? true : false,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
@@ -531,7 +537,7 @@ class _ReportPageState extends State<ReportPage> {
                     ),
                     SizedBox(width: 10),
                     Visibility(
-                      visible: currentPage != 14 ? true : false,
+                      visible: currentPage != 15 ? true : false,
                       child: IconButton(
                         icon: Icon(Icons.print),
                         color: color.backgroundColor,
@@ -547,7 +553,7 @@ class _ReportPageState extends State<ReportPage> {
                       ),
                     ),
                     Visibility(
-                      visible: currentPage != 1 && currentPage != 5 && currentPage != 10 && currentPage != 11 && currentPage != 13 && currentPage != 14  ? true : false,
+                      visible: currentPage != 1 && currentPage != 5 && currentPage != 11 && currentPage != 12 && currentPage != 14 && currentPage != 15  ? true : false,
                       child: Container(
                         child: IconButton(
                           icon: Icon(Icons.receipt),
@@ -897,34 +903,38 @@ class _ReportPageState extends State<ReportPage> {
                           ),
                           DropdownMenuItem(
                             value: 7,
-                            child: Text(AppLocalizations.of(context)!.translate('cancel_modifier_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('cancel_record_report')),
                           ),
                           DropdownMenuItem(
                             value: 8,
-                            child: Text(AppLocalizations.of(context)!.translate('dining_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('cancel_modifier_report')),
                           ),
                           DropdownMenuItem(
                             value: 9,
-                            child: Text(AppLocalizations.of(context)!.translate('payment_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('dining_report')),
                           ),
                           DropdownMenuItem(
                             value: 10,
-                            child: Text(AppLocalizations.of(context)!.translate('refund_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('payment_report')),
                           ),
                           DropdownMenuItem(
                             value: 11,
-                            child: Text(AppLocalizations.of(context)!.translate('cashflow_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('refund_report')),
                           ),
                           DropdownMenuItem(
                             value: 12,
-                            child: Text(AppLocalizations.of(context)!.translate('staff_sales_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('cashflow_report')),
                           ),
                           DropdownMenuItem(
                             value: 13,
-                            child: Text(AppLocalizations.of(context)!.translate('attendance_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('staff_sales_report')),
                           ),
                           DropdownMenuItem(
                             value: 14,
+                            child: Text(AppLocalizations.of(context)!.translate('attendance_report')),
+                          ),
+                          DropdownMenuItem(
+                            value: 15,
                             child: Text(AppLocalizations.of(context)!.translate('transfer_report')),
                           ),
                         ],
@@ -1094,15 +1104,18 @@ class _ReportPageState extends State<ReportPage> {
         await receipt.printReceipt(layout: CancellationReceiptLayout());
       }break;
       case 7: {
-        await receipt.printReceipt(layout: CancelledModReceiptLayout());
+        await receipt.printReceipt(layout: CancelRecordLayout());
       }break;
       case 8: {
-        await receipt.printReceipt(layout: DiningReceiptLayout());
+        await receipt.printReceipt(layout: CancelledModReceiptLayout());
       }break;
       case 9: {
+        await receipt.printReceipt(layout: DiningReceiptLayout());
+      }break;
+      case 10: {
         await receipt.printReceipt(layout: PaymentReceiptLayout());
       }break;
-      case 12: {
+      case 13: {
         await receipt.printReceipt(layout: StaffReceiptLayout());
       }break;
     }
@@ -1125,49 +1138,52 @@ class _ReportPageState extends State<ReportPage> {
   preload(){
     views.addAll([
       Container(
-        child: ReportOverview(),
+        child: ReportOverview(),//0
       ),
       Container(
-        child: DailySalesReport(),
+        child: DailySalesReport(),//1
       ),
       Container(
-        child: ProductReport(),
+        child: ProductReport(),//2
       ),
       Container(
-        child: CategoryReport(),
+        child: CategoryReport(),//3
       ),
       Container(
-        child: ModifierReport(),
+        child: ModifierReport(),//4
       ),
       Container(
-        child: ProductEditedReport(),
+        child: ProductEditedReport(),//5
       ),
       Container(
-        child: CancellationReport(),
+        child: CancellationReport(),//6
       ),
       Container(
-        child: CancelModifierReport(),
+        child: CancelRecordReport(),//7
       ),
       Container(
-        child: DiningReport(),
+        child: CancelModifierReport(),//8
       ),
       Container(
-        child: PaymentReport(),
+        child: DiningReport(),//9
       ),
       Container(
-        child: RefundReport(),
+        child: PaymentReport(),//10
       ),
       Container(
-        child: CashRecordReport(),
+        child: RefundReport(),//11
       ),
       Container(
-        child: StaffSalesReport(),
+        child: CashRecordReport(),//12
       ),
       Container(
-        child: AttendanceReport(),
+        child: StaffSalesReport(),//13
       ),
       Container(
-        child: TransferRecord(),
+        child: AttendanceReport(),//14
+      ),
+      Container(
+        child: TransferRecord(),//15
       ),
     ]);
   }

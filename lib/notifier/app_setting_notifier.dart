@@ -19,6 +19,7 @@ class AppSettingModel extends ChangeNotifier {
   int? dynamic_qr_default_exp_after_hour;
   int? variant_item_sort_by;
   bool? dynamic_qr_invalid_after_payment;
+  bool? required_cancel_reason;
 
   AppSettingModel({
     this.directPaymentStatus,
@@ -35,7 +36,8 @@ class AppSettingModel extends ChangeNotifier {
     this.product_sort_by,
     this.dynamic_qr_default_exp_after_hour,
     this.variant_item_sort_by,
-    this.dynamic_qr_invalid_after_payment
+    this.dynamic_qr_invalid_after_payment,
+    this.required_cancel_reason
   });
 
   void initialLoad() async {
@@ -56,6 +58,7 @@ class AppSettingModel extends ChangeNotifier {
       dynamic_qr_default_exp_after_hour = data.dynamic_qr_default_exp_after_hour;
       variant_item_sort_by = data.variant_item_sort_by;
       dynamic_qr_invalid_after_payment = data.dynamic_qr_invalid_after_payment == 1 ? true : false;
+      required_cancel_reason = data.required_cancel_reason == 1 ? true : false;
     }
   }
 
@@ -116,6 +119,11 @@ class AppSettingModel extends ChangeNotifier {
 
   void setVariantItemSortByStatus(int status) {
     variant_item_sort_by = status;
+    notifyListeners();
+  }
+
+  void setRequiredCancelReasonStatus(bool status) {
+    required_cancel_reason = status;
     notifyListeners();
   }
 

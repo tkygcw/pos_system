@@ -17,6 +17,7 @@ import 'package:pos_system/fragment/cart/remove_cart_dialog.dart';
 import 'package:pos_system/fragment/cart/reprint_dialog.dart';
 import 'package:pos_system/fragment/cart/reprint_kitchen_list_dialog.dart';
 import 'package:pos_system/fragment/custom_toastification.dart';
+import 'package:pos_system/fragment/product_cancel/adjust_quantity.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/fail_print_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
@@ -52,6 +53,7 @@ import '../../object/app_setting.dart';
 import '../../object/cart_payment.dart';
 import '../../object/cash_record.dart';
 import '../../object/order_modifier_detail.dart';
+import '../../object/second_display_data.dart';
 import '../printing_layout/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../object/table.dart';
@@ -139,7 +141,6 @@ class CartPageState extends State<CartPage> {
 
   bool lastDiningOption = false;
 
-  String tableNo = 'N/A';
   String orderKey = '';
 
   void _scrollDown() {
@@ -163,6 +164,7 @@ class CartPageState extends State<CartPage> {
   @override
   void dispose() {
     _timer?.cancel();
+    reInitSecondDisplay(cartEmpty: true);
     super.dispose();
   }
 
@@ -222,6 +224,7 @@ class CartPageState extends State<CartPage> {
                 WidgetsBinding.instance.addPostFrameCallback((_){
                   cart.removeAllCartItem();
                   cart.removeAllTable();
+                  cart.removeAllGroupList();
                   cart.removeAllPromotion();
                   cart.removePaymentDetail();
                 });
@@ -1240,7 +1243,7 @@ class CartPageState extends State<CartPage> {
     if (cart.selectedTable.isEmpty && cart.selectedOption == 'Dine in') {
       result.add('-');
     } else if (cart.selectedOption != 'Dine in') {
-      result.add('N/A');
+      result.add('-');
     } else {
       if (cart.selectedTable.length > 1) {
         for (int i = 0; i < cart.selectedTable.length; i++) {
@@ -1251,7 +1254,7 @@ class CartPageState extends State<CartPage> {
       }
     }
 
-    if (result[0] == '-' || result[0] == 'N/A') {
+    if (result[0] == '-') {
       if (orderQueue != '') {
         result.clear();
         result.add(AppLocalizations.of(context)!.translate('order') + ': ${orderQueue}');
@@ -1974,9 +1977,36 @@ class CartPageState extends State<CartPage> {
     }
     if((widget.currentPage == 'table' || widget.currentPage == 'other_order') && cart.cartNotifierItem.isNotEmpty)
       isButtonDisabled = false;
+    if(cart.cartNotifierItem.isNotEmpty){
+      reInitSecondDisplay(cartEmpty: false, cart: cart);
+    } else {
+      reInitSecondDisplay(cartEmpty: true);
+    }
     if (!controller.isClosed) {
       controller.sink.add('refresh');
       print("refresh called");
+    }
+  }
+
+  reInitSecondDisplay({required bool cartEmpty, CartModel? cart}) async {
+    if (notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true) {
+      if(cartEmpty){
+        await displayManager.transferDataToPresentation("init");
+      } else {
+        if(cart != null){
+          SecondDisplayData data = SecondDisplayData(
+              tableNo: cart.selectedTable.isEmpty ? null : cart.selectedTable.map((e) => e.number).toList().toString().replaceAll('[', '').replaceAll(']', ''),
+              itemList: cart.cartNotifierItem,
+              subtotal: cart.cartSubTotal.toStringAsFixed(2),
+              totalDiscount: promoAmount.toStringAsFixed(2),
+              totalTax: priceIncAllTaxes.toStringAsFixed(2),
+              rounding: rounding.toStringAsFixed(2),
+              finalAmount: finalAmount,
+              selectedOption: cart.selectedOption
+          );
+          await displayManager.transferDataToPresentation(jsonEncode(data));
+        }
+      }
     }
   }
 
@@ -2119,6 +2149,7 @@ class CartPageState extends State<CartPage> {
               opacity: a1.value,
               child: PromotionDialog(
                 cartFinalAmount: finalAmount,
+                subtotal: newOrderSubtotal.toString(),
               ),
             ),
           );
@@ -2141,10 +2172,12 @@ class CartPageState extends State<CartPage> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: CartRemoveDialog(
+              child: currentPage == 'menu' ?
+              CartRemoveDialog(
                 cartItem: item,
                 currentPage: currentPage,
-              ),
+              ) :
+              AdjustQuantityDialog(cartItem: item, currentPage: currentPage)
             ),
           );
         },
@@ -2220,10 +2253,7 @@ class CartPageState extends State<CartPage> {
                   dining_name: cart.selectedOption,
                   order_key: orderKey,
                   callBack: (orderKeyValue) async {
-                    if (this.widget.currentPage == "menu" || this.widget.currentPage == 'bill') {
-                      cart.removeAllCartItem();
-                      cart.removeAllTable();
-                    }
+
                     if(orderKeyValue != '') {
                       cart.cartNotifierItem.forEach((element) {
                         element.order_key = orderKeyValue;
@@ -2231,6 +2261,10 @@ class CartPageState extends State<CartPage> {
                       await getSubTotal(cart);
                       await paymentAddToCart(cart);
                       print("final amount: $finalAmount");
+                    } else {
+                      cart.removeAllCartItem();
+                      cart.removeAllTable();
+                      cart.removeAllGroupList();
                     }
 
                   }),
