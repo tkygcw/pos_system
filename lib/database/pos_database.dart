@@ -5637,6 +5637,14 @@ class PosDatabase {
   }
 
 /*
+  update rounding absorb Setting
+*/
+  Future<int> updateRoundingAbsorbSettings(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET rounding_absorb = ?, sync_status = ?, updated_at = ?', [data.rounding_absorb, 2, data.updated_at]);
+  }
+
+/*
   update auto accept qr order Setting
 */
   Future<int> updateDynamicQrInvalidAfterPaymentSetting(AppSetting data) async {

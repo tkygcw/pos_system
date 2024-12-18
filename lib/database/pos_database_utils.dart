@@ -251,6 +251,7 @@ class PosDatabaseUtils {
           case 32: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.qr_order_alert} $integerType DEFAULT 1");
           await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.other_order_key} $textType DEFAULT ''");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.rounding_absorb} $integerType DEFAULT 0");
           }break;
         }
       }
@@ -902,6 +903,7 @@ class PosDatabaseUtils {
           ${AppSettingFields.dynamic_qr_invalid_after_payment} $integerType,
           ${AppSettingFields.required_cancel_reason} $integerType,
           ${AppSettingFields.qr_order_alert} $integerType,
+          ${AppSettingFields.rounding_absorb} $integerType,
           ${AppSettingFields.sync_status} $integerType,
           ${AppSettingFields.created_at} $textType,
           ${AppSettingFields.updated_at} $textType)''');

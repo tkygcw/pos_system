@@ -15,6 +15,7 @@ class AppSettingModel extends ChangeNotifier {
   int? table_order;
   bool? show_product_desc;
   bool? autoPrintCancelReceipt;
+  bool? roundingAbsorb;
   int? product_sort_by;
   int? dynamic_qr_default_exp_after_hour;
   int? variant_item_sort_by;
@@ -117,6 +118,11 @@ class AppSettingModel extends ChangeNotifier {
 
   void setAutoPrintCancelReceiptStatus(bool status) {
     autoPrintCancelReceipt = status;
+    notifyListeners();
+  }
+
+  void setRoundingAbsorbStatus(bool status) {
+    roundingAbsorb = status;
     notifyListeners();
   }
 
