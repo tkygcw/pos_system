@@ -5581,6 +5581,14 @@ class PosDatabase {
   }
 
 /*
+  update qr order alert Setting
+*/
+  Future<int> updateQrOrderAlertSetting(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET qr_order_alert = ?, sync_status = ?, updated_at = ?', [data.qr_order_alert, 2, data.updated_at]);
+  }
+
+/*
   update settlement after all order paid Setting
 */
   Future<int> updateSettlementAfterAllOrderPaidSetting(AppSetting data) async {

@@ -249,8 +249,9 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.allow_livedata} $integerType DEFAULT 0 ");
           }break;
           case 32: {
-            await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.other_order_key} $textType DEFAULT ''");
-          }
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.qr_order_alert} $integerType DEFAULT 1");
+          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.other_order_key} $textType DEFAULT ''");
+          }break;
         }
       }
     }
@@ -900,6 +901,7 @@ class PosDatabaseUtils {
           ${AppSettingFields.variant_item_sort_by} $integerType,
           ${AppSettingFields.dynamic_qr_invalid_after_payment} $integerType,
           ${AppSettingFields.required_cancel_reason} $integerType,
+          ${AppSettingFields.qr_order_alert} $integerType,
           ${AppSettingFields.sync_status} $integerType,
           ${AppSettingFields.created_at} $textType,
           ${AppSettingFields.updated_at} $textType)''');

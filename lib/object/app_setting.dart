@@ -22,6 +22,7 @@ class AppSettingFields {
     variant_item_sort_by,
     dynamic_qr_invalid_after_payment,
     required_cancel_reason,
+    qr_order_alert,
     sync_status,
     created_at,
     updated_at
@@ -47,6 +48,7 @@ class AppSettingFields {
   static String variant_item_sort_by = 'variant_item_sort_by';
   static String dynamic_qr_invalid_after_payment = 'dynamic_qr_invalid_after_payment';
   static String required_cancel_reason = 'required_cancel_reason';
+  static String qr_order_alert = 'qr_order_alert';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -73,6 +75,7 @@ class AppSetting{
   int? variant_item_sort_by;
   int? dynamic_qr_invalid_after_payment;
   int? required_cancel_reason;
+  int? qr_order_alert;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -98,6 +101,7 @@ class AppSetting{
         this.variant_item_sort_by,
         this.dynamic_qr_invalid_after_payment,
         this.required_cancel_reason,
+        this.qr_order_alert,
         this.sync_status,
         this.created_at,
         this.updated_at
@@ -124,6 +128,7 @@ class AppSetting{
     int? variant_item_sort_by,
     int? dynamic_qr_invalid_after_payment,
     int? required_cancel_reason,
+    int? qr_order_alert,
     int? sync_status,
     String? created_at,
     String? updated_at
@@ -149,6 +154,7 @@ class AppSetting{
         variant_item_sort_by: variant_item_sort_by ?? this.variant_item_sort_by,
         dynamic_qr_invalid_after_payment: dynamic_qr_invalid_after_payment ?? this.dynamic_qr_invalid_after_payment,
         required_cancel_reason: required_cancel_reason ?? this.required_cancel_reason,
+        qr_order_alert: qr_order_alert ?? this.qr_order_alert,
         sync_status: sync_status ?? this.sync_status,
         created_at: created_at ?? this.created_at,
         updated_at: updated_at ?? this.updated_at
@@ -175,6 +181,7 @@ class AppSetting{
     variant_item_sort_by: json[AppSettingFields.variant_item_sort_by] as int?,
     dynamic_qr_invalid_after_payment: json[AppSettingFields.dynamic_qr_invalid_after_payment] as int?,
     required_cancel_reason: json[AppSettingFields.required_cancel_reason] as int?,
+    qr_order_alert: json[AppSettingFields.qr_order_alert] as int?,
     sync_status: json[AppSettingFields.sync_status] as int?,
     created_at: json[AppSettingFields.created_at] as String?,
     updated_at: json[AppSettingFields.updated_at] as String?
@@ -201,6 +208,7 @@ class AppSetting{
     AppSettingFields.variant_item_sort_by: variant_item_sort_by,
     AppSettingFields.dynamic_qr_invalid_after_payment: dynamic_qr_invalid_after_payment,
     AppSettingFields.required_cancel_reason: required_cancel_reason,
+    AppSettingFields.qr_order_alert: qr_order_alert,
     AppSettingFields.sync_status: sync_status,
     AppSettingFields.created_at: created_at,
     AppSettingFields.updated_at: updated_at

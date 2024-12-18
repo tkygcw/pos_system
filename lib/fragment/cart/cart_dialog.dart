@@ -683,26 +683,26 @@ class CartDialogState extends State<CartDialog> {
   }
 
   readAllTableAmount() async {
-    double tableAmount = 0.0;
     for (int i = 0; i < tableList.length; i++) {
       if(tableList[i].status == 1){
         List<TableUseDetail> tableUseDetailData = await posDatabase.readSpecificTableUseDetail(tableList[i].table_sqlite_id!);
 
         if (tableUseDetailData.isNotEmpty) {
           List<OrderCache> data = await posDatabase.readTableOrderCache(tableUseDetailData[0].table_use_key!);
-
-          tableList[i].group = data[0].table_use_sqlite_id;
-          tableList[i].card_color = data[0].card_color;
-          if(data[0].order_key != null && data[0].order_key != ''){
-            tableList[i].order_key = data[0].order_key!;
-          } else {
-            tableList[i].order_key = '';
+          if(data.isNotEmpty){
+            double tableAmount = 0.0;
+            tableList[i].group = data[0].table_use_sqlite_id;
+            tableList[i].card_color = data[0].card_color;
+            for (int j = 0; j < data.length; j++) {
+              tableAmount += double.parse(data[j].total_amount!);
+            }
+            if(data[0].order_key != null && data[0].order_key != ''){
+              tableList[i].order_key = data[0].order_key!;
+            } else {
+              tableList[i].order_key = '';
+            }
+            tableList[i].total_amount = tableAmount.toStringAsFixed(2);
           }
-
-          for (int j = 0; j < data.length; j++) {
-            tableAmount += double.parse(data[j].total_amount!);
-          }
-          tableList[i].total_amount = tableAmount.toStringAsFixed(2);
         }
       }
     }
