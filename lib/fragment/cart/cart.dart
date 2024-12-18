@@ -53,6 +53,7 @@ import '../../object/app_setting.dart';
 import '../../object/cart_payment.dart';
 import '../../object/cash_record.dart';
 import '../../object/order_modifier_detail.dart';
+import '../../object/second_display_data.dart';
 import '../printing_layout/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../object/table.dart';
@@ -140,7 +141,6 @@ class CartPageState extends State<CartPage> {
 
   bool lastDiningOption = false;
 
-  String tableNo = 'N/A';
   String orderKey = '';
 
   void _scrollDown() {
@@ -164,6 +164,7 @@ class CartPageState extends State<CartPage> {
   @override
   void dispose() {
     _timer?.cancel();
+    reInitSecondDisplay(cartEmpty: true);
     super.dispose();
   }
 
@@ -1242,7 +1243,7 @@ class CartPageState extends State<CartPage> {
     if (cart.selectedTable.isEmpty && cart.selectedOption == 'Dine in') {
       result.add('-');
     } else if (cart.selectedOption != 'Dine in') {
-      result.add('N/A');
+      result.add('-');
     } else {
       if (cart.selectedTable.length > 1) {
         for (int i = 0; i < cart.selectedTable.length; i++) {
@@ -1253,7 +1254,7 @@ class CartPageState extends State<CartPage> {
       }
     }
 
-    if (result[0] == '-' || result[0] == 'N/A') {
+    if (result[0] == '-') {
       if (orderQueue != '') {
         result.clear();
         result.add(AppLocalizations.of(context)!.translate('order') + ': ${orderQueue}');
@@ -1976,9 +1977,36 @@ class CartPageState extends State<CartPage> {
     }
     if((widget.currentPage == 'table' || widget.currentPage == 'other_order') && cart.cartNotifierItem.isNotEmpty)
       isButtonDisabled = false;
+    if(cart.cartNotifierItem.isNotEmpty){
+      reInitSecondDisplay(cartEmpty: false, cart: cart);
+    } else {
+      reInitSecondDisplay(cartEmpty: true);
+    }
     if (!controller.isClosed) {
       controller.sink.add('refresh');
       print("refresh called");
+    }
+  }
+
+  reInitSecondDisplay({required bool cartEmpty, CartModel? cart}) async {
+    if (notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true) {
+      if(cartEmpty){
+        await displayManager.transferDataToPresentation("init");
+      } else {
+        if(cart != null){
+          SecondDisplayData data = SecondDisplayData(
+              tableNo: cart.selectedTable.isEmpty ? null : cart.selectedTable.map((e) => e.number).toList().toString().replaceAll('[', '').replaceAll(']', ''),
+              itemList: cart.cartNotifierItem,
+              subtotal: cart.cartSubTotal.toStringAsFixed(2),
+              totalDiscount: promoAmount.toStringAsFixed(2),
+              totalTax: priceIncAllTaxes.toStringAsFixed(2),
+              rounding: rounding.toStringAsFixed(2),
+              finalAmount: finalAmount,
+              selectedOption: cart.selectedOption
+          );
+          await displayManager.transferDataToPresentation(jsonEncode(data));
+        }
+      }
     }
   }
 
@@ -2225,10 +2253,7 @@ class CartPageState extends State<CartPage> {
                   dining_name: cart.selectedOption,
                   order_key: orderKey,
                   callBack: (orderKeyValue) async {
-                    if (this.widget.currentPage == "menu" || this.widget.currentPage == 'bill') {
-                      cart.removeAllCartItem();
-                      cart.removeAllTable();
-                    }
+
                     if(orderKeyValue != '') {
                       cart.cartNotifierItem.forEach((element) {
                         element.order_key = orderKeyValue;
@@ -2236,6 +2261,10 @@ class CartPageState extends State<CartPage> {
                       await getSubTotal(cart);
                       await paymentAddToCart(cart);
                       print("final amount: $finalAmount");
+                    } else {
+                      cart.removeAllCartItem();
+                      cart.removeAllTable();
+                      cart.removeAllGroupList();
                     }
 
                   }),

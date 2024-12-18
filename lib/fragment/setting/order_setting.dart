@@ -425,10 +425,12 @@ class _OrderSettingState extends State<OrderSetting> {
                                         if (await anyTableUse()) {
                                           Fluttertoast.showToast(
                                               msg: AppLocalizations.of(context)!.translate('please_settle_the_bill_for_all_tables'));
-                                        } else if (appSettingModel.enable_numbering == false) {
-                                          Fluttertoast.showToast(
-                                              msg: AppLocalizations.of(context)!.translate('please_enable_order_number'));
-                                        } else if (appSettingModel.directPaymentStatus == false) {
+                                        }
+                                        // else if (appSettingModel.enable_numbering == false) {
+                                        //   Fluttertoast.showToast(
+                                        //       msg: AppLocalizations.of(context)!.translate('please_enable_order_number'));
+                                        // }
+                                        else if (appSettingModel.directPaymentStatus == false) {
                                           Fluttertoast.showToast(
                                               msg: AppLocalizations.of(context)!.translate('please_enable_direct_payment'));
                                         } else {
@@ -512,19 +514,9 @@ class _OrderSettingState extends State<OrderSetting> {
                               value: enableNumbering,
                               activeColor: color.backgroundColor,
                               onChanged: (value) async {
-                                if(!value) {
-                                  if(appSettingModel.table_order != 1) {
-                                    Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_enable_table_order_in_general_setting'));
-                                  } else {
-                                    enableNumbering = value;
-                                    appSettingModel.setOrderNumberingStatus(enableNumbering);
-                                    actionController.sink.add("switch");
-                                  }
-                                } else {
-                                  enableNumbering = value;
-                                  appSettingModel.setOrderNumberingStatus(enableNumbering);
-                                  actionController.sink.add("switch");
-                                }
+                                enableNumbering = value;
+                                appSettingModel.setOrderNumberingStatus(enableNumbering);
+                                actionController.sink.add("switch");
                               },
                             ),
                           ),

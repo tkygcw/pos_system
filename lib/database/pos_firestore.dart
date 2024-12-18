@@ -130,6 +130,13 @@ class PosFirestore {
     await firestore.collection(tableProduct!).doc(data.product_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
+  updateProduct(Product data) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
+    await firestore.collection(tableProduct!).doc(data.product_id.toString()).update(data.toJson());
+  }
+
   insertProductVariant(ProductVariant data) async {
     if(firestore_status == FirestoreStatus.offline){
       return;

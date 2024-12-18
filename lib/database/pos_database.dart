@@ -2546,7 +2546,7 @@ class PosDatabase {
           'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a '
           'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
           'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
-          'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.table_use_key = ? ORDER BY a.created_at ASC  ',
+          'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.table_use_key = ? ORDER BY a.created_at DESC  ',
           ['1', '', '', branch_id, company_id, 0, '', '']);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
@@ -2564,12 +2564,12 @@ class PosDatabase {
       final db = await instance.database;
       final result = await db.rawQuery(
           'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
-              'a.table_use_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, '
+              'a.table_use_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
               'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a '
               'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
-              'WHERE a.order_key = ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
+              'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
               'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? ORDER BY a.created_at DESC  ',
-          ['', '', '', branch_id, company_id, 0, '']);
+          ['1', '', '', branch_id, company_id, 0, '']);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {
@@ -2589,7 +2589,7 @@ class PosDatabase {
           'a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, a.payment_status,'
           'a.created_at, a.updated_at, a.soft_delete, b.name AS name '
           'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
-          'WHERE a.payment_status != ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ? AND a.table_use_key = ? ORDER BY a.created_at ASC',
+          'WHERE a.payment_status != ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ? AND a.table_use_key = ? ORDER BY a.created_at DESC',
           ['1', '', '', '', name, '']);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
@@ -2607,11 +2607,11 @@ class PosDatabase {
       final db = await instance.database;
       final result = await db.rawQuery(
           'SELECT a.order_cache_sqlite_id, a.order_queue, a.order_detail_id, a.dining_id, a.table_use_sqlite_id, a.table_use_key, a.batch_id, a.dining_id, '
-              'a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, '
+              'a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, a.payment_status,'
               'a.created_at, a.updated_at, a.soft_delete, b.name AS name '
               'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
-              'WHERE a.order_key = ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ?',
-          ['', '', '', '', name]);
+              'WHERE a.payment_status != ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ? ORDER BY a.created_at DESC',
+          ['1', '', '', '', name]);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {
@@ -5062,7 +5062,7 @@ class PosDatabase {
         'UPDATE $tableProduct SET category_sqlite_id = ?, category_id = ?, name = ?, price = ?, description = ?, SKU = ?, '
         'image = ?, has_variant = ?, stock_type = ?, stock_quantity = ?, available = ?, graphic_type = ?, color = ?, '
         'daily_limit_amount = ?, daily_limit = ?, sync_status = ?, unit = ?, per_quantity_unit = ?, sequence_number = ?, allow_ticket = ?, '
-        'ticket_count = ?, ticket_exp = ?, updated_at = ?, soft_delete = ? WHERE product_id = ? ',
+        'ticket_count = ?, ticket_exp = ?, show_in_qr = ?, updated_at = ?, soft_delete = ? WHERE product_id = ? ',
         [
           data.category_sqlite_id,
           data.category_id,
@@ -5086,6 +5086,7 @@ class PosDatabase {
           data.allow_ticket,
           data.ticket_count,
           data.ticket_exp,
+          data.show_in_qr,
           data.updated_at,
           data.soft_delete,
           data.product_id,
@@ -5093,12 +5094,12 @@ class PosDatabase {
   }
 
 /*
-  update product available
+  update product setting
 */
-  Future<int> updateProductAvailability(Product data) async {
+  Future<int> updateProductSetting(Product data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableProduct SET available = ?, sync_status = ?, updated_at = ? WHERE product_sqlite_id = ?',
-        [data.available, data.sync_status, data.updated_at, data.product_sqlite_id]);
+    return await db.rawUpdate('UPDATE $tableProduct SET available = ?, show_in_qr = ?, sync_status = ?, updated_at = ? WHERE product_id = ?',
+        [data.available, data.show_in_qr, data.sync_status, data.updated_at, data.product_id]);
   }
 
 /*
@@ -5363,7 +5364,7 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableBranch SET name = ?, logo = ?,  address = ?, phone = ?, email = ?, '
         'qr_order_status = ?, sub_pos_status = ?, attendance_status = ?, register_no = ?, allow_firestore = ?, '
-        'qr_show_sku = ?, qr_product_sequence = ?, show_qr_history = ? '
+        'allow_livedata = ?, qr_show_sku = ?, qr_product_sequence = ?, show_qr_history = ? '
         'WHERE branch_id = ? ',
         [
           data.name,
@@ -5376,6 +5377,7 @@ class PosDatabase {
           data.attendance_status,
           data.register_no,
           data.allow_firestore,
+          data.allow_livedata,
           data.qr_show_sku,
           data.qr_product_sequence,
           data.show_qr_history,
@@ -7100,6 +7102,14 @@ class PosDatabase {
   }
 
 /*
+  update product sync status (from cloud)
+*/
+  Future<int> updateProductSyncStatusFromCloud(int product_id) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableProduct SET sync_status = ? WHERE product_id = ? AND soft_delete = ?', [1, product_id, '']);
+  }
+
+/*
   update settlement (from cloud)
 */
   Future<int> updateSettlementSyncStatusFromCloud(String settlement_key) async {
@@ -7194,6 +7204,12 @@ class PosDatabase {
     final result = await db.rawQuery('SELECT * FROM $tablePosTable WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ', ['', 1]);
 
     return result.map((json) => PosTable.fromJson(json)).toList();
+  }
+
+  Future<List<Product>> readAllNotSyncUpdatedProduct() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableProduct WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ', ['', 1]);
+    return result.map((json) => Product.fromJson(json)).toList();
   }
 
 /*
@@ -8016,6 +8032,15 @@ class PosDatabase {
   read local product
 */
   Future<List<Product>> readLocalProduct() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableProduct WHERE soft_delete = ?', ['']);
+    return result.map((json) => Product.fromJson(json)).toList();
+  }
+
+/*
+  read local product
+*/
+  Future<List<Product>> readLocalUpdateProduct() async {
     final db = await instance.database;
     final result = await db.rawQuery('SELECT * FROM $tableProduct WHERE soft_delete = ?', ['']);
     return result.map((json) => Product.fromJson(json)).toList();

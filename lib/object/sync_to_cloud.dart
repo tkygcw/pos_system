@@ -13,6 +13,7 @@ import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/printer_link_category.dart';
+import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/receipt.dart';
 import 'package:pos_system/object/refund.dart';
 import 'package:pos_system/object/settlement.dart';
@@ -38,6 +39,7 @@ class SyncToCloud {
   int count = 0;
   bool emptyResponse = false;
   List<PosTable> notSyncPosTableList = [];
+  List<Product> notSyncProductList = [];
   List<Order> notSyncOrderList = [];
   List<OrderTaxDetail> notSyncOrderTaxDetailList = [];
   List<OrderPromotionDetail> notSyncOrderPromotionDetailList = [];
@@ -61,7 +63,7 @@ class SyncToCloud {
   String? table_use_value, table_use_detail_value, order_cache_value, order_detail_value, order_detail_cancel_value,
       order_modifier_detail_value, order_value, order_promotion_value, order_tax_value, receipt_value, refund_value, table_value, settlement_value,
       settlement_link_payment_value, cash_record_value, app_setting_value, branch_link_product_value, printer_value, printer_link_category_value,
-      transfer_owner_value, checklist_value, kitchen_list_value, attendance_value, dynamic_qr_value, order_payment_split_value, cancel_receipt_value;
+      transfer_owner_value, checklist_value, kitchen_list_value, attendance_value, dynamic_qr_value, order_payment_split_value, cancel_receipt_value, product_value;
 
   resetCount(){
     count = 0;
@@ -106,7 +108,8 @@ class SyncToCloud {
           attendance_value:  this.attendance_value,
           dynamic_qr_value: this.dynamic_qr_value,
           order_payment_split_value: this.order_payment_split_value,
-          cancel_receipt_value: this.cancel_receipt_value
+          cancel_receipt_value: this.cancel_receipt_value,
+          product_value:  this.product_value,
       );
       if (data['status'] == '1') {
         List responseJson = data['data'];
@@ -216,6 +219,10 @@ class SyncToCloud {
               case 'tb_cancel_receipt': {
                 await PosDatabase.instance.updateCancelReceiptSyncStatusFromCloud(responseJson[i]['cancel_receipt_key']);
               }break;
+              case 'tb_product': {
+                await PosDatabase.instance.updateProductSyncStatusFromCloud(responseJson[i]['product_id']);
+              }
+              break;
             }
           }
         } else {
@@ -271,6 +278,7 @@ class SyncToCloud {
     dynamic_qr_value = [].toString();
     order_payment_split_value = [].toString();
     cancel_receipt_value = [].toString();
+    product_value = [].toString();
   }
 
   getAllValue() async {
@@ -301,6 +309,7 @@ class SyncToCloud {
     await getNotSyncTransfer();
     await getNotSyncDynamicQr();
     await getNotSyncCancelReceipt();
+    await getNotSyncProduct();
   }
 
   getNotSyncCancelReceipt() async {
@@ -888,6 +897,28 @@ class SyncToCloud {
           _value.add(jsonEncode(notSyncPosTableList[i]));
         }
         this.table_value = _value.toString();
+      }
+    }catch(error){
+      print('15 table sync error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "table sync to cloud error",
+        exception: error,
+      );
+      return;
+    }
+  }
+
+  getNotSyncProduct() async {
+    try{
+      List<String> _value = [];
+      List<Product> data = await PosDatabase.instance.readAllNotSyncUpdatedProduct();
+      notSyncProductList = data;
+      if(notSyncProductList.isNotEmpty){
+        for (int i = 0; i < notSyncProductList.length; i++) {
+          _value.add(jsonEncode(notSyncProductList[i]));
+        }
+        this.product_value = _value.toString();
       }
     }catch(error){
       print('15 table sync error: ${error}');
