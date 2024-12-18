@@ -1177,7 +1177,7 @@ class ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: 'Qty ', width: 2, styles: PosStyles(bold: true)),
         PosColumn(text: 'Item', width: 7, styles: PosStyles(bold: true)),
-        PosColumn(text: 'Price', width: 3, styles: PosStyles(bold: true, align: PosAlign.right)),
+        PosColumn(text: 'Price(MYR)', width: 3, styles: PosStyles(bold: true, align: PosAlign.right)),
       ]);
       bytes += generator.hr();
       //order product
@@ -1254,7 +1254,7 @@ class ReceiptLayout{
       //total
       bytes += generator.hr();
       bytes += generator.row([
-        PosColumn(text: 'Final Amount', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2)),
+        PosColumn(text: 'Final Amount(MYR)', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2)),
         PosColumn(
             text: '3.40',
             width: 4,
@@ -1320,8 +1320,14 @@ class ReceiptLayout{
 
       List<int> bytes = [];
       try {
-        //bytes += generator.image(image);
         bytes += generator.reset();
+
+        if(receipt!.header_image_status == 1){
+          img.Image processedImage = await getBranchLogo(receipt!.header_image_size!);
+          bytes += generator.imageRaster(processedImage, align: PosAlign.center);
+          bytes += generator.emptyLines(1);
+        }
+
         if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
           bytes += generator.row([
             PosColumn(
@@ -1407,7 +1413,7 @@ class ReceiptLayout{
         bytes += generator.row([
           PosColumn(text: 'Qty ', width: 2, styles: PosStyles(bold: true)),
           PosColumn(text: 'Item', width: 6, styles: PosStyles(bold: true)),
-          PosColumn(text: 'Price', width: 4, styles: PosStyles(bold: true)),
+          PosColumn(text: 'Price(MYR)', width: 4, styles: PosStyles(bold: true)),
         ]);
         bytes += generator.hr();
         //order product
@@ -1486,7 +1492,7 @@ class ReceiptLayout{
         //total
         bytes += generator.hr();
         bytes += generator.row([
-          PosColumn(text: 'Final Amount', width: 8),
+          PosColumn(text: 'Final Amount(MYR)', width: 8),
           PosColumn(
               text: '3.40',
               width: 4,

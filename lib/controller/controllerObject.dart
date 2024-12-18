@@ -5,6 +5,7 @@ class ControllerClass{
   StreamController appDeviceController = StreamController();
   StreamController hardwareSettingController = StreamController();
   StreamController orderSettingController = StreamController();
+  StreamController editProductController = StreamController();
   late Stream hardwareSettingStream = hardwareSettingController.stream.asBroadcastStream();
   late Stream orderSettingStream = hardwareSettingController.stream.asBroadcastStream();
   late Stream appDeviceStream = appDeviceController.stream.asBroadcastStream();

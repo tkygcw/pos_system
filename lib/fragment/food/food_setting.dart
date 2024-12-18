@@ -1,6 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:collection/collection.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 
 import 'package:provider/provider.dart';
@@ -13,6 +17,7 @@ import '../../object/colorCode.dart';
 import '../../object/product.dart';
 import '../../page/progress_bar.dart';
 import '../product/edit_product.dart';
+import 'dart:io' as Platform;
 
 class FoodSetting extends StatefulWidget {
   const FoodSetting({Key? key}) : super(key: key);
@@ -28,6 +33,8 @@ class _FoodSettingState extends State<FoodSetting> {
   List<Product> specificProduct = [];
   String? companyID = '';
   bool isLoading = true;
+  List<Tab> categoryTab = [];
+  List<Widget> categoryTabContent = [];
 
   String imagePath = '';
 
@@ -47,89 +54,98 @@ class _FoodSettingState extends State<FoodSetting> {
               resizeToAvoidBottomInset: false,
               body: Container(
                 child: Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(0),
                   child: Column(
                     children: [
-                      Row(
-                        children: [
-                          // Padding(
-                          //   padding: const EdgeInsets.fromLTRB(18, 0, 0, 0),
-                          //   child: ElevatedButton.icon(
-                          //       style: ElevatedButton.styleFrom(
-                          //           primary: color.backgroundColor),
-                          //       onPressed: () {
-                          //         openEditProductDialog(Product());
-                          //       },
-                          //       icon: Icon(Icons.add),
-                          //       label: Text("Product")),
-                          // ),
-                          Expanded(
-                            child: Padding(
-                              padding: EdgeInsets.fromLTRB(0, 0, 60, 0),
-                              child: DropdownButton<String>(
-                                onChanged: (String? value) {
-                                  setState(() {
-                                    _selectedCategory = value!;
-                                  });
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 250,
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton2(
+                                  isExpanded: true,
+                                  buttonStyleData: ButtonStyleData(
+                                    height: 40,
+                                    padding: const EdgeInsets.only(left: 14, right: 14),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: Border.all(
+                                        color: Colors.black26,
+                                      ),
+                                    ),
+                                  ),
+                                  dropdownStyleData: DropdownStyleData(
+                                    maxHeight: 400,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      color: Colors.grey.shade100,
+                                    ),
+                                    scrollbarTheme: ScrollbarThemeData(
+                                      thickness: WidgetStateProperty.all(5),
+                                      mainAxisMargin: 20,
+                                      crossAxisMargin: 5,
+                                    ),
+                                  ),
+                                  items: categoryList
+                                      .map((e) => DropdownMenuItem<String>(
+                                    value: e,
+                                    child: Text(
+                                      e,
+                                      overflow: TextOverflow.visible,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ))
+                                      .toList(),
+                                  value: _selectedCategory,
+                                  onChanged: (String? newValue) {
+                                    setState(() {
+                                      _selectedCategory = newValue!;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                            if(MediaQuery.of(context).size.width > 500)
+                              Spacer(),
+                            if(MediaQuery.of(context).size.width > 500)
+                              SizedBox(
+                              width: 250,
+                              child: TextField(
+                                onChanged: (value) {
+                                  _selectedCategory = 'All Categories';
+                                  searchProduct(value);
                                 },
-                                menuMaxHeight: 300,
-                                value: _selectedCategory,
-                                // Hide the default underline
-                                underline: Container(),
-                                icon: Icon(
-                                  Icons.arrow_drop_down,
-                                  color: color.backgroundColor,
-                                ),
-                                isExpanded: true,
-                                // The list of options
-                                items: categoryList
-                                    .map((e) => DropdownMenuItem(
-                                          value: e,
-                                          child: Container(
-                                            alignment: Alignment.centerLeft,
-                                            child: Text(
-                                              e,
-                                              style: TextStyle(fontSize: 18),
-                                            ),
-                                          ),
-                                        ))
-                                    .toList(),
-                                // Customize the selected item
-                                selectedItemBuilder: (BuildContext context) => categoryList
-                                    .map((e) => Center(
-                                          child: Text(e),
-                                        ))
-                                    .toList(),
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: MediaQuery.of(context).size.height > 500 ? 300 : 0),
-                          Expanded(
-                            child: TextField(
-                              onChanged: (value) {
-                                _selectedCategory = 'All Categories';
-                                searchProduct(value);
-                              },
-                              decoration: InputDecoration(
-                                contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 10),
-                                isDense: true,
-                                border: InputBorder.none,
-                                labelText: AppLocalizations.of(context)!.translate('search'),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: const BorderSide(color: Colors.grey, width: 2.0),
-                                  borderRadius: BorderRadius.circular(25.0),
+                                decoration: InputDecoration(
+                                  contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+                                  isDense: true,
+                                  border: InputBorder.none,
+                                  labelText: AppLocalizations.of(context)!.translate('search'),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: const BorderSide(color: Colors.grey, width: 2.0),
+                                    borderRadius: BorderRadius.circular(25.0),
+                                  ),
                                 ),
                               ),
-                            ),
-                          )
-                        ],
+                            )
+                          ],
+                        ),
                       ),
                       Expanded(
                         child: _selectedCategory == 'All Categories'
                             ? GridView.count(
                                 padding: const EdgeInsets.all(10),
                                 shrinkWrap: true,
-                                crossAxisCount: 5,
+                                crossAxisCount: MediaQuery.of(context).orientation == Orientation.landscape
+                                    ? MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 7
+                                    : MediaQuery.of(context).size.height > 450 && MediaQuery.of(context).size.width > 800 ? 5
+                                    : 4
+                                    : MediaQuery.of(context).size.height > 900 && MediaQuery.of(context).size.width > 500 ? 5
+                                    : MediaQuery.of(context).size.height > 800 && MediaQuery.of(context).size.width > 450 ? 4
+                                    : 3,
                                 children: List.generate(allProduct.length, //this is the total number of cards
                                     (index) {
                                   return Card(
@@ -207,6 +223,7 @@ class _FoodSettingState extends State<FoodSetting> {
   }
 
   readAllCategories() async {
+    await getPreferences();
     if (categoryList.isEmpty) {
       categoryList.add('All Categories');
     }
@@ -216,12 +233,12 @@ class _FoodSettingState extends State<FoodSetting> {
         categoryList.add(data[i].name!);
       }
     }
-    await readCompanyID();
     await readAllProduct();
   }
 
   readAllProduct() async {
     List<Product> data = await PosDatabase.instance.readAllProductForProductSetting();
+    data = sortProduct(data);
     if(mounted){
       setState(() {
         allProduct = data;
@@ -230,19 +247,124 @@ class _FoodSettingState extends State<FoodSetting> {
     }
   }
 
-  readCompanyID() async {
+  Future<String> get _localPath async {
+    final directory = await getApplicationSupportDirectory();
+    return directory.path;
+  }
+
+  getPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     final String? user = prefs.getString('user');
-    imagePath = prefs.getString('local_path')!;
     Map userObject = json.decode(user!);
     companyID = userObject['company_id'];
+
+    if(Platform.Platform.isIOS){
+      String dir = await _localPath;
+      imagePath = dir + '/assets/$companyID';
+    } else {
+      imagePath = prefs.getString('local_path')!;
+    }
+  }
+
+  sortCategory(List<Categories> list){
+    list.sort((a, b) {
+      final aNumber = a.sequence!;
+      final bNumber = b.sequence!;
+
+      bool isANumeric = int.tryParse(aNumber) != null;
+      bool isBNumeric = int.tryParse(bNumber) != null;
+
+      if (isANumeric && isBNumeric) {
+        return int.parse(aNumber).compareTo(int.parse(bNumber));
+      } else if (isANumeric) {
+        return -1; // Numeric before alphanumeric
+      } else if (isBNumeric) {
+        return 1; // Alphanumeric before numeric
+      } else if (!isANumeric && !isBNumeric) {
+        return compareNatural(a.name!, b.name!);
+      } else {
+        // Custom alphanumeric sorting logic
+        return compareNatural(aNumber, bNumber);
+      }
+    });
+    return list;
+  }
+
+  sortProduct(List<Product> list){
+    List<Product> hasSequenceProduct = list.where((e) => e.sequence_number != null && e.sequence_number != '').toList();
+    hasSequenceProduct.sort((a, b) {
+      final aNumber = a.sequence_number!;
+      final bNumber = b.sequence_number!;
+
+      bool isANumeric = int.tryParse(aNumber) != null;
+      bool isBNumeric = int.tryParse(bNumber) != null;
+
+      if (isANumeric && isBNumeric) {
+        return int.parse(aNumber).compareTo(int.parse(bNumber));
+      } else if (isANumeric) {
+        return -1; // Numeric before alphanumeric
+      } else if (isBNumeric) {
+        return 1; // Alphanumeric before numeric
+      } else {
+        // Custom alphanumeric sorting logic
+        return compareNatural(aNumber, bNumber);
+      }
+    });
+    list.removeWhere((e) => e.sequence_number != null && e.sequence_number != '');
+    List<Product> sortedList2 = getSortedList(list);
+    return hasSequenceProduct + sortedList2;
+  }
+
+  List<Product> getSortedList(List<Product> noSequenceProduct){
+    switch(AppSettingModel.instance.product_sort_by){
+      case 1 :{
+        return sortByProductName(noSequenceProduct);
+      }
+      case 2: {
+        return sortByProductSKU(noSequenceProduct);
+      }
+      case 3: {
+        return sortByProductPrice(noSequenceProduct);
+      }
+      case 4: {
+        return sortByProductName(noSequenceProduct, isDESC: true);
+      }
+      case 5: {
+        return sortByProductSKU(noSequenceProduct, isDESC: true);
+      }
+      case 6: {
+        return sortByProductPrice(noSequenceProduct, isDESC: true);
+      }
+      default: {
+        return noSequenceProduct;
+      }
+    }
+  }
+
+  sortByProductName(List<Product> sortedList, {isDESC}){
+    sortedList.sort((a, b){
+      return compareNatural(a.name!, b.name!);
+    });
+    return isDESC == null ? sortedList : sortedList.reversed.toList();
+  }
+
+  sortByProductSKU(List<Product> sortedList, {bool? isDESC}){
+    sortedList.sort((a, b){
+      return compareNatural(a.SKU!, b.SKU!);
+    });
+    return isDESC == null ? sortedList : sortedList.reversed.toList();
+  }
+
+  sortByProductPrice(List<Product> sortedList, {bool? isDESC}){
+    sortedList.sort((a, b){
+      return compareNatural(a.price!, b.price!);
+    });
+    return isDESC == null ? sortedList : sortedList.reversed.toList();
   }
 
   readSpecificProduct(String label) async {
     List<Product> data = await PosDatabase.instance.readSpecificProduct(label);
-    setState(() {
-      specificProduct = data;
-    });
+    specificProduct = data;
   }
 
   searchProduct(String text) async {
@@ -257,10 +379,15 @@ class _FoodSettingState extends State<FoodSetting> {
     return GridView.count(
         padding: const EdgeInsets.all(10),
         shrinkWrap: true,
-        crossAxisCount: 6,
+        crossAxisCount: MediaQuery.of(context).orientation == Orientation.landscape
+            ? MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 7
+            : MediaQuery.of(context).size.height > 450 && MediaQuery.of(context).size.width > 800 ? 5
+            : 4
+            : MediaQuery.of(context).size.height > 900 && MediaQuery.of(context).size.width > 500 ? 5
+            : MediaQuery.of(context).size.height > 800 && MediaQuery.of(context).size.width > 450 ? 4
+            : 3,
         children: List.generate(specificProduct.length, //this is the total number of cards
             (index) {
-          print(imagePath + '/' + specificProduct[index].image!);
           return Card(
             child: Container(
               decoration: (specificProduct[index].graphic_type == '2'
