@@ -2554,7 +2554,7 @@ class PosDatabase {
           'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a '
           'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
           'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
-          'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.table_use_key = ? AND a.other_order_key != ? GROUP BY a.other_order_key ORDER BY a.created_at DSC  ',
+          'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.table_use_key = ? AND a.other_order_key != ? GROUP BY a.other_order_key ORDER BY a.created_at DESC  ',
           ['1', '', '', branch_id, company_id, 0, '', '', '', '1', '', '', branch_id, company_id, 0, '', '', '']);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();

@@ -158,14 +158,15 @@ class QrOrder extends ChangeNotifier {
           }
         }
       }
+      if(localSetting!.qr_order_alert == 1){
+        ShowQRToast.showToast();
+      }
       await getAllNotAcceptedQrOrder();
       if(localSetting!.qr_order_auto_accept == 1){
         asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
         return;
       }
-      if(localSetting.qr_order_alert == 1){
-        ShowQRToast.showToast();
-      }
+
     }
   }
 

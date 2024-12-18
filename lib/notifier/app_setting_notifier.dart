@@ -38,7 +38,8 @@ class AppSettingModel extends ChangeNotifier {
     this.dynamic_qr_default_exp_after_hour,
     this.variant_item_sort_by,
     this.dynamic_qr_invalid_after_payment,
-    this.required_cancel_reason
+    this.required_cancel_reason,
+    this.qr_order_alert,
   });
 
   void initialLoad() async {
@@ -60,6 +61,7 @@ class AppSettingModel extends ChangeNotifier {
       variant_item_sort_by = data.variant_item_sort_by;
       dynamic_qr_invalid_after_payment = data.dynamic_qr_invalid_after_payment == 1 ? true : false;
       required_cancel_reason = data.required_cancel_reason == 1 ? true : false;
+      qr_order_alert = data.qr_order_alert == 1 ? true : false;
     }
   }
 

@@ -246,9 +246,9 @@ class QrOrderAutoAccept {
           if (tableInUsed == true) {
             if(checkIsTableSelectedInPaymentCart(qrOrderCacheList.qr_order_table_sqlite_id!) == true){
               QrOrder.instance.getAllNotAcceptedQrOrder();
-              if(localSetting!.qr_order_alert == 1){
-                ShowQRToast.showToast();
-              }
+              // if(localSetting!.qr_order_alert == 1){
+              //   ShowQRToast.showToast();
+              // }
               return;
             } else {
               await updateOrderDetail();
@@ -263,7 +263,9 @@ class QrOrderAutoAccept {
           await callOtherOrder(qrOrderCacheList);
         }
 
-        if(localSetting!.qr_order_alert == 1){
+        final String? branch = prefs.getString('branch');
+        Map branchObject = json.decode(branch!);
+        if(localSetting!.qr_order_alert == 1 && branchObject['allow_firestore'] == 1){
           ShowQRToast.showToast();
         }
         QrOrder.instance.removeSpecificQrOrder(qrOrderCacheList.order_cache_sqlite_id!);

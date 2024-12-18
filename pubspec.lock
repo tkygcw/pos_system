@@ -626,8 +626,8 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: f606e39b3ae945d30ec30f3d8348e54cceb91d12
-      url: "https://github.com/kechankrisna/flutter_usb_printer.git"
+      resolved-ref: "9c80d0bc72e648b8da51d82f211559e7b6b2a35a"
+      url: "https://github.com/tkygcw/flutter_usb_printer.git"
     source: git
     version: "0.1.0+1"
   flutter_web_plugins:
