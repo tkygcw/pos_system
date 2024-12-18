@@ -733,6 +733,7 @@ class _TableMenuState extends State<TableMenu> {
                   }
                 }
               } else {
+                cart.removeAllCartOrderCache();
                 for (int j = 0; j < tableList.length; j++) {
                   //reset all using table to un-select (table status == 1)
                   if (tableList[j].status == 1) {

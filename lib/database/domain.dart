@@ -54,6 +54,7 @@ class Domain {
   static Uri table_dynamic = Uri.parse(domain + 'mobile-api/table_dynamic/index.php');
   static Uri order_payment_split = Uri.parse(domain + 'mobile-api/order_payment_split/index.php');
   static Uri current_version = Uri.parse(domain + 'mobile-api/current_version/index.php');
+  static Uri cancel_receipt = Uri.parse(domain + 'mobile-api/cancel_receipt/index.php');
   //for transfer data use only
   static Uri import_firebase = Uri.parse(domain + 'mobile-api/import_firebase/index.php');
 
@@ -73,6 +74,25 @@ class Domain {
       );
       Fluttertoast.showToast(msg: error.toString());
       return {'status': '2'};
+    }
+  }
+
+/*
+  get cancel receipt layout
+*/
+  getCancelReceipt({required String branch_id}) async {
+    try{
+      var response = await http.post(Domain.cancel_receipt, body: {
+        'getAllCancelReceipt': '1',
+        'branch_id': branch_id,
+      });
+      return jsonDecode(response.body);
+    } catch(e){
+      FLog.error(
+        className: "domain",
+        text: "getCancelReceipt failed",
+        exception: "$e",
+      );
     }
   }
 
@@ -189,8 +209,12 @@ class Domain {
         'platform': platform,
       });
       return jsonDecode(response.body);
-    } catch(e){
-      Fluttertoast.showToast(msg: e.toString());
+    } catch(e, s){
+      FLog.error(
+        className: "loading",
+        text: "dynamic qr insert failed",
+        exception: "Error: $e, StackTrace: $s",
+      );
     }
   }
 
@@ -613,7 +637,9 @@ class Domain {
         kitchen_list_value,
         attendance_value,
         order_payment_split_value,
-        dynamic_qr_value
+        dynamic_qr_value,
+        cancel_receipt_value,
+        product_value,
       }) async {
     try {
       //print('order cache value 15 sync: ${order_cache_value}');
@@ -649,7 +675,9 @@ class Domain {
         'tb_kitchen_list_create': kitchen_list_value != null ? kitchen_list_value : [].toString(),
         'tb_attendance_create': attendance_value != null ? attendance_value : [].toString(),
         'tb_order_payment_split_create': order_payment_split_value != null ? order_payment_split_value : [].toString(),
-        'tb_dynamic_qr_create': dynamic_qr_value != null ? dynamic_qr_value : [].toString()
+        'tb_dynamic_qr_create': dynamic_qr_value != null ? dynamic_qr_value : [].toString(),
+        'tb_cancel_receipt_create': cancel_receipt_value != null ? cancel_receipt_value : [].toString(),
+        'tb_product_create': product_value != null ? product_value : [].toString(),
       }).timeout(Duration(seconds: isManualSync != null ? 120 : isSync != null ? 25 : 15), onTimeout: () => throw TimeoutException("Time out"));
       print('response in domain: ${jsonDecode(response.body)}');
       return jsonDecode(response.body);
@@ -1059,6 +1087,22 @@ class Domain {
       var response = await http.post(Domain.sync_to_cloud, body: {
         'tb_branch_link_product_update': '1',
         'details': detail,
+      });
+
+      return jsonDecode(response.body);
+    } catch (error) {
+      print('domain error: ${error}');
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync product to cloud
+  * */
+  SyncProductToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_product_create': detail,
       });
 
       return jsonDecode(response.body);
@@ -2508,8 +2552,12 @@ class Domain {
       });
       print(jsonDecode(response.body));
       return jsonDecode(response.body);
-    } catch (error) {
-      Fluttertoast.showToast(msg: error.toString());
+    } catch (error, s) {
+      FLog.error(
+        className: "loading",
+        text: "dynamic qr insert failed",
+        exception: "Error: $error, StackTrace: $s",
+      );
     }
   }
 

@@ -8,6 +8,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gms_check/gms_check.dart';
 import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:pos_system/firebase_sync/qr_order_sync.dart';
 import 'package:pos_system/firebase_sync/sync_to_firebase.dart';
 import 'package:pos_system/fragment/setting/sync_dialog.dart';
@@ -111,13 +112,26 @@ class _PosPinPageState extends State<PosPinPage> {
   }
 
   preload() async {
+    PermissionStatus locationPermissionStatus = await Permission.location.status;
+    if(!locationPermissionStatus.isGranted){
+      locationPermissionStatus = await Permission.location.request();
+    }
+    PermissionStatus bluetoothPermissionStatus = await Permission.bluetooth.status;
+    if(!bluetoothPermissionStatus.isGranted){
+      Map<Permission, PermissionStatus> statuses = await [
+        Permission.bluetoothConnect,
+        Permission.bluetoothScan,
+        Permission.bluetoothAdvertise,
+      ].request();
+    }
+
     bool hasGMS = await GmsCheck().checkGmsAvailability() ?? false;
     await initFirestoreStatus(hasGMS);
     await syncRecord.syncFromCloud();
+    await readAllPrinters();
     if(notificationModel.syncCountStarted == false){
       startTimers(hasGMS);
     }
-    await readAllPrinters();
     SyncToFirebase.instance.syncToFirebase();
     listenQROrder();
   }
@@ -647,28 +661,31 @@ class _PosPinPageState extends State<PosPinPage> {
           openPrinterDialog(devices: device);
         }
       } else {
-        await testPrintAllUsbPrinter();
+        await initAllUsbPrinter();
         await bluetoothPrinterConnect();
       }
     }
   }
 
-  testPrintAllUsbPrinter() async {
+  initAllUsbPrinter() async {
     List<Printer> usbPrinter = printerList.where((item) => item.type == 0).toList();
-    await printReceipt.selfTest(usbPrinter);
+    await printReceipt.initPrinter(usbPrinter);
   }
 
   bluetoothPrinterConnect() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? lastBtConnection = prefs.getString('lastBtConnection');
 
-    bool bluetoothIsOn = await PrintBluetoothThermal.bluetoothEnabled;
-    if(bluetoothIsOn) {
-      bool connectionStatus = await PrintBluetoothThermal.connectionStatus;
-      if (!connectionStatus && lastBtConnection != null) {
-        bool result = await PrintBluetoothThermal.connect(macPrinterAddress: lastBtConnection);
-        if(result) {
-          await prefs.setString('lastBtConnection', lastBtConnection);
+    bool bluetoothIsGranted = await PrintBluetoothThermal.isPermissionBluetoothGranted;
+    if(bluetoothIsGranted){
+      bool bluetoothIsOn = await PrintBluetoothThermal.bluetoothEnabled;
+      if(bluetoothIsOn) {
+        bool connectionStatus = await PrintBluetoothThermal.connectionStatus;
+        if (!connectionStatus && lastBtConnection != null) {
+          bool result = await PrintBluetoothThermal.connect(macPrinterAddress: lastBtConnection);
+          if(result) {
+            await prefs.setString('lastBtConnection', lastBtConnection);
+          }
         }
       }
     }

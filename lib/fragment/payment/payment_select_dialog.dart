@@ -160,12 +160,10 @@ class _PaymentSelectState extends State<PaymentSelect> {
                       if(widget.callBack != null){
                         widget.callBack!('');
                       }
-
-                      // TableModel.instance.changeContent(true);
-                      // cart.initialLoad();
-                      cart.removeAllCartItem();
-                      cart.removeAllTable();
-
+                      TableModel.instance.changeContent(true);
+                      // cart.removeAllTable();
+                      // cart.removeAllCartItem();
+                      // cart.removeAllGroupList();
                       if (canPop) {
                         Navigator.of(context).pop();
                         canPop = false;
@@ -276,9 +274,10 @@ class _PaymentSelectState extends State<PaymentSelect> {
                       if(widget.callBack != null){
                         widget.callBack!('');
                       }
-                      // cart.initialLoad();
-                      cart.removeAllCartItem();
-                      cart.removeAllTable();
+                      TableModel.instance.changeContent(true);
+                      // cart.removeAllTable();
+                      // cart.removeAllCartItem();
+                      // cart.removeAllGroupList();
                       if (canPop) {
                         Navigator.of(context).pop();
                         canPop = false;
