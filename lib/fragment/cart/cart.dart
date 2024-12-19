@@ -897,7 +897,12 @@ class CartPageState extends State<CartPage> {
                                                   // mobile
                                                       : widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
                                                       ? MediaQuery.of(context).orientation == Orientation.landscape
-                                                      ? Text(AppLocalizations.of(context)!.translate('place_order'))
+                                                      ? cart.cartNotifierItem.isEmpty && (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 1 || cart.selectedOption != 'Dine in')
+                                                      ? Text(AppLocalizations.of(context)!.translate('select_order'))
+                                                      : Text(AppLocalizations.of(context)!.translate('place_order'))
+
+                                                      : cart.cartNotifierItem.isEmpty && (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 1 || cart.selectedOption != 'Dine in')
+                                                      ? Text(AppLocalizations.of(context)!.translate('select_order'))
                                                       : Text(AppLocalizations.of(context)!.translate('place_order') + '\n (RM ${this.finalAmount})')
                                                       : widget.currentPage == 'table' || widget.currentPage == 'other_order'
                                                       ? MediaQuery.of(context).orientation == Orientation.landscape
@@ -3143,7 +3148,9 @@ class CartPageState extends State<CartPage> {
           batch = cart.cartNotifierItem[0].first_cache_batch!;
 
           // otherOrderKey = cart.cartNotifierItem[0].first_cache_other_order_key!;
-          orderQueue = int.parse(cart.cartNotifierItem[0].order_queue!);
+          if(localSetting.enable_numbering == 1 && cart.cartNotifierItem[0].order_queue != null){
+            orderQueue = int.parse(cart.cartNotifierItem[0].order_queue!);
+          }
         } else {
           batch = await batchChecking();
         }
@@ -3209,7 +3216,7 @@ class CartPageState extends State<CartPage> {
 
             try {
               if(isAddOrder){
-                if(cart.cartNotifierItem[0].order_cache_key! != ''){
+                if((localSetting.table_order == 1 && cart.selectedOption != 'Dine in') || cart.selectedOption != 'Dine in' && cart.cartNotifierItem[0].order_cache_key! != ''){
                   OrderCache? cacheData = await PosDatabase.instance.readOrderCacheSqliteID(cart.cartNotifierItem[0].order_cache_key!);
                   if(cacheData!.other_order_key == ''){
                     print("first cache other order key: ${cacheData.other_order_key}");
