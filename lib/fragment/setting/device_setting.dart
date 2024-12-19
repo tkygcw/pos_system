@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:pos_system/fragment/settlement/settlment_query.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/page/progress_bar.dart';
@@ -85,6 +86,12 @@ class _DeviceSettingState extends State<DeviceSetting> {
                           },
                         );
                       }),
+                      ElevatedButton(
+                          onPressed: () async {
+                            await SettlementQuery(branch_id: '3').generateSalesPerDay();
+                          },
+                          child: Text("generate sales per day"),
+                      )
                     ],
                   );
                 })

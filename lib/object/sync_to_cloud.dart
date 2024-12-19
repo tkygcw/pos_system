@@ -16,6 +16,11 @@ import 'package:pos_system/object/printer_link_category.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/receipt.dart';
 import 'package:pos_system/object/refund.dart';
+import 'package:pos_system/object/sales_per_day/category_sales_per_day.dart';
+import 'package:pos_system/object/sales_per_day/dining_sales_per_day.dart';
+import 'package:pos_system/object/sales_per_day/modifier_sales_per_day.dart';
+import 'package:pos_system/object/sales_per_day/product_sales_per_day.dart';
+import 'package:pos_system/object/sales_per_day/sales_per_day.dart';
 import 'package:pos_system/object/settlement.dart';
 import 'package:pos_system/object/settlement_link_payment.dart';
 import 'package:pos_system/object/table.dart';
@@ -63,7 +68,8 @@ class SyncToCloud {
   String? table_use_value, table_use_detail_value, order_cache_value, order_detail_value, order_detail_cancel_value,
       order_modifier_detail_value, order_value, order_promotion_value, order_tax_value, receipt_value, refund_value, table_value, settlement_value,
       settlement_link_payment_value, cash_record_value, app_setting_value, branch_link_product_value, printer_value, printer_link_category_value,
-      transfer_owner_value, checklist_value, kitchen_list_value, attendance_value, dynamic_qr_value, order_payment_split_value, cancel_receipt_value, product_value;
+      transfer_owner_value, checklist_value, kitchen_list_value, attendance_value, dynamic_qr_value, order_payment_split_value, cancel_receipt_value, product_value,
+      sales_per_day_value, sales_category_per_day_value, sales_product_per_day_value, sales_modifier_per_day_value, sales_dining_per_day_value;
 
   resetCount(){
     count = 0;
@@ -110,9 +116,15 @@ class SyncToCloud {
           order_payment_split_value: this.order_payment_split_value,
           cancel_receipt_value: this.cancel_receipt_value,
           product_value:  this.product_value,
+          sales_per_day_value: this.sales_per_day_value,
+          sales_category_per_day_value: this.sales_category_per_day_value,
+          sales_product_per_day_value: this.sales_product_per_day_value,
+          sales_modifier_per_day_value: this.sales_modifier_per_day_value,
+          sales_dining_per_day_value: this.sales_dining_per_day_value
       );
       if (data['status'] == '1') {
         List responseJson = data['data'];
+        print("response length: ${responseJson.length}");
         if(responseJson.isNotEmpty){
           emptyResponse = false;
           for(int i = 0; i < responseJson.length; i++){
@@ -223,6 +235,26 @@ class SyncToCloud {
                 await PosDatabase.instance.updateProductSyncStatusFromCloud(responseJson[i]['product_id']);
               }
               break;
+              case 'tb_sales_per_day': {
+                await PosDatabase.instance.updateSalesPerDaySyncStatusFromCloud(responseJson[i]['date']);
+              }
+              break;
+              case 'tb_sales_category_per_day': {
+                await PosDatabase.instance.updateSalesCategoryPerDaySyncStatusFromCloud(responseJson[i]['date'], responseJson[i]['category_id']);
+              }
+              break;
+              case 'tb_sales_product_per_day': {
+                await PosDatabase.instance.updateSalesProductPerDaySyncStatusFromCloud(responseJson[i]['date'], responseJson[i]['product_id'], responseJson[i]['sales_product_per_day_sqlite_id']);
+              }
+              break;
+              case 'tb_sales_modifier_per_day': {
+                await PosDatabase.instance.updateSalesModifierPerDaySyncStatusFromCloud(responseJson[i]['date'], responseJson[i]['mod_item_id']);
+              }
+              break;
+              case 'tb_sales_dining_per_day': {
+                await PosDatabase.instance.updateSalesDiningPerDaySyncStatusFromCloud(responseJson[i]['date']);
+              }
+              break;
             }
           }
         } else {
@@ -237,6 +269,9 @@ class SyncToCloud {
         //error catch
         emptyResponse = true;
         status = 2;
+      } else {
+        //status 2, no data sync
+        emptyResponse = true;
       }
     }catch(e){
       emptyResponse = true;
@@ -279,6 +314,11 @@ class SyncToCloud {
     order_payment_split_value = [].toString();
     cancel_receipt_value = [].toString();
     product_value = [].toString();
+    sales_per_day_value = [].toString();
+    sales_category_per_day_value = [].toString();
+    sales_product_per_day_value = [].toString();
+    sales_modifier_per_day_value = [].toString();
+    sales_dining_per_day_value = [].toString();
   }
 
   getAllValue() async {
@@ -310,6 +350,116 @@ class SyncToCloud {
     await getNotSyncDynamicQr();
     await getNotSyncCancelReceipt();
     await getNotSyncProduct();
+    await getNotSyncSalesPerDay();
+    await getNotSyncSalesCategoryPerDay();
+    await getNotSyncSalesProductPerDay();
+    await getNotSyncSalesModifierPerDay();
+    await getNotSyncSalesDiningPerDay();
+  }
+
+  getNotSyncSalesDiningPerDay() async {
+    List<String> _value = [];
+    try{
+      List<SalesDiningPerDay> data = await PosDatabase.instance.readAllNotSyncSalesDiningPerDay();
+      if(data.isNotEmpty){
+        for(int i = 0; i < data.length; i++){
+          _value.add(jsonEncode(data[i]));
+        }
+        sales_dining_per_day_value = _value.toString();
+        print("sales_dining_per_day_value: ${sales_dining_per_day_value}");
+      }
+    } catch(e, stackTrace){
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "getNotSyncSalesDiningPerDay error",
+        exception: 'Error: $e, StackTrace: $stackTrace',
+      );
+      sales_dining_per_day_value = null;
+    }
+  }
+
+  getNotSyncSalesModifierPerDay() async {
+    List<String> _value = [];
+    try{
+      List<SalesModifierPerDay> data = await PosDatabase.instance.readAllNotSyncSalesModifierPerDay();
+      if(data.isNotEmpty){
+        for(int i = 0; i < data.length; i++){
+          _value.add(jsonEncode(data[i]));
+        }
+        sales_modifier_per_day_value = _value.toString();
+        print("sales_modifier_per_day_value: ${sales_modifier_per_day_value}");
+      }
+    } catch(e, stackTrace){
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "getNotSyncSalesModifierPerDay error",
+        exception: 'Error: $e, StackTrace: $stackTrace',
+      );
+      sales_modifier_per_day_value = null;
+    }
+  }
+
+  getNotSyncSalesProductPerDay() async {
+    List<String> _value = [];
+    try{
+      List<SalesProductPerDay> data = await PosDatabase.instance.readAllNotSyncSalesProductPerDay();
+      if(data.isNotEmpty){
+        for(int i = 0; i < data.length; i++){
+          _value.add(jsonEncode(data[i]));
+        }
+        sales_product_per_day_value = _value.toString();
+        print("sales_product_per_day_value: ${sales_product_per_day_value}");
+      }
+    } catch(e, stackTrace){
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "getNotSyncSalesProductPerDay error",
+        exception: 'Error: $e, StackTrace: $stackTrace',
+      );
+      sales_product_per_day_value = null;
+    }
+  }
+
+  getNotSyncSalesCategoryPerDay() async {
+    List<String> _value = [];
+    try{
+      List<SalesCategoryPerDay> data = await PosDatabase.instance.readAllNotSyncSalesCategoryPerDay();
+      if(data.isNotEmpty){
+        for(int i = 0; i < data.length; i++){
+          _value.add(jsonEncode(data[i]));
+        }
+        sales_category_per_day_value = _value.toString();
+        print("sales_category_per_day_value: ${sales_category_per_day_value}");
+      }
+    } catch(e, stackTrace){
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "getNotSyncSalesCategoryPerDay error",
+        exception: 'Error: $e, StackTrace: $stackTrace',
+      );
+      sales_category_per_day_value = null;
+    }
+  }
+
+  getNotSyncSalesPerDay() async {
+    List<String> _value = [];
+    try{
+      List<SalesPerDay> data = await PosDatabase.instance.readAllNotSyncSalesPerDay();
+      if(data.isNotEmpty){
+        for(int i = 0; i < data.length; i++){
+          _value.add(jsonEncode(data[i]));
+        }
+        sales_per_day_value = _value.toString();
+        print("sales_per_day_value: ${sales_per_day_value}");
+      }
+    } catch(e, stackTrace){
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "getNotSyncSalesPerDay error",
+        exception: 'Error: $e, StackTrace: $stackTrace',
+      );
+      sales_per_day_value = null;
+    }
   }
 
   getNotSyncCancelReceipt() async {

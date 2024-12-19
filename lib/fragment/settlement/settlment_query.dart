@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
@@ -44,7 +46,8 @@ class SettlementQuery {
           // print("total charge: ${sales.total_charge_amount}");
           // print("total sales: ${sales.total_sales}");
           // print("total promotion amount: ${sales.total_promo_amount}");
-          await _insertSqliteSalesPerDay(sales);
+          var data = await _insertSqliteSalesPerDay(sales);
+          print(jsonEncode([data]));
           await _generateCategorySales();
           await _generateProductSales();
           await _generateModSales();
@@ -55,12 +58,16 @@ class SettlementQuery {
   }
 
   _generateDiningSales() async {
+    List<String> jsonValue = [];
     DateTime _endDate = DateTime.parse(_currentSalesDate).add(Duration(days: 1));
     List<Order> orderList = await _readAllPaidDining(_currentSalesDate.substring(0, 10), _endDate.toString().substring(0, 10));
     // print("order length: ${orderList.length}");
     var data = SalesDiningPerDay(
       sales_dining_per_day_id: 0,
       branch_id: _branch_id,
+      dine_in: '',
+      take_away: '',
+      delivery: '',
       date: _currentSalesDate.substring(0, 10),
       sync_status: 0,
       created_at: _currentDateTime,
@@ -77,7 +84,9 @@ class SettlementQuery {
         data = data.copy(delivery: order.gross_sales!.toStringAsFixed(2));
       }
     }
-    await _insertSqliteDiningSalesPerDay(data);
+    var dining = await _insertSqliteDiningSalesPerDay(data);
+    jsonValue.add(jsonEncode(dining));
+    print("dining value: ${jsonValue}");
   }
 
   Future<SalesDiningPerDay> _insertSqliteDiningSalesPerDay(SalesDiningPerDay data) async {
@@ -107,6 +116,7 @@ class SettlementQuery {
   }
 
   _generateModSales() async {
+    List<String> jsonValue = [];
     DateTime _endDate = DateTime.parse(_currentSalesDate).add(Duration(days: 1));
     List<OrderModifierDetail> modDetail = await _readAllPaidModifier(_currentSalesDate.substring(0, 10), _endDate.toString().substring(0, 10));
     // print("mod order detail length: ${modDetail.length}");
@@ -117,8 +127,10 @@ class SettlementQuery {
       // print("mod group name: ${detail.mod_group_name}");
       // print("mod item sum: ${detail.item_sum}");
       // print("mod net sales: ${detail.net_sales}");
-      await _insertSqliteModifierSalesPerDay(detail);
+      var data = await _insertSqliteModifierSalesPerDay(detail);
+      jsonValue.add(jsonEncode(data));
     }
+    print("modifier value: ${jsonValue}");
   }
 
   Future<SalesModifierPerDay> _insertSqliteModifierSalesPerDay(OrderModifierDetail modDetail) async {
@@ -161,7 +173,7 @@ class SettlementQuery {
             'ON a.mod_group_id = b.mod_group_id GROUP BY a.mod_item_id) '
         'SELECT a.*, '
             'SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN 1 ELSE b.quantity END) AS item_sum, '
-            'SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN a.mod_price * 1 ELSE a.mod_price * b.quantity END) AS net_sales, '
+            'SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN a.mod_price * 1 + 0.0 ELSE a.mod_price * b.quantity + 0.0 END) AS net_sales, '
             'COALESCE(M.mod_group_name, ?) AS mod_group_name '
             'FROM $tableOrderModifierDetail AS a JOIN $tableOrderDetail AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
             'JOIN $tableOrderCache AS c ON b.order_cache_sqlite_id = c.order_cache_sqlite_id '
@@ -175,6 +187,7 @@ class SettlementQuery {
   }
 
   _generateProductSales() async {
+    List<String> jsonValue = [];
     DateTime _endDate = DateTime.parse(_currentSalesDate).add(Duration(days: 1));
     List<OrderDetail> orderDetail = await _readAllProductWithOrderDetail(_currentSalesDate.substring(0, 10), _endDate.toString().substring(0, 10));
     // print("product order detail length: ${orderDetail.length}");
@@ -185,8 +198,10 @@ class SettlementQuery {
       // print("product item qty: ${detail.item_qty}");
       // print("product net sales: ${detail.net_sales}");
       // print("product gross sales: ${detail.gross_price}");
-      await _insertSqliteProductSalesPerDay(detail);
+      var data = await _insertSqliteProductSalesPerDay(detail);
+      jsonValue.add(jsonEncode(data));
     }
+    print("product value: ${jsonValue}");
   }
 
   Future<SalesProductPerDay> _insertSqliteProductSalesPerDay(OrderDetail orderDetail) async {
@@ -240,9 +255,8 @@ class SettlementQuery {
     return result.map((json) => OrderDetail.fromJson(json)).toList();
   }
 
-
-
   _generateCategorySales() async {
+    List<String> jsonValue = [];
     DateTime _endDate = DateTime.parse(_currentSalesDate).add(Duration(days: 1));
     print("end date: ${_endDate.toString().substring(0, 10)}");
     List<OrderDetail> orderDetail = await _readAllCategoryWithOrderDetail(_currentSalesDate.substring(0, 10), _endDate.toString().substring(0, 10));
@@ -252,14 +266,16 @@ class SettlementQuery {
       // print("category name: ${detail.category_name}");
       // print("category item sum: ${detail.category_item_sum}");
       // print("category gross sales: ${detail.category_gross_sales}");
-      await _insertSqliteCategorySalesPerDay(detail);
+      var data = await _insertSqliteCategorySalesPerDay(detail);
+      jsonValue.add(jsonEncode(data));
     }
+    print("category value: ${jsonValue}");
   }
 
   Future<SalesCategoryPerDay> _insertSqliteCategorySalesPerDay(OrderDetail orderDetail) async {
     try{
       var data = SalesCategoryPerDay(
-        category_sales_per_day_id: 0,
+        sales_category_per_day_id: 0,
         branch_id: _branch_id,
         category_id: orderDetail.category_id!.toString(),
         category_name: orderDetail.category_name ?? '',
@@ -290,7 +306,7 @@ class SettlementQuery {
   Future<List<OrderDetail>> _readAllCategoryWithOrderDetail(String date1, String date2) async {
     final result = await _transaction.rawQuery(
         'WITH Category AS (SELECT category_sqlite_id, category_id FROM $tableCategories GROUP BY category_sqlite_id ) '
-        'SELECT b.*, SUM(b.original_price * b.quantity + 0.0) AS category_net_sales, SUM(b.price * b.quantity + 0.0) AS category_gross_sales, '
+        'SELECT b.*, SUM(b.original_price * b.quantity + 0.0) AS category_gross_sales, SUM(b.price * b.quantity + 0.0) AS category_net_sales, '
             'SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN 1 ELSE b.quantity END) AS category_item_sum, '
             'COALESCE(C.category_id, 0) AS category_id '
             'FROM $tableOrderDetail AS b JOIN $tableOrderCache AS c ON b.order_cache_sqlite_id = c.order_cache_sqlite_id '
@@ -313,6 +329,7 @@ class SettlementQuery {
         tax: sales.total_tax_amount!.toStringAsFixed(2),
         charge: sales.total_charge_amount!.toStringAsFixed(2),
         promotion: sales.total_promo_amount!.toStringAsFixed(2),
+        rounding: sales.total_rounding!.toStringAsFixed(2),
         date: _currentSalesDate.substring(0, 10),
         payment_method_sales: '',
         payment_method: '',
@@ -342,6 +359,7 @@ class SettlementQuery {
             'TaxSums AS (SELECT order_sqlite_id, SUM(CASE WHEN type = ? THEN tax_amount ELSE 0.0 END) AS TaxType0Amount, '
             'SUM(CASE WHEN type = ? THEN tax_amount ELSE 0.0 END) AS TaxType1Amount FROM $tableOrderTaxDetail GROUP BY order_sqlite_id )'
         'SELECT o.created_at as created_at, SUM(o.final_amount) AS total_sales, '
+            'SUM(o.rounding) AS total_rounding, '
             'COALESCE(SUM(P.TotalPromoAmount), 0.0) AS total_promo_amount, '
             'COALESCE(SUM(T.TaxType0Amount), 0.0) AS total_charge_amount, '
             'COALESCE(SUM(T.TaxType1Amount), 0.0) AS total_tax_amount '

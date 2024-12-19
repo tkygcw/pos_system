@@ -9,6 +9,7 @@ class SalesPerDayFields {
     tax,
     charge,
     promotion,
+    rounding,
     date,
     payment_method,
     payment_method_sales,
@@ -25,6 +26,7 @@ class SalesPerDayFields {
   static String tax = 'tax';
   static String charge = 'charge';
   static String promotion = 'promotion';
+  static String rounding = 'rounding';
   static String date = 'date';
   static String payment_method = 'payment_method';
   static String payment_method_sales = 'payment_method_sales';
@@ -42,6 +44,7 @@ class SalesPerDay{
   String? tax;
   String? charge;
   String? promotion;
+  String? rounding;
   String? date;
   String? payment_method;
   String? payment_method_sales;
@@ -58,6 +61,7 @@ class SalesPerDay{
     this.tax,
     this.charge,
     this.promotion,
+    this.rounding,
     this.date,
     this.payment_method,
     this.payment_method_sales,
@@ -75,6 +79,7 @@ class SalesPerDay{
     String? tax,
     String? charge,
     String? promotion,
+    String? rounding,
     String? date,
     String? payment_method,
     String? payment_method_sales,
@@ -91,6 +96,7 @@ class SalesPerDay{
           tax: tax ?? this.tax,
           charge: charge ?? this.charge,
           promotion: promotion ?? this.promotion,
+          rounding: rounding ?? this.rounding,
           date: date ?? this.date,
           payment_method: payment_method ?? this.payment_method,
           payment_method_sales: payment_method_sales ?? this.payment_method_sales,
@@ -108,6 +114,7 @@ class SalesPerDay{
     tax: json[SalesPerDayFields.tax] as String?,
     charge: json[SalesPerDayFields.charge] as String?,
     promotion: json[SalesPerDayFields.promotion] as String?,
+    rounding: json[SalesPerDayFields.rounding] as String?,
     date: json[SalesPerDayFields.date] as String?,
     payment_method: json[SalesPerDayFields.payment_method] as String?,
     payment_method_sales: json[SalesPerDayFields.payment_method_sales] as String?,
@@ -125,6 +132,7 @@ class SalesPerDay{
     SalesPerDayFields.tax: tax,
     SalesPerDayFields.charge: charge,
     SalesPerDayFields.promotion: promotion,
+    SalesPerDayFields.rounding: rounding,
     SalesPerDayFields.date: date,
     SalesPerDayFields.payment_method: payment_method,
     SalesPerDayFields.payment_method_sales: payment_method_sales,

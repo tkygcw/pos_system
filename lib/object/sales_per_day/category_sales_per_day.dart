@@ -33,8 +33,8 @@ class SalesCategoryPerDayFields {
 }
 
 class SalesCategoryPerDay{
-  int? category_sales_per_day_sqlite_id;
-  int? category_sales_per_day_id;
+  int? sales_category_per_day_sqlite_id;
+  int? sales_category_per_day_id;
   String? branch_id;
   String? category_id;
   String? category_name;
@@ -48,8 +48,8 @@ class SalesCategoryPerDay{
   String? soft_delete;
 
   SalesCategoryPerDay({
-    this.category_sales_per_day_sqlite_id,
-    this.category_sales_per_day_id,
+    this.sales_category_per_day_sqlite_id,
+    this.sales_category_per_day_id,
     this.branch_id,
     this.category_id,
     this.category_name,
@@ -79,8 +79,8 @@ class SalesCategoryPerDay{
     String? soft_delete
   }) =>
       SalesCategoryPerDay(
-        category_sales_per_day_sqlite_id: category_sales_per_day_sqlite_id ?? this.category_sales_per_day_sqlite_id,
-        category_sales_per_day_id: category_sales_per_day_id ?? this.category_sales_per_day_id,
+        sales_category_per_day_sqlite_id: category_sales_per_day_sqlite_id ?? this.sales_category_per_day_sqlite_id,
+        sales_category_per_day_id: category_sales_per_day_id ?? this.sales_category_per_day_id,
         branch_id: branch_id ?? this.branch_id,
         category_id: category_id ?? this.category_id,
         category_name: category_name ?? this.category_name,
@@ -95,8 +95,8 @@ class SalesCategoryPerDay{
       );
 
   static SalesCategoryPerDay fromJson(Map<String, Object?> json) => SalesCategoryPerDay (
-    category_sales_per_day_sqlite_id: json[SalesCategoryPerDayFields.sales_category_per_day_sqlite_id] as int?,
-    category_sales_per_day_id: json[SalesCategoryPerDayFields.sales_category_per_day_id] as int?,
+    sales_category_per_day_sqlite_id: json[SalesCategoryPerDayFields.sales_category_per_day_sqlite_id] as int?,
+    sales_category_per_day_id: json[SalesCategoryPerDayFields.sales_category_per_day_id] as int?,
     branch_id: json[SalesCategoryPerDayFields.branch_id] as String?,
     category_id: json[SalesCategoryPerDayFields.category_id] as String?,
     category_name: json[SalesCategoryPerDayFields.category_name] as String?,
@@ -111,8 +111,8 @@ class SalesCategoryPerDay{
   );
 
   Map<String, Object?> toJson() => {
-    SalesCategoryPerDayFields.sales_category_per_day_sqlite_id: category_sales_per_day_sqlite_id,
-    SalesCategoryPerDayFields.sales_category_per_day_id: category_sales_per_day_id,
+    SalesCategoryPerDayFields.sales_category_per_day_sqlite_id: sales_category_per_day_sqlite_id,
+    SalesCategoryPerDayFields.sales_category_per_day_id: sales_category_per_day_id,
     SalesCategoryPerDayFields.branch_id: branch_id,
     SalesCategoryPerDayFields.category_id: category_id,
     SalesCategoryPerDayFields.category_name: category_name,

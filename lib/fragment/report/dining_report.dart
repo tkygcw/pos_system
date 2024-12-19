@@ -223,7 +223,7 @@ class _DiningReportState extends State<DiningReport> {
               ),
               DataCell(Text('${diningList[i].item_sum}')),
               // DataCell(Text('${diningList[i].gross_sales!.toStringAsFixed(2)}')),
-              DataCell(Text('${Utils.to2Decimal(diningList[i].gross_sales!)}')),
+              DataCell(Text(diningList[i].gross_sales!.toStringAsFixed(2))),
             ],
           ),
         ]);

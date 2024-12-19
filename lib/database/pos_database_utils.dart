@@ -672,7 +672,8 @@ class PosDatabaseUtils {
            ${BranchFields.allow_livedata} $integerType,
            ${BranchFields.qr_show_sku} $integerType,
            ${BranchFields.qr_product_sequence} $integerType,
-           ${BranchFields.show_qr_history} $textType)''');
+           ${BranchFields.show_qr_history} $textType,
+           ${BranchFields.generate_sales} $integerType)''');
 
 /*
     create app color table
@@ -1125,6 +1126,7 @@ class PosDatabaseUtils {
           ${SalesPerDayFields.tax} $textType,
           ${SalesPerDayFields.charge} $textType,
           ${SalesPerDayFields.promotion} $textType,
+          ${SalesPerDayFields.rounding} $textType,
           ${SalesPerDayFields.date} $textType,
           ${SalesPerDayFields.payment_method} $textType,
           ${SalesPerDayFields.payment_method_sales} $textType,
@@ -1208,6 +1210,7 @@ class PosDatabaseUtils {
   }
 
   static dbVersion33Upgrade(Database db) async {
+    await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.generate_sales} $integerType DEFAULT 0");
     //create sales per day table
     await db.execute('''CREATE TABLE $tableSalesPerDay(
           ${SalesPerDayFields.sales_per_day_sqlite_id} $idType,
@@ -1217,6 +1220,7 @@ class PosDatabaseUtils {
           ${SalesPerDayFields.tax} $textType,
           ${SalesPerDayFields.charge} $textType,
           ${SalesPerDayFields.promotion} $textType,
+          ${SalesPerDayFields.rounding} $textType,
           ${SalesPerDayFields.date} $textType,
           ${SalesPerDayFields.payment_method} $textType,
           ${SalesPerDayFields.payment_method_sales} $textType,

@@ -22,6 +22,7 @@ import 'package:crypto/crypto.dart';
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
+import '../../object/branch.dart';
 import '../../object/cash_record.dart';
 import '../../object/order.dart';
 import '../../object/order_tax_detail.dart';
@@ -460,8 +461,12 @@ class _SettlementDialogState extends State<SettlementDialog> {
 
   Future<void> generateSales() async{
     final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    await SettlementQuery(branch_id: branch_id.toString()).generateSalesPerDay();
+    final String? branch = prefs.getString('branch');
+    Map<String, dynamic> branchMap = json.decode(branch!);
+    Branch branchObject = Branch.fromJson(branchMap);
+    if(branchObject.generate_sales == 0){
+      await SettlementQuery(branch_id: branchObject.branch_id.toString()).generateSalesPerDay();
+    }
   }
 
   callPrinter() async {

@@ -165,6 +165,7 @@ class CartPageState extends State<CartPage> {
   void dispose() {
     _timer?.cancel();
     reInitSecondDisplay(cartEmpty: true);
+    controller.sink.close();
     super.dispose();
   }
 

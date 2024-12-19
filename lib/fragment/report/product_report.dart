@@ -297,7 +297,7 @@ class _ProductReportState extends State<ProductReport> {
                 '${orderDetailCategoryData[i].categoryOrderDetailList[j].item_qty}/${orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum!.toStringAsFixed(2)}(${orderDetailCategoryData[i].categoryOrderDetailList[j].unit})' :
                 '${orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum}')),
                 //DataCell(Text('${categoryData[i].categoryOrderDetailList[j].gross_price!.toStringAsFixed(2)}')),
-                DataCell(Text('${Utils.to2Decimal(orderDetailCategoryData[i].categoryOrderDetailList[j].gross_price!)}'))
+                DataCell(Text(orderDetailCategoryData[i].categoryOrderDetailList[j].gross_price!.toStringAsFixed(2)))
               ],
             ),
         ]);
