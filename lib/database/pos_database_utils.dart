@@ -940,6 +940,7 @@ class PosDatabaseUtils {
           ${SettlementFields.total_cancellation} $textType,
           ${SettlementFields.total_charge} $textType, 
           ${SettlementFields.total_tax} $textType, 
+          ${SettlementFields.total_rounding} $textType, 
           ${SettlementFields.settlement_by_user_id} $textType,
           ${SettlementFields.settlement_by} $textType,
           ${SettlementFields.status} $integerType,
@@ -1210,6 +1211,7 @@ class PosDatabaseUtils {
   }
 
   static dbVersion33Upgrade(Database db) async {
+    await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_rounding} $textType DEFAULT ''");
     await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.generate_sales} $integerType DEFAULT 0");
     //create sales per day table
     await db.execute('''CREATE TABLE $tableSalesPerDay(

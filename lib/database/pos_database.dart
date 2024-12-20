@@ -1264,9 +1264,9 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableSettlement(settlement_id, settlement_key, company_id, branch_id, total_bill, '
-        'total_sales, total_refund_bill, total_refund_amount, total_discount, total_cancellation, total_charge, total_tax, '
+        'total_sales, total_refund_bill, total_refund_amount, total_discount, total_cancellation, total_charge, total_tax, total_rounding, '
         'settlement_by_user_id, settlement_by, status, sync_status, opened_at, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?, ?, ?, ?, ?)',
+        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.settlement_id,
           data.settlement_key,
@@ -1280,6 +1280,7 @@ class PosDatabase {
           data.total_cancellation,
           data.total_charge,
           data.total_tax,
+          data.total_rounding,
           data.settlement_by_user_id,
           data.settlement_by,
           data.status,
@@ -3707,7 +3708,8 @@ class PosDatabase {
     final result = await db.rawQuery(
         'SELECT *, SUM(total_bill) AS all_bill, SUM(total_sales) AS all_sales, SUM(total_refund_bill) AS all_refund_bill, '
         'SUM(total_refund_amount) AS all_refund_amount, SUM(total_discount) AS all_discount, '
-        'SUM(total_tax) AS all_tax_amount, SUM(total_cancellation) AS all_cancellation, SUM(total_charge) AS all_charge_amount '
+        'SUM(total_tax) AS all_tax_amount, SUM(total_cancellation) AS all_cancellation, SUM(total_charge) AS all_charge_amount, '
+        'SUM(total_rounding) AS all_rounding_amount '
         'FROM $tableSettlement WHERE soft_delete = ? AND status = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ? GROUP BY SUBSTR(created_at, 1, 10) ORDER BY SUBSTR(created_at, 1, 10) DESC ',
         ['', 0, date1, date2]);
     return result.map((json) => Settlement.fromJson(json)).toList();

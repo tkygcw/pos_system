@@ -61,6 +61,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
       totalRefundAmount = 0.0,
       totalPromotionAmount = 0.0,
       totalCharge = 0.0,
+      totalRounding = 0.0,
       totalTax = 0.0;
   int totalBill = 0, totalRefundBill = 0, totalCancelItem = 0;
   List<Order> dateOrderList = [], dateRefundList = [], orderList = [];
@@ -552,6 +553,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
         //dateOrderDetailCancel[0].total_item != null ? dateOrderDetailCancel[0].total_item.toString() : '0',
         total_charge: this.totalCharge.toStringAsFixed(2),
         total_tax: this.totalTax.toStringAsFixed(2),
+        total_rounding: totalRounding.toStringAsFixed(2),
         settlement_by_user_id: userObject['user_id'].toString(),
         settlement_by: userObject['name'].toString(),
         status: 0,
@@ -854,6 +856,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
       this.orderList = orderData;
       this.totalBill = orderData.length;
       this.totalSales = orderData[0].gross_sales ?? 0;
+      totalRounding = orderData.first.total_rounding ?? this.totalRounding;
     }
     if (refundData.isNotEmpty) {
       this.totalRefundBill = refundData.length;

@@ -23,8 +23,9 @@ import '../../object/sales_per_day/product_sales_per_day.dart';
 
 class SettlementQuery {
   final _posDatabase = PosDatabase.instance;
-  late final String _currentDateTime, _currentSalesDate, _branch_id;
+  late final String _currentDateTime, _branch_id;
   late final _transaction;
+  String _currentSalesDate = '';
 
   SettlementQuery({required String branch_id}){
     _branch_id = branch_id;
@@ -37,17 +38,9 @@ class SettlementQuery {
       _transaction = txn;
       List<Order> data = await _readSales();
       if(data.isNotEmpty){
-        // print("data length: ${data.length}");
         for(var sales in data){
           _currentSalesDate = sales.created_at!;
-          // print("current sales date: $_currentSalesDate");
-          // print("date: ${sales.created_at!.substring(0, 10)}");
-          // print("total tax: ${sales.total_tax_amount!.toStringAsFixed(2)}");
-          // print("total charge: ${sales.total_charge_amount}");
-          // print("total sales: ${sales.total_sales}");
-          // print("total promotion amount: ${sales.total_promo_amount}");
-          var data = await _insertSqliteSalesPerDay(sales);
-          print(jsonEncode([data]));
+          await _insertSqliteSalesPerDay(sales);
           await _generateCategorySales();
           await _generateProductSales();
           await _generateModSales();
@@ -58,46 +51,51 @@ class SettlementQuery {
   }
 
   _generateDiningSales() async {
-    List<String> jsonValue = [];
-    DateTime _endDate = DateTime.parse(_currentSalesDate).add(Duration(days: 1));
-    List<Order> orderList = await _readAllPaidDining(_currentSalesDate.substring(0, 10), _endDate.toString().substring(0, 10));
-    // print("order length: ${orderList.length}");
-    var data = SalesDiningPerDay(
-      sales_dining_per_day_id: 0,
-      branch_id: _branch_id,
-      dine_in: '',
-      take_away: '',
-      delivery: '',
-      date: _currentSalesDate.substring(0, 10),
-      sync_status: 0,
-      created_at: _currentDateTime,
-      updated_at: '',
-      soft_delete: '',
-    );
-    for(int i = 0; i < orderList.length; i++){
-      var order = orderList[i];
-      if(order.dining_name == 'Dine in'){
-        data = data.copy(dine_in: order.gross_sales!.toStringAsFixed(2));
-      } else if (order.dining_name == 'Take Away'){
-        data = data.copy(take_away: order.gross_sales!.toStringAsFixed(2));
-      } else {
-        data = data.copy(delivery: order.gross_sales!.toStringAsFixed(2));
+    try{
+      DateTime _endDate = DateTime.parse(_currentSalesDate).add(Duration(days: 1));
+      List<Order> orderList = await _readAllPaidDining(_currentSalesDate.substring(0, 10), _endDate.toString().substring(0, 10));
+      var data = SalesDiningPerDay(
+        sales_dining_per_day_id: 0,
+        branch_id: _branch_id,
+        dine_in: '',
+        take_away: '',
+        delivery: '',
+        date: _currentSalesDate.substring(0, 10),
+        sync_status: 0,
+        created_at: _currentDateTime,
+        updated_at: '',
+        soft_delete: '',
+      );
+      for(int i = 0; i < orderList.length; i++){
+        var order = orderList[i];
+        if(order.dining_name == 'Dine in'){
+          data = data.copy(dine_in: order.gross_sales!.toStringAsFixed(2));
+        } else if (order.dining_name == 'Take Away'){
+          data = data.copy(take_away: order.gross_sales!.toStringAsFixed(2));
+        } else {
+          data = data.copy(delivery: order.gross_sales!.toStringAsFixed(2));
+        }
       }
+      await _insertSqliteDiningSalesPerDay(data);
+    } catch(e, s){
+      FLog.error(
+        className: "settlement query",
+        text: "_insertSqliteDiningSalesPerDay error",
+        exception: 'Error: $e, Stacktrace: $s',
+      );
+      rethrow;
     }
-    var dining = await _insertSqliteDiningSalesPerDay(data);
-    jsonValue.add(jsonEncode(dining));
-    print("dining value: ${jsonValue}");
   }
 
   Future<SalesDiningPerDay> _insertSqliteDiningSalesPerDay(SalesDiningPerDay data) async {
     try{
       final id = await _transaction.insert(tableSalesDiningPerDay, data.toJson());
       return data.copy(sales_dining_per_day_sqlite_id: id);
-    }catch(e, stackTrace){
+    }catch(e, s){
       FLog.error(
         className: "settlement query",
         text: "_insertSqliteDiningSalesPerDay error",
-        exception: "Error: $e, StackTrace: $stackTrace",
+        exception: 'Error: $e, Stacktrace: $s',
       );
       rethrow;
     }
@@ -107,30 +105,38 @@ class SettlementQuery {
   read all paid Dining
 */
   Future<List<Order>> _readAllPaidDining(String date1, String date2) async {
-    final result = await _transaction.rawQuery(
-        'SELECT a.*, COUNT(order_sqlite_id) AS item_sum, SUM(final_amount + 0.0) AS gross_sales, SUM(subtotal + 0.0) AS net_sales '
-            'FROM $tableOrder AS a WHERE a.soft_delete = ? AND a.payment_status = ? '
-            'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY a.dining_name',
-        ['', 1, date1, date2]) as List<Map<String, Object?>>;
-    return result.map((json) => Order.fromJson(json)).toList();
+    try{
+      final result = await _transaction.rawQuery(
+          'SELECT a.*, COUNT(order_sqlite_id) AS item_sum, SUM(final_amount + 0.0) AS gross_sales, SUM(subtotal + 0.0) AS net_sales '
+              'FROM $tableOrder AS a WHERE a.soft_delete = ? AND a.payment_status = ? '
+              'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY a.dining_name',
+          ['', 1, date1, date2]) as List<Map<String, Object?>>;
+      return result.map((json) => Order.fromJson(json)).toList();
+    }catch(e, s){
+      FLog.error(
+        className: "settlement query",
+        text: "_readAllPaidDining error",
+        exception: 'Error: $e, Stacktrace: $s',
+      );
+      rethrow;
+    }
   }
 
   _generateModSales() async {
-    List<String> jsonValue = [];
-    DateTime _endDate = DateTime.parse(_currentSalesDate).add(Duration(days: 1));
-    List<OrderModifierDetail> modDetail = await _readAllPaidModifier(_currentSalesDate.substring(0, 10), _endDate.toString().substring(0, 10));
-    // print("mod order detail length: ${modDetail.length}");
-    for(var detail in modDetail){
-      // print("mod item id: ${detail.mod_item_id}");
-      // print("mod item name: ${detail.mod_name}");
-      // print("mod group id: ${detail.mod_group_id}");
-      // print("mod group name: ${detail.mod_group_name}");
-      // print("mod item sum: ${detail.item_sum}");
-      // print("mod net sales: ${detail.net_sales}");
-      var data = await _insertSqliteModifierSalesPerDay(detail);
-      jsonValue.add(jsonEncode(data));
+    try{
+      DateTime _endDate = DateTime.parse(_currentSalesDate).add(Duration(days: 1));
+      List<OrderModifierDetail> modDetail = await _readAllPaidModifier(_currentSalesDate.substring(0, 10), _endDate.toString().substring(0, 10));
+      for(var detail in modDetail){
+        await _insertSqliteModifierSalesPerDay(detail);
+      }
+    }catch(e, s){
+      FLog.error(
+        className: "settlement query",
+        text: "_generateModSales error",
+        exception: 'Error: $e, Stacktrace: $s',
+      );
+      rethrow;
     }
-    print("modifier value: ${jsonValue}");
   }
 
   Future<SalesModifierPerDay> _insertSqliteModifierSalesPerDay(OrderModifierDetail modDetail) async {
@@ -153,11 +159,11 @@ class SettlementQuery {
       );
       final id = await _transaction.insert(tableSalesModifierPerDay, data.toJson());
       return data.copy(sales_modifier_per_day_sqlite_id: id);
-    }catch(e, stackTrace){
+    }catch(e, s){
       FLog.error(
         className: "settlement query",
-        text: "_insertSqliteProductSalesPerDay error",
-        exception: "Error: $e, StackTrace: $stackTrace",
+        text: "_insertSqliteModifierSalesPerDay error",
+        exception: 'Error: $e, Stacktrace: $s',
       );
       rethrow;
     }
@@ -167,41 +173,49 @@ class SettlementQuery {
   read all paid modifier
 */
   Future<List<OrderModifierDetail>> _readAllPaidModifier(String date1, String date2) async {
-    final result = await _transaction.rawQuery(
-        'WITH Modifier AS (SELECT a.mod_item_id, b.name AS mod_group_name '
-            'FROM $tableModifierItem AS a JOIN $tableModifierGroup AS b '
-            'ON a.mod_group_id = b.mod_group_id GROUP BY a.mod_item_id) '
-        'SELECT a.*, '
-            'SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN 1 ELSE b.quantity END) AS item_sum, '
-            'SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN a.mod_price * 1 + 0.0 ELSE a.mod_price * b.quantity + 0.0 END) AS net_sales, '
-            'COALESCE(M.mod_group_name, ?) AS mod_group_name '
-            'FROM $tableOrderModifierDetail AS a JOIN $tableOrderDetail AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
-            'JOIN $tableOrderCache AS c ON b.order_cache_sqlite_id = c.order_cache_sqlite_id '
-            'JOIN $tableOrder AS d ON c.order_sqlite_id = d.order_sqlite_id '
-            'LEFT JOIN Modifier M ON a.mod_item_id = M.mod_item_id '
-            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND c.accepted = ? AND c.cancel_by = ? AND d.soft_delete = ? '
-            'AND b.status = ? AND d.payment_status = ? '
-            'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY a.mod_name',
-        ['each', 'each_c', 'each', 'each_c', '', '', '', '', 0, '', '', 0, 1, date1, date2]) as List<Map<String, Object?>>;
-    return result.map((json) => OrderModifierDetail.fromJson(json)).toList();
+    try{
+      final result = await _transaction.rawQuery(
+          'WITH Modifier AS (SELECT a.mod_item_id, b.name AS mod_group_name '
+              'FROM $tableModifierItem AS a JOIN $tableModifierGroup AS b '
+              'ON a.mod_group_id = b.mod_group_id GROUP BY a.mod_item_id) '
+              'SELECT a.*, '
+              'SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN 1 ELSE b.quantity END) AS item_sum, '
+              'SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN a.mod_price * 1 + 0.0 ELSE a.mod_price * b.quantity + 0.0 END) AS net_sales, '
+              'COALESCE(M.mod_group_name, ?) AS mod_group_name '
+              'FROM $tableOrderModifierDetail AS a JOIN $tableOrderDetail AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
+              'JOIN $tableOrderCache AS c ON b.order_cache_sqlite_id = c.order_cache_sqlite_id '
+              'JOIN $tableOrder AS d ON c.order_sqlite_id = d.order_sqlite_id '
+              'LEFT JOIN Modifier M ON a.mod_item_id = M.mod_item_id '
+              'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND c.accepted = ? AND c.cancel_by = ? AND d.soft_delete = ? '
+              'AND b.status = ? AND d.payment_status = ? '
+              'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY a.mod_name',
+          ['each', 'each_c', 'each', 'each_c', '', '', '', '', 0, '', '', 0, 1, date1, date2]) as List<Map<String, Object?>>;
+      return result.map((json) => OrderModifierDetail.fromJson(json)).toList();
+    }catch(e, s){
+      FLog.error(
+        className: "settlement query",
+        text: "_readAllPaidModifier error",
+        exception: 'Error: $e, Stacktrace: $s',
+      );
+      rethrow;
+    }
   }
 
   _generateProductSales() async {
-    List<String> jsonValue = [];
-    DateTime _endDate = DateTime.parse(_currentSalesDate).add(Duration(days: 1));
-    List<OrderDetail> orderDetail = await _readAllProductWithOrderDetail(_currentSalesDate.substring(0, 10), _endDate.toString().substring(0, 10));
-    // print("product order detail length: ${orderDetail.length}");
-    for(var detail in orderDetail){
-      // print("product id: ${detail.product_id}");
-      // print("product name: ${detail.productName}");
-      // print("product item sum: ${detail.item_sum}");
-      // print("product item qty: ${detail.item_qty}");
-      // print("product net sales: ${detail.net_sales}");
-      // print("product gross sales: ${detail.gross_price}");
-      var data = await _insertSqliteProductSalesPerDay(detail);
-      jsonValue.add(jsonEncode(data));
+    try{
+      DateTime _endDate = DateTime.parse(_currentSalesDate).add(Duration(days: 1));
+      List<OrderDetail> orderDetail = await _readAllProductWithOrderDetail(_currentSalesDate.substring(0, 10), _endDate.toString().substring(0, 10));
+      for(var detail in orderDetail){
+        await _insertSqliteProductSalesPerDay(detail);
+      }
+    }catch(e, s){
+      FLog.error(
+        className: "settlement query",
+        text: "_generateProductSales error",
+        exception: 'Error: $e, Stacktrace: $s',
+      );
+      rethrow;
     }
-    print("product value: ${jsonValue}");
   }
 
   Future<SalesProductPerDay> _insertSqliteProductSalesPerDay(OrderDetail orderDetail) async {
@@ -222,11 +236,11 @@ class SettlementQuery {
       );
       final id = await _transaction.insert(tableSalesProductPerDay, data.toJson());
       return data.copy(sales_product_per_day_sqlite_id: id);
-    }catch(e, stackTrace){
+    }catch(e, s){
       FLog.error(
         className: "settlement query",
         text: "_insertSqliteProductSalesPerDay error",
-        exception: "Error: $e, StackTrace: $stackTrace",
+        exception: 'Error: $e, Stacktrace: $s',
       );
       rethrow;
     }
@@ -237,39 +251,48 @@ class SettlementQuery {
   read all product with order detail
 */
   Future<List<OrderDetail>> _readAllProductWithOrderDetail(String date1, String date2) async {
-    final result = await _transaction.rawQuery(
-        'WITH Product AS (SELECT SKU, product_id FROM $tableProduct GROUP BY product_sqlite_id ) '
-        'SELECT a.created_at, a.product_name, a.product_variant_name, a.unit, SUM(a.original_price * a.quantity + 0.0) AS net_sales, '
-            'SUM(a.price * a.quantity + 0.0) AS gross_price, '
-            'SUM(CASE WHEN a.unit != ? AND a.unit != ? THEN a.per_quantity_unit * a.quantity ELSE a.quantity END) AS item_sum, '
-            'SUM(CASE WHEN a.unit != ? THEN 1 ELSE 0 END) AS item_qty, '
-            'COALESCE(P.product_id, 0) AS product_id '
-            'FROM $tableOrderDetail AS a JOIN $tableOrderCache AS b ON a.order_cache_sqlite_id = b.order_cache_sqlite_id '
-            'JOIN $tableOrder AS c ON b.order_sqlite_id = c.order_sqlite_id '
-            'LEFT JOIN Product P ON a.product_sku = P.SKU '
-            'WHERE a.soft_delete = ? AND a.status = ? AND b.soft_delete = ? AND b.accepted = ? AND c.soft_delete = ? AND c.payment_status = ?'
-            'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? '
-            'GROUP BY a.product_name '
-            'ORDER BY a.product_name',
-        ['each', 'each_c', 'each', '', 0, '', 0, '', 1, date1, date2]) as List<Map<String, Object?>>;
-    return result.map((json) => OrderDetail.fromJson(json)).toList();
+    try{
+      final result = await _transaction.rawQuery(
+          'WITH Product AS (SELECT SKU, product_id FROM $tableProduct GROUP BY product_sqlite_id ) '
+              'SELECT a.created_at, a.product_name, a.product_variant_name, a.unit, SUM(a.original_price * a.quantity + 0.0) AS net_sales, '
+              'SUM(a.price * a.quantity + 0.0) AS gross_price, '
+              'SUM(CASE WHEN a.unit != ? AND a.unit != ? THEN a.per_quantity_unit * a.quantity ELSE a.quantity END) AS item_sum, '
+              'SUM(CASE WHEN a.unit != ? THEN 1 ELSE 0 END) AS item_qty, '
+              'COALESCE(P.product_id, 0) AS product_id '
+              'FROM $tableOrderDetail AS a JOIN $tableOrderCache AS b ON a.order_cache_sqlite_id = b.order_cache_sqlite_id '
+              'JOIN $tableOrder AS c ON b.order_sqlite_id = c.order_sqlite_id '
+              'LEFT JOIN Product P ON a.product_sku = P.SKU '
+              'WHERE a.soft_delete = ? AND a.status = ? AND b.soft_delete = ? AND b.accepted = ? AND c.soft_delete = ? AND c.payment_status = ?'
+              'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? '
+              'GROUP BY a.product_name '
+              'ORDER BY a.product_name',
+          ['each', 'each_c', 'each', '', 0, '', 0, '', 1, date1, date2]) as List<Map<String, Object?>>;
+      return result.map((json) => OrderDetail.fromJson(json)).toList();
+    }catch(e, s){
+      FLog.error(
+        className: "settlement query",
+        text: "_readAllProductWithOrderDetail error",
+        exception: 'Error: $e, Stacktrace: $s',
+      );
+      rethrow;
+    }
   }
 
   _generateCategorySales() async {
-    List<String> jsonValue = [];
-    DateTime _endDate = DateTime.parse(_currentSalesDate).add(Duration(days: 1));
-    print("end date: ${_endDate.toString().substring(0, 10)}");
-    List<OrderDetail> orderDetail = await _readAllCategoryWithOrderDetail(_currentSalesDate.substring(0, 10), _endDate.toString().substring(0, 10));
-    // print("category order detail length: ${orderDetail.length}");
-    for(var detail in orderDetail){
-      // print("category id: ${detail.category_id}");
-      // print("category name: ${detail.category_name}");
-      // print("category item sum: ${detail.category_item_sum}");
-      // print("category gross sales: ${detail.category_gross_sales}");
-      var data = await _insertSqliteCategorySalesPerDay(detail);
-      jsonValue.add(jsonEncode(data));
+    try{
+      DateTime _endDate = DateTime.parse(_currentSalesDate).add(Duration(days: 1));
+      List<OrderDetail> orderDetail = await _readAllCategoryWithOrderDetail(_currentSalesDate.substring(0, 10), _endDate.toString().substring(0, 10));
+      for(var detail in orderDetail){
+        await _insertSqliteCategorySalesPerDay(detail);
+      }
+    }catch(e, s){
+      FLog.error(
+        className: "settlement query",
+        text: "_generateCategorySales error",
+        exception: 'Error: $e, Stacktrace: $s',
+      );
+      rethrow;
     }
-    print("category value: ${jsonValue}");
   }
 
   Future<SalesCategoryPerDay> _insertSqliteCategorySalesPerDay(OrderDetail orderDetail) async {
@@ -290,11 +313,11 @@ class SettlementQuery {
       );
       final id = await _transaction.insert(tableSalesCategoryPerDay, data.toJson());
       return data.copy(category_sales_per_day_sqlite_id: id);
-    }catch(e, stackTrace){
+    }catch(e, s){
       FLog.error(
         className: "settlement query",
         text: "_insertSqliteCategorySalesPerDay error",
-        exception: "Error: $e, StackTrace: $stackTrace",
+        exception: 'Error: $e, Stacktrace: $s',
       );
       rethrow;
     }
@@ -304,19 +327,28 @@ class SettlementQuery {
   read all category with product
 */
   Future<List<OrderDetail>> _readAllCategoryWithOrderDetail(String date1, String date2) async {
-    final result = await _transaction.rawQuery(
-        'WITH Category AS (SELECT category_sqlite_id, category_id FROM $tableCategories GROUP BY category_sqlite_id ) '
-        'SELECT b.*, SUM(b.original_price * b.quantity + 0.0) AS category_gross_sales, SUM(b.price * b.quantity + 0.0) AS category_net_sales, '
-            'SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN 1 ELSE b.quantity END) AS category_item_sum, '
-            'COALESCE(C.category_id, 0) AS category_id '
-            'FROM $tableOrderDetail AS b JOIN $tableOrderCache AS c ON b.order_cache_sqlite_id = c.order_cache_sqlite_id '
-            'JOIN $tableOrder AS d ON c.order_sqlite_id = d.order_sqlite_id '
-            'LEFT JOIN Category C ON b.category_sqlite_id = C.category_sqlite_id '
-            'WHERE b.soft_delete = ? AND c.soft_delete = ? AND c.accepted = ? AND c.cancel_by = ? AND d.soft_delete = ? AND b.status = ? AND d.payment_status = ? '
-            'AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? GROUP BY b.category_name '
-            'ORDER BY b.category_name DESC',
-        ['each', 'each_c', '', '', 0, '', '', 0, 1, date1, date2]) as List<Map<String, Object?>>;
-    return result.map((json) => OrderDetail.fromJson(json)).toList();
+    try{
+      final result = await _transaction.rawQuery(
+          'WITH Category AS (SELECT category_sqlite_id, category_id FROM $tableCategories GROUP BY category_sqlite_id ) '
+              'SELECT b.*, SUM(b.original_price * b.quantity + 0.0) AS category_gross_sales, SUM(b.price * b.quantity + 0.0) AS category_net_sales, '
+              'SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN 1 ELSE b.quantity END) AS category_item_sum, '
+              'COALESCE(C.category_id, 0) AS category_id '
+              'FROM $tableOrderDetail AS b JOIN $tableOrderCache AS c ON b.order_cache_sqlite_id = c.order_cache_sqlite_id '
+              'JOIN $tableOrder AS d ON c.order_sqlite_id = d.order_sqlite_id '
+              'LEFT JOIN Category C ON b.category_sqlite_id = C.category_sqlite_id '
+              'WHERE b.soft_delete = ? AND c.soft_delete = ? AND c.accepted = ? AND c.cancel_by = ? AND d.soft_delete = ? AND b.status = ? AND d.payment_status = ? '
+              'AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? GROUP BY b.category_name '
+              'ORDER BY b.category_name DESC',
+          ['each', 'each_c', '', '', 0, '', '', 0, 1, date1, date2]) as List<Map<String, Object?>>;
+      return result.map((json) => OrderDetail.fromJson(json)).toList();
+    }catch(e, s){
+      FLog.error(
+        className: "settlement query",
+        text: "_readAllCategoryWithOrderDetail error",
+        exception: 'Error: $e, Stacktrace: $s',
+      );
+      rethrow;
+    }
   }
 
 
@@ -340,11 +372,11 @@ class SettlementQuery {
       );
       final id = await _transaction.insert(tableSalesPerDay, data.toJson());
       return data.copy(sales_per_day_sqlite_id: id);
-    }catch(e, stackTrace){
+    }catch(e, s){
       FLog.error(
         className: "settlement query",
         text: "_insertSqliteSalesPerDay error",
-        exception: "Error: $e, StackTrace: $stackTrace",
+        exception: 'Error: $e, Stacktrace: $s',
       );
       rethrow;
     }
@@ -354,20 +386,29 @@ class SettlementQuery {
   get not yet settlement order
 */
   Future<List<Order>> _readSales() async {
-    final result = await _transaction.rawQuery(
-        'WITH PromoSums AS (SELECT order_sqlite_id, SUM(promotion_amount) AS TotalPromoAmount FROM $tableOrderPromotionDetail GROUP BY order_sqlite_id ), '
-            'TaxSums AS (SELECT order_sqlite_id, SUM(CASE WHEN type = ? THEN tax_amount ELSE 0.0 END) AS TaxType0Amount, '
-            'SUM(CASE WHEN type = ? THEN tax_amount ELSE 0.0 END) AS TaxType1Amount FROM $tableOrderTaxDetail GROUP BY order_sqlite_id )'
-        'SELECT o.created_at as created_at, SUM(o.final_amount) AS total_sales, '
-            'SUM(o.rounding) AS total_rounding, '
-            'COALESCE(SUM(P.TotalPromoAmount), 0.0) AS total_promo_amount, '
-            'COALESCE(SUM(T.TaxType0Amount), 0.0) AS total_charge_amount, '
-            'COALESCE(SUM(T.TaxType1Amount), 0.0) AS total_tax_amount '
-            'FROM $tableOrder o '
-            'LEFT JOIN PromoSums P ON o.order_sqlite_id = P.order_sqlite_id '
-            'LEFT JOIN TaxSums T ON o.order_sqlite_id = T.order_sqlite_id '
-            'GROUP BY SUBSTR(o.created_at, 1, 10) ',
-        ['0', '1']) as List<Map<String, Object?>>;
-    return result.map((json) => Order.fromJson(json)).toList();
+    try{
+      final result = await _transaction.rawQuery(
+          'WITH PromoSums AS (SELECT order_sqlite_id, SUM(promotion_amount) AS TotalPromoAmount FROM $tableOrderPromotionDetail GROUP BY order_sqlite_id ), '
+              'TaxSums AS (SELECT order_sqlite_id, SUM(CASE WHEN type = ? THEN tax_amount ELSE 0.0 END) AS TaxType0Amount, '
+              'SUM(CASE WHEN type = ? THEN tax_amount ELSE 0.0 END) AS TaxType1Amount FROM $tableOrderTaxDetail GROUP BY order_sqlite_id )'
+              'SELECT o.created_at as created_at, SUM(o.final_amount) AS total_sales, '
+              'SUM(o.rounding) AS total_rounding, '
+              'COALESCE(SUM(P.TotalPromoAmount), 0.0) AS total_promo_amount, '
+              'COALESCE(SUM(T.TaxType0Amount), 0.0) AS total_charge_amount, '
+              'COALESCE(SUM(T.TaxType1Amount), 0.0) AS total_tax_amount '
+              'FROM $tableOrder o '
+              'LEFT JOIN PromoSums P ON o.order_sqlite_id = P.order_sqlite_id '
+              'LEFT JOIN TaxSums T ON o.order_sqlite_id = T.order_sqlite_id '
+              'GROUP BY SUBSTR(o.created_at, 1, 10) ',
+          ['0', '1']) as List<Map<String, Object?>>;
+      return result.map((json) => Order.fromJson(json)).toList();
+    }catch(e, s){
+      FLog.error(
+        className: "settlement query",
+        text: "_readSales error",
+        exception: 'Error: $e, Stacktrace: $s',
+      );
+      rethrow;
+    }
   }
 }
