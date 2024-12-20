@@ -7,7 +7,7 @@ import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/custom_pin_dialog.dart';
-import 'package:pos_system/fragment/settlement/settlment_query.dart';
+import 'package:pos_system/fragment/settlement/settlement_query.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:pos_system/object/order_payment_split.dart';

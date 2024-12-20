@@ -254,7 +254,7 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.allow_livedata} $integerType DEFAULT 0 ");
           }break;
           case 32: {
-            await dbVersion33Upgrade(db);
+            await dbVersion33Upgrade(db, prefs);
           }break;
         }
       }
@@ -1210,9 +1210,12 @@ class PosDatabaseUtils {
 
   }
 
-  static dbVersion33Upgrade(Database db) async {
+  static dbVersion33Upgrade(Database db, SharedPreferences prefs) async {
     await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.total_rounding} $textType DEFAULT ''");
     await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.generate_sales} $integerType DEFAULT 0");
+    final branchResult = await db.rawQuery('SELECT * FROM $tableBranch LIMIT 1');
+    Branch branchData = Branch.fromJson(branchResult.first);
+    await prefs.setString("branch", json.encode(branchData));
     //create sales per day table
     await db.execute('''CREATE TABLE $tableSalesPerDay(
           ${SalesPerDayFields.sales_per_day_sqlite_id} $idType,
