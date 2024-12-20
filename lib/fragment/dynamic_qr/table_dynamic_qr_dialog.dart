@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:provider/provider.dart';
@@ -26,11 +27,13 @@ class TableDynamicQrDialog extends StatefulWidget {
 }
 
 class _TableDynamicQrDialogState extends State<TableDynamicQrDialog> {
-  late TextEditingController dateTimeController;
+  PosFirestore posFirestore = PosFirestore.instance;
   PrintDynamicQr printDynamicQr = PrintDynamicQr();
   DateTime currentDateTime = DateTime.now().add(Duration(hours: AppSettingModel.instance.dynamic_qr_default_exp_after_hour!));
   int tapCount = 0;
+  bool invalidAfterPayment = true, isLoading = false;
   late Map branchObject;
+  late TextEditingController dateTimeController;
 
   resetTapCount () => tapCount = 0;
 
@@ -45,6 +48,7 @@ class _TableDynamicQrDialogState extends State<TableDynamicQrDialog> {
     super.initState();
     dateTimeController = TextEditingController(text: Utils.formatDate(currentDateTime.toString()));
     printDynamicQr.readCashierPrinter();
+    invalidAfterPayment = AppSettingModel.instance.dynamic_qr_invalid_after_payment ?? true;
     getPref();
   }
 
@@ -91,72 +95,90 @@ class _TableDynamicQrDialogState extends State<TableDynamicQrDialog> {
                 },
                 controller: dateTimeController,
               ),
+              Row(
+                children: [
+                  Text(AppLocalizations.of(context)!.translate("qr_code_one_time")),
+                  Checkbox(value: invalidAfterPayment, onChanged: (value){
+                    setState(() {
+                      invalidAfterPayment = value!;
+                    });
+                  })
+                ],
+              )
             ],
           ),
         ),
         actions: [
-          SizedBox(
-            width: 150,
-            height: 60,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: color.buttonColor
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+                backgroundColor: color.buttonColor,
+            ),
+            onPressed: isLoading ? null : _onGenerate,
+            icon: isLoading ? Container(
+              width: 24,
+              height: 24,
+              padding: const EdgeInsets.all(2.0),
+              child: CircularProgressIndicator(
+                color: color.buttonColor,
+                strokeWidth: 3,
               ),
-              onPressed: () async {
+            ) : Icon(Icons.qr_code_2_outlined),
+            label: Text(AppLocalizations.of(context)!.translate('generate')),
+          ),
+          ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red
+              ),
+              onPressed: () {
                 tapCount++;
                 if(tapCount == 1){
-                  if(currentDateTime.isBefore(DateTime.now())){
-                    resetTapCount();
-                    Fluttertoast.showToast(
-                        backgroundColor: Color(0xFFFF0000),
-                        msg: AppLocalizations.of(context)!.translate('dynamic_qr_error'));
-                  } else {
-                    bool _hasInternetAccess = await Domain().isHostReachable();
-                    if(_hasInternetAccess){
-                      List<PosTable> selectedTable = widget.posTableList;
-                      for(int i = 0 ; i < selectedTable.length; i++){
-                        PosTable updatedTable = await generateDynamicQRUrl(selectedTable[i]);
-                        Map res = await Domain().insertTableDynamicQr(updatedTable);
-                        if(res['status'] == '1'){
-                          await printDynamicQr.printDynamicQR(table: updatedTable);
-                        } else {
-                          break;
-                        }
-                      }
-                      if(widget.callback != null){
-                        widget.callback!();
-                      }
-                      Navigator.of(context).pop();
-                    } else {
-                      resetTapCount();
-                      Fluttertoast.showToast(
-                          backgroundColor: Color(0xFFFF0000),
-                          msg: AppLocalizations.of(context)!.translate('check_internet_connection'));
-                    }
-                  }
+                  Navigator.of(context).pop();
                 }
               },
-              child: Text(AppLocalizations.of(context)!.translate('generate')),
-            ),
-          ),
-          SizedBox(
-            width: 150,
-            height: 60,
-            child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red
-                ),
-                onPressed: () {
-                  tapCount++;
-                  if(tapCount == 1){
-                    Navigator.of(context).pop();
-                  }
-                },
-                child: Text(AppLocalizations.of(context)!.translate('close'))),
-          )
+              child: Text(AppLocalizations.of(context)!.translate('close')))
         ],
       );
     });
+  }
+
+  _onGenerate() async {
+    tapCount++;
+    if(currentDateTime.isBefore(DateTime.now())){
+      resetTapCount();
+      Fluttertoast.showToast(
+          backgroundColor: Color(0xFFFF0000),
+          msg: AppLocalizations.of(context)!.translate('dynamic_qr_error'));
+    } else {
+      setState(() {
+        isLoading = true;
+      });
+      List<PosTable> selectedTable = widget.posTableList.toList();
+      for(int i = 0 ; i < selectedTable.length; i++){
+        PosTable updatedTable = await generateDynamicQRUrl(selectedTable[i]);
+        if(posFirestore.firestore_status == FirestoreStatus.online){
+          posFirestore.insertTableDynamic(updatedTable);
+          await printDynamicQr.printDynamicQR(table: updatedTable);
+        } else {
+          Map res = await Domain().insertTableDynamicQr(updatedTable);
+          if(res['status'] == '1'){
+            await printDynamicQr.printDynamicQR(table: updatedTable);
+          } else {
+            resetTapCount();
+            setState(() {
+              isLoading = false;
+            });
+            Fluttertoast.showToast(
+                backgroundColor: Color(0xFFFF0000),
+                msg: AppLocalizations.of(context)!.translate('check_internet_connection'));
+            break;
+          }
+        }
+      }
+      if(widget.callback != null){
+        widget.callback!();
+      }
+      Navigator.of(context).pop();
+    }
   }
 
   openDateTimePicker(ThemeColor color){
@@ -217,6 +239,7 @@ class _TableDynamicQrDialogState extends State<TableDynamicQrDialog> {
     currentSelectedTable.dynamicQrHash = hashCode;
     currentSelectedTable.qrOrderUrl = url;
     currentSelectedTable.dynamicQRExp = dateFormat.format(currentDateTime);
+    currentSelectedTable.invalid_after_payment = invalidAfterPayment ? 1 : 0;
     return currentSelectedTable;
   }
 

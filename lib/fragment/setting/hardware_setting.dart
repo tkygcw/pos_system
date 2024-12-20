@@ -1,17 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
-import 'package:pos_system/object/order.dart';
-import 'package:pos_system/fragment/setting/adjust_hour_dialog.dart';
+import 'package:pos_system/object/subscription.dart';
 import 'package:pos_system/object/table.dart';
-import 'package:pos_system/page/pos_pin.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:store_checker/store_checker.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../controller/controllerObject.dart';
 import '../../database/pos_database.dart';
@@ -36,7 +36,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
   AppSetting appSetting = AppSetting();
   late StreamController streamController;
   late Stream actionStream;
-  Receipt? receiptObject;
   final List<String> sortBy = [
     'default',
     'product_name',
@@ -46,17 +45,23 @@ class _HardwareSettingState extends State<HardwareSetting> {
     'product_sku_seq_desc',
     'product_price_seq_desc'
   ];
+  final List<String> variantItemSortBy = [
+    'variant_item_name',
+    'variant_item_sku',
+    'variant_item_name_seq_desc'
+  ];
   final List<String> tableModeOption = [
     'table_mode_no_table',
     'table_mode_full_table',
     'table_mode_no_table_special'
   ];
   int? selectedValue = 0;
+  int? variantSelectedValue = 0;
   int? tableMode = 0;
   bool cashDrawer = false, secondDisplay = false, directPayment = false, showSKU = false,
       qrOrderAutoAccept = false, showProductDesc = false, hasQrAccess = true;
-  // String? tableMode;
-
+  String subscriptionEndDate = '', source = "";
+  int daysLeft = 0;
 
   @override
   void initState() {
@@ -64,6 +69,8 @@ class _HardwareSettingState extends State<HardwareSetting> {
     streamController = controller.hardwareSettingController;
     actionStream = actionController.stream.asBroadcastStream();
     listenAction();
+    getSubscriptionDate();
+    getAppVersion();
   }
 
   listenAction(){
@@ -73,7 +80,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
         case 'init':{
           await checkStatus();
           await getAllAppSetting();
-          await read80mmReceiptLayout();
           controller.refresh(streamController);
         }
         break;
@@ -97,13 +103,13 @@ class _HardwareSettingState extends State<HardwareSetting> {
           controller.refresh(streamController);
         }
         break;
-        case 'qr_order_auto_accept':{
-          await updateQrOrderAutoAcceptAppSetting();
+        case 'prod_sort_by':{
+          await updateProductSortBySetting();
           controller.refresh(streamController);
         }
         break;
-        case 'prod_sort_by':{
-          await updateProductSortBySetting();
+        case 'variant_item_sort_by':{
+          await updateVariantItemSortBySetting();
           controller.refresh(streamController);
         }
         break;
@@ -117,13 +123,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
     Map branchObject = json.decode(branch!);
     if(branchObject['qr_order_status'] == '1'){
       hasQrAccess = false;
-    }
-  }
-
-  read80mmReceiptLayout() async {
-    Receipt? data = await PosDatabase.instance.readSpecificReceipt("80");
-    if(data != null){
-      receiptObject = data;
     }
   }
 
@@ -159,21 +158,25 @@ class _HardwareSettingState extends State<HardwareSetting> {
         this.showSKU = false;
       }
 
-      if(appSetting.qr_order_auto_accept == 1){
-        this.qrOrderAutoAccept = true;
-      } else {
-        this.qrOrderAutoAccept = false;
-      }
-
       if(appSetting.show_product_desc == 1){
         this.showProductDesc = true;
       } else {
         this.showProductDesc = false;
       }
+
       if(appSetting.product_sort_by != null){
         selectedValue = appSetting.product_sort_by!;
       }
+
+      if(appSetting.variant_item_sort_by != null){
+        variantSelectedValue = appSetting.variant_item_sort_by;
+      }
     }
+  }
+
+  isSmallScreenPortrait() {
+    if(MediaQuery.of(context).orientation == Orientation.portrait)
+    return MediaQuery.of(context).orientation == Orientation.portrait;
   }
 
   @override
@@ -181,6 +184,20 @@ class _HardwareSettingState extends State<HardwareSetting> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<AppSettingModel>(builder: (context, AppSettingModel appSettingModel, child) {
         return Scaffold(
+            appBar:  MediaQuery.of(context).size.width < 800 && MediaQuery.of(context).orientation == Orientation.portrait ? AppBar(
+                elevation: 1,
+                leading: IconButton(
+                  icon: Icon(Icons.arrow_back_ios, color: color.buttonColor),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                backgroundColor: Colors.white,
+                title: Text(AppLocalizations.of(context)!.translate('general_setting'),
+                    style: TextStyle(fontSize: 20, color: color.backgroundColor)),
+                centerTitle: false,
+            )
+            : null,
             body: StreamBuilder(
                 stream: controller.hardwareSettingStream,
                 builder: (context, snapshot){
@@ -188,6 +205,62 @@ class _HardwareSettingState extends State<HardwareSetting> {
                     return SingleChildScrollView(
                       child: Column(
                         children: [
+                          Card(
+                            child: ListTile(
+                              contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                              title: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Optimy Pos License v$appVersionCode ($source)',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    '${AppLocalizations.of(context)!.translate('active_until')} $subscriptionEndDate',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              trailing: Text('$daysLeft ${AppLocalizations.of(context)!.translate('days')}',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20
+                                  )
+                              ),
+                            ),
+                            color: daysLeft < 7 ? Colors.red : Colors.green,
+                          ),
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('open_backend')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('open_backend_desc')),
+                            onTap: () async {
+                              final prefs = await SharedPreferences.getInstance();
+                              final String? branch = prefs.getString('branch');
+                              Map branchObject = json.decode(branch!);
+                              final branchID = branchObject['branchID'];
+                              final branchUrl = branchObject['branch_url'];
+                              launchUrl(
+                                Uri.parse('https://cp.optimy.com.my?u=$branchUrl&b=$branchID'),
+                                mode: LaunchMode.externalApplication,
+                              );
+                            },
+                          ),
+                          Divider(
+                            color: Colors.grey,
+                            height: 1,
+                            thickness: 1,
+                            indent: 20,
+                            endIndent: 20,
+                          ),
                           ListTile(
                             title: Text(AppLocalizations.of(context)!.translate('auto_open_cash_drawer')),
                             subtitle: Text(AppLocalizations.of(context)!.translate('auto_open_cash_drawer_after_insert_opening_balance')),
@@ -199,13 +272,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
                                 actionController.sink.add("switch");
                               },
                             ),
-                          ),
-                          Divider(
-                            color: Colors.grey,
-                            height: 1,
-                            thickness: 1,
-                            indent: 20,
-                            endIndent: 20,
                           ),
                           ListTile(
                             title: Text(AppLocalizations.of(context)!.translate('enable_Second_display')),
@@ -230,9 +296,11 @@ class _HardwareSettingState extends State<HardwareSetting> {
                                 onPressed: () async {
                                   await displayManager.transferDataToPresentation("init");
                                 },
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor: color.backgroundColor
+                                ),
                                 child: Icon(Icons.reset_tv))
                           ),
-
                           Divider(
                             color: Colors.grey,
                             height: 1,
@@ -270,13 +338,13 @@ class _HardwareSettingState extends State<HardwareSetting> {
                             title: Text(AppLocalizations.of(context)!.translate('product_sort_by')),
                             subtitle: Text(AppLocalizations.of(context)!.translate('product_sort_by_desc')),
                             trailing: SizedBox(
-                              width: 200,
+                              width: MediaQuery.of(context).orientation == Orientation.landscape ? 200 : 150,
                               child: DropdownButtonHideUnderline(
                                 child: DropdownButton2(
                                   isExpanded: true,
                                   buttonStyleData: ButtonStyleData(
                                     height: 55,
-                                    padding: const EdgeInsets.only(left: 14, right: 14),
+                                    // padding: const EdgeInsets.only(left: 14, right: 14),
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(5),
                                       border: Border.all(
@@ -316,34 +384,62 @@ class _HardwareSettingState extends State<HardwareSetting> {
                               ),
                             ),
                           ),
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('variant_item_sort_by')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('variant_item_sort_by_desc')),
+                            trailing: SizedBox(
+                              width: MediaQuery.of(context).orientation == Orientation.landscape ? 200 : 150,
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton2(
+                                  isExpanded: true,
+                                  buttonStyleData: ButtonStyleData(
+                                    height: 55,
+                                    // padding: const EdgeInsets.only(left: 14, right: 14),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: Border.all(
+                                        color: Colors.black26,
+                                      ),
+                                    ),
+                                  ),
+                                  dropdownStyleData: DropdownStyleData(
+                                    maxHeight: 200,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      color: Colors.grey.shade100,
+                                    ),
+                                    scrollbarTheme: ScrollbarThemeData(
+                                        thickness: WidgetStateProperty.all(5),
+                                        mainAxisMargin: 20,
+                                        crossAxisMargin: 5
+                                    ),
+                                  ),
+                                  items: variantItemSortBy.asMap().entries.map((sort) => DropdownMenuItem<int>(
+                                    value: sort.key,
+                                    child: Text(
+                                      AppLocalizations.of(context)!.translate(sort.value),
+                                      overflow: TextOverflow.visible,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  )).toList(),
+                                  value: variantSelectedValue,
+                                  onChanged: (int? value) {
+                                    variantSelectedValue = value;
+                                    actionController.sink.add("variant_item_sort_by");
+                                    Provider.of<AppSettingModel>(context, listen: false).setVariantItemSortByStatus(value!);
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
                           Divider(
                             color: Colors.grey,
                             height: 1,
                             thickness: 1,
                             indent: 20,
                             endIndent: 20,
-                          ),
-                          ListTile(
-                            title: Text(AppLocalizations.of(context)!.translate('auto_accept_qr_order'), style: TextStyle(color: !hasQrAccess ? Colors.grey: null)),
-                            subtitle: Text(AppLocalizations.of(context)!.translate('auto_accept_qr_order_desc')),
-                            trailing: Switch(
-                              value: qrOrderAutoAccept,
-                              activeColor: color.backgroundColor,
-                              onChanged: hasQrAccess ? (value) {
-                                qrOrderAutoAccept = value;
-                                appSettingModel.setQrOrderAutoAcceptStatus(qrOrderAutoAccept);
-                                actionController.sink.add("qr_order_auto_accept");
-                              } : null
-                            ),
-                          ),
-                          ListTile(
-                            title: Text(AppLocalizations.of(context)!.translate('set_default_exp_after_hour'), style: TextStyle(color: !hasQrAccess ? Colors.grey: null)),
-                            subtitle: Text(AppLocalizations.of(context)!.translate('set_default_exp_after_hour_desc')),
-                            trailing: Text('${appSettingModel.dynamic_qr_default_exp_after_hour} ${AppLocalizations.of(context)!.translate('hours')}',
-                                style: TextStyle(color: !hasQrAccess ? Colors.grey : null, fontWeight: FontWeight.w500)),
-                            onTap: hasQrAccess ? (){
-                             openAdjustHourDialog(appSettingModel);
-                            } : null
                           ),
                         ],
                       ),
@@ -357,28 +453,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
         );
       });
     });
-  }
-
-  Future<Future<Object?>> openAdjustHourDialog(AppSettingModel appSettingModel) async {
-    return showGeneralDialog(
-        barrierColor: Colors.black.withOpacity(0.5),
-        transitionBuilder: (context, a1, a2, widget) {
-          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
-          return Transform(
-            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
-            child: Opacity(
-                opacity: a1.value,
-                child: AdjustHourDialog(exp_hour: appSettingModel.dynamic_qr_default_exp_after_hour!)
-            ),
-          );
-        },
-        transitionDuration: Duration(milliseconds: 200),
-        barrierDismissible: false,
-        context: context,
-        pageBuilder: (context, animation1, animation2) {
-          // ignore: null_check_always_fails
-          return null!;
-        });
   }
 
   updateAppSetting() async {
@@ -421,17 +495,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
     int data = await PosDatabase.instance.updateShowSKUSettings(object);
   }
 
-  updateQrOrderAutoAcceptAppSetting() async {
-    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-    String dateTime = dateFormat.format(DateTime.now());
-    AppSetting object = AppSetting(
-        qr_order_auto_accept: this.qrOrderAutoAccept == true ? 1 : 0,
-        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
-        updated_at: dateTime
-    );
-    int data = await PosDatabase.instance.updateQrOrderAutoAcceptSetting(object);
-  }
-
   updateShowProDescAppSetting() async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
@@ -454,6 +517,18 @@ class _HardwareSettingState extends State<HardwareSetting> {
     int data = await PosDatabase.instance.updateProductSortBySettings(object);
   }
 
+  updateVariantItemSortBySetting() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    AppSetting object = AppSetting(
+        variant_item_sort_by: variantSelectedValue,
+        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
+        updated_at: dateTime
+    );
+    int data = await PosDatabase.instance.updateVariantItemSortBySettings(object);
+  }
+
+
   Future<bool> anyTableUse() async {
     List<PosTable> tableList = await PosDatabase.instance.readAllTable();
     for (int i = 0; i < tableList.length; i++) {
@@ -461,5 +536,88 @@ class _HardwareSettingState extends State<HardwareSetting> {
         return true;
     }
     return false;
+  }
+
+  getSubscriptionDate() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd");
+    Subscription? data = await PosDatabase.instance.readAllSubscription();
+    DateTime subscriptionEnd = dateFormat.parse(data!.end_date!);
+    Duration difference = subscriptionEnd.difference(DateTime.now());
+    setState(() {
+      subscriptionEndDate = DateFormat("dd/MM/yyyy").format(subscriptionEnd);
+      daysLeft = difference.inDays +1;
+    });
+  }
+
+  getAppVersion() async {
+    Source installationSource;
+    try {
+      installationSource = await StoreChecker.getSource;
+    } on PlatformException {
+      installationSource = Source.UNKNOWN;
+    }
+
+    switch (installationSource) {
+      case Source.IS_INSTALLED_FROM_PLAY_STORE:
+      // Installed from Play Store
+        source = "Play Store";
+        break;
+      case Source.IS_INSTALLED_FROM_PLAY_PACKAGE_INSTALLER:
+      // Installed from Google Package installer
+        source = "Google Package installer";
+        break;
+      case Source.IS_INSTALLED_FROM_LOCAL_SOURCE:
+      // Installed using adb commands or side loading or any cloud service
+        source = "Local Source";
+        break;
+      case Source.IS_INSTALLED_FROM_AMAZON_APP_STORE:
+      // Installed from Amazon app store
+        source = "Amazon Store";
+        break;
+      case Source.IS_INSTALLED_FROM_HUAWEI_APP_GALLERY:
+      // Installed from Huawei app store
+        source = "Huawei App Gallery";
+        break;
+      case Source.IS_INSTALLED_FROM_SAMSUNG_GALAXY_STORE:
+      // Installed from Samsung app store
+        source = "Samsung Galaxy Store";
+        break;
+      case Source.IS_INSTALLED_FROM_SAMSUNG_SMART_SWITCH_MOBILE:
+      // Installed from Samsung Smart Switch Mobile
+        source = "Samsung Smart Switch Mobile";
+        break;
+      case Source.IS_INSTALLED_FROM_XIAOMI_GET_APPS:
+      // Installed from Xiaomi app store
+        source = "Xiaomi Get Apps";
+        break;
+      case Source.IS_INSTALLED_FROM_OPPO_APP_MARKET:
+      // Installed from Oppo app store
+        source = "Oppo App Market";
+        break;
+      case Source.IS_INSTALLED_FROM_VIVO_APP_STORE:
+      // Installed from Vivo app store
+        source = "Vivo App Store";
+        break;
+      case Source.IS_INSTALLED_FROM_RU_STORE:
+      // Installed apk from RuStore
+        source = "RuStore";
+        break;
+      case Source.IS_INSTALLED_FROM_OTHER_SOURCE:
+      // Installed from other market store
+        source = "Other Source";
+        break;
+      case Source.IS_INSTALLED_FROM_APP_STORE:
+      // Installed from app store
+        source = "App Store";
+        break;
+      case Source.IS_INSTALLED_FROM_TEST_FLIGHT:
+      // Installed from Test Flight
+        source = "Test Flight";
+        break;
+      case Source.UNKNOWN:
+      // Installed from Unknown source
+        source = "Unknown Source";
+        break;
+    }
   }
 }

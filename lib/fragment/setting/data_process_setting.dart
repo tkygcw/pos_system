@@ -2,14 +2,12 @@ import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+import 'package:pos_system/custom_pin_dialog.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/setting/sync_dialog.dart';
 import 'package:pos_system/fragment/setting/system_log_dialog.dart';
 import 'package:pos_system/notifier/theme_color.dart';
-import 'package:pos_system/object/subscription.dart';
 import 'package:pos_system/object/table.dart';
-import 'package:pos_system/page/loading.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/page/select_table_dialog.dart';
@@ -17,6 +15,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../main.dart';
+import '../../object/branch.dart';
 import '../../object/table_use.dart';
 import '../../object/table_use_detail.dart';
 import '../../translation/AppLocalizations.dart';
@@ -29,61 +28,46 @@ class DataProcessingSetting extends StatefulWidget {
 }
 
 class _DataProcessingSettingState extends State<DataProcessingSetting> {
-  String subscriptionEndDate = '', appVersion = '';
-  int daysLeft = 0;
   final adminPosPinController = TextEditingController();
   bool inProgress = false;
   bool isButtonDisabled = false;
-  bool _submitted = false;
+  bool _submitted = false, allowFirestore = false;
+  late Branch? branch;
 
   @override
   void initState() {
     super.initState();
-    getSubscriptionDate();
-    getAppVersion();
+    initLoad();
+  }
+
+  initLoad() async {
+    branch = await PosDatabase.instance.readLocalBranch();
+    setState(() {
+      allowFirestore = branch!.allow_firestore == 1 ? true : false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Scaffold(
+        appBar:  MediaQuery.of(context).size.width < 800 && MediaQuery.of(context).orientation == Orientation.portrait ? AppBar(
+          elevation: 1,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios, color: color.buttonColor),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          backgroundColor: Colors.white,
+          title: Text(AppLocalizations.of(context)!.translate('data_processing'),
+              style: TextStyle(fontSize: 20, color: color.backgroundColor)),
+          centerTitle: false,
+        )
+            : null,
         body: SingleChildScrollView(
           child: Column(
             children: [
-              Card(
-                child: ListTile(
-                  contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                  title: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Optimy Pos License v$appVersion',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        '${AppLocalizations.of(context)!.translate('active_until')} $subscriptionEndDate',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                        ),
-                      ),
-                    ],
-                  ),
-                  trailing: Text('$daysLeft ${AppLocalizations.of(context)!.translate('days')}',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20
-                      )
-                  ),
-                ),
-                color: daysLeft < 7 ? Colors.red : Colors.green,
-              ),
               ListTile(
                 title: Text(AppLocalizations.of(context)!.translate('system_log')),
                 trailing: Icon(Icons.history),
@@ -95,18 +79,43 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
                 title: Text(AppLocalizations.of(context)!.translate('sync')),
                 trailing: Icon(Icons.sync),
                 onTap: () async {
-                  openSyncDialog();
+                  openSyncDialog(SyncType.sync);
                 },
+              ),
+              Visibility(
+                visible: allowFirestore,
+                child: ListTile(
+                  title: Text(AppLocalizations.of(context)!.translate('sync_to_firestore')),
+                  trailing: Icon(Icons.sync_alt),
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => CustomPinDialog(
+                        permission: Permission.adminOnly,
+                        callback: () => openSyncDialog(SyncType.firestore_sync,),
+                      ),
+                    );
+                    // openSyncDialog(SyncType.firestore_sync);
+                  },
+                ),
               ),
               ListTile(
-                title: Text(AppLocalizations.of(context)!.translate('sync_reset')),
-                trailing: Icon(Icons.refresh),
+                title: Text(AppLocalizations.of(context)!.translate('sync_updates_from_cloud')),
+                trailing: Icon(Icons.cloud_download),
                 onTap: () async {
-                  syncRecord.count = 0;
-                  qrOrder.count = 0;
-                  Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('sync_reset_success'));
+                  openSyncDialog(SyncType.sync_updates_from_cloud);
                 },
               ),
+              ///temporally hide sync reset button
+              // ListTile(
+              //   title: Text(AppLocalizations.of(context)!.translate('sync_reset')),
+              //   trailing: Icon(Icons.refresh),
+              //   onTap: () async {
+              //     syncRecord.count = 0;
+              //     qrOrder.count = 0;
+              //     Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('sync_reset_success'));
+              //   },
+              // ),
               Divider(
                 color: Colors.grey,
                 height: 1,
@@ -189,7 +198,7 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
                               },
                               obscureText: true,
                               controller: adminPosPinController,
-                              keyboardType: TextInputType.number,
+                              keyboardType: TextInputType.numberWithOptions(decimal: true),
                               decoration: InputDecoration(
                                 errorText: _submitted
                                     ? errorPassword == null
@@ -213,58 +222,73 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
                       child: CustomProgressBar()
                   ),
                   actions: <Widget>[
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: color.backgroundColor,
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: SizedBox(
+                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                                ? MediaQuery.of(context).size.height / 12
+                                : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+                                : MediaQuery.of(context).size.height / 20,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: color.backgroundColor,
+                              ),
+                              child: Text(
+                                AppLocalizations.of(context)!.translate('close'),
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onPressed: isButtonDisabled
+                                  ? null
+                                  : () {
+                                setState(() {
+                                  isButtonDisabled = true;
+                                });
+                                Navigator.of(context).pop();
+                                if(mounted){
+                                  setState(() {
+                                    isButtonDisabled = false;
+                                  });
+                                }
+                              },
+                            ),
+                          ),
                         ),
-                        child: Text(
-                          AppLocalizations.of(context)!.translate('close'),
-                          style: TextStyle(color: Colors.white),
+                        SizedBox(width: 10),
+                        Expanded(
+                          flex: 1,
+                          child: SizedBox(
+                            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                                ? MediaQuery.of(context).size.height / 12
+                                : MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10
+                                : MediaQuery.of(context).size.height / 20,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: color.buttonColor,
+                              ),
+                              child: Text(
+                                AppLocalizations.of(context)!.translate('yes'),
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onPressed: isButtonDisabled
+                                  ? null
+                                  : () async {
+                                setState(() {
+                                  isButtonDisabled = true;
+                                });
+                                _submit(context);
+                                if(mounted){
+                                  setState(() {
+                                    isButtonDisabled = false;
+                                    inProgress = false;
+                                  });
+                                }
+                              },
+                            ),
+                          ),
                         ),
-                        onPressed: isButtonDisabled
-                            ? null
-                            : () {
-                          setState(() {
-                            isButtonDisabled = true;
-                          });
-                          Navigator.of(context).pop();
-                          if(mounted){
-                            setState(() {
-                              isButtonDisabled = false;
-                            });
-                          }
-                        },
-                      ),
-                    ),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
-                      height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: color.buttonColor,
-                        ),
-                        child: Text(
-                          AppLocalizations.of(context)!.translate('yes'),
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        onPressed: isButtonDisabled
-                            ? null
-                            : () async {
-                          setState(() {
-                            isButtonDisabled = true;
-                          });
-                          _submit(context);
-                          if(mounted){
-                            setState(() {
-                              isButtonDisabled = false;
-                              inProgress = false;
-                            });
-                          }
-                        },
-                      ),
+                      ],
                     ),
                   ],
                 ),
@@ -415,6 +439,7 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
     PosDatabase.instance.clearAllOrderModifierDetail();
     PosDatabase.instance.clearAllOrderTax();
     PosDatabase.instance.clearAllOrderPromotion();
+    PosDatabase.instance.clearAllOrderPaymentSplit();
     PosDatabase.instance.clearAllTableUse();
     PosDatabase.instance.clearAllTableUseDetail();
     resetAllInUsedTableStatus();
@@ -512,7 +537,7 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
         });
   }
 
-  Future<Future<Object?>> openSyncDialog() async {
+  Future<Future<Object?>> openSyncDialog(SyncType syncType) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -521,7 +546,7 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: SyncDialog(),
+              child: SyncDialog(syncType: syncType),
             ),
           );
         },
@@ -532,21 +557,5 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
           // ignore: null_check_always_fails
           return null!;
         });
-  }
-
-  getSubscriptionDate() async {
-    DateFormat dateFormat = DateFormat("yyyy-MM-dd");
-    Subscription? data = await PosDatabase.instance.readAllSubscription();
-    DateTime subscriptionEnd = dateFormat.parse(data!.end_date!);
-    Duration difference = subscriptionEnd.difference(DateTime.now());
-    setState(() {
-      subscriptionEndDate = DateFormat("dd/MM/yyyy").format(subscriptionEnd);
-      daysLeft = difference.inDays +1;
-    });
-  }
-
-  getAppVersion() async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    appVersion = packageInfo.version;
   }
 }

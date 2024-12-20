@@ -5,14 +5,17 @@ import 'package:f_logs/model/flog/flog.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/fragment/cart/cart.dart';
 import 'package:pos_system/fragment/product/product_order_dialog.dart';
+import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/branch_link_product.dart';
+import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/second_device/cart_dialog_function.dart';
-import 'package:pos_system/second_device/place_order.dart';
+import 'package:pos_system/second_device/order/dine_in_order.dart';
+import 'package:pos_system/second_device/order/place_order.dart';
 import 'package:pos_system/second_device/reprint_kitchen_list_function.dart';
 import 'package:pos_system/second_device/table_function.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,11 +23,14 @@ import 'package:version/version.dart';
 
 import '../database/pos_database.dart';
 import '../main.dart';
+import '../second_device/order/add_on_order.dart';
+import '../second_device/order/not_dine_in_order.dart';
 import 'branch_link_promotion.dart';
 
 class ServerAction {
   String? action;
   String? imagePath;
+  List<PosTable> tableList = [];
 
   ServerAction({this.action});
 
@@ -35,7 +41,8 @@ class ServerAction {
     Map userObject = json.decode(user!);
     // final String imagePath = prefs.getString('local_path')!;
     if(Platform.isIOS){
-      String dir = await _localPath;
+      Directory tempDir = await getApplicationSupportDirectory();
+      String dir = tempDir.path;
       imagePath = dir + '/assets/${userObject['company_id']}';
     } else {
       imagePath = prefs.getString('local_path')!;
@@ -53,7 +60,7 @@ class ServerAction {
   Future<Map<String, dynamic>?> checkAction({required String action, param, String? address}) async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    String minVersion = '1.0.11';
+    String minVersion = '1.0.22';
     Map<String, dynamic>? result;
     Map<String, dynamic>? objectData;
     try{
@@ -96,6 +103,8 @@ class ServerAction {
           var data9 = await PosDatabase.instance.readAllTaxLinkDining();
           var data10 = await getBranchPromotionData();
           var data11 = appLanguage.appLocal.languageCode;
+          var data12 = await PosDatabase.instance.readAllSubscription();
+
           print("data2 length: ${data2.length}");
            objectData = {
              'tb_categories': data,
@@ -108,7 +117,8 @@ class ServerAction {
              'tb_branch_link_dining_option': data8,
              'taxLinkDiningList': data9,
              'branchPromotionList': data10,
-             'app_language_code': data11
+             'app_language_code': data11,
+             'subscription_data': data12
           };
           result = {'status': '1', 'action': '1', 'data': objectData};
         }
@@ -165,10 +175,26 @@ class ServerAction {
         break;
         case '7': {
           try{
-            CartDialogFunction function = CartDialogFunction();
+            SubPosCartDialogFunction function = SubPosCartDialogFunction();
+            tableList = await PosDatabase.instance.readAllTable();
+            List<Map<String, String>> tableOrderKeyList = [];
+            for(int i = 0; i < tableList.length; i++){
+              if(tableList[i].status == 1){
+                List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableList[i].table_use_key!);
+                if(data.isNotEmpty){
+                  if(data.first.order_key != null){
+                    tableOrderKeyList.add({
+                      'table_id': tableList[i].table_id.toString(),
+                      'order_key': data.first.order_key ?? '',
+                    });
+                  }
+                }
+              }
+            }
             await function.readAllTable();
             objectData = {
               'table_list': function.tableList,
+              'table_order_key_list': tableOrderKeyList,
             };
             result = {'status': '1', 'data': objectData};
           }catch(e){
@@ -182,20 +208,10 @@ class ServerAction {
             CartModel cart = CartModel();
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam['cart']);
-            if(cart.selectedOption == 'Dine in'){
-              PlaceNewDineInOrder order = PlaceNewDineInOrder();
-              Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
-              if(cartItem != null){
-                return result = cartItem;
-              }
-              result = await order.callCreateNewOrder(cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
+            if(cart.selectedOption == 'Dine in' && AppSettingModel.instance.table_order != 0){
+              result = await placeOrderFunction(PlaceDineInOrder(), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
             } else {
-              PlaceNotDineInOrder order = PlaceNotDineInOrder();
-              Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
-              if(cartItem != null){
-                return result = cartItem;
-              }
-              result = await order.callCreateNewNotDineOrder(cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
+              result = await placeOrderFunction(PlaceNotDineInOrder(), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
             }
           } catch(e){
             result = {'status': '4', 'exception': "New-order error: ${e.toString()}"};
@@ -210,14 +226,9 @@ class ServerAction {
         case '9': {
           try{
             CartModel cart = CartModel();
-            PlaceAddOrder order = PlaceAddOrder();
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam['cart']);
-            Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
-            if(cartItem != null){
-              return result = cartItem;
-            }
-            result = await order.callAddOrderCache(cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
+            result = await placeOrderFunction(PlaceAddOrder(), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
           } catch(e){
             result = {'status': '4', 'exception': "add-order error: ${e.toString()}"};
             FLog.error(
@@ -231,42 +242,78 @@ class ServerAction {
         case '10': {
           var decodeParam = jsonDecode(param);
           PosTable posTable = PosTable.fromJson(decodeParam);
-          CartDialogFunction function = CartDialogFunction();
-          await function.readSpecificTableDetail(posTable);
-          objectData = {
-            'order_detail': function.orderDetailList,
-            'order_cache': function.orderCacheList,
-            //'pos_table': data3,
-          };
-          result = {'status': '1', 'data':objectData};
+          SubPosCartDialogFunction function = SubPosCartDialogFunction();
+          int status = await function.readSpecificTableDetail(posTable);
+          if(status == 1){
+            objectData = {
+              'order_detail': function.orderDetailList,
+              'order_cache': function.orderCacheList,
+            };
+            result = {'status': '1', 'data':objectData};
+          } else {
+            result = {'status': '2'};
+          }
         }
         break;
         case '11': {
           try{
-            CartDialogFunction function = CartDialogFunction();
+            SubPosCartDialogFunction function = SubPosCartDialogFunction();
             var jsonValue = param;
-            await function.callRemoveTableQuery(int.parse(jsonValue));
-            result = {'status': '1', 'data': jsonValue};
+            int status = await function.callRemoveTableQuery(int.parse(jsonValue));
+            switch(status){
+              case 1: {
+                result = {'status': '1', 'data': jsonValue};
+              }break;
+              case 2: {
+                ///table not in used
+                result = {'status': '2', 'error': 'table_not_in_used'};
+              }break;
+              case 3: {
+                ///cannot remove last table
+                print("case 3 called!!!");
+                result = {'status': '2', 'error': 'cannot_remove_this_table'};
+              }break;
+              case 5: {
+                ///table is in cart
+                result = {'status': '3', 'error': 'table_is_in_payment'};
+              }break;
+            }
           }catch(e){
             result = {'status': '4', 'exception': e.toString()};
-            print("cart dialog remove merged table request error: $e");
+            FLog.error(
+              className: "checkAction",
+              text: "Server action 11 error",
+              exception: "$e",
+            );
           }
         }
         break;
         case '12': {
           try{
-            CartDialogFunction function = CartDialogFunction();
+            SubPosCartDialogFunction function = SubPosCartDialogFunction();
+            print("param: ${param}");
             var jsonValue = jsonDecode(param);
-            print("json value: ${jsonValue['dragTableId']}");
-            int status = await function.callMergeTableQuery(dragTableId: jsonValue['dragTableId'], targetTableId: jsonValue['targetTableId']);
+            print("json value: ${jsonValue['targetPosTable']}");
+            int status = await function.callMergeTableQuery(
+                dragTableId: jsonValue['dragTableId'],
+                targetTable: PosTable.fromJson(jsonValue['targetPosTable'])
+            );
             if(status == 1){
               result = {'status': '1'};
-            } else {
-              result = {'status': '2', 'error': "Table status changed"};
+            } else if (status == 2) {
+              result = {'status': '2', 'error': "table_status_changed"};
+            } else if (status == 3) {
+              result = {'status': '3', 'error': "table_is_in_payment"};
+            } else if (status == 5){
+              result = {'status': '2', 'error': "table_group_changed"};
             }
           }catch(e){
             result = {'status': '4', 'exception': e.toString()};
-            print("cart dialog remove merged table request error: $e");
+            FLog.error(
+              className: "checkAction",
+              text: "Server action 12 error",
+              exception: "$e",
+            );
           }
         }
         break;
@@ -321,6 +368,10 @@ class ServerAction {
       result = {'status': '2'};
       return result;
     }
+  }
+
+  Future<Map<String, dynamic>>placeOrderFunction(PlaceOrder orderType, cart, address, orderBy, orderByUserId) async {
+    return await orderType.placeOrder(cart, address, orderBy, orderByUserId);
   }
 
   Future<List<Promotion>> getBranchPromotionData() async {

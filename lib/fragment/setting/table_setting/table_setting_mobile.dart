@@ -41,30 +41,43 @@ class _TableSettingMobileState extends State<TableSettingMobile> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        elevation: 0,
+        elevation: 1,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, color: color.buttonColor),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        backgroundColor: Colors.white,
+        title: Text(AppLocalizations.of(context)!.translate('receipt_setting'),
+            style: TextStyle(fontSize: 20, color: color.backgroundColor)),
+        centerTitle: false,
         actions: [
-          Center(child: Text("${AppLocalizations.of(context)?.translate('selected')}: ${checkedTable.length}", style: TextStyle(color: Colors.black, fontSize: 18.0))),
-          Padding(
-              padding: EdgeInsets.only(right: 25),
-              child: Checkbox(
-                activeColor: color.backgroundColor,
-                value: selectAll,
-                onChanged: (value){
-                  setState(() {
-                    selectAll = value!;
-                  });
-                  if(selectAll){
-                    for(var table in tableList){
-                      if(table.isSelected == false){
-                        table.isSelected = true;
-                        checkedTable.add(table);
-                      }
+          Container(
+            padding: EdgeInsets.only(right: 10),
+            child: TextButton(
+              onPressed: () {
+                setState(() {
+                  selectAll = !selectAll;
+                });
+                if (selectAll) {
+                  for (var table in tableList) {
+                    if (!table.isSelected) {
+                      table.isSelected = true;
+                      checkedTable.add(table);
                     }
-                  } else {
-                    unselectAllTable();
                   }
-                },
-              )
+                } else {
+                  unselectAllTable();
+                }
+              },
+              child: Text(
+                selectAll
+                    ? AppLocalizations.of(context)!.translate('unselect_all')
+                    : AppLocalizations.of(context)!.translate('select_all'),
+                style: TextStyle(color: color.backgroundColor),
+              ),
+            ),
           )
         ],
       ),

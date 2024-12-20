@@ -14,10 +14,16 @@ class AppSettingFields {
     enable_numbering,
     starting_number,
     table_order,
+    settlement_after_all_order_paid,
     show_product_desc,
     print_cancel_receipt,
     product_sort_by,
     dynamic_qr_default_exp_after_hour,
+    variant_item_sort_by,
+    dynamic_qr_invalid_after_payment,
+    required_cancel_reason,
+    qr_order_alert,
+    rounding_absorb,
     sync_status,
     created_at,
     updated_at
@@ -35,10 +41,16 @@ class AppSettingFields {
   static String enable_numbering = 'enable_numbering';
   static String starting_number = 'starting_number';
   static String table_order = 'table_order';
+  static String settlement_after_all_order_paid = 'settlement_after_all_order_paid';
   static String show_product_desc = 'show_product_desc';
   static String print_cancel_receipt = 'print_cancel_receipt';
   static String product_sort_by = 'product_sort_by';
   static String dynamic_qr_default_exp_after_hour = 'dynamic_qr_default_exp_after_hour';
+  static String variant_item_sort_by = 'variant_item_sort_by';
+  static String dynamic_qr_invalid_after_payment = 'dynamic_qr_invalid_after_payment';
+  static String required_cancel_reason = 'required_cancel_reason';
+  static String qr_order_alert = 'qr_order_alert';
+  static String rounding_absorb = 'rounding_absorb';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -57,10 +69,16 @@ class AppSetting{
   int? enable_numbering;
   int? starting_number;
   int? table_order;
+  int? settlement_after_all_order_paid;
   int? show_product_desc;
   int? print_cancel_receipt;
   int? product_sort_by;
   int? dynamic_qr_default_exp_after_hour;
+  int? variant_item_sort_by;
+  int? dynamic_qr_invalid_after_payment;
+  int? required_cancel_reason;
+  int? qr_order_alert;
+  int? rounding_absorb;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -78,10 +96,16 @@ class AppSetting{
         this.enable_numbering,
         this.starting_number,
         this.table_order,
+        this.settlement_after_all_order_paid,
         this.show_product_desc,
         this.print_cancel_receipt,
         this.product_sort_by,
         this.dynamic_qr_default_exp_after_hour,
+        this.variant_item_sort_by,
+        this.dynamic_qr_invalid_after_payment,
+        this.required_cancel_reason,
+        this.qr_order_alert,
+        this.rounding_absorb,
         this.sync_status,
         this.created_at,
         this.updated_at
@@ -100,10 +124,16 @@ class AppSetting{
     int? enable_numbering,
     int? starting_number,
     int? table_order,
+    int? settlement_after_all_order_paid,
     int? show_product_desc,
     int? print_cancel_receipt,
     int? product_sort_by,
     int? dynamic_qr_default_exp_after_hour,
+    int? variant_item_sort_by,
+    int? dynamic_qr_invalid_after_payment,
+    int? required_cancel_reason,
+    int? qr_order_alert,
+    int? rounding_absorb,
     int? sync_status,
     String? created_at,
     String? updated_at
@@ -121,10 +151,16 @@ class AppSetting{
         enable_numbering: enable_numbering ?? this.enable_numbering,
         starting_number: starting_number ?? this.starting_number,
         table_order: table_order ?? this.table_order,
+        settlement_after_all_order_paid: settlement_after_all_order_paid ?? this.settlement_after_all_order_paid,
         show_product_desc: show_product_desc ?? this.show_product_desc,
         print_cancel_receipt: print_cancel_receipt ?? this.print_cancel_receipt,
         product_sort_by: product_sort_by ?? this.product_sort_by,
         dynamic_qr_default_exp_after_hour: dynamic_qr_default_exp_after_hour ?? this.dynamic_qr_default_exp_after_hour,
+        variant_item_sort_by: variant_item_sort_by ?? this.variant_item_sort_by,
+        dynamic_qr_invalid_after_payment: dynamic_qr_invalid_after_payment ?? this.dynamic_qr_invalid_after_payment,
+        required_cancel_reason: required_cancel_reason ?? this.required_cancel_reason,
+        qr_order_alert: qr_order_alert ?? this.qr_order_alert,
+        rounding_absorb: rounding_absorb ?? this.rounding_absorb,
         sync_status: sync_status ?? this.sync_status,
         created_at: created_at ?? this.created_at,
         updated_at: updated_at ?? this.updated_at
@@ -143,10 +179,16 @@ class AppSetting{
     enable_numbering: json[AppSettingFields.enable_numbering] as int?,
     starting_number: json[AppSettingFields.starting_number] as int?,
     table_order: json[AppSettingFields.table_order] as int?,
+    settlement_after_all_order_paid: json[AppSettingFields.settlement_after_all_order_paid] as int?,
     show_product_desc: json[AppSettingFields.show_product_desc] as int?,
     print_cancel_receipt: json[AppSettingFields.print_cancel_receipt] as int?,
     product_sort_by: json[AppSettingFields.product_sort_by] as int?,
     dynamic_qr_default_exp_after_hour: json[AppSettingFields.dynamic_qr_default_exp_after_hour] as int?,
+    variant_item_sort_by: json[AppSettingFields.variant_item_sort_by] as int?,
+    dynamic_qr_invalid_after_payment: json[AppSettingFields.dynamic_qr_invalid_after_payment] as int?,
+    required_cancel_reason: json[AppSettingFields.required_cancel_reason] as int?,
+    qr_order_alert: json[AppSettingFields.qr_order_alert] as int?,
+    rounding_absorb: json[AppSettingFields.rounding_absorb] as int?,
     sync_status: json[AppSettingFields.sync_status] as int?,
     created_at: json[AppSettingFields.created_at] as String?,
     updated_at: json[AppSettingFields.updated_at] as String?
@@ -165,10 +207,16 @@ class AppSetting{
     AppSettingFields.enable_numbering: enable_numbering,
     AppSettingFields.starting_number: starting_number,
     AppSettingFields.table_order: table_order,
+    AppSettingFields.settlement_after_all_order_paid: settlement_after_all_order_paid,
     AppSettingFields.show_product_desc: show_product_desc,
     AppSettingFields.print_cancel_receipt: print_cancel_receipt,
     AppSettingFields.product_sort_by: product_sort_by,
     AppSettingFields.dynamic_qr_default_exp_after_hour: dynamic_qr_default_exp_after_hour,
+    AppSettingFields.variant_item_sort_by: variant_item_sort_by,
+    AppSettingFields.dynamic_qr_invalid_after_payment: dynamic_qr_invalid_after_payment,
+    AppSettingFields.required_cancel_reason: required_cancel_reason,
+    AppSettingFields.qr_order_alert: qr_order_alert,
+    AppSettingFields.rounding_absorb: rounding_absorb,
     AppSettingFields.sync_status: sync_status,
     AppSettingFields.created_at: created_at,
     AppSettingFields.updated_at: updated_at

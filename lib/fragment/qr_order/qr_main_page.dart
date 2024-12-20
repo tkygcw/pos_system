@@ -1,11 +1,14 @@
 import 'dart:async';
-import 'dart:convert';
 
+import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/database/pos_firestore.dart';
+import 'package:pos_system/firebase_sync/qr_order_sync.dart';
 import 'package:pos_system/fragment/qr_order/adjust_stock_dialog.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/branch_link_product.dart';
@@ -18,8 +21,8 @@ import 'package:pos_system/object/table.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../notifier/theme_color.dart';
+import '../../object/branch.dart';
 
 class QrMainPage extends StatefulWidget {
   const QrMainPage({Key? key}) : super(key: key);
@@ -29,9 +32,15 @@ class QrMainPage extends StatefulWidget {
 }
 
 class _QrMainPageState extends State<QrMainPage> {
+  final on = 'ON';
+  final off = 'OFF';
+  static const disableCloseQRstatus = 'qr_order_OFF';
+  static const enableCloseQRstatus = 'qr_order_ON';
   List<OrderCache> qrOrderCacheList = [];
   List<OrderDetail> orderDetailList = [], noStockOrderDetailList = [];
-  bool _isLoaded = false, hasNoStockProduct = false, hasAccess = true;
+  bool hasNoStockProduct = false, hasAccess = true, closeQrOrderStatus = false;
+  late final Branch branchObject;
+  String closeQrOption = disableCloseQRstatus;
 
   @override
   void initState() {
@@ -72,7 +81,7 @@ class _QrMainPageState extends State<QrMainPage> {
   }
 
   AppBar QrAppBar(BuildContext context, ThemeColor color) {
-    return AppBar(
+    return MediaQuery.of(context).orientation == Orientation.landscape && MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? AppBar(
       primary: false,
       elevation: 0,
       automaticallyImplyLeading: false,
@@ -80,6 +89,26 @@ class _QrMainPageState extends State<QrMainPage> {
         children: [
           Text(AppLocalizations.of(context)!.translate('qr_order'), style: TextStyle(fontSize: 25)),
           Spacer(),
+          Row(
+           children: [
+             Text(AppLocalizations.of(context)!.translate("close_qr_order")),
+             Switch(
+                activeColor: color.backgroundColor,
+                 value: closeQrOrderStatus,
+                 onChanged: (value) {
+                   setState(() {
+                     closeQrOrderStatus = value;
+                   });
+                   Branch data = Branch(
+                       close_qr_order: closeQrOrderStatus ? 1 : 0,
+                       branch_id: branchObject.branch_id
+                   );
+                   updateCloseQrOrderStatusFunction(data);
+                 }
+             ),
+           ],
+          ),
+          SizedBox(width: 10),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor: color.backgroundColor,
@@ -89,13 +118,7 @@ class _QrMainPageState extends State<QrMainPage> {
               AppLocalizations.of(context)!.translate('sync_qr_order'),
               style: TextStyle(color: Colors.white),
             ),
-            onPressed: () async {
-              if(qrOrder.count == 0){
-                qrOrder.count = 1;
-                await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
-                qrOrder.count = 0;
-              }
-            },
+            onPressed: syncAllQrFunction
           ),
           SizedBox(width: 10),
           ElevatedButton.icon(
@@ -108,22 +131,69 @@ class _QrMainPageState extends State<QrMainPage> {
               style: TextStyle(color: Colors.white),
             ),
             onPressed: () async {
-              if (await confirm(
-                context,
-                title: Text("${AppLocalizations.of(context)!.translate('confirm_accept_all')}"),
-                content: Text('${AppLocalizations.of(context)!.translate('confirm_accept_all_desc')}'),
-                textOK: Text('${AppLocalizations.of(context)!.translate('yes')}'),
-                textCancel: Text('${AppLocalizations.of(context)!.translate('no')}'),
-              )) {
-                if(mounted){
-                  asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
-                }
-              }
+              await acceptAllQrFunction();
             },
           ),
         ],
       ),
+    ) : AppBar(
+      automaticallyImplyLeading: false,
+      elevation: 0,
+      leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: GestureDetector(
+          onTap: () {
+            isCollapsedNotifier.value = !isCollapsedNotifier.value;
+          },
+          child: Image.asset('drawable/logo.png'),
+        ),
+      ),
+      title: Text(AppLocalizations.of(context)!.translate('qr_order'),
+        style: TextStyle(fontSize: 20, color: color.backgroundColor),
+      ),
+      centerTitle: false,
+      actions: [
+        PopupMenuButton<String>(
+          onSelected: handleClick,
+          itemBuilder: (BuildContext context) {
+            return {'${closeQrOption}', 'sync_qr_order', 'accept_all'}.map((String choice) {
+              return PopupMenuItem<String>(
+                value: choice,
+                child: Text(AppLocalizations.of(context)!.translate(choice)),
+              );
+            }).toList();
+          },
+          icon: Icon(Icons.more_vert, color: color.backgroundColor,),
+        ),
+      ],
     );
+  }
+
+  Future<void> handleClick(String value) async {
+    switch (value) {
+      case disableCloseQRstatus: {
+        closeQrOption = enableCloseQRstatus;
+        Branch data = Branch(
+            close_qr_order: 1,
+            branch_id: branchObject.branch_id
+        );
+        updateCloseQrOrderStatusFunction(data);
+      }break;
+      case enableCloseQRstatus : {
+        closeQrOption = disableCloseQRstatus;
+        Branch data = Branch(
+            close_qr_order: 0,
+            branch_id: branchObject.branch_id
+        );
+        updateCloseQrOrderStatusFunction(data);
+      }break;
+      case 'sync_qr_order':
+        await syncAllQrFunction();
+        break;
+      case 'accept_all':
+        await acceptAllQrFunction();
+        break;
+    }
   }
 
   Widget NoOrderView(BuildContext context) {
@@ -146,7 +216,7 @@ class _QrMainPageState extends State<QrMainPage> {
         return Card(
           elevation: 5,
           child: ListTile(
-            contentPadding: EdgeInsets.all(10),
+            contentPadding: MediaQuery.of(context).size.width > 500 ? EdgeInsets.all(10) : EdgeInsets.fromLTRB(15, 10, 10, 10),
             //isThreeLine: true,
             title: qrOrderCacheList[index].dining_name == 'Dine in'
                 ? Text(AppLocalizations.of(context)!.translate('table_no')+': ${qrOrderCacheList[index].table_number}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey))
@@ -171,14 +241,14 @@ class _QrMainPageState extends State<QrMainPage> {
                 ],
               ),
             ),
-            leading: CircleAvatar(
+            leading: MediaQuery.of(context).size.width > 500 ? CircleAvatar(
                 backgroundColor: Colors.grey.shade200,
                 child: Icon(
                   Icons.qr_code,
                   color: Colors.grey,
-                )),
+                )) : null,
             trailing: Container(
-              width: 130,
+              width: MediaQuery.of(context).size.width > 500 ? 130 : 110,
               padding: EdgeInsets.all(8.0),
               child: Text(
                 '${getDuration(qrOrderCacheList[index].created_at)}',
@@ -194,7 +264,7 @@ class _QrMainPageState extends State<QrMainPage> {
               await checkOrderDetail(qrOrderCacheList[index].order_cache_sqlite_id!, index);
               //pop stock adjust dialog
               openAdjustStockDialog(orderDetailList, qrOrderCacheList[index].order_cache_sqlite_id!,
-                  qrOrderCacheList[index].qr_order_table_sqlite_id!, qrOrderCacheList[index].batch_id!);
+                  qrOrderCacheList[index].qr_order_table_sqlite_id!, qrOrderCacheList[index].batch_id!, qrOrderCacheList[index]);
             },
           ),
         );
@@ -202,7 +272,7 @@ class _QrMainPageState extends State<QrMainPage> {
     );
   }
 
-  openAdjustStockDialog(List<OrderDetail> orderDetail, int localId, String tableLocalId, String batchNumber) async {
+  openAdjustStockDialog(List<OrderDetail> orderDetail, int localId, String tableLocalId, String batchNumber, OrderCache orderCache) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -216,8 +286,8 @@ class _QrMainPageState extends State<QrMainPage> {
                 tableLocalId: tableLocalId,
                 orderCacheLocalId: localId,
                 callBack: () => QrOrder.instance.getAllNotAcceptedQrOrder(),
-                orderCacheList: qrOrderCacheList,
                 currentBatch: batchNumber,
+                currentOrderCache: orderCache,
               ),
             ),
           );
@@ -229,6 +299,36 @@ class _QrMainPageState extends State<QrMainPage> {
           // ignore: null_check_always_fails
           return null!;
         });
+  }
+
+  Future<void> acceptAllQrFunction() async {
+    if (await confirm(
+      context,
+      title: Text("${AppLocalizations.of(context)!.translate('confirm_accept_all')}"),
+      content: Text('${AppLocalizations.of(context)!.translate('confirm_accept_all_desc')}'),
+      textOK: Text('${AppLocalizations.of(context)!.translate('yes')}'),
+      textCancel: Text('${AppLocalizations.of(context)!.translate('no')}'),
+    )) {
+      if(mounted){
+        asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
+      }
+    }
+  }
+
+  void updateCloseQrOrderStatusFunction(Branch data){
+    PosFirestore.instance.updateBranchCloseQROrderStatus(data);
+    PosDatabase.instance.updateBranchCloseQrStatus(data);
+    Domain().updateBranchCloseQrOrder(data);
+  }
+
+  Future<void> syncAllQrFunction() async {
+    print("sync qr order called!!!");
+    await FirestoreQROrderSync.instance.readAllNotAcceptedOrderCache(branchObject.branch_id!.toString());
+    if(qrOrder.count == 0){
+      qrOrder.count = 1;
+      await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
+      qrOrder.count = 0;
+    }
   }
 
   getAllNotAcceptedQrOrder(QrOrder order) async {
@@ -252,14 +352,16 @@ class _QrMainPageState extends State<QrMainPage> {
   }
 
   Future<void> checkStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? branch = prefs.getString('branch');
-    Map branchObject = json.decode(branch!);
-    if(branchObject['qr_order_status'] == '1'){
-      setState(() {
-        hasAccess = false;
-      });
+    branchObject = (await PosDatabase.instance.readLocalBranch())!;
+    print("branchObject.close_qr_order: ${branchObject.close_qr_order}");
+    if(branchObject.close_qr_order == 1){
+      closeQrOption = enableCloseQRstatus;
+      closeQrOrderStatus = true;
     }
+    if(branchObject.qr_order_status == '1'){
+      hasAccess = false;
+    }
+    setState(() {});
   }
 
   checkOrderDetail(int orderCacheLocalId, int index) async {
@@ -273,6 +375,7 @@ class _QrMainPageState extends State<QrMainPage> {
 
         orderDetailList[i].orderModifierDetail = modDetailData;
         if(data.isNotEmpty){
+          orderDetailList[i].branch_link_product_id = data[0].branch_link_product_id;
           switch(data[0].stock_type){
             case '1': {
               orderDetailList[i].available_stock = data[0].daily_limit!;
@@ -295,7 +398,6 @@ class _QrMainPageState extends State<QrMainPage> {
         text: "check order detail error",
         exception: e,
       );
-      print("check order detail error: ${e}");
     }
   }
 

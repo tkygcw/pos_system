@@ -13,7 +13,8 @@ import '../../translation/AppLocalizations.dart';
 
 class PromotionDialog extends StatefulWidget {
   final String cartFinalAmount;
-  const PromotionDialog({Key? key, required this.cartFinalAmount}) : super(key: key);
+  final String subtotal;
+  const PromotionDialog({Key? key, required this.cartFinalAmount, required this.subtotal}) : super(key: key);
 
   @override
   State<PromotionDialog> createState() => _PromotionDialogState();
@@ -66,9 +67,9 @@ class _PromotionDialogState extends State<PromotionDialog> {
                                     Icons.discount,
                                     color: Colors.grey,
                                   )),
-                              trailing: promotionList[index].type == 0 ? 
-                              Text('-${promotionList[index].amount}%'):
-                              Text('-${double.parse(promotionList[index].amount!).toStringAsFixed(2)}'),
+                              trailing: promotionList[index].type == 0 ? Text('-${promotionList[index].amount}%') :
+                                  promotionList[index].type == 1 ? Text('-${double.parse(promotionList[index].amount!).toStringAsFixed(2)}')
+                              : Text(''),
                               title: Text('${promotionList[index].name}'),
                               onTap: () async {
                                 // bool outstanding = checkOfferAmount(promotionList[index]);
@@ -146,12 +147,12 @@ class _PromotionDialogState extends State<PromotionDialog> {
   }
 
   checkOfferAmount(Promotion promotion){
-    String cartAmount = widget.cartFinalAmount;
+    String subtotal = widget.subtotal;
     bool hasOutStanding = false;
     if(promotion.type == 0){
       return hasOutStanding = false;
     } else {
-      double total = double.parse(cartAmount) - double.parse(promotion.amount!);
+      double total = double.parse(subtotal) - double.parse(promotion.amount!);
       if(total.isNegative){
         return hasOutStanding = true;
       } else {
@@ -185,8 +186,7 @@ class _PromotionDialogState extends State<PromotionDialog> {
                               child: TextField(
                                 autofocus: true,
                                 onSubmitted: (input) {
-                                  if(_textFieldController != '' && double.parse(_textFieldController.text).toStringAsFixed(2) != 0.00) {
-                                    String value = double.parse(_textFieldController.text.replaceAll(',', '')).toStringAsFixed(2);
+                                  if(_textFieldController.text != '' && double.parse(_textFieldController.text).toStringAsFixed(2) != 0.00) {
                                     setState(() {
                                       isButtonDisabled = true;
                                       willPop = false;
@@ -233,16 +233,17 @@ class _PromotionDialogState extends State<PromotionDialog> {
                         onPressed: isButtonDisabled
                             ? null
                             : () async {
-                          if(_textFieldController != '' && double.parse(_textFieldController.text).toStringAsFixed(2) != 0.00) {
-                            String value = double.parse(_textFieldController.text.replaceAll(',', '')).toStringAsFixed(2);
-                            print("cartFinalAmount: ${widget.cartFinalAmount}");
+                          if(_textFieldController.text != '' && double.parse(_textFieldController.text).toStringAsFixed(2) != 0.00) {
                             setState(() {
                               isButtonDisabled = true;
                               willPop = false;
                             });
-
-                            if(double.parse(value) > double.parse(widget.cartFinalAmount)) {
-                              Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('discount_invalid'));
+                            promotionList[index].amount = _textFieldController.text;
+                            bool outstanding = checkOfferAmount(promotionList[index]);
+                            if(outstanding){
+                              Fluttertoast.showToast(
+                                  backgroundColor: Color(0xFFFF0000),
+                                  msg: AppLocalizations.of(context)!.translate('outstanding_promotion'));
                               setState(() {
                                 isButtonDisabled = false;
                               });

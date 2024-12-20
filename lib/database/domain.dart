@@ -5,6 +5,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:pos_system/object/table.dart';
 
+import '../object/branch.dart';
+
 class Domain {
   static var domain = 'https://pos.lkmng.com/';
   static var backend_domain = 'https://pos.lkmng.com/';
@@ -50,19 +52,106 @@ class Domain {
   static Uri attendance = Uri.parse(domain + 'mobile-api/attendance/index.php');
   static Uri dynamic_qr = Uri.parse(domain + 'mobile-api/dynamic_qr/index.php');
   static Uri table_dynamic = Uri.parse(domain + 'mobile-api/table_dynamic/index.php');
+  static Uri order_payment_split = Uri.parse(domain + 'mobile-api/order_payment_split/index.php');
+  static Uri current_version = Uri.parse(domain + 'mobile-api/current_version/index.php');
+  static Uri cancel_receipt = Uri.parse(domain + 'mobile-api/cancel_receipt/index.php');
+  //for transfer data use only
+  static Uri import_firebase = Uri.parse(domain + 'mobile-api/import_firebase/index.php');
 
+
+  transferDatabaseData(String tb_name) async {
+    try {
+      var response = await http.post(Domain.import_firebase, body: {
+        'import_firebase': '1',
+        'tb_name': tb_name
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      FLog.error(
+        className: "domain",
+        text: "transfer db data failed",
+        exception: "$error",
+      );
+      Fluttertoast.showToast(msg: error.toString());
+      return {'status': '2'};
+    }
+  }
+
+/*
+  get cancel receipt layout
+*/
+  getCancelReceipt({required String branch_id}) async {
+    try{
+      var response = await http.post(Domain.cancel_receipt, body: {
+        'getAllCancelReceipt': '1',
+        'branch_id': branch_id,
+      });
+      return jsonDecode(response.body);
+    } catch(e){
+      FLog.error(
+        className: "domain",
+        text: "getCancelReceipt failed",
+        exception: "$e",
+      );
+    }
+  }
+
+  /**
+   * update branch close qr status
+   * */
+  updateBranchCloseQrOrder(Branch branch) async {
+    try {
+      var response = await http.post(Domain.branch, body: {
+        'updateBranchCloseQrOrder': '1',
+        'close_qr_order': branch.close_qr_order.toString(),
+        'branch_id': branch.branch_id!.toString(),
+      }).timeout(Duration(seconds: 5), onTimeout: ()=> throw TimeoutException("Timeout"));
+      return jsonDecode(response.body);
+    } catch (error) {
+      FLog.error(
+        className: "domain",
+        text: "updateBranchCloseQrOrder failed",
+        exception: "$error",
+      );
+      Fluttertoast.showToast(msg: error.toString());
+      return {'status': '2'};
+    }
+  }
+
+  /**
+   * soft_delete table dynamic qr (one-time qr)
+   * */
+  softDeleteTableDynamicQr(PosTable posTable) async {
+    try {
+      var response = await http.post(Domain.table_dynamic, body: {
+        'one_time_qr_soft_delete': '1',
+        'table_id': posTable.table_id.toString(),
+      }).timeout(Duration(seconds: 30), onTimeout: ()=> throw TimeoutException("Timeout"));
+      return jsonDecode(response.body);
+    } catch (error) {
+      FLog.error(
+        className: "domain",
+        text: "dynamic QR soft_delete failed",
+        exception: "$error",
+      );
+      Fluttertoast.showToast(msg: error.toString());
+      return {'status': '2'};
+    }
+  }
 
   /**
   * insert table dynamic qr
   * */
-  insertTableDynamicQr(PosTable posTable,) async {
+  insertTableDynamicQr(PosTable posTable) async {
     try {
       var response = await http.post(Domain.table_dynamic, body: {
+        'new_version': '1',
         'tb_dynamic_table_create': '1',
         'table_id': posTable.table_id.toString(),
         'branch_id': posTable.branch_id,
         'qr_url': posTable.dynamicQrHash,
-        'qr_expired_dateTime': posTable.dynamicQRExp
+        'qr_expired_dateTime': posTable.dynamicQRExp,
+        'invalid_after_payment': posTable.invalid_after_payment!.toString()
       }).timeout(Duration(seconds: 5), onTimeout: ()=> throw TimeoutException("Timeout"));
       return jsonDecode(response.body);
     } catch (error) {
@@ -120,8 +209,12 @@ class Domain {
         'platform': platform,
       });
       return jsonDecode(response.body);
-    } catch(e){
-      Fluttertoast.showToast(msg: e.toString());
+    } catch(e, s){
+      FLog.error(
+        className: "loading",
+        text: "dynamic qr insert failed",
+        exception: "Error: $e, StackTrace: $s",
+      );
     }
   }
 
@@ -222,6 +315,54 @@ class Domain {
   }
 
   /*
+  * get all attendance after date
+  * */
+  getAllAttendanceAfterDate(branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.attendance, body: {
+        'getAllAttendanceAfterDate': '1',
+        'branch_id': branch_id,
+        'date_from': date_from,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get all order payment split
+  * */
+  getAllOrderPaymentSplit(branch_id) async {
+    try {
+      var response = await http.post(Domain.order_payment_split, body: {
+        'getAllOrderPaymentSplit': '1',
+        'branch_id': branch_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+      print("getAllOrderPaymentSplit error: ${error}");
+    }
+  }
+
+  /*
+  * get all order payment split after date
+  * */
+  getAllOrderPaymentSplitAfterDate(branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.order_payment_split, body: {
+        'getAllOrderPaymentSplitAfterDate': '1',
+        'branch_id': branch_id,
+        'date_from': date_from,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get all table_use
   * */
   getAllTableUse(branch_id) async {
@@ -229,6 +370,22 @@ class Domain {
       var response = await http.post(Domain.table_use, body: {
         'getAllTableUse': '1',
         'branch_id': branch_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get all table_use after date
+  * */
+  getAllTableUseAfterDate(branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.table_use, body: {
+        'getAllTableUseAfterDate': '1',
+        'branch_id': branch_id,
+        'date_from': date_from,
       });
       return jsonDecode(response.body);
     } catch (error) {
@@ -316,6 +473,22 @@ class Domain {
   }
 
   /*
+  * get all table_use detail after date
+  * */
+  getAllTableUseDetailAfterDate(branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.table_use, body: {
+        'getAllTableUseDetailAfterDate': '1',
+        'branch_id': branch_id,
+        'date_from': date_from
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get transfer owner
   * */
   getTransferOwner(branch_id) async {
@@ -323,6 +496,22 @@ class Domain {
       var response = await http.post(Domain.transfer_owner, body: {
         'getTransferOwner': '1',
         'branch_id': branch_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get transfer owner after date
+  * */
+  getTransferOwnerAfterDate(branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.transfer_owner, body: {
+        'getTransferOwnerAfterDate': '1',
+        'branch_id': branch_id,
+        'date_from': date_from,
       });
       return jsonDecode(response.body);
     } catch (error) {
@@ -447,7 +636,10 @@ class Domain {
         checklist_value,
         kitchen_list_value,
         attendance_value,
-        dynamic_qr_value
+        order_payment_split_value,
+        dynamic_qr_value,
+        cancel_receipt_value,
+        product_value,
       }) async {
     try {
       //print('order cache value 15 sync: ${order_cache_value}');
@@ -482,7 +674,10 @@ class Domain {
         'tb_checklist_create': checklist_value != null ? checklist_value : [].toString(),
         'tb_kitchen_list_create': kitchen_list_value != null ? kitchen_list_value : [].toString(),
         'tb_attendance_create': attendance_value != null ? attendance_value : [].toString(),
-        'tb_dynamic_qr_create': dynamic_qr_value != null ? dynamic_qr_value : [].toString()
+        'tb_order_payment_split_create': order_payment_split_value != null ? order_payment_split_value : [].toString(),
+        'tb_dynamic_qr_create': dynamic_qr_value != null ? dynamic_qr_value : [].toString(),
+        'tb_cancel_receipt_create': cancel_receipt_value != null ? cancel_receipt_value : [].toString(),
+        'tb_product_create': product_value != null ? product_value : [].toString(),
       }).timeout(Duration(seconds: isManualSync != null ? 120 : isSync != null ? 25 : 15), onTimeout: () => throw TimeoutException("Time out"));
       print('response in domain: ${jsonDecode(response.body)}');
       return jsonDecode(response.body);
@@ -892,6 +1087,22 @@ class Domain {
       var response = await http.post(Domain.sync_to_cloud, body: {
         'tb_branch_link_product_update': '1',
         'details': detail,
+      });
+
+      return jsonDecode(response.body);
+    } catch (error) {
+      print('domain error: ${error}');
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync product to cloud
+  * */
+  SyncProductToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_product_create': detail,
       });
 
       return jsonDecode(response.body);
@@ -1369,6 +1580,19 @@ class Domain {
   }
 
   /*
+  * get refund after date
+  * */
+  getAllRefundAfterDate(company_id, branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.refund,
+          body: {'getAllRefundAfterDate': '1', 'company_id': company_id, 'branch_id': branch_id, 'date_from': date_from});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get modifier group name
   * */
   getModifierGroup(company_id) async {
@@ -1833,6 +2057,19 @@ class Domain {
   }
 
   /*
+  * get all order after
+  * */
+  getAllOrderAfterDate(company_id, branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.order,
+          body: {'getAllOrderAfterDate': '1', 'company_id': company_id, 'branch_id': branch_id, 'date_from': date_from});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get all order promotion detail
   * */
   getAllOrderPromotionDetail(company_id, branch_id) async {
@@ -1859,12 +2096,38 @@ class Domain {
   }
 
   /*
+  * get all order tax detail after date
+  * */
+  getAllOrderTaxDetailAfterDate(company_id, branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.order,
+          body: {'getAllOrderTaxDetailAfterDate': '1', 'company_id': company_id, 'branch_id': branch_id, 'date_from': date_from});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get all order cache
   * */
   getAllOrderCache(company_id, branch_id) async {
     try {
       var response = await http.post(Domain.order,
           body: {'getAllOrderCache': '1', 'company_id': company_id, 'branch_id': branch_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get all order cache after date
+  * */
+  getAllOrderCacheAfterDate(company_id, branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.order,
+          body: {'getAllOrderCacheAfterDate': '1', 'company_id': company_id, 'branch_id': branch_id, 'date_from': date_from});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -2074,6 +2337,19 @@ class Domain {
   }
 
   /*
+  * get settlement after date
+  * */
+  getSettlementAfterDate(company_id, branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.settlement,
+          body: {'getSettlementAfterDate': '1', 'company_id': company_id, 'branch_id': branch_id, 'date_from': date_from});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get settlement link payment
   * */
   getSettlementLinkPayment(company_id, branch_id) async {
@@ -2087,12 +2363,51 @@ class Domain {
   }
 
   /*
+  * get settlement link payment after date
+  * */
+  getSettlementLinkPaymentAfterDate(company_id, branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.settlement,
+          body: {'getAllSettlementLinkPaymentAfterDate': '1', 'company_id': company_id, 'branch_id': branch_id, 'date_from': date_from});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get cash record
   * */
   getCashRecord(company_id, branch_id) async {
     try {
       var response = await http.post(Domain.cash_record,
           body: {'getAllCashRecord': '1', 'company_id': company_id, 'branch_id': branch_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get cash record after date
+  * */
+  getCashRecordAfterDate(company_id, branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.cash_record,
+          body: {'getCashRecordAfterDate': '1', 'company_id': company_id, 'branch_id': branch_id, 'date_from': date_from});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get cash record opening balance after date
+  * */
+  getCashRecordOBAfterDate(company_id, branch_id, date_from) async {
+    try {
+      var response = await http.post(Domain.cash_record,
+          body: {'getCashRecordOBAfterDate': '1', 'company_id': company_id, 'branch_id': branch_id, 'date_from': date_from});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -2227,9 +2542,28 @@ class Domain {
     }
   }
 
+  /*
+  * insert current version
+  * */
+  insertCurrentVersionDay(data) async {
+    try {
+      var response = await http.post(Domain.current_version, body: {
+        'data': data,
+      });
+      print(jsonDecode(response.body));
+      return jsonDecode(response.body);
+    } catch (error, s) {
+      FLog.error(
+        className: "loading",
+        text: "dynamic qr insert failed",
+        exception: "Error: $error, StackTrace: $s",
+      );
+    }
+  }
+
   isHostReachable() async {
     try {
-      await http.post(Domain.login).timeout(Duration(seconds: 2), onTimeout: () => throw TimeoutException("Timeout"));
+      await http.post(Domain.login).timeout(Duration(seconds: 20), onTimeout: () => throw TimeoutException("Timeout"));
       return true;
     } catch (e) {
       print('host check error: $e');

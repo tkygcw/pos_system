@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/fragment/setting/adjust_hour_dialog.dart';
 import 'package:pos_system/fragment/setting/kitchenlist_dialog.dart';
 import 'package:pos_system/fragment/setting/receipt_dialog.dart';
 import 'package:pos_system/object/table.dart';
@@ -38,7 +39,8 @@ class _OrderSettingState extends State<OrderSetting> {
   // List<AppSetting> appSettingList = [];
   Receipt? receiptObject;
   bool printCheckList = false, enableNumbering = false, printReceipt = false, hasQrAccess = true, printCancelReceipt = true,
-      directPayment = false, qrOrderAutoAccept = false, cashDrawer = false, secondDisplay = false;
+      directPayment = false, qrOrderAutoAccept = false, cashDrawer = false, secondDisplay = false, invalidAfterPayment = true,
+      settlementAfterAllOrderPaid = false, hideDiningMethodTableNo = false, requiredReason = false, qrOrderAlert = false;
   int startingNumber = 0, compareStartingNumber = 0;
   final List<String> tableModeOption = [
     'table_mode_no_table',
@@ -75,8 +77,28 @@ class _OrderSettingState extends State<OrderSetting> {
           controller.refresh(streamController);
         }
         break;
+        case 'qr_order_alert':{
+          await updateQrOrderAlertSetting();
+          controller.refresh(streamController);
+        }
+        break;
         case 'qr_order_auto_accept':{
           await updateQrOrderAutoAcceptAppSetting();
+          controller.refresh(streamController);
+        }
+        break;
+        case 'invalid_after_payment':{
+          await updateDynamicQrInvalidAfterPaymentAppSetting();
+          controller.refresh(streamController);
+        }
+        break;
+        case 'settlement_after_all_order_paid':{
+          await updateSettlementAfterAllOrderPaidAppSetting();
+          controller.refresh(streamController);
+        }
+        break;
+        case 'required_reason':{
+          await updateRequiredReasonSetting();
           controller.refresh(streamController);
         }
         break;
@@ -151,6 +173,24 @@ class _OrderSettingState extends State<OrderSetting> {
       } else {
         this.qrOrderAutoAccept = false;
       }
+
+      if(appSetting.dynamic_qr_invalid_after_payment == 0){
+        invalidAfterPayment = false;
+      }
+
+      if(appSetting.settlement_after_all_order_paid == 1){
+        this.settlementAfterAllOrderPaid = true;
+      } else {
+        this.settlementAfterAllOrderPaid = false;
+      }
+
+      if(appSetting.required_cancel_reason == 1) {
+        requiredReason = true;
+      }
+
+      if(appSetting.qr_order_alert == 1) {
+        qrOrderAlert = true;
+      }
     }
   }
 
@@ -210,7 +250,7 @@ class _OrderSettingState extends State<OrderSetting> {
                             child: TextField(
                                 autofocus: true,
                                 controller: orderNumberController,
-                                keyboardType: TextInputType.number,
+                                keyboardType: TextInputType.numberWithOptions(decimal: true),
                                 inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
                                 textAlign: TextAlign.center,
                                 decoration: InputDecoration(
@@ -316,6 +356,20 @@ class _OrderSettingState extends State<OrderSetting> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<AppSettingModel>(builder: (context, AppSettingModel appSettingModel, child) {
         return Scaffold(
+            appBar:  MediaQuery.of(context).size.width < 800 && MediaQuery.of(context).orientation == Orientation.portrait ? AppBar(
+              elevation: 1,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back_ios, color: color.buttonColor),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              backgroundColor: Colors.white,
+              title: Text(AppLocalizations.of(context)!.translate('order_setting'),
+                  style: TextStyle(fontSize: 20, color: color.backgroundColor)),
+              centerTitle: false,
+            )
+                : null,
             body: StreamBuilder(
                 stream: controller.hardwareSettingStream,
                 builder: (context, snapshot){
@@ -327,7 +381,7 @@ class _OrderSettingState extends State<OrderSetting> {
                             title: Text(AppLocalizations.of(context)!.translate('table_mode')),
                             subtitle: Text(AppLocalizations.of(context)!.translate('table_mode_desc')),
                             trailing: SizedBox(
-                              width: 200,
+                              width: MediaQuery.of(context).orientation == Orientation.landscape ? 200 : 150,
                               child: DropdownButtonHideUnderline(
                                 child: DropdownButton2(
                                   isExpanded: true,
@@ -371,10 +425,12 @@ class _OrderSettingState extends State<OrderSetting> {
                                         if (await anyTableUse()) {
                                           Fluttertoast.showToast(
                                               msg: AppLocalizations.of(context)!.translate('please_settle_the_bill_for_all_tables'));
-                                        } else if (appSettingModel.enable_numbering == false) {
-                                          Fluttertoast.showToast(
-                                              msg: AppLocalizations.of(context)!.translate('please_enable_order_number'));
-                                        } else if (appSettingModel.directPaymentStatus == false) {
+                                        }
+                                        // else if (appSettingModel.enable_numbering == false) {
+                                        //   Fluttertoast.showToast(
+                                        //       msg: AppLocalizations.of(context)!.translate('please_enable_order_number'));
+                                        // }
+                                        else if (appSettingModel.directPaymentStatus == false) {
                                           Fluttertoast.showToast(
                                               msg: AppLocalizations.of(context)!.translate('please_enable_direct_payment'));
                                         } else {
@@ -458,19 +514,9 @@ class _OrderSettingState extends State<OrderSetting> {
                               value: enableNumbering,
                               activeColor: color.backgroundColor,
                               onChanged: (value) async {
-                                if(!value) {
-                                  if(appSettingModel.table_order != 1) {
-                                    Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_enable_table_order_in_general_setting'));
-                                  } else {
-                                    enableNumbering = value;
-                                    appSettingModel.setOrderNumberingStatus(enableNumbering);
-                                    actionController.sink.add("switch");
-                                  }
-                                } else {
-                                  enableNumbering = value;
-                                  appSettingModel.setOrderNumberingStatus(enableNumbering);
-                                  actionController.sink.add("switch");
-                                }
+                                enableNumbering = value;
+                                appSettingModel.setOrderNumberingStatus(enableNumbering);
+                                actionController.sink.add("switch");
                               },
                             ),
                           ),
@@ -500,6 +546,19 @@ class _OrderSettingState extends State<OrderSetting> {
                             endIndent: 20,
                           ),
                           ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('qr_order_alert')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('qr_order_alert_desc')),
+                            trailing: Switch(
+                              value: qrOrderAlert,
+                              activeColor: color.backgroundColor,
+                              onChanged: (value) {
+                                qrOrderAlert = value;
+                                appSettingModel.setQrOrderAlertStatus(qrOrderAlert);
+                                actionController.sink.add("qr_order_alert");
+                              },
+                            ),
+                          ),
+                          ListTile(
                             title: Text(AppLocalizations.of(context)!.translate('auto_accept_qr_order')),
                             subtitle: Text(AppLocalizations.of(context)!.translate('auto_accept_qr_order_desc')),
                             trailing: Switch(
@@ -512,6 +571,74 @@ class _OrderSettingState extends State<OrderSetting> {
                               },
                             ),
                           ),
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate("qr_code_one_time")),
+                            subtitle: Text(AppLocalizations.of(context)!.translate("qr_code_one_time_desc")),
+                            trailing: Switch(
+                              value: invalidAfterPayment,
+                              activeColor: color.backgroundColor,
+                              onChanged: (value) {
+                                invalidAfterPayment = value;
+                                appSettingModel.setDynamicQrInvalidAfterPayment(invalidAfterPayment);
+                                actionController.sink.add("invalid_after_payment");
+                              },
+                            ),
+                          ),
+                          ListTile(
+                              title: Text(AppLocalizations.of(context)!.translate('set_default_exp_after_hour'), style: TextStyle(color: !hasQrAccess ? Colors.grey: null)),
+                              subtitle: Text(AppLocalizations.of(context)!.translate('set_default_exp_after_hour_desc')),
+                              trailing: Text('${appSettingModel.dynamic_qr_default_exp_after_hour} ${AppLocalizations.of(context)!.translate('hours')}',
+                                  style: TextStyle(color: !hasQrAccess ? Colors.grey : null, fontWeight: FontWeight.w500)),
+                              onTap: hasQrAccess ? (){
+                                openAdjustHourDialog(appSettingModel);
+                              } : null
+                          ),
+                          Divider(
+                            color: Colors.grey,
+                            height: 1,
+                            thickness: 1,
+                            indent: 20,
+                            endIndent: 20,
+                          ),
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('hide_dining_method_table_no')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('hide_dining_method_table_no')),
+                            trailing: Switch(
+                              value: hideDiningMethodTableNo,
+                              activeColor: color.backgroundColor,
+                              onChanged: (value) {
+                                hideDiningMethodTableNo = value;
+                                appSettingModel.setSettlementAfterAllOrderPaidStatus(hideDiningMethodTableNo);
+                                actionController.sink.add("hide_dining_method_table_no");
+                              },
+                            ),
+                          ),
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('cancel_require_reason')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('cancel_require_reason_desc')),
+                            trailing: Switch(
+                                value: requiredReason,
+                                activeColor: color.backgroundColor,
+                                onChanged: (value) {
+                                  requiredReason = value;
+                                  appSettingModel.setRequiredCancelReasonStatus(requiredReason);
+                                  actionController.sink.add("required_reason");
+                                }
+                            ),
+                          ),
+                          // ListTile(
+                          //   title: Text(AppLocalizations.of(context)!.translate('settlement_after_all_order_paid')),
+                          //   subtitle: Text(AppLocalizations.of(context)!.translate('settlement_after_all_order_paid_desc')),
+                          //   trailing: Switch(
+                          //     value: settlementAfterAllOrderPaid,
+                          //     activeColor: color.backgroundColor,
+                          //     onChanged: (value) {
+                          //       settlementAfterAllOrderPaid = value;
+                          //       appSettingModel.setSettlementAfterAllOrderPaidStatus(settlementAfterAllOrderPaid);
+                          //       actionController.sink.add("settlement_after_all_order_paid");
+                          //     },
+                          //   ),
+                          // ),
                         ],
                       ),
                     );
@@ -524,6 +651,28 @@ class _OrderSettingState extends State<OrderSetting> {
         );
       });
     });
+  }
+
+  Future<Future<Object?>> openAdjustHourDialog(AppSettingModel appSettingModel) async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+                opacity: a1.value,
+                child: AdjustHourDialog(exp_hour: appSettingModel.dynamic_qr_default_exp_after_hour!)
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   updateAppSetting() async {
@@ -577,6 +726,50 @@ class _OrderSettingState extends State<OrderSetting> {
         updated_at: dateTime
     );
     await PosDatabase.instance.updateQrOrderAutoAcceptSetting(object);
+  }
+
+  updateQrOrderAlertSetting() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    AppSetting object = AppSetting(
+        qr_order_alert: this.qrOrderAlert == true ? 1 : 0,
+        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
+        updated_at: dateTime
+    );
+    await PosDatabase.instance.updateQrOrderAlertSetting(object);
+  }
+
+  updateDynamicQrInvalidAfterPaymentAppSetting() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    AppSetting object = AppSetting(
+        dynamic_qr_invalid_after_payment: invalidAfterPayment == true ? 1 : 0,
+        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
+        updated_at: dateTime
+    );
+    await PosDatabase.instance.updateDynamicQrInvalidAfterPaymentSetting(object);
+  }
+
+  updateSettlementAfterAllOrderPaidAppSetting() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    AppSetting object = AppSetting(
+        settlement_after_all_order_paid: this.settlementAfterAllOrderPaid == true ? 1 : 0,
+        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
+        updated_at: dateTime
+    );
+    await PosDatabase.instance.updateSettlementAfterAllOrderPaidSetting(object);
+  }
+
+  updateRequiredReasonSetting() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    AppSetting object = AppSetting(
+        required_cancel_reason: requiredReason == true ? 1 : 0,
+        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
+        updated_at: dateTime
+    );
+    int data = await PosDatabase.instance.updateRequiredCancelReasonSettings(object);
   }
 
   Future<bool> anyTableUse() async {

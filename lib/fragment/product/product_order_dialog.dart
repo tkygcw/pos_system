@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +12,6 @@ import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/product.dart';
-import 'package:pos_system/object/product_variant.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/object/variant_item.dart';
 import 'package:pos_system/page/progress_bar.dart';
@@ -26,6 +24,7 @@ import '../../notifier/cart_notifier.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/modifier_group.dart';
 import '../../object/modifier_item.dart';
+import '../../object/product_variant_detail.dart';
 import '../../translation/AppLocalizations.dart';
 import '../cart/cart_dialog.dart';
 
@@ -46,7 +45,8 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   late StreamSubscription actionSubscription;
   late CartModel cart;
   Categories? categories;
-  String branchLinkProduct_id = '';
+  String branchLinkProductLocalId = '';
+  int? branchLinKProductId;
   String basePrice = '', finalPrice = '';
   String productStock = '';
   String dialogPrice = '', dialogStock = '';
@@ -69,6 +69,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   bool hasPromo = false;
   bool hasStock = false;
   bool isButtonDisabled = false;
+  bool isAddButtonDisabled = false;
 
   String? initProductName;
 
@@ -99,16 +100,12 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     for(final group in modifierGroup){
       checkedModItem.addAll(group.modifierChild!.where((child) => child.isChecked == true).toList());
     }
-    print("check mod item length: ${checkedModItem.length}");
   }
 
   productChecking() async {
-    print("product allow ticket: ${widget.productDetail?.allow_ticket}");
-    print("product ticket count: ${widget.productDetail?.ticket_count}");
-    print("product ticket exp: ${widget.productDetail?.ticket_exp}");
     await readProductVariant(widget.productDetail!.product_sqlite_id!);
     await readProductModifier(widget.productDetail!.product_sqlite_id!);
-    await getProductPrice(widget.productDetail!.product_sqlite_id);
+    await getProductPrice();
     await getProductDialogStock(widget.productDetail!);
     categories = await PosDatabase.instance.readSpecificCategoryById(widget.productDetail!.category_sqlite_id!);
     getInitCheckedModItem();
@@ -119,7 +116,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     actionSubscription = actionStream.listen((action) async {
       switch(action){
         case 'add-on':{
-          await getProductPrice(widget.productDetail!.product_sqlite_id);
+          await getProductPrice();
           await getProductDialogStock(widget.productDetail!);
           streamController.productOrderDialogController.sink.add('refresh');
         }break;
@@ -148,10 +145,51 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   }
 
   Widget modifierGroupLayout(ModifierGroup modifierGroup, CartModel cart) {
+    bool minSelectText = false;
+    int checkedModifiersCount = 0;
+    int maxSelect = modifierGroup.max_select ?? 0;
+    int minSelect = modifierGroup.min_select ?? 0;
+    for(int i = 0; i < modifierGroup.modifierChild!.length; i++){
+      if(modifierGroup.modifierChild![i].isChecked!){
+        checkedModifiersCount++;
+      }
+    }
+
+    if(minSelect != 0 && checkedModifiersCount < minSelect) {
+      minSelectText = true;
+      isAddButtonDisabled = true;
+    } else {
+      minSelectText = false;
+    }
+
+    String getModifierMinMaxHint() {
+      if (minSelectText) {
+        return ' (${AppLocalizations.of(context)!.translate('choose_at_least')} $minSelect${AppLocalizations.of(context)!.translate('ge')})';
+      } else if (maxSelect != 0) {
+        return ' (${AppLocalizations.of(context)!.translate('choose_maximum')} $maxSelect${AppLocalizations.of(context)!.translate('ge')})';
+      } else {
+        return '';
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(modifierGroup.name!, style: TextStyle(fontWeight: FontWeight.bold)),
+        Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: modifierGroup.name!,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              if (maxSelect != 0 || minSelectText)
+                TextSpan(
+                  text: getModifierMinMaxHint(),
+                  style: TextStyle(color: minSelectText ? Colors.red : Colors.black, fontSize: 14),
+                ),
+            ],
+          ),
+        ),
         for (int i = 0; i < modifierGroup.modifierChild!.length; i++)
           CheckboxListTile(
             title: Row(
@@ -167,10 +205,24 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
             onChanged: modifierGroup.modifierChild![i].mod_status! == '2'
                 ? null
                 : (isChecked) {
+              if (isChecked! && maxSelect != 0 && checkedModifiersCount >= maxSelect) {
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: '${modifierGroup.name} ${AppLocalizations.of(context)!.translate('choose_maximum')} $maxSelect ${AppLocalizations.of(context)!.translate('ge')}'
+                );
+                return;
+              }
               setState(() {
-                modifierGroup.modifierChild![i].isChecked = isChecked!;
+                checkedModifiersCount++;
+                modifierGroup.modifierChild![i].isChecked = isChecked;
                 addCheckedModItem(modifierGroup.modifierChild![i]);
                 actionController.sink.add("add-on");
+
+                if(minSelect != 0 && checkedModifiersCount < minSelect) {
+                  isAddButtonDisabled = true;
+                } else {
+                  isAddButtonDisabled = false;
+                }
               });
             },
             controlAffinity: ListTileControlAffinity.trailing,
@@ -338,7 +390,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                   child: TextField(
                                                     autofocus: true,
                                                     controller: priceController,
-                                                    keyboardType: TextInputType.number,
+                                                    keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                     inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                     textAlign: TextAlign.center,
                                                     decoration: InputDecoration(
@@ -350,11 +402,11 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                       hintText: "${Utils.convertTo2Dec(dialogPrice)}",
                                                     ),
                                                     onChanged: (value) async {
-                                                      await getProductPrice(widget.productDetail!.product_sqlite_id);
+                                                      await getProductPrice();
                                                       setState(() {});
                                                     },
                                                     onSubmitted: (value) async {
-                                                      await getProductPrice(widget.productDetail!.product_sqlite_id);
+                                                      await getProductPrice();
                                                       setState(() {});
                                                     },
                                                   ),
@@ -424,7 +476,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                 child: TextField(
                                                   autofocus: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? true : false,
                                                   controller: quantityController,
-                                                  keyboardType: TextInputType.number,
+                                                  keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                   inputFormatters: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))]
                                                       : <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
                                                   textAlign: TextAlign.center,
@@ -454,21 +506,18 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                   onPressed: () {
                                                     // stock disable or in stock
                                                     if(dialogStock == '' || simpleIntInput+1 < int.parse(dialogStock)) {
-                                                      print('stock_quantity: '+dialogStock);
                                                       setState(() {
                                                         simpleIntInput += 1;
                                                         quantityController.text = simpleIntInput.toString();
                                                         simpleIntInput =  int.parse(quantityController.text.replaceAll(',', ''));
                                                       });
                                                     } else{
-                                                      print('stock_quantity: '+dialogStock);
                                                       setState(() {
                                                         simpleIntInput = int.parse(dialogStock);
                                                         quantityController.text = simpleIntInput.toString();
                                                         simpleIntInput = int.parse(quantityController.text.replaceAll(',', ''));
                                                       });
                                                       if(dialogStock == '0'){
-                                                        print('stock_quantity: '+dialogStock);
                                                         Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
                                                       }
                                                     }
@@ -545,7 +594,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                     AppLocalizations.of(context)!.translate('add'),
                                     style: TextStyle(color: Colors.white),
                                   ),
-                                  onPressed: isButtonDisabled
+                                  onPressed: isButtonDisabled || isAddButtonDisabled
                                       ? null
                                       : () async {
                                     if(widget.productDetail!.name!.isNotEmpty && widget.productDetail!.name!.trim().isNotEmpty) {
@@ -560,6 +609,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                 setState(() {
                                                   isButtonDisabled = true;
                                                 });
+                                                checkModifierMinSelect(modifierGroup);
                                                 await addToCart(cart);
                                                 Navigator.of(context).pop();
                                               } else {
@@ -611,65 +661,203 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                 builder: (context, snapshot){
                   if(snapshot.hasData){
                     return Center(
-                      child: SingleChildScrollView(
-                        child: AlertDialog(
-                          title: Row(
-                            children: [
-                              Container(
-                                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width / 2),
-                                child: Text(widget.productDetail!.name!,
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    )),
-                              ),
-                              Spacer(),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ?
-                                  Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
+                      child: GestureDetector(
+                        onTap: () {
+                          FocusScope.of(context).unfocus();
+                        },
+                        child: SingleChildScrollView(
+                          child: AlertDialog(
+                            title: Row(
+                              children: [
+                                Container(
+                                  constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width / 2),
+                                  child: Text(widget.productDetail!.name!,
                                       style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      )) :
-                                  Text("RM ${Utils.convertTo2Dec(dialogPrice)} / each",
-                                      style: TextStyle(
-                                        fontSize: 16,
+                                        fontSize: 20,
                                         fontWeight: FontWeight.bold,
                                       )),
-                                  Visibility(
-                                    visible: dialogStock != '' ? true : false,
-                                    child: Text("${AppLocalizations.of(context)!.translate('in_stock')}: ${dialogStock}${widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? widget.productDetail!.unit : ''}",
+                                ),
+                                Spacer(),
+                                MediaQuery.of(context).orientation == Orientation.landscape ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ?
+                                    Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
                                         style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: dialogStock == '0' ? Colors.red : Colors.black
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        )) :
+                                    Text("RM ${Utils.convertTo2Dec(dialogPrice)} / each",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
                                         )),
-                                  )
-
-                                ],
-                              )
-                            ],
-                          ),
-                          content: Container(
-                            height: MediaQuery.of(context).size.height /2.5, // Change as per your requirement
-                            width: MediaQuery.of(context).size.width / 1.5,
-                            child: SingleChildScrollView(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Visibility(
-                                    visible: appSettingModel.show_product_desc!,
-                                    child: Padding(
-                                      padding: EdgeInsets.only(bottom: 15.0),
-                                      child: Text(widget.productDetail!.description!),
+                                    Visibility(
+                                      visible: dialogStock != '' ? true : false,
+                                      child: Text("${AppLocalizations.of(context)!.translate('in_stock')}: ${dialogStock}${widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? widget.productDetail!.unit : ''}",
+                                          style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: dialogStock == '0' ? Colors.red : Colors.black
+                                          )),
+                                    )
+                        
+                                  ],
+                                ) : Container()
+                              ],
+                            ),
+                            content: Container(
+                              height: MediaQuery.of(context).size.height /2.5,
+                              width: MediaQuery.of(context).size.width / 1.5,
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    MediaQuery.of(context).orientation == Orientation.landscape ? Container() : Padding(
+                                      padding: const EdgeInsets.only(bottom: 20),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ?
+                                          Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              )) :
+                                          Text("RM ${Utils.convertTo2Dec(dialogPrice)} / each",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              )),
+                                          Visibility(
+                                            visible: dialogStock != '' ? true : false,
+                                            child: Text("${AppLocalizations.of(context)!.translate('in_stock')}: $dialogStock${widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? widget.productDetail!.unit : ''}",
+                                                style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: dialogStock == '0' ? Colors.red : Colors.black
+                                                )),
+                                          )
+                        
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  Visibility(
-                                    visible: widget.productDetail!.unit == 'each_c' ? true : false,
-                                    child: Column(
+                                    Visibility(
+                                      visible: appSettingModel.show_product_desc!,
+                                      child: Padding(
+                                        padding: EdgeInsets.only(bottom: 15.0),
+                                        child: Text(widget.productDetail!.description!),
+                                      ),
+                                    ),
+                                    Visibility(
+                                      visible: widget.productDetail!.unit == 'each_c' ? true : false,
+                                      child: Column(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  "${AppLocalizations.of(context)!.translate('product_name')}",
+                                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Expanded(
+                                                  child: TextField(
+                                                    autofocus: false,
+                                                    controller: nameController,
+                                                    keyboardType: TextInputType.text,
+                                                    textAlign: TextAlign.center,
+                                                    decoration: InputDecoration(
+                                                      errorText: getProductNameErrorText(nameController.text),
+                                                      focusedBorder: OutlineInputBorder(
+                                                        borderSide: BorderSide(color: color.backgroundColor),
+                                                      ),
+                                                    ),
+                                                    onChanged: (value) => setState(() {
+                                                      try{
+                                                        widget.productDetail!.name = value;
+                                                      }catch (e){
+                                                        widget.productDetail!.name = "Custom";
+                                                      }
+                                                    }),
+                                                    onSubmitted: (value) {
+                                                      if(widget.productDetail!.name!.isNotEmpty && widget.productDetail!.name!.trim().isNotEmpty) {
+                                                        setState(() {
+                                                          widget.productDetail!.name = value;
+                                                        });
+                                                      } else {
+                                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_name_empty'));
+                                                      }
+                                                    },
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  "${AppLocalizations.of(context)!.translate('price')}",
+                                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Expanded(
+                                                  child: TextField(
+                                                    autofocus: true,
+                                                    controller: priceController,
+                                                    keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                                    inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
+                                                    textAlign: TextAlign.center,
+                                                    decoration: InputDecoration(
+                                                      errorText: getPriceErrorText(priceController.text),
+                                                      prefixText: 'RM ',
+                                                      focusedBorder: OutlineInputBorder(
+                                                        borderSide: BorderSide(color: color.backgroundColor),
+                                                      ),
+                                                      hintText: "${Utils.convertTo2Dec(dialogPrice)}",
+                                                    ),
+                                                    onChanged: (value) async {
+                                                      await getProductPrice();
+                                                      setState(() {});
+                                                    },
+                                                    onSubmitted: (value) async {
+                                                      await getProductPrice();
+                                                      setState(() {});
+                                                    },
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    for (int i = 0; i < variantGroup.length; i++)
+                                      variantGroupLayout(variantGroup[i]),
+                                    for (int j = 0; j < modifierGroup.length; j++)
+                                      Visibility(
+                                        visible: modifierGroup[j].modifierChild!.isNotEmpty && modifierGroup[j].dining_id == "" || modifierGroup[j].dining_id == cart.selectedOptionId ? true : false,
+                                        child: modifierGroupLayout(modifierGroup[j], cart),
+                                      ),
+                                    Column(
                                       children: [
                                         Padding(
                                           padding: const EdgeInsets.all(8.0),
@@ -677,316 +865,226 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                             mainAxisAlignment: MainAxisAlignment.start,
                                             children: [
                                               Text(
-                                                "${AppLocalizations.of(context)!.translate('product_name')}",
+                                                AppLocalizations.of(context)!.translate('quantity'),
                                                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                               ),
                                             ],
                                           ),
                                         ),
-                                        Container(
+                                        // quantity input
+                                        SizedBox(
                                           width: 400,
                                           child: Row(
                                             mainAxisAlignment: MainAxisAlignment.center,
                                             children: [
-                                              Container(
-                                                width: 273,
-                                                child: TextField(
-                                                  autofocus: false,
-                                                  controller: nameController,
-                                                  keyboardType: TextInputType.text,
-                                                  textAlign: TextAlign.center,
-                                                  decoration: InputDecoration(
-                                                    errorText: getProductNameErrorText(nameController.text),
-                                                    focusedBorder: OutlineInputBorder(
-                                                      borderSide: BorderSide(color: color.backgroundColor),
-                                                    ),
+                                              // quantity input remove button
+                                              Expanded(
+                                                flex: 1,
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    color: color.backgroundColor,
+                                                    borderRadius: BorderRadius.circular(10),
                                                   ),
-                                                  onChanged: (value) => setState(() {
-                                                    try{
-                                                      widget.productDetail!.name = value;
-                                                    }catch (e){
-                                                      widget.productDetail!.name = "Custom";
-                                                    }
-                                                  }),
-                                                  onSubmitted: (value) {
-                                                    if(widget.productDetail!.name!.isNotEmpty && widget.productDetail!.name!.trim().isNotEmpty) {
-                                                      setState(() {
-                                                        widget.productDetail!.name = value;
-                                                      });
-                                                    } else {
-                                                      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_name_empty'));
-                                                    }
-                                                  },
+                                                  child: IconButton(
+                                                    icon: Icon(Icons.remove, color: Colors.white), // Set the icon color to white.
+                                                    onPressed: () {
+                                                      if(simpleIntInput >= 1){
+                                                        setState(() {
+                                                          simpleIntInput -= 1;
+                                                          quantityController.text = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
+                                                          simpleIntInput = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
+                                                        });
+                                                      } else{
+                                                        setState(() {
+                                                          simpleIntInput = 0;
+                                                          quantityController.text =  widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
+                                                          simpleIntInput = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
+                                                        });
+                                                      }
+                                                    },
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(width: 10),
+                                              // quantity input text field
+                                              Expanded(
+                                                flex: 4,
+                                                child: SizedBox(
+                                                  width: MediaQuery.of(context).orientation == Orientation.landscape ? 273 : constraints.maxWidth / 3,
+                                                  child: TextField(
+                                                    autofocus: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? true : false,
+                                                    controller: quantityController,
+                                                    keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                                    inputFormatters: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))]
+                                                        : <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+                                                    textAlign: TextAlign.center,
+                                                    decoration: InputDecoration(
+                                                      focusedBorder: OutlineInputBorder(
+                                                        borderSide: BorderSide(color: color.backgroundColor),
+                                                      ),
+                                                    ),
+                                                    onChanged: (value) {
+                                                      if(value != ''){
+                                                        setState(() => simpleIntInput = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? double.parse(value.replaceAll(',', '')): int.parse(value.replaceAll(',', '')));
+                                                      } else {
+                                                        simpleIntInput = 0;
+                                                      }
+                                                    },
+                                                    onSubmitted: _onSubmitted,
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(width: 10),
+                                              // quantity input add button
+                                              Expanded(
+                                                flex: 1,
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    color: color.backgroundColor,
+                                                    borderRadius: BorderRadius.circular(10),
+                                                  ),
+                                                  child: IconButton(
+                                                    icon: Icon(Icons.add, color: Colors.white),
+                                                    onPressed: () {
+                                                      // stock disable or in stock
+                                                      if(dialogStock == '' || simpleIntInput+1 < int.parse(dialogStock)) {
+                                                        setState(() {
+                                                          simpleIntInput += 1;
+                                                          quantityController.text = simpleIntInput.toString();
+                                                          simpleIntInput =  int.parse(quantityController.text.replaceAll(',', ''));
+                                                        });
+                                                      } else{
+                                                        setState(() {
+                                                          simpleIntInput = int.parse(dialogStock);
+                                                          quantityController.text = simpleIntInput.toString();
+                                                          simpleIntInput = int.parse(quantityController.text.replaceAll(',', ''));
+                                                        });
+                                                        if(dialogStock == '0'){
+                                                          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
+                                                        }
+                                                      }
+                                                    },
+                                                  ),
                                                 ),
                                               ),
                                             ],
                                           ),
-                                        ),
+                                        )
+                                      ],
+                                    ),
+                                    Column(
+                                      children: [
                                         Padding(
-                                          padding: const EdgeInsets.all(8.0),
+                                          padding: const EdgeInsets.fromLTRB(8, 30, 8, 10),
                                           child: Row(
                                             mainAxisAlignment: MainAxisAlignment.start,
                                             children: [
                                               Text(
-                                                "${AppLocalizations.of(context)!.translate('price')}",
+                                                AppLocalizations.of(context)!.translate('remark'),
                                                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                               ),
                                             ],
                                           ),
                                         ),
-                                        Container(
-                                          width: 400,
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Container(
-                                                width: 273,
-                                                child: TextField(
-                                                  autofocus: true,
-                                                  controller: priceController,
-                                                  keyboardType: TextInputType.number,
-                                                  inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
-                                                  textAlign: TextAlign.center,
-                                                  decoration: InputDecoration(
-                                                    errorText: getPriceErrorText(priceController.text),
-                                                    prefixText: 'RM ',
-                                                    focusedBorder: OutlineInputBorder(
-                                                      borderSide: BorderSide(color: color.backgroundColor),
-                                                    ),
-                                                    hintText: "${Utils.convertTo2Dec(dialogPrice)}",
-                                                  ),
-                                                  onChanged: (value) async {
-                                                    await getProductPrice(widget.productDetail!.product_sqlite_id);
-                                                    setState(() {});
-                                                  },
-                                                  onSubmitted: (value) async {
-                                                    await getProductPrice(widget.productDetail!.product_sqlite_id);
-                                                    setState(() {});
-                                                  },
-                                                ),
-                                              ),
-                                            ],
+                                        TextField(
+                                          controller: remarkController,
+                                          decoration: InputDecoration(
+                                            focusedBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(color: color.backgroundColor),
+                                            ),
                                           ),
-                                        ),
+                                          keyboardType: TextInputType.multiline,
+                                          maxLines: null,
+                                        )
                                       ],
-                                    ),
-                                  ),
-                                  for (int i = 0; i < variantGroup.length; i++)
-                                    variantGroupLayout(variantGroup[i]),
-                                  for (int j = 0; j < modifierGroup.length; j++)
-                                    Visibility(
-                                      visible: modifierGroup[j].modifierChild!.isNotEmpty && modifierGroup[j].dining_id == "" || modifierGroup[j].dining_id == cart.selectedOptionId ? true : false,
-                                      child: modifierGroupLayout(modifierGroup[j], cart),
-                                    ),
-                                  Column(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              AppLocalizations.of(context)!.translate('quantity'),
-                                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      // quantity input
-                                      Container(
-                                        width: 400,
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            // quantity input remove button
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                color: color.backgroundColor,
-                                                borderRadius: BorderRadius.circular(10),
-                                              ),
-                                              child: IconButton(
-                                                icon: Icon(Icons.remove, color: Colors.white), // Set the icon color to white.
-                                                onPressed: () {
-                                                  if(simpleIntInput >= 1){
-                                                    setState(() {
-                                                      simpleIntInput -= 1;
-                                                      quantityController.text = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
-                                                      simpleIntInput = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
-                                                    });
-                                                  } else{
-                                                    setState(() {
-                                                      simpleIntInput = 0;
-                                                      quantityController.text =  widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
-                                                      simpleIntInput = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
-                                                    });
-                                                  }
-                                                },
-                                              ),
-                                            ),
-                                            SizedBox(width: 10),
-                                            // quantity input text field
-                                            Container(
-                                              width: 273,
-                                              child: TextField(
-                                                autofocus: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? true : false,
-                                                controller: quantityController,
-                                                keyboardType: TextInputType.number,
-                                                inputFormatters: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))]
-                                                    : <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-                                                textAlign: TextAlign.center,
-                                                decoration: InputDecoration(
-                                                  focusedBorder: OutlineInputBorder(
-                                                    borderSide: BorderSide(color: color.backgroundColor),
-                                                  ),
-                                                ),
-                                                onChanged: (value) {
-                                                  if(value != ''){
-                                                    setState(() => simpleIntInput = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? double.parse(value.replaceAll(',', '')): int.parse(value.replaceAll(',', '')));
-                                                  } else {
-                                                    simpleIntInput = 0;
-                                                  }
-                                                },
-                                                onSubmitted: _onSubmitted,
-                                              ),
-                                            ),
-                                            SizedBox(width: 10),
-                                            // quantity input add button
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                color: color.backgroundColor,
-                                                borderRadius: BorderRadius.circular(10),
-                                              ),
-                                              child: IconButton(
-                                                icon: Icon(Icons.add, color: Colors.white),
-                                                onPressed: () {
-                                                  // stock disable or in stock
-                                                  if(dialogStock == '' || simpleIntInput+1 < int.parse(dialogStock)) {
-                                                    print('stock_quantity: '+dialogStock);
-                                                    setState(() {
-                                                      simpleIntInput += 1;
-                                                      quantityController.text = simpleIntInput.toString();
-                                                      simpleIntInput =  int.parse(quantityController.text.replaceAll(',', ''));
-                                                    });
-                                                  } else{
-                                                    print('stock_quantity: '+dialogStock);
-                                                    setState(() {
-                                                      simpleIntInput = int.parse(dialogStock);
-                                                      quantityController.text = simpleIntInput.toString();
-                                                      simpleIntInput = int.parse(quantityController.text.replaceAll(',', ''));
-                                                    });
-                                                    if(dialogStock == '0'){
-                                                      print('stock_quantity: '+dialogStock);
-                                                      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
-                                                    }
-                                                  }
-                                                },
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                  Column(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(8, 30, 8, 10),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              AppLocalizations.of(context)!.translate('remark'),
-                                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      TextField(
-                                        controller: remarkController,
-                                        decoration: InputDecoration(
-                                          focusedBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(color: color.backgroundColor),
-                                          ),
-                                        ),
-                                        keyboardType: TextInputType.multiline,
-                                        maxLines: null,
-                                      )
-                                    ],
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                          actions: <Widget>[
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width / 2.5,
-                              height: MediaQuery.of(context).size.height / 10,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                                onPressed: isButtonDisabled
-                                    ? null
-                                    : () {
-                                  // Disable the button after it has been pressed
-                                  setState(() {
-                                    isButtonDisabled = true;
-                                  });
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                            ),
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width / 2.5,
-                              height: MediaQuery.of(context).size.height / 10,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: color.buttonColor,
+                                    )
+                                  ],
                                 ),
-                                child: Text('${AppLocalizations.of(context)?.translate('add')}'),
-                                onPressed: isButtonDisabled
-                                    ? null
-                                    : () async {
-                                  if(widget.productDetail!.name!.isNotEmpty && widget.productDetail!.name!.trim().isNotEmpty) {
-                                    if(priceController.text.isNotEmpty && priceController.text.trim().isNotEmpty) {
-                                      await checkProductStock(widget.productDetail!, cart);
-                                      //await getBranchLinkProductItem(widget.productDetail!);
-                                      if (hasStock == true) {
-                                        if (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 0) {
-                                          if(simpleIntInput > 0){
-                                            if (cart.selectedTable.isNotEmpty) {
-                                              // Disable the button after it has been pressed
-                                              setState(() {
-                                                isButtonDisabled = true;
-                                              });
-                                              await addToCart(cart);
-                                              Navigator.of(context).pop();
-                                            } else {
-                                              openChooseTableDialog(cart, context);
-                                            }
-                                          } else {
-                                            Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
-                                          }
-                                        } else {
+                              ),
+                            ),
+                            actions: <Widget>[
+                              Row(
+                                children: [
+                                  Expanded(
+                                    flex: 1,
+                                    child: SizedBox(
+                                      width: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width / 2.5 : MediaQuery.of(context).size.width / 3,
+                                      height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10 : MediaQuery.of(context).size.height / 20,
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                                        child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                                        onPressed: isButtonDisabled
+                                            ? null
+                                            : () {
                                           // Disable the button after it has been pressed
                                           setState(() {
                                             isButtonDisabled = true;
                                           });
-                                          await addToCart(cart);
                                           Navigator.of(context).pop();
-                                        }
-                                      } else {
-                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
-                                      }
-                                    } else {
-                                      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_price_empty'));
-                                    }
-                                  } else {
-                                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_name_empty'));
-                                  }
-                                },
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    flex: 1,
+                                    child: SizedBox(
+                                      width: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width / 2.5 : MediaQuery.of(context).size.width / 3,
+                                      height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10 : MediaQuery.of(context).size.height / 20,
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: color.buttonColor,
+                                        ),
+                                        child: Text('${AppLocalizations.of(context)?.translate('add')}'),
+                                        onPressed: isButtonDisabled || isAddButtonDisabled
+                                            ? null
+                                            : () async {
+                                          if(widget.productDetail!.name!.isNotEmpty && widget.productDetail!.name!.trim().isNotEmpty) {
+                                            if(priceController.text.isNotEmpty && priceController.text.trim().isNotEmpty) {
+                                              await checkProductStock(widget.productDetail!, cart);
+                                              //await getBranchLinkProductItem(widget.productDetail!);
+                                              if (hasStock == true) {
+                                                if (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 0) {
+                                                  if(simpleIntInput > 0){
+                                                    if (cart.selectedTable.isNotEmpty) {
+                                                      // Disable the button after it has been pressed
+                                                      setState(() {
+                                                        isButtonDisabled = true;
+                                                      });
+                                                      checkModifierMinSelect(modifierGroup);
+                                                      await addToCart(cart);
+                                                      Navigator.of(context).pop();
+                                                    } else {
+                                                      openChooseTableDialog(cart, context);
+                                                    }
+                                                  } else {
+                                                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
+                                                  }
+                                                } else {
+                                                  // Disable the button after it has been pressed
+                                                  setState(() {
+                                                    isButtonDisabled = true;
+                                                  });
+                                                  await addToCart(cart);
+                                                  Navigator.of(context).pop();
+                                                }
+                                              } else {
+                                                Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
+                                              }
+                                            } else {
+                                              Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_price_empty'));
+                                            }
+                                          } else {
+                                            Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_name_empty'));
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     );
@@ -1001,6 +1099,22 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
 
       });
     });
+  }
+
+  bool checkModifierMinSelect(List<ModifierGroup> modifierGroup){
+    int checkedModifiersCount = 0;
+    for(int i = 0; i < modifierGroup.length; i++){
+      for(int j = 0; j < modifierGroup[i].modifierChild!.length; j++){
+        if(modifierGroup[i].modifierChild![j].isChecked!){
+          checkedModifiersCount++;
+        }
+        if(modifierGroup[i].min_select != 0)
+          if (checkedModifiersCount <= modifierGroup[i].min_select!) {
+            return false;
+          }
+      }
+    }
+    return true;
   }
 
   String? getProductNameErrorText(String textInController){
@@ -1065,34 +1179,36 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   readProductVariant(int productID) async {
     //loop variant group first
     List<VariantGroup> data = await PosDatabase.instance.readProductVariantGroup(productID);
+    variantGroup.addAll(data);
     for (int i = 0; i < data.length; i++) {
-      variantGroup.add(VariantGroup(
-          variant_group_sqlite_id: data[i].variant_group_sqlite_id,
-          variant_group_id: data[i].variant_group_id,
-          child: [],
-          name: data[i].name));
-
       //loop variant child based on variant group id
       List<VariantItem> itemData = await PosDatabase.instance.readProductVariantItem(data[i].variant_group_sqlite_id!);
-      List<VariantItem> itemChild = [];
-      itemData.sort((a, b) => a.name!.compareTo(b.name!));
-      for (int j = 0; j < itemData.length; j++) {
-        //pre-check radio button
-        if (j == 0) {
-          variantGroup[i].variant_item_sqlite_id = itemData[j].variant_item_sqlite_id;
-        }
-        //store all child into one list
-        itemChild.add(VariantItem(
-            variant_group_sqlite_id: itemData[j].variant_group_sqlite_id,
-            variant_group_id: itemData[j].variant_group_id.toString(),
-            name: itemData[j].name,
-            variant_item_sqlite_id: itemData[j].variant_item_sqlite_id,
-            variant_item_id: itemData[j].variant_item_id));
-      }
+      List<VariantItem> sortedList = getSortedList(itemData);
+      variantGroup[i].variant_item_sqlite_id = sortedList.first.variant_item_sqlite_id;
       //assign list into group child
-      variantGroup[i].child = itemChild;
-      variantGroup[i].child!.sort((a, b) => a.name!.compareTo(b.name!));
+      variantGroup[i].child = sortedList;
     }
+  }
+
+  List<VariantItem> getSortedList(List<VariantItem> variantItemList){
+    switch(AppSettingModel.instance.variant_item_sort_by){
+      case 1 :{
+        return variantItemList;
+      }
+      case 2 :{
+        return sortByName(variantItemList, isDESC: true);
+      }
+      default: {
+        return sortByName(variantItemList);
+      }
+    }
+  }
+
+  List<VariantItem> sortByName(List<VariantItem> variantItemList, {isDESC}){
+    variantItemList.sort((a, b){
+      return compareNatural(a.name!, b.name!);
+    });
+    return isDESC == null ? variantItemList : variantItemList.reversed.toList();
   }
 
   readProductModifier(int productID, {String? diningOptionId}) async {
@@ -1106,11 +1222,11 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
             mod_group_id: data[i].mod_group_id,
             dining_id: data[i].dining_id,
             compulsory: data[i].compulsory,
-            sequence_number: data[i].sequence_number
+            sequence_number: data[i].sequence_number,
+          min_select: data[i].min_select,
+          max_select: data[i].max_select,
         ));
-        print("data: ${modifierGroup.length}");
         List<ModifierItem> itemData = await PosDatabase.instance.readProductModifierItem(data[i].mod_group_id!);
-        print("mod item data: ${itemData}");
         List<ModifierItem> modItemChild = [];
         if(itemData.isNotEmpty){
           for (int j = 0; j < itemData.length; j++) {
@@ -1167,14 +1283,15 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     }
   }
 
-  getProductPrice(int? productId) async {
+  getProductPrice() async {
+    Product selectedProduct = widget.productDetail!;
+    String productLocalId = widget.productDetail!.product_sqlite_id.toString();
     double totalBasePrice = 0.0;
     double totalModPrice = 0.0;
     try {
-      List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(productId.toString());
-      List<Product> productData = await PosDatabase.instance.checkSpecificProduct(productId.toString());
+      List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(productLocalId);
       if (data[0].has_variant == '0') {
-        if(productData[0].unit == 'each_c') {
+        if(selectedProduct.unit == 'each_c') {
           // take new price input
           if(priceController.text == "" || priceController.text.isEmpty) {
             basePrice = "0.00";
@@ -1201,15 +1318,19 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         }
         dialogPrice = finalPrice;
       } else {
-        List<BranchLinkProduct> productVariant = await PosDatabase.instance.checkProductVariant(await getProductVariant(productId!), productId.toString());
-        if(productData[0].unit == 'each_c') {
+        if(selectedProduct.unit == 'each_c') {
           if(priceController.text == "" || priceController.text.isEmpty) {
             basePrice = "0.00";
           } else {
             basePrice = priceController.text;
           }
         } else {
-          basePrice = productVariant[0].price!;
+          BranchLinkProduct? branchLinkProduct = await PosDatabase.instance.checkProductVariant(await getProductVariant(), productLocalId);
+          if(branchLinkProduct != null){
+            basePrice = branchLinkProduct.price!;
+          } else {
+            basePrice = "0.00";
+          }
         }
         finalPrice = basePrice;
         //loop has variant product modifier group
@@ -1228,7 +1349,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         dialogPrice = finalPrice;
       }
     } catch (e) {
-      print('Get product base price error ${e}');
       FLog.error(
         className: "product_order_dialog",
         text: "Get product base price error",
@@ -1239,8 +1359,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   }
 
   getProductDialogStock(Product product) async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
     if (product.has_variant == 0) {
       List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(product.product_sqlite_id.toString());
       switch(data1[0].stock_type){
@@ -1256,17 +1374,21 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       }
     } else {
       //check has variant product stock
-      List<BranchLinkProduct> data = await PosDatabase.instance.checkProductVariant(await getProductVariant(product.product_sqlite_id!), product.product_sqlite_id.toString());
-      switch(data[0].stock_type){
-        case '1': {
-          dialogStock = data[0].daily_limit.toString();
-        }break;
-        case '2': {
-          dialogStock = data[0].stock_quantity.toString();
-        }break;
-        default:{
-          dialogStock = '';
+      BranchLinkProduct? data = await PosDatabase.instance.checkProductVariant(await getProductVariant(), product.product_sqlite_id.toString());
+      if(data != null){
+        switch(data.stock_type){
+          case '1': {
+            dialogStock = data.daily_limit.toString();
+          }break;
+          case '2': {
+            dialogStock = data.stock_quantity.toString();
+          }break;
+          default:{
+            dialogStock = '';
+          }
         }
+      } else {
+        dialogStock = '0';
       }
     }
   }
@@ -1288,13 +1410,11 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   checkProductStock(Product product, CartModel cart) async {
     if (product.has_variant == 0) {
       List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(product.product_sqlite_id.toString());
-      print("Stock type: ${data1[0].stock_type}");
       switch(data1[0].stock_type){
         case '1' :{
           if (int.parse(data1[0].daily_limit!) > 0 && simpleIntInput <= int.parse(data1[0].daily_limit!)) {
             num stockLeft =  widget.productDetail!.unit == 'each' || widget.productDetail!.unit == 'each_c' ? int.parse(data1[0].daily_limit!) : double.parse(data1[0].daily_limit!) - checkCartProductQuantity(cart, data1[0]);
             bool isQtyNotExceed = simpleIntInput <= stockLeft;
-            print('stock left: ${stockLeft}');
             if(stockLeft > 0 && isQtyNotExceed){
               hasStock = true;
             } else {
@@ -1323,113 +1443,97 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       }
     } else {
       //check has variant product stock
-      List<BranchLinkProduct> data = await PosDatabase.instance.checkProductVariant(await getProductVariant(product.product_sqlite_id!), product.product_sqlite_id.toString());
-      switch(data[0].stock_type){
-        case '1' :{
-          if (int.parse(data[0].daily_limit!) > 0 && simpleIntInput <= int.parse(data[0].daily_limit!)) {
-            num stockLeft =  int.parse(data[0].daily_limit!) - checkCartProductQuantity(cart, data[0]);
-            bool isQtyNotExceed = simpleIntInput <= stockLeft;
-            print('stock left: ${stockLeft}');
-            if(stockLeft > 0 && isQtyNotExceed){
-              hasStock = true;
+      BranchLinkProduct? data = await PosDatabase.instance.checkProductVariant(await getProductVariant(), product.product_sqlite_id.toString());
+      if(data != null){
+        switch(data.stock_type){
+          case '1' :{
+            if (int.parse(data.daily_limit!) > 0 && simpleIntInput <= int.parse(data.daily_limit!)) {
+              num stockLeft =  int.parse(data.daily_limit!) - checkCartProductQuantity(cart, data);
+              bool isQtyNotExceed = simpleIntInput <= stockLeft;
+              if(stockLeft > 0 && isQtyNotExceed){
+                hasStock = true;
+              } else {
+                hasStock = false;
+              }
             } else {
               hasStock = false;
             }
-          } else {
-            hasStock = false;
-          }
-        }break;
-        case '2': {
-          if (int.parse(data[0].stock_quantity!) > 0 && simpleIntInput <= int.parse(data[0].stock_quantity!)) {
-            num stockLeft =  int.parse(data[0].stock_quantity!) - checkCartProductQuantity(cart, data[0]);
-            bool isQtyNotExceed = simpleIntInput <= stockLeft;
-            if(stockLeft > 0 && isQtyNotExceed){
-              hasStock = true;
+          }break;
+          case '2': {
+            if (int.parse(data.stock_quantity!) > 0 && simpleIntInput <= int.parse(data.stock_quantity!)) {
+              num stockLeft =  int.parse(data.stock_quantity!) - checkCartProductQuantity(cart, data);
+              bool isQtyNotExceed = simpleIntInput <= stockLeft;
+              if(stockLeft > 0 && isQtyNotExceed){
+                hasStock = true;
+              } else {
+                hasStock = false;
+              }
             } else {
               hasStock = false;
             }
-          } else {
-            hasStock = false;
+          }break;
+          default: {
+            hasStock = true;
           }
-        }break;
-        default: {
-          hasStock = true;
         }
       }
     }
-    print('has stock ${hasStock}');
   }
 
-  Future<String?> getBranchLinkProductItem(Product product) async {
-    branchLinkProduct_id = '';
+  Future<void> getBranchLinkProductItem(Product product) async {
     try {
       List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(product.product_sqlite_id.toString());
       if(data.length == 1){
-        branchLinkProduct_id = data[0].branch_link_product_sqlite_id.toString();
+        branchLinkProductLocalId = data.first.branch_link_product_sqlite_id.toString();
+        branchLinKProductId = data.first.branch_link_product_id;
       } else {
-        String productVariant = await getProductVariant(product.product_sqlite_id!);
+        String productVariant = await getProductVariant();
         BranchLinkProduct? productData = await PosDatabase.instance.readBranchLinkProductByProductVariant(productVariant);
         if(productData != null){
-          branchLinkProduct_id = productData.branch_link_product_sqlite_id.toString();
+          branchLinkProductLocalId = productData.branch_link_product_sqlite_id.toString();
+          branchLinKProductId = productData.branch_link_product_id;
         }
       }
-      print("branchLinkProduct_id: ${branchLinkProduct_id}");
-      return branchLinkProduct_id;
     } catch (e) {
       Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('make_sure_stock_is_restock'));
-      return null;
     }
   }
 
-  getProductVariant(int product_id) async {
-    String variant = '';
-    String variant2 = '';
-    String variant3 = '';
-    String productVariant = '';
+  Future<String> getProductVariant() async {
+    String productLocalId = widget.productDetail!.product_sqlite_id.toString();
+    List<String> productVariantLocalIdList = [];
+    List<String> otherProductVariantList = [];
+    String productVariantId = '';
     try {
       for (int j = 0; j < variantGroup.length; j++) {
         VariantGroup group = variantGroup[j];
-        for (int i = 0; i < group.child!.length; i++) {
-          if (group.variant_item_sqlite_id == group.child![i].variant_item_sqlite_id) {
-            group.child![i].isSelected = true;
-            if (variant == '') {
-              variant = group.child![i].name!;
-              if (variantGroup.length == 1) {
-                List<ProductVariant> data = await PosDatabase.instance.readSpecificProductVariant(product_id.toString(), variant);
-                productVariant = data[0].product_variant_sqlite_id.toString();
-                break;
-              }
-            } else if (variant2 == '') {
-              variant2 = variant + " | " + group.child![i].name!;
-              if (variantGroup.length == 2) {
-                List<ProductVariant> data = await PosDatabase.instance.readSpecificProductVariant(product_id.toString(), variant2);
-                productVariant = data[0].product_variant_sqlite_id.toString();
-                break;
-              }
-            } else if (variant3 == '') {
-              variant3 = variant2 + " | " + group.child![i].name!;
-              if (variantGroup.length == 3) {
-                List<ProductVariant> data = await PosDatabase.instance.readSpecificProductVariant(product_id.toString(), variant3);
-                productVariant = data[0].product_variant_sqlite_id.toString();
-                break;
-              }
-            }
-          }
-        }
+        List<ProductVariantDetail> data = await PosDatabase.instance.readProductVariantDetailByVariantItemSqliteId(group.variant_item_sqlite_id.toString());
+        productVariantLocalIdList.addAll(data.map((e) => e.product_variant_sqlite_id!).toList());
       }
-      // print('variant string: ${variant}');
-      // print('product variant: ${productVariant}');
-      return productVariant;
+      if(productVariantLocalIdList.length == 1){
+        productVariantId = productVariantLocalIdList.first;
+      } else {
+        // check the same product variant sqlite id
+        productVariantLocalIdList.forEach((e) {
+          if(otherProductVariantList.contains(e)) {
+            productVariantId = e;
+          } else {
+            otherProductVariantList.add(e);
+          }
+        });
+      }
+      return productVariantId;
     } catch (e) {
-      print('get product variant error: ${e}');
       FLog.error(
         className: "product_order_dialog",
-        text: "get product_id: ${product_id} variant error",
+        text: "get product_id: ${productLocalId} variant error",
         exception: e,
       );
-      return;
+      return '0';
     }
   }
+
+
 
   Future<Future<Object?>> openChooseTableDialog(CartModel cartModel, context) async {
     return showGeneralDialog(
@@ -1448,6 +1552,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                     setState(() {
                       isButtonDisabled = true;
                     });
+                    checkModifierMinSelect(modifierGroup);
                     await addToCart(cart);
                     Navigator.of(this.context).pop();
                   }
@@ -1485,8 +1590,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     List<int> cartModItemId = [];
     List<int> checkedModItemId = [];
     bool same = true;
-    print('cart mod item length:${checkedCartModItem.length}');
-    print('checked mod item length:${checkedModItem.length}');
     if (checkedCartModItem.length != checkedModItem.length) {
       same = false;
     } else {
@@ -1500,7 +1603,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       }
       //get all same mod item into a list
       List<int> comparedList = cartModItemId.toSet().intersection(checkedModItemId.toSet()).toList();
-      print('compared list length: ${comparedList.length}');
       if(comparedList.length == checkedModItem.length){
         same = true;
       } else {
@@ -1519,7 +1621,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         value = cartItem.quantity! + newAddItem.quantity!;
       }
     }catch(e){
-      print("quantity stack error: $e");
       FLog.error(
         className: "product_order_dialog",
         text: "quantity stack error",
@@ -1531,6 +1632,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   }
 
   addToCart(CartModel cart) async {
+
     //check selected variant
     for (int j = 0; j < variantGroup.length; j++) {
       VariantGroup group = variantGroup[j];
@@ -1548,12 +1650,14 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     } else {
       checkedModifierLength = 0;
     }
+    await getBranchLinkProductItem(widget.productDetail!);
     var value = cartProductItem(
-        branch_link_product_sqlite_id: await getBranchLinkProductItem(widget.productDetail!),
+        branch_link_product_id: branchLinKProductId,
+        branch_link_product_sqlite_id: branchLinkProductLocalId,
         product_name: widget.productDetail!.name!,
         category_id: widget.productDetail!.category_id!,
         category_name: categories != null ? categories!.name : '',
-        price: await getProductPrice(widget.productDetail?.product_sqlite_id),
+        price: await getProductPrice(),
         quantity: simpleIntInput,
         checkedModifierLength: checkedModifierLength,
         checkedModifierItem: checkedModItem,
@@ -1571,17 +1675,11 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         ticket_count: widget.productDetail?.ticket_count,
         ticket_exp: widget.productDetail?.ticket_exp
     );
-    print('value checked item length: ${value.checkedModifierLength}');
-    print(jsonEncode((value)));
-    //print('value category: ${value.category_name}');
-    // print('base price: ${value.base_price}');
-    // print('price: ${value.price}');
     List<cartProductItem> item = [];
     if(cart.cartNotifierItem.isEmpty){
       cart.addItem(value);
     } else {
       for(int k = 0; k < cart.cartNotifierItem.length; k++){
-        print('cart checked mod item length in cart: ${cart.cartNotifierItem[k].checkedModifierLength}');
         if(cart.cartNotifierItem[k].branch_link_product_sqlite_id == value.branch_link_product_sqlite_id
             && value.remark == cart.cartNotifierItem[k].remark
             && value.product_name == cart.cartNotifierItem[k].product_name
@@ -1591,7 +1689,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
           item.add(cart.cartNotifierItem[k]);
         }
       }
-      print('item length: ${item.length}');
       while(item.length > 1){
         for(int i = 0 ; i < item.length; i++){
           bool status = compareCartProductModifier(cartModifierGroup: item[i].modifier!);
@@ -1600,13 +1697,11 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
           }
         }
       }
-      print('item after first compare length: ${item.length}');
       if(item.length == 1){
         if(item[0].checkedModifierLength == 0){
           item[0].quantity = quantityStack(cartItem: item[0], newAddItem: value);
         } else {
           bool status = compareCartProductModifier(cartModifierGroup: item[0].modifier!);
-          print('compared status: ${status}');
           if(status == false){
             cart.addItem(value);
           } else{
@@ -1616,7 +1711,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       } else {
         cart.addItem(value);
       }
-      print('length after: ${cart.cartNotifierItem.length}');
     }
     cart.resetCount();
   }

@@ -6,11 +6,14 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/attendance.dart';
 import 'package:pos_system/object/branch_link_product.dart';
+import 'package:pos_system/object/cancel_receipt.dart';
 import 'package:pos_system/object/checklist.dart';
 import 'package:pos_system/object/kitchen_list.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
+import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/printer_link_category.dart';
+import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/receipt.dart';
 import 'package:pos_system/object/refund.dart';
 import 'package:pos_system/object/settlement.dart';
@@ -36,6 +39,7 @@ class SyncToCloud {
   int count = 0;
   bool emptyResponse = false;
   List<PosTable> notSyncPosTableList = [];
+  List<Product> notSyncProductList = [];
   List<Order> notSyncOrderList = [];
   List<OrderTaxDetail> notSyncOrderTaxDetailList = [];
   List<OrderPromotionDetail> notSyncOrderPromotionDetailList = [];
@@ -59,7 +63,7 @@ class SyncToCloud {
   String? table_use_value, table_use_detail_value, order_cache_value, order_detail_value, order_detail_cancel_value,
       order_modifier_detail_value, order_value, order_promotion_value, order_tax_value, receipt_value, refund_value, table_value, settlement_value,
       settlement_link_payment_value, cash_record_value, app_setting_value, branch_link_product_value, printer_value, printer_link_category_value,
-      transfer_owner_value, checklist_value, kitchen_list_value, attendance_value, dynamic_qr_value;
+      transfer_owner_value, checklist_value, kitchen_list_value, attendance_value, dynamic_qr_value, order_payment_split_value, cancel_receipt_value, product_value;
 
   resetCount(){
     count = 0;
@@ -73,8 +77,6 @@ class SyncToCloud {
       final prefs = await SharedPreferences.getInstance();
       final int? device_id = prefs.getInt('device_id');
       final String? login_value = prefs.getString('login_value');
-
-      print("current login value: ${login_value}");
 
       Map data = await Domain().syncLocalUpdateToCloud(
           device_id: device_id.toString(),
@@ -104,7 +106,10 @@ class SyncToCloud {
           checklist_value:  this.checklist_value,
           kitchen_list_value:  this.kitchen_list_value,
           attendance_value:  this.attendance_value,
-          dynamic_qr_value: this.dynamic_qr_value
+          dynamic_qr_value: this.dynamic_qr_value,
+          order_payment_split_value: this.order_payment_split_value,
+          cancel_receipt_value: this.cancel_receipt_value,
+          product_value:  this.product_value,
       );
       if (data['status'] == '1') {
         List responseJson = data['data'];
@@ -201,13 +206,23 @@ class SyncToCloud {
               }
               break;
               case 'tb_attendance': {
-                print("attendance data: ${jsonEncode(responseJson[i])}");
                 await PosDatabase.instance.updateAttendanceSyncStatusFromCloud(responseJson[i]['attendance_key']);
+              }
+              break;
+              case 'tb_order_payment_split': {
+                await PosDatabase.instance.updateOrderPaymentSplitSyncStatusFromCloud(responseJson[i]['order_payment_split_key']);
               }
               break;
               case 'tb_dynamic_qr': {
                 await PosDatabase.instance.updateDynamicQrSyncStatusFromCloud(responseJson[i]['dynamic_qr_key']);
+              }break;
+              case 'tb_cancel_receipt': {
+                await PosDatabase.instance.updateCancelReceiptSyncStatusFromCloud(responseJson[i]['cancel_receipt_key']);
+              }break;
+              case 'tb_product': {
+                await PosDatabase.instance.updateProductSyncStatusFromCloud(responseJson[i]['product_id']);
               }
+              break;
             }
           }
         } else {
@@ -261,6 +276,9 @@ class SyncToCloud {
     kitchen_list_value = [].toString();
     attendance_value = [].toString();
     dynamic_qr_value = [].toString();
+    order_payment_split_value = [].toString();
+    cancel_receipt_value = [].toString();
+    product_value = [].toString();
   }
 
   getAllValue() async {
@@ -277,6 +295,7 @@ class SyncToCloud {
     await getNotSyncOrderDetail();
     await getNotSyncOrderDetailCancel();
     await getNotSyncOrderModifierDetail();
+    await getNotSyncOrderPaymentSplit();
     await getNotSyncOrderPromotionDetail();
     await getNotSyncOrderTaxDetail();
     await getNotSyncPrinter();
@@ -289,6 +308,29 @@ class SyncToCloud {
     await getNotSyncTable();
     await getNotSyncTransfer();
     await getNotSyncDynamicQr();
+    await getNotSyncCancelReceipt();
+    await getNotSyncProduct();
+  }
+
+  getNotSyncCancelReceipt() async {
+    List<String> _value = [];
+    try{
+      List<CancelReceipt> data = await PosDatabase.instance.readAllNotSyncCancelReceipt();
+      if(data.isNotEmpty){
+        for(int i = 0; i < data.length; i++){
+          _value.add(jsonEncode(data[i]));
+        }
+        cancel_receipt_value = _value.toString();
+        print("cancel_receipt_value: ${cancel_receipt_value}");
+      }
+    } catch(e, stackTrace){
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "dynamic qr sync to cloud error",
+        exception: 'Error: $e, StackTrace: $stackTrace',
+      );
+      cancel_receipt_value = null;
+    }
   }
 
   getNotSyncDynamicQr() async {
@@ -300,7 +342,6 @@ class SyncToCloud {
           _value.add(jsonEncode(data[i]));
         }
         dynamic_qr_value = _value.toString();
-        print("dynamic qr value: ${dynamic_qr_value}");
       }
     } catch(e){
       print('sync dynamic qr to cloud error: $e');
@@ -431,11 +472,13 @@ class SyncToCloud {
       List<String> _value = [];
       List<Printer> data = await PosDatabase.instance.readAllNotSyncLANPrinter();
       notSyncPrinterList = data;
+      print('printer list: ${notSyncPrinterList.length}');
       if(notSyncPrinterList.isNotEmpty){
         for(int i = 0; i < notSyncPrinterList.length; i++){
           _value.add(jsonEncode(notSyncPrinterList[i]));
         }
         this.printer_value = _value.toString();
+        print('value: ${printer_value}');
       }
     } catch(error){
       print('15 printer sync error: ${error}');
@@ -865,6 +908,28 @@ class SyncToCloud {
       return;
     }
   }
+
+  getNotSyncProduct() async {
+    try{
+      List<String> _value = [];
+      List<Product> data = await PosDatabase.instance.readAllNotSyncUpdatedProduct();
+      notSyncProductList = data;
+      if(notSyncProductList.isNotEmpty){
+        for (int i = 0; i < notSyncProductList.length; i++) {
+          _value.add(jsonEncode(notSyncProductList[i]));
+        }
+        this.product_value = _value.toString();
+      }
+    }catch(error){
+      print('15 table sync error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "table sync to cloud error",
+        exception: error,
+      );
+      return;
+    }
+  }
 /*
   ----------------------Order Tax detail part----------------------------------------------------------------------------------------------------------------------------
 */
@@ -1151,6 +1216,27 @@ class SyncToCloud {
       return;
     }
 
+  }
+
+  getNotSyncOrderPaymentSplit() async {
+    List<String> _value = [];
+    try{
+      List<OrderPaymentSplit> data = await PosDatabase.instance.readAllNotSyncOrderPaymentSplit();
+      if(data.isNotEmpty){
+        for(int i = 0; i < data.length; i++){
+          _value.add(jsonEncode(data[i]));
+        }
+        order_payment_split_value = _value.toString();
+        print("order_payment_split_value: ${order_payment_split_value}");
+      }
+    } catch(e){
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "order payment split sync to cloud error",
+        exception: e,
+      );
+      order_payment_split_value = null;
+    }
   }
 
 /*

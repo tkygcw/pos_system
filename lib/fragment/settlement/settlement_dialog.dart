@@ -7,11 +7,14 @@ import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/main.dart';
+import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
+import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
 import 'package:pos_system/object/settlement.dart';
 import 'package:pos_system/object/settlement_link_payment.dart';
+import 'package:pos_system/object/sync_to_cloud.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -75,7 +78,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
   bool _submitted = false;
   bool _isLoaded = false;
   bool isButtonDisabled = false, isLogOut = false, willPop = true;
-
+  SyncToCloud syncToCloud = SyncToCloud();
   late final currentSettlementDateTime;
 
   @override
@@ -136,7 +139,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: SyncDialog(),
+              child: SyncDialog(syncType: SyncType.sync),
             ),
           );
         },
@@ -273,7 +276,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
                                 },
                                 obscureText: true,
                                 controller: adminPosPinController,
-                                keyboardType: TextInputType.number,
+                                keyboardType: TextInputType.numberWithOptions(decimal: true),
                                 decoration: InputDecoration(
                                   errorText: _submitted
                                       ? errorPassword == null
@@ -363,24 +366,39 @@ class _SettlementDialogState extends State<SettlementDialog> {
               } else {
                 currentSettlementDateTime = dateFormat.format(DateTime.now());
                 await callSettlement();
-                if (await confirm(
-                  context,
-                  title: Text('${AppLocalizations.of(context)?.translate('confirm_sync')}'),
-                  content: Text('${AppLocalizations.of(context)?.translate('confirm_sync_desc')}'),
-                  textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                  textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
-                )) {
-                  bool? status = await openSyncDialog();
-                  if(status != null && status == true){
+                Branch? data = await PosDatabase.instance.readLocalBranch();
+                if(data != null && data.allow_livedata == 1){
+                  if(!isSyncing){
                     widget.callBack();
                     Navigator.of(context).pop();
+                    isSyncing = true;
+                    do{
+                      await syncToCloud.syncAllToCloud(isManualSync: true);
+                    }while(syncToCloud.emptyResponse == false);
+                    if(syncToCloud.emptyResponse == true){
+                      isSyncing = false;
+                    }
+                  }
+                } else {
+                  if (await confirm(
+                    context,
+                    title: Text('${AppLocalizations.of(context)?.translate('confirm_sync')}'),
+                    content: Text('${AppLocalizations.of(context)?.translate('confirm_sync_desc')}'),
+                    textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                    textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                  )) {
+                    bool? status = await openSyncDialog();
+                    if(status != null && status == true){
+                      widget.callBack();
+                      Navigator.of(context).pop();
+                    } else {
+                      widget.callBack();
+                      Navigator.of(context).pop();
+                    }
                   } else {
                     widget.callBack();
                     Navigator.of(context).pop();
                   }
-                } else {
-                  widget.callBack();
-                  Navigator.of(context).pop();
                 }
                 // Navigator.of(context).pop();
               }
@@ -738,6 +756,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
     Map logInUser = json.decode(login_user!);
     Map userObject = json.decode(pos_user!);
     print('settlement id: ${this.localSettlementId}');
+
     for (int j = 0; j < paymentList.length; j++) {
       SettlementLinkPayment object = SettlementLinkPayment(
           settlement_link_payment_id: 0,
@@ -813,11 +832,11 @@ class _SettlementDialogState extends State<SettlementDialog> {
     if (orderData.isNotEmpty) {
       this.orderList = orderData;
       this.totalBill = orderData.length;
-      this.totalSales = orderData[0].gross_sales!;
+      this.totalSales = orderData[0].gross_sales ?? 0;
     }
     if (refundData.isNotEmpty) {
       this.totalRefundBill = refundData.length;
-      this.totalRefundAmount = refundData[0].gross_sales!;
+      this.totalRefundAmount = refundData[0].gross_sales ?? 0;
     }
     if (orderCharge.isNotEmpty) {
       this.totalCharge = orderCharge[0].total_charge_amount!;
@@ -847,6 +866,14 @@ class _SettlementDialogState extends State<SettlementDialog> {
             if (paymentList[j].payment_link_company_id == int.parse(orderList[i].payment_link_company_id!)) {
               paymentList[j].total_bill++;
               paymentList[j].totalAmount += double.parse(orderList[i].final_amount!);
+            } else if(int.parse(orderList[i].payment_link_company_id!) == 0) {
+              List<OrderPaymentSplit> orderPaymentSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(orderList[i].order_key!);
+              for(int k = 0; k < orderPaymentSplit.length; k++) {
+                if (paymentList[j].payment_link_company_id == int.parse(orderPaymentSplit[k].payment_link_company_id!)) {
+                  paymentList[j].total_bill++;
+                  paymentList[j].totalAmount += double.parse(orderPaymentSplit[k].amount!);
+                }
+              }
             }
           }
         }

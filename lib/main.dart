@@ -1,11 +1,14 @@
 import 'dart:async';
 
 import 'package:async_queue/async_queue.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/fail_print_notifier.dart';
 import 'package:pos_system/notifier/notification_notifier.dart';
@@ -24,11 +27,12 @@ import 'package:presentation_displays/display.dart';
 import 'package:presentation_displays/displays_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:toastification/toastification.dart';
 import 'notifier/cart_notifier.dart';
 import 'notifier/connectivity_change_notifier.dart';
 import 'notifier/printer_notifier.dart';
 import 'notifier/theme_color.dart';
-import 'object/lcd_display.dart';
+import 'object/imin_lib.dart';
 import 'page/loading.dart';
 import 'utils/notification_plugin.dart';
 
@@ -36,20 +40,24 @@ final NotificationModel notificationModel = NotificationModel();
 final SyncToCloud mainSyncToCloud = SyncToCloud();
 final SyncRecord syncRecord = SyncRecord();
 final QrOrder qrOrder = QrOrder.instance;
-final LCDDisplay lcdDisplay = LCDDisplay();
+final IminLib iminLib = IminLib();
 final asyncQ = AsyncQueue.autoStart();
 DisplayManager displayManager = DisplayManager();
 AppLanguage appLanguage = AppLanguage();
 final snackBarKey = GlobalKey<ScaffoldMessengerState>();
+bool isCartExpanded = false;
+bool isSyncing = false;
+String appVersionCode = '', patch = '';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
 
 Future<void> main() async {
-  //firebase method
   WidgetsFlutterBinding.ensureInitialized();
+  //firebase method
   await Firebase.initializeApp();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   setupNotificationChannel();
+  configFirestore();
 
   //check second screen
   getSecondScreen();
@@ -62,6 +70,9 @@ Future<void> main() async {
 
   //init lcd screen
   initLCDScreen();
+
+  //get app version
+  await getAppVersion();
 
   WidgetsFlutterBinding.ensureInitialized();
   //create default app color
@@ -83,17 +94,28 @@ deviceDetect() async {
   final double screenWidth = WidgetsBinding
       .instance.platformDispatcher.views.first.physicalSize.width /
       WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
-  //final double screenWidth = WidgetsBinding.instance.platformDispatcher.views.first.physicalSize.width;
-  print('screen width: ${screenWidth}');
-  if (screenWidth < 500) {
-    await SystemChrome.setPreferredOrientations(
-        [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
-  } else {
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
-  }
+  // if (screenWidth < 500) {
+  //   await SystemChrome.setPreferredOrientations(
+  //       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+  // } else {
+  //   await SystemChrome.setPreferredOrientations([
+  //     DeviceOrientation.landscapeLeft,
+  //     DeviceOrientation.landscapeRight,
+  //   ]);
+  // }
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown
+  ]);
+}
+
+configFirestore(){
+  PosFirestore.instance.firestore.settings = const Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  );
 }
 
 setupNotificationChannel() {
@@ -169,53 +191,55 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: Consumer<AppLanguage>(builder: (context, model, child) {
-        return MaterialApp(
-          navigatorKey: MyApp.navigatorKey,
-          scaffoldMessengerKey: snackBarKey,
-          locale: model.appLocal,
-          supportedLocales: [
-            Locale('en', ''),
-            Locale('zh', ''),
-            Locale('ms', ''),
-          ],
-          localizationsDelegates: [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-            DefaultCupertinoLocalizations.delegate
-          ],
-          debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-            useMaterial3: false,
-              appBarTheme: AppBarTheme(
-                backgroundColor: Colors.white24,
-                titleTextStyle: TextStyle(color: Colors.black),
-                iconTheme: IconThemeData(color: Colors.orange), //
-              ),
-              primarySwatch: Colors.teal,
-              inputDecorationTheme: InputDecorationTheme(
-                focusColor: Colors.black,
-                labelStyle: TextStyle(
-                  color: Colors.black54,
+        return ToastificationWrapper(
+          child: MaterialApp(
+            navigatorKey: MyApp.navigatorKey,
+            scaffoldMessengerKey: snackBarKey,
+            locale: model.appLocal,
+            supportedLocales: [
+              Locale('en', ''),
+              Locale('zh', ''),
+              Locale('ms', ''),
+            ],
+            localizationsDelegates: [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+              DefaultCupertinoLocalizations.delegate
+            ],
+            debugShowCheckedModeBanner: false,
+            theme: ThemeData(
+              useMaterial3: false,
+                appBarTheme: AppBarTheme(
+                  backgroundColor: Colors.white24,
+                  titleTextStyle: TextStyle(color: Colors.black),
+                  iconTheme: IconThemeData(color: Colors.orange), //
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Colors.black26,
+                primarySwatch: Colors.teal,
+                inputDecorationTheme: InputDecorationTheme(
+                  focusColor: Colors.black,
+                  labelStyle: TextStyle(
+                    color: Colors.black54,
                   ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Colors.orangeAccent,
-                    width: 2.0,
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.black26,
+                    ),
                   ),
-                ),
-              )),
-          routes: {
-            '/loading': (context) => LoadingPage(),
-            '/': (context) => LoginPage(),
-            'presentation': (context) => SecondDisplay(),
-          },
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.orangeAccent,
+                      width: 2.0,
+                    ),
+                  ),
+                )),
+            routes: {
+              '/loading': (context) => LoadingPage(selectedDays: 0,),
+              '/': (context) => LoginPage(),
+              'presentation': (context) => SecondDisplay(),
+            },
+          ),
         );
       }),
     );
@@ -223,9 +247,9 @@ class MyApp extends StatelessWidget {
 }
 
 initLCDScreen() async {
-  int status = await lcdDisplay.checkLcdScreen();
+  int status = await iminLib.checkLcdScreen();
   if(status == 1){
-    await lcdDisplay.initLcd();
+    await iminLib.initLcd();
   }
 }
 
@@ -248,4 +272,9 @@ statusBarColor() {
     statusBarBrightness: Brightness.dark, //status bar brightness
     statusBarIconBrightness: Brightness.dark,
   ));
+}
+
+getAppVersion() async {
+  PackageInfo packageInfo = await PackageInfo.fromPlatform();
+  appVersionCode = '${packageInfo.version}${patch != '' ? '+$patch' : ''}';
 }

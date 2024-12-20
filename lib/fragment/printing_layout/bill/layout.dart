@@ -1,10 +1,18 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:image/image.dart' as img;
+import 'package:path_provider/path_provider.dart';
+import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
+import 'package:pos_system/object/branch.dart';
+import 'package:pos_system/object/order_payment_split.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:f_logs/model/flog/flog.dart';
 
+import '../../../object/branch.dart';
 import '../../../object/table.dart';
 import '../../../utils/Utils.dart';
 
@@ -26,6 +34,7 @@ class BillLayout extends ReceiptLayout{
       await callOrderTaxPromoDetail();
       await callPaidOrderDetail(orderId);
     }
+    await getAllPaymentSplit(paidOrder!.order_key!);
     // final ByteData data = await rootBundle.load('drawable/logo2.png');
     // final Uint8List bytes = data.buffer.asUint8List();
     // final decodedImage = img.decodeImage(bytes);
@@ -43,6 +52,12 @@ class BillLayout extends ReceiptLayout{
       bytes += generator.reset();
       if(paidOrder!.payment_status == 2) {
         bytes += generator.text('** Refund **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
+        bytes += generator.emptyLines(1);
+      }
+
+      if(receipt!.header_image_status == 1){
+        img.Image processedImage = await getBranchLogo(receipt!.header_image_size!);
+        bytes += generator.imageRaster(processedImage, align: PosAlign.center);
         bytes += generator.emptyLines(1);
       }
 
@@ -73,8 +88,34 @@ class BillLayout extends ReceiptLayout{
               styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1)),
         ]);
       }
+
+      if(receipt!.second_header_text_status == 1) {
+        PosTextSize productFontSize = receipt!.second_header_font_size == 0 ? PosTextSize.size1 : PosTextSize.size2;
+        PosFontType productFontType = receipt!.second_header_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
+
+        bytes += generator.row([
+          PosColumn(
+              text: '${receipt!.second_header_text}',
+              width: 12,
+              containsChinese: true,
+              styles: PosStyles(
+                  align: PosAlign.center,
+                  fontType: productFontType,
+                  height: productFontSize,
+                  width: productFontSize)),
+        ]);
+        bytes += generator.reset();
+      }
+
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
+      //register no
+      if(receipt!.show_register_no == 1 && branchObject[BranchFields.register_no] != ''){
+        bytes += generator.text(branchObject[BranchFields.register_no],
+          containsChinese: true,
+          styles: PosStyles(align: PosAlign.center),
+        );
+      }
       //Address
       if(receipt!.show_address == 1 && branchObject['address'].toString() != ''){
         bytes += generator.text('${branchObject['address']}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
@@ -99,10 +140,13 @@ class BillLayout extends ReceiptLayout{
       //other order detail
       bytes += generator.text('Close at: ${Utils.formatDate(paidOrder!.created_at)}');
       bytes += generator.text('Close by: ${this.paidOrder!.close_by}', containsChinese: true);
-      if(selectedTableList.isNotEmpty){
-        bytes += generator.text('Table No: ${getCartTableNumber(selectedTableList).toString().replaceAll('[', '').replaceAll(']', '')}');
+      if(receipt!.hide_dining_method_table_no == 0){
+        if(selectedTableList.isNotEmpty){
+          bytes += generator.text('Table No: ${getCartTableNumber(selectedTableList).toString().replaceAll('[', '').replaceAll(']', '')}');
+        }
+        bytes += generator.text('${paidOrder!.dining_name}');
       }
-      bytes += generator.text('${paidOrder!.dining_name}');
+
       bytes += generator.reset();
       /*
     *
@@ -113,7 +157,7 @@ class BillLayout extends ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: 'Qty ', width: 2, styles: PosStyles(bold: true)),
         PosColumn(text: 'Item', width: 7, styles: PosStyles(bold: true)),
-        PosColumn(text: 'Price', width: 3, styles: PosStyles(bold: true, align: PosAlign.right)),
+        PosColumn(text: 'Price(MYR)', width: 3, styles: PosStyles(bold: true, align: PosAlign.right)),
       ]);
       bytes += generator.hr();
       //order product
@@ -124,13 +168,13 @@ class BillLayout extends ReceiptLayout{
           orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ?
           PosColumn(
               text: productUnitPriceSplit  ? getReceiptProductName(orderDetailList[i])
-                  : '${getReceiptProductName(orderDetailList[i])} (${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})',
+                  : '${getReceiptProductName(orderDetailList[i])} (${receipt!.show_break_down_price == 0 ? orderDetailList[i].price : orderDetailList[i].original_price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})',
               width: 7,
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, bold: true))
               : PosColumn(
               text: productUnitPriceSplit  ? getReceiptProductName(orderDetailList[i])
-                  : '${getReceiptProductName(orderDetailList[i])} (${orderDetailList[i].price}/each)',
+                  : '${getReceiptProductName(orderDetailList[i])} (${receipt!.show_break_down_price == 0 ? orderDetailList[i].price : orderDetailList[i].original_price}/each)',
               width: 7,
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, bold: true)),
@@ -144,7 +188,8 @@ class BillLayout extends ReceiptLayout{
         if(productUnitPriceSplit){
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ? '(${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})' : '(${orderDetailList[i].price}/each)', width: 7),
+            PosColumn(text: orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ? '(${receipt!.show_break_down_price == 0 ? orderDetailList[i].price : orderDetailList[i].original_price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})'
+                : '(${receipt!.show_break_down_price == 0 ? orderDetailList[i].price : orderDetailList[i].original_price}/each)', width: 7),
             PosColumn(text: '', width: 3, styles: PosStyles(align: PosAlign.right)),
           ]);
         }
@@ -163,7 +208,7 @@ class BillLayout extends ReceiptLayout{
             //modifier
             bytes += generator.row([
               PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
-              PosColumn(text: '+${orderModifierDetailList[j].mod_name}', width: 7, containsChinese: true),
+              PosColumn(text: '+${orderModifierDetailList[j].mod_name}${receipt!.show_break_down_price == 0 ? '' : ' (${double.parse(orderModifierDetailList[j].mod_price!).toStringAsFixed(2)}/each)'}', width: 7, containsChinese: true),
               PosColumn(text: '', width: 3, styles: PosStyles(align: PosAlign.right)),
             ]);
           }
@@ -228,23 +273,33 @@ class BillLayout extends ReceiptLayout{
       //total
       bytes += generator.hr();
       bytes += generator.row([
-        PosColumn(text: 'Final Amount', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2)),
+        PosColumn(text: 'Final Amount(MYR)', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2)),
         PosColumn(
             text: '${this.paidOrder!.final_amount}',
             width: 4,
             styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2, bold: true)),
       ]);
       bytes += generator.hr();
-      //payment method
-      bytes += generator.row([
-        PosColumn(text: 'Payment method', width: 8, styles: PosStyles(align: PosAlign.right)),
-        PosColumn(text: '${this.paidOrder!.payment_name}', width: 4, styles: PosStyles(align: PosAlign.right)),
-      ]);
-      //payment received
-      bytes += generator.row([
-        PosColumn(text: 'Payment received', width: 8, styles: PosStyles(align: PosAlign.right)),
-        PosColumn(text: '${this.paidOrder!.payment_received}', width: 4, styles: PosStyles(align: PosAlign.right)),
-      ]);
+      if(paymentSplitList.isNotEmpty) {
+        for(int i = 0; i < paymentSplitList.length; i++) {
+          //payment method
+          bytes += generator.row([
+            PosColumn(text: '${paymentSplitList[i].payment_name}', width: 8, containsChinese: true, styles: PosStyles(align: PosAlign.right)),
+            PosColumn(text: '${paymentSplitList[i].payment_received}', width: 4, styles: PosStyles(align: PosAlign.right)),
+          ]);
+        }
+      } else {
+        //payment method
+        bytes += generator.row([
+          PosColumn(text: 'Payment method', width: 8, styles: PosStyles(align: PosAlign.right)),
+          PosColumn(text: '${this.paidOrder!.payment_name}', width: 4, containsChinese: true, styles: PosStyles(align: PosAlign.right)),
+        ]);
+        //payment received
+        bytes += generator.row([
+          PosColumn(text: 'Payment received', width: 8, styles: PosStyles(align: PosAlign.right)),
+          PosColumn(text: '${this.paidOrder!.payment_received}', width: 4, styles: PosStyles(align: PosAlign.right)),
+        ]);
+      }
       //payment change
       bytes += generator.row([
         PosColumn(text: 'Change', width: 8, styles: PosStyles(align: PosAlign.right)),
@@ -256,10 +311,10 @@ class BillLayout extends ReceiptLayout{
         bytes += generator.text('${receipt!.footer_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1), containsChinese: true);
       } else if(paidOrder!.payment_status == 2) {
         bytes += generator.hr();
-        bytes += generator.text('refund by:', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('${paidOrder!.refund_by}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('refund at:', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('${Utils.formatDate(paidOrder!.refund_at)}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('refund by: ${paidOrder!.refund_by}', styles: PosStyles(align: PosAlign.center));
+        // bytes += generator.text('${paidOrder!.refund_by}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('refund at: ${Utils.formatDate(paidOrder!.refund_at)}', styles: PosStyles(align: PosAlign.center));
+        // bytes += generator.text('${Utils.formatDate(paidOrder!.refund_at)}', styles: PosStyles(align: PosAlign.center));
       }
       bytes += generator.emptyLines(1);
       //copyright
@@ -295,6 +350,7 @@ class BillLayout extends ReceiptLayout{
       await callOrderTaxPromoDetail();
       await callPaidOrderDetail(orderId);
     }
+    await getAllPaymentSplit(paidOrder!.order_key!);
     // final ByteData data = await rootBundle.load('drawable/logo1.jpg');
     // final Uint8List bytes = data.buffer.asUint8List();
     // final image = img.decodeImage(bytes);
@@ -314,6 +370,12 @@ class BillLayout extends ReceiptLayout{
       bytes += generator.reset();
       if(paidOrder!.payment_status == 2){
         bytes += generator.text('** Refund **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
+        bytes += generator.emptyLines(1);
+      }
+
+      if(receipt!.header_image_status == 1){
+        img.Image processedImage = await getBranchLogo(receipt!.header_image_size!);
+        bytes += generator.imageRaster(processedImage, align: PosAlign.center);
         bytes += generator.emptyLines(1);
       }
 
@@ -344,8 +406,34 @@ class BillLayout extends ReceiptLayout{
               styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1)),
         ]);
       }
+
+      if(receipt!.second_header_text_status == 1) {
+        PosTextSize productFontSize = receipt!.second_header_font_size == 0 ? PosTextSize.size1 : PosTextSize.size2;
+        PosFontType productFontType = receipt!.second_header_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
+
+        bytes += generator.row([
+          PosColumn(
+              text: '${receipt!.second_header_text}',
+              width: 12,
+              containsChinese: true,
+              styles: PosStyles(
+                  align: PosAlign.center,
+                  fontType: productFontType,
+                  height: productFontSize,
+                  width: productFontSize)),
+        ]);
+        bytes += generator.reset();
+      }
+
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
+      //register no
+      if(receipt!.show_register_no == 1 && branchObject[BranchFields.register_no] != ''){
+        bytes += generator.text(branchObject[BranchFields.register_no],
+          containsChinese: true,
+          styles: PosStyles(align: PosAlign.center),
+        );
+      }
       //Address
       if(receipt!.show_address == 1 && branchObject['address'].toString() != ''){
         bytes += generator.text('${branchObject['address'].toString().replaceAll(',', '\n')}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
@@ -362,25 +450,36 @@ class BillLayout extends ReceiptLayout{
       bytes += generator.hr();
       bytes += generator.reset();
       //receipt no
-      bytes += generator.text('Receipt No:',
+      // bytes += generator.text('Receipt No:',
+      //     styles: PosStyles(
+      //         align: PosAlign.center,
+      //         width: PosTextSize.size1,
+      //         height: PosTextSize.size1,
+      //         bold: true));
+      // bytes += generator.text('${this.paidOrder!.generateOrderNumber()}', styles: PosStyles(align: PosAlign.center, bold: true));
+      bytes += generator.text('Receipt No: ${this.paidOrder!.generateOrderNumber()}',
           styles: PosStyles(
-              align: PosAlign.center,
+              align: PosAlign.left,
               width: PosTextSize.size1,
               height: PosTextSize.size1,
               bold: true));
-      bytes += generator.text('${this.paidOrder!.generateOrderNumber()}', styles: PosStyles(align: PosAlign.center, bold: true));
       bytes += generator.reset();
       //other order detail
-      bytes += generator.text('Close at:', styles: PosStyles(align: PosAlign.center));
-      bytes += generator.text('${Utils.formatDate(paidOrder!.created_at)}', styles: PosStyles(align: PosAlign.center));
-      if(selectedTableList.isNotEmpty){
-        for(int i = 0; i < selectedTableList.length; i++){
-          bytes += generator.text('Table No: ${selectedTableList[i].number}', styles: PosStyles(align: PosAlign.center));
+      // bytes += generator.text('Close at:', styles: PosStyles(align: PosAlign.center));
+      // bytes += generator.text('${Utils.formatDate(paidOrder!.created_at)}', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('Close at: ${Utils.formatDate(paidOrder!.created_at)}');
+      // bytes += generator.text('Close by:', styles: PosStyles(align: PosAlign.center));
+      // bytes += generator.text('${this.paidOrder!.close_by}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('Close by: ${this.paidOrder!.close_by}', containsChinese: true);
+      if(receipt!.hide_dining_method_table_no == 0){
+        if(selectedTableList.isNotEmpty){
+          for(int i = 0; i < selectedTableList.length; i++){
+            bytes += generator.text('Table No: ${selectedTableList[i].number}');
+          }
         }
+        bytes += generator.text('${paidOrder!.dining_name}');
       }
-      bytes += generator.text('${paidOrder!.dining_name}', styles: PosStyles(align: PosAlign.center));
-      bytes += generator.text('Close by:', styles: PosStyles(align: PosAlign.center));
-      bytes += generator.text('${this.paidOrder!.close_by}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
+
       bytes += generator.reset();
       /*
     *
@@ -391,7 +490,7 @@ class BillLayout extends ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: 'Qty ', width: 2, styles: PosStyles(bold: true)),
         PosColumn(text: 'Item', width: 6, styles: PosStyles(bold: true)),
-        PosColumn(text: 'Price', width: 4, styles: PosStyles(bold: true)),
+        PosColumn(text: 'Price(MYR)', width: 4, styles: PosStyles(bold: true)),
       ]);
       bytes += generator.hr();
       //order product
@@ -402,13 +501,13 @@ class BillLayout extends ReceiptLayout{
           orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ?
           PosColumn(
               text: productUnitPriceSplit  ? getReceiptProductName(orderDetailList[i])
-                  : '${getReceiptProductName(orderDetailList[i])} (${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})',
+                  : '${getReceiptProductName(orderDetailList[i])} (${receipt!.show_break_down_price == 0 ? orderDetailList[i].price : orderDetailList[i].original_price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})',
               width: 6,
               containsChinese: true,
               styles: PosStyles(bold: true))
               : PosColumn(
               text: productUnitPriceSplit  ? getReceiptProductName(orderDetailList[i])
-                  : '${getReceiptProductName(orderDetailList[i])} (${orderDetailList[i].price}/each)',
+                  : '${getReceiptProductName(orderDetailList[i])} (${receipt!.show_break_down_price == 0 ? orderDetailList[i].price : orderDetailList[i].original_price}/each)',
               width: 6,
               containsChinese: true,
               styles: PosStyles(bold: true)),
@@ -419,7 +518,8 @@ class BillLayout extends ReceiptLayout{
         if(productUnitPriceSplit){
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ? '(${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})' : '(${orderDetailList[i].price}/each)', width: 10),
+            PosColumn(text: orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ? '(${receipt!.show_break_down_price == 0 ? orderDetailList[i].price : orderDetailList[i].original_price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})'
+                : '(${receipt!.show_break_down_price == 0 ? orderDetailList[i].price : orderDetailList[i].original_price}/each)', width: 10),
           ]);
         }
         bytes += generator.reset();
@@ -437,7 +537,7 @@ class BillLayout extends ReceiptLayout{
             //modifier
             bytes += generator.row([
               PosColumn(text: '', width: 2),
-              PosColumn(text: '+${orderModifierDetailList[j].mod_name}', width: 10, containsChinese: true),
+              PosColumn(text: '+${orderModifierDetailList[j].mod_name}${receipt!.show_break_down_price == 0 ? '' : ' (${double.parse(orderModifierDetailList[j].mod_price!).toStringAsFixed(2)}/each)'}', width: 10, containsChinese: true),
             ]);
           }
         }
@@ -491,23 +591,33 @@ class BillLayout extends ReceiptLayout{
       //total
       bytes += generator.hr();
       bytes += generator.row([
-        PosColumn(text: 'Final Amount', width: 8),
+        PosColumn(text: 'Final Amount(MYR)', width: 8),
         PosColumn(
             text: '${this.paidOrder!.final_amount}',
             width: 4,
             styles: PosStyles(height: PosTextSize.size2, bold: true)),
       ]);
       bytes += generator.hr();
-      //payment method
-      bytes += generator.row([
-        PosColumn(text: 'Payment method', width: 8),
-        PosColumn(text: '${this.paidOrder!.payment_name}', width: 4),
-      ]);
-      //payment received
-      bytes += generator.row([
-        PosColumn(text: 'Payment received', width: 8),
-        PosColumn(text: '${this.paidOrder!.payment_received}', width: 4),
-      ]);
+      if(paymentSplitList.isNotEmpty) {
+        for(int i = 0; i < paymentSplitList.length; i++) {
+          //payment method
+          bytes += generator.row([
+            PosColumn(text: '${paymentSplitList[i].payment_name}', width: 8),
+            PosColumn(text: '${paymentSplitList[i].payment_received}', width: 4),
+          ]);
+        }
+      } else {
+        //payment method
+        bytes += generator.row([
+          PosColumn(text: 'Payment method', width: 8),
+          PosColumn(text: '${this.paidOrder!.payment_name}', width: 4),
+        ]);
+        //payment received
+        bytes += generator.row([
+          PosColumn(text: 'Payment received', width: 8),
+          PosColumn(text: '${this.paidOrder!.payment_received}', width: 4),
+        ]);
+      }
       //payment change
       bytes += generator.row([
         PosColumn(text: 'Change', width: 8),
@@ -520,10 +630,10 @@ class BillLayout extends ReceiptLayout{
         bytes += generator.text('${receipt!.footer_text}', styles: PosStyles(bold: true, height: PosTextSize.size1, width: PosTextSize.size1, align: PosAlign.center), containsChinese: true);
       } else if (paidOrder!.payment_status == 2) {
         bytes += generator.hr();
-        bytes += generator.text('refund by:', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('${paidOrder!.refund_by}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('refund at:', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('${Utils.formatDate(paidOrder!.refund_at)}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('refund by: ${paidOrder!.refund_by}', styles: PosStyles(align: PosAlign.center));
+        // bytes += generator.text('${paidOrder!.refund_by}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('refund at: ${Utils.formatDate(paidOrder!.refund_at)}', styles: PosStyles(align: PosAlign.center));
+        // bytes += generator.text('${Utils.formatDate(paidOrder!.refund_at)}', styles: PosStyles(align: PosAlign.center));
       }
       bytes += generator.emptyLines(1);
       //copyright
@@ -541,4 +651,60 @@ class BillLayout extends ReceiptLayout{
       return null;
     }
   }
+
+  Future<img.Image> getBranchLogo(int header_image_size) async {
+    int imageSize = header_image_size == 0 ? 100 : header_image_size == 1 ? 160 : 220;
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
+    String? path = '';
+
+    if(Platform.isIOS){
+      String dir = await _localPath;
+      path = dir + '/assets/logo';
+    } else {
+      if(prefs.getString('logo_path') != null)
+        path = prefs.getString('logo_path')!;
+    }
+
+    if(path != '') {
+      final File imageFile = File('$path/${branchObject['logo']}');
+      if (!await imageFile.exists()) {
+        return img.Image(width: 1, height: 1);
+      }
+      final Uint8List imageBytes = await imageFile.readAsBytes();
+      final img.Image decodedImage = img.decodeImage(imageBytes)!;
+      img.Image thumbnail = img.copyResize(decodedImage, height: imageSize);
+      img.Image originalImg = img.copyResize(decodedImage, width: 380, height: imageSize);
+      img.fill(originalImg, color: img.ColorRgb8(255, 255, 255));
+
+      var padding = (originalImg.width - thumbnail.width) / 2;
+      img.compositeImage(originalImg, thumbnail, dstX: padding.toInt());
+      img.Image processedImage = img.adjustColor(originalImg, saturation: -100, contrast: 100, gamma: 10);
+
+      return processedImage;
+    } else {
+      return img.Image(width: 1, height: 1);
+    }
+  }
+
+  Future<String> get _localPath async {
+    final directory = await getApplicationSupportDirectory();
+    return directory.path;
+  }
+
+  getAllPaymentSplit(String orderKey) async {
+    try {
+      paymentSplitList = [];
+      if(orderKey != '') {
+        List<OrderPaymentSplit> orderSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(orderKey);
+        for(int k = 0; k < orderSplit.length; k++){
+          paymentSplitList.add(orderSplit[k]);
+        }
+      }
+    } catch(e) {
+      print("Total payment split: $e");
+    }
+  }
 }
+

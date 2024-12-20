@@ -1,13 +1,14 @@
 
 import 'package:flutter/material.dart';
+import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/modifier_item.dart';
 import 'package:pos_system/object/variant_group.dart';
 
-import 'order_cache.dart';
 import 'order_modifier_detail.dart';
 
 class cartProductItem{
+   int? branch_link_product_id;
    String? branch_link_product_sqlite_id;
    String? product_name;
    String? category_id;
@@ -25,11 +26,13 @@ class cartProductItem{
    String? order_cache_key;
    String? category_sqlite_id;
    Color? refColor = Colors.black;
+   String? order_key;
    String? order_detail_sqlite_id;
    int? sequence = 0;
    bool? isRefund;
    String? base_price;
    String? first_cache_created_date_time;
+   String? first_cache_other_order_key;
    String? subtotal;
    String? first_cache_batch;
    String? first_cache_order_by;
@@ -44,6 +47,7 @@ class cartProductItem{
 
    cartProductItem(
        {
+         this.branch_link_product_id,
          this.branch_link_product_sqlite_id,
          this.product_name,
          this.category_id,
@@ -65,10 +69,12 @@ class cartProductItem{
          this.isRefund,
          this.base_price,
          this.first_cache_created_date_time,
+         this.first_cache_other_order_key,
          this.subtotal,
          this.first_cache_batch,
          this.first_cache_order_by,
          this.refColor,
+         this.order_key,
          this.orderModifierDetail,
          this.unit,
          this.per_quantity_unit,
@@ -76,7 +82,7 @@ class cartProductItem{
          this.allow_ticket,
          this.ticket_count,
          this.ticket_exp,
-         this.product_sku
+         this.product_sku,
        });
 
    static cartProductItem fromJson(Map<String, Object?> json) {
@@ -89,6 +95,7 @@ class cartProductItem{
      List<VariantGroup>? variantGroup = variantJson != null ? variantJson.map((tagJson) => VariantGroup.fromJson(tagJson)).toList() : null;
      List<OrderModifierDetail>? orderModifierDetailList = orderModDetail != null ? orderModDetail.map((tagJson) => OrderModifierDetail.fromJson(tagJson)).toList() : null;
      return cartProductItem(
+         branch_link_product_id: json['branch_link_product_id'] as int?,
          branch_link_product_sqlite_id: json['branch_link_product_sqlite_id'] as String?,
          product_name: json['product_name'] as String?,
          category_id: json['category_id'] as String?,
@@ -110,10 +117,12 @@ class cartProductItem{
          isRefund: json['isRefund'] as bool?,
          base_price: json['base_price'] as String?,
          first_cache_created_date_time: json['first_cache_created_date_time'] as String?,
+         first_cache_other_order_key: json['first_cache_other_order_key'] as String?,
          subtotal: json['subtotal'] as String?,
          first_cache_batch: json['first_cache_batch'] as String?,
          first_cache_order_by: json['first_cache_order_by'] as String?,
          refColor: json['refColor'] as Color?,
+         order_key: json['order_key'] as String?,
          orderModifierDetail: orderModifierDetailList,
          unit: json['unit'] as String?,
          per_quantity_unit: json['per_quantity_unit'] as String?,
@@ -126,6 +135,7 @@ class cartProductItem{
    }
 
    Map<String, Object?> toJson() => {
+     'branch_link_product_id': branch_link_product_id,
      'branch_link_product_sqlite_id': branch_link_product_sqlite_id,
      'product_name': product_name,
      'category_id': category_id,
@@ -147,10 +157,12 @@ class cartProductItem{
      'isRefund': isRefund,
      'base_price': base_price,
      'first_cache_created_date_time': first_cache_created_date_time,
+     'first_cache_other_order_key': first_cache_other_order_key,
      'subtotal': subtotal,
      'first_cache_batch': first_cache_batch,
      'first_cache_order_by': first_cache_order_by,
      'refColor': null,
+     'order_key': order_key,
      'orderModifierDetail': orderModifierDetail,
      'unit': unit,
      'per_quantity_unit': per_quantity_unit,
@@ -158,7 +170,7 @@ class cartProductItem{
      'allow_ticket': allow_ticket,
      'ticket_count': ticket_count,
      'ticket_exp': ticket_exp,
-     'product_sku': product_sku
+     'product_sku': product_sku,
    };
 
 }

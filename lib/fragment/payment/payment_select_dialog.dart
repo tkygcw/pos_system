@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
@@ -23,14 +24,16 @@ import 'make_payment_dialog.dart';
 class PaymentSelect extends StatefulWidget {
   final String? dining_id;
   final String dining_name;
+  final String order_key;
   final bool? isUpdate;
   final Order? currentOrder;
-  final Function()? callBack;
+  final Function(String)? callBack;
   const PaymentSelect(
       {
         Key? key,
         required this.dining_id,
         required this.dining_name,
+        required this.order_key,
         this.isUpdate,
         this.currentOrder, this.callBack
       }) : super(key: key);
@@ -66,7 +69,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
           return WillPopScope(
             onWillPop: () async {
               if(widget.callBack != null){
-                widget.callBack!();
+                widget.callBack!('');
               }
               return willPop;
             },
@@ -76,7 +79,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                   child: Container(
                     margin: EdgeInsets.all(2),
                     width: MediaQuery.of(context).size.width / 2,
-                    height: MediaQuery.of(context).size.height / 3,
+                    height: MediaQuery.of(context).size.height / 2,
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -93,7 +96,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                                     onTap: () async {
                                       if(widget.isUpdate == null){
                                         if(cart.cartNotifierItem.isNotEmpty){
-                                          openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!, widget.dining_name);
+                                          openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!, widget.dining_name, widget.order_key);
                                         } else {
                                           Fluttertoast.showToast(
                                               backgroundColor: Colors.red,
@@ -128,40 +131,19 @@ class _PaymentSelectState extends State<PaymentSelect> {
                                     },
                                     child: Card(
                                       elevation: 5,
-                                      color: Colors.white,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(16.0),
                                       ),
-                                      child: Container(
-                                        height: MediaQuery.of(context).size.height / 3,
-                                        width: MediaQuery.of(context).size.width / 3,
-                                        child: Stack(
-                                          alignment: Alignment.center,
-                                          children: [
-                                            // ClipRRect(
-                                            //   borderRadius: BorderRadius.circular(16.0),
-                                            //   child:///***If you have exported images you must have to copy those images in assets/images directory.
-                                            //   Image(
-                                            //     image: AssetImage("drawable/payment_method.png"),
-                                            //     // NetworkImage(
-                                            //     //     "https://image.freepik.com/free-photo/close-up-people-training-with-ball_23-2149049821.jpg"),
-                                            //     height: MediaQuery.of(context).size.height,
-                                            //     width: MediaQuery.of(context).size.width,
-                                            //     fit: BoxFit.cover,
-                                            //   ),
-                                            // ),
-                                            Text(
-                                              '${PaymentLists[index].name}',
-                                              textAlign: TextAlign.start,
-                                              overflow: TextOverflow.clip,
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w700,
-                                                fontStyle: FontStyle.normal,
-                                                fontSize: 16,
-                                                color: Colors.blueGrey,
-                                              ),
-                                            ),
-                                          ],
+                                      child: Center(
+                                        child: Text('${PaymentLists[index].name}',
+                                          textAlign: TextAlign.center,
+                                          overflow: TextOverflow.clip,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                            fontStyle: FontStyle.normal,
+                                            fontSize: 16,
+                                            color: Colors.blueGrey,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -176,8 +158,13 @@ class _PaymentSelectState extends State<PaymentSelect> {
                 ElevatedButton(
                     onPressed: isButtonDisable ? null : (){
                       if(widget.callBack != null){
-                        widget.callBack!();
+                        widget.callBack!('');
                       }
+                      TableModel.instance.changeContent(true);
+                      cart.removeAllTable();
+                      cart.removeAllCartItem();
+                      cart.removeAllGroupList();
+                      cart.removeAllCartOrderCache();
                       if (canPop) {
                         Navigator.of(context).pop();
                         canPop = false;
@@ -197,8 +184,11 @@ class _PaymentSelectState extends State<PaymentSelect> {
             onWillPop: () async => willPop,
             child: AlertDialog(
               title: Text(AppLocalizations.of(context)!.translate('select_payment_method')),
+              titlePadding: EdgeInsets.fromLTRB(24, 12, 24, 0),
+              contentPadding: EdgeInsets.fromLTRB(18, 10, 18, 0),
               content: isload ?
               Container(
+                height: MediaQuery.of(context).size.height / 1.7,
                   width: MediaQuery.of(context).size.width / 2,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,14 +202,14 @@ class _PaymentSelectState extends State<PaymentSelect> {
                         child: GridView.count(
                             padding: EdgeInsets.zero,
                             shrinkWrap: true,
-                            crossAxisCount: 3,
+                            crossAxisCount: MediaQuery.of(context).orientation == Orientation.landscape ? 4 : 2,
                             scrollDirection: Axis.vertical,
                             children: List.generate(PaymentLists.length, (index) {
                               return GestureDetector(
                                 onTap: () async  {
                                   if(widget.isUpdate == null){
                                     if(cart.cartNotifierItem.isNotEmpty){
-                                      openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!, widget.dining_name);
+                                      openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!, widget.dining_name, widget.order_key);
                                     } else {
                                       Fluttertoast.showToast(
                                           backgroundColor: Colors.red,
@@ -283,8 +273,13 @@ class _PaymentSelectState extends State<PaymentSelect> {
                 ElevatedButton(
                     onPressed: isButtonDisable ? null : (){
                       if(widget.callBack != null){
-                        widget.callBack!();
+                        widget.callBack!('');
                       }
+                      TableModel.instance.changeContent(true);
+                      cart.removeAllTable();
+                      cart.removeAllCartItem();
+                      cart.removeAllGroupList();
+                      cart.removeAllCartOrderCache();
                       if (canPop) {
                         Navigator.of(context).pop();
                         canPop = false;
@@ -355,7 +350,11 @@ class _PaymentSelectState extends State<PaymentSelect> {
   readPaymentMethod() async {
     //read available payment method
     List<PaymentLinkCompany> data = await PosDatabase.instance.readPaymentMethods();
-    PaymentLists = List.from(data);
+    if(widget.currentOrder == null){
+      PaymentLists = List.from(data);
+    } else {
+      PaymentLists = data.where((e) => e.type != 2).toList();
+    }
     setState(() {
       isload = true;
     });
@@ -369,7 +368,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
     }
   }
 
-  Future<Future<Object?>> openMakePayment(int type_id, int payment_link_id, String dining, String diningName) async {
+  Future<Future<Object?>> openMakePayment(int type_id, int payment_link_id, String dining, String diningName, String orderKey) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -381,8 +380,12 @@ class _PaymentSelectState extends State<PaymentSelect> {
               child: MakePayment(
                 dining_id: dining,
                 dining_name: diningName,
+                order_key: orderKey,
                 type: type_id,
                 payment_link_company_id: payment_link_id,
+                callBack: (orderKeyValue) async {
+                  await getCallback(orderKeyValue);
+                }
               ),
             ),
           );
@@ -394,6 +397,10 @@ class _PaymentSelectState extends State<PaymentSelect> {
           // ignore: null_check_always_fails
           return null!;
         });
+  }
+
+  getCallback(String orderKeyValue) {
+    widget.callBack!(orderKeyValue);
   }
 
   Future<Future<Object?>> openLogOutDialog() async {

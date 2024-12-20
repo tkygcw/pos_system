@@ -1,4 +1,6 @@
-String? tablePosTable = 'tb_table ';
+import '../utils/Utils.dart';
+
+String? tablePosTable = 'tb_table';
 
 class PosTableFields {
   static List<String> values = [
@@ -57,10 +59,11 @@ class PosTable{
   String? card_color;
   bool isSelected = false;
   String? qrOrderUrl;
+  String? order_key;
   bool? isInPaymentCart;
   String? dynamicQRExp;
   String? dynamicQrHash;
-
+  int? invalid_after_payment;
 
   PosTable(
       {this.table_sqlite_id,
@@ -81,10 +84,12 @@ class PosTable{
         this.group,
         this.card_color,
         this.qrOrderUrl,
+        this.order_key,
         this.isInPaymentCart,
         this.total_amount,
         this.dynamicQRExp,
-        this.dynamicQrHash
+        this.dynamicQrHash,
+        this.invalid_after_payment
       });
 
   PosTable copy({
@@ -142,8 +147,8 @@ class PosTable{
     soft_delete: json[PosTableFields .soft_delete] as String?,
     group: json['group'] as String?,
     card_color: json['card_color'] as String?,
+    order_key: json['order_key'] as String?,
     total_amount: json['total_amount'] as String?
-
   );
 
   Map<String, Object?> toJson() => {
@@ -164,7 +169,19 @@ class PosTable{
     PosTableFields.soft_delete: soft_delete,
     'group': group,
     'card_color': card_color,
+    'order_key': order_key,
     'total_amount': total_amount
+  };
+
+  Map<String, Object?> toTableDynamicJson() => {
+    PosTableFields.table_id: table_id.toString(),
+    PosTableFields.branch_id: branch_id,
+    PosTableFields.created_at: Utils.dbCurrentDateTimeFormat(),
+    PosTableFields.updated_at: '',
+    PosTableFields.soft_delete: '',
+    'qr_expired_dateTime': dynamicQRExp,
+    'qr_url': dynamicQrHash,
+    'invalid_after_payment': invalid_after_payment,
   };
 
 

@@ -1,17 +1,13 @@
 import 'dart:convert';
 
-import 'package:another_flushbar/flushbar.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
-import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:pos_system/fragment/custom_snackbar.dart';
+import 'package:pos_system/fragment/custom_toastification.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/qr_order_auto_accept.dart';
 import 'package:pos_system/object/table.dart';
-import 'package:pos_system/page/loading.dart';
-import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../database/domain.dart';
@@ -29,10 +25,12 @@ class QrOrder extends ChangeNotifier {
 
   QrOrder.init();
 
-  getAllNotAcceptedQrOrder() async {
+  getAllNotAcceptedQrOrder({bool? notify = true}) async {
     List<OrderCache> data = await PosDatabase.instance.readNotAcceptedQROrderCache();
     qrOrderCacheList = data;
-    notifyListeners();
+    if(notify == true){
+      notifyListeners();
+    }
   }
 
   void removeSpecificQrOrder(int order_cache_sqlite_id){
@@ -82,10 +80,12 @@ class QrOrder extends ChangeNotifier {
             qr_order_table_sqlite_id: '',
             qr_order_table_id: response['data'][i]['table_id'],
             accepted: 1,
+            payment_status: 0,
             sync_status: 1,
             created_at: dateTime,
             updated_at: '',
-            soft_delete: ''
+            soft_delete: '',
+            other_order_key: ''
         );
 
         OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(orderCache);
@@ -97,12 +97,12 @@ class QrOrder extends ChangeNotifier {
           await PosDatabase.instance.readSpecificBranchLinkProductByCloudId(response['data'][i]['order_detail'][j]['branch_link_product_id'].toString());
           print('category id: ${response['data'][i]['order_detail'][j]['category_id'].toString()}');
           if(response['data'][i]['order_detail'][j]['category_id'].toString() != '0'){
-            Categories catData = await PosDatabase.instance.readSpecificCategoryByCloudId(response['data'][i]['order_detail'][j]['category_id'].toString());
-            categoryLocalId = catData.category_sqlite_id.toString();
+            Categories? catData = await PosDatabase.instance.readSpecificCategoryByCloudId(response['data'][i]['order_detail'][j]['category_id'].toString());
+            categoryLocalId = catData!.category_sqlite_id.toString();
           } else {
             categoryLocalId = '0';
           }
-
+          print("product sku: ${response['data'][i]['order_detail'][j]['product_sku']}");
           OrderDetail orderDetail = OrderDetail(
             order_detail_id: 0,
             order_detail_key: response['data'][i]['order_detail'][j]['order_detail_key'],
@@ -126,6 +126,7 @@ class QrOrder extends ChangeNotifier {
             status: 0,
             unit: 'each',
             per_quantity_unit: '',
+            product_sku: response['data'][i]['order_detail'][j]['product_sku'] ?? '',
             sync_status: 1,
             created_at: dateTime,
             updated_at: '',
@@ -157,20 +158,15 @@ class QrOrder extends ChangeNotifier {
           }
         }
       }
-      List<OrderCache> data = await PosDatabase.instance.readNotAcceptedQROrderCache();
-      qrOrderCacheList = data;
-      CustomSnackBar.instance.showSnackBar(
-          title: "${AppLocalizations.of(context)?.translate('qr_order')}",
-          description: "${AppLocalizations.of(context)?.translate('new_qr_order_received')}",
-          contentType: ContentType.success,
-          playSound: true,
-          playtime: 2
-      );
+      if(localSetting!.qr_order_alert == 1){
+        ShowQRToast.showToast();
+      }
+      await getAllNotAcceptedQrOrder();
       if(localSetting!.qr_order_auto_accept == 1){
         asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
         return;
       }
-      notifyListeners();
+
     }
   }
 

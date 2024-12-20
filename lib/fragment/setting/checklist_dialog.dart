@@ -17,6 +17,7 @@ import '../../database/pos_database.dart';
 import '../../enumClass/receipt_dialog_enum.dart';
 import '../../main.dart';
 import '../../notifier/theme_color.dart';
+import '../../object/branch.dart';
 import '../printing_layout/print_receipt.dart';
 import '../../translation/AppLocalizations.dart';
 import '../../utils/Utils.dart';
@@ -239,7 +240,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
           return AlertDialog(
             title: Text(AppLocalizations.of(context)!.translate('check_list_layout')),
             titlePadding: EdgeInsets.fromLTRB(24, 16, 24, 0),
-            contentPadding: EdgeInsets.fromLTRB(24, 16, 24, 5),
+            contentPadding: EdgeInsets.fromLTRB(24, 16, 24, 16),
             content: StreamBuilder(
                 stream: contentStream,
                 builder: (context, snapshot){
@@ -295,55 +296,72 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                 }
             ),
             actions: [
-              SizedBox(
-                width: MediaQuery.of(context).size.width / 4,
-                height: MediaQuery.of(context).size.height / 10,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: color.backgroundColor,
+              Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: SizedBox(
+                      width: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width / 2.5 : MediaQuery.of(context).size.width / 3,
+                      height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10 : MediaQuery.of(context).size.height / 20,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: color.backgroundColor,
+                        ),
+                        child: Text(MediaQuery.of(context).orientation == Orientation.landscape ?
+                        AppLocalizations.of(context)!.translate('test_print')
+                            : AppLocalizations.of(context)!.translate('test')),
+                        onPressed: () {
+                          if(cashierPrinter.isNotEmpty){
+                            testLayout();
+                            PrintReceipt().printTestPrintChecklist(cashierPrinter, testPrintLayout, testPrintLayout.paper_size!);
+                          } else {
+                            Fluttertoast.showToast(msg: "No cashier printer added");
+                          }
+                        },
+                      ),
+                    ),
                   ),
-                  child: Text(AppLocalizations.of(context)!.translate('test_print')),
-                  onPressed: () {
-                    if(cashierPrinter.isNotEmpty){
-                      testLayout();
-                      PrintReceipt().printTestPrintChecklist(cashierPrinter, testPrintLayout, testPrintLayout.paper_size!);
-                    } else {
-                      Fluttertoast.showToast(msg: "No cashier printer added");
-                    }
-                  },
-                ),
-              ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width / 4,
-                height: MediaQuery.of(context).size.height / 10,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent,
+                  SizedBox(width: 10),
+                  Expanded(
+                    flex: 1,
+                    child: SizedBox(
+                      width: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width / 2.5 : MediaQuery.of(context).size.width / 3,
+                      height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10 : MediaQuery.of(context).size.height / 20,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent,
+                        ),
+                        child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                        onPressed: isButtonDisabled ? null : () {
+                          setState(() {
+                            isButtonDisabled = true;
+                          });
+                          closeDialog(context);
+                        },
+                      ),
+                    ),
                   ),
-                  child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                  onPressed: isButtonDisabled ? null : () {
-                    setState(() {
-                      isButtonDisabled = true;
-                    });
-                    closeDialog(context);
-                  },
-                ),
-              ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width / 4,
-                height: MediaQuery.of(context).size.height / 10,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: color.backgroundColor,
+                  SizedBox(width: 10),
+                  Expanded(
+                    flex: 1,
+                    child: SizedBox(
+                      width: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width / 2.5 : MediaQuery.of(context).size.width / 3,
+                      height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10 : MediaQuery.of(context).size.height / 20,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: color.backgroundColor,
+                        ),
+                        child: Text(AppLocalizations.of(context)!.translate('update')),
+                        onPressed: isButtonDisabled ? null : () {
+                          setState(() {
+                            isButtonDisabled = true;
+                          });
+                          _submit(context);
+                        },
+                      ),
+                    ),
                   ),
-                  child: Text(AppLocalizations.of(context)!.translate('update')),
-                  onPressed: isButtonDisabled ? null : () {
-                    setState(() {
-                      isButtonDisabled = true;
-                    });
-                    _submit(context);
-                  },
-                ),
+                ],
               ),
             ],
           );
@@ -392,12 +410,13 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
       String dateTime = dateFormat.format(DateTime.now());
       final prefs = await SharedPreferences.getInstance();
       final String? branch = prefs.getString('branch');
-      var branchObject = json.decode(branch!);
+      Map<String, dynamic> branchMap = json.decode(branch!);
+      Branch branchObject = Branch.fromJson(branchMap);
 
       Checklist data = await PosDatabase.instance.insertSqliteChecklist(Checklist(
         checklist_id: 0,
         checklist_key: '',
-        branch_id: branchObject['branchID'].toString(),
+        branch_id: branchObject.branch_id!.toString(),
         product_name_font_size: productFontSize == ReceiptDialogEnum.big ? 0 : 1,
         other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : 1,
         check_list_show_price: checkListShowPrice == true ? 1 : 0,
@@ -688,6 +707,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
               child: Text(AppLocalizations.of(context)!.translate('product_name_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.big,
               groupValue: productFontSize,
               onChanged: (value) {
@@ -695,10 +715,11 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                 fontSize = 20.0;
                 actionController.sink.add("switch");
               },
-              title: Text(AppLocalizations.of(context)!.translate('big')),
+              title: Text(AppLocalizations.of(context)!.translate('medium')),
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.small,
               groupValue: productFontSize,
               onChanged: (value) {
@@ -714,6 +735,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
               child: Text(AppLocalizations.of(context)!.translate('other_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.big,
               groupValue: variantAddonFontSize,
               onChanged: (value) {
@@ -721,10 +743,11 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                 otherFontSize = 20.0;
                 actionController.sink.add("switch");
               },
-              title: Text(AppLocalizations.of(context)!.translate('big')),
+              title: Text(AppLocalizations.of(context)!.translate('medium')),
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.small,
               groupValue: variantAddonFontSize,
               onChanged: (value) {
@@ -942,6 +965,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
               child: Text(AppLocalizations.of(context)!.translate('product_name_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.big,
               groupValue: productFontSize,
               onChanged: (value) async  {
@@ -949,10 +973,11 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                 fontSize = 20.0;
                 actionController.sink.add("switch");
               },
-              title: Text(AppLocalizations.of(context)!.translate('big')),
+              title: Text(AppLocalizations.of(context)!.translate('medium')),
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.small,
               groupValue: productFontSize,
               onChanged: (value) async  {
@@ -968,6 +993,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
               child: Text(AppLocalizations.of(context)!.translate('other_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.big,
               groupValue: variantAddonFontSize,
               onChanged: (value) async  {
@@ -975,10 +1001,11 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                 otherFontSize = 20.0;
                 actionController.sink.add("switch");
               },
-              title: Text(AppLocalizations.of(context)!.translate('big')),
+              title: Text(AppLocalizations.of(context)!.translate('medium')),
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.small,
               groupValue: variantAddonFontSize,
               onChanged: (value) async  {
@@ -1042,6 +1069,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
         child: Text(AppLocalizations.of(context)!.translate('product_name_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        activeColor: color.backgroundColor,
         value: ReceiptDialogEnum.big,
         groupValue: productFontSize,
         onChanged: (value) async  {
@@ -1049,10 +1077,11 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
           fontSize = 20.0;
           actionController.sink.add("switch");
         },
-        title: Text(AppLocalizations.of(context)!.translate('big')),
+        title: Text(AppLocalizations.of(context)!.translate('medium')),
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        activeColor: color.backgroundColor,
         value: ReceiptDialogEnum.small,
         groupValue: productFontSize,
         onChanged: (value) async  {
@@ -1068,6 +1097,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
         child: Text(AppLocalizations.of(context)!.translate('other_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        activeColor: color.backgroundColor,
         value: ReceiptDialogEnum.big,
         groupValue: variantAddonFontSize,
         onChanged: (value) async  {
@@ -1075,10 +1105,11 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
           otherFontSize = 20.0;
           actionController.sink.add("switch");
         },
-        title: Text(AppLocalizations.of(context)!.translate('big')),
+        title: Text(AppLocalizations.of(context)!.translate('medium')),
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        activeColor: color.backgroundColor,
         value: ReceiptDialogEnum.small,
         groupValue: variantAddonFontSize,
         onChanged: (value) async  {
@@ -1139,6 +1170,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
         child: Text(AppLocalizations.of(context)!.translate('product_name_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        activeColor: color.backgroundColor,
         value: ReceiptDialogEnum.big,
         groupValue: productFontSize,
         onChanged: (value) async  {
@@ -1146,10 +1178,11 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
           fontSize = 20.0;
           actionController.sink.add("switch");
         },
-        title: Text(AppLocalizations.of(context)!.translate('big')),
+        title: Text(AppLocalizations.of(context)!.translate('medium')),
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        activeColor: color.backgroundColor,
         value: ReceiptDialogEnum.small,
         groupValue: productFontSize,
         onChanged: (value) async  {
@@ -1165,6 +1198,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
         child: Text(AppLocalizations.of(context)!.translate('other_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        activeColor: color.backgroundColor,
         value: ReceiptDialogEnum.big,
         groupValue: variantAddonFontSize,
         onChanged: (value) async  {
@@ -1172,10 +1206,11 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
           otherFontSize = 20.0;
           actionController.sink.add("switch");
         },
-        title: Text(AppLocalizations.of(context)!.translate('big')),
+        title: Text(AppLocalizations.of(context)!.translate('medium')),
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
+        activeColor: color.backgroundColor,
         value: ReceiptDialogEnum.small,
         groupValue: variantAddonFontSize,
         onChanged: (value) async  {

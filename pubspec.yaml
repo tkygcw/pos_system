@@ -14,8 +14,8 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # Read more about Android versioning at https://developer.android.com/studio/publish/versioning
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
-# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.1.9+121
+# https://developer.apple.com/library/archive/documentatioyn/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
+version: 1.1.33+145
 
 environment:
   sdk: ">=2.16.2 <3.0.0"
@@ -39,7 +39,9 @@ dependencies:
   google_fonts: ^4.0.3
   devicelocale: ^0.6.0
   provider: ^6.0.5
-  collapsible_sidebar: ^2.0.3+3
+  collapsible_sidebar:
+    git:
+      url: https://github.com/tkygcw/flutter_collapsible_sidebar.git
   quantity_input: ^1.0.2
   grouped_list: ^5.1.2
   side_navigation: ^1.0.4
@@ -67,7 +69,7 @@ dependencies:
       url: https://github.com/tkygcw/esc_pos_printer.git
   flutter_usb_printer:
     git:
-      url: https://github.com/kechankrisna/flutter_usb_printer.git
+      url: https://github.com/tkygcw/flutter_usb_printer.git
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.5
@@ -77,11 +79,11 @@ dependencies:
   percent_indicator: ^4.2.3
   qr_code_scanner: ^1.0.1
   xml2json: ^5.3.6
-  firebase_messaging: ^14.1.1
-  firebase_core: ^2.3.0
+  firebase_messaging: ^15.1.2
+  firebase_core: ^3.5.0
   flutter_local_notifications: ^17.2.2
   presentation_displays: ^0.2.3
-  app_settings: ^4.2.0
+  app_settings: ^5.1.1
   location: ^4.4.0
   internet_connection_checker: ^1.0.0+1
   syncfusion_flutter_datepicker: ^22.2.12
@@ -92,7 +94,6 @@ dependencies:
   file: 6.1.4
   barcode_scan2: ^4.2.4
   rxdart: ^0.27.7
-  assets_audio_player: ^3.0.6
   dotted_line: ^3.2.0
   esc_pos_utils_plus: ^2.0.2
   carousel_slider: ^5.0.0
@@ -112,12 +113,19 @@ dependencies:
   awesome_snackbar_content: ^0.1.3
   pdf_widget_wrapper: ^1.0.4
   circular_menu: ^4.0.0
+  cloud_firestore: ^5.4.2
+  toastification: ^2.3.0
+  assets_audio_player: ^3.1.1
+  store_checker: ^1.6.0
+  print_bluetooth_thermal: ^1.1.1
+  permission_handler: ^11.3.1
 
 dependency_overrides:
   image_picker_android: 0.8.6+6
   intl: 0.18.0
   image: ^4.1.3
   win32: 5.5.4
+  uuid: 4.5.1
 
 dev_dependencies:
   flutter_test:
@@ -148,6 +156,7 @@ flutter:
     - language/
     - drawable/
     - audio/
+    - shorebird.yaml
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

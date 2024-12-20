@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:f_logs/model/flog/flog.dart';
+import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/database/pos_database.dart';
@@ -7,10 +9,13 @@ import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/dining_option.dart';
+import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/table.dart';
-import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/object/table_use_detail.dart';
+import 'package:pos_system/object/order_payment_split.dart';
+import 'package:pos_system/page/loading_dialog.dart';
+import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -43,6 +48,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
   List<ProductVariant> orderProductVariant = [];
   List<VariantGroup> variantGroup = [];
   List<ModifierGroup> modifierGroup = [];
+  bool _isLoad = false;
 
   @override
   void initState() {
@@ -69,6 +75,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
   }
 
   getOrderList({model}) async {
+    _isLoad = false;
     List<OrderCache> data = [];
     if (model != null) {
       model.changeContent2(false);
@@ -97,6 +104,37 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
     setState(() {
       orderCacheList = data;
     });
+    for(int i = 0; i < orderCacheList.length; i++) {
+      if(orderCacheList[i].order_key != '') {
+        double amountPaid = 0;
+        double total_amount = double.parse(orderCacheList[i].total_amount!);
+        List<OrderPaymentSplit> orderSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(orderCacheList[i].order_key!);
+
+        for(int k = 0; k < orderSplit.length; k++){
+          amountPaid += double.parse(orderSplit[k].amount!);
+        }
+
+        List<Order> orderData = await PosDatabase.instance.readSpecificOrderByOrderKey(orderCacheList[i].order_key!);
+        total_amount = double.parse(orderData[0].final_amount!);
+
+        total_amount -= amountPaid;
+        setState(() {
+          orderCacheList[i].total_amount = total_amount.toString();
+        });
+      } else {
+        if(orderCacheList[i].other_order_key !=''){
+          List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[i].other_order_key!);
+          double total_amount = 0;
+          for(int j = 0; j < data.length; j++){
+            total_amount += double.parse(data[j].total_amount!);
+          }
+          setState(() {
+            orderCacheList[i].total_amount = total_amount.toString();
+          });
+        }
+      }
+    }
+    _isLoad = true;
   }
 
   // Future<Future<Object?>> openViewOrderDialog(OrderCache data) async {
@@ -136,10 +174,11 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
               getOrderList(model: tableModel);
             }
             return Scaffold(
-              appBar: AppBar(
+              appBar: MediaQuery.of(context).orientation == Orientation.landscape && MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? AppBar(
                 automaticallyImplyLeading: false,
                 elevation: 0,
                 title: Text(AppLocalizations.of(context)!.translate('other_order'), style: TextStyle(fontSize: 25)),
+                centerTitle: false,
                 actions: [
                   Container(
                     width: MediaQuery.of(context).size.height / 3,
@@ -184,9 +223,70 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                     ),
                   ),
                 ],
+              ) :
+              AppBar(
+                automaticallyImplyLeading: false,
+                elevation: 0,
+                leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      isCollapsedNotifier.value = !isCollapsedNotifier.value;
+                    },
+                    child: Image.asset('drawable/logo.png'),
+                  ),
+                ),
+                title: Text(AppLocalizations.of(context)!.translate('other_order'),
+                  style: TextStyle(fontSize: 20, color: color.backgroundColor),
+                ),
+                centerTitle: false,
+                actions: [
+                  Container(
+                    width: MediaQuery.of(context).size.height / 7,
+                    padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                    child: DropdownButton<String>(
+                      onChanged: (String? value) {
+                        setState(() {
+                          selectDiningOption = value!;
+                        });
+                        cart.removeAllCartItem();
+                        cart.removeAllTable();
+                        getOrderList();
+                      },
+                      menuMaxHeight: 250,
+                      value: selectDiningOption,
+                      // Hide the default underline
+                      underline: Container(),
+                      icon: Icon(
+                        Icons.arrow_drop_down,
+                        color: color.backgroundColor,
+                      ),
+                      isExpanded: true,
+                      // The list of options
+                      items: list
+                          .map((e) => DropdownMenuItem(
+                        value: e,
+                        child: Container(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            AppLocalizations.of(context)!.translate(getDiningOption(e)),
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                      ))
+                          .toList(),
+                      // Customize the selected item
+                      selectedItemBuilder: (BuildContext context) => list
+                          .map((e) => Center(
+                        child: Text(AppLocalizations.of(context)!.translate(getDiningOption(e))),
+                      ))
+                          .toList(),
+                    ),
+                  )
+                ],
               ),
               resizeToAvoidBottomInset: false,
-              body: Container(
+              body: _isLoad ? Container(
                 padding: EdgeInsets.all(10),
                 child: orderCacheList.isNotEmpty ?
                 ListView.builder(
@@ -195,55 +295,167 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                     itemBuilder: (BuildContext context, int index) {
                       return Card(
                         elevation: 5,
+                        color: orderCacheList[index].payment_status == 2 ? Color(0xFFFFB3B3) : Colors.white,
                         shape: orderCacheList[index].is_selected
                             ? new RoundedRectangleBorder(
                             side: new BorderSide(
-                                color: color.backgroundColor, width: 3.0),
+                                color: orderCacheList[index].payment_status == 2 ? Colors.red : color.backgroundColor, width: 3.0),
                             borderRadius: BorderRadius.circular(4.0))
                             : new RoundedRectangleBorder(
-                            side: new BorderSide(
-                                color: Colors.white, width: 3.0),
+                            side: new BorderSide(color: orderCacheList[index].payment_status == 2 ? Color(0xFFFFB3B3) : Colors.white, width: 3.0),
                             borderRadius: BorderRadius.circular(4.0)),
                         child: InkWell(
                           onTap: () async {
-                            if(orderCacheList[index].is_selected == false){
-                              if(cart.cartNotifierItem.isEmpty){
-                                orderCacheList[index].is_selected = true;
-                                cart.selectedOptionId = orderCacheList[index].dining_id!;
-                                await getOrderDetail(orderCacheList[index]);
-                                await addToCart(cart, orderCacheList[index]);
+                            openLoadingDialogBox();
+                            try {
+                              if(orderCacheList[index].is_selected == false){
+                                await Future.delayed(Duration(milliseconds: 300));
+                                if(cart.cartNotifierItem.isEmpty){
+                                  // orderCacheList[index].is_selected = true;
+                                  // cart.selectedOptionId = orderCacheList[index].dining_id!;
+                                  // await getOrderDetail(orderCacheList[index]);
+                                  // await addToCart(cart, orderCacheList[index]);
+                                  if (orderCacheList[index].order_key != '') {
+                                    for(int i = 0; i < orderCacheList.length; i ++) {
+                                      if(orderCacheList[i].order_key == orderCacheList[index].order_key && orderCacheList[index].order_key != '') {
+                                        orderCacheList[i].is_selected = true;
+                                        cart.selectedOptionId = orderCacheList[i].dining_id!;
+                                        cart.selectedOptionOrderKey = orderCacheList[i].order_key!;
+                                        if(orderCacheList[i].other_order_key != ''){
+                                          List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[i].other_order_key!);
+                                          for(int i = 0; i < data.length; i++) {
+                                            await getOrderDetail(data[i]);
+                                            await addToCart(cart, data[i]);
+                                          }
+                                        } else {
+                                          await getOrderDetail(orderCacheList[i]);
+                                          await addToCart(cart, orderCacheList[i]);
+                                        }
+                                      }
+                                    }
 
-                              } else {
-                                if(orderCacheList[index].dining_id == cart.selectedOptionId){
-                                  orderCacheList[index].is_selected = true;
-                                  await getOrderDetail(orderCacheList[index]);
-                                  await addToCart(cart, orderCacheList[index]);
+                                  } else {
+                                    orderCacheList[index].is_selected = true;
+                                    cart.selectedOptionId = orderCacheList[index].dining_id!;
+                                    cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
+                                    if(orderCacheList[index].other_order_key != ''){
+                                      List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[index].other_order_key!);
+                                      for(int i = 0; i < data.length; i++) {
+                                        await getOrderDetail(data[i]);
+                                        await addToCart(cart, data[i]);
+                                      }
+                                    } else {
+                                      await getOrderDetail(orderCacheList[index]);
+                                      await addToCart(cart, orderCacheList[index]);
+                                    }
+
+                                  }
                                 } else {
-                                  Fluttertoast.showToast(
-                                      backgroundColor: Colors.red,
-                                      msg: "${AppLocalizations.of(context)?.translate('dining_option_not_match')}");
+                                  if(orderCacheList[index].dining_id == cart.selectedOptionId){
+                                    if(cart.selectedOptionOrderKey == orderCacheList[index].order_key) {
+                                      if (orderCacheList[index].order_key != '') {
+                                        for(int i = 0; i < orderCacheList.length; i++) {
+                                          if(orderCacheList[i].order_key == orderCacheList[index].order_key && orderCacheList[index].order_key != '') {
+                                            orderCacheList[i].is_selected = true;
+                                            cart.selectedOptionId = orderCacheList[i].dining_id!;
+                                            cart.selectedOptionOrderKey = orderCacheList[i].order_key!;
+                                            await getOrderDetail(orderCacheList[i]);
+                                            await addToCart(cart, orderCacheList[i]);
+                                          } else {
+                                            orderCacheList[index].is_selected = true;
+                                            cart.selectedOptionId = orderCacheList[index].dining_id!;
+                                            cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
+                                            await getOrderDetail(orderCacheList[index]);
+                                            await addToCart(cart, orderCacheList[index]);
+                                          }
+                                        }
+                                      } else {
+                                        orderCacheList[index].is_selected = true;
+                                        cart.selectedOptionId = orderCacheList[index].dining_id!;
+                                        cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
+
+                                        if(orderCacheList[index].other_order_key != ''){
+                                          List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[index].other_order_key!);
+                                          for(int i = 0; i < data.length; i++) {
+                                            await getOrderDetail(data[i]);
+                                            await addToCart(cart, data[i]);
+                                          }
+                                        } else {
+                                          await getOrderDetail(orderCacheList[index]);
+                                          await addToCart(cart, orderCacheList[index]);
+                                        }
+                                      }
+                                    } else {
+                                      Fluttertoast.showToast(
+                                          backgroundColor: Colors.red,
+                                          msg: "${AppLocalizations.of(context)?.translate('payment_status_not_match')}");
+                                    }
+
+
+                                    // orderCacheList[index].is_selected = true;
+                                    // await getOrderDetail(orderCacheList[index]);
+                                    // await addToCart(cart, orderCacheList[index]);
+                                  } else {
+                                    Fluttertoast.showToast(
+                                        backgroundColor: Colors.red,
+                                        msg: "${AppLocalizations.of(context)?.translate('dining_option_not_match')}");
+                                  }
+                                }
+                                //reset other selected order
+                                // for(int i = 0; i < orderCacheList.length; i++){
+                                //   orderCacheList[i].is_selected = false;
+                                //   cart.notDineInInitLoad();
+                                // }
+
+                              } else if(orderCacheList[index].is_selected == true) {
+                                if(orderCacheList[index].other_order_key != ''){
+                                  List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[index].other_order_key!);
+                                  for(int i = 0; i < data.length; i++) {
+                                    data[i].is_selected = false;
+                                    cart.removePromotion();
+                                    cart.removeCartItemBasedOnOrderCache(data[i].order_cache_sqlite_id.toString());
+                                  }
+                                }
+                                if(orderCacheList[index].order_key != '') {
+                                  for(int i = 0; i < orderCacheList.length; i++) {
+                                    orderCacheList[i].is_selected = false;
+                                    cart.removeSpecificOrderCache(orderCacheList[i]);
+                                    cart.removePromotion();
+                                    cart.removeCartItemBasedOnOrderCache(orderCacheList[i].order_cache_sqlite_id.toString());
+                                  }
+                                } else {
+                                  orderCacheList[index].is_selected = false;
+                                  cart.removeSpecificOrderCache(orderCacheList[index]);
+                                  cart.removePromotion();
+                                  cart.removeCartItemBasedOnOrderCache(orderCacheList[index].order_cache_sqlite_id.toString());
+                                }
+                                List<TableUseDetail> tableUseDetailList = await PosDatabase.instance.readTableUseDetailByTableUseKey(orderCacheList[index].table_use_key!);
+                                for(int i = 0; i < tableUseDetailList.length; i++) {
+                                  List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableUseDetailList[i].table_sqlite_id!);
+                                  cart.removeSpecificTable(tableData[0]);
                                 }
                               }
-                              //reset other selected order
-                              // for(int i = 0; i < orderCacheList.length; i++){
-                              //   orderCacheList[i].is_selected = false;
-                              //   cart.notDineInInitLoad();
-                              // }
-
-                            } else if(orderCacheList[index].is_selected == true) {
-                              orderCacheList[index].is_selected = false;
-                              cart.removeCartItemBasedOnOrderCache(orderCacheList[index].order_cache_sqlite_id.toString());
-
-                              List<TableUseDetail> tableUseDetailList = await PosDatabase.instance.readTableUseDetailByTableUseKey(orderCacheList[index].table_use_key!);
-                              for(int i = 0; i < tableUseDetailList.length; i++) {
-                                List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableUseDetailList[i].table_sqlite_id!);
-                                cart.removeSpecificTable(tableData[0]);
+                            } catch(e) {
+                              Navigator.of(context).pop();
+                              for(int i = 0; i < orderCacheList.length; i++) {
+                                orderCacheList[i].is_selected = false;
+                                cart.removePromotion();
+                                cart.removeCartItemBasedOnOrderCache(orderCacheList[i].order_cache_sqlite_id.toString());
                               }
+                              FLog.error(
+                                className: "display_order",
+                                text: "other order on tap error",
+                                exception: e,
+                              );
+                            } finally {
+                              setState(() {
+                                Navigator.of(context).pop();
+                              });
                             }
                             //openViewOrderDialog(orderCacheList[index]);
                           },
                           child: Padding(
-                            padding: const EdgeInsets.all(16.0),
+                            padding: MediaQuery.of(context).orientation == Orientation.landscape || MediaQuery.of(context).size.width > 500 ? const EdgeInsets.all(16.0) : EdgeInsets.fromLTRB(0, 16, 0, 16),
                             child: ListTile(
                                 leading:
                                 orderCacheList[index].dining_name == 'Take Away'
@@ -265,22 +477,22 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                                 ),
                                 trailing: Text(
                                   '#'+orderCacheList[index].batch_id.toString(),
-                                  style: TextStyle(fontSize: 20),
+                                  style: TextStyle(fontSize: MediaQuery.of(context).orientation == Orientation.landscape || MediaQuery.of(context).size.width > 500 ? 20 : 15),
                                 ),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(AppLocalizations.of(context)!.translate('order_by')+': ' + orderCacheList[index].order_by!,
-                                      style: TextStyle(fontSize: 14),
+                                      style: TextStyle(fontSize: MediaQuery.of(context).orientation == Orientation.landscape || MediaQuery.of(context).size.width > 500 ? 14 : 13),
                                     ),
                                     Text(AppLocalizations.of(context)!.translate('order_at')+': ' + Utils.formatDate(orderCacheList[index].created_at!),
-                                      style: TextStyle(fontSize: 14),
+                                      style: TextStyle(fontSize: MediaQuery.of(context).orientation == Orientation.landscape || MediaQuery.of(context).size.width > 500 ? 14 : 13),
                                     ),
                                   ],
                                 ),
                                 title: Text(
                                   "${Utils.convertTo2Dec(orderCacheList[index].total_amount!,)}",
-                                  style: TextStyle(fontSize: 20),
+                                  style: TextStyle(fontSize: MediaQuery.of(context).orientation == Orientation.landscape || MediaQuery.of(context).size.width > 500 ? 20 : 18),
                                 )),
                           ),
                         ),
@@ -300,7 +512,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                     ],
                   ),
                 ),
-              ),
+              ) : CustomProgressBar(),
             );
           }
           );
@@ -308,6 +520,27 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
         );
       });
     });
+  }
+
+  Future<Future<Object?>> openLoadingDialogBox() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+                opacity: a1.value,
+                child: WillPopScope(child: LoadingDialog(isTableMenu: true), onWillPop: () async => false)),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   getDiningOption(diningOption){
@@ -344,10 +577,12 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
           first_cache_batch: orderCache.batch_id,
           first_cache_order_by: orderCache.order_by,
           first_cache_created_date_time: orderCache.created_at,
+          first_cache_other_order_key: orderCache.other_order_key,
           allow_ticket: orderDetailList[i].allow_ticket,
           ticket_count: orderDetailList[i].ticket_count,
           ticket_exp: orderDetailList[i].ticket_exp,
-          product_sku: orderDetailList[i].product_sku
+          product_sku: orderDetailList[i].product_sku,
+          order_key: orderCache.order_key,
       );
       cartItemList.add(value);
       if(orderCache.dining_name == 'Take Away'){

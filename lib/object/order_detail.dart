@@ -5,7 +5,7 @@ import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/product_variant.dart';
 import 'package:pos_system/object/variant_item.dart';
 
-String? tableOrderDetail = 'tb_order_detail ';
+String? tableOrderDetail = 'tb_order_detail';
 
 class OrderDetailFields {
   static List<String> values = [
@@ -132,6 +132,7 @@ class OrderDetail{
   int? allow_ticket;
   int? ticket_count;
   String? ticket_exp;
+  String? quantity_before_cancel;
 
   OrderDetail(
       {this.order_detail_sqlite_id,
@@ -184,6 +185,7 @@ class OrderDetail{
         this.allow_ticket,
         this.ticket_count,
         this.ticket_exp,
+        this.quantity_before_cancel,
         List<String>? tableNumber,
         bool? isSelected
       }) {
@@ -307,7 +309,8 @@ class OrderDetail{
       isSelected: json['isSelected'] as bool?,
       allow_ticket: json['allow_ticket'] as int?,
       ticket_count: json['ticket_count'] as int?,
-      ticket_exp: json['ticket_exp'] as String?
+      ticket_exp: json['ticket_exp'] as String?,
+      quantity_before_cancel: json['quantity_before_cancel'] as String?
     );
   }
 
@@ -399,6 +402,33 @@ class OrderDetail{
     OrderDetailFields.cancel_by_user_id: cancel_by_user_id,
     OrderDetailFields.status: status,
     OrderDetailFields.sync_status: sync_status,
+    OrderDetailFields.unit: unit,
+    OrderDetailFields.per_quantity_unit: per_quantity_unit,
+    OrderDetailFields.product_sku: product_sku,
+    OrderDetailFields.created_at: created_at,
+    OrderDetailFields.updated_at: updated_at,
+    OrderDetailFields.soft_delete: soft_delete,
+    CategoriesFields.category_id: category_id,
+    BranchLinkProductFields.branch_link_product_id: branch_link_product_id
+  };
+
+  Map<String, Object?> toFirestoreJson() => {
+    OrderDetailFields.order_detail_key: order_detail_key,
+    OrderDetailFields.order_cache_key: order_cache_key,
+    OrderDetailFields.category_name: category_name,
+    OrderDetailFields.productName: productName,
+    OrderDetailFields.has_variant: has_variant,
+    OrderDetailFields.product_variant_name: product_variant_name,
+    OrderDetailFields.price: price,
+    OrderDetailFields.original_price: original_price,
+    OrderDetailFields.quantity: quantity,
+    OrderDetailFields.remark: remark,
+    OrderDetailFields.account: account,
+    OrderDetailFields.edited_by: edited_by,
+    OrderDetailFields.edited_by_user_id: edited_by_user_id,
+    OrderDetailFields.cancel_by: cancel_by,
+    OrderDetailFields.cancel_by_user_id: cancel_by_user_id,
+    OrderDetailFields.status: status,
     OrderDetailFields.unit: unit,
     OrderDetailFields.per_quantity_unit: per_quantity_unit,
     OrderDetailFields.product_sku: product_sku,

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -89,12 +90,24 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
             appBar: AppBar(
               automaticallyImplyLeading: false,
               elevation: 0,
-              title: Text(AppLocalizations.of(context)!.translate('menu'),
-                style: TextStyle(fontSize: 25, color: color.backgroundColor),
+              leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: GestureDetector(
+                  onTap: () {
+                    isCollapsedNotifier.value = !isCollapsedNotifier.value;
+                  },
+                  child: Image.asset('drawable/logo.png'),
+                ),
               ),
+              title: Text(AppLocalizations.of(context)!.translate('menu'),
+                style: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                    ? TextStyle(fontSize: 25, color: Colors.black)
+                    : TextStyle(fontSize: 20, color: color.backgroundColor),
+              ),
+              centerTitle: false,
               actions: [
                 IconButton(
-                  color: color.buttonColor,
+                  color: color.backgroundColor,
                   onPressed: (){
                     showSearch(context: context, delegate: ProductSearchDelegate(productList: allProduct, imagePath: imagePath, cartModel: widget.cartModel));
                   },
@@ -161,7 +174,6 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   }
 
   void refresh() {
-    print("refresh called!!!");
     controller.sink.add("refresh");
   }
 
@@ -181,7 +193,6 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
         ));
         categoryList.add(_data[i].name!);
       }
-
       for (int i = 0; i < categoryList.length; i++) {
         if (categoryList[i] == AppLocalizations.of(MyApp.navigatorKey.currentContext!)!.translate('all_category')) {
           List<Product> data = await PosDatabase.instance.readAllProduct();
@@ -190,7 +201,9 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
           categoryTabContent.add(GridView.count(
               shrinkWrap: true,
               //MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.height
-              crossAxisCount: MediaQuery.of(MyApp.navigatorKey.currentContext!).size.height > 500 && MediaQuery.of(MyApp.navigatorKey.currentContext!).size.width > 900 ? 5 : 3,
+              crossAxisCount: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 5
+                  : MediaQuery.of(MyApp.navigatorKey.currentContext!).size.height > 500 && MediaQuery.of(MyApp.navigatorKey.currentContext!).size.width > 500 ? 4
+                    : 3,
               children: List.generate(data.length, (index) {
                 return Card(
                   child: Container(
@@ -245,7 +258,9 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
           categoryTabContent.add(GridView.count(
               shrinkWrap: true,
               padding: const EdgeInsets.all(10),
-              crossAxisCount: MediaQuery.of(MyApp.navigatorKey.currentContext!).size.height > 500 ? 5 : 3,
+              crossAxisCount: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 5
+                : MediaQuery.of(MyApp.navigatorKey.currentContext!).size.height > 500 && MediaQuery.of(MyApp.navigatorKey.currentContext!).size.width > 500 ? 4
+                  : 3,
               children: List.generate(data.length, (index) {
                 return Card(
                   child: Container(
@@ -352,7 +367,6 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   }
 
   List<Product> getSortedList(List<Product> noSequenceProduct){
-    print('product sort by: ${AppSettingModel.instance.product_sort_by}');
     switch(AppSettingModel.instance.product_sort_by){
       case 1 :{
         return sortByProductName(noSequenceProduct);
@@ -419,9 +433,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   }
 
   searchProduct(String text) async {
-    print('search product called');
     List<Product> hha = await PosDatabase.instance.searchProduct(text);
-    print('product length: ${hha.length}');
     setState(() {
       categoryTabContent.clear();
       insertProduct(hha);

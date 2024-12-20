@@ -9,13 +9,19 @@ class AppSettingModel extends ChangeNotifier {
   bool? autoPrintReceipt;
   bool? show_sku;
   bool? qr_order_auto_accept;
+  bool? settlement_after_all_order_paid;
   bool? enable_numbering;
   int? starting_number;
   int? table_order;
   bool? show_product_desc;
   bool? autoPrintCancelReceipt;
+  bool? roundingAbsorb;
   int? product_sort_by;
   int? dynamic_qr_default_exp_after_hour;
+  int? variant_item_sort_by;
+  bool? dynamic_qr_invalid_after_payment;
+  bool? required_cancel_reason;
+  bool? qr_order_alert;
 
   AppSettingModel({
     this.directPaymentStatus,
@@ -23,13 +29,18 @@ class AppSettingModel extends ChangeNotifier {
     this.autoPrintReceipt,
     this.show_sku,
     this.qr_order_auto_accept,
+    this.settlement_after_all_order_paid,
     this.enable_numbering,
     this.starting_number,
     this.table_order,
     this.show_product_desc,
     this.autoPrintCancelReceipt,
     this.product_sort_by,
-    this.dynamic_qr_default_exp_after_hour
+    this.dynamic_qr_default_exp_after_hour,
+    this.variant_item_sort_by,
+    this.dynamic_qr_invalid_after_payment,
+    this.required_cancel_reason,
+    this.qr_order_alert,
   });
 
   void initialLoad() async {
@@ -40,6 +51,7 @@ class AppSettingModel extends ChangeNotifier {
       autoPrintReceipt = data.print_receipt == 0 ? false : true;
       show_sku = data.show_sku == 0 ? false : true;
       qr_order_auto_accept = data.qr_order_auto_accept == 0 ? false : true;
+      settlement_after_all_order_paid = data.settlement_after_all_order_paid == 0 ? false : true;
       enable_numbering = data.enable_numbering == null || data.enable_numbering == 0 ? false : true;
       starting_number = data.starting_number != null || data.starting_number != 0 ? data.starting_number : 0;
       table_order = data.table_order;
@@ -47,6 +59,10 @@ class AppSettingModel extends ChangeNotifier {
       autoPrintCancelReceipt = data.print_cancel_receipt == 0 ? false : true;
       product_sort_by = data.product_sort_by;
       dynamic_qr_default_exp_after_hour = data.dynamic_qr_default_exp_after_hour;
+      variant_item_sort_by = data.variant_item_sort_by;
+      dynamic_qr_invalid_after_payment = data.dynamic_qr_invalid_after_payment == 1 ? true : false;
+      required_cancel_reason = data.required_cancel_reason == 1 ? true : false;
+      qr_order_alert = data.qr_order_alert == 1 ? true : false;
     }
   }
 
@@ -75,6 +91,16 @@ class AppSettingModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setQrOrderAlertStatus(bool status) {
+    qr_order_alert = status;
+    notifyListeners();
+  }
+
+  void setSettlementAfterAllOrderPaidStatus(bool status) {
+    settlement_after_all_order_paid = status;
+    notifyListeners();
+  }
+
   void setOrderNumberingStatus(bool status) {
     enable_numbering = status;
     notifyListeners();
@@ -95,13 +121,32 @@ class AppSettingModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setRoundingAbsorbStatus(bool status) {
+    roundingAbsorb = status;
+    notifyListeners();
+  }
+
   void setProductSortByStatus(int status) {
     product_sort_by = status;
+    notifyListeners();
+  }
+
+  void setVariantItemSortByStatus(int status) {
+    variant_item_sort_by = status;
+    notifyListeners();
+  }
+
+  void setRequiredCancelReasonStatus(bool status) {
+    required_cancel_reason = status;
     notifyListeners();
   }
 
   void setDynamicQrDefaultExpAfterHour(int hour) {
     dynamic_qr_default_exp_after_hour = hour;
     notifyListeners();
+  }
+
+  void setDynamicQrInvalidAfterPayment(bool status){
+    dynamic_qr_invalid_after_payment = status;
   }
 }

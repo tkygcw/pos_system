@@ -1,19 +1,27 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:io';
 
+import 'package:image/image.dart' as img;
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:esc_pos_utils_plus/gbk_codec/gbk_codec.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
+import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/branch_link_dining_option.dart';
+import 'package:pos_system/object/cancel_receipt.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/checklist.dart';
 import 'package:pos_system/object/kitchen_list.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
+import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/payment_link_company.dart';
+import 'package:pos_system/object/printer_link_category.dart';
 import 'package:pos_system/object/receipt.dart';
 import 'package:pos_system/object/report_class.dart';
 import 'package:pos_system/object/settlement.dart';
@@ -52,6 +60,10 @@ class ReceiptLayout{
   double totalCashOut = 0.0;
   double totalOpeningCash = 0.0;
   bool _isLoad = false;
+  List<OrderPaymentSplit> paymentSplitList = [];
+  PosDatabase _posDatabase = PosDatabase.instance;
+
+  PosDatabase get posDatabase => _posDatabase;
 
   final Checklist checklistDefaultLayout = Checklist(
     product_name_font_size: 0,
@@ -75,14 +87,18 @@ class ReceiptLayout{
   }
 
 
-
 /*
   open cash drawer function
 */
   openCashDrawer ({required isUSB, value}) async {
     var generator;
     if (isUSB) {
-      lcdDisplay.openCashDrawer();
+      final profile = await CapabilityProfile.load();
+      generator = Generator(PaperSize.mm80, profile);
+      List<int> bytes = [];
+      bytes += generator.drawer();
+      iminLib.openCashDrawer();
+      return bytes;
     } else {
       generator = value;
       List<int> bytes = [];
@@ -206,6 +222,7 @@ class ReceiptLayout{
     bytes += generator.feed(1);
     bytes += generator.drawer();
     bytes += generator.cut(mode: PosCutMode.full);
+    iminLib.openCashDrawer();
     return bytes;
   }
 
@@ -230,6 +247,7 @@ class ReceiptLayout{
     bytes += generator.feed(1);
     bytes += generator.drawer();
     bytes += generator.cut(mode: PosCutMode.partial);
+    iminLib.openCashDrawer();
     return bytes;
   }
 
@@ -688,6 +706,11 @@ class ReceiptLayout{
 */
   printTestKitchenList80mm(bool isUSB, {value, required KitchenList KitchenListLayout}) async {
     KitchenList kitchen_list = KitchenListLayout;
+    PosFontType productFontType = kitchen_list.product_name_font_size == 2 ? PosFontType.fontB : PosFontType.fontA;
+    PosFontType otherFontType = kitchen_list.other_font_size == 2 ? PosFontType.fontB : PosFontType.fontA;
+    PosTextSize productFontSize = kitchen_list.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2;
+    PosTextSize otherFontSize = kitchen_list.other_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2;
+
     var generator;
     if (isUSB) {
       final profile = await CapabilityProfile.load();
@@ -697,7 +720,7 @@ class ReceiptLayout{
     }
     List<int> bytes = [];
     try {
-      bytes += generator.text('** Kitchen list **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
+      bytes += generator.text(kitchen_list.use_printer_label_as_title == 0 ? '** Kitchen list **' : '(PRINTER LABEL)', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       bytes += generator.text('Dine In', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
@@ -714,15 +737,17 @@ class ReceiptLayout{
             width: 2,
             styles: PosStyles(
                 bold: true,
-                height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+                fontType: productFontType,
+                height: productFontSize,
+                width: productFontSize)),
         PosColumn(
             text: '${getTestPrintProductSKU(1, layout: kitchen_list)}Product 1${kitchen_list.kitchen_list_show_price == 1 ? '(RM6.90)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
-                height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+                fontType: productFontType,
+                height: productFontSize,
+                width: productFontSize)),
       ]);
       bytes += generator.row([
         PosColumn(text: '', width: 2),
@@ -731,8 +756,9 @@ class ReceiptLayout{
             width: 10,
             styles: PosStyles(
                 align: PosAlign.left,
-                height: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                width: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+                fontType: otherFontType,
+                height: otherFontSize,
+                width: otherFontSize)),
       ]);
 
       if(kitchen_list.print_combine_kitchen_list == 1) {
@@ -747,15 +773,17 @@ class ReceiptLayout{
               width: 2,
               styles: PosStyles(
                   bold: true,
-                  height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                  width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+                  fontType: productFontType,
+                  height: productFontSize,
+                  width: productFontSize)),
           PosColumn(
               text: '${getTestPrintProductSKU(2, layout: kitchen_list)}Product 2${kitchen_list.kitchen_list_show_price == 1 ? '(RM8.80)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
-                  height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                  width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+                  fontType: productFontType,
+                  height: productFontSize,
+                  width: productFontSize)),
         ]);
         bytes += generator.row([
           PosColumn(text: '', width: 2),
@@ -764,8 +792,9 @@ class ReceiptLayout{
               width: 10,
               styles: PosStyles(
                   align: PosAlign.left,
-                  height: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                  width: PosTextSize.size2)),
+                  fontType: otherFontType,
+                  height: otherFontSize,
+                  width: otherFontSize)),
         ]);
 
         bytes += generator.emptyLines(1);
@@ -779,15 +808,17 @@ class ReceiptLayout{
               width: 2,
               styles: PosStyles(
                   bold: true,
-                  height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                  width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+                  fontType: productFontType,
+                  height: productFontSize,
+                  width: productFontSize)),
           PosColumn(
               text: '${getTestPrintProductSKU(3, layout: kitchen_list)}Product 3${kitchen_list.kitchen_list_show_price == 1 ? '(RM15.90)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
-                  height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                  width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+                  fontType: productFontType,
+                  height: productFontSize,
+                  width: productFontSize)),
         ]);
         bytes += generator.row([
           PosColumn(text: '', width: 2),
@@ -796,9 +827,24 @@ class ReceiptLayout{
               width: 10,
               styles: PosStyles(
                   align: PosAlign.left,
-                  height: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                  width: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+                  fontType: otherFontType,
+                  height: otherFontSize,
+                  width: otherFontSize)),
         ]);
+      }
+
+      if(kitchen_list.kitchen_list_show_total_amount == 1) {
+        bytes += generator.reset();
+        bytes += generator.emptyLines(1);
+        bytes += generator.text('Total: RM 31.60',
+            styles: PosStyles(
+                align: PosAlign.right,
+                fontType: productFontType,
+                bold: false,
+                height: productFontSize,
+                width: productFontSize
+            )
+        );
       }
 
       bytes += generator.feed(1);
@@ -815,6 +861,11 @@ class ReceiptLayout{
 */
   printTestKitchenList58mm(bool isUSB, {value, required KitchenList KitchenListLayout}) async {
     KitchenList kitchen_list = KitchenListLayout;
+    PosFontType productFontType = kitchen_list.product_name_font_size == 2 ? PosFontType.fontB : PosFontType.fontA;
+    PosFontType otherFontType = kitchen_list.other_font_size == 2 ? PosFontType.fontB : PosFontType.fontA;
+    PosTextSize productFontSize = kitchen_list.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2;
+    PosTextSize otherFontSize = kitchen_list.other_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2;
+
     var generator;
     if (isUSB) {
       final profile = await CapabilityProfile.load();
@@ -826,7 +877,7 @@ class ReceiptLayout{
     List<int> bytes = [];
     try {
       bytes += generator.reset();
-      bytes += generator.text('** Kitchen list **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
+      bytes += generator.text(kitchen_list.use_printer_label_as_title == 0 ? '** Kitchen list **' : '(PRINTER LABEL)', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       //other order detail
@@ -846,16 +897,18 @@ class ReceiptLayout{
             width: 2,
             styles: PosStyles(
                 bold: true,
-                height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
+                fontType: productFontType,
+                height: productFontSize,
+                width: productFontSize)
         ),
         PosColumn(
             text: '${getTestPrintProductSKU(1, layout: kitchen_list)}Product 1${kitchen_list.kitchen_list_show_price == 1 ? '(RM6.90)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
-                height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
+                fontType: productFontType,
+                height: productFontSize,
+                width: productFontSize)
         ),
       ]);
       bytes += generator.row([
@@ -864,8 +917,9 @@ class ReceiptLayout{
             containsChinese: true,
             width: 10,
             styles: PosStyles(
-                height: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                width: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
+                fontType: otherFontType,
+                height: otherFontSize,
+                width: otherFontSize)
         ),
       ]);
 
@@ -882,16 +936,18 @@ class ReceiptLayout{
               width: 2,
               styles: PosStyles(
                   bold: true,
-                  height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                  width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
+                  fontType: productFontType,
+                  height: productFontSize,
+                  width: productFontSize)
           ),
           PosColumn(
               text: '${getTestPrintProductSKU(2, layout: kitchen_list)}Product 2${kitchen_list.kitchen_list_show_price == 1 ? '(RM9.90)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
-                  height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                  width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
+                  fontType: productFontType,
+                  height: productFontSize,
+                  width: productFontSize)
           ),
         ]);
         bytes += generator.row([
@@ -900,8 +956,9 @@ class ReceiptLayout{
               containsChinese: true,
               width: 10,
               styles: PosStyles(
-                  height: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                  width: PosTextSize.size2)
+                  fontType: otherFontType,
+                  height: otherFontSize,
+                  width: otherFontSize)
           ),
         ]);
 
@@ -917,16 +974,18 @@ class ReceiptLayout{
               width: 2,
               styles: PosStyles(
                   bold: true,
-                  height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                  width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
+                  fontType: productFontType,
+                  height: productFontSize,
+                  width: productFontSize)
           ),
           PosColumn(
               text: '${getTestPrintProductSKU(3, layout: kitchen_list)}Product 3${kitchen_list.kitchen_list_show_price == 1 ? '(RM15.90)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
-                  height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                  width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
+                  fontType: productFontType,
+                  height: productFontSize,
+                  width: productFontSize)
           ),
         ]);
         bytes += generator.row([
@@ -935,10 +994,24 @@ class ReceiptLayout{
               containsChinese: true,
               width: 10,
               styles: PosStyles(
-                  height: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-                  width: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
+                  fontType: otherFontType,
+                  height: otherFontSize,
+                  width: otherFontSize)
           ),
         ]);
+      }
+
+      if(kitchen_list.kitchen_list_show_total_amount == 1) {
+        bytes += generator.reset();
+        bytes += generator.emptyLines(1);
+        bytes += generator.text('Total: RM 31.60',
+            styles: PosStyles(
+                align: PosAlign.right,
+                fontType: productFontType,
+                height: productFontSize,
+                width: productFontSize
+            )
+        );
       }
 
       bytes += generator.feed(1);
@@ -950,11 +1023,51 @@ class ReceiptLayout{
     }
   }
 
+  Future<String> get _localPath async {
+    final directory = await getApplicationSupportDirectory();
+    return directory.path;
+  }
+
+  Future<img.Image> getBranchLogo(int header_image_size) async {
+    int imageSize = header_image_size == 0 ? 100 : header_image_size == 1 ? 160 : 220;
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
+    String? path = '';
+
+    if(Platform.isIOS){
+      String dir = await _localPath;
+      path = dir + '/assets/logo';
+    } else {
+      if(prefs.getString('logo_path') != null)
+        path = prefs.getString('logo_path')!;
+    }
+
+    if(path != '') {
+      final File imageFile = File('$path/${branchObject['logo']}');
+      if (!await imageFile.exists()) {
+        return img.Image(width: 1, height: 1);
+      }
+      final Uint8List imageBytes = await imageFile.readAsBytes();
+      final img.Image decodedImage = img.decodeImage(imageBytes)!;
+      img.Image thumbnail = img.copyResize(decodedImage, height: imageSize);
+      img.Image originalImg = img.copyResize(decodedImage, width: 380, height: imageSize);
+      img.fill(originalImg, color: img.ColorRgb8(255, 255, 255));
+
+      var padding = (originalImg.width - thumbnail.width) / 2;
+      img.compositeImage(originalImg, thumbnail, dstX: padding.toInt());
+      img.Image processedImage = img.adjustColor(originalImg, saturation: -100, contrast: 100, gamma: 10);
+
+      return processedImage;
+    } else {
+      return img.Image(width: 1, height: 1);
+    }
+  }
+
 /*
   Test print Receipt layout 80mm
 */
   printTestReceipt80mm(bool isUSB, Receipt receipt2, {value}) async {
-    String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
     Map branchObject = json.decode(branch!);
@@ -970,10 +1083,15 @@ class ReceiptLayout{
     List<int> bytes = [];
     try {
       bytes += generator.reset();
-      //bytes += generator.image(decodedImage);
+
+      if(receipt!.header_image_status == 1){
+        img.Image processedImage = await getBranchLogo(receipt!.header_image_size!);
+        bytes += generator.imageRaster(processedImage, align: PosAlign.center);
+        bytes += generator.emptyLines(1);
+      }
+
       if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
         ///big font
-        // bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
         bytes += generator.row([
           PosColumn(
               text: '${receipt!.header_text}',
@@ -991,8 +1109,34 @@ class ReceiptLayout{
               styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1)),
         ]);
       }
+
+      if(receipt!.second_header_text_status == 1) {
+        PosTextSize productFontSize = receipt!.second_header_font_size == 0 ? PosTextSize.size1 : PosTextSize.size2;
+        PosFontType productFontType = receipt!.second_header_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
+
+        bytes += generator.row([
+          PosColumn(
+              text: '${receipt!.second_header_text}',
+              width: 12,
+              containsChinese: true,
+              styles: PosStyles(
+                  align: PosAlign.center,
+                  fontType: productFontType,
+                  height: productFontSize,
+                  width: productFontSize)),
+        ]);
+        bytes += generator.reset();
+      }
+
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
+      //register no
+      if(receipt!.show_register_no == 1){
+        bytes += generator.text(branchObject[BranchFields.register_no],
+            containsChinese: true,
+            styles: PosStyles(align: PosAlign.center, ),
+        );
+      }
       //Address
       if(receipt!.show_address == 1 && branchObject['address'].toString() != ''){
         bytes += generator.text('${branchObject['address']}', containsChinese: true, styles: PosStyles(align: PosAlign.center, ));
@@ -1017,8 +1161,12 @@ class ReceiptLayout{
       //other order detail
       bytes += generator.text('Close at: 31/12/2021 00:00 AM');
       bytes += generator.text('Close by: Waiter');
-      bytes += generator.text('Table No: 1');
-      bytes += generator.text('Dine in');
+
+      if(receipt!.hide_dining_method_table_no == 0){
+        bytes += generator.text('Table No: 1');
+        bytes += generator.text('Dine in');
+      }
+
       bytes += generator.reset();
       /*
     *
@@ -1029,7 +1177,7 @@ class ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: 'Qty ', width: 2, styles: PosStyles(bold: true)),
         PosColumn(text: 'Item', width: 7, styles: PosStyles(bold: true)),
-        PosColumn(text: 'Price', width: 3, styles: PosStyles(bold: true, align: PosAlign.right)),
+        PosColumn(text: 'Price(MYR)', width: 3, styles: PosStyles(bold: true, align: PosAlign.right)),
       ]);
       bytes += generator.hr();
       //order product
@@ -1106,7 +1254,7 @@ class ReceiptLayout{
       //total
       bytes += generator.hr();
       bytes += generator.row([
-        PosColumn(text: 'Final Amount', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2)),
+        PosColumn(text: 'Final Amount(MYR)', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2)),
         PosColumn(
             text: '3.40',
             width: 4,
@@ -1156,7 +1304,6 @@ class ReceiptLayout{
   Test print Receipt layout 58mm
 */
   printTestReceipt58mm(bool isUSB, Receipt receipt2, {value}) async {
-    String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
     Map branchObject = json.decode(branch!);
@@ -1173,8 +1320,14 @@ class ReceiptLayout{
 
       List<int> bytes = [];
       try {
-        //bytes += generator.image(image);
         bytes += generator.reset();
+
+        if(receipt!.header_image_status == 1){
+          img.Image processedImage = await getBranchLogo(receipt!.header_image_size!);
+          bytes += generator.imageRaster(processedImage, align: PosAlign.center);
+          bytes += generator.emptyLines(1);
+        }
+
         if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
           bytes += generator.row([
             PosColumn(
@@ -1192,8 +1345,33 @@ class ReceiptLayout{
                 styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1)),
           ]);
         }
+
+        if(receipt!.second_header_text_status == 1) {
+          PosTextSize productFontSize = receipt!.second_header_font_size == 0 ? PosTextSize.size1 : PosTextSize.size2;
+          PosFontType productFontType = receipt!.second_header_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
+
+          bytes += generator.row([
+            PosColumn(
+                text: '${receipt!.second_header_text}',
+                width: 12,
+                containsChinese: true,
+                styles: PosStyles(
+                    align: PosAlign.center,
+                    fontType: productFontType,
+                    height: productFontSize,
+                    width: productFontSize)),
+          ]);
+          bytes += generator.reset();
+        }
+
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
+        if(receipt!.show_register_no == 1){
+          bytes += generator.text(branchObject[BranchFields.register_no],
+            containsChinese: true,
+            styles: PosStyles(align: PosAlign.center),
+          );
+        }
         if(receipt!.show_address == 1 && branchObject['address'].toString() != ''){
           //Address
           bytes += generator.text('${branchObject['address'].toString()}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
@@ -1221,9 +1399,10 @@ class ReceiptLayout{
         bytes += generator.text('31/12/2021 00:00 AM', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Close by:', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Waiter', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('Table No: 1', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('Dine in', styles: PosStyles(align: PosAlign.center));
-
+        if(receipt!.hide_dining_method_table_no == 0){
+          bytes += generator.text('Table No: 1', styles: PosStyles(align: PosAlign.center));
+          bytes += generator.text('Dine in', styles: PosStyles(align: PosAlign.center));
+        }
         bytes += generator.reset();
         /*
     *
@@ -1234,7 +1413,7 @@ class ReceiptLayout{
         bytes += generator.row([
           PosColumn(text: 'Qty ', width: 2, styles: PosStyles(bold: true)),
           PosColumn(text: 'Item', width: 6, styles: PosStyles(bold: true)),
-          PosColumn(text: 'Price', width: 4, styles: PosStyles(bold: true)),
+          PosColumn(text: 'Price(MYR)', width: 4, styles: PosStyles(bold: true)),
         ]);
         bytes += generator.hr();
         //order product
@@ -1313,7 +1492,7 @@ class ReceiptLayout{
         //total
         bytes += generator.hr();
         bytes += generator.row([
-          PosColumn(text: 'Final Amount', width: 8),
+          PosColumn(text: 'Final Amount(MYR)', width: 8),
           PosColumn(
               text: '3.40',
               width: 4,
@@ -1358,7 +1537,6 @@ class ReceiptLayout{
 */
   printLabel35mm(bool isUSB, int localId, int totalItem, int currentItem, {value, required OrderDetail orderDetail}) async {
     Receipt? receiptLayout = await PosDatabase.instance.readAllReceipt();
-    print("printLabel35mm called");
     DateTime dateTime = DateTime.now();
     String time = DateFormat('h:mm a').format(dateTime);
     await readOrderCache(localId);
@@ -1769,6 +1947,7 @@ class ReceiptLayout{
         bytes += generator.reset();
 
         bytes += generator.text('Settlement By: ${settlement.settlement_by}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('Opened At: ${Utils.formatDate(settlement.opened_at)}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Settlement Time: ${Utils.formatDate(settlementDateTime)}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.hr();
         bytes += generator.reset();
@@ -2077,6 +2256,7 @@ class ReceiptLayout{
         bytes += generator.reset();
 
         bytes += generator.text('Settlement By: ${settlement.settlement_by}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('Opened At: ${Utils.formatDate(settlement.opened_at)}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Settlement Time: ${Utils.formatDate(settlementDateTime)}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.hr();
         bytes += generator.reset();
@@ -2421,14 +2601,32 @@ class ReceiptLayout{
 /*
   read branch latest order cache (auto print when place order click)
 */
-  readOrderCache(int orderCacheId) async {
+  readOrderCache(int orderCacheId, {int? printer_id}) async {
+    List<PrinterLinkCategory> printerLinkCategory = [];
     OrderCache cacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCacheId);
     orderCache = cacheData;
 
-    List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(orderCache!.order_cache_key!);
-    if(!detailData.contains(detailData)){
-      orderDetailList = List.from(detailData);
+    if(printer_id != null && printer_id != 0){
+      printerLinkCategory = await PosDatabase.instance.readPrinterLinkCategory(printer_id);
+      List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(orderCache!.order_cache_key!);
+
+
+      for(int i = 0; i < printerLinkCategory.length; i++){
+        for(int j = 0; j < detailData.length; j++){
+          if(printerLinkCategory[i].category_sqlite_id == detailData[j].category_sqlite_id){
+            orderDetailList.add(detailData[j]);
+          }
+        }
+      }
+      print("orderDetailList: ${jsonEncode(orderDetailList)}");
+    } else {
+      List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(orderCache!.order_cache_key!);
+      if(!detailData.contains(detailData)){
+        orderDetailList = List.from(detailData);
+      }
     }
+
+
     List<TableUseDetail> detailData2 = await PosDatabase.instance.readAllTableUseDetail(orderCache!.table_use_sqlite_id!);
     for(int i = 0; i < detailData2.length; i++){
       List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(detailData2[i].table_sqlite_id!);
@@ -2592,11 +2790,11 @@ class ReceiptLayout{
     try{
       List<CashRecord> data = await PosDatabase.instance.readSpecificSettlementCashRecord(branch_id.toString(), dateTime, settlement.settlement_key!);
       for (int i = 0; i < data.length; i++) {
-        if (data[i].type == 1 && data[i].payment_type_id == '') {
+        if (data[i].type == 1) {
           totalCashIn += double.parse(data[i].amount!);
-        } else if (data[i].type == 2 && data[i].payment_type_id == '') {
+        } else if (data[i].type == 2) {
           totalCashOut += double.parse(data[i].amount!);
-        } else if(data[i].type == 0 && data[i].payment_type_id == ''){
+        } else if(data[i].type == 0){
           totalOpeningCash = double.parse(data[i].amount!);
         } else if(data[i].type == 3 && data[i].payment_type_id == '1'){
           _cashTotal += double.parse(data[i].amount!);

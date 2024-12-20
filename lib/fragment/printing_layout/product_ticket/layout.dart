@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 
 import '../../../database/pos_database.dart';
+import '../../../object/branch.dart';
 import '../../../object/cart_product.dart';
 import '../../../object/checklist.dart';
 import '../../../utils/Utils.dart';
@@ -16,7 +17,8 @@ class ProductTicketLayout extends ReceiptLayout {
   printProductTicket80mm(bool isUSB, int localId, int count, {value, required cartProductItem cartItem}) async {
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
-    Map branchObject = json.decode(branch!);
+    Map<String, dynamic> branchMap = json.decode(branch!);
+    Branch branchObject = Branch.fromJson(branchMap);
     Checklist? checklistLayout = await PosDatabase.instance.readSpecificChecklist('80');
     await readOrderCache(localId);
 
@@ -30,8 +32,8 @@ class ProductTicketLayout extends ReceiptLayout {
 
     List<int> bytes = [];
     try {
-      bytes += generator.text(branchObject['name'], containsChinese: true, styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
-      bytes += generator.text(branchObject['address'], styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text(branchObject.name, containsChinese: true, styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
+      bytes += generator.text(branchObject.address, styles: PosStyles(align: PosAlign.center));
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       //other order detail
@@ -46,7 +48,7 @@ class ProductTicketLayout extends ReceiptLayout {
       if(int.tryParse(orderCache!.order_queue!) != null){
         bytes += generator.text('Order No: ${orderCache!.order_queue!}', styles: PosStyles(height:PosTextSize.size2, width: PosTextSize.size2));
       }
-      bytes += generator.text('Batch No: #${orderCache!.batch_id}-${branchObject['branchID'].toString().padLeft(3 ,'0')}');
+      bytes += generator.text('Batch No: #${orderCache!.batch_id}-${branchObject.branch_id!.toString().padLeft(3 ,'0')}');
       bytes += generator.text('Order By: ${orderCache!.order_by}', containsChinese: true);
       bytes += generator.text('Order time: ${Utils.formatDate(orderCache!.created_at)}');
       bytes += generator.hr();
@@ -182,7 +184,8 @@ class ProductTicketLayout extends ReceiptLayout {
   printProductTicket58mm(bool isUSB, int localId, int count, {value, required cartProductItem cartItem}) async {
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
-    Map branchObject = json.decode(branch!);
+    Map<String, dynamic> branchMap = json.decode(branch!);
+    Branch branchObject = Branch.fromJson(branchMap);
     Checklist? checklistLayout = await PosDatabase.instance.readSpecificChecklist('58');
     await readOrderCache(localId);
 
@@ -196,8 +199,8 @@ class ProductTicketLayout extends ReceiptLayout {
 
     List<int> bytes = [];
     try {
-      bytes += generator.text(branchObject['name'], containsChinese: true, styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
-      bytes += generator.text(branchObject['address'], styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text(branchObject.name, containsChinese: true, styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
+      bytes += generator.text(branchObject.address, styles: PosStyles(align: PosAlign.center));
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       //other order detail
@@ -212,7 +215,7 @@ class ProductTicketLayout extends ReceiptLayout {
       if(int.tryParse(orderCache!.order_queue!) != null){
         bytes += generator.text('Order No: ${orderCache!.order_queue!}', styles: PosStyles(height:PosTextSize.size2, width: PosTextSize.size2));
       }
-      bytes += generator.text('Batch No: #${orderCache!.batch_id}-${branchObject['branchID'].toString().padLeft(3 ,'0')}');
+      bytes += generator.text('Batch No: #${orderCache!.batch_id}-${branchObject.branch_id!.toString().padLeft(3 ,'0')}');
       bytes += generator.text('Order By: ${orderCache!.order_by}', containsChinese: true);
       bytes += generator.text('Order time: ${Utils.formatDate(orderCache!.created_at)}');
       bytes += generator.hr();

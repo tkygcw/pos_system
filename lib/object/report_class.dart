@@ -1,6 +1,3 @@
-import 'package:http/http.dart';
-import 'dart:convert';
-
 import 'package:intl/intl.dart';
 import 'package:pos_system/object/attendance.dart';
 import 'package:pos_system/object/cash_record.dart';
@@ -11,6 +8,7 @@ import 'package:pos_system/object/settlement.dart';
 import 'package:pos_system/object/settlement_link_payment.dart';
 import 'package:pos_system/object/transfer_owner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:collection/collection.dart';
 
 import '../database/pos_database.dart';
 import 'branch_link_tax.dart';
@@ -76,6 +74,29 @@ class ReportObject{
       this.dateTransferList,
       this.dateAttendance});
 
+  Future<List<OrderDetailCancel>> getAllOrderDetailCancel({currentStDate, currentEdDate}) async {
+    await getPrefData();
+    DateTime _startDate = DateTime.parse(currentStDate);
+    DateTime _endDate = DateTime.parse(currentEdDate);
+    //convert time to string
+    DateTime addEndDate = addDays(date: _endDate);
+    String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
+    String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
+    List<OrderDetailCancel> orderDetailCancel = [];
+    if(_isChecked) {
+      orderDetailCancel = await PosDatabase.instance.readOrderDetailCancelWithOB(stringStDate, stringEdDate);
+    } else {
+      orderDetailCancel = await PosDatabase.instance.readOrderDetailCancel(stringStDate, stringEdDate);
+    }
+    if(orderDetailCancel.isNotEmpty){
+      final totalQty = orderDetailCancel.fold(0, (int sum, e) => sum + (int.tryParse(e.quantity!) ?? 1));
+      final totalPrice = orderDetailCancel.fold(0, (num sum, e) => sum + e.price!);
+      orderDetailCancel.first.total_item = totalQty;
+      orderDetailCancel.first.total_amount = totalPrice;
+    }
+    return orderDetailCancel;
+  }
+
   Future<List<Order>> getAllUserSales({currentStDate, currentEdDate}) async {
     await getPrefData();
     DateTime _startDate = DateTime.parse(currentStDate);
@@ -95,7 +116,7 @@ class ReportObject{
     return orderData;
   }
 
-  Future<List<CashRecord>> getAllCashRecord({currentStDate, currentEdDate}) async {
+  Future<List<CashRecord>> getAllCashRecord({currentStDate, currentEdDate, selectedPayment}) async {
     await getPrefData();
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
@@ -106,9 +127,9 @@ class ReportObject{
     List<CashRecord> cashRecordData = [];
 
     if(_isChecked) {
-      cashRecordData = await PosDatabase.instance.readAllTodayCashRecordWithOB(stringStDate, stringEdDate);
+      cashRecordData = await PosDatabase.instance.readAllTodayCashRecordWithOB(stringStDate, stringEdDate, selectedPayment);
     } else {
-      cashRecordData = await PosDatabase.instance.readAllTodayCashRecord(stringStDate, stringEdDate);
+      cashRecordData = await PosDatabase.instance.readAllTodayCashRecord(stringStDate, stringEdDate, selectedPayment);
     }
 
     return cashRecordData;
@@ -502,6 +523,7 @@ class ReportObject{
 
   getAllPaymentData({currentStDate, currentEdDate}) async {
     await getPrefData();
+
     datePayment = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
@@ -767,7 +789,7 @@ class ReportObject{
     return value;
   }
 
-  getAllAttendanceGroup({currentStDate, currentEdDate}) async {
+  getAllAttendanceGroup({currentStDate, currentEdDate, selectedId}) async {
     dateAttendance = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
@@ -775,7 +797,7 @@ class ReportObject{
     DateTime addEndDate = addDays(date: _endDate);
     String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
     String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
-    List<Attendance> attendance = await PosDatabase.instance.readAllAttendanceGroup(stringStDate, stringEdDate);
+    List<Attendance> attendance = await PosDatabase.instance.readAllAttendanceGroup(stringStDate, stringEdDate, selectedId);
     this.attendanceData = attendance;
     if (attendanceData.isNotEmpty) {
       for (int i = 0; i < attendanceData.length; i++) {
@@ -867,7 +889,7 @@ class ReportObject{
 
       }
       for (int j = 0; j < dateOrderList!.length; j++) {
-        if(dateOrderList![j].payment_status == 1){
+        if(dateOrderList![j].payment_status == 1 || dateOrderList![j].payment_status == 3){
           sumAllOrderTotal(dateOrderList![j].final_amount!);
         }
       }

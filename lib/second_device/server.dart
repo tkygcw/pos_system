@@ -43,14 +43,15 @@ class Server extends ChangeNotifier {
   Future<void> bindAllSocket() async {
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
-    Map branchObject = json.decode(branch!);
-    print("sub pos status: ${branchObject['sub_pos_status']}");
-    if (branchObject['sub_pos_status'] == 0) {
+    Map<String, dynamic> branchMap = json.decode(branch!);
+    Branch branchObject = Branch.fromJson(branchMap);
+    print("sub pos status: ${branchObject.sub_pos_status}");
+    if (branchObject.sub_pos_status == 0) {
       await bindServer();
       await bindRequestServer();
-    } else if (branchObject['sub_pos_status'] == null) {
+    } else if (branchObject.sub_pos_status == null) {
       //update share pref
-      Branch? branch = await PosDatabase.instance.readSpecificBranch(branchObject['branchID']);
+      Branch? branch = await PosDatabase.instance.readSpecificBranch(branchObject.branch_id!);
       await prefs.setString('branch', json.encode(branch!));
       if (branch.sub_pos_status == 0) {
         await bindServer();
@@ -119,7 +120,7 @@ class Server extends ChangeNotifier {
 
     clientSocket.listen(
       (List<int> data) async {
-        String receivedData = utf8.decode(data);
+        String receivedData = utf8.decode(data, allowMalformed: true);
         buffer.write(receivedData);
 
         List<String> messageList = buffer.toString().split(messageDelimiter);
@@ -196,7 +197,7 @@ class Server extends ChangeNotifier {
       asyncQ.addJob((_) async {
         try {
           print("socket2 called");
-          receivedData = utf8.decode(data);
+          receivedData = utf8.decode(data, allowMalformed: true);
           print("received data: ${receivedData}");
           buffer.write(receivedData);
 

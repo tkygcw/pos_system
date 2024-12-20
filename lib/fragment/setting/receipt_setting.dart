@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/fragment/setting/cancel_receipt_setting/cancel_receipt_dialog.dart';
 import 'package:pos_system/fragment/setting/kitchenlist_dialog.dart';
 import 'package:pos_system/fragment/setting/qr_code_setting/qr_receipt_dialog.dart';
 import 'package:pos_system/fragment/setting/receipt_dialog.dart';
@@ -36,7 +37,8 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
   late Stream actionStream;
   // List<AppSetting> appSettingList = [];
   Receipt? receiptObject;
-  bool printCheckList = false, enableNumbering = false, printReceipt = false, hasQrAccess = true, printCancelReceipt = true;
+  bool printCheckList = false, enableNumbering = false, printReceipt = false, hasQrAccess = true, printCancelReceipt = true,
+      roundingAbsorb = true;
   int startingNumber = 0, compareStartingNumber = 0;
 
   @override
@@ -118,6 +120,12 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
       } else {
         printCancelReceipt = false;
       }
+
+      if(appSetting.rounding_absorb == 1){
+        roundingAbsorb = true;
+      } else {
+        roundingAbsorb = false;
+      }
     }
   }
 
@@ -134,94 +142,6 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                   callBack: () => read80mmReceiptLayout(),
                   receiptObject: receiptObject,
                 )
-            ),
-          );
-        },
-        transitionDuration: Duration(milliseconds: 200),
-        barrierDismissible: false,
-        context: context,
-        pageBuilder: (context, animation1, animation2) {
-          // ignore: null_check_always_fails
-          return null!;
-        });
-  }
-
-  Future<Future<Object?>> openStartingNumberDialog() async {
-    return showGeneralDialog(
-        barrierColor: Colors.black.withOpacity(0.5),
-        transitionBuilder: (context, a1, a2, widget) {
-          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
-          return Center(
-            child: SingleChildScrollView(
-              child: AlertDialog(
-                title: Text(
-                    AppLocalizations.of(context)!.translate('update_order_starting_number')),
-                content: Column(
-                  children: [
-                    SizedBox(height: 20),
-                    Container(
-                      // Customize your Container's properties here
-                      child: Center(
-                        child: Text(
-                            AppLocalizations.of(context)!.translate('current_order_starting_number') + " : ${appSetting.starting_number.toString().padLeft(4, '0')}"),
-                      ),
-                    ),
-                    SizedBox(height: 40),
-                    Container(
-                      width: 400,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 273,
-                            child: TextField(
-                              autofocus: true,
-                              controller: orderNumberController,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
-                              textAlign: TextAlign.center,
-                              decoration: InputDecoration(
-                                hintText: 'Example: 0050',
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.black.withOpacity(0.5)),
-                                ),
-                              ),
-                              onChanged: (value) => setState(() {
-                                try {
-                                  startingNumber = int.parse(orderNumberController.text);
-                                } catch (e) {
-                                  startingNumber = 0;
-                                }
-                              }),
-                              onSubmitted: (value) async {
-                                await updateAppSetting();
-                                Navigator.of(context).pop();
-                              }
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                actions: <Widget>[
-                  TextButton(
-                    child: Text(
-                        '${AppLocalizations.of(context)?.translate('close')}'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  TextButton(
-                    child: Text(
-                        '${AppLocalizations.of(context)?.translate('yes')}'),
-                    onPressed: () async {
-                      await updateAppSetting();
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              ),
             ),
           );
         },
@@ -278,6 +198,28 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
         });
   }
 
+  Future<Future<Object?>> openCancelReceiptDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: CancelReceiptDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
   Future<Future<Object?>> openDynamicQRDialog() async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
@@ -305,6 +247,20 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<AppSettingModel>(builder: (context, AppSettingModel appSettingModel, child) {
         return Scaffold(
+            appBar:  MediaQuery.of(context).size.width < 800 && MediaQuery.of(context).orientation == Orientation.portrait ? AppBar(
+              elevation: 1,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back_ios, color: color.buttonColor),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              backgroundColor: Colors.white,
+              title: Text(AppLocalizations.of(context)!.translate('receipt_setting'),
+                  style: TextStyle(fontSize: 20, color: color.backgroundColor)),
+              centerTitle: false,
+            )
+                : null,
             body: StreamBuilder(
                 stream: controller.hardwareSettingStream,
                 builder: (context, snapshot){
@@ -334,6 +290,14 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                             trailing: Icon(Icons.navigate_next),
                             onTap: (){
                               openKitchenlistDialog();
+                            },
+                          ),
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('cancel_receipt_setting')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('customize_your_cancel_receipt_look')),
+                            trailing: Icon(Icons.navigate_next),
+                            onTap: (){
+                              openCancelReceiptDialog();
                             },
                           ),
                           ListTile(
@@ -383,6 +347,19 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                               },
                             ),
                           ),
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('rounding_absorb')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('rounding_absorb_desc')),
+                            trailing: Switch(
+                              value: roundingAbsorb,
+                              activeColor: color.backgroundColor,
+                              onChanged: (value) async {
+                                roundingAbsorb = value;
+                                appSettingModel.setRoundingAbsorbStatus(value);
+                                await updateRoundingAbsorb();
+                              },
+                            ),
+                          ),
                         ],
                       ),
                     );
@@ -406,6 +383,17 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
         updated_at: dateTime
     );
     int data = await PosDatabase.instance.updatePrintCancelReceiptSettings(object);
+  }
+
+  updateRoundingAbsorb() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    AppSetting object = AppSetting(
+        rounding_absorb: roundingAbsorb == true ? 1 : 0,
+        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
+        updated_at: dateTime
+    );
+    int data = await PosDatabase.instance.updateRoundingAbsorbSettings(object);
   }
 
   updateAppSetting() async {

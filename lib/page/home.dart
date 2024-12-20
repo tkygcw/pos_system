@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -15,6 +16,7 @@ import 'package:pos_system/fragment/settlement/settlement_page.dart';
 import 'package:pos_system/fragment/table/table.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
+import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/qr_order.dart';
 import 'package:provider/provider.dart';
@@ -57,6 +59,7 @@ class _HomePageState extends State<HomePage> {
   List<AppSetting> appSettingList = [];
   bool tableEnable = false;
 
+
   @override
   void initState() {
     // TODO: implement initState
@@ -91,7 +94,7 @@ class _HomePageState extends State<HomePage> {
             });
       }
     });
-    setScreenLayout();
+    // setScreenLayout();
   }
 
   @override
@@ -181,7 +184,7 @@ class _HomePageState extends State<HomePage> {
                       resizeToAvoidBottomInset: false,
                       body: SafeArea(
                         //side nav bar
-                        child: CollapsibleSidebar(
+                        child: isLandscapeOrien() ? CollapsibleSidebar(
                             sidebarBoxShadow: [
                               BoxShadow(
                                 color: Colors.transparent,
@@ -195,11 +198,12 @@ class _HomePageState extends State<HomePage> {
                             title: widget.user!.name! + "\n" + _truncateTitle((branchName ?? ''), 17) + "\n" + AppLocalizations.of(context)!.translate(role.toLowerCase()),
                             backgroundColor: color.backgroundColor,
                             selectedTextColor: color.iconColor,
+                            unselectedTextColor: Colors.white,
                             textStyle: TextStyle(fontSize: 15, fontStyle: FontStyle.italic),
                             titleStyle: TextStyle(fontSize: 17, fontStyle: FontStyle.italic, fontWeight: FontWeight.bold),
                             toggleTitleStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                             customItemOffsetX: 20,
-                            selectedIconColor: color.iconColor,
+                            selectedIconColor: Colors.white,
                             selectedIconBox: color.buttonColor,
                             unselectedIconColor: Colors.white,
                             body: Row(
@@ -221,7 +225,67 @@ class _HomePageState extends State<HomePage> {
                                       )),
                                 )
                               ],
-                            )),
+                            ))
+                        : Stack(
+                          children: [
+                            Stack(
+                              children: [
+                                _buildBody(context),
+                                ValueListenableBuilder<bool>(
+                                    valueListenable: isCollapsedNotifier,
+                                    builder: (context, isCollapsed, child) {
+                                      return !isCollapsed ? GestureDetector(
+                                        child: Container(
+                                          color: Colors.black.withOpacity(0.5),
+                                        ),
+                                        onTap: () {
+                                          setState(() {
+                                            isCollapsedNotifier.value = !isCollapsedNotifier.value;
+                                          });
+                                        },
+                                      ) : Container();
+                                    }
+                                ),
+                              ],
+                            ),
+                            Positioned(
+                                left: 0,
+                                top: 0,
+                                bottom: 0,
+                                child: ValueListenableBuilder<bool>(
+                                  valueListenable: isCollapsedNotifier,
+                                  builder: (context, isCollapsedNotifier, child) {
+                                    return SizedBox(
+                                      child: CollapsibleSidebar(
+                                        sidebarBoxShadow: [
+                                          BoxShadow(
+                                            color: Colors.transparent,
+                                          ),
+                                        ],
+                                        minWidth: 0,
+                                        badgeBackgroundColor: Colors.red,
+                                        isCollapsed: isCollapsedNotifier,
+                                        items: _items,
+                                        avatarImg: AssetImage("drawable/logo.png"),
+                                        title: widget.user!.name! + "\n" + _truncateTitle((branchName ?? ''), 20) + "\n" + AppLocalizations.of(context)!.translate(role.toLowerCase()),
+                                        backgroundColor: color.backgroundColor,
+                                        selectedTextColor: color.iconColor,
+                                        textStyle: TextStyle(fontSize: 15, fontStyle: FontStyle.italic),
+                                        titleStyle: TextStyle(fontSize: 17, fontStyle: FontStyle.italic, fontWeight: FontWeight.bold),
+                                        toggleTitleStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                        customItemOffsetX: 20,
+                                        iconSize: 30,
+                                        screenPadding: 0,
+                                        selectedIconColor: color.iconColor,
+                                        selectedIconBox: color.buttonColor,
+                                        unselectedIconColor: Colors.white,
+                                        body: Container(),
+                                      ),
+                                    );
+                                  },
+                                ))
+                          ],
+                        ),
                       )),
                 );
               });
@@ -230,56 +294,222 @@ class _HomePageState extends State<HomePage> {
         : CustomProgressBar();
   }
 
+  Widget _buildBody(BuildContext context) {
+    return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
+      return Consumer<CartModel>(builder: (context, CartModel cart, child) {
+        if (isLandscapeOrien()) {
+          return Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: _body(),
+              ),
+              Visibility(
+                visible: currentPage != 'product' &&
+                    currentPage != 'setting' &&
+                    currentPage != 'settlement' &&
+                    currentPage != 'qr_order' &&
+                    currentPage != 'setting' &&
+                    currentPage != 'report'
+                    ? true
+                    : false,
+                child: Expanded(
+                    flex: MediaQuery.of(context).size.height > 500 ? 1 : 2,
+                    child: CartPage(
+                      currentPage: currentPage,
+                      parentContext: context,
+                    )),
+              )
+            ],
+          );
+        } else {
+          return Stack(
+            children: [
+              Column(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: Stack(
+                      children: [
+                        _body(),
+                        if (isCartExpanded)
+                          GestureDetector(
+                            child: Container(
+                              color: Colors.black.withOpacity(0.5),
+                            ),
+                            onTap: () {
+                              setState(() {
+                                if(currentPage == 'bill') {
+                                  cart.initialLoad();
+                                }
+                                isCartExpanded = !isCartExpanded;
+                              });
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
+                  Visibility(
+                    visible: currentPage != 'product' &&
+                        currentPage != 'setting' &&
+                        currentPage != 'settlement' &&
+                        currentPage != 'qr_order' &&
+                        currentPage != 'report',
+                    child: AnimatedContainer(
+                      duration: Duration(milliseconds: 0),
+                      height: isCartExpanded ? MediaQuery.of(context).size.height * 0.85 : 0,
+                      child: isCartExpanded
+                          ? Column(
+                        children: [
+                          AppBar(
+                            automaticallyImplyLeading: false,
+                            elevation: 0,
+                            centerTitle: true,
+                            title: Text(
+                              AppLocalizations.of(context)!.translate('cart'),
+                              style: TextStyle(fontSize: 25, color: color.backgroundColor),
+                            ),
+                            backgroundColor: Colors.white,
+                            actions: [
+                              IconButton(
+                                color: color.buttonColor,
+                                onPressed: (){
+                                  setState(() {
+                                    if(currentPage == 'bill') {
+                                      cart.initialLoad();
+                                    }
+                                    isCartExpanded = false;
+                                  });
+                                },
+                                icon: Icon(Icons.close),
+                              )
+                            ],
+                          ),
+                          Expanded(
+                            child: CartPage(
+                              currentPage: currentPage,
+                              parentContext: context,
+                            ),
+                          ),
+                        ],
+                      )
+                          : SizedBox.shrink(),
+                    ),
+                  ),
+                ],
+              ),
+              Visibility(
+                visible: !isCartExpanded && (currentPage == 'menu' || currentPage == 'table' || currentPage == 'other_order' || currentPage == 'bill'),
+                child: Positioned(
+                  bottom: 16,
+                  right: 16,
+                  child: CircleAvatar(
+                    radius: 25,
+                    backgroundColor: color.backgroundColor,
+                    child: IconButton(
+                      tooltip: 'cart',
+                      icon: Badge(
+                        isLabelVisible: cart.cartNotifierItem.isEmpty ? false : true,
+                        label: Text("${cart.cartNotifierItem.length}"),
+                        child: const Icon(
+                          Icons.shopping_cart,
+                        ),
+                      ),
+                      color: Colors.white,
+                      onPressed: () {
+                        setState(() {
+                          isCartExpanded = !isCartExpanded;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
+      });
+    });
+
+  }
+
   List<CollapsibleItem> get _generateItems {
     return [
       CollapsibleItem(
         text: AppLocalizations.of(context)!.translate('menu'),
         icon: Icons.add_shopping_cart,
-        onPressed: () => setState(() => currentPage = 'menu'),
+        onPressed: () => setState(() {
+          currentPage = 'menu';
+          isCollapsedNotifier.value = !isCollapsedNotifier.value;
+        }),
         isSelected: currentPage == 'menu',
       ),
       if (isLoad && _appSettingModel.table_order == 1)
         CollapsibleItem(
           text: AppLocalizations.of(context)!.translate('table'),
           icon: Icons.table_restaurant,
-          onPressed: () => setState(() => currentPage = 'table'),
+          onPressed: () => setState(() {
+            currentPage = 'table';
+            isCollapsedNotifier.value = !isCollapsedNotifier.value;
+          }),
         ),
       if (isLoad && _appSettingModel.table_order == 1)
         CollapsibleItem(
           text: AppLocalizations.of(context)!.translate('qr_order'),
           icon: Icons.qr_code_2,
           badgeCount: qr_length,
-          onPressed: () => setState(() => currentPage = 'qr_order'),
+          onPressed: () => setState(() {
+            currentPage = 'qr_order';
+            isCollapsedNotifier.value = !isCollapsedNotifier.value;
+          }),
         ),
       CollapsibleItem(
         text: AppLocalizations.of(context)!.translate('other_order'),
         icon: Icons.shopping_cart_sharp,
-        onPressed: () => setState(() => currentPage = 'other_order'),
+        onPressed: () => setState(() {
+          currentPage = 'other_order';
+          isCollapsedNotifier.value = !isCollapsedNotifier.value;
+        }),
       ),
       CollapsibleItem(
         text: AppLocalizations.of(context)!.translate('bill'),
         icon: Icons.receipt_long,
-        onPressed: () => setState(() => currentPage = 'bill'),
+        onPressed: () => setState(() {
+          currentPage = 'bill';
+          isCollapsedNotifier.value = !isCollapsedNotifier.value;
+        }),
       ),
       CollapsibleItem(
         text: AppLocalizations.of(context)!.translate('counter'),
         icon: Icons.point_of_sale,
-        onPressed: () => setState(() => currentPage = 'settlement'),
+        onPressed: () => setState(() {
+          currentPage = 'settlement';
+          isCollapsedNotifier.value = !isCollapsedNotifier.value;
+        }),
       ),
       CollapsibleItem(
         text: AppLocalizations.of(context)!.translate('report'),
         icon: Icons.insert_chart,
-        onPressed: () => setState(() => currentPage = 'report'),
+        onPressed: () => setState(() {
+          currentPage = 'report';
+          isCollapsedNotifier.value = !isCollapsedNotifier.value;
+        }),
       ),
-      // CollapsibleItem(
-      //   text: AppLocalizations.of(context)!.translate('product'),
-      //   icon: Icons.fastfood,
-      //   onPressed: () => setState(() => currentPage = 'product'),
-      // ),
+      CollapsibleItem(
+        text: AppLocalizations.of(context)!.translate('product'),
+        icon: Icons.fastfood,
+        onPressed: () => setState(() {
+          currentPage = 'product';
+          isCollapsedNotifier.value = !isCollapsedNotifier.value;
+        }),
+      ),
       CollapsibleItem(
         text: AppLocalizations.of(context)!.translate('setting'),
         icon: Icons.settings,
-        onPressed: () => setState(() => currentPage = 'setting'),
+        onPressed: () => setState(() {
+          currentPage = 'setting';
+          isCollapsedNotifier.value = !isCollapsedNotifier.value;
+        }),
       ),
     ];
   }
@@ -358,6 +588,18 @@ class _HomePageState extends State<HomePage> {
     FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
       if (message != null) {}
     });
+
+    if (Platform.isIOS) {
+      FirebaseMessaging.instance.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true,
+      );
+    }
   }
 
   void showFlutterNotification(RemoteMessage message) async {
@@ -526,5 +768,18 @@ class _HomePageState extends State<HomePage> {
       return title.substring(0, maxLength) + '...';
     }
     return title;
+  }
+
+  bool isLandscapeOrien() {
+    try {
+      if(MediaQuery.of(context).orientation == Orientation.landscape) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch(e) {
+      print("isLandscapeOrien error: $e");
+      return false;
+    }
   }
 }

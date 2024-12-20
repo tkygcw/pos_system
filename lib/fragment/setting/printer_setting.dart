@@ -71,14 +71,17 @@ class _PrinterSettingState extends State<PrinterSetting> {
                         leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.print, color: Colors.grey,)),
                         title:Text("${printerList[index].printer_label}", style: TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold)),
                         subtitle: printerList[index].type == 0
-                            ?
-                        Text(AppLocalizations.of(context)!.translate('type_usb'))
-                            :
-                        Text(AppLocalizations.of(context)!.translate('type_lan')+'\nIP: ${jsonDecode(printerList[index].value!)} '),
+                            ? Text(AppLocalizations.of(context)!.translate('type_usb'))
+                            : printerList[index].type == 1
+                            ? Text(AppLocalizations.of(context)!.translate('type_lan')+'\nIP: ${jsonDecode(printerList[index].value!)} ')
+                            : Text(AppLocalizations.of(context)!.translate('type_bluetooth')+'\nMac: ${jsonDecode(printerList[index].value!)} '),
                         trailing: Container(
                           child: FittedBox(
-                            child: printerList[index].type == 0 ? Icon(Icons.usb, color: printerList[index].printer_status == 1 ? Colors.green : Colors.red)
-                                : Icon(Icons.wifi, color: printerList[index].printer_status == 1 ? Colors.green : Colors.red),
+                            child: printerList[index].type == 0
+                                ? Icon(Icons.usb, color: printerList[index].printer_status == 1 ? Colors.green : Colors.red)
+                                : printerList[index].type == 1
+                                ? Icon(Icons.wifi, color: printerList[index].printer_status == 1 ? Colors.green : Colors.red)
+                                : Icon(Icons.bluetooth, color: printerList[index].printer_status == 1 ? Colors.green : Colors.red)
                           ),
                         ),
                         onLongPress: () async {
@@ -121,6 +124,20 @@ class _PrinterSettingState extends State<PrinterSetting> {
           ///mobile layout
           return isLoaded ?
           Scaffold(
+            appBar:  MediaQuery.of(context).size.width < 800 && MediaQuery.of(context).orientation == Orientation.portrait ? AppBar(
+              elevation: 1,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back_ios, color: color.buttonColor),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              backgroundColor: Colors.white,
+              title: Text(AppLocalizations.of(context)!.translate('printer_setting'),
+                  style: TextStyle(fontSize: 20, color: color.backgroundColor)),
+              centerTitle: false,
+            )
+                : null,
             resizeToAvoidBottomInset: false,
             floatingActionButton: FloatingActionButton(
               backgroundColor: color.backgroundColor,
@@ -143,11 +160,18 @@ class _PrinterSettingState extends State<PrinterSetting> {
                         contentPadding: EdgeInsets.all(10),
                         leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.print, color: Colors.grey,)),
                         title:Text("${printerList[index].printer_label}", style: TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold)),
-                        subtitle: printerList[index].type == 0 ? Text(AppLocalizations.of(context)!.translate('type_usb')) : Text(AppLocalizations.of(context)!.translate('type_lan')+'\nIP: ${jsonDecode(printerList[index].value!)} '),
+                        subtitle: printerList[index].type == 0
+                            ? Text(AppLocalizations.of(context)!.translate('type_usb'))
+                            : printerList[index].type == 1
+                            ? Text(AppLocalizations.of(context)!.translate('type_lan')+'\nIP: ${jsonDecode(printerList[index].value!)} ')
+                            : Text(AppLocalizations.of(context)!.translate('type_bluetooth')+'\nMac: ${jsonDecode(printerList[index].value!)} '),
                         trailing: Container(
                           child: FittedBox(
-                            child: printerList[index].type == 0 ? Icon(Icons.usb, color: printerList[index].printer_status == 1 ? Colors.green : Colors.red)
-                                : Icon(Icons.wifi, color: printerList[index].printer_status == 1 ? Colors.green : Colors.red),
+                            child: printerList[index].type == 0
+                                ? Icon(Icons.usb, color: printerList[index].printer_status == 1 ? Colors.green : Colors.red)
+                                : printerList[index].type == 1
+                                ? Icon(Icons.wifi, color: printerList[index].printer_status == 1 ? Colors.green : Colors.red)
+                                : Icon(Icons.bluetooth, color: printerList[index].printer_status == 1 ? Colors.green : Colors.red)
                           ),
                         ),
                         onLongPress: () async {

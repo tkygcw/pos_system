@@ -16,6 +16,7 @@ import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/printer_link_category.dart';
 import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -50,8 +51,9 @@ class _PrinterDialogState extends State<PrinterDialog> {
   String? printer_value, printer_category_value, printer_category_delete_value;
   int? _typeStatus = 0;
   int? _paperSize = 0;
-  bool _submitted = false, _isUpdate = false, _isCashier = false, _isLabel = false, _isActive = true, isLogOut = false;
+  bool _submitted = false, _isUpdate = false, _isCashier = false, _isKitchenCheckList = false, _isLabel = false, _isActive = true, isLogOut = false;
   bool isLoad = false, isButtonDisabled = false;
+  bool isIos = false;
 
   String? selectedValue;
 
@@ -67,6 +69,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
       printerValue.add(widget.printerObject!.value!);
 
       widget.printerObject!.is_counter == 1 ? _isCashier = true : _isCashier = false;
+      widget.printerObject!.is_kitchen_checklist == 1 ? _isKitchenCheckList = true : _isKitchenCheckList = false;
       widget.printerObject!.is_label == 1 ? selectedValue = 'label_printer' : selectedValue = 'general_printer';
       widget.printerObject!.printer_status == 1 ? _isActive = true : _isActive = false;
     } else if (widget.devices != null) {
@@ -79,7 +82,8 @@ class _PrinterDialogState extends State<PrinterDialog> {
     }
 
     if (Platform.Platform.isIOS) {
-      _typeStatus = 1;
+      _typeStatus = widget.printerObject?.type != null ? widget.printerObject!.type! : 1;
+      isIos = true;
     }
     super.initState();
   }
@@ -115,13 +119,13 @@ class _PrinterDialogState extends State<PrinterDialog> {
             await callAddNewPrinter(printerValue, selectedCategories);
             if (_typeStatus == 0) {
               var printerDetail = jsonDecode(printerValue[0]);
-              bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
             }
           } else {
             await callUpdatePrinter(selectedCategories, widget.printerObject!);
             if (_typeStatus == 0) {
               var printerDetail = jsonDecode(printerValue[0]);
-              bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
             }
           }
           // if (_typeStatus == 1) {
@@ -240,6 +244,24 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                         });
                                       },
                                     ),
+                                  ),
+                                  Visibility(
+                                    visible: !Platform.Platform.isIOS,
+                                    child: Expanded(
+                                      child: RadioListTile<int>(
+                                        activeColor: color.backgroundColor,
+                                        title: Text(AppLocalizations.of(context)!.translate('bluetooth'), style: TextStyle(fontSize: 15)),
+                                        value: 2,
+                                        groupValue: _typeStatus,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            this.printerValue.clear();
+                                            // printerModel.removeAllPrinter();
+                                            _typeStatus = value;
+                                          });
+                                        },
+                                      ),
+                                    ),
                                   )
                                 ],
                               ),
@@ -255,7 +277,12 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                             openAddDeviceDialog(_typeStatus!);
                                           });
                                         } else {
-                                          manualAddDeviceDialog();
+                                          if(_typeStatus == 1){
+                                            // manualAddDeviceDialog();
+                                            openAddDeviceDialog(_typeStatus!);
+                                          } else {
+                                            openAddDeviceDialog(_typeStatus!);
+                                          }
                                         }
                                       },
                                       child: Text(AppLocalizations.of(context)!.translate('add_new_device'))),
@@ -275,6 +302,9 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                               printerValue.removeAt(index);
                                             });
                                           },
+                                          style: ElevatedButton.styleFrom(
+                                              backgroundColor: color.backgroundColor
+                                          ),
                                           child: Icon(Icons.delete)),
                                       subtitle: _typeStatus == 0
                                           ? Text(
@@ -349,17 +379,51 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                     Row(
                                       children: [
                                         Container(
-                                          child: Text(AppLocalizations.of(context)!.translate('set_as_cashier_printer')),
+                                          child: Text(
+                                            AppLocalizations.of(context)!.translate('set_as_cashier_printer'),
+                                            style: TextStyle(color: _isKitchenCheckList ? Colors.grey : Colors.black),
+                                          ),
                                         ),
                                         Spacer(),
                                         Container(
                                           child: Checkbox(
                                             value: _isCashier,
+                                            activeColor: color.backgroundColor,
                                             onChanged: widget.devices != null
                                                 ? null
                                                 : (value) {
                                               setState(() {
                                                 _isCashier = value!;
+                                                if (_isKitchenCheckList) {
+                                                  _isKitchenCheckList = false;
+                                                }
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        Container(
+                                          child: Text(
+                                            AppLocalizations.of(context)!.translate('print_kitchen_checklist'),
+                                            style: TextStyle(color: _isCashier ? Colors.grey : Colors.black),
+                                          ),
+                                        ),
+                                        Spacer(),
+                                        Container(
+                                          child: Checkbox(
+                                            value: _isKitchenCheckList,
+                                            activeColor: color.backgroundColor,
+                                            onChanged: widget.devices != null
+                                                ? null
+                                                : (value) {
+                                              setState(() {
+                                                _isKitchenCheckList = value!;
+                                                if (_isCashier) {
+                                                  _isCashier = false;
+                                                }
                                               });
                                             },
                                           ),
@@ -513,8 +577,10 @@ class _PrinterDialogState extends State<PrinterDialog> {
                         onPressed: () {
                           if (_typeStatus == 0) {
                             _print();
-                          } else {
+                          } else if (_typeStatus == 1){
                             _printLAN();
+                          } else {
+                            _printBluetooth();
                           }
                         },
                       ),
@@ -542,11 +608,14 @@ class _PrinterDialogState extends State<PrinterDialog> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                       child: _isUpdate ? Text('${AppLocalizations.of(context)?.translate('update')}') : Text(AppLocalizations.of(context)!.translate('add')),
-                      onPressed: isButtonDisabled ? null : () {
+                      onPressed: isButtonDisabled ? null : () async {
                         setState(() {
                           isButtonDisabled = true;
                         });
                         _submit(context);
+                        if(_isActive && _typeStatus == 2) {
+                          await bluetoothPrinterConnect(jsonDecode(printerValue[0]));
+                        }
                       },
                     ),
                   ),
@@ -565,7 +634,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                     ? Text(AppLocalizations.of(context)!.translate('edit_printer'))
                     : Text(AppLocalizations.of(context)!.translate('add_printer')),
                 titlePadding: EdgeInsets.fromLTRB(24, 16, 24, 0),
-                contentPadding: EdgeInsets.fromLTRB(24, 16, 24, 5),
+                contentPadding: EdgeInsets.fromLTRB(18, 16, 18, 5),
                 content: isLoad
                     ? Container(
                         height: MediaQuery.of(context).size.height / 2,
@@ -606,45 +675,49 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                 AppLocalizations.of(context)!.translate('type'),
                                 style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
                               ),
-                              Row(
-                                children: [
-                                  Visibility(
-                                    visible: !Platform.Platform.isIOS,
-                                    child: Expanded(
-                                      child: RadioListTile<int>(
-                                        activeColor: color.backgroundColor,
-                                        title: const Text(
-                                          'USB',
-                                          style: TextStyle(fontSize: 15),
-                                        ),
-                                        value: 0,
-                                        groupValue: _typeStatus,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            this.printerValue.clear();
-                                            // printerModel.removeAllPrinter();
-                                            _typeStatus = value;
-                                          });
-                                        },
-                                      ),
+
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: DropdownButtonFormField2<int>(
+                                  isExpanded: true,
+                                  isDense: false,
+                                  decoration: InputDecoration(
+                                    contentPadding: const EdgeInsets.symmetric(vertical: 5),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(color: color.backgroundColor),
                                     ),
                                   ),
-                                  Expanded(
-                                    child: RadioListTile<int>(
-                                      activeColor: color.backgroundColor,
-                                      title: Text(AppLocalizations.of(context)!.translate('lan'), style: TextStyle(fontSize: 15)),
-                                      value: 1,
-                                      groupValue: _typeStatus,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          this.printerValue.clear();
-                                          // printerModel.removeAllPrinter();
-                                          _typeStatus = value;
-                                        });
-                                      },
+                                  hint: Text(
+                                    'Printer Type',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: Theme.of(context).hintColor,
                                     ),
-                                  )
-                                ],
+                                  ),
+                                  items: <int>[0, 1, 2]
+                                      .where((int value) => !isIos || (value != 0 && value != 2))
+                                      .map<DropdownMenuItem<int>>((int value) {
+                                    return DropdownMenuItem<int>(
+                                      value: value,
+                                      child: Text(
+                                        value == 0
+                                            ? 'USB'
+                                            : value == 1
+                                            ? AppLocalizations.of(context)!.translate('lan')
+                                            : AppLocalizations.of(context)!.translate('bluetooth'),
+                                        style: TextStyle(fontSize: 15),
+                                      ),
+                                    );
+                                  }).toList(),
+                                  value: _typeStatus,
+                                  onChanged: (int? value) {
+                                    setState(() {
+                                      this.printerValue.clear();
+                                      // printerModel.removeAllPrinter();
+                                      _typeStatus = value;
+                                    });
+                                  },
+                                ),
                               ),
                               Visibility(
                                 visible: printerValue.isEmpty ? true : false,
@@ -658,7 +731,12 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                             openAddDeviceDialog(_typeStatus!);
                                           });
                                         } else {
-                                          manualAddDeviceDialog();
+                                          if(_typeStatus == 1){
+                                            // manualAddDeviceDialog();
+                                            openAddDeviceDialog(_typeStatus!);
+                                          } else {
+                                            openAddDeviceDialog(_typeStatus!);
+                                          }
                                         }
                                       },
                                       child: Text(AppLocalizations.of(context)!.translate('add_new_device'))),
@@ -678,6 +756,9 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                               printerValue.removeAt(index);
                                             });
                                           },
+                                          style: ElevatedButton.styleFrom(
+                                              backgroundColor: color.backgroundColor
+                                          ),
                                           child: Icon(Icons.delete)),
                                       subtitle: _typeStatus == 0
                                           ? Text(
@@ -748,7 +829,9 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                     Row(
                                       children: [
                                         Container(
-                                          child: Text(AppLocalizations.of(context)!.translate('set_as_cashier_printer')),
+                                          child: Text(AppLocalizations.of(context)!.translate('set_as_cashier_printer'),
+                                              style: TextStyle(color: _isKitchenCheckList ? Colors.grey : Colors.black)
+                                          ),
                                         ),
                                         Spacer(),
                                         Container(
@@ -759,6 +842,34 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                                 : (value) {
                                               setState(() {
                                                 _isCashier = value!;
+                                                if (_isKitchenCheckList) {
+                                                  _isKitchenCheckList = false;
+                                                }
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        Container(
+                                          child: Text(AppLocalizations.of(context)!.translate('print_kitchen_checklist'),
+                                            style: TextStyle(color: _isCashier ? Colors.grey : Colors.black),
+                                          ),
+                                        ),
+                                        Spacer(),
+                                        Container(
+                                          child: Checkbox(
+                                            value: _isKitchenCheckList,
+                                            onChanged: widget.devices != null
+                                                ? null
+                                                : (value) {
+                                              setState(() {
+                                                _isKitchenCheckList = value!;
+                                                if (_isCashier) {
+                                                  _isCashier = false;
+                                                }
                                               });
                                             },
                                           ),
@@ -898,53 +1009,77 @@ class _PrinterDialogState extends State<PrinterDialog> {
                       )
                     : CustomProgressBar(),
                 actions: <Widget>[
-                  Visibility(
-                    visible: _isUpdate ? true : false,
-                    child: SizedBox(
-                      width: MediaQuery.of(context).size.width / 4,
-                      height: MediaQuery.of(context).size.height / 10,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                        child: Text(AppLocalizations.of(context)!.translate('test_print')),
-                        onPressed: () {
-                          if (_typeStatus == 0) {
-                            _print();
-                          } else {
-                            _printLAN();
-                          }
-                        },
+                  Row(
+                    children: [
+                      Visibility(
+                        visible: _isUpdate ? true : false,
+                        child: Expanded(
+                          flex: 1,
+                          child: SizedBox(
+                            width: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width / 2.5 : MediaQuery.of(context).size.width / 3,
+                            height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10 : MediaQuery.of(context).size.height / 20,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                              child: Text(MediaQuery.of(context).orientation == Orientation.landscape ?
+                                AppLocalizations.of(context)!.translate('test_print')
+                                : AppLocalizations.of(context)!.translate('test')),
+                              onPressed: () {
+                                if (_typeStatus == 0) {
+                                  _print();
+                                } else if (_typeStatus == 1){
+                                  _printLAN();
+                                } else {
+                                  _printBluetooth();
+                                }
+                              },
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width / 4,
-                    height: MediaQuery.of(context).size.height / 10,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-                      child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                      onPressed: isButtonDisabled ? null : () {
-                        // Disable the button after it has been pressed
-                        setState(() {
-                          // Navigator.of(context).pop();
-                          isButtonDisabled = true;
-                        });
-                        closeDialog(context);
-                      },
-                    ),
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width / 4,
-                    height: MediaQuery.of(context).size.height / 10,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                      child: _isUpdate ? Text('${AppLocalizations.of(context)?.translate('update')}') : Text(AppLocalizations.of(context)!.translate('add')),
-                      onPressed: isButtonDisabled ? null : () {
-                        setState(() {
-                          isButtonDisabled = true;
-                        });
-                        _submit(context);
-                      },
-                    ),
+                      Visibility(
+                          visible: _isUpdate ? true : false,
+                          child: SizedBox(width: 10)),
+                      Expanded(
+                        flex: 1,
+                        child: SizedBox(
+                          width: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width / 2.5 : MediaQuery.of(context).size.width / 3,
+                          height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10 : MediaQuery.of(context).size.height / 20,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                            child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                            onPressed: isButtonDisabled ? null : () {
+                              // Disable the button after it has been pressed
+                              setState(() {
+                                // Navigator.of(context).pop();
+                                isButtonDisabled = true;
+                              });
+                              closeDialog(context);
+                            },
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        flex: 1,
+                        child: SizedBox(
+                          width: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width / 2.5 : MediaQuery.of(context).size.width / 3,
+                          height: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.height / 10 : MediaQuery.of(context).size.height / 20,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                            child: _isUpdate ? Text('${AppLocalizations.of(context)?.translate('update')}') : Text(AppLocalizations.of(context)!.translate('add')),
+                            onPressed: isButtonDisabled ? null : () async {
+                              setState(() {
+                                isButtonDisabled = true;
+                              });
+                              _submit(context);
+                              if(_isActive && _typeStatus == 2) {
+                                await bluetoothPrinterConnect(jsonDecode(printerValue[0]));
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -1026,6 +1161,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
           paper_size: _paperSize,
           printer_status: _isActive ? 1 : 0,
           is_counter: _isCashier ? 1 : 0,
+          is_kitchen_checklist: _isKitchenCheckList ? 1 : 0,
           is_label: _isLabel ? 1 : 0,
           sync_status: _typeStatus == 0 ? -1 : 0,
           created_at: dateTime,
@@ -1136,8 +1272,8 @@ class _PrinterDialogState extends State<PrinterDialog> {
             selectedCategories.add(Categories(category_sqlite_id: 0, name: 'Other/uncategorized'));
           } else {
             Categories? catData = await PosDatabase.instance.readSpecificCategoryById(data[i].category_sqlite_id!);
-            if (!selectedCategories.contains(catData)) {
-              catData!.isChecked = true;
+            if (catData != null) {
+              catData.isChecked = true;
               selectedCategories.add(catData);
             }
           }
@@ -1203,7 +1339,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
       PrinterLinkCategory printerLinkCategoryObject = PrinterLinkCategory(
           soft_delete: dateTime, sync_status: this.printer!.type == 0 ? 1 : 2, printer_sqlite_id: printer.printer_sqlite_id.toString());
 
-      int data = await PosDatabase.instance.deletePrinterCategory(printerLinkCategoryObject);
+      await PosDatabase.instance.deletePrinterCategory(printerLinkCategoryObject);
       if (this.printer!.type == 1) {
         List<PrinterLinkCategory> printerCategoryList =
             await PosDatabase.instance.readDeletedPrinterLinkCategory(int.parse(printerLinkCategoryObject.printer_sqlite_id!));
@@ -1231,6 +1367,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
           paper_size: _paperSize,
           printer_status: _isActive ? 1 : 0,
           is_counter: _isCashier ? 1 : 0,
+          is_kitchen_checklist: _isKitchenCheckList ? 1 : 0,
           is_label: _isLabel ? 1 : 0,
           sync_status: checkData.type == 0 && _typeStatus == 1
               ? 0
@@ -1242,7 +1379,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
           updated_at: dateTime,
           printer_sqlite_id: widget.printerObject!.printer_sqlite_id);
 
-      int data = await PosDatabase.instance.updatePrinter(printerObject);
+      await PosDatabase.instance.updatePrinter(printerObject);
       this.printer = printerObject;
       Printer updatedData = await PosDatabase.instance.readSpecificPrinterByLocalId(printerObject.printer_sqlite_id!);
       _value.add(jsonEncode(updatedData));
@@ -1460,6 +1597,44 @@ class _PrinterDialogState extends State<PrinterDialog> {
   -------------------Printing part---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
+  _printBluetooth() async {
+    try {
+      var printerDetail = jsonDecode(printerValue[0]);
+      bool res = await bluetoothPrinterConnect(printerDetail);
+      if (_paperSize == 0) {
+        if (res) {
+          await PrintBluetoothThermal.writeBytes(await ReceiptLayout().testTicket80mm(true));
+        } else {
+          Fluttertoast.showToast(
+            backgroundColor: Color(0xFFFF0000),
+            msg: "${AppLocalizations.of(context)?.translate('bluetooth_printer_not_connect')}"
+          );
+        }
+      } else if (_paperSize == 1) {
+        if (res) {
+          await PrintBluetoothThermal.writeBytes(await ReceiptLayout().testTicket58mm(true));
+        } else {
+          Fluttertoast.showToast(
+              backgroundColor: Color(0xFFFF0000),
+              msg: "${AppLocalizations.of(context)?.translate('bluetooth_printer_not_connect')}"
+          );
+        }
+      } else {
+        if (res) {
+          await PrintBluetoothThermal.writeBytes(await ReceiptLayout().testTicket35mm(true));
+        } else {
+          Fluttertoast.showToast(
+              backgroundColor: Color(0xFFFF0000),
+              msg: "${AppLocalizations.of(context)?.translate('bluetooth_printer_not_connect')}"
+          );
+        }
+      }
+    } catch (e) {
+      print('error $e');
+      print('Bluetooth Printer Connection Error');
+    }
+  }
+
   _print() async {
     try {
       var printerDetail = jsonDecode(printerValue[0]);
@@ -1468,7 +1643,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
         var data = Uint8List.fromList(await ReceiptLayout().testTicket80mm(true));
         bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
         if (isConnected == true) {
-          bool? status = await flutterUsbPrinter.write(data);
+          await flutterUsbPrinter.write(data);
         } else {
           print('not connected');
         }
@@ -1550,5 +1725,33 @@ class _PrinterDialogState extends State<PrinterDialog> {
             msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
       }
     }
+  }
+
+  static Future<bool> bluetoothPrinterConnect(String mac) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? lastBtConnection = prefs.getString('lastBtConnection');
+    bool result = false;
+    bool bluetoothIsOn = await PrintBluetoothThermal.bluetoothEnabled;
+
+    if(bluetoothIsOn) {
+      bool connectionStatus = await PrintBluetoothThermal.connectionStatus;
+      if (connectionStatus) {
+        if (lastBtConnection != mac) {
+          await PrintBluetoothThermal.disconnect;
+          result = await PrintBluetoothThermal.connect(macPrinterAddress: mac);
+          if(result) {
+            await prefs.setString('lastBtConnection', mac);
+          }
+        } else {
+          result = true;
+        }
+      } else {
+        result = await PrintBluetoothThermal.connect(macPrinterAddress: mac);
+        if(result) {
+          await prefs.setString('lastBtConnection', mac);
+        }
+      }
+    }
+    return result;
   }
 }
