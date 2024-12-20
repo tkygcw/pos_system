@@ -224,6 +224,9 @@ class _SyncDialogState extends State<SyncDialog> {
           do{
             status = await syncToCloud.syncAllToCloud(isManualSync: true);
           }while(syncToCloud.emptyResponse == false);
+          if(syncToCloud.emptyResponse == true){
+            isSyncing = false;
+          }
           mainSyncToCloud.count = 0;
           Future.delayed(const Duration(seconds: 2), () {
             if(status == 0){
@@ -247,6 +250,9 @@ class _SyncDialogState extends State<SyncDialog> {
             do{
               status = await syncToCloud.syncAllToCloud(isManualSync: true);
             }while(syncToCloud.emptyResponse == false);
+            if(syncToCloud.emptyResponse == true){
+              isSyncing = false;
+            }
             mainSyncToCloud.count = 0;
 
             Future.delayed(const Duration(seconds: 2), () {
