@@ -900,7 +900,6 @@ class CartPageState extends State<CartPage> {
                                                       ? cart.cartNotifierItem.isEmpty && (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 1 || cart.selectedOption != 'Dine in')
                                                       ? Text(AppLocalizations.of(context)!.translate('select_order'))
                                                       : Text(AppLocalizations.of(context)!.translate('place_order'))
-
                                                       : cart.cartNotifierItem.isEmpty && (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 1 || cart.selectedOption != 'Dine in')
                                                       ? Text(AppLocalizations.of(context)!.translate('select_order'))
                                                       : Text(AppLocalizations.of(context)!.translate('place_order') + '\n (RM ${this.finalAmount})')
