@@ -359,7 +359,9 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
         callPrinter(dateTime, cart);
         Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(globalContext)!.translate('delete_successful'));
         tableModel.changeContent(true);
-        Navigator.of(context).pop();
+        if(mounted){
+          Navigator.of(context).pop();
+        }
       }
     }catch(e, stackTrace){
       FLog.error(
