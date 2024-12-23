@@ -56,7 +56,7 @@ class ProductReceiptLayout {
             PosColumn(text: orderDetail.productName, width: 5, containsChinese: true, styles: PosStyles()),
             PosColumn(text: getProductVariant(orderDetail), width: 3, containsChinese: true, styles: PosStyles(fontType: PosFontType.fontB)),
             PosColumn(text: getProductQty(orderDetail), width: 2, styles: PosStyles(fontType: PosFontType.fontB)),
-            PosColumn(text: Utils.to2Decimal(orderDetail.gross_price!), width: 2, styles: PosStyles(align: PosAlign.right, fontType: PosFontType.fontA)),
+            PosColumn(text: (orderDetail.gross_price! as double).toStringAsFixed(2), width: 2, styles: PosStyles(align: PosAlign.right, fontType: PosFontType.fontA)),
           ]);
         }
         bytes += generator.hr();
@@ -64,7 +64,7 @@ class ProductReceiptLayout {
           PosColumn(text: 'Subtotal', width: 5, styles: PosStyles(bold: true)),
           PosColumn(text: ' ', width: 3, styles: PosStyles(bold: true)),
           PosColumn(text: category.category_item_sum.toString(), width: 2, styles: PosStyles(bold: true)),
-          PosColumn(text: Utils.to2Decimal(category.category_gross_sales), width: 2, styles: PosStyles(align: PosAlign.right, bold: true)),
+          PosColumn(text: (category.category_gross_sales! as double).toStringAsFixed(2), width: 2, styles: PosStyles(align: PosAlign.right, bold: true)),
         ]);
         bytes += generator.hr();
       }
@@ -133,7 +133,7 @@ class ProductReceiptLayout {
             PosColumn(text: orderDetail.productName, width: 5, containsChinese: true, styles: PosStyles(fontType: PosFontType.fontB)),
             PosColumn(text: getProductVariant(orderDetail), width: 3, containsChinese: true, styles: PosStyles(fontType: PosFontType.fontB)),
             PosColumn(text: getProductQty(orderDetail), width: 2, styles: PosStyles(fontType: PosFontType.fontB)),
-            PosColumn(text: Utils.to2Decimal(orderDetail.gross_price!), width: 2, styles: PosStyles(fontType: PosFontType.fontB)),
+            PosColumn(text: (orderDetail.gross_price! as double).toStringAsFixed(2), width: 2, styles: PosStyles(fontType: PosFontType.fontB)),
           ]);
         }
         bytes += generator.hr();
@@ -141,7 +141,7 @@ class ProductReceiptLayout {
           PosColumn(text: 'Subtotal', width: 5, styles: PosStyles(bold: true)),
           PosColumn(text: ' ', width: 3, styles: PosStyles(bold: true)),
           PosColumn(text: category.category_item_sum.toString(), width: 2, styles: PosStyles(bold: true)),
-          PosColumn(text: Utils.to2Decimal(category.category_gross_sales), width: 2, styles: PosStyles(bold: true)),
+          PosColumn(text: (category.category_gross_sales! as double).toStringAsFixed(2), width: 2, styles: PosStyles(bold: true)),
         ]);
         bytes += generator.hr();
       }
@@ -181,7 +181,7 @@ class ProductReceiptLayout {
   getTotalAmount(){
     if(ReportModel.instance.reportValue2.isNotEmpty){
       final list = ReportModel.instance.reportValue2.map((e) => e.category_gross_sales!).toList();
-      return Utils.to2Decimal(list.reduce((a, b) => a + b));
+      return (list.reduce((a, b) => a + b) as double).toStringAsFixed(2);
     } else {
       return '-';
     }
