@@ -10,6 +10,7 @@ class SecondDisplayData {
   String? rounding;
   String? finalAmount;
   int? payment_link_company_id;
+  String? selectedOption;
 
   SecondDisplayData({
     this.tableNo,
@@ -20,8 +21,8 @@ class SecondDisplayData {
     this.amount,
     this.rounding,
     this.finalAmount,
-    this.payment_link_company_id
-
+    this.payment_link_company_id,
+    this.selectedOption
   });
 
   static SecondDisplayData fromJson(Map<String, Object?> json) {
@@ -36,7 +37,8 @@ class SecondDisplayData {
       amount: json['amount'] as String?,
       rounding: json['rounding'] as String?,
       finalAmount: json['finalAmount'] as String?,
-      payment_link_company_id: json['payment_link_company_id'] as int?
+      payment_link_company_id: json['payment_link_company_id'] as int?,
+      selectedOption: json['selectedOption'] as String?
     );
   }
 
@@ -56,7 +58,8 @@ class SecondDisplayData {
       'amount': amount,
       'rounding': rounding,
       'finalAmount': finalAmount,
-      'payment_link_company_id': payment_link_company_id
+      'payment_link_company_id': payment_link_company_id,
+      'selectedOption': selectedOption
     };
   }
 

@@ -209,8 +209,12 @@ class Domain {
         'platform': platform,
       });
       return jsonDecode(response.body);
-    } catch(e){
-      Fluttertoast.showToast(msg: e.toString());
+    } catch(e, s){
+      FLog.error(
+        className: "loading",
+        text: "dynamic qr insert failed",
+        exception: "Error: $e, StackTrace: $s",
+      );
     }
   }
 
@@ -634,7 +638,8 @@ class Domain {
         attendance_value,
         order_payment_split_value,
         dynamic_qr_value,
-        cancel_receipt_value
+        cancel_receipt_value,
+        product_value,
       }) async {
     try {
       //print('order cache value 15 sync: ${order_cache_value}');
@@ -672,6 +677,7 @@ class Domain {
         'tb_order_payment_split_create': order_payment_split_value != null ? order_payment_split_value : [].toString(),
         'tb_dynamic_qr_create': dynamic_qr_value != null ? dynamic_qr_value : [].toString(),
         'tb_cancel_receipt_create': cancel_receipt_value != null ? cancel_receipt_value : [].toString(),
+        'tb_product_create': product_value != null ? product_value : [].toString(),
       }).timeout(Duration(seconds: isManualSync != null ? 120 : isSync != null ? 25 : 15), onTimeout: () => throw TimeoutException("Time out"));
       print('response in domain: ${jsonDecode(response.body)}');
       return jsonDecode(response.body);
@@ -1081,6 +1087,22 @@ class Domain {
       var response = await http.post(Domain.sync_to_cloud, body: {
         'tb_branch_link_product_update': '1',
         'details': detail,
+      });
+
+      return jsonDecode(response.body);
+    } catch (error) {
+      print('domain error: ${error}');
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync product to cloud
+  * */
+  SyncProductToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_product_create': detail,
       });
 
       return jsonDecode(response.body);
@@ -2530,8 +2552,12 @@ class Domain {
       });
       print(jsonDecode(response.body));
       return jsonDecode(response.body);
-    } catch (error) {
-      Fluttertoast.showToast(msg: error.toString());
+    } catch (error, s) {
+      FLog.error(
+        className: "loading",
+        text: "dynamic qr insert failed",
+        exception: "Error: $error, StackTrace: $s",
+      );
     }
   }
 

@@ -1,3 +1,4 @@
+import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/fragment/food/food_setting.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
@@ -26,55 +27,31 @@ class _ProductPageState extends State<ProductPage> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return Padding(
-        padding: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? EdgeInsets.fromLTRB(8, 10, 8, 8) : EdgeInsets.fromLTRB(0, 0, 8, 8),
-        child: Scaffold(
-          resizeToAvoidBottomInset: false,
-          appBar: AppBar(
-            automaticallyImplyLeading: false,
-            title: Text(AppLocalizations.of(context)!.translate('food'),
-                style: TextStyle(fontSize: 25, color: Colors.black)),
-            backgroundColor: Color(0xffFAFAFA),
-            elevation: 0,
+      return Scaffold(
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: MediaQuery.of(context).orientation == Orientation.landscape ? null : Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: GestureDetector(
+              onTap: () {
+                isCollapsedNotifier.value = !isCollapsedNotifier.value;
+              },
+              child: Image.asset('drawable/logo.png'),
+            ),
           ),
-          body: Row(
-            children: [
-              /// Pretty similar to the BottomNavigationBar!
-              SideNavigationBar(
-                initiallyExpanded: MediaQuery.of(context).size.height > 500 ? true :false,
-                expandable: MediaQuery.of(context).size.height > 500 ? false : true,
-                theme: SideNavigationBarTheme(
-                  backgroundColor: Colors.white,
-                  togglerTheme: SideNavigationBarTogglerTheme.standard(),
-                  itemTheme: SideNavigationBarItemTheme(
-                    selectedItemColor: color.backgroundColor,
-                  ),
-                  dividerTheme: SideNavigationBarDividerTheme.standard(),
-                ),
-                selectedIndex: selectedIndex,
-                items: [
-                  SideNavigationBarItem(
-                    icon: Icons.food_bank,
-                    label: AppLocalizations.of(context)!.translate('food_and_beverage'),
-                  ),
-                  // SideNavigationBarItem(
-                  //   icon: Icons.list,
-                  //   label: 'Categories',
-                  // ),
-                ],
-                onTap: (index) {
-                  setState(() {
-                    selectedIndex = index;
-                  });
-                },
-              ),
-
-              /// Make it take the rest of the available width
-              Expanded(
-                child: views.elementAt(selectedIndex),
-              )
-            ],
-          ),
+          title: Text(AppLocalizations.of(context)!.translate('product'),
+              style: TextStyle(fontSize: 25, color: Colors.black)),
+          backgroundColor: Color(0xffFAFAFA),
+          elevation: 0,
+        ),
+        body: Row(
+          children: [
+            /// Make it take the rest of the available width
+            Expanded(
+              child: views.elementAt(selectedIndex),
+            )
+          ],
         ),
       );
 
