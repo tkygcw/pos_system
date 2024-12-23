@@ -248,6 +248,11 @@ class PosDatabaseUtils {
           case 31: {
             await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.allow_livedata} $integerType DEFAULT 0 ");
           }break;
+          case 32: {
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.qr_order_alert} $integerType DEFAULT 1");
+          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.other_order_key} $textType DEFAULT ''");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.rounding_absorb} $integerType DEFAULT 0");
+          }break;
         }
       }
     }
@@ -384,6 +389,7 @@ class PosDatabaseUtils {
           ${OrderCacheFields.order_detail_id} $textType, 
           ${OrderCacheFields.table_use_sqlite_id} $textType, 
           ${OrderCacheFields.table_use_key} $textType,
+          ${OrderCacheFields.other_order_key} $textType,
           ${OrderCacheFields.batch_id} $textType, 
           ${OrderCacheFields.dining_id} $textType, 
           ${OrderCacheFields.order_sqlite_id} $textType, 
@@ -896,6 +902,8 @@ class PosDatabaseUtils {
           ${AppSettingFields.variant_item_sort_by} $integerType,
           ${AppSettingFields.dynamic_qr_invalid_after_payment} $integerType,
           ${AppSettingFields.required_cancel_reason} $integerType,
+          ${AppSettingFields.qr_order_alert} $integerType,
+          ${AppSettingFields.rounding_absorb} $integerType,
           ${AppSettingFields.sync_status} $integerType,
           ${AppSettingFields.created_at} $textType,
           ${AppSettingFields.updated_at} $textType)''');

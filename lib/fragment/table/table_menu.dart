@@ -548,6 +548,7 @@ class _TableMenuState extends State<TableMenu> {
               ),
               Switch(
                 value: showAdvanced,
+                activeColor: color.backgroundColor,
                 onChanged: (value) async {
                   if(MediaQuery.of(context).size.height > 500) {
                     if (isUpdated()) {
@@ -1235,6 +1236,7 @@ class _TableMenuState extends State<TableMenu> {
           order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString(),
           base_price: orderDetailList[i].original_price,
           refColor: Colors.black,
+          first_cache_other_order_key: orderCacheList.last.other_order_key,
           first_cache_created_date_time: orderCacheList.last.created_at,  //orderCacheList[0].created_at,
           first_cache_batch: orderCacheList.last.batch_id,
           first_cache_order_by: orderCacheList.last.order_by,

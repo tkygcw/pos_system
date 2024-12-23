@@ -15,11 +15,13 @@ class AppSettingModel extends ChangeNotifier {
   int? table_order;
   bool? show_product_desc;
   bool? autoPrintCancelReceipt;
+  bool? roundingAbsorb;
   int? product_sort_by;
   int? dynamic_qr_default_exp_after_hour;
   int? variant_item_sort_by;
   bool? dynamic_qr_invalid_after_payment;
   bool? required_cancel_reason;
+  bool? qr_order_alert;
 
   AppSettingModel({
     this.directPaymentStatus,
@@ -37,7 +39,8 @@ class AppSettingModel extends ChangeNotifier {
     this.dynamic_qr_default_exp_after_hour,
     this.variant_item_sort_by,
     this.dynamic_qr_invalid_after_payment,
-    this.required_cancel_reason
+    this.required_cancel_reason,
+    this.qr_order_alert,
   });
 
   void initialLoad() async {
@@ -59,6 +62,7 @@ class AppSettingModel extends ChangeNotifier {
       variant_item_sort_by = data.variant_item_sort_by;
       dynamic_qr_invalid_after_payment = data.dynamic_qr_invalid_after_payment == 1 ? true : false;
       required_cancel_reason = data.required_cancel_reason == 1 ? true : false;
+      qr_order_alert = data.qr_order_alert == 1 ? true : false;
     }
   }
 
@@ -87,6 +91,11 @@ class AppSettingModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setQrOrderAlertStatus(bool status) {
+    qr_order_alert = status;
+    notifyListeners();
+  }
+
   void setSettlementAfterAllOrderPaidStatus(bool status) {
     settlement_after_all_order_paid = status;
     notifyListeners();
@@ -109,6 +118,11 @@ class AppSettingModel extends ChangeNotifier {
 
   void setAutoPrintCancelReceiptStatus(bool status) {
     autoPrintCancelReceipt = status;
+    notifyListeners();
+  }
+
+  void setRoundingAbsorbStatus(bool status) {
+    roundingAbsorb = status;
     notifyListeners();
   }
 

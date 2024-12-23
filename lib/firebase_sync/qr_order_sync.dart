@@ -144,7 +144,9 @@ class FirestoreQROrderSync {
           return;
         }
         await QrOrder.instance.getAllNotAcceptedQrOrder();
-        ShowQRToast.showToast();
+        if(AppSettingModel.instance.qr_order_alert == true){
+          ShowQRToast.showToast();
+        }
       } else {
         throw Exception("order detail collection is empty: order_cache_key: ${localOrderCache.order_cache_key}");
       }
@@ -202,7 +204,8 @@ class FirestoreQROrderSync {
           sync_status: 0,
           created_at: data['created_at'],
           updated_at: '',
-          soft_delete: ''
+          soft_delete: '',
+          other_order_key: '',
       );
       return await PosDatabase.instance.insertSqLiteOrderCache(orderCache);
     }catch(e){

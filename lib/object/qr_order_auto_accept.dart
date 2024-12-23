@@ -225,6 +225,9 @@ class QrOrderAutoAccept {
 
   autoAcceptQrOrder(OrderCache qrOrderCacheList, List<OrderDetail> orderDetailList, int index) async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+      AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
       await checkTablePaymentSplit(qrOrderCacheList.qr_order_table_sqlite_id!);
       await checkOrderDetailStock();
       print('available check: ${hasNotAvailableProduct}');
@@ -243,7 +246,9 @@ class QrOrderAutoAccept {
           if (tableInUsed == true) {
             if(checkIsTableSelectedInPaymentCart(qrOrderCacheList.qr_order_table_sqlite_id!) == true){
               QrOrder.instance.getAllNotAcceptedQrOrder();
-              ShowQRToast.showToast();
+              // if(localSetting!.qr_order_alert == 1){
+              //   ShowQRToast.showToast();
+              // }
               return;
             } else {
               await updateOrderDetail();
@@ -257,11 +262,14 @@ class QrOrderAutoAccept {
         } else {
           await callOtherOrder(qrOrderCacheList);
         }
-        ShowQRToast.showToast();
+
+        final String? branch = prefs.getString('branch');
+        Map branchObject = json.decode(branch!);
+        if(localSetting!.qr_order_alert == 1 && branchObject['allow_firestore'] == 1){
+          ShowQRToast.showToast();
+        }
         QrOrder.instance.removeSpecificQrOrder(qrOrderCacheList.order_cache_sqlite_id!);
-        final prefs = await SharedPreferences.getInstance();
-        final int? branch_id = prefs.getInt('branch_id');
-        AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
+
         if(localSetting!.print_checklist == 1) {
           await printCheckList(qrOrderCacheList.order_cache_sqlite_id!);
         }

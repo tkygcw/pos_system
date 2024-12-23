@@ -11,6 +11,7 @@ import 'package:page_transition/page_transition.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:pos_system/firebase_sync/qr_order_sync.dart';
 import 'package:pos_system/firebase_sync/sync_to_firebase.dart';
+import 'package:pos_system/fragment/custom_toastification.dart';
 import 'package:pos_system/fragment/setting/sync_dialog.dart';
 import 'package:pos_system/fragment/setting/system_log_dialog.dart';
 import 'package:pos_system/fragment/subscription_expired.dart';
@@ -157,18 +158,23 @@ class _PosPinPageState extends State<PosPinPage> {
   }
 
   getLatestVersion() async {
-    if(defaultTargetPlatform == TargetPlatform.android){
-      Map data =  await Domain().getAppVersion('0');
-      if(data['status'] == '1'){
-        response = data['app_version'];
-        latestVersion = response[0]['version'];
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      if(defaultTargetPlatform == TargetPlatform.android){
+        Map data =  await Domain().getAppVersion('0');
+        if(data['status'] == '1'){
+          response = data['app_version'];
+          latestVersion = response[0]['version'];
+        }
+      } else if(defaultTargetPlatform == TargetPlatform.iOS) {
+        Map data =  await Domain().getAppVersion('1');
+        if(data['status'] == '1'){
+          response = data['app_version'];
+          latestVersion = response[0]['version'];
+        }
       }
-    } else if(defaultTargetPlatform == TargetPlatform.iOS) {
-      Map data =  await Domain().getAppVersion('1');
-      if(data['status'] == '1'){
-        response = data['app_version'];
-        latestVersion = response[0]['version'];
-      }
+    } else {
+      ShowOfflineToast.showToast();
     }
   }
 
