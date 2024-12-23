@@ -1327,6 +1327,7 @@ class CartPageState extends State<CartPage> {
   }
 
   getManualApplyPromotion(CartModel cart) {
+    cart.clearCategoryTotalPriceMap();
     List<cartProductItem> _sameCategoryList = [];
     allPromo = '';
     selectedPromoRate = '';
@@ -1390,8 +1391,8 @@ class CartPageState extends State<CartPage> {
                 }
               }
             }
-            print("ppppppp: ${cart.categoryTotalPriceMap[cart.selectedPromotion!.category_id]!}");
-            specificCategoryAmount(cart.selectedPromotion!, cart.categoryTotalPriceMap[cart.selectedPromotion!.category_id]!, cart);
+            double totalPrice = cart.categoryTotalPriceMap.values.reduce((a, b) => a + b);
+            specificCategoryAmount(cart.selectedPromotion!, totalPrice, cart);
           }
           else {
             nonSpecificCategoryAmount(cart, rate);
@@ -1728,7 +1729,7 @@ class CartPageState extends State<CartPage> {
                     }
                   }
                 }
-                autoApplySpecificCategoryAmount(cart, promotionList[j], cart.categoryTotalPriceMap[promotionList[j].category_id!]!);
+                autoApplySpecificCategoryAmount(cart, promotionList[j], categoryTotalPrice);
 
               } else {
                 //Auto apply non specific category promotion
@@ -1776,7 +1777,7 @@ class CartPageState extends State<CartPage> {
                           }
                         }
                       }
-                      autoApplySpecificCategoryAmount(cart, promotionList[j], cart.categoryTotalPriceMap[promotionList[j].category_id!]!);
+                      autoApplySpecificCategoryAmount(cart, promotionList[j], categoryTotalPrice);
                     } else {
                       //Auto apply non specific category promotion
                       if (cart.cartNotifierItem.isNotEmpty) {
@@ -1831,7 +1832,7 @@ class CartPageState extends State<CartPage> {
                           }
                         }
                       }
-                      autoApplySpecificCategoryAmount(cart, promotionList[j], cart.categoryTotalPriceMap[promotionList[j].category_id!]!);
+                      autoApplySpecificCategoryAmount(cart, promotionList[j], categoryTotalPrice);
                     } else {
                       //Auto apply non specific category promotion
                       if (cart.cartNotifierItem.isNotEmpty) {
@@ -1886,7 +1887,7 @@ class CartPageState extends State<CartPage> {
                           }
                         }
                       }
-                      autoApplySpecificCategoryAmount(cart, promotionList[j], cart.categoryTotalPriceMap[promotionList[j].category_id!]!);
+                      autoApplySpecificCategoryAmount(cart, promotionList[j], categoryTotalPrice);
                     } else {
                       //Auto apply non specific category promotion
                       if (cart.cartNotifierItem.isNotEmpty) {
@@ -1939,7 +1940,7 @@ class CartPageState extends State<CartPage> {
                           }
                         }
                       }
-                      autoApplySpecificCategoryAmount(cart, promotionList[j], cart.categoryTotalPriceMap[promotionList[j].category_id!]!);
+                      autoApplySpecificCategoryAmount(cart, promotionList[j], categoryTotalPrice);
                     } else {
                       //Auto apply non specific category promotion
                       if (cart.cartNotifierItem.isNotEmpty) {
@@ -1993,7 +1994,7 @@ class CartPageState extends State<CartPage> {
                           }
                         }
                       }
-                      autoApplySpecificCategoryAmount(cart, promotionList[j], cart.categoryTotalPriceMap[promotionList[j].category_id!]!);
+                      autoApplySpecificCategoryAmount(cart, promotionList[j], categoryTotalPrice);
                     } else {
                       //Auto apply non specific category promotion
                       if (cart.cartNotifierItem.isNotEmpty) {
@@ -2046,7 +2047,7 @@ class CartPageState extends State<CartPage> {
                           }
                         }
                       }
-                      autoApplySpecificCategoryAmount(cart, promotionList[j], cart.categoryTotalPriceMap[promotionList[j].category_id!]!);
+                      autoApplySpecificCategoryAmount(cart, promotionList[j], categoryTotalPrice);
                     } else {
                       //Auto apply non specific category promotion
                       if (cart.cartNotifierItem.isNotEmpty) {
