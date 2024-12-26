@@ -1594,6 +1594,16 @@ class PosDatabase {
     }
   }
 
+  Future<OrderCache?> readOrderCacheWithSqliteId(String orderCacheSqliteId) async {
+    final db = await instance.database;
+    final maps = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND order_cache_sqlite_id = ?', ['', orderCacheSqliteId]);
+    if(maps.isNotEmpty){
+      return OrderCache.fromJson(maps.first);
+    } else {
+      return null;
+    }
+  }
+
   Future<OrderCache?> readSpecificOrderCacheByKey(String orderCacheKey) async {
     final db = await instance.database;
     final maps = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND order_cache_key = ?', ['', orderCacheKey]);

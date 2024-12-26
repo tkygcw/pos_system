@@ -375,6 +375,29 @@ abstract class PlaceOrder {
     }
   }
 
+  insertOtherOrderCacheKey(OrderCache orderCache, String dateTime) async {
+    try {
+      OrderCache? data;
+      String otherOrderKey = '';
+
+      otherOrderKey = await generateOtherOrderKey(orderCache);
+
+      if (otherOrderKey != '') {
+        OrderCache orderCacheObject = OrderCache(other_order_key: otherOrderKey, sync_status: 0, updated_at: dateTime, order_cache_sqlite_id: orderCache.order_cache_sqlite_id);
+        int otherOrderUniqueKey = await PosDatabase.instance.updateOtherOrderCacheUniqueKey(orderCacheObject);
+        if (otherOrderUniqueKey == 1) {
+          OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCacheObject.order_cache_sqlite_id!);
+          if (orderCacheData.sync_status == 0) {
+            data = orderCacheData;
+          }
+        }
+      }
+      return data;
+    } catch(e) {
+      print("insertOtherOrderCacheKey error: ${e}");
+    }
+  }
+
   Future<void> insertOrderCacheKeyIntoTableUse(CartModel cart, OrderCache orderCache, String dateTime) async {
     if (cart.selectedOption == "Dine in" && AppSettingModel.instance.table_order == 1) {
       List<TableUse> checkTableUse = await posDatabase.readSpecificTableUseId(int.parse(orderCache.table_use_sqlite_id!));
@@ -590,6 +613,14 @@ abstract class PlaceOrder {
     } catch (e) {
       print("update table error: $e");
     }
+  }
+
+  generateOtherOrderKey(OrderCache orderCache) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    var bytes = orderCache.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + orderCache.order_cache_sqlite_id.toString() + device_id.toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
   }
 
   Future<int?> generateOrderQueue(CartModel cart) async {

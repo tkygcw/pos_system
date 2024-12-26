@@ -37,6 +37,7 @@ class PlaceDineInOrder extends PlaceOrder {
       //   batch = await batchChecking();
       // }
       //check selected table is in use or not
+
       if (cart.selectedOption == 'Dine in' && AppSettingModel.instance.table_order != 0) {
         for (int i = 0; i < cart.selectedTable.length; i++) {
           List<TableUseDetail> useDetail = await PosDatabase.instance.readSpecificTableUseDetail(cart.selectedTable[i].table_sqlite_id!);
@@ -77,6 +78,7 @@ class PlaceDineInOrder extends PlaceOrder {
             order_detail_id: '',
             table_use_sqlite_id: _tableUseId,
             table_use_key: _tableUse[0].table_use_key,
+            other_order_key: '',
             batch_id: batch.toString().padLeft(6, '0'),
             dining_id: cart.selectedOptionId,//this.diningOptionID.toString(),
             order_sqlite_id: '',
