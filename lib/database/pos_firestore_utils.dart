@@ -7,8 +7,8 @@ class PosFirestoreUtils {
     if (firestoreVersion < localVersion) {
       for (int version = firestoreVersion; version <= localVersion; version++) {
         switch (version) {
-          case 30: {
-            //
+          case 33: {
+            _syncToFirebase.syncBranch();
           }break;
         }
       }
