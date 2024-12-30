@@ -17,6 +17,7 @@ import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
 import 'package:pos_system/object/settlement.dart';
 import 'package:pos_system/object/settlement_link_payment.dart';
 import 'package:pos_system/object/sync_to_cloud.dart';
+import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -362,80 +363,89 @@ class _SettlementDialogState extends State<SettlementDialog> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return AlertDialog(
-        title: Text(
-            AppLocalizations.of(context)!.translate('confirm_do_settlement')),
-        content: Container(
-          child: Text(
-              '${AppLocalizations.of(context)?.translate('settlement_desc')}'),
-        ),
-        actions: [
-          TextButton(
-            child:
-            Text('${AppLocalizations.of(context)?.translate('close')}'),
-            onPressed: () {
-              closeDialog(context);
-            },
+      if(_isLoaded){
+        return AlertDialog(
+          title: Text(
+              AppLocalizations.of(context)!.translate('confirm_do_settlement')),
+          content: Container(
+            child: Text(
+                '${AppLocalizations.of(context)?.translate('settlement_desc')}'),
           ),
-          TextButton(
-            child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-            onPressed: () async {
-              final prefs = await SharedPreferences.getInstance();
-              final String? pos_user = prefs.getString('pos_pin_user');
-              Map<String, dynamic> userMap = json.decode(pos_user!);
-              User userData = User.fromJson(userMap);
-
-              if(userData.settlement_permission != 1) {
-                // closeDialog(context);
-                showCustomPinDialog();
-                // await showSecondDialog(context, color);
-              } else {
-                currentSettlementDateTime = dateFormat.format(DateTime.now());
-                await callSettlement();
-                Branch? data = await PosDatabase.instance.readLocalBranch();
-                if(data != null && data.allow_livedata == 1){
-                  if(!isSyncing){
-                    widget.callBack();
-                    Navigator.of(context).pop();
-                    isSyncing = true;
-                    do{
-                      await syncToCloud.syncAllToCloud(isManualSync: true);
-                    }while(syncToCloud.emptyResponse == false);
-                    if(syncToCloud.emptyResponse == true){
-                      isSyncing = false;
-                    }
-                  }
-                } else {
-                  openSyncToCloudDialog();
+          actions: [
+            TextButton(
+              child:
+              Text('${AppLocalizations.of(context)?.translate('close')}'),
+              onPressed: () {
+                if(!isButtonDisabled) {
+                  isButtonDisabled = true;
+                  closeDialog(context);
                 }
-                // Navigator.of(context).pop();
-              }
-            },
-          )
-        ],
-      );
+              },
+            ),
+            TextButton(
+              child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+              onPressed: () async {
+                if(!isButtonDisabled) {
+                  isButtonDisabled = true;
+                  Future.delayed(const Duration(seconds: 3)).then((value) => isButtonDisabled = false);
+                  final prefs = await SharedPreferences.getInstance();
+                  final String? pos_user = prefs.getString('pos_pin_user');
+                  Map<String, dynamic> userMap = json.decode(pos_user!);
+                  User userData = User.fromJson(userMap);
+                  if(userData.settlement_permission != 1) {
+                    // closeDialog(context);
+                    showCustomPinDialog();
+                    // await showSecondDialog(context, color);
+                  } else {
+                    currentSettlementDateTime = dateFormat.format(DateTime.now());
+                    await callSettlement();
+                    await openSyncToCloudDialog();
+                  }
+                }
+              },
+            )
+          ],
+        );
+      } else {
+        return CustomProgressBar();
+      }
     });
   }
 
   openSyncToCloudDialog() async {
-    if (await confirm(
-      context,
-      title: Text('${AppLocalizations.of(context)?.translate('confirm_sync')}'),
-      content: Text('${AppLocalizations.of(context)?.translate('confirm_sync_desc')}'),
-      textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-      textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
-    )) {
-      bool? status = await openSyncDialog();
-      if(status != null && status == true){
+    Branch? data = await PosDatabase.instance.readLocalBranch();
+    if(data != null && data.allow_livedata == 1){
+      if(!isSyncing){
         widget.callBack();
         Navigator.of(context).pop();
+        isSyncing = true;
+        do{
+          await syncToCloud.syncAllToCloud(isManualSync: true);
+        }while(syncToCloud.emptyResponse == false);
+        if(syncToCloud.emptyResponse == true){
+          isSyncing = false;
+        }
+      }
+    } else {
+      if (await confirm(
+        context,
+        title: Text('${AppLocalizations.of(context)?.translate('confirm_sync')}'),
+        content: Text('${AppLocalizations.of(context)?.translate('confirm_sync_desc')}'),
+        textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+        textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+      )) {
+        bool? status = await openSyncDialog();
+        if(status != null && status == true){
+          widget.callBack();
+          Navigator.of(context).pop();
+        } else {
+          widget.callBack();
+          Navigator.of(context).pop();
+        }
       } else {
         widget.callBack();
         Navigator.of(context).pop();
       }
-    } else {
-      widget.callBack();
-      Navigator.of(context).pop();
     }
   }
 
