@@ -12,6 +12,7 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/fragment/cart/adjust_price.dart';
 import 'package:pos_system/fragment/cart/cart_dialog.dart';
+import 'package:pos_system/fragment/cart/other_order_add_to_cart.dart';
 import 'package:pos_system/fragment/cart/promotion_dialog.dart';
 import 'package:pos_system/fragment/cart/remove_cart_dialog.dart';
 import 'package:pos_system/fragment/cart/reprint_dialog.dart';
@@ -142,6 +143,7 @@ class CartPageState extends State<CartPage> {
   bool lastDiningOption = false;
 
   String orderKey = '';
+  String cacheOtherOrderKey = '';
 
   void _scrollDown() {
     _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
@@ -213,7 +215,11 @@ class CartPageState extends State<CartPage> {
           return Consumer<CartModel>(builder: (context, CartModel cart, child) {
             return Consumer<NotificationModel>(builder: (context, NotificationModel notificationModel, child) {
               if(cart.cartNotifierItem.isEmpty){
-                isButtonDisabled = true;
+                if((cart.selectedOption == 'Dine in' && appSettingModel.table_order != 1 || cart.selectedOption != 'Dine in')){
+                  isButtonDisabled = false;
+                } else {
+                  isButtonDisabled = true;
+                }
               } else {
                 if(widget.currentPage != 'table' && widget.currentPage != 'other_order')
                   isButtonDisabled = false;
@@ -335,8 +341,10 @@ class CartPageState extends State<CartPage> {
                               ),
                               color: color.backgroundColor,
                               onPressed: () {
-                                cart.removePartialCartItem();
-                                //cart.removeAllTable();
+                                // cart.initialLoad();
+                                cart.removeAllCartItem();
+                                // cart.removePartialCartItem();
+                                cart.removeAllTable();
                               },
                             ),
                           ),
@@ -772,19 +780,35 @@ class CartPageState extends State<CartPage> {
                                                             // cart.removeAllCartItem();
                                                             // cart.removeAllTable();
                                                           } else {
-                                                            Fluttertoast.showToast(
-                                                                backgroundColor: Colors.red,
-                                                                msg: AppLocalizations.of(context)!.translate('make_sure_cart_is_not_empty_and_table_is_selected'));
+                                                            if((cart.selectedOption == 'Dine in' && appSettingModel.table_order != 1 || cart.selectedOption != 'Dine in')){
+                                                              openOtherOrderDialog(cart.selectedOptionId);
+                                                            }
+
+                                                            // Fluttertoast.showToast(
+                                                            //     backgroundColor: Colors.red,
+                                                            //     msg: AppLocalizations.of(context)!.translate('make_sure_cart_is_not_empty_and_table_is_selected'));
                                                           }
                                                         } else {
                                                           // not dine in call
-                                                          print("Not dine in called");
                                                           cart.removeAllTable();
                                                           if (cart.cartNotifierItem.isNotEmpty) {
-                                                            openLoadingDialogBox();
-                                                            asyncQ.addJob((_) async => await callCreateNewNotDineOrder(cart, appSettingModel));
+                                                            if(cart.cartNotifierItem[0].status == 1 && hasNewItem) {
+                                                              // add on product in existing order
+                                                              asyncQ.addJob((_) async => await callAddNotDineInOrderCache(cart, appSettingModel));
+                                                            } else if(cart.cartNotifierItem[0].status == 0) {
+                                                              // create a new order
+                                                              openLoadingDialogBox();
+                                                              asyncQ.addJob((_) async => await callCreateNewNotDineOrder(cart, appSettingModel));
+                                                            } else {
+                                                              Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('cannot_replace_same_order'));
+                                                            }
+
                                                           } else {
-                                                            Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                                            if((cart.selectedOption == 'Dine in' && appSettingModel.table_order != 1 || cart.selectedOption != 'Dine in')){
+                                                              openOtherOrderDialog(cart.selectedOptionId);
+                                                            }
+
+                                                            // Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                                           }
                                                         }
                                                       }
@@ -865,14 +889,20 @@ class CartPageState extends State<CartPage> {
                                                   },
                                                   child: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
                                                       ? widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
-                                                      ? Text(AppLocalizations.of(context)!.translate('place_order') + '\n (RM ${this.finalAmount})')
+                                                  ? cart.cartNotifierItem.isEmpty && (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 1 || cart.selectedOption != 'Dine in')
+                                                      ? Text(AppLocalizations.of(context)!.translate('select_order'))
+                                                      : Text(AppLocalizations.of(context)!.translate('place_order') + '\n (RM ${this.finalAmount})')
                                                       : widget.currentPage == 'table' || widget.currentPage == 'other_order'
                                                       ? Text(AppLocalizations.of(context)!.translate('pay') + ' (RM ${this.finalAmount})')
                                                       : Text(AppLocalizations.of(context)!.translate('print_receipt'))
                                                   // mobile
                                                       : widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
                                                       ? MediaQuery.of(context).orientation == Orientation.landscape
-                                                      ? Text(AppLocalizations.of(context)!.translate('place_order'))
+                                                      ? cart.cartNotifierItem.isEmpty && (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 1 || cart.selectedOption != 'Dine in')
+                                                      ? Text(AppLocalizations.of(context)!.translate('select_order'))
+                                                      : Text(AppLocalizations.of(context)!.translate('place_order'))
+                                                      : cart.cartNotifierItem.isEmpty && (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 1 || cart.selectedOption != 'Dine in')
+                                                      ? Text(AppLocalizations.of(context)!.translate('select_order'))
                                                       : Text(AppLocalizations.of(context)!.translate('place_order') + '\n (RM ${this.finalAmount})')
                                                       : widget.currentPage == 'table' || widget.currentPage == 'other_order'
                                                       ? MediaQuery.of(context).orientation == Orientation.landscape
@@ -1115,7 +1145,9 @@ class CartPageState extends State<CartPage> {
 
   updateCartItem(CartModel cart) {
     for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-      cart.cartNotifierItem[i].order_cache_sqlite_id = orderCacheId;
+      if (cart.cartNotifierItem[i].order_cache_sqlite_id == null) {
+        cart.cartNotifierItem[i].order_cache_sqlite_id = orderCacheId;
+      }
       cart.cartNotifierItem[i].order_cache_key = orderCacheKey;
       cart.cartNotifierItem[i].order_queue = orderNumber;
     }
@@ -1965,7 +1997,7 @@ class CartPageState extends State<CartPage> {
     getTaxAmount();
     getRounding();
     await getAllPaymentSplit(cart);
-    getAllTotal();
+    await getAllTotal();
     checkCartItem(cart);
     print("cart scroll down: ${cart.scrollDown }");
     if (cart.scrollDown == 0) {
@@ -2037,13 +2069,22 @@ class CartPageState extends State<CartPage> {
     return priceIncAllTaxes;
   }
 
-  getRounding() {
+  getRounding() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
+
     getAllTaxAmount();
     double _round = 0.0;
     totalAmount = 0.0;
     discountPrice = total - promoAmount;
     totalAmount = discountPrice + priceIncAllTaxes;
-    _round = Utils.roundToNearestFiveSen(double.parse(totalAmount.toStringAsFixed(2))) - double.parse(totalAmount.toStringAsFixed(2));
+    if(localSetting!.rounding_absorb == 1) {
+      _round = double.parse(absorbAmount(totalAmount)) - double.parse(totalAmount.toStringAsFixed(2));
+    } else {
+      _round = Utils.roundToNearestFiveSen(double.parse(totalAmount.toStringAsFixed(2))) - double.parse(totalAmount.toStringAsFixed(2));
+    }
+
     rounding = _round;
 
     // if (!controller.isClosed) {
@@ -2051,9 +2092,18 @@ class CartPageState extends State<CartPage> {
     // }
   }
 
-  getAllTotal() {
+  getAllTotal() async {
     try {
-      finalAmount = Utils.roundToNearestFiveSen(double.parse((totalAmount-paymentSplitAmount).toStringAsFixed(2))).toStringAsFixed(2);
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+      AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
+
+      if(localSetting!.rounding_absorb == 1){
+        finalAmount = absorbAmount(double.parse((totalAmount-paymentSplitAmount).toStringAsFixed(2)));
+      } else {
+        finalAmount = Utils.roundToNearestFiveSen(double.parse((totalAmount-paymentSplitAmount).toStringAsFixed(2))).toStringAsFixed(2);
+      }
+
     } catch (error) {
       print('Total calc error: $error');
     }
@@ -2061,6 +2111,18 @@ class CartPageState extends State<CartPage> {
     // if (!controller.isClosed) {
     //   controller.sink.add('refresh');
     // }
+  }
+
+  String absorbAmount(double amount) {
+    int cents = (amount * 100).round();
+    int lastDigit = cents % 10;
+
+    if (lastDigit >= 8) {
+      cents = (cents / 10).ceil() * 10;
+    } else {
+      cents = (cents / 10).floor() * 10;
+    }
+    return (cents / 100).toStringAsFixed(2);
   }
 
   getAllPaymentSplit(CartModel cart) async {
@@ -2151,6 +2213,31 @@ class CartPageState extends State<CartPage> {
               child: PromotionDialog(
                 cartFinalAmount: finalAmount,
                 subtotal: newOrderSubtotal.toString(),
+              ),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
+  Future<Future<Object?>> openOtherOrderDialog(String diningOptionId) async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: OtherOrderAddtoCart(
+                cartFinalAmount: finalAmount,
+                diningOptionId: diningOptionId
               ),
             ),
           );
@@ -2350,8 +2437,10 @@ class CartPageState extends State<CartPage> {
       if(cart.selectedOptionId == '') {
         if (data.any((item) => item.name == 'Dine in')) {
           cart.selectedOption = 'Dine in';
+          cart.selectedOptionId = data.firstWhere((element) => element.name == 'Dine in').dining_id.toString();
         } else {
           cart.selectedOption = "Take Away";
+          cart.selectedOptionId = data.firstWhere((element) => element.name == 'Take Away').dining_id.toString();
         }
         if (!controller.isClosed) {
           controller.sink.add('refresh');
@@ -2515,6 +2604,49 @@ class CartPageState extends State<CartPage> {
       FLog.error(
         className: "cart",
         text: "callAddOrderCache error",
+        exception: e,
+      );
+    }
+  }
+
+/*
+  add-on call (not dine in)
+*/
+  callAddNotDineInOrderCache(CartModel cart, AppSettingModel appSettingModel) async {
+    try{
+      print("first_cache_other_order_key: ${cart.cartNotifierItem[0].first_cache_other_order_key}");
+      resetValue();
+      List<cartProductItem> outOfStockItem = await checkOrderStock(cart);
+      if(outOfStockItem.isEmpty){
+        await createOrderCache(cart, isAddOrder: true);
+        await createOrderDetail(cart);
+        if (_appSettingModel.autoPrintChecklist == true) {
+          int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
+          if (printStatus == 1) {
+            Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+          } else if (printStatus == 2) {
+            Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+          } else if (printStatus == 5) {
+            Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
+          }
+        }
+        List<cartProductItem> ticketProduct = cart.cartNotifierItem.where((e) => e.allow_ticket == 1 && e.status == 0).toList();
+        if(ticketProduct.isNotEmpty){
+          asyncQ.addJob((_) => printReceipt.printProductTicket(printerList, int.parse(this.orderCacheId), ticketProduct));
+        }
+        // cart.removeAllCartItem();
+        checkDirectPayment(appSettingModel, cart);
+
+        asyncQ.addJob((_) => printKitchenList());
+        isCartExpanded = !isCartExpanded;
+      } else {
+        Navigator.of(context).pop();
+        showOutOfStockDialog(outOfStockItem);
+      }
+    }catch(e){
+      FLog.error(
+        className: "cart",
+        text: "callAddNotDineInOrderCache error",
         exception: e,
       );
     }
@@ -2999,7 +3131,8 @@ class CartPageState extends State<CartPage> {
       final String? loginUser = prefs.getString('user');
 
       AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
-      int orderQueue = localSetting!.enable_numbering == 1 && ((localSetting.table_order != 0 && cart.selectedOption != 'Dine in') ||  localSetting.table_order == 0) ? await generateOrderQueue() : -1;
+      int orderQueue = localSetting!.enable_numbering == 1 && ((localSetting.table_order != 0 && cart.selectedOption != 'Dine in') ||  localSetting.table_order == 0) ?
+        await generateOrderQueue() : -1;
 
       TableUse? _tableUse;
       List<PosTable> inUsedTable = [];
@@ -3008,9 +3141,16 @@ class CartPageState extends State<CartPage> {
       Map loginUserObject = json.decode(loginUser!);
       String _tableUseId = '';
       String batch = '';
+      cacheOtherOrderKey = '';
+      // String otherOrderKey = '';
       try {
         if (isAddOrder == true) {
           batch = cart.cartNotifierItem[0].first_cache_batch!;
+
+          // otherOrderKey = cart.cartNotifierItem[0].first_cache_other_order_key!;
+          if(localSetting.enable_numbering == 1 && cart.cartNotifierItem[0].order_queue != null){
+            orderQueue = int.parse(cart.cartNotifierItem[0].order_queue!);
+          }
         } else {
           batch = await batchChecking();
         }
@@ -3034,6 +3174,10 @@ class CartPageState extends State<CartPage> {
 
           List<TableUse> tableUseData = await PosDatabase.instance.readSpecificTableUseId(int.parse(_tableUseId));
           _tableUse = tableUseData[0];
+        } else {
+          if(isAddOrder == true){
+
+          }
         }
         if (batch != '') {
           try {
@@ -3047,6 +3191,7 @@ class CartPageState extends State<CartPage> {
                 order_detail_id: '',
                 table_use_sqlite_id: cart.selectedOption == 'Dine in' && localSetting.table_order != 0 ? _tableUse!.table_use_sqlite_id.toString() : '',
                 table_use_key: cart.selectedOption == 'Dine in' && localSetting.table_order != 0 ? _tableUse!.table_use_key : '',
+                other_order_key: '',
                 batch_id: batch.toString().padLeft(6, '0'),
                 dining_id: this.diningOptionID.toString(),
                 order_sqlite_id: '',
@@ -3070,6 +3215,19 @@ class CartPageState extends State<CartPage> {
             orderNumber = data.order_queue.toString();
 
             try {
+              if(isAddOrder){
+                if((localSetting.table_order == 1 && cart.selectedOption != 'Dine in') || cart.selectedOption != 'Dine in' && cart.cartNotifierItem[0].order_cache_key! != ''){
+                  OrderCache? cacheData = await PosDatabase.instance.readOrderCacheSqliteID(cart.cartNotifierItem[0].order_cache_key!);
+                  if(cacheData!.other_order_key == ''){
+                    print("first cache other order key: ${cacheData.other_order_key}");
+                    await insertOtherOrderCacheKey(cacheData, dateTime);
+                  } else {
+                    cacheOtherOrderKey = cacheData.other_order_key!;
+                  }
+                  await insertOtherOrderCacheKey(data, dateTime);
+                }
+              }
+
               OrderCache updatedCache = await insertOrderCacheKey(data, dateTime);
               if (updatedCache.sync_status == 0 && isAddOrder == false) {
                 //sync updated table use (with order cache key)
@@ -3132,6 +3290,14 @@ class CartPageState extends State<CartPage> {
   // }
 
   generateOrderCacheKey(OrderCache orderCache) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    var bytes = orderCache.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + orderCache.order_cache_sqlite_id.toString() + device_id.toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
+  }
+
+  generateOtherOrderKey(OrderCache orderCache) async {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
     var bytes = orderCache.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + orderCache.order_cache_sqlite_id.toString() + device_id.toString();
@@ -3222,6 +3388,33 @@ class CartPageState extends State<CartPage> {
       }
     }
     return data;
+  }
+
+  insertOtherOrderCacheKey(OrderCache orderCache, String dateTime) async {
+    try {
+      OrderCache? data;
+      String otherOrderKey = '';
+      if(cacheOtherOrderKey != ''){
+        otherOrderKey = cacheOtherOrderKey;
+      } else {
+        otherOrderKey = await generateOtherOrderKey(orderCache);
+        cacheOtherOrderKey = otherOrderKey;
+      }
+
+      if (otherOrderKey != '') {
+        OrderCache orderCacheObject = OrderCache(other_order_key: otherOrderKey, sync_status: 0, updated_at: dateTime, order_cache_sqlite_id: orderCache.order_cache_sqlite_id);
+        int otherOrderUniqueKey = await PosDatabase.instance.updateOtherOrderCacheUniqueKey(orderCacheObject);
+        if (otherOrderUniqueKey == 1) {
+          OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCacheObject.order_cache_sqlite_id!);
+          if (orderCacheData.sync_status == 0) {
+            data = orderCacheData;
+          }
+        }
+      }
+      return data;
+    } catch(e) {
+      print("insertOtherOrderCacheKey error: ${e}");
+    }
   }
 
   insertOrderCacheKeyIntoTableUse(CartModel cart, OrderCache orderCache, String dateTime) async {

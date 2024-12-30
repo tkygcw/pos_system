@@ -84,7 +84,8 @@ class QrOrder extends ChangeNotifier {
             sync_status: 1,
             created_at: dateTime,
             updated_at: '',
-            soft_delete: ''
+            soft_delete: '',
+            other_order_key: ''
         );
 
         OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(orderCache);
@@ -157,12 +158,15 @@ class QrOrder extends ChangeNotifier {
           }
         }
       }
+      if(localSetting!.qr_order_alert == 1){
+        ShowQRToast.showToast();
+      }
       await getAllNotAcceptedQrOrder();
       if(localSetting!.qr_order_auto_accept == 1){
         asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
         return;
       }
-      ShowQRToast.showToast();
+
     }
   }
 

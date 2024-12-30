@@ -32,6 +32,7 @@ class cartProductItem{
    bool? isRefund;
    String? base_price;
    String? first_cache_created_date_time;
+   String? first_cache_other_order_key;
    String? subtotal;
    String? first_cache_batch;
    String? first_cache_order_by;
@@ -68,6 +69,7 @@ class cartProductItem{
          this.isRefund,
          this.base_price,
          this.first_cache_created_date_time,
+         this.first_cache_other_order_key,
          this.subtotal,
          this.first_cache_batch,
          this.first_cache_order_by,
@@ -115,6 +117,7 @@ class cartProductItem{
          isRefund: json['isRefund'] as bool?,
          base_price: json['base_price'] as String?,
          first_cache_created_date_time: json['first_cache_created_date_time'] as String?,
+         first_cache_other_order_key: json['first_cache_other_order_key'] as String?,
          subtotal: json['subtotal'] as String?,
          first_cache_batch: json['first_cache_batch'] as String?,
          first_cache_order_by: json['first_cache_order_by'] as String?,
@@ -154,6 +157,7 @@ class cartProductItem{
      'isRefund': isRefund,
      'base_price': base_price,
      'first_cache_created_date_time': first_cache_created_date_time,
+     'first_cache_other_order_key': first_cache_other_order_key,
      'subtotal': subtotal,
      'first_cache_batch': first_cache_batch,
      'first_cache_order_by': first_cache_order_by,

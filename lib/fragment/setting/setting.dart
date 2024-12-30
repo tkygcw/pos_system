@@ -148,9 +148,13 @@ class _SettingMenuState extends State<SettingMenu> {
                         label: Column(
                           children: [
                             Text("${userEmail}"),
-                            ElevatedButton(onPressed: () async {
-                              openAttendanceDialog();
-                            },
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: color.buttonColor
+                              ),
+                              onPressed: () async {
+                                openAttendanceDialog();
+                              },
                               child: Text('${AppLocalizations.of(context)?.translate('clock_in_out')}')
                             ),
                             ElevatedButton(
@@ -263,10 +267,14 @@ class _SettingMenuState extends State<SettingMenu> {
                           label: Column(
                             children: [
                               Text("${userEmail}"),
-                              ElevatedButton(onPressed: () async {
-                                openAttendanceDialog();
-                              },
-                                  child: Text('${AppLocalizations.of(context)?.translate('clock_in_out')}')
+                              ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: color.buttonColor
+                                  ),
+                                onPressed: () async {
+                                  openAttendanceDialog();
+                                },
+                                child: Text('${AppLocalizations.of(context)?.translate('clock_in_out')}')
                               ),
                               ElevatedButton(
                                 style: ElevatedButton.styleFrom(
@@ -483,6 +491,9 @@ class _SettingMenuState extends State<SettingMenu> {
                   children: <Widget>[
                     Text(userEmail),
                     ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: color.buttonColor
+                      ),
                       onPressed: () async {
                         openAttendanceDialog();
                       },

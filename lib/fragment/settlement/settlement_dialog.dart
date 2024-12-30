@@ -9,12 +9,14 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/custom_pin_dialog.dart';
 import 'package:pos_system/fragment/settlement/settlement_query.dart';
 import 'package:pos_system/main.dart';
+import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
 import 'package:pos_system/object/settlement.dart';
 import 'package:pos_system/object/settlement_link_payment.dart';
+import 'package:pos_system/object/sync_to_cloud.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -80,7 +82,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
   bool _submitted = false;
   bool _isLoaded = false;
   bool isButtonDisabled = false, isLogOut = false, willPop = true;
-
+  SyncToCloud syncToCloud = SyncToCloud();
   late final currentSettlementDateTime;
 
   @override
@@ -390,7 +392,22 @@ class _SettlementDialogState extends State<SettlementDialog> {
               } else {
                 currentSettlementDateTime = dateFormat.format(DateTime.now());
                 await callSettlement();
-                openSyncToCloudDialog();
+                Branch? data = await PosDatabase.instance.readLocalBranch();
+                if(data != null && data.allow_livedata == 1){
+                  if(!isSyncing){
+                    widget.callBack();
+                    Navigator.of(context).pop();
+                    isSyncing = true;
+                    do{
+                      await syncToCloud.syncAllToCloud(isManualSync: true);
+                    }while(syncToCloud.emptyResponse == false);
+                    if(syncToCloud.emptyResponse == true){
+                      isSyncing = false;
+                    }
+                  }
+                } else {
+                  openSyncToCloudDialog();
+                }
                 // Navigator.of(context).pop();
               }
             },
