@@ -847,6 +847,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
           first_cache_batch: orderCacheList.first.batch_id,
           first_cache_order_by: orderCacheList.first.order_by,
           first_cache_created_date_time: orderCacheList.first.created_at,
+          first_cache_other_order_key: orderCacheList.first.other_order_key,
           allow_ticket: orderDetailList[i].allow_ticket,
           ticket_count: orderDetailList[i].ticket_count,
           ticket_exp: orderDetailList[i].ticket_exp,

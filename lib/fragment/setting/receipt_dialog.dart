@@ -8,7 +8,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/pos_database.dart';
-import 'package:pos_system/object/branch_link_modifier.dart';
 import 'package:pos_system/object/receipt.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
@@ -969,6 +968,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       child: Text(AppLocalizations.of(context)!.translate('logo_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                     ),
                     RadioListTile<ReceiptDialogEnum?>(
+                      activeColor: color.backgroundColor,
                       value: ReceiptDialogEnum.big,
                       groupValue: headerImageSize,
                       onChanged: (value) async  {
@@ -981,6 +981,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       controlAffinity: ListTileControlAffinity.trailing,
                     ),
                     RadioListTile<ReceiptDialogEnum?>(
+                      activeColor: color.backgroundColor,
                       value: ReceiptDialogEnum.medium,
                       groupValue: headerImageSize,
                       onChanged: (value) async  {
@@ -993,6 +994,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       controlAffinity: ListTileControlAffinity.trailing,
                     ),
                     RadioListTile<ReceiptDialogEnum?>(
+                      activeColor: color.backgroundColor,
                       value: ReceiptDialogEnum.small,
                       groupValue: headerImageSize,
                       onChanged: (value) async  {
@@ -1074,6 +1076,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       child: Text(AppLocalizations.of(context)!.translate('logo_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                     ),
                     RadioListTile<ReceiptDialogEnum?>(
+                      activeColor: color.backgroundColor,
                       value: ReceiptDialogEnum.big,
                       groupValue: headerFontSize,
                       onChanged: (value) async  {
@@ -1086,6 +1089,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       controlAffinity: ListTileControlAffinity.trailing,
                     ),
                     RadioListTile<ReceiptDialogEnum?>(
+                      activeColor: color.backgroundColor,
                       value: ReceiptDialogEnum.small,
                       groupValue: headerFontSize,
                       onChanged: (value) async  {
@@ -1167,6 +1171,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       child: Text(AppLocalizations.of(context)!.translate('logo_font_size_second'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                     ),
                     RadioListTile<ReceiptDialogEnum?>(
+                      activeColor: color.backgroundColor,
                       value: ReceiptDialogEnum.big,
                       groupValue: secondHeaderFontSize,
                       onChanged: (value) async  {
@@ -1179,6 +1184,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       controlAffinity: ListTileControlAffinity.trailing,
                     ),
                     RadioListTile<ReceiptDialogEnum?>(
+                      activeColor: color.backgroundColor,
                       value: ReceiptDialogEnum.medium,
                       groupValue: secondHeaderFontSize,
                       onChanged: (value) async  {
@@ -1191,6 +1197,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       controlAffinity: ListTileControlAffinity.trailing,
                     ),
                     RadioListTile<ReceiptDialogEnum?>(
+                      activeColor: color.backgroundColor,
                       value: ReceiptDialogEnum.small,
                       groupValue: secondHeaderFontSize,
                       onChanged: (value) async  {
@@ -1803,6 +1810,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       child: Text(AppLocalizations.of(context)!.translate('logo_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                     ),
                     RadioListTile<ReceiptDialogEnum?>(
+                      activeColor: color.backgroundColor,
                       value: ReceiptDialogEnum.big,
                       groupValue: headerImageSize,
                       onChanged: (value) async  {
@@ -1815,6 +1823,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       controlAffinity: ListTileControlAffinity.trailing,
                     ),
                     RadioListTile<ReceiptDialogEnum?>(
+                      activeColor: color.backgroundColor,
                       value: ReceiptDialogEnum.medium,
                       groupValue: headerImageSize,
                       onChanged: (value) async  {
@@ -1827,6 +1836,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       controlAffinity: ListTileControlAffinity.trailing,
                     ),
                     RadioListTile<ReceiptDialogEnum?>(
+                      activeColor: color.backgroundColor,
                       value: ReceiptDialogEnum.small,
                       groupValue: headerImageSize,
                       onChanged: (value) async  {
@@ -1906,6 +1916,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       child: Text(AppLocalizations.of(context)!.translate('logo_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                     ),
                     RadioListTile<ReceiptDialogEnum?>(
+                      activeColor: color.backgroundColor,
                       value: ReceiptDialogEnum.big,
                       groupValue: headerFontSize,
                       onChanged: (value) async  {
@@ -1918,6 +1929,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       controlAffinity: ListTileControlAffinity.trailing,
                     ),
                     RadioListTile<ReceiptDialogEnum?>(
+                      activeColor: color.backgroundColor,
                       value: ReceiptDialogEnum.small,
                       groupValue: headerFontSize,
                       onChanged: (value) async  {
@@ -1999,6 +2011,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       child: Text(AppLocalizations.of(context)!.translate('logo_font_size_second'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                     ),
                     RadioListTile<ReceiptDialogEnum?>(
+                      activeColor: color.backgroundColor,
                       value: ReceiptDialogEnum.big,
                       groupValue: secondHeaderFontSize,
                       onChanged: (value) async  {
@@ -2011,6 +2024,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       controlAffinity: ListTileControlAffinity.trailing,
                     ),
                     RadioListTile<ReceiptDialogEnum?>(
+                      activeColor: color.backgroundColor,
                       value: ReceiptDialogEnum.medium,
                       groupValue: secondHeaderFontSize,
                       onChanged: (value) async  {
@@ -2023,6 +2037,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       controlAffinity: ListTileControlAffinity.trailing,
                     ),
                     RadioListTile<ReceiptDialogEnum?>(
+                      activeColor: color.backgroundColor,
                       value: ReceiptDialogEnum.small,
                       groupValue: secondHeaderFontSize,
                       onChanged: (value) async  {
@@ -2303,6 +2318,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 child: Text(AppLocalizations.of(context)!.translate('logo_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
               ),
               RadioListTile<ReceiptDialogEnum?>(
+                activeColor: color.backgroundColor,
                 value: ReceiptDialogEnum.big,
                 groupValue: headerImageSize,
                 onChanged: (value) async  {
@@ -2315,6 +2331,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 controlAffinity: ListTileControlAffinity.trailing,
               ),
               RadioListTile<ReceiptDialogEnum?>(
+                activeColor: color.backgroundColor,
                 value: ReceiptDialogEnum.medium,
                 groupValue: headerImageSize,
                 onChanged: (value) async  {
@@ -2327,6 +2344,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 controlAffinity: ListTileControlAffinity.trailing,
               ),
               RadioListTile<ReceiptDialogEnum?>(
+                activeColor: color.backgroundColor,
                 value: ReceiptDialogEnum.small,
                 groupValue: headerImageSize,
                 onChanged: (value) async  {
@@ -2401,6 +2419,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               child: Text(AppLocalizations.of(context)!.translate('logo_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.big,
               groupValue: headerFontSize,
               onChanged: (value) async  {
@@ -2412,6 +2431,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.small,
               groupValue: headerFontSize,
               onChanged: (value) async  {
@@ -2492,6 +2512,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 child: Text(AppLocalizations.of(context)!.translate('logo_font_size_second'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
               ),
               RadioListTile<ReceiptDialogEnum?>(
+                activeColor: color.backgroundColor,
                 value: ReceiptDialogEnum.big,
                 groupValue: secondHeaderFontSize,
                 onChanged: (value) async  {
@@ -2504,6 +2525,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 controlAffinity: ListTileControlAffinity.trailing,
               ),
               RadioListTile<ReceiptDialogEnum?>(
+                activeColor: color.backgroundColor,
                 value: ReceiptDialogEnum.medium,
                 groupValue: secondHeaderFontSize,
                 onChanged: (value) async  {
@@ -2516,6 +2538,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 controlAffinity: ListTileControlAffinity.trailing,
               ),
               RadioListTile<ReceiptDialogEnum?>(
+                activeColor: color.backgroundColor,
                 value: ReceiptDialogEnum.small,
                 groupValue: secondHeaderFontSize,
                 onChanged: (value) async  {
@@ -2815,6 +2838,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 child: Text(AppLocalizations.of(context)!.translate('logo_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
               ),
               RadioListTile<ReceiptDialogEnum?>(
+                activeColor: color.backgroundColor,
                 value: ReceiptDialogEnum.big,
                 groupValue: headerImageSize,
                 onChanged: (value) async  {
@@ -2827,6 +2851,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 controlAffinity: ListTileControlAffinity.trailing,
               ),
               RadioListTile<ReceiptDialogEnum?>(
+                activeColor: color.backgroundColor,
                 value: ReceiptDialogEnum.medium,
                 groupValue: headerImageSize,
                 onChanged: (value) async  {
@@ -2839,6 +2864,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 controlAffinity: ListTileControlAffinity.trailing,
               ),
               RadioListTile<ReceiptDialogEnum?>(
+                activeColor: color.backgroundColor,
                 value: ReceiptDialogEnum.small,
                 groupValue: headerImageSize,
                 onChanged: (value) async  {
@@ -2913,6 +2939,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               child: Text(AppLocalizations.of(context)!.translate('logo_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.big,
               groupValue: headerFontSize,
               onChanged: (value) async  {
@@ -2924,6 +2951,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               controlAffinity: ListTileControlAffinity.trailing,
             ),
             RadioListTile<ReceiptDialogEnum?>(
+              activeColor: color.backgroundColor,
               value: ReceiptDialogEnum.small,
               groupValue: headerFontSize,
               onChanged: (value) async  {
@@ -3004,6 +3032,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 child: Text(AppLocalizations.of(context)!.translate('logo_font_size_second'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
               ),
               RadioListTile<ReceiptDialogEnum?>(
+                activeColor: color.backgroundColor,
                 value: ReceiptDialogEnum.big,
                 groupValue: secondHeaderFontSize,
                 onChanged: (value) async  {
@@ -3016,6 +3045,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 controlAffinity: ListTileControlAffinity.trailing,
               ),
               RadioListTile<ReceiptDialogEnum?>(
+                activeColor: color.backgroundColor,
                 value: ReceiptDialogEnum.medium,
                 groupValue: secondHeaderFontSize,
                 onChanged: (value) async  {
@@ -3028,6 +3058,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 controlAffinity: ListTileControlAffinity.trailing,
               ),
               RadioListTile<ReceiptDialogEnum?>(
+                activeColor: color.backgroundColor,
                 value: ReceiptDialogEnum.small,
                 groupValue: secondHeaderFontSize,
                 onChanged: (value) async  {

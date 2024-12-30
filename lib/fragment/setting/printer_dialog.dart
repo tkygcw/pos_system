@@ -302,6 +302,9 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                               printerValue.removeAt(index);
                                             });
                                           },
+                                          style: ElevatedButton.styleFrom(
+                                              backgroundColor: color.backgroundColor
+                                          ),
                                           child: Icon(Icons.delete)),
                                       subtitle: _typeStatus == 0
                                           ? Text(
@@ -385,6 +388,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                         Container(
                                           child: Checkbox(
                                             value: _isCashier,
+                                            activeColor: color.backgroundColor,
                                             onChanged: widget.devices != null
                                                 ? null
                                                 : (value) {
@@ -411,6 +415,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                         Container(
                                           child: Checkbox(
                                             value: _isKitchenCheckList,
+                                            activeColor: color.backgroundColor,
                                             onChanged: widget.devices != null
                                                 ? null
                                                 : (value) {
@@ -751,6 +756,9 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                               printerValue.removeAt(index);
                                             });
                                           },
+                                          style: ElevatedButton.styleFrom(
+                                              backgroundColor: color.backgroundColor
+                                          ),
                                           child: Icon(Icons.delete)),
                                       subtitle: _typeStatus == 0
                                           ? Text(

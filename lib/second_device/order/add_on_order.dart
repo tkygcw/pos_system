@@ -122,6 +122,7 @@ class PlaceAddOrder extends PlaceOrder {
             order_detail_id: '',
             table_use_sqlite_id: _tableUse.table_use_sqlite_id.toString(),
             table_use_key: _tableUse.table_use_key,
+            other_order_key: orderCache.order_cache_key,
             batch_id: batch,
             dining_id: cart.selectedOptionId,
             order_sqlite_id: '',

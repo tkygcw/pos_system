@@ -15,6 +15,7 @@ import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/page/loading_dialog.dart';
+import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -47,6 +48,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
   List<ProductVariant> orderProductVariant = [];
   List<VariantGroup> variantGroup = [];
   List<ModifierGroup> modifierGroup = [];
+  bool _isLoad = false;
 
   @override
   void initState() {
@@ -73,6 +75,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
   }
 
   getOrderList({model}) async {
+    _isLoad = false;
     List<OrderCache> data = [];
     if (model != null) {
       model.changeContent2(false);
@@ -118,8 +121,20 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
         setState(() {
           orderCacheList[i].total_amount = total_amount.toString();
         });
+      } else {
+        if(orderCacheList[i].other_order_key !=''){
+          List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[i].other_order_key!);
+          double total_amount = 0;
+          for(int j = 0; j < data.length; j++){
+            total_amount += double.parse(data[j].total_amount!);
+          }
+          setState(() {
+            orderCacheList[i].total_amount = total_amount.toString();
+          });
+        }
       }
     }
+    _isLoad = true;
   }
 
   // Future<Future<Object?>> openViewOrderDialog(OrderCache data) async {
@@ -271,7 +286,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                 ],
               ),
               resizeToAvoidBottomInset: false,
-              body: Container(
+              body: _isLoad ? Container(
                 padding: EdgeInsets.all(10),
                 child: orderCacheList.isNotEmpty ?
                 ListView.builder(
@@ -306,16 +321,34 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                                         orderCacheList[i].is_selected = true;
                                         cart.selectedOptionId = orderCacheList[i].dining_id!;
                                         cart.selectedOptionOrderKey = orderCacheList[i].order_key!;
-                                        await getOrderDetail(orderCacheList[i]);
-                                        await addToCart(cart, orderCacheList[i]);
+                                        if(orderCacheList[i].other_order_key != ''){
+                                          List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[i].other_order_key!);
+                                          for(int i = 0; i < data.length; i++) {
+                                            await getOrderDetail(data[i]);
+                                            await addToCart(cart, data[i]);
+                                          }
+                                        } else {
+                                          await getOrderDetail(orderCacheList[i]);
+                                          await addToCart(cart, orderCacheList[i]);
+                                        }
                                       }
                                     }
+
                                   } else {
                                     orderCacheList[index].is_selected = true;
                                     cart.selectedOptionId = orderCacheList[index].dining_id!;
                                     cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
-                                    await getOrderDetail(orderCacheList[index]);
-                                    await addToCart(cart, orderCacheList[index]);
+                                    if(orderCacheList[index].other_order_key != ''){
+                                      List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[index].other_order_key!);
+                                      for(int i = 0; i < data.length; i++) {
+                                        await getOrderDetail(data[i]);
+                                        await addToCart(cart, data[i]);
+                                      }
+                                    } else {
+                                      await getOrderDetail(orderCacheList[index]);
+                                      await addToCart(cart, orderCacheList[index]);
+                                    }
+
                                   }
                                 } else {
                                   if(orderCacheList[index].dining_id == cart.selectedOptionId){
@@ -340,8 +373,17 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                                         orderCacheList[index].is_selected = true;
                                         cart.selectedOptionId = orderCacheList[index].dining_id!;
                                         cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
-                                        await getOrderDetail(orderCacheList[index]);
-                                        await addToCart(cart, orderCacheList[index]);
+
+                                        if(orderCacheList[index].other_order_key != ''){
+                                          List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[index].other_order_key!);
+                                          for(int i = 0; i < data.length; i++) {
+                                            await getOrderDetail(data[i]);
+                                            await addToCart(cart, data[i]);
+                                          }
+                                        } else {
+                                          await getOrderDetail(orderCacheList[index]);
+                                          await addToCart(cart, orderCacheList[index]);
+                                        }
                                       }
                                     } else {
                                       Fluttertoast.showToast(
@@ -366,6 +408,14 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                                 // }
 
                               } else if(orderCacheList[index].is_selected == true) {
+                                if(orderCacheList[index].other_order_key != ''){
+                                  List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[index].other_order_key!);
+                                  for(int i = 0; i < data.length; i++) {
+                                    data[i].is_selected = false;
+                                    cart.removePromotion();
+                                    cart.removeCartItemBasedOnOrderCache(data[i].order_cache_sqlite_id.toString());
+                                  }
+                                }
                                 if(orderCacheList[index].order_key != '') {
                                   for(int i = 0; i < orderCacheList.length; i++) {
                                     orderCacheList[i].is_selected = false;
@@ -462,7 +512,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                     ],
                   ),
                 ),
-              ),
+              ) : CustomProgressBar(),
             );
           }
           );
@@ -527,6 +577,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
           first_cache_batch: orderCache.batch_id,
           first_cache_order_by: orderCache.order_by,
           first_cache_created_date_time: orderCache.created_at,
+          first_cache_other_order_key: orderCache.other_order_key,
           allow_ticket: orderDetailList[i].allow_ticket,
           ticket_count: orderDetailList[i].ticket_count,
           ticket_exp: orderDetailList[i].ticket_exp,
