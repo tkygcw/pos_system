@@ -11,6 +11,7 @@ class SalesProductPerDayFields {
     total_amount,
     total_ori_amount,
     date,
+    type,
     sync_status,
     created_at,
     updated_at,
@@ -26,6 +27,7 @@ class SalesProductPerDayFields {
   static String total_amount = 'total_amount';
   static String total_ori_amount = 'total_ori_amount';
   static String date = 'date';
+  static String type = 'type';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -42,6 +44,7 @@ class SalesProductPerDay{
   String? total_amount;
   String? total_ori_amount;
   String? date;
+  int? type;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -57,6 +60,7 @@ class SalesProductPerDay{
     this.total_amount,
     this.total_ori_amount,
     this.date,
+    this.type,
     this.sync_status,
     this.created_at,
     this.updated_at,
@@ -73,6 +77,7 @@ class SalesProductPerDay{
     String? total_amount,
     String? total_ori_amount,
     String? date,
+    int? type,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -88,6 +93,7 @@ class SalesProductPerDay{
         total_amount: total_amount ?? this.total_amount,
         total_ori_amount: total_ori_amount ?? this.total_ori_amount,
         date: date ?? this.date,
+        type: type ?? this.type,
         sync_status: sync_status ?? this.sync_status,
         created_at: created_at ?? this.created_at,
         updated_at: updated_at ?? this.updated_at,
@@ -104,6 +110,7 @@ class SalesProductPerDay{
     total_amount: json[SalesProductPerDayFields.total_amount] as String?,
     total_ori_amount: json[SalesProductPerDayFields.total_ori_amount] as String?,
     date: json[SalesProductPerDayFields.date] as String?,
+    type: json[SalesProductPerDayFields.type] as int?,
     sync_status: json[SalesProductPerDayFields.sync_status] as int?,
     created_at: json[SalesProductPerDayFields.created_at] as String?,
     updated_at: json[SalesProductPerDayFields.updated_at] as String?,
@@ -120,6 +127,7 @@ class SalesProductPerDay{
     SalesProductPerDayFields.total_amount: total_amount,
     SalesProductPerDayFields.total_ori_amount: total_ori_amount,
     SalesProductPerDayFields.date: date,
+    SalesProductPerDayFields.type: type,
     SalesProductPerDayFields.sync_status: sync_status,
     SalesProductPerDayFields.created_at: created_at,
     SalesProductPerDayFields.updated_at: updated_at,

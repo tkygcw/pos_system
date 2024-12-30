@@ -89,7 +89,10 @@ class _HomePageState extends State<HomePage> {
             barrierDismissible: false,
             context: context,
             builder: (BuildContext context) {
-              return WillPopScope(child: CashDialog(isCashIn: true, callBack: () {}, isCashOut: false, isNewDay: true), onWillPop: () async => false);
+              return PopScope(
+                canPop: false,
+                child: CashDialog(isCashIn: true, callBack: () {}, isCashOut: false, isNewDay: true),
+              );
               //CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true,);
             });
       }

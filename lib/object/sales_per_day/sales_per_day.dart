@@ -13,6 +13,7 @@ class SalesPerDayFields {
     date,
     payment_method,
     payment_method_sales,
+    type,
     sync_status,
     created_at,
     updated_at,
@@ -30,6 +31,7 @@ class SalesPerDayFields {
   static String date = 'date';
   static String payment_method = 'payment_method';
   static String payment_method_sales = 'payment_method_sales';
+  static String type = 'type';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -48,6 +50,7 @@ class SalesPerDay{
   String? date;
   String? payment_method;
   String? payment_method_sales;
+  int? type;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -65,6 +68,7 @@ class SalesPerDay{
     this.date,
     this.payment_method,
     this.payment_method_sales,
+    this.type,
     this.sync_status,
     this.created_at,
     this.updated_at,
@@ -83,6 +87,7 @@ class SalesPerDay{
     String? date,
     String? payment_method,
     String? payment_method_sales,
+    int? type,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -100,6 +105,7 @@ class SalesPerDay{
           date: date ?? this.date,
           payment_method: payment_method ?? this.payment_method,
           payment_method_sales: payment_method_sales ?? this.payment_method_sales,
+          type: type ?? this.type,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -118,6 +124,7 @@ class SalesPerDay{
     date: json[SalesPerDayFields.date] as String?,
     payment_method: json[SalesPerDayFields.payment_method] as String?,
     payment_method_sales: json[SalesPerDayFields.payment_method_sales] as String?,
+    type: json[SalesPerDayFields.type] as int?,
     sync_status: json[SalesPerDayFields.sync_status] as int?,
     created_at: json[SalesPerDayFields.created_at] as String?,
     updated_at: json[SalesPerDayFields.updated_at] as String?,
@@ -136,6 +143,7 @@ class SalesPerDay{
     SalesPerDayFields.date: date,
     SalesPerDayFields.payment_method: payment_method,
     SalesPerDayFields.payment_method_sales: payment_method_sales,
+    SalesPerDayFields.type: type,
     SalesPerDayFields.sync_status: sync_status,
     SalesPerDayFields.created_at: created_at,
     SalesPerDayFields.updated_at: updated_at,

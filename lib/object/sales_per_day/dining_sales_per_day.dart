@@ -9,6 +9,7 @@ class SalesDiningPerDayFields {
     take_away,
     delivery,
     date,
+    type,
     sync_status,
     created_at,
     updated_at,
@@ -22,6 +23,7 @@ class SalesDiningPerDayFields {
   static String take_away = 'take_away';
   static String delivery = 'delivery';
   static String date = 'date';
+  static String type = 'type';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -36,6 +38,7 @@ class SalesDiningPerDay{
   String? take_away;
   String? delivery;
   String? date;
+  int? type;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -49,6 +52,7 @@ class SalesDiningPerDay{
     this.take_away,
     this.delivery,
     this.date,
+    this.type,
     this.sync_status,
     this.created_at,
     this.updated_at,
@@ -63,6 +67,7 @@ class SalesDiningPerDay{
     String? take_away,
     String? delivery,
     String? date,
+    int? type,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -76,6 +81,7 @@ class SalesDiningPerDay{
         take_away: take_away ?? this.take_away,
         delivery: delivery ?? this.delivery,
         date: date ?? this.date,
+        type: type ?? this.type,
         sync_status: sync_status ?? this.sync_status,
         created_at: created_at ?? this.created_at,
         updated_at: updated_at ?? this.updated_at,
@@ -90,6 +96,7 @@ class SalesDiningPerDay{
     take_away: json[SalesDiningPerDayFields.take_away] as String?,
     delivery: json[SalesDiningPerDayFields.delivery] as String?,
     date: json[SalesDiningPerDayFields.date] as String?,
+    type: json[SalesDiningPerDayFields.type] as int?,
     sync_status: json[SalesDiningPerDayFields.sync_status] as int?,
     created_at: json[SalesDiningPerDayFields.created_at] as String?,
     updated_at: json[SalesDiningPerDayFields.updated_at] as String?,
@@ -104,6 +111,7 @@ class SalesDiningPerDay{
     SalesDiningPerDayFields.take_away: take_away,
     SalesDiningPerDayFields.delivery: delivery,
     SalesDiningPerDayFields.date: date,
+    SalesDiningPerDayFields.type: type,
     SalesDiningPerDayFields.sync_status: sync_status,
     SalesDiningPerDayFields.created_at: created_at,
     SalesDiningPerDayFields.updated_at: updated_at,
