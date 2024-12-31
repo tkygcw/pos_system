@@ -328,12 +328,12 @@ class ServerAction {
               'table_list': function.tableList,
             };
             result = {'status': '1', 'data': objectData};
-          }catch(e){
+          }catch(e, s){
             result = {'status': '4'};
             FLog.error(
               className: "checkAction",
               text: "Server action 13 error",
-              exception: "$e",
+              exception: "Error: $e, StackTrace: $s",
             );
           }
         }
@@ -423,6 +423,22 @@ class ServerAction {
           }
         }
         break;
+        case '19': {
+          //make payment function
+          try{
+            var decodeParam = jsonDecode(param);
+            var function = PaymentFunction();
+            result = {'status': '1', 'action': '19'};
+          }catch(e, s){
+            result = {'status': '4'};
+            FLog.error(
+              className: "checkAction",
+              text: "Server action 18 error",
+              exception: "Error: $e, StackTrace: $s",
+            );
+          }
+        }
+        break;
       }
       return result;
     } catch(e){
@@ -436,7 +452,7 @@ class ServerAction {
     }
   }
 
-  Future<Map<String, dynamic>>placeOrderFunction(PlaceOrder orderType, cart, address, orderBy, orderByUserId) async {
+  Future<Map<String, dynamic>> placeOrderFunction(PlaceOrder orderType, cart, address, orderBy, orderByUserId) async {
     return await orderType.placeOrder(cart, address, orderBy, orderByUserId);
   }
 
