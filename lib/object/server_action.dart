@@ -29,6 +29,7 @@ import '../main.dart';
 import '../second_device/order/add_on_order.dart';
 import '../second_device/order/not_dine_in_order.dart';
 import 'branch_link_promotion.dart';
+import 'order.dart';
 
 class ServerAction {
   String? action;
@@ -427,7 +428,13 @@ class ServerAction {
           //make payment function
           try{
             var decodeParam = jsonDecode(param);
-            var function = PaymentFunction();
+            print("order cache: ${decodeParam['orderCacheList']}");
+            print("order: ${decodeParam['orderData']}");
+            Order orderData = Order.fromJson(decodeParam['orderData']);
+            var promoJson = decodeParam['promotion'] as List;
+            var taxJson = decodeParam['tax'] as List;
+            List<Promotion>? promotionList = promoJson.isNotEmpty ? promoJson.map((tagJson) => Promotion.fromJson(tagJson)).toList() : [];
+            var function = PaymentFunction(order: orderData, promotion: promotionList).makePayment();
             result = {'status': '1', 'action': '19'};
           }catch(e, s){
             result = {'status': '4'};
