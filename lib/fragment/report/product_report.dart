@@ -294,7 +294,7 @@ class _ProductReportState extends State<ProductReport> {
                 DataCell(orderDetailCategoryData[i].categoryOrderDetailList[j].product_variant_name != '' ?
                     Text('${orderDetailCategoryData[i].categoryOrderDetailList[j].product_variant_name}'): Text('-')),
                 DataCell(Text(orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum is double ?
-                '${orderDetailCategoryData[i].categoryOrderDetailList[j].item_qty}/${orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum!.toStringAsFixed(2)}(${orderDetailCategoryData[i].categoryOrderDetailList[j].unit})' :
+                '${orderDetailCategoryData[i].categoryOrderDetailList[j].item_qty}/${orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum!.toStringAsFixed(3)}(${orderDetailCategoryData[i].categoryOrderDetailList[j].unit})' :
                 '${orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum}')),
                 //DataCell(Text('${categoryData[i].categoryOrderDetailList[j].gross_price!.toStringAsFixed(2)}')),
                 DataCell(Text('${Utils.to2Decimal(orderDetailCategoryData[i].categoryOrderDetailList[j].gross_price!)}'))

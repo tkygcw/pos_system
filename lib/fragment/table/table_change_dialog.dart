@@ -264,11 +264,15 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     print("updateTable called");
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
+    List<OrderCache> cacheData = [];
     try{
       List<TableUseDetail> tableUseDetailList = await PosDatabase.instance.readTableUseDetailByTableUseKey(widget.object.table_use_key!);
       List<TableUseDetail> NowUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(widget.object.table_sqlite_id!);
       List<PosTable> tableData = await PosDatabase.instance.readSpecificTableByTableNo(tableNoController.text);
-      List<OrderCache> cacheData = await PosDatabase.instance.readSpecificOrderCacheByTableUseKey(tableData[0].table_use_key!);
+      if(tableData[0].table_use_key != ''){
+        cacheData = await PosDatabase.instance.readSpecificOrderCacheByTableUseKey(tableData[0].table_use_key!);
+      }
+
       if(tableData.isEmpty) {
         print("tableData is empty");
         Fluttertoast.showToast(
@@ -283,7 +287,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
       List<TableUseDetail> NewUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableData[0].table_sqlite_id!);
       //check new table is in use or not
       if(NewUseDetailData.isNotEmpty){
-        if(cacheData[0].order_key == null || cacheData[0].order_key == '') {
+        if(cacheData.isEmpty || cacheData[0].order_key == null || cacheData[0].order_key == '') {
           //check is user change to same group merged table
           if(checkTableUseKey(currentTableUseKey: NowUseDetailData[0].table_use_key!, targetTableUseKey: NewUseDetailData[0].table_use_key!) == false){
             await callChangeToTableInUse(NowUseDetailData[0].table_use_key!, NowUseDetailData[0].table_use_sqlite_id!, NewUseDetailData[0].table_use_sqlite_id!, dateTime);
