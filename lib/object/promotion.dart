@@ -38,6 +38,8 @@ class PromotionFields {
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
+  static String promoAmount = 'promoAmount';
+  static String promoRate = 'promoRate';
 }
 
 class Promotion{
@@ -140,6 +142,8 @@ class Promotion{
     created_at: json[PromotionFields.created_at] as String?,
     updated_at: json[PromotionFields.updated_at] as String?,
     soft_delete: json[PromotionFields.soft_delete] as String?,
+    promoAmount: json[PromotionFields.promoAmount] as double?,
+    promoRate: json[PromotionFields.promoRate] as String?
   );
 
   Map<String, Object?> toJson() => {
