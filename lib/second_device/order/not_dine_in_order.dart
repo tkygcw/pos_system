@@ -21,6 +21,7 @@ class PlaceNotDineInOrder extends PlaceOrder {
     String batch = '';
     try {
       int? orderQueue = await generateOrderQueue(cart);
+
       batch = await batchChecking();
       // if (isAddOrder == true) {
       //   batch = cart.cartNotifierItem[0].first_cache_batch!;
@@ -51,6 +52,7 @@ class PlaceNotDineInOrder extends PlaceOrder {
             order_detail_id: '',
             table_use_sqlite_id: '',
             table_use_key: '',
+            other_order_key: '',
             batch_id: batch.toString().padLeft(6, '0'),
             dining_id: cart.selectedOptionId,//this.diningOptionID.toString(),
             order_sqlite_id: '',
@@ -73,6 +75,10 @@ class PlaceNotDineInOrder extends PlaceOrder {
         orderCacheSqliteId = data.order_cache_sqlite_id.toString();
         //orderNumber = data.order_queue.toString();
         await insertOrderCacheKey(data, dateTime);
+        OrderCache? cacheData = await PosDatabase.instance.readOrderCacheWithSqliteId(orderCacheSqliteId);
+        if(cacheData!.other_order_key == ''){
+          await insertOtherOrderCacheKey(cacheData, dateTime);
+        }
         //sync to cloud
         //syncOrderCacheToCloud(updatedCache);
         //cart.addOrder(data);
