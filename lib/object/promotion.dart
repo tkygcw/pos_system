@@ -143,11 +143,16 @@ class Promotion{
     amount: json[PromotionFields.amount] as String?,
     specific_category: json[PromotionFields.specific_category] as String?,
     category_id: json[PromotionFields.category_id] as String?,
-    multiple_category: json[PromotionFields.multiple_category] is String
+    multiple_category: json[PromotionFields.multiple_category].toString() == 'null' || json[PromotionFields.multiple_category].toString() == '[]'
+        ? <dynamic>[]
+        : json[PromotionFields.multiple_category] is String
         ? jsonDecode(json[PromotionFields.multiple_category] as String) as List<dynamic>?
         : json[PromotionFields.multiple_category] as List<dynamic>?,
-    multiple_product: json[PromotionFields.multiple_product] is String
-        ? jsonDecode(json[PromotionFields.multiple_product] as String) as List<dynamic>?
+
+    multiple_product: json[PromotionFields.multiple_product].toString() == '[]' || json[PromotionFields.multiple_product].toString() == 'null'
+        ? <dynamic>[]
+        : json[PromotionFields.multiple_product] is String
+        ? jsonDecode(json[PromotionFields.multiple_product] as String) as List<dynamic>
         : json[PromotionFields.multiple_product] as List<dynamic>?,
     type: json[PromotionFields.type] as int?,
     auto_apply: json[PromotionFields.auto_apply] as String?,
