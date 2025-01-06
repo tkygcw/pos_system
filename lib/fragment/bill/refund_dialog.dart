@@ -520,7 +520,7 @@ class _RefundDialogState extends State<RefundDialog> {
       List<String> _value = [];
       Map logInUser = json.decode(login_user!);
 
-      print("widget.order.payment_type: ${widget.order.payment_type}");
+      print("widget.order.payment_type: ${widget.order.payment_type_id}");
 
       if(widget.order.payment_link_company_id != '0') {
         CashRecord cashRecordObject = CashRecord(
@@ -531,7 +531,7 @@ class _RefundDialogState extends State<RefundDialog> {
             remark: widget.order.generateOrderNumber(),
             amount: widget.order.final_amount,
             payment_name: '',
-            payment_type_id: widget.order.payment_type,
+            payment_type_id: widget.order.payment_type_id,
             type: 4,
             user_id: user.user_id.toString(),
             settlement_key: '',

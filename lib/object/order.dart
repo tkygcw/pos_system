@@ -68,6 +68,7 @@ class OrderFields {
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
+  static String payment_type_id = 'payment_type_id';
 }
 
 class Order {
@@ -104,7 +105,7 @@ class Order {
   String? soft_delete;
   bool isSelected = false;
   String? payment_name;
-  String? payment_type;
+  String? payment_type_id;
   String? refund_by;
   String? refund_at;
   int? item_sum;
@@ -158,7 +159,7 @@ class Order {
         this.updated_at,
         this.soft_delete,
         this.payment_name,
-        this.payment_type,
+        this.payment_type_id,
         this.refund_by,
         this.refund_at,
         this.item_sum,
@@ -205,6 +206,7 @@ class Order {
     String? created_at,
     String? updated_at,
     String? soft_delete,
+    String? payment_type_id
   }) =>
       Order(
           order_sqlite_id: order_sqlite_id ?? this.order_sqlite_id,
@@ -238,8 +240,7 @@ class Order {
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete,
-          payment_name: payment_name ?? this.payment_name,
-          payment_type: payment_type ?? this.payment_type);
+          payment_type_id: payment_type_id ?? this.payment_type_id);
 
   static Order fromJson(Map<String, Object?> json) => Order(
       order_sqlite_id: json[OrderFields.order_sqlite_id] as int?,
@@ -274,7 +275,7 @@ class Order {
       updated_at: json[OrderFields.updated_at] as String?,
       soft_delete: json[OrderFields.soft_delete] as String?,
       payment_name: json['name'] as String?,
-      payment_type: json['payment_type_id'] as String?,
+      payment_type_id: json[OrderFields.payment_type_id] as String?,
       refund_by: json['refund_name'] as String?,
       refund_at: json['refund_at'] as String?,
       item_sum: json['item_sum'] as int?,
@@ -321,5 +322,40 @@ class Order {
     OrderFields.created_at: created_at,
     OrderFields.updated_at: updated_at,
     OrderFields.soft_delete: soft_delete,
+    OrderFields.payment_type_id: payment_type_id
+  };
+
+  Map<String, Object?> toInsertJson() => {
+    OrderFields.order_sqlite_id: order_sqlite_id,
+    OrderFields.order_id: order_id,
+    OrderFields.order_number: order_number,
+    OrderFields.order_queue: order_queue,
+    OrderFields.company_id: company_id,
+    OrderFields.customer_id: customer_id,
+    OrderFields.dining_id: dining_id,
+    OrderFields.dining_name: dining_name,
+    OrderFields.branch_link_promotion_id: branch_link_promotion_id,
+    OrderFields.payment_link_company_id: payment_link_company_id,
+    OrderFields.branch_id: branch_id,
+    OrderFields.branch_link_tax_id: branch_link_tax_id,
+    OrderFields.subtotal: subtotal,
+    OrderFields.amount: amount,
+    OrderFields.rounding: rounding,
+    OrderFields.final_amount: final_amount,
+    OrderFields.close_by: close_by,
+    OrderFields.payment_status: payment_status,
+    OrderFields.payment_split: payment_split,
+    OrderFields.payment_received: payment_received,
+    OrderFields.payment_change: payment_change,
+    OrderFields.order_key: order_key,
+    OrderFields.refund_sqlite_id: refund_sqlite_id,
+    OrderFields.refund_key: refund_key,
+    OrderFields.settlement_sqlite_id: settlement_sqlite_id,
+    OrderFields.settlement_key: settlement_key,
+    OrderFields.ipay_trans_id: ipay_trans_id,
+    OrderFields.sync_status: sync_status,
+    OrderFields.created_at: created_at,
+    OrderFields.updated_at: updated_at,
+    OrderFields.soft_delete: soft_delete
   };
 }

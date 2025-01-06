@@ -14,6 +14,7 @@ import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table.dart';
+import 'package:pos_system/object/tax_link_dining.dart';
 import 'package:pos_system/second_device/cart_dialog_function.dart';
 import 'package:pos_system/second_device/order/dine_in_order.dart';
 import 'package:pos_system/second_device/order/place_order.dart';
@@ -433,8 +434,19 @@ class ServerAction {
             Order orderData = Order.fromJson(decodeParam['orderData']);
             var promoJson = decodeParam['promotion'] as List;
             var taxJson = decodeParam['tax'] as List;
+            var orderCacheJson = decodeParam['orderCacheList'] as List;
+            var posTableJson = decodeParam['selectedTable'] as List;
             List<Promotion>? promotionList = promoJson.isNotEmpty ? promoJson.map((tagJson) => Promotion.fromJson(tagJson)).toList() : [];
-            var function = PaymentFunction(order: orderData, promotion: promotionList).makePayment();
+            List<TaxLinkDining>? taxList = taxJson.isNotEmpty ? taxJson.map((tagJson) => TaxLinkDining.fromJson(tagJson)).toList() : [];
+            List<OrderCache>? orderCacheList = orderCacheJson.isNotEmpty ? orderCacheJson.map((tagJson) => OrderCache.fromJson(tagJson)).toList() : [];
+            List<PosTable>? tableList = posTableJson.isNotEmpty ? posTableJson.map((tagJson) => PosTable.fromJson(tagJson)).toList() : [];
+            var function = PaymentFunction(
+              order: orderData,
+              promotion: promotionList,
+              taxLinkDining: taxList,
+              orderCache: orderCacheList,
+              tableList: tableList
+            ).makePayment();
             result = {'status': '1', 'action': '19'};
           }catch(e, s){
             result = {'status': '4'};
