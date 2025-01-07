@@ -477,7 +477,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                   autofocus: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? true : false,
                                                   controller: quantityController,
                                                   keyboardType: TextInputType.numberWithOptions(decimal: true),
-                                                  inputFormatters: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))]
+                                                  inputFormatters: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,3}'))]
                                                       : <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
                                                   textAlign: TextAlign.center,
                                                   decoration: InputDecoration(
@@ -915,7 +915,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                     autofocus: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? true : false,
                                                     controller: quantityController,
                                                     keyboardType: TextInputType.numberWithOptions(decimal: true),
-                                                    inputFormatters: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))]
+                                                    inputFormatters: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,3}'))]
                                                         : <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
                                                     textAlign: TextAlign.center,
                                                     decoration: InputDecoration(
