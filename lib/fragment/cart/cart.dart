@@ -2485,6 +2485,7 @@ class CartPageState extends State<CartPage> {
 
       promotionList.sort((a, b) => categoryOrder[a.specific_category]!.compareTo(categoryOrder[b.specific_category]!));
 
+      setState(() {});
     } catch (error) {
       print('promotion list error $error');
     }
