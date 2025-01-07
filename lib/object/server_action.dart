@@ -429,8 +429,10 @@ class ServerAction {
           //make payment function
           try{
             var decodeParam = jsonDecode(param);
+            print("ipay result code: ${decodeParam['ipayResultCode']}");
             print("order cache: ${decodeParam['orderCacheList']}");
             print("order: ${decodeParam['orderData']}");
+            String? ipay_result_code = decodeParam['ipayResultCode'];
             Order orderData = Order.fromJson(decodeParam['orderData']);
             var promoJson = decodeParam['promotion'] as List;
             var taxJson = decodeParam['tax'] as List;
@@ -440,19 +442,28 @@ class ServerAction {
             List<TaxLinkDining>? taxList = taxJson.isNotEmpty ? taxJson.map((tagJson) => TaxLinkDining.fromJson(tagJson)).toList() : [];
             List<OrderCache>? orderCacheList = orderCacheJson.isNotEmpty ? orderCacheJson.map((tagJson) => OrderCache.fromJson(tagJson)).toList() : [];
             List<PosTable>? tableList = posTableJson.isNotEmpty ? posTableJson.map((tagJson) => PosTable.fromJson(tagJson)).toList() : [];
-            var function = PaymentFunction(
+            PaymentFunction function = PaymentFunction(
               order: orderData,
               promotion: promotionList,
               taxLinkDining: taxList,
               orderCache: orderCacheList,
-              tableList: tableList
-            ).makePayment();
-            result = {'status': '1', 'action': '19'};
+              tableList: tableList,
+              ipayResultCode: ipay_result_code
+            );
+            bool status = await function.IsOrderCachePaid();
+            if(status == true){
+              return result = {'status': '2', 'action': '19', 'error': 'Order is in payment or paid'};
+            }
+            if(function.ipayResultCode != null) {
+              result = await function.ipayMakePayment();
+            } else {
+              result = await function.makePayment();
+            }
           }catch(e, s){
             result = {'status': '4'};
             FLog.error(
               className: "checkAction",
-              text: "Server action 18 error",
+              text: "Server action 19 error",
               exception: "Error: $e, StackTrace: $s",
             );
           }

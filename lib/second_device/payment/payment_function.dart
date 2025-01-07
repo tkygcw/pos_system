@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table.dart';
@@ -12,6 +13,7 @@ import 'package:crypto/crypto.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../../firebase_sync/qr_order_sync.dart';
+import '../../fragment/payment/ipay_api.dart';
 import '../../object/app_setting.dart';
 import '../../object/branch_link_promotion.dart';
 import '../../object/branch_link_tax.dart';
@@ -31,20 +33,25 @@ class PaymentFunction {
   List<TaxLinkDining> _taxLinkDiningList = [];
   List<OrderCache> _orderCacheList = [];
   List<PosTable> _selectedTableList = [];
+  String? _ipayResultCode;
   late final String _currentDateTime;
+
+  String? get ipayResultCode => _ipayResultCode;
 
   PaymentFunction({
     Order? order,
     List<Promotion>? promotion,
     List<TaxLinkDining>? taxLinkDining,
     List<OrderCache>? orderCache,
-    List<PosTable>? tableList
+    List<PosTable>? tableList,
+    String? ipayResultCode
   }) {
     _order = order ?? _order;
     _promotionList = promotion ?? _promotionList;
     _taxLinkDiningList = taxLinkDining ?? _taxLinkDiningList;
     _orderCacheList = orderCache ?? _orderCacheList;
     _selectedTableList = tableList ?? _selectedTableList;
+    _ipayResultCode = ipayResultCode ?? _ipayResultCode;
     _currentDateTime = _dateFormat.format(DateTime.now());
   }
 
@@ -52,21 +59,140 @@ class PaymentFunction {
     return await _posDatabase.readPaymentMethods();
   }
 
-  makePayment() async {
+  IsOrderCachePaid() async {
     var db = await _posDatabase.database;
-    await db.transaction((txn) async {
-      await _createOrder(txn);
-      await _createOrderPromotionDetail(txn);
-      await _crateOrderTaxDetail(txn);
-      await _updateOrderCache(txn);
-      await _createCashRecord(txn);
-      if (_selectedTableList.isNotEmpty) {
-        List<String> uniqueTableUseSqliteId = getUniqueTableUseSqliteId();
-        await _updateTableUseDetailAndTableUse(txn, uniqueTableUseSqliteId);
-        await _updatePosTableStatus(txn);
-        // await deleteCurrentTableUseId(dateTime: dateTime);
-        // await updatePosTableStatus(dateTime: dateTime);
-        // softDeletePosTableDynamicQr();
+    return await db.transaction((txn) async {
+      for(var orderCache in _orderCacheList){
+        OrderCache? data = await _readSpecificOrderCachePaymentStatus(txn, orderCache.order_cache_sqlite_id!.toString());
+        if (data != null && data.payment_status != 0) {
+          return true; // Found a non-zero payment_status, return true immediately
+        }
+      }
+      return false;
+    });
+  }
+
+  Future<Map<String, dynamic>?> ipayMakePayment() async {
+    try{
+      Map<String, dynamic> apiRes = await _paymentApi();
+      if (apiRes['status'] == '1') {
+        print("ipay trans id: ${apiRes['data']}");
+        // await callCreateOrder(finalAmount, ipayTransId: apiRes['data']);
+        //live data part
+        // Branch? data = await PosDatabase.instance.readLocalBranch();
+        // if(data != null && data.allow_livedata == 1){
+        //   if(!isSyncing){
+        //     isSyncing = true;
+        //     do{
+        //       await syncToCloud.syncAllToCloud(isManualSync: true);
+        //     }while(syncToCloud.emptyResponse == false);
+        //     if(syncToCloud.emptyResponse == true){
+        //       isSyncing = false;
+        //     }
+        //   }
+        // }
+        return await makePayment(ipayTransId: apiRes['data']);
+      } else {
+        // print("API error res: ${apiRes['data']}");
+        return {'status': '2', 'action': '19', 'error': apiRes['data']};
+      }
+    }catch(e, s){
+      print("ipay make payment error: $e, $s");
+      rethrow;
+    }
+  }
+
+  _paymentApi() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map<String, dynamic> branchObject = json.decode(branch!);
+    Branch branchData = Branch.fromJson(branchObject);
+    String refKey = branchData.branch_id.toString() + DateFormat('yyyyMMddHHmmss').format(DateTime.now());
+    try{
+      var response = await Api().sendPayment(
+        branchData.ipay_merchant_code!,
+        // branchObject['ipay_merchant_code'],
+        branchData.ipay_merchant_key!,
+        // branchObject['ipay_merchant_key'],
+        336,
+        refKey,
+        Utils.formatPaymentAmount(double.parse(_order.final_amount!)),
+        'MYR',
+        'ipay',
+        branchObject['name'],
+        branchObject['email'],
+        branchObject['phone'],
+        'remark',
+        _ipayResultCode!,
+        '',
+        '',
+        '',
+        '',
+        _signature256(
+            branchObject['ipay_merchant_key'],
+            branchObject['ipay_merchant_code'],
+            refKey,
+            _order.final_amount,
+            //need to change to finalAmount
+            'MYR',
+            '',
+            _ipayResultCode!,
+            ''),
+      );
+      return response;
+    }catch(e, s){
+      print("ipay paymentApi error: $e, $s");
+      rethrow;
+      // assetsAudioPlayer.open(
+      //   Audio("audio/error_sound.mp3"),
+      // );
+      // FLog.error(
+      //   className: "make_payment_dialog",
+      //   text: "paymentApi error",
+      //   exception: "$e",
+      // );
+      return {
+        'status': '0',
+        'data': e
+      };
+    }
+  }
+
+  _signature256(var merchant_key, var merchant_code, var refNo, var amount, var currency, var xFields, var barcodeNo, var TerminalId) {
+    var ipayAmount = double.parse(amount) * 100;
+    print("ipay amount: ${ipayAmount.toStringAsFixed(0)}");
+    var signature = utf8.encode(merchant_key +
+        merchant_code +
+        refNo +
+        ipayAmount.toStringAsFixed(0) +
+        currency +
+        xFields +
+        barcodeNo +
+        TerminalId);
+    String value = sha256.convert(signature).toString();
+    return value;
+  }
+
+  Future<Map<String, dynamic>?> makePayment({String? ipayTransId}) async {
+    var db = await _posDatabase.database;
+    return await db.transaction((txn) async {
+      try{
+        await _createOrder(txn, ipayTransId: ipayTransId);
+        await _createOrderPromotionDetail(txn);
+        await _crateOrderTaxDetail(txn);
+        await _updateOrderCache(txn);
+        await _createCashRecord(txn);
+        if (_selectedTableList.isNotEmpty) {
+          List<String> uniqueTableUseSqliteId = _getUniqueTableUseSqliteId();
+          await _updateTableUseDetailAndTableUse(txn, uniqueTableUseSqliteId);
+          await _updatePosTableStatus(txn);
+          // await deleteCurrentTableUseId(dateTime: dateTime);
+          // await updatePosTableStatus(dateTime: dateTime);
+          // softDeletePosTableDynamicQr();
+        }
+        return {'status': '1', 'action': '19'};
+      }catch(e){
+        return {'status': '2', 'action': '19', 'error': e};
       }
     });
   }
@@ -165,7 +291,7 @@ class PaymentFunction {
     }
   }
 
-  List<String> getUniqueTableUseSqliteId() {
+  List<String> _getUniqueTableUseSqliteId() {
     return _orderCacheList
         .map((orderCache) => orderCache.table_use_sqlite_id!) // Extract table_use_key values
         .toSet() // Convert to Set to remove duplicates
@@ -333,7 +459,7 @@ class PaymentFunction {
     }
   }
 
-  _createOrder(Transaction txn) async {
+  _createOrder(Transaction txn, {String? ipayTransId}) async {
     print('create order called');
     List<String> _value = [];
     final prefs = await SharedPreferences.getInstance();
@@ -361,6 +487,7 @@ class PaymentFunction {
             refund_key: '',
             settlement_sqlite_id: '',
             settlement_key: '',
+            ipay_trans_id: ipayTransId ?? '',
             sync_status: 0,
             created_at: _currentDateTime,
             updated_at: '',
@@ -570,6 +697,20 @@ class PaymentFunction {
 /*
 ---------------------------READ QUERY--------------------------------------------
 */
+
+/*
+  read order cache payment status
+*/
+  Future<OrderCache?> _readSpecificOrderCachePaymentStatus(Transaction txn, String order_cache_sqlite_id) async {
+    final result = await txn.rawQuery('SELECT payment_status FROM $tableOrderCache '
+        'WHERE soft_delete = ? AND order_cache_sqlite_id = ?',
+        ['', order_cache_sqlite_id]);
+    if(result.isNotEmpty){
+      return OrderCache.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
 
 /*
   read Specific table use by table use local id
