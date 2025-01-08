@@ -174,9 +174,9 @@ class PaymentFunction {
   }
 
   Future<Map<String, dynamic>?> makePayment({String? ipayTransId}) async {
-    var db = await _posDatabase.database;
-    return await db.transaction((txn) async {
-      try{
+    try{
+      var db = await _posDatabase.database;
+      await db.transaction((txn) async {
         await _createOrder(txn, ipayTransId: ipayTransId);
         await _createOrderPromotionDetail(txn);
         await _crateOrderTaxDetail(txn);
@@ -190,11 +190,11 @@ class PaymentFunction {
           // await updatePosTableStatus(dateTime: dateTime);
           // softDeletePosTableDynamicQr();
         }
-        return {'status': '1', 'action': '19'};
-      }catch(e){
-        return {'status': '2', 'action': '19', 'error': e};
-      }
-    });
+      });
+      return {'status': '1', 'action': '19'};
+    }catch(e){
+      return {'status': '2', 'action': '19', 'error': e};
+    }
   }
 
   _updatePosTableStatus(Transaction txn) async {
@@ -370,7 +370,7 @@ class PaymentFunction {
   }
 
   _updateOrderCache(Transaction txn) async {
-    print("updateOrderCache sync status: ${_orderCacheList.first.sync_status}");
+    print("server action updateOrderCache");
     List<String> _value = [];
     if (_orderCacheList.isNotEmpty) {
       for (var orderCache in _orderCacheList) {
@@ -690,8 +690,14 @@ class PaymentFunction {
   crate order into local(from local)
 */
   Future<Order> _insertSqliteOrder(Transaction txn, Order data) async {
-    final id = await txn.insert(tableOrder!, data.toInsertJson());
-    return data.copy(order_sqlite_id: id);
+    final result = await txn.rawQuery('SELECT created_at FROM $tableOrder WHERE soft_delete = ? AND created_at = ?',
+        ['', data.created_at]);
+    if(result.isEmpty){
+      final id = await txn.insert(tableOrder!, data.toInsertJson());
+      return data.copy(order_sqlite_id: id);
+    } else {
+      throw 'Duplicated payment';
+    }
   }
 
 /*
@@ -841,8 +847,13 @@ class PaymentFunction {
   update order cache payment status
 */
   Future<int> _updateOrderCachePaymentStatus(Transaction txn, OrderCache data) async {
-    return await txn.rawUpdate('UPDATE $tableOrderCache SET order_sqlite_id = ?, order_key = ?, payment_status = ?, sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
-        [data.order_sqlite_id, data.order_key, data.payment_status, data.sync_status, data.updated_at, data.order_cache_sqlite_id]);
+    OrderCache? checkData = await _readSpecificOrderCachePaymentStatus(txn, data.order_cache_sqlite_id!.toString());
+    if(checkData != null && checkData.payment_status == 0){
+      return await txn.rawUpdate('UPDATE $tableOrderCache SET order_sqlite_id = ?, order_key = ?, payment_status = ?, sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
+          [data.order_sqlite_id, data.order_key, data.payment_status, data.sync_status, data.updated_at, data.order_cache_sqlite_id]);
+    } else {
+      throw 'Order cache paid';
+    }
   }
 
 /*

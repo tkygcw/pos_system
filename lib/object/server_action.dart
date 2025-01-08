@@ -450,10 +450,10 @@ class ServerAction {
               tableList: tableList,
               ipayResultCode: ipay_result_code
             );
-            bool status = await function.IsOrderCachePaid();
-            if(status == true){
-              return result = {'status': '2', 'action': '19', 'error': 'Order is in payment or paid'};
-            }
+            // bool status = await function.IsOrderCachePaid();
+            // if(status == true){
+            //   return result = {'status': '2', 'action': '19', 'error': 'Order is in payment or paid'};
+            // }
             if(function.ipayResultCode != null) {
               result = await function.ipayMakePayment();
             } else {
