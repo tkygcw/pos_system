@@ -19,9 +19,9 @@ class Server extends ChangeNotifier {
   List<Socket> clientList = [];
   ServerSocket? serverSocket, requestSocket;
   static String _serverIp = '-';
-  static final Server instance = Server.init();
+  static final Server instance = Server._init();
 
-  Server.init();
+  Server._init();
 
   String? get serverIp => _serverIp;
 
@@ -160,6 +160,13 @@ class Server extends ChangeNotifier {
         clientSocket.destroy();
       },
     );
+  }
+
+  sendMessageToClient(String action){
+    var msg = {'status': '1', 'action': action};
+    for (var client in clientList) {
+      client.write("${jsonEncode(msg)}$messageDelimiter");
+    }
   }
 
   sendRefreshMessage() {

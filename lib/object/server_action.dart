@@ -429,9 +429,7 @@ class ServerAction {
           //make payment function
           try{
             var decodeParam = jsonDecode(param);
-            print("ipay result code: ${decodeParam['ipayResultCode']}");
-            print("order cache: ${decodeParam['orderCacheList']}");
-            print("order: ${decodeParam['orderData']}");
+            int? close_by_user_id =  decodeParam['user_id'];
             String? ipay_result_code = decodeParam['ipayResultCode'];
             Order orderData = Order.fromJson(decodeParam['orderData']);
             var promoJson = decodeParam['promotion'] as List;
@@ -448,12 +446,9 @@ class ServerAction {
               taxLinkDining: taxList,
               orderCache: orderCacheList,
               tableList: tableList,
-              ipayResultCode: ipay_result_code
+              ipayResultCode: ipay_result_code,
+              user_id: close_by_user_id
             );
-            // bool status = await function.IsOrderCachePaid();
-            // if(status == true){
-            //   return result = {'status': '2', 'action': '19', 'error': 'Order is in payment or paid'};
-            // }
             if(function.ipayResultCode != null) {
               result = await function.ipayMakePayment();
             } else {
@@ -469,6 +464,10 @@ class ServerAction {
           }
         }
         break;
+        case '20': {
+          TableFunction().clearSubPosOrderCache(table_use_key: param);
+          result = {'status': '1'};
+        }break;
       }
       return result;
     } catch(e){

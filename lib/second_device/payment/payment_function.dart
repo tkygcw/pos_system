@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/promotion.dart';
@@ -34,6 +35,7 @@ class PaymentFunction {
   List<OrderCache> _orderCacheList = [];
   List<PosTable> _selectedTableList = [];
   String? _ipayResultCode;
+  int? _user_id;
   late final String _currentDateTime;
 
   String? get ipayResultCode => _ipayResultCode;
@@ -44,7 +46,8 @@ class PaymentFunction {
     List<TaxLinkDining>? taxLinkDining,
     List<OrderCache>? orderCache,
     List<PosTable>? tableList,
-    String? ipayResultCode
+    String? ipayResultCode,
+    int? user_id
   }) {
     _order = order ?? _order;
     _promotionList = promotion ?? _promotionList;
@@ -53,6 +56,7 @@ class PaymentFunction {
     _selectedTableList = tableList ?? _selectedTableList;
     _ipayResultCode = ipayResultCode ?? _ipayResultCode;
     _currentDateTime = _dateFormat.format(DateTime.now());
+    _user_id = user_id ?? _user_id;
   }
 
   getCompanyPaymentMethod() async {
@@ -320,7 +324,7 @@ class PaymentFunction {
             payment_name: '',
             payment_type_id: _order.payment_type_id!,
             type: 3,
-            user_id: userObject['user_id'].toString(),
+            user_id: _user_id!.toString(),
             settlement_key: '',
             settlement_date: '',
             sync_status: 0,
@@ -372,8 +376,12 @@ class PaymentFunction {
   _updateOrderCache(Transaction txn) async {
     print("server action updateOrderCache");
     List<String> _value = [];
+    final inPaymentOrderCache = TableModel.instance.inPaymentOrderCache;
     if (_orderCacheList.isNotEmpty) {
       for (var orderCache in _orderCacheList) {
+        if(inPaymentOrderCache != null && orderCache.order_cache_sqlite_id == inPaymentOrderCache.order_cache_sqlite_id){
+          throw 'Order is in payment';
+        }
         OrderCache cacheObject = orderCache.copy(
             order_sqlite_id: _order.order_sqlite_id!.toString(),
             order_key: _order.order_key,
@@ -847,13 +855,8 @@ class PaymentFunction {
   update order cache payment status
 */
   Future<int> _updateOrderCachePaymentStatus(Transaction txn, OrderCache data) async {
-    OrderCache? checkData = await _readSpecificOrderCachePaymentStatus(txn, data.order_cache_sqlite_id!.toString());
-    if(checkData != null && checkData.payment_status == 0){
-      return await txn.rawUpdate('UPDATE $tableOrderCache SET order_sqlite_id = ?, order_key = ?, payment_status = ?, sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
-          [data.order_sqlite_id, data.order_key, data.payment_status, data.sync_status, data.updated_at, data.order_cache_sqlite_id]);
-    } else {
-      throw 'Order cache paid';
-    }
+    return await txn.rawUpdate('UPDATE $tableOrderCache SET order_sqlite_id = ?, order_key = ?, payment_status = ?, sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
+        [data.order_sqlite_id, data.order_key, data.payment_status, data.sync_status, data.updated_at, data.order_cache_sqlite_id]);
   }
 
 /*

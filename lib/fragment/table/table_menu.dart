@@ -35,6 +35,7 @@ import '../../object/modifier_group.dart';
 import '../../object/modifier_item.dart';
 import '../../object/order_detail.dart';
 import '../../object/order_modifier_detail.dart';
+import '../custom_toastification.dart';
 import '../printing_layout/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../object/variant_group.dart';
@@ -658,80 +659,84 @@ class _TableMenuState extends State<TableMenu> {
           if (!editingMode) {
             if (productDetailLoaded) {
               if (tableList[index].status == 1) {
-                // table in use (colored)
-                for (int i = 0; i < tableList.length; i++) {
-                  if (tableList[index].group == tableList[i].group || ((tableList[index].order_key == tableList[i].order_key) && tableList[index].order_key != null)) {
-                    if (tableList[i].isSelected == false) {
-                      if(tableList[i].order_key == null) {
-                        for (int j = 0; j < tableList.length; j++) {
-                          //reset all using table to un-select (table status == 1)
-                          if (tableList[j].isSelected == true && tableList[j].order_key != null) {
-                            tableList[j].isSelected = false;
-                            cart.removeSpecificGroupList(tableList[j].group!);
-                            cart.removeAllCartItem();
-                            cart.removePromotion();
-                            cart.removeSpecificTable(tableList[j]);
-                          }
-                        }
-                        tableList[i].isSelected = true;
-                      } else {
-                        for (int j = 0; j < tableList.length; j++) {
-                          //reset all using table to un-select (table status == 1)
-                          if (tableList[j].isSelected == true && tableList[j].group != tableList[index].group && tableList[index].order_key != tableList[j].order_key) {
-                            tableList[j].isSelected = false;
-                            cart.removeSpecificGroupList(tableList[j].group!);
-                            cart.removeAllCartItem();
-                            cart.removePromotion();
-                            cart.removeSpecificTable(tableList[j]);
-                          }
-                        }
-                        tableList[i].isSelected = true;
-                      }
-                    } else if (tableList[i].isSelected == true) {
-                      if (tableList[index].group == tableList[i].group) {
-                        setState(() {
-                          //removeFromCart(cart, tableList[index]);
-                          tableList[i].isSelected = false;
-                          cart.removeSpecificGroupList(tableList[i].group!);
-                          //print('table list: ${tableList[i].number}');
-                          //cart.removeSpecificTable(tableList[i]);
-                        });
-                      } else {
-                        setState(() {
-                          //removeFromCart(cart, tableList[index]);
-                          tableList[i].isSelected = false;
-                          cart.removeSpecificGroupList(tableList[i].group!);
-                          //cart.removeSpecificTable(tableList[index]);
-                        });
-                      }
-                    }
-                    if (tableList[i].status == 1 && tableList[i].isSelected == true) {
-                      // if(!groupList.contains(tableList[i].group)) {
-                      if(!cart.groupList.contains(tableList[i].group)) {
-                        await readSpecificTableDetail(tableList[i]);
-                        //await readSpecificTableDetail(tableList[index]);
-                        List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificInUsedTableUseDetail(tableList[i].table_sqlite_id!);
-                        if (tableUseDetailData.isNotEmpty){
-                          List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
-                          if(data.isNotEmpty){
-                            if(data[0].order_key != ''){
-                              orderKey = data[0].order_key!;
-                            } else {
-                              orderKey = '';
+                if(await cart.isSubPosSelectedOrderCache(tableUseKey: tableList[index].table_use_key) == false){
+                  // table in use (colored)
+                  for (int i = 0; i < tableList.length; i++) {
+                    if (tableList[index].group == tableList[i].group || ((tableList[index].order_key == tableList[i].order_key) && tableList[index].order_key != null)) {
+                      if (tableList[i].isSelected == false) {
+                        if(tableList[i].order_key == null) {
+                          for (int j = 0; j < tableList.length; j++) {
+                            //reset all using table to un-select (table status == 1)
+                            if (tableList[j].isSelected == true && tableList[j].order_key != null) {
+                              tableList[j].isSelected = false;
+                              cart.removeSpecificGroupList(tableList[j].group!);
+                              cart.removeAllCartItem();
+                              cart.removePromotion();
+                              cart.removeSpecificTable(tableList[j]);
                             }
                           }
+                          tableList[i].isSelected = true;
+                        } else {
+                          for (int j = 0; j < tableList.length; j++) {
+                            //reset all using table to un-select (table status == 1)
+                            if (tableList[j].isSelected == true && tableList[j].group != tableList[index].group && tableList[index].order_key != tableList[j].order_key) {
+                              tableList[j].isSelected = false;
+                              cart.removeSpecificGroupList(tableList[j].group!);
+                              cart.removeAllCartItem();
+                              cart.removePromotion();
+                              cart.removeSpecificTable(tableList[j]);
+                            }
+                          }
+                          tableList[i].isSelected = true;
                         }
-                        addToCart(cart, tableList[i]);
-                        cart.addToGroupList(tableList[i].group!);
-                        // groupList.add(tableList[i].group!);
+                      } else if (tableList[i].isSelected == true) {
+                        if (tableList[index].group == tableList[i].group) {
+                          setState(() {
+                            //removeFromCart(cart, tableList[index]);
+                            tableList[i].isSelected = false;
+                            cart.removeSpecificGroupList(tableList[i].group!);
+                            //print('table list: ${tableList[i].number}');
+                            //cart.removeSpecificTable(tableList[i]);
+                          });
+                        } else {
+                          setState(() {
+                            //removeFromCart(cart, tableList[index]);
+                            tableList[i].isSelected = false;
+                            cart.removeSpecificGroupList(tableList[i].group!);
+                            //cart.removeSpecificTable(tableList[index]);
+                          });
+                        }
                       }
-                    } else {
-                      await readSpecificTableDetail(tableList[i]);
-                      removeFromCart(cart, tableList[i]);
-                      cart.removeSpecificGroupList(tableList[i].group!);
-                      cart.removeCartOrderCache(orderCacheList);
+                      if (tableList[i].status == 1 && tableList[i].isSelected == true) {
+                        // if(!groupList.contains(tableList[i].group)) {
+                        if(!cart.groupList.contains(tableList[i].group)) {
+                          await readSpecificTableDetail(tableList[i]);
+                          //await readSpecificTableDetail(tableList[index]);
+                          List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificInUsedTableUseDetail(tableList[i].table_sqlite_id!);
+                          if (tableUseDetailData.isNotEmpty){
+                            List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
+                            if(data.isNotEmpty){
+                              if(data[0].order_key != ''){
+                                orderKey = data[0].order_key!;
+                              } else {
+                                orderKey = '';
+                              }
+                            }
+                          }
+                          addToCart(cart, tableList[i]);
+                          cart.addToGroupList(tableList[i].group!);
+                          // groupList.add(tableList[i].group!);
+                        }
+                      } else {
+                        await readSpecificTableDetail(tableList[i]);
+                        removeFromCart(cart, tableList[i]);
+                        cart.removeSpecificGroupList(tableList[i].group!);
+                        cart.removeCartOrderCache(orderCacheList);
+                      }
                     }
                   }
+                } else {
+                  CustomFailedToast.showToast(title: 'Table is in payment');
                 }
               } else {
                 cart.removeAllCartOrderCache();

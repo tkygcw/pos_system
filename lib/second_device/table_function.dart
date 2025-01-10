@@ -1,6 +1,9 @@
 import 'package:collection/collection.dart';
+import 'package:pos_system/notifier/cart_notifier.dart';
+import 'package:provider/provider.dart';
 
 import '../database/pos_database.dart';
+import '../main.dart';
 import '../object/branch_link_product.dart';
 import '../object/categories.dart';
 import '../object/order.dart';
@@ -12,6 +15,7 @@ import '../object/table.dart';
 import '../object/table_use_detail.dart';
 
 class TableFunction {
+  final _context = MyApp.navigatorKey.currentContext!;
   PosDatabase _posDatabase = PosDatabase.instance;
   List<PosTable> tableList = [];
   List<PosTable> initialTableList = [];
@@ -101,6 +105,7 @@ class TableFunction {
       if(tableUseDetailData.isNotEmpty){
         //Get all order table cache
         List<OrderCache> data = await _posDatabase.readTableOrderCache(tableUseDetailData[0].table_use_key!);
+        Provider.of<CartModel>(_context, listen: false).addAllSubPosOrderCache(data);
         //loop all table order cache
         for (int i = 0; i < data.length; i++) {
           if (!_orderDetailList.contains(data)) {
@@ -152,6 +157,15 @@ class TableFunction {
       }
     }catch(e){
       rethrow;
+    }
+  }
+
+  void clearSubPosOrderCache({String? table_use_key}){
+    print("table use key: ${table_use_key}");
+    if(table_use_key != null){
+      Provider.of<CartModel>(_context, listen: false).removeSpecificSubPosOrderCache(table_use_key);
+    } else {
+      Provider.of<CartModel>(_context, listen: false).clearSubPosOrderCache();
     }
   }
 
