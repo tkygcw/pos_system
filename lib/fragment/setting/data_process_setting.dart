@@ -4,6 +4,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/custom_pin_dialog.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/fragment/setting/product_img_sync/sync_dialog.dart';
 import 'package:pos_system/fragment/setting/sync_dialog.dart';
 import 'package:pos_system/fragment/setting/system_log_dialog.dart';
 import 'package:pos_system/notifier/theme_color.dart';
@@ -104,6 +105,13 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
                 trailing: Icon(Icons.cloud_download),
                 onTap: () async {
                   openSyncDialog(SyncType.sync_updates_from_cloud);
+                },
+              ),
+              ListTile(
+                title: Text('sync product image'),
+                trailing: Icon(Icons.cloud_download),
+                onTap: () async {
+                  openSyncProductImgDialog();
                 },
               ),
               ///temporally hide sync reset button
@@ -547,6 +555,28 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
             child: Opacity(
               opacity: a1.value,
               child: SyncDialog(syncType: syncType),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
+  Future<Future<Object?>> openSyncProductImgDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: const ProductImgSyncDialog(),
             ),
           );
         },
