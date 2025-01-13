@@ -425,6 +425,9 @@ class _SettlementDialogState extends State<SettlementDialog> {
         if(syncToCloud.emptyResponse == true){
           isSyncing = false;
         }
+      } else {
+        widget.callBack();
+        Navigator.of(context).pop();
       }
     } else {
       if (await confirm(
