@@ -392,6 +392,8 @@ class SettlementQuery {
 */
   Future<List<Order>> _readSales() async {
     try{
+      String currentDate = _currentDateTime.substring(0, 10);
+      String endDate = DateFormat("yyyy-MM-dd").format(DateTime.parse(_currentDateTime).add(Duration(days: 1)));
       final result = await _transaction.rawQuery(
           'WITH PromoSums AS (SELECT order_sqlite_id, SUM(promotion_amount) AS TotalPromoAmount FROM $tableOrderPromotionDetail GROUP BY order_sqlite_id ), '
               'TaxSums AS (SELECT order_sqlite_id, SUM(CASE WHEN type = ? THEN tax_amount ELSE 0.0 END) AS TaxType0Amount, '
@@ -404,8 +406,9 @@ class SettlementQuery {
               'FROM $tableOrder o '
               'LEFT JOIN PromoSums P ON o.order_sqlite_id = P.order_sqlite_id '
               'LEFT JOIN TaxSums T ON o.order_sqlite_id = T.order_sqlite_id '
+              'WHERE SUBSTR(o.created_at, 1, 10) >= ? AND SUBSTR(o.created_at, 1, 10) < ? '
               'GROUP BY SUBSTR(o.created_at, 1, 10) ',
-          ['0', '1']) as List<Map<String, Object?>>;
+          ['0', '1', currentDate, endDate]) as List<Map<String, Object?>>;
       return result.map((json) => Order.fromJson(json)).toList();
     }catch(e, s){
       FLog.error(

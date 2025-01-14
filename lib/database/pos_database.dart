@@ -7112,9 +7112,9 @@ class PosDatabase {
 /*
   update order(from cloud)
 */
-  Future<int> updateOrderSyncStatusFromCloud(String order_key) async {
+  Future<int> updateOrderSyncStatusFromCloud(String order_key, {String? settlement_key}) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableOrder SET sync_status = ? WHERE order_key = ?', [1, order_key]);
+    return await db.rawUpdate('UPDATE $tableOrder SET sync_status = ? WHERE order_key = ? AND settlement_key = ?', [1, order_key, settlement_key]);
   }
 
 /*

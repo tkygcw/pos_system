@@ -154,7 +154,7 @@ class SyncToCloud {
               }
               break;
               case 'tb_order': {
-                await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+                await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key'], settlement_key: responseJson[i]['settlement_key']);
               }
               break;
               case 'tb_order_promotion_detail': {
@@ -1558,24 +1558,24 @@ class SyncToCloud {
 /*
   ----------------------Order part---------------------------------------------------------------------------------------------------------------------------------------
 */
-  updatedOrderSyncToCloud() async {
-    List<String> value = [];
-    await getNotSyncUpdatedOrder();
-    if(notSyncOrderList.isNotEmpty){
-      for(int i = 0; i < notSyncOrderList.length; i++){
-        value.add(jsonEncode(notSyncOrderList[i]));
-      }
-      //sync to cloud
-      Map data = await Domain().SyncUpdatedOrderToCloud(value.toString());
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          //print('response order key: ${responseJson[i]['order_key']}');
-          int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
-        }
-      }
-    }
-  }
+  // updatedOrderSyncToCloud() async {
+  //   List<String> value = [];
+  //   await getNotSyncUpdatedOrder();
+  //   if(notSyncOrderList.isNotEmpty){
+  //     for(int i = 0; i < notSyncOrderList.length; i++){
+  //       value.add(jsonEncode(notSyncOrderList[i]));
+  //     }
+  //     //sync to cloud
+  //     Map data = await Domain().SyncUpdatedOrderToCloud(value.toString());
+  //     if (data['status'] == '1') {
+  //       List responseJson = data['data'];
+  //       for (var i = 0; i < responseJson.length; i++) {
+  //         //print('response order key: ${responseJson[i]['order_key']}');
+  //         int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
   orderSyncToCloud() async {
     List<String> value = [];
