@@ -108,7 +108,7 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
                 },
               ),
               ListTile(
-                title: Text('sync product image'),
+                title: Text(AppLocalizations.of(context)!.translate('sync_product_image')),
                 trailing: Icon(Icons.cloud_download),
                 onTap: () async {
                   openSyncProductImgDialog();
