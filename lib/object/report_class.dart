@@ -855,45 +855,33 @@ class ReportObject{
     return value;
   }
 
-
   getAllPaidOrder({currentStDate, currentEdDate}) async {
     await getPrefData();
     dateOrderList = [];
+    this.totalSales = 0.0;
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
-    this.totalSales = 0.0;
+    //convert time to string
+    DateTime addEndDate = addDays(date: _endDate);
+    String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
+    String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
+    print('string start date: ${stringStDate}');
+    print('string end date: ${stringEdDate}');
     List<Order> orderData = [];
 
     if(_isChecked) {
-      orderData = await PosDatabase.instance.readAllOrderWithOB();
+      orderData = await PosDatabase.instance.readAllOrderWithOB(stringStDate, stringEdDate);
     } else {
-      orderData = await PosDatabase.instance.readAllOrder();
+      orderData = await PosDatabase.instance.readAllOrder(stringStDate, stringEdDate);
     }
 
-    print("orderData length: ${orderData.length}");
-    paidOrderList = orderData;
-    if (paidOrderList.isNotEmpty) {
-      for (int i = 0; i < paidOrderList.length; i++) {
-        DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(_isChecked ? paidOrderList[i].counterOpenDate! : paidOrderList[i].created_at!);
-        if(currentStDate != currentEdDate){
-          if(convertDate.isAfter(_startDate)){
-            if(convertDate.isBefore(addDays(date: _endDate))){
-              dateOrderList!.add(paidOrderList[i]);
-            }
-          }
-        } else {
-          if(convertDate.isAfter(_startDate) && convertDate.isBefore(addDays(date: _endDate))){
-            dateOrderList!.add(paidOrderList[i]);
-          }
-        }
-
-      }
-      for (int j = 0; j < dateOrderList!.length; j++) {
-        if(dateOrderList![j].payment_status == 1 || dateOrderList![j].payment_status == 3){
-          sumAllOrderTotal(dateOrderList![j].final_amount!);
-        }
+    dateOrderList = orderData;
+    for (int j = 0; j < dateOrderList!.length; j++) {
+      if(dateOrderList![j].payment_status == 1 || dateOrderList![j].payment_status == 3){
+        sumAllOrderTotal(dateOrderList![j].final_amount!);
       }
     }
+
     ReportObject value = ReportObject(totalSales: totalSales, dateOrderList: dateOrderList);
     return value;
   }

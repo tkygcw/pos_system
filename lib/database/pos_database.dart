@@ -4492,29 +4492,29 @@ class PosDatabase {
 /*
   read all order
 */
-  Future<List<Order>> readAllOrder() async {
+  Future<List<Order>> readAllOrder(String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.payment_type_id '
         'FROM $tableOrder AS a LEFT JOIN $tablePaymentLinkCompany AS b '
         'ON a.payment_link_company_id = b.payment_link_company_id '
-        'WHERE a.soft_delete = ? AND a.payment_status != ? ORDER BY a.created_at DESC',
-        ['', 0]);
+        'WHERE a.soft_delete = ? AND a.payment_status != ? AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? ORDER BY a.created_at DESC',
+        ['', 0, date1, date2]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
 /*
   read all order with opening balance
 */
-  Future<List<Order>> readAllOrderWithOB() async {
+  Future<List<Order>> readAllOrderWithOB(String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.payment_type_id, c.created_at AS counterOpenDate '
             'FROM $tableOrder AS a LEFT JOIN $tablePaymentLinkCompany AS b '
             'ON a.payment_link_company_id = b.payment_link_company_id '
-            'JOIN $tableCashRecord AS c on a.settlement_key = c.settlement_key AND c.remark = ?'
-            'WHERE a.soft_delete = ? AND a.payment_status != ? ORDER BY c.created_at DESC',
-        ['Opening Balance', '', 0]);
+            'JOIN $tableCashRecord AS c on a.settlement_key = c.settlement_key AND c.remark = ? '
+            'WHERE a.soft_delete = ? AND a.payment_status != ? AND SUBSTR(c.created_at, 1, 10) >= ? AND SUBSTR(c.created_at, 1, 10) < ? ORDER BY c.created_at DESC',
+        ['Opening Balance', '', 0, date1, date2]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
