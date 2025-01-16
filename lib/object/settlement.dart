@@ -17,6 +17,7 @@ class SettlementFields {
     total_cancellation,
     total_charge,
     total_tax,
+    total_rounding,
     settlement_by_user_id,
     settlement_by,
     status,
@@ -40,6 +41,7 @@ class SettlementFields {
   static String total_cancellation = 'total_cancellation';
   static String total_charge = 'total_charge';
   static String total_tax = 'total_tax';
+  static String total_rounding = 'total_rounding';
   static String settlement_by_user_id = 'settlement_by_user_id';
   static String settlement_by = 'settlement_by';
   static String status = 'status';
@@ -64,6 +66,7 @@ class Settlement{
   String? total_cancellation;
   String? total_charge;
   String? total_tax;
+  String? total_rounding;
   String? settlement_by_user_id;
   String? settlement_by;
   int? status;
@@ -79,6 +82,7 @@ class Settlement{
   double? all_discount;
   double? all_charge_amount;
   double? all_tax_amount;
+  double? all_rounding_amount;
   int? all_cancellation;
   List<SettlementLinkPayment>? settlementPayment;
 
@@ -96,6 +100,7 @@ class Settlement{
         this.total_cancellation,
         this.total_charge,
         this.total_tax,
+        this.total_rounding,
         this.settlement_by_user_id,
         this.settlement_by,
         this.status,
@@ -111,6 +116,7 @@ class Settlement{
         this.all_discount,
         this.all_charge_amount,
         this.all_tax_amount,
+        this.all_rounding_amount,
         this.all_cancellation,
         this.settlementPayment
       });
@@ -129,6 +135,7 @@ class Settlement{
     String? total_cancellation,
     String? total_charge,
     String? total_tax,
+    String? total_rounding,
     String? settlement_by_user_id,
     String? settlement_by,
     int? status,
@@ -152,6 +159,7 @@ class Settlement{
           total_cancellation: total_cancellation ?? this.total_cancellation,
           total_charge: total_charge ?? this.total_charge,
           total_tax: total_tax ?? this.total_tax,
+          total_rounding: total_rounding ?? this.total_rounding,
           settlement_by_user_id: settlement_by_user_id ?? this.settlement_by_user_id,
           settlement_by: settlement_by ?? this.settlement_by,
           status: status ?? this.status,
@@ -175,6 +183,7 @@ class Settlement{
     total_cancellation: json[SettlementFields.total_cancellation] as String?,
     total_charge: json[SettlementFields.total_charge] as String?,
     total_tax: json[SettlementFields.total_tax] as String?,
+    total_rounding: json[SettlementFields.total_rounding] as String?,
     settlement_by_user_id: json[SettlementFields.settlement_by_user_id] as String?,
     settlement_by: json[SettlementFields.settlement_by] as String?,
     status: json[SettlementFields.status] as int?,
@@ -190,6 +199,7 @@ class Settlement{
     all_discount: json['all_discount'] as double?,
     all_charge_amount: json['all_charge_amount'] as double?,
     all_tax_amount: json['all_tax_amount'] as double?,
+    all_rounding_amount: json['all_rounding_amount'] as double?,
     all_cancellation: json['all_cancellation'] as int?
 
   );
@@ -208,6 +218,7 @@ class Settlement{
     SettlementFields.total_cancellation: total_cancellation,
     SettlementFields.total_charge: total_charge,
     SettlementFields.total_tax: total_tax,
+    SettlementFields.total_rounding: total_rounding,
     SettlementFields.settlement_by_user_id: settlement_by_user_id,
     SettlementFields.settlement_by: settlement_by,
     SettlementFields.status: status,
