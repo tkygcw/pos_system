@@ -162,7 +162,7 @@ class _ProductReportState extends State<ProductReport> {
                                     child: DataTable(
                                         border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
                                         headingTextStyle: TextStyle(color: Colors.white),
-                                        headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
+                                        headingRowColor: WidgetStateColor.resolveWith((states) {return Colors.black;},),
                                         columns: <DataColumn>[
                                           DataColumn(
                                             label: Expanded(
@@ -242,7 +242,7 @@ class _ProductReportState extends State<ProductReport> {
 
   calcGrandGrossAmount({required List<OrderDetail> orderDetailList}){
     final list = orderDetailList.map((e) => e.category_gross_sales!).toList();
-    return Utils.to2Decimal(list.reduce((a, b) => a + b));
+    return list.reduce((a, b) => a + b).toStringAsFixed(2);
   }
 
   calcGrandQty({required List<OrderDetail> orderDetailList}){
@@ -258,7 +258,7 @@ class _ProductReportState extends State<ProductReport> {
     if(orderDetailCategoryData.isNotEmpty){
       _dataRow.add(
         DataRow(
-            color: MaterialStatePropertyAll(Colors.grey),
+            color: WidgetStatePropertyAll(Colors.grey),
             cells: <DataCell>[
               DataCell(Container()),
               DataCell(Container()),
@@ -272,7 +272,7 @@ class _ProductReportState extends State<ProductReport> {
         orderDetailCategoryData[i].categoryOrderDetailList = object2.dateOrderDetail!;
         _dataRow.addAll([
           DataRow(
-            color: MaterialStateColor.resolveWith((states) {return Colors.grey;},),
+            color: WidgetStateColor.resolveWith((states) {return Colors.grey;},),
             cells: <DataCell>[
               orderDetailCategoryData[i].category_name != ''?
               DataCell(
@@ -284,7 +284,8 @@ class _ProductReportState extends State<ProductReport> {
               DataCell(Text('')),
               DataCell(Text('${orderDetailCategoryData[i].category_item_sum.toString()}')),
               //DataCell(Text('${categoryData[i].gross_sales!.toStringAsFixed(2)}')),
-              DataCell(Text('${Utils.to2Decimal(orderDetailCategoryData[i].category_gross_sales!)}'))
+              DataCell(Text('${orderDetailCategoryData[i].category_gross_sales!.toStringAsFixed(2)}'))
+
             ],
           ),
           for(int j = 0; j < orderDetailCategoryData[i].categoryOrderDetailList.length; j++)
@@ -297,7 +298,7 @@ class _ProductReportState extends State<ProductReport> {
                 '${orderDetailCategoryData[i].categoryOrderDetailList[j].item_qty}/${orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum!.toStringAsFixed(3)}(${orderDetailCategoryData[i].categoryOrderDetailList[j].unit})' :
                 '${orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum}')),
                 //DataCell(Text('${categoryData[i].categoryOrderDetailList[j].gross_price!.toStringAsFixed(2)}')),
-                DataCell(Text('${Utils.to2Decimal(orderDetailCategoryData[i].categoryOrderDetailList[j].gross_price!)}'))
+                DataCell(Text(orderDetailCategoryData[i].categoryOrderDetailList[j].gross_price!.toStringAsFixed(2)))
               ],
             ),
         ]);

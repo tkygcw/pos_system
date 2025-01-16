@@ -897,6 +897,7 @@ class _LoadingPageState extends State<LoadingPage> {
                 total_cancellation: item.total_cancellation,
                 total_charge: item.total_charge,
                 total_tax: item.total_tax,
+                total_rounding: item.total_rounding,
                 settlement_by_user_id: item.settlement_by_user_id,
                 settlement_by: item.settlement_by,
                 status: item.status,
@@ -910,7 +911,7 @@ class _LoadingPageState extends State<LoadingPage> {
               FLog.error(
                 className: "loading",
                 text: "settlement insert failed (settlement_id: ${item.settlement_id})",
-                exception: "$e\n${responseJson[i].toJson()}",
+                exception: "$e\n${item.toJson()}",
               );
             }
           }
@@ -927,11 +928,11 @@ class _LoadingPageState extends State<LoadingPage> {
         getAllTable();
         getSettlementLinkPayment();
       }
-    } catch(e) {
+    } catch(e,s) {
       FLog.error(
         className: "loading",
         text: "settlement get error",
-        exception: e,
+        exception: e, stacktrace: s,
       );
     }
   }

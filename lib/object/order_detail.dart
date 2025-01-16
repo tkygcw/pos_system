@@ -114,7 +114,7 @@ class OrderDetail{
   num? item_sum;
   double? category_net_sales;
   double? category_gross_sales;
-  double? double_price;
+  double? net_sales;
   double? gross_price;
   int? total_record;
   String? available_stock;
@@ -133,6 +133,7 @@ class OrderDetail{
   int? ticket_count;
   String? ticket_exp;
   String? quantity_before_cancel;
+  int? product_id;
 
   OrderDetail(
       {this.order_detail_sqlite_id,
@@ -170,7 +171,7 @@ class OrderDetail{
         this.item_sum,
         this.category_net_sales,
         this.category_gross_sales,
-        this.double_price,
+        this.net_sales,
         this.gross_price,
         this.total_record,
         this.available_stock,
@@ -186,6 +187,7 @@ class OrderDetail{
         this.ticket_count,
         this.ticket_exp,
         this.quantity_before_cancel,
+        this.product_id,
         List<String>? tableNumber,
         bool? isSelected
       }) {
@@ -295,7 +297,7 @@ class OrderDetail{
       item_sum: json['item_sum'] as num?,
       category_net_sales: json['category_net_sales'] as double?,
       category_gross_sales: json['category_gross_sales'] as double?,
-      double_price: json['net_sales'] as double?,
+      net_sales: json['net_sales'] as double?,
       gross_price: json['gross_price'] as double?,
       total_record: json['total_record'] as int?,
       item_cancel: json['item_cancel'] as String?,
@@ -310,7 +312,8 @@ class OrderDetail{
       allow_ticket: json['allow_ticket'] as int?,
       ticket_count: json['ticket_count'] as int?,
       ticket_exp: json['ticket_exp'] as String?,
-      quantity_before_cancel: json['quantity_before_cancel'] as String?
+      quantity_before_cancel: json['quantity_before_cancel'] as String?,
+      product_id: json['product_id'] as int?
     );
   }
 

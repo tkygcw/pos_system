@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/custom_pin_dialog.dart';
+import 'package:pos_system/fragment/settlement/settlement_query.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
@@ -15,6 +17,7 @@ import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
 import 'package:pos_system/object/settlement.dart';
 import 'package:pos_system/object/settlement_link_payment.dart';
 import 'package:pos_system/object/sync_to_cloud.dart';
+import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -22,6 +25,7 @@ import 'package:crypto/crypto.dart';
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
+import '../../object/branch.dart';
 import '../../object/cash_record.dart';
 import '../../object/order.dart';
 import '../../object/order_tax_detail.dart';
@@ -60,6 +64,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
       totalRefundAmount = 0.0,
       totalPromotionAmount = 0.0,
       totalCharge = 0.0,
+      totalRounding = 0.0,
       totalTax = 0.0;
   int totalBill = 0, totalRefundBill = 0, totalCancelItem = 0;
   List<Order> dateOrderList = [], dateRefundList = [], orderList = [];
@@ -241,6 +246,27 @@ class _SettlementDialogState extends State<SettlementDialog> {
     return Navigator.of(context).pop(true);
   }
 
+  showCustomPinDialog(){
+    return showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) {
+          return PopScope(
+              canPop: willPop,
+              child: CustomPinDialog(
+                permission: Permission.settlement,
+                callback: () async {
+                  willPop = false;
+                  currentSettlementDateTime = dateFormat.format(DateTime.now());
+                  await callSettlement();
+                  await openSyncToCloudDialog();
+                }
+              ),
+          );
+        },
+    );
+  }
+
   Future showSecondDialog(BuildContext context, ThemeColor color) {
     return showDialog(
         barrierDismissible: false,
@@ -337,76 +363,93 @@ class _SettlementDialogState extends State<SettlementDialog> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return AlertDialog(
-        title: Text(
-            AppLocalizations.of(context)!.translate('confirm_do_settlement')),
-        content: Container(
-          child: Text(
-              '${AppLocalizations.of(context)?.translate('settlement_desc')}'),
-        ),
-        actions: [
-          TextButton(
-            child:
-            Text('${AppLocalizations.of(context)?.translate('close')}'),
-            onPressed: () {
-              closeDialog(context);
-            },
+      if(_isLoaded){
+        return AlertDialog(
+          title: Text(
+              AppLocalizations.of(context)!.translate('confirm_do_settlement')),
+          content: Container(
+            child: Text(
+                '${AppLocalizations.of(context)?.translate('settlement_desc')}'),
           ),
-          TextButton(
-            child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-            onPressed: () async {
-              final prefs = await SharedPreferences.getInstance();
-              final String? pos_user = prefs.getString('pos_pin_user');
-              Map<String, dynamic> userMap = json.decode(pos_user!);
-              User userData = User.fromJson(userMap);
-
-              if(userData.settlement_permission != 1) {
-                await showSecondDialog(context, color);
-                closeDialog(context);
-              } else {
-                currentSettlementDateTime = dateFormat.format(DateTime.now());
-                await callSettlement();
-                Branch? data = await PosDatabase.instance.readLocalBranch();
-                if(data != null && data.allow_livedata == 1){
-                  if(!isSyncing){
-                    widget.callBack();
-                    Navigator.of(context).pop();
-                    isSyncing = true;
-                    do{
-                      await syncToCloud.syncAllToCloud(isManualSync: true);
-                    }while(syncToCloud.emptyResponse == false);
-                    if(syncToCloud.emptyResponse == true){
-                      isSyncing = false;
-                    }
-                  }
-                } else {
-                  if (await confirm(
-                    context,
-                    title: Text('${AppLocalizations.of(context)?.translate('confirm_sync')}'),
-                    content: Text('${AppLocalizations.of(context)?.translate('confirm_sync_desc')}'),
-                    textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                    textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
-                  )) {
-                    bool? status = await openSyncDialog();
-                    if(status != null && status == true){
-                      widget.callBack();
-                      Navigator.of(context).pop();
-                    } else {
-                      widget.callBack();
-                      Navigator.of(context).pop();
-                    }
+          actions: [
+            TextButton(
+              child:
+              Text('${AppLocalizations.of(context)?.translate('close')}'),
+              onPressed: () {
+                if(!isButtonDisabled) {
+                  isButtonDisabled = true;
+                  closeDialog(context);
+                }
+              },
+            ),
+            TextButton(
+              child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+              onPressed: () async {
+                if(!isButtonDisabled) {
+                  isButtonDisabled = true;
+                  Future.delayed(const Duration(seconds: 3)).then((value) => isButtonDisabled = false);
+                  final prefs = await SharedPreferences.getInstance();
+                  final String? pos_user = prefs.getString('pos_pin_user');
+                  Map<String, dynamic> userMap = json.decode(pos_user!);
+                  User userData = User.fromJson(userMap);
+                  if(userData.settlement_permission != 1) {
+                    // closeDialog(context);
+                    showCustomPinDialog();
+                    // await showSecondDialog(context, color);
                   } else {
-                    widget.callBack();
-                    Navigator.of(context).pop();
+                    currentSettlementDateTime = dateFormat.format(DateTime.now());
+                    await callSettlement();
+                    await openSyncToCloudDialog();
                   }
                 }
-                // Navigator.of(context).pop();
-              }
-            },
-          )
-        ],
-      );
+              },
+            )
+          ],
+        );
+      } else {
+        return CustomProgressBar();
+      }
     });
+  }
+
+  openSyncToCloudDialog() async {
+    Branch? data = await PosDatabase.instance.readLocalBranch();
+    if(data != null && data.allow_livedata == 1){
+      if(!isSyncing){
+        widget.callBack();
+        Navigator.of(context).pop();
+        isSyncing = true;
+        do{
+          await syncToCloud.syncAllToCloud(isManualSync: true);
+        }while(syncToCloud.emptyResponse == false);
+        if(syncToCloud.emptyResponse == true){
+          isSyncing = false;
+        }
+      } else {
+        widget.callBack();
+        Navigator.of(context).pop();
+      }
+    } else {
+      if (await confirm(
+        context,
+        title: Text('${AppLocalizations.of(context)?.translate('confirm_sync')}'),
+        content: Text('${AppLocalizations.of(context)?.translate('confirm_sync_desc')}'),
+        textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+        textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+      )) {
+        bool? status = await openSyncDialog();
+        if(status != null && status == true){
+          widget.callBack();
+          Navigator.of(context).pop();
+        } else {
+          widget.callBack();
+          Navigator.of(context).pop();
+        }
+      } else {
+        widget.callBack();
+        Navigator.of(context).pop();
+      }
+    }
   }
 
 /*
@@ -440,10 +483,21 @@ class _SettlementDialogState extends State<SettlementDialog> {
     await createSettlement();
     await createSettlementLinkPayment();
     //update all today cash record settlement date
+    await generateSales();
     await updateTodaySettlementOrder();
     await updateTodaySettlementOrderDetailCancel();
     await updateAllCashRecordSettlement();
     await callPrinter();
+  }
+
+  Future<void> generateSales() async{
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map<String, dynamic> branchMap = json.decode(branch!);
+    Branch branchObject = Branch.fromJson(branchMap);
+    if(branchObject.generate_sales == 0){
+      await SettlementQuery(branch_id: branchObject.branch_id.toString()).generateSalesPerDay();
+    }
   }
 
   callPrinter() async {
@@ -529,6 +583,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
         //dateOrderDetailCancel[0].total_item != null ? dateOrderDetailCancel[0].total_item.toString() : '0',
         total_charge: this.totalCharge.toStringAsFixed(2),
         total_tax: this.totalTax.toStringAsFixed(2),
+        total_rounding: totalRounding.toStringAsFixed(2),
         settlement_by_user_id: userObject['user_id'].toString(),
         settlement_by: userObject['name'].toString(),
         status: 0,
@@ -629,12 +684,10 @@ class _SettlementDialogState extends State<SettlementDialog> {
             updated_at: currentSettlementDateTime,
             sync_status: _orderList[i].sync_status == 0 ? 0 : 2,
             settlement_key: this.settlement!.settlement_key,
-            settlement_sqlite_id:
-                this.settlement!.settlement_sqlite_id.toString(),
+            settlement_sqlite_id: this.settlement!.settlement_sqlite_id.toString(),
             order_sqlite_id: _orderList[i].order_sqlite_id);
         int status = await PosDatabase.instance.updateOrderSettlement(object);
-        Order order = await PosDatabase.instance
-            .readSpecificOrder(_orderList[i].order_sqlite_id!);
+        Order order = await PosDatabase.instance.readSpecificOrder(_orderList[i].order_sqlite_id!);
         _value.add(jsonEncode(order));
       }
       this.order_value = _value.toString();
@@ -833,6 +886,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
       this.orderList = orderData;
       this.totalBill = orderData.length;
       this.totalSales = orderData[0].gross_sales ?? 0;
+      totalRounding = orderData.first.total_rounding ?? this.totalRounding;
     }
     if (refundData.isNotEmpty) {
       this.totalRefundBill = refundData.length;
