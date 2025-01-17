@@ -11,6 +11,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/domain.dart';
+import 'package:pos_system/fragment/setting/product_img_sync/sync_dialog.dart';
+import 'package:pos_system/fragment/setting/sync_dialog.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
@@ -234,35 +236,58 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                                         child: Text(AppLocalizations.of(context)!.translate('db_sync')),
                                       ),
                                     ),
-                                    SizedBox(height: 15),
+                                    const SizedBox(height: 15),
+                                    SizedBox(
+                                      width: MediaQuery.of(context).size.width / 4,
+                                      height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                          openSyncDialog(SyncType.sync_updates_from_cloud);
+                                        },
+                                        child: Text(AppLocalizations.of(context)!.translate('sync_updates_from_cloud')),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 15),
+                                    SizedBox(
+                                      width: MediaQuery.of(context).size.width / 4,
+                                      height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                          openSyncProductImgDialog();
+                                        },
+                                        child: Text(AppLocalizations.of(context)!.translate('sync_product_image')),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 15),
                                     Visibility(
-                                      visible: Platform.isAndroid,
-                                      child: SizedBox(
-                                        width: MediaQuery.of(context).size.width / 4,
-                                        height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
-                                        child: ElevatedButton(
-                                          onPressed: () async {
-                                            // Navigator.pop(context);
-                                            // await showSecondDialog(context, color);
-                                            setState(() {
-                                              inProgress = true;
-                                            });
-                                            await dataZip(3);
-                                            FLog.clearLogs();
-                                            logs.clear();
-                                            if(mounted){
+                                        visible: Platform.isAndroid,
+                                        child: SizedBox(
+                                          width: MediaQuery.of(context).size.width / 4,
+                                          height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
+                                          child: ElevatedButton(
+                                            onPressed: () async {
+                                              // Navigator.pop(context);
+                                              // await showSecondDialog(context, color);
                                               setState(() {
-                                                inProgress = false;
+                                                inProgress = true;
                                               });
-                                            }
-                                            Navigator.of(context).pop();
-                                            Navigator.of(context).pop();
-                                          },
-                                          child: Text(AppLocalizations.of(context)!.translate('debug')),
-                                        ),
-                                      )
-                                    )
-
+                                              await dataZip(3);
+                                              FLog.clearLogs();
+                                              logs.clear();
+                                              if(mounted){
+                                                setState(() {
+                                                  inProgress = false;
+                                                });
+                                              }
+                                              Navigator.of(context).pop();
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Text(AppLocalizations.of(context)!.translate('debug')),
+                                          ),
+                                        )
+                                    ),
                                   ],
                                 )
                                     : Container(
@@ -281,6 +306,7 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                 ),
               ],
             ) :
+            ///mobile view
             Row(
               children: [
                 Expanded(
@@ -367,34 +393,58 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                                           child: Text(AppLocalizations.of(context)!.translate('db_sync')),
                                         ),
                                       ),
-                                      SizedBox(height: 15),
+                                      const SizedBox(height: 15),
+                                      SizedBox(
+                                        width: 300,
+                                        height: MediaQuery.of(context).size.height / 16,
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            openSyncDialog(SyncType.sync_updates_from_cloud);
+                                          },
+                                          child: Text(AppLocalizations.of(context)!.translate('sync_updates_from_cloud')),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 15),
+                                      SizedBox(
+                                        width: 300,
+                                        height: MediaQuery.of(context).size.height / 16,
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            openSyncProductImgDialog();
+                                          },
+                                          child: Text(AppLocalizations.of(context)!.translate('sync_product_image')),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 15),
                                       Visibility(
-                                          visible: Platform.isAndroid,
-                                          child: SizedBox(
-                                            width: 300,
-                                            height: MediaQuery.of(context).size.height / 16,
-                                            child: ElevatedButton(
-                                              onPressed: () async {
-                                                // Navigator.pop(context);
-                                                // await showSecondDialog(context, color);
+                                        visible: Platform.isAndroid,
+                                        child: SizedBox(
+                                          width: 300,
+                                          height: MediaQuery.of(context).size.height / 16,
+                                          child: ElevatedButton(
+                                            onPressed: () async {
+                                              // Navigator.pop(context);
+                                              // await showSecondDialog(context, color);
+                                              setState(() {
+                                                inProgress = true;
+                                              });
+                                              await dataZip(3);
+                                              FLog.clearLogs();
+                                              logs.clear();
+                                              if(mounted){
                                                 setState(() {
-                                                  inProgress = true;
+                                                  inProgress = false;
                                                 });
-                                                await dataZip(3);
-                                                FLog.clearLogs();
-                                                logs.clear();
-                                                if(mounted){
-                                                  setState(() {
-                                                    inProgress = false;
-                                                  });
-                                                }
-                                                Navigator.of(context).pop();
-                                                Navigator.of(context).pop();
-                                              },
-                                              child: Text(AppLocalizations.of(context)!.translate('debug')),
-                                            ),
-                                          ))
-
+                                              }
+                                              Navigator.of(context).pop();
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Text(AppLocalizations.of(context)!.translate('debug')),
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                   )
                                       : Container(
@@ -418,6 +468,50 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
         );
       });
     });
+  }
+
+  Future<Future<Object?>> openSyncProductImgDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: const ProductImgSyncDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
+  Future<Future<Object?>> openSyncDialog(SyncType syncType) async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: SyncDialog(syncType: syncType),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   Future<void> addDirectoryToZip(ZipFileEncoder encoder, Directory dir, List<String> excludeDirs) async {
