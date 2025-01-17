@@ -162,8 +162,9 @@ class Server extends ChangeNotifier {
     );
   }
 
-  sendMessageToClient(String action){
-    var msg = {'status': '1', 'action': action};
+  sendMessageToClient(String action, {String? param}){
+    var msg = {'status': '1', 'action': action, 'param': param ?? ''};
+    print('client list length: ${clientList.length}');
     for (var client in clientList) {
       client.write("${jsonEncode(msg)}$messageDelimiter");
     }

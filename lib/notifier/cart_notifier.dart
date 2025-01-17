@@ -34,18 +34,18 @@ class CartModel extends ChangeNotifier {
 
   int get scrollDown => _scrollDown;
 
+  List<OrderCache> get currentOrderCache => _currentOrderCache;
+
+  double get cartSubTotal {
+    return cartNotifierItem.fold(0.0, (sum, item) => sum + (double.parse(item.price!) * item.quantity!));
+  }
+
   set setSubPosPaymentOrderCache(List<OrderCache> value) {
     _subPosPaymentOrderCache = value;
   }
 
   set setScrollDown(int value) {
     _scrollDown = value;
-  }
-
-  List<OrderCache> get currentOrderCache => _currentOrderCache;
-
-  double get cartSubTotal {
-    return cartNotifierItem.fold(0.0, (sum, item) => sum + (double.parse(item.price!) * item.quantity!));
   }
 
   CartModel({

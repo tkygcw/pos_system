@@ -371,12 +371,17 @@ class ServerAction {
             var decodeParam = jsonDecode(param);
             PosTable posTable = PosTable.fromJson(decodeParam);
             TableFunction function = TableFunction();
-            await function.readSpecificTableDetail(posTable);
-            objectData = {
-              'orderCacheList': function.orderCacheList,
-              'orderDetailList': function.orderDetailList
-            };
-            result = {'status': '1', 'action': '16', 'data': objectData};
+            bool isTableInPayment = await function.checkIsTableSelectedInPaymentCart(posTable);
+            if(isTableInPayment == true){
+              result = {'status': '2', 'action': '16', 'error': 'table_is_in_payment'};
+            } else {
+              await function.readSpecificTableDetail(posTable);
+              objectData = {
+                'orderCacheList': function.orderCacheList,
+                'orderDetailList': function.orderDetailList
+              };
+              result = {'status': '1', 'action': '16', 'data': objectData};
+            }
           }catch(e, s){
             result = {'status': '4'};
             FLog.error(

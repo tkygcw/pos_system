@@ -169,4 +169,22 @@ class TableFunction {
     }
   }
 
+  bool checkIsTableSelectedInPaymentCart(PosTable posTable){
+    bool isTableSelected = false;
+    List<PosTable> inCartTableList = Provider.of<CartModel>(_context, listen: false).selectedTable.where((e) => e.isInPaymentCart == true).toList();
+    if(inCartTableList.isNotEmpty){
+      return inCartTableList.any((e) => e.table_sqlite_id == posTable.table_sqlite_id);
+
+      // for(int i = 0; i < cart.selectedTable.length; i++){
+      //   for(int j = 0; j < inCartTableList.length; j++){
+      //     if(cart.selectedTable[i].table_sqlite_id == inCartTableList[j].table_sqlite_id){
+      //       isTableSelected = true;
+      //       break;
+      //     }
+      //   }
+      // }
+    }
+    return isTableSelected;
+  }
+
 }
