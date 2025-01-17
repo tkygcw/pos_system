@@ -140,7 +140,8 @@ class Utils {
   }
 
   static shortHashString({hashCode}){
-    return shortHash(hashCode).toString()+shortHash(DateTime.now()).toString();
+    var hash2 = DateTime.now().hashCode.toUnsigned(20).toRadixString(16).padLeft(7, '0');
+    return shortHash(hashCode).toString()+hash2.toString();
   }
 
   static String dbCurrentDateTimeFormat(){
