@@ -150,6 +150,14 @@ class _DailySalesReportState extends State<DailySalesReport> {
                                           DataColumn(
                                             label: Expanded(
                                               child: Text(
+                                                AppLocalizations.of(context)!.translate('total_rounding'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
                                                 AppLocalizations.of(context)!.translate('total_sales'),
                                                 style: TextStyle(fontWeight: FontWeight.bold),
                                               ),
@@ -283,6 +291,14 @@ class _DailySalesReportState extends State<DailySalesReport> {
                                         DataColumn(
                                           label: Expanded(
                                             child: Text(
+                                              AppLocalizations.of(context)!.translate('total_rounding'),
+                                              style: TextStyle(fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ),
+                                        DataColumn(
+                                          label: Expanded(
+                                            child: Text(
                                               AppLocalizations.of(context)!.translate('total_sales'),
                                               style: TextStyle(fontWeight: FontWeight.bold),
                                             ),
@@ -375,6 +391,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
               DataCell(Text('${settlementList[i].all_discount?.toStringAsFixed(2)}')),
               DataCell(Text('${settlementList[i].all_charge_amount?.toStringAsFixed(2)}')),
               DataCell(Text('${settlementList[i].all_tax_amount?.toStringAsFixed(2)}')),
+              DataCell(Text('${settlementList[i].all_rounding_amount?.toStringAsFixed(2)}')),
               DataCell(Text('${settlementList[i].all_sales?.toStringAsFixed(2)}')),
               for(int j = 0; j < paymentLinkCompanyList.length; j++)
                 DataCell(Text('${settlementLinkPaymentList[j].all_payment_sales?.toStringAsFixed(2)}')),

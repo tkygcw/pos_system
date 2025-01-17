@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
+import 'package:pos_system/object/sales_per_day/category_sales_per_day.dart';
+import 'package:pos_system/object/sales_per_day/sales_per_day.dart';
 import 'package:pos_system/object/table.dart';
 
 import '../object/branch.dart';
@@ -640,6 +642,11 @@ class Domain {
         dynamic_qr_value,
         cancel_receipt_value,
         product_value,
+        String? sales_per_day_value,
+        String? sales_category_per_day_value,
+        String? sales_product_per_day_value,
+        String? sales_modifier_per_day_value,
+        String? sales_dining_per_day_value
       }) async {
     try {
       //print('order cache value 15 sync: ${order_cache_value}');
@@ -678,6 +685,11 @@ class Domain {
         'tb_dynamic_qr_create': dynamic_qr_value != null ? dynamic_qr_value : [].toString(),
         'tb_cancel_receipt_create': cancel_receipt_value != null ? cancel_receipt_value : [].toString(),
         'tb_product_create': product_value != null ? product_value : [].toString(),
+        'tb_sales_per_day_create': sales_per_day_value ?? [].toString(),
+        'tb_sales_category_per_day_create': sales_category_per_day_value ?? [].toString(),
+        'tb_sales_product_per_day_create': sales_product_per_day_value ?? [].toString(),
+        'tb_sales_modifier_per_day_create': sales_modifier_per_day_value ?? [].toString(),
+        'tb_sales_dining_per_day_create': sales_dining_per_day_value ?? [].toString()
       }).timeout(Duration(seconds: isManualSync != null ? 120 : isSync != null ? 25 : 15), onTimeout: () => throw TimeoutException("Time out"));
       print('response in domain: ${jsonDecode(response.body)}');
       return jsonDecode(response.body);

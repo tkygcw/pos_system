@@ -237,6 +237,7 @@ class _SyncDialogState extends State<SyncDialog> {
           });
         } else {
           isSyncing = true;
+          controller.sink.add("refresh");
           print("sync to cloud is running");
         }
       } else {

@@ -49,9 +49,9 @@ class OrderModifierDetail{
   String? created_at;
   String? updated_at;
   String? soft_delete;
-  String? modifier_name;
   int? item_sum;
   double? net_sales;
+  String? mod_group_name;
 
   OrderModifierDetail(
       {this.order_modifier_detail_sqlite_id,
@@ -68,9 +68,10 @@ class OrderModifierDetail{
         this.created_at,
         this.updated_at,
         this.soft_delete,
-        this.modifier_name,
         this.item_sum,
-        this.net_sales});
+        this.net_sales,
+        this.mod_group_name
+      });
 
   OrderModifierDetail copy({
      int? order_modifier_detail_sqlite_id,
@@ -119,9 +120,9 @@ class OrderModifierDetail{
     created_at: json[OrderModifierDetailFields.created_at] as String?,
     updated_at: json[OrderModifierDetailFields.updated_at] as String?,
     soft_delete: json[OrderModifierDetailFields.soft_delete] as String?,
-    modifier_name: json['name'] as String?,
     item_sum: json['item_sum'] as int?,
-    net_sales: json['net_sales'] as double?
+    net_sales: json['net_sales'] as double?,
+    mod_group_name: json['mod_group_name'] as String?
   );
 
   Map<String, Object?> toJson() => {
