@@ -76,6 +76,13 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
                   openSystemLog();
                 },
               ),
+              Divider(
+                color: Colors.grey,
+                height: 1,
+                thickness: 1,
+                indent: 20,
+                endIndent: 20,
+              ),
               ListTile(
                 title: Text(AppLocalizations.of(context)!.translate('sync')),
                 trailing: Icon(Icons.sync),
@@ -99,20 +106,6 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
                     // openSyncDialog(SyncType.firestore_sync);
                   },
                 ),
-              ),
-              ListTile(
-                title: Text(AppLocalizations.of(context)!.translate('sync_updates_from_cloud')),
-                trailing: Icon(Icons.cloud_download),
-                onTap: () async {
-                  openSyncDialog(SyncType.sync_updates_from_cloud);
-                },
-              ),
-              ListTile(
-                title: Text(AppLocalizations.of(context)!.translate('sync_product_image')),
-                trailing: Icon(Icons.cloud_download),
-                onTap: () async {
-                  openSyncProductImgDialog();
-                },
               ),
               ///temporally hide sync reset button
               // ListTile(
@@ -555,28 +548,6 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
             child: Opacity(
               opacity: a1.value,
               child: SyncDialog(syncType: syncType),
-            ),
-          );
-        },
-        transitionDuration: Duration(milliseconds: 200),
-        barrierDismissible: false,
-        context: context,
-        pageBuilder: (context, animation1, animation2) {
-          // ignore: null_check_always_fails
-          return null!;
-        });
-  }
-
-  Future<Future<Object?>> openSyncProductImgDialog() async {
-    return showGeneralDialog(
-        barrierColor: Colors.black.withOpacity(0.5),
-        transitionBuilder: (context, a1, a2, widget) {
-          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
-          return Transform(
-            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
-            child: Opacity(
-              opacity: a1.value,
-              child: const ProductImgSyncDialog(),
             ),
           );
         },
