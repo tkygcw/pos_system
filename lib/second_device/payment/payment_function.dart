@@ -9,6 +9,7 @@ import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/object/tax_link_dining.dart';
+import 'package:pos_system/second_device/table_function.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 import 'package:sqflite/sqflite.dart';
@@ -30,6 +31,7 @@ class PaymentFunction {
   final DateFormat _dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
   final PosDatabase _posDatabase = PosDatabase.instance;
   Order _order = Order();
+  TableFunction _tableFunction = TableFunction();
   List<Promotion> _promotionList = [];
   List<TaxLinkDining> _taxLinkDiningList = [];
   List<OrderCache> _orderCacheList = [];
@@ -190,9 +192,8 @@ class PaymentFunction {
           List<String> uniqueTableUseSqliteId = _getUniqueTableUseSqliteId();
           await _updateTableUseDetailAndTableUse(txn, uniqueTableUseSqliteId);
           await _updatePosTableStatus(txn);
-          // await deleteCurrentTableUseId(dateTime: dateTime);
-          // await updatePosTableStatus(dateTime: dateTime);
-          // softDeletePosTableDynamicQr();
+          TableModel.instance.changeContent(true);
+          _tableFunction.clearSubPosOrderCache();
         }
       });
       return {'status': '1', 'action': '19'};
