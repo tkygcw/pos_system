@@ -8,6 +8,7 @@ import 'package:pos_system/fragment/product/product_order_dialog.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/branch_link_product.dart';
+import 'package:pos_system/object/dining_option.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
@@ -18,6 +19,7 @@ import 'package:pos_system/object/tax_link_dining.dart';
 import 'package:pos_system/second_device/cart_dialog_function.dart';
 import 'package:pos_system/second_device/order/dine_in_order.dart';
 import 'package:pos_system/second_device/order/place_order.dart';
+import 'package:pos_system/second_device/other_order/other_order_function.dart';
 import 'package:pos_system/second_device/payment/payment_function.dart';
 import 'package:pos_system/second_device/promotion/promotion_function.dart';
 import 'package:pos_system/second_device/reprint_kitchen_list_function.dart';
@@ -472,7 +474,13 @@ class ServerAction {
         case '20': {
           TableFunction().clearSubPosOrderCache(table_use_key: param);
           result = {'status': '1'};
-        }break;
+        }
+        break;
+        case '21': {
+          List<DiningOption> diningOption = await OtherOrderFunction().getDiningList();
+          result = {'status': '1', 'data': diningOption};
+        }
+        break;
       }
       return result;
     } catch(e){
