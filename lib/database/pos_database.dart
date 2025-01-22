@@ -805,7 +805,7 @@ class PosDatabase {
 */
   Future<OrderCache> insertSqLiteOrderCache(OrderCache data) async {
     final db = await instance.database;
-    final id = await db.insert(tableOrderCache!, data.toJson());
+    final id = await db.insert(tableOrderCache!, data.toInsertJson());
     return data.copy(order_cache_sqlite_id: id);
   }
 

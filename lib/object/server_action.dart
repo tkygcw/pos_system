@@ -481,6 +481,11 @@ class ServerAction {
           result = {'status': '1', 'data': diningOption};
         }
         break;
+        case '22': {
+          List<OrderCache> data = await OtherOrderFunction().getAllOtherOrder(param);
+          result = {'status': '1', 'data': data};
+        }
+        break;
       }
       return result;
     } catch(e){
