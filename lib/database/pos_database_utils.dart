@@ -261,6 +261,10 @@ class PosDatabaseUtils {
           case 33: {
             await dbVersion33Upgrade(db, prefs);
           }break;
+          case 34: {
+            await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.allow_einvoice} $integerType DEFAULT 0 ");
+            await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.einvoice_status} $integerType DEFAULT 0 ");
+          }break;
         }
       }
     }
@@ -679,7 +683,10 @@ class PosDatabaseUtils {
            ${BranchFields.qr_show_sku} $integerType,
            ${BranchFields.qr_product_sequence} $integerType,
            ${BranchFields.show_qr_history} $textType,
-           ${BranchFields.generate_sales} $integerType)''');
+           ${BranchFields.generate_sales} $integerType,
+           ${BranchFields.allow_einvoice} $integerType,
+           ${BranchFields.einvoice_status} $integerType
+           )''');
 
 /*
     create app color table
