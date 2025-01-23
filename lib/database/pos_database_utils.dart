@@ -261,6 +261,9 @@ class PosDatabaseUtils {
           case 33: {
             await dbVersion33Upgrade(db, prefs);
           }break;
+          case 34: {
+            await db.execute("ALTER TABLE $tableUser ADD ${UserFields.sub_pos_payment} $integerType DEFAULT 0");
+          }break;
         }
       }
     }

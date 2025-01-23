@@ -486,6 +486,13 @@ class ServerAction {
           result = {'status': '1', 'data': data};
         }
         break;
+        case '23': {
+          var decodeParam = jsonDecode(param);
+          OrderCache orderCache = OrderCache.fromJson(decodeParam);
+          List<OrderDetail> data = await OtherOrderFunction().readOrderCacheOrderDetail(orderCache);
+          result = {'status': '1', 'data': data};
+        }
+        break;
       }
       return result;
     } catch(e){
