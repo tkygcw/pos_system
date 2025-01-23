@@ -15,19 +15,24 @@ import '../../object/order_payment_split.dart';
 
 class OtherOrderFunction {
   final PosDatabase _posDatabase = PosDatabase.instance;
+  List<OrderCache> _orderCacheList = [];
+  List<OrderDetail> _orderDetailList = [];
 
+  List<OrderCache> get orderCacheList => _orderCacheList;
+  List<OrderDetail> get orderDetailList => _orderDetailList;
 
-  readOrderCacheOrderDetail(OrderCache orderCache) async {
+  Future<void> readOrderCacheOrderDetail(OrderCache orderCache) async {
     List<OrderDetail> orderDetailList = [];
     if(orderCache.other_order_key != ''){
-      List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCache.other_order_key!);
+      List<OrderCache> data = await _posDatabase.readOrderCacheByOtherOrderKey(orderCache.other_order_key!);
+      _orderCacheList = data;
       for(int i = 0; i < data.length; i++) {
         orderDetailList.addAll(await _getOrderDetail(data[i]));
       }
     } else {
       orderDetailList = await _getOrderDetail(orderCache);
     }
-    return orderDetailList;
+    _orderDetailList = orderDetailList;
   }
 
   Future<List<OrderDetail>> _getOrderDetail(OrderCache orderCache) async {

@@ -197,7 +197,8 @@ class PaymentFunction {
         }
       });
       return {'status': '1', 'action': '19'};
-    }catch(e){
+    }catch(e, s){
+      print("stack trace: $s");
       return {'status': '2', 'action': '19', 'error': e};
     }
   }
@@ -383,10 +384,11 @@ class PaymentFunction {
         if(inPaymentOrderCache != null && orderCache.order_cache_sqlite_id == inPaymentOrderCache.order_cache_sqlite_id){
           throw 'Order is in payment';
         }
+        OrderCache? data = await _readSpecificOrderCache(txn, orderCache.order_cache_sqlite_id!.toString());
         OrderCache cacheObject = orderCache.copy(
             order_sqlite_id: _order.order_sqlite_id!.toString(),
             order_key: _order.order_key,
-            sync_status: orderCache.sync_status! == 0 ? 0 : 2,
+            sync_status: data!.sync_status! == 0 ? 0 : 2,
             updated_at: _currentDateTime,
             order_cache_key: orderCache.order_cache_key!,
             order_cache_sqlite_id: orderCache.order_cache_sqlite_id!,

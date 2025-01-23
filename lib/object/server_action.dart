@@ -489,8 +489,13 @@ class ServerAction {
         case '23': {
           var decodeParam = jsonDecode(param);
           OrderCache orderCache = OrderCache.fromJson(decodeParam);
-          List<OrderDetail> data = await OtherOrderFunction().readOrderCacheOrderDetail(orderCache);
-          result = {'status': '1', 'data': data};
+           OtherOrderFunction orderFunction =  OtherOrderFunction();
+          await orderFunction.readOrderCacheOrderDetail(orderCache);
+          objectData = {
+            'orderCacheList': orderFunction.orderCacheList,
+            'orderDetailList': orderFunction.orderDetailList
+          };
+          result = {'status': '1', 'data': objectData};
         }
         break;
       }
