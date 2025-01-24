@@ -16,6 +16,7 @@ class Domain {
   static var domain = 'https://pos.optimy.com.my/';
   static var backend_domain = 'https://api.optimy.com.my/';
   static var qr_domain = 'https://qr.optimy.com.my/';
+  static var einvoice = 'https://einvoice.optimy.com.my/';
   static Uri login = Uri.parse(domain + 'mobile-api/login/index.php');
   static Uri branch = Uri.parse(domain + 'mobile-api/branch/index.php');
   static Uri device = Uri.parse(domain + 'mobile-api/device/index.php');
