@@ -489,7 +489,7 @@ class ServerAction {
         case '23': {
           var decodeParam = jsonDecode(param);
           OrderCache orderCache = OrderCache.fromJson(decodeParam);
-           OtherOrderFunction orderFunction =  OtherOrderFunction();
+           OtherOrderFunction orderFunction = OtherOrderFunction();
           await orderFunction.readOrderCacheOrderDetail(orderCache);
           objectData = {
             'orderCacheList': orderFunction.orderCacheList,
@@ -500,11 +500,11 @@ class ServerAction {
         break;
       }
       return result;
-    } catch(e){
+    } catch(e, s){
       FLog.error(
         className: "server_action",
         text: "checkAction error",
-        exception: e,
+        exception: 'Error: $e, StackTrace: $s',
       );
       result = {'status': '2'};
       return result;

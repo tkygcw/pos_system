@@ -76,9 +76,10 @@ class PlaceNotDineInOrder extends PlaceOrder {
         //orderNumber = data.order_queue.toString();
         await insertOrderCacheKey(data, dateTime);
         OrderCache? cacheData = await PosDatabase.instance.readOrderCacheWithSqliteId(orderCacheSqliteId);
-        if(cacheData!.other_order_key == ''){
-          await insertOtherOrderCacheKey(cacheData, dateTime);
-        }
+        //insert other order key
+        // if(cacheData!.other_order_key == ''){
+        //   await insertOtherOrderCacheKey(cacheData, dateTime);
+        // }
         //sync to cloud
         //syncOrderCacheToCloud(updatedCache);
         //cart.addOrder(data);

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
@@ -378,33 +379,42 @@ class PaymentFunction {
   _updateOrderCache(Transaction txn) async {
     print("server action updateOrderCache");
     List<String> _value = [];
-    final inPaymentOrderCache = TableModel.instance.inPaymentOrderCache;
-    if (_orderCacheList.isNotEmpty) {
-      for (var orderCache in _orderCacheList) {
-        if(inPaymentOrderCache != null && orderCache.order_cache_sqlite_id == inPaymentOrderCache.order_cache_sqlite_id){
-          throw 'Order is in payment';
+    try{
+      final inPaymentOrderCache = TableModel.instance.inPaymentOrderCache;
+      if (_orderCacheList.isNotEmpty) {
+        for (var orderCache in _orderCacheList) {
+          if(inPaymentOrderCache != null && orderCache.order_cache_sqlite_id == inPaymentOrderCache.order_cache_sqlite_id){
+            throw 'Order is in payment';
+          }
+          OrderCache? data = await _readSpecificOrderCache(txn, orderCache.order_cache_sqlite_id!.toString());
+          OrderCache cacheObject = orderCache.copy(
+              order_sqlite_id: _order.order_sqlite_id!.toString(),
+              order_key: _order.order_key,
+              sync_status: data!.sync_status! == 0 ? 0 : 2,
+              updated_at: _currentDateTime,
+              order_cache_key: orderCache.order_cache_key!,
+              order_cache_sqlite_id: orderCache.order_cache_sqlite_id!,
+              payment_status: 1
+          );
+          int updatedOrderCache = await _updateOrderCachePaymentStatus(txn, cacheObject);
+          //update to firestore
+          // FirestoreQROrderSync.instance.updateOrderCachePaymentStatus(cacheObject);
+          if (updatedOrderCache == 1) {
+            // OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId2(cacheObject.order_cache_sqlite_id!);
+            // _value.add(jsonEncode(orderCacheData));
+          }
         }
-        OrderCache? data = await _readSpecificOrderCache(txn, orderCache.order_cache_sqlite_id!.toString());
-        OrderCache cacheObject = orderCache.copy(
-            order_sqlite_id: _order.order_sqlite_id!.toString(),
-            order_key: _order.order_key,
-            sync_status: data!.sync_status! == 0 ? 0 : 2,
-            updated_at: _currentDateTime,
-            order_cache_key: orderCache.order_cache_key!,
-            order_cache_sqlite_id: orderCache.order_cache_sqlite_id!,
-            payment_status: 1
-        );
-        int updatedOrderCache = await _updateOrderCachePaymentStatus(txn, cacheObject);
-        //update to firestore
-        // FirestoreQROrderSync.instance.updateOrderCachePaymentStatus(cacheObject);
-        if (updatedOrderCache == 1) {
-          // OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId2(cacheObject.order_cache_sqlite_id!);
-          // _value.add(jsonEncode(orderCacheData));
-        }
+        // order_cache_value = _value.toString();
+        //sync to cloud
+        //syncUpdatedOrderCacheToCloud(_value.toString());
       }
-      // order_cache_value = _value.toString();
-      //sync to cloud
-      //syncUpdatedOrderCacheToCloud(_value.toString());
+    }catch(e, s){
+      FLog.error(
+        className: "payment_function",
+        text: "_updateOrderCache error",
+        exception: "Error:$e, StackTrace: $s",
+      );
+      rethrow;
     }
   }
 
