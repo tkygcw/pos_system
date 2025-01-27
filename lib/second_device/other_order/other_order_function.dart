@@ -1,8 +1,11 @@
 import 'dart:convert';
 
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/pos_database.dart';
+import '../../main.dart';
+import '../../notifier/cart_notifier.dart';
 import '../../object/app_setting.dart';
 import '../../object/branch_link_product.dart';
 import '../../object/categories.dart';
@@ -14,23 +17,35 @@ import '../../object/order_modifier_detail.dart';
 import '../../object/order_payment_split.dart';
 
 class OtherOrderFunction {
+  final _context = MyApp.navigatorKey.currentContext!;
   final PosDatabase _posDatabase = PosDatabase.instance;
   List<OrderCache> _orderCacheList = [];
   List<OrderDetail> _orderDetailList = [];
+  late final CartModel cartModel;
 
   List<OrderCache> get orderCacheList => _orderCacheList;
   List<OrderDetail> get orderDetailList => _orderDetailList;
+
+  OtherOrderFunction(){
+    cartModel = Provider.of<CartModel>(_context, listen: false);
+  }
+
+  void clearSubPosOrderCache(String batch){
+    Provider.of<CartModel>(_context, listen: false).removeSpecificBatchOrderCache(batch);
+  }
 
   Future<void> readOrderCacheOrderDetail(OrderCache orderCache) async {
     List<OrderDetail> orderDetailList = [];
     if(orderCache.other_order_key != ''){
       List<OrderCache> data = await _posDatabase.readOrderCacheByOtherOrderKey(orderCache.other_order_key!);
       _orderCacheList = data;
+      cartModel.addAllCartOrderCache(_orderCacheList);
       for(int i = 0; i < data.length; i++) {
         orderDetailList.addAll(await _getOrderDetail(data[i]));
       }
     } else {
       orderDetailList = await _getOrderDetail(orderCache);
+      cartModel.addCartOrderCache(orderCache);
     }
     _orderDetailList = orderDetailList;
   }

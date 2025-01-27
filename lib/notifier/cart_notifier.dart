@@ -323,6 +323,10 @@ class CartModel extends ChangeNotifier {
     _currentOrderCache.removeWhere((e) => e.order_cache_sqlite_id == orderCache.order_cache_sqlite_id);
   }
 
+  void removeSpecificBatchOrderCache(String batch){
+    _currentOrderCache.removeWhere((e) => e.batch_id == batch);
+  }
+
   void removeCartOrderCache(List<OrderCache> orderCacheList){
     for(final cache in orderCacheList){
       _currentOrderCache.removeWhere((e) => e.order_cache_sqlite_id == cache.order_cache_sqlite_id);
@@ -331,6 +335,10 @@ class CartModel extends ChangeNotifier {
 
   void removeAllCartOrderCache(){
     _currentOrderCache.clear();
+  }
+
+  void addSubPosOrderCache(OrderCache value){
+    _subPosPaymentOrderCache.add(value);
   }
 
   void addAllSubPosOrderCache(List<OrderCache> value){
@@ -345,14 +353,22 @@ class CartModel extends ChangeNotifier {
     _subPosPaymentOrderCache.removeWhere((orderCache) => orderCache.table_use_key == table_use_key);
   }
 
+  void removeSpecificBatchSubPosOrderCache(String batch){
+    _subPosPaymentOrderCache.removeWhere((orderCache) => orderCache.batch_id == batch);
+  }
+
   Future<bool> isSubPosSelectedOrderCache({String? tableUseKey}) async {
-    String PosTableUseKey = tableUseKey ?? selectedTable.first.table_use_key!;
-    List<OrderCache> tableOrderCache = await PosDatabase.instance.readSpecificOrderCacheByTableUseKey(PosTableUseKey);
+    String posTableUseKey = tableUseKey ?? selectedTable.first.table_use_key!;
+    List<OrderCache> tableOrderCache = await PosDatabase.instance.readSpecificOrderCacheByTableUseKey(posTableUseKey);
     // 1. Extract IDs from both lists into sets.
     final Set<int>ids1 = tableOrderCache.map((orderCache) => orderCache.order_cache_sqlite_id!).toSet();
     final Set<int> ids2 = _subPosPaymentOrderCache.map((orderCache) => orderCache.order_cache_sqlite_id!).toSet();
     // 2. Check for intersection.
     // If there's any intersection, it means there are common IDs.
     return ids1.intersection(ids2).isNotEmpty;
+  }
+
+  Future<bool> isSubPosSelectedOtherOrderCache(OrderCache orderCache) async {
+    return _currentOrderCache.any((e) => e.order_cache_sqlite_id == orderCache.order_cache_sqlite_id!);
   }
 }

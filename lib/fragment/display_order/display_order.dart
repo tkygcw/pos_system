@@ -30,6 +30,7 @@ import '../../object/order_modifier_detail.dart';
 import '../../object/product_variant.dart';
 import '../../object/variant_group.dart';
 import '../../utils/Utils.dart';
+import '../custom_toastification.dart';
 
 class DisplayOrderPage extends StatefulWidget {
   final CartModel cartModel;
@@ -310,103 +311,107 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                             try {
                               if(orderCacheList[index].is_selected == false){
                                 await Future.delayed(Duration(milliseconds: 300));
-                                if(cart.cartNotifierItem.isEmpty){
-                                  // orderCacheList[index].is_selected = true;
-                                  // cart.selectedOptionId = orderCacheList[index].dining_id!;
-                                  // await getOrderDetail(orderCacheList[index]);
-                                  // await addToCart(cart, orderCacheList[index]);
-                                  if (orderCacheList[index].order_key != '') {
-                                    for(int i = 0; i < orderCacheList.length; i ++) {
-                                      if(orderCacheList[i].order_key == orderCacheList[index].order_key && orderCacheList[index].order_key != '') {
-                                        orderCacheList[i].is_selected = true;
-                                        cart.selectedOptionId = orderCacheList[i].dining_id!;
-                                        cart.selectedOptionOrderKey = orderCacheList[i].order_key!;
-                                        if(orderCacheList[i].other_order_key != ''){
-                                          List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[i].other_order_key!);
-                                          for(int i = 0; i < data.length; i++) {
-                                            await getOrderDetail(data[i]);
-                                            await addToCart(cart, data[i]);
-                                          }
-                                        } else {
-                                          await getOrderDetail(orderCacheList[i]);
-                                          await addToCart(cart, orderCacheList[i]);
-                                        }
-                                      }
-                                    }
-
-                                  } else {
-                                    orderCacheList[index].is_selected = true;
-                                    cart.selectedOptionId = orderCacheList[index].dining_id!;
-                                    cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
-                                    if(orderCacheList[index].other_order_key != ''){
-                                      List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[index].other_order_key!);
-                                      for(int i = 0; i < data.length; i++) {
-                                        await getOrderDetail(data[i]);
-                                        await addToCart(cart, data[i]);
-                                      }
-                                    } else {
-                                      await getOrderDetail(orderCacheList[index]);
-                                      await addToCart(cart, orderCacheList[index]);
-                                    }
-
-                                  }
-                                } else {
-                                  if(orderCacheList[index].dining_id == cart.selectedOptionId){
-                                    if(cart.selectedOptionOrderKey == orderCacheList[index].order_key) {
-                                      if (orderCacheList[index].order_key != '') {
-                                        for(int i = 0; i < orderCacheList.length; i++) {
-                                          if(orderCacheList[i].order_key == orderCacheList[index].order_key && orderCacheList[index].order_key != '') {
-                                            orderCacheList[i].is_selected = true;
-                                            cart.selectedOptionId = orderCacheList[i].dining_id!;
-                                            cart.selectedOptionOrderKey = orderCacheList[i].order_key!;
+                                bool selectedStatus = await cart.isSubPosSelectedOtherOrderCache(orderCacheList[index]);
+                                if(selectedStatus == false){
+                                  if(cart.cartNotifierItem.isEmpty){
+                                    // orderCacheList[index].is_selected = true;
+                                    // cart.selectedOptionId = orderCacheList[index].dining_id!;
+                                    // await getOrderDetail(orderCacheList[index]);
+                                    // await addToCart(cart, orderCacheList[index]);
+                                    if (orderCacheList[index].order_key != '') {
+                                      for(int i = 0; i < orderCacheList.length; i ++) {
+                                        if(orderCacheList[i].order_key == orderCacheList[index].order_key && orderCacheList[index].order_key != '') {
+                                          orderCacheList[i].is_selected = true;
+                                          cart.selectedOptionId = orderCacheList[i].dining_id!;
+                                          cart.selectedOptionOrderKey = orderCacheList[i].order_key!;
+                                          if(orderCacheList[i].other_order_key != ''){
+                                            List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[i].other_order_key!);
+                                            for(int i = 0; i < data.length; i++) {
+                                              await getOrderDetail(data[i]);
+                                              await addToCart(cart, data[i]);
+                                            }
+                                          } else {
                                             await getOrderDetail(orderCacheList[i]);
                                             await addToCart(cart, orderCacheList[i]);
+                                          }
+                                        }
+                                      }
+
+                                    } else {
+                                      orderCacheList[index].is_selected = true;
+                                      cart.selectedOptionId = orderCacheList[index].dining_id!;
+                                      cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
+                                      if(orderCacheList[index].other_order_key != ''){
+                                        List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[index].other_order_key!);
+                                        for(int i = 0; i < data.length; i++) {
+                                          await getOrderDetail(data[i]);
+                                          await addToCart(cart, data[i]);
+                                        }
+                                      } else {
+                                        await getOrderDetail(orderCacheList[index]);
+                                        await addToCart(cart, orderCacheList[index]);
+                                      }
+
+                                    }
+                                  } else {
+                                    if(orderCacheList[index].dining_id == cart.selectedOptionId){
+                                      if(cart.selectedOptionOrderKey == orderCacheList[index].order_key) {
+                                        if (orderCacheList[index].order_key != '') {
+                                          for(int i = 0; i < orderCacheList.length; i++) {
+                                            if(orderCacheList[i].order_key == orderCacheList[index].order_key && orderCacheList[index].order_key != '') {
+                                              orderCacheList[i].is_selected = true;
+                                              cart.selectedOptionId = orderCacheList[i].dining_id!;
+                                              cart.selectedOptionOrderKey = orderCacheList[i].order_key!;
+                                              await getOrderDetail(orderCacheList[i]);
+                                              await addToCart(cart, orderCacheList[i]);
+                                            } else {
+                                              orderCacheList[index].is_selected = true;
+                                              cart.selectedOptionId = orderCacheList[index].dining_id!;
+                                              cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
+                                              await getOrderDetail(orderCacheList[index]);
+                                              await addToCart(cart, orderCacheList[index]);
+                                            }
+                                          }
+                                        } else {
+                                          orderCacheList[index].is_selected = true;
+                                          cart.selectedOptionId = orderCacheList[index].dining_id!;
+                                          cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
+
+                                          if(orderCacheList[index].other_order_key != ''){
+                                            List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[index].other_order_key!);
+                                            for(int i = 0; i < data.length; i++) {
+                                              await getOrderDetail(data[i]);
+                                              await addToCart(cart, data[i]);
+                                            }
                                           } else {
-                                            orderCacheList[index].is_selected = true;
-                                            cart.selectedOptionId = orderCacheList[index].dining_id!;
-                                            cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
                                             await getOrderDetail(orderCacheList[index]);
                                             await addToCart(cart, orderCacheList[index]);
                                           }
                                         }
                                       } else {
-                                        orderCacheList[index].is_selected = true;
-                                        cart.selectedOptionId = orderCacheList[index].dining_id!;
-                                        cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
-
-                                        if(orderCacheList[index].other_order_key != ''){
-                                          List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[index].other_order_key!);
-                                          for(int i = 0; i < data.length; i++) {
-                                            await getOrderDetail(data[i]);
-                                            await addToCart(cart, data[i]);
-                                          }
-                                        } else {
-                                          await getOrderDetail(orderCacheList[index]);
-                                          await addToCart(cart, orderCacheList[index]);
-                                        }
+                                        Fluttertoast.showToast(
+                                            backgroundColor: Colors.red,
+                                            msg: "${AppLocalizations.of(context)?.translate('payment_status_not_match')}");
                                       }
+
+
+                                      // orderCacheList[index].is_selected = true;
+                                      // await getOrderDetail(orderCacheList[index]);
+                                      // await addToCart(cart, orderCacheList[index]);
                                     } else {
                                       Fluttertoast.showToast(
                                           backgroundColor: Colors.red,
-                                          msg: "${AppLocalizations.of(context)?.translate('payment_status_not_match')}");
+                                          msg: "${AppLocalizations.of(context)?.translate('dining_option_not_match')}");
                                     }
-
-
-                                    // orderCacheList[index].is_selected = true;
-                                    // await getOrderDetail(orderCacheList[index]);
-                                    // await addToCart(cart, orderCacheList[index]);
-                                  } else {
-                                    Fluttertoast.showToast(
-                                        backgroundColor: Colors.red,
-                                        msg: "${AppLocalizations.of(context)?.translate('dining_option_not_match')}");
                                   }
+                                  //reset other selected order
+                                  // for(int i = 0; i < orderCacheList.length; i++){
+                                  //   orderCacheList[i].is_selected = false;
+                                  //   cart.notDineInInitLoad();
+                                  // }
+                                } else {
+                                  CustomFailedToast.showToast(title: 'Order is in payment');
                                 }
-                                //reset other selected order
-                                // for(int i = 0; i < orderCacheList.length; i++){
-                                //   orderCacheList[i].is_selected = false;
-                                //   cart.notDineInInitLoad();
-                                // }
-
                               } else if(orderCacheList[index].is_selected == true) {
                                 if(orderCacheList[index].other_order_key != ''){
                                   List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[index].other_order_key!);

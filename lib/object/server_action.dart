@@ -489,13 +489,24 @@ class ServerAction {
         case '23': {
           var decodeParam = jsonDecode(param);
           OrderCache orderCache = OrderCache.fromJson(decodeParam);
-           OtherOrderFunction orderFunction = OtherOrderFunction();
-          await orderFunction.readOrderCacheOrderDetail(orderCache);
-          objectData = {
-            'orderCacheList': orderFunction.orderCacheList,
-            'orderDetailList': orderFunction.orderDetailList
-          };
-          result = {'status': '1', 'data': objectData};
+          OtherOrderFunction orderFunction = OtherOrderFunction();
+          bool selectedStatus = await orderFunction.cartModel.isSubPosSelectedOtherOrderCache(orderCache);
+          if(selectedStatus == false){
+            await orderFunction.readOrderCacheOrderDetail(orderCache);
+            objectData = {
+              'orderCacheList': orderFunction.orderCacheList,
+              'orderDetailList': orderFunction.orderDetailList
+            };
+            result = {'status': '1', 'data': objectData};
+          } else {
+            result = {'status': '2', 'action': '23'};
+          }
+        }
+        break;
+        case '24': {
+          OtherOrderFunction orderFunction = OtherOrderFunction();
+          orderFunction.clearSubPosOrderCache(param);
+          result = {'status': '1'};
         }
         break;
       }
