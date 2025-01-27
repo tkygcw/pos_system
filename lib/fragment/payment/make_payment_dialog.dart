@@ -930,13 +930,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                     openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
                                                     Branch? data = await PosDatabase.instance.readLocalBranch();
                                                     if(data != null && data.allow_livedata == 1){
-                                                      if(!isSyncing){
-                                                        isSyncing = true;
+                                                      if(!isSyncisSyncingingNotifier.value){
+                                                        isSyncisSyncingingNotifier.value = true;
                                                         do{
                                                           await syncToCloud.syncAllToCloud(isManualSync: true);
                                                         }while(syncToCloud.emptyResponse == false);
                                                         if(syncToCloud.emptyResponse == true){
-                                                          isSyncing = false;
+                                                          isSyncisSyncingingNotifier.value = false;
                                                         }
                                                       }
                                                     }
@@ -1981,13 +1981,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                     diningName: widget.dining_name);
                                                 Branch? data = await PosDatabase.instance.readLocalBranch();
                                                 if(data != null && data.allow_livedata == 1){
-                                                  if(!isSyncing){
-                                                    isSyncing = true;
+                                                  if(!isSyncisSyncingingNotifier.value){
+                                                    isSyncisSyncingingNotifier.value = true;
                                                     do{
                                                       await syncToCloud.syncAllToCloud(isManualSync: true);
                                                     }while(syncToCloud.emptyResponse == false);
                                                     if(syncToCloud.emptyResponse == true){
-                                                      isSyncing = false;
+                                                      isSyncisSyncingingNotifier.value = false;
                                                     }
                                                   }
                                                 }
@@ -2990,13 +2990,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                   openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
                                                   Branch? data = await PosDatabase.instance.readLocalBranch();
                                                   if(data != null && data.allow_livedata == 1){
-                                                    if(!isSyncing){
-                                                      isSyncing = true;
+                                                    if(!isSyncisSyncingingNotifier.value){
+                                                      isSyncisSyncingingNotifier.value = true;
                                                       do{
                                                         await syncToCloud.syncAllToCloud(isManualSync: true);
                                                       }while(syncToCloud.emptyResponse == false);
                                                       if(syncToCloud.emptyResponse == true){
-                                                        isSyncing = false;
+                                                        isSyncisSyncingingNotifier.value = false;
                                                       }
                                                     }
                                                   }
@@ -3563,13 +3563,13 @@ class _MakePaymentState extends State<MakePayment> {
           openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name, ipayTransId: apiRes['data']);
           Branch? data = await PosDatabase.instance.readLocalBranch();
           if(data != null && data.allow_livedata == 1){
-            if(!isSyncing){
-              isSyncing = true;
+            if(!isSyncisSyncingingNotifier.value){
+              isSyncisSyncingingNotifier.value = true;
               do{
                 await syncToCloud.syncAllToCloud(isManualSync: true);
               }while(syncToCloud.emptyResponse == false);
               if(syncToCloud.emptyResponse == true){
-                isSyncing = false;
+                isSyncisSyncingingNotifier.value = false;
               }
             }
           }
@@ -4503,13 +4503,13 @@ class _MakePaymentState extends State<MakePayment> {
       openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: true, diningName: widget.dining_name);
       Branch? data = await PosDatabase.instance.readLocalBranch();
       if(data != null && data.allow_livedata == 1){
-        if(!isSyncing){
-          isSyncing = true;
+        if(!isSyncisSyncingingNotifier.value){
+          isSyncisSyncingingNotifier.value = true;
           do{
             await syncToCloud.syncAllToCloud(isManualSync: true);
           }while(syncToCloud.emptyResponse == false);
           if(syncToCloud.emptyResponse == true){
-            isSyncing = false;
+            isSyncisSyncingingNotifier.value = false;
           }
         }
       }

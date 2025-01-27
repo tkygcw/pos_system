@@ -13,6 +13,7 @@ class Domain {
   // static var domain = 'https://pos.lkmng.com/';
   // static var backend_domain = 'https://pos.lkmng.com/';
   // static var qr_domain = 'https://pos-qr.lkmng.com/';
+  // static var domain = 'http://192.168.0.207/pos/';
   static var domain = 'https://pos.optimy.com.my/';
   static var backend_domain = 'https://api.optimy.com.my/';
   static var qr_domain = 'https://qr.optimy.com.my/';
