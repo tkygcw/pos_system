@@ -8,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/fail_print_notifier.dart';
@@ -46,8 +47,10 @@ DisplayManager displayManager = DisplayManager();
 AppLanguage appLanguage = AppLanguage();
 final snackBarKey = GlobalKey<ScaffoldMessengerState>();
 bool isCartExpanded = false;
-bool isSyncing = false;
+bool isPaused = false;
 String appVersionCode = '', patch = '';
+ValueNotifier<int> unsyncedDataNotifier = ValueNotifier<int>(0);
+final ValueNotifier<bool> isSyncisSyncingingNotifier = ValueNotifier<bool>(false);
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
 
@@ -74,6 +77,8 @@ Future<void> main() async {
   //get app version
   await getAppVersion();
 
+  await calUnsyncedData();
+
   WidgetsFlutterBinding.ensureInitialized();
   //create default app color
   await appLanguage.fetchLocale();
@@ -88,6 +93,11 @@ Future<void> main() async {
   //       child: MyApp(appLanguage: appLanguage),
   //     )
   // );
+}
+
+Future<void> calUnsyncedData() async {
+  int unsyncedData = int.parse(await PosDatabase.instance.getUnsyncedData());
+  unsyncedDataNotifier.value = unsyncedData;
 }
 
 deviceDetect() async {

@@ -180,7 +180,7 @@ class SyncToFirebase {
   }
 
   updateProduct() async {
-    List<Product> product = await _posDatabase.readAllNotSyncUpdatedProduct();
+    List<Product> product = await _posDatabase.readAllNotSyncUpdatedProduct(1000);
     for(final products in product){
       posFirestore.updateProduct(products);
     }

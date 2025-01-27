@@ -144,7 +144,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: SyncDialog(syncType: SyncType.sync),
+              child: SyncDialog(syncType: SyncType.sync, callBack: () {}),
             ),
           );
         },
@@ -415,15 +415,15 @@ class _SettlementDialogState extends State<SettlementDialog> {
   openSyncToCloudDialog() async {
     Branch? data = await PosDatabase.instance.readLocalBranch();
     if(data != null && data.allow_livedata == 1){
-      if(!isSyncing){
+      if(!isSyncisSyncingingNotifier.value){
         widget.callBack();
         Navigator.of(context).pop();
-        isSyncing = true;
+        isSyncisSyncingingNotifier.value = true;
         do{
           await syncToCloud.syncAllToCloud(isManualSync: true);
         }while(syncToCloud.emptyResponse == false);
         if(syncToCloud.emptyResponse == true){
-          isSyncing = false;
+          isSyncisSyncingingNotifier.value = false;
         }
       } else {
         widget.callBack();
