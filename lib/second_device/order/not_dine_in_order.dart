@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../database/pos_database.dart';
 import '../../main.dart';
 import '../../notifier/cart_notifier.dart';
+import '../../notifier/table_notifier.dart';
 import '../../object/cart_product.dart';
 import '../../object/order_cache.dart';
 
@@ -98,6 +99,7 @@ class PlaceNotDineInOrder extends PlaceOrder {
     if(stockResponse == null){
       await createOrderCache(cart, orderBy, orderByUserId);
       await createOrderDetail(cart);
+      TableModel.instance.changeContent(true);
       await printCheckList(orderBy);
       List<cartProductItem> ticketProduct = cart.cartNotifierItem.where((e) => e.allow_ticket == 1).toList();
       if(ticketProduct.isNotEmpty){

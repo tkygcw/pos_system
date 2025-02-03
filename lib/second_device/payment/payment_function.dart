@@ -3,9 +3,11 @@ import 'dart:convert';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/order.dart';
+import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use.dart';
@@ -17,6 +19,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '../../firebase_sync/qr_order_sync.dart';
 import '../../fragment/payment/ipay_api.dart';
+import '../../fragment/printing_layout/print_receipt.dart';
 import '../../object/app_setting.dart';
 import '../../object/branch_link_promotion.dart';
 import '../../object/branch_link_tax.dart';
@@ -29,8 +32,10 @@ import '../../utils/Utils.dart';
 
 
 class PaymentFunction {
+  final AppSettingModel _appSettingModel = AppSettingModel.instance;
   final DateFormat _dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
   final PosDatabase _posDatabase = PosDatabase.instance;
+  final PrintReceipt _printReceipt = PrintReceipt();
   Order _order = Order();
   TableFunction _tableFunction = TableFunction();
   List<Promotion> _promotionList = [];
@@ -193,15 +198,26 @@ class PaymentFunction {
           List<String> uniqueTableUseSqliteId = _getUniqueTableUseSqliteId();
           await _updateTableUseDetailAndTableUse(txn, uniqueTableUseSqliteId);
           await _updatePosTableStatus(txn);
-          TableModel.instance.changeContent(true);
           _tableFunction.clearSubPosOrderCache();
         }
+        TableModel.instance.changeContent(true);
+        // if (widget.isCashMethod == true) {
+        //   await callOpenCashDrawer();
+        // }
       });
+      if(_appSettingModel.autoPrintReceipt == true) {
+        await callPrinter();
+      }
       return {'status': '1', 'action': '19'};
     }catch(e, s){
-      print("stack trace: $s");
+      print("Error: $e, stack trace: $s");
       return {'status': '2', 'action': '19', 'error': e};
     }
+  }
+
+  callPrinter() async {
+    List<Printer> printerList = await _printReceipt.readAllPrinters();
+    await _printReceipt.printPaymentReceiptList(printerList, _order.order_sqlite_id!.toString(), _selectedTableList);
   }
 
   _updatePosTableStatus(Transaction txn) async {

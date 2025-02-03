@@ -30,22 +30,18 @@ class OtherOrderFunction {
     cartModel = Provider.of<CartModel>(_context, listen: false);
   }
 
-  void clearSubPosOrderCache(String batch){
-    Provider.of<CartModel>(_context, listen: false).removeSpecificBatchOrderCache(batch);
-  }
-
   Future<void> readOrderCacheOrderDetail(OrderCache orderCache) async {
     List<OrderDetail> orderDetailList = [];
     if(orderCache.other_order_key != ''){
       List<OrderCache> data = await _posDatabase.readOrderCacheByOtherOrderKey(orderCache.other_order_key!);
       _orderCacheList = data;
-      cartModel.addAllCartOrderCache(_orderCacheList);
+      cartModel.addAllSubPosOrderCache(_orderCacheList);
       for(int i = 0; i < data.length; i++) {
         orderDetailList.addAll(await _getOrderDetail(data[i]));
       }
     } else {
       orderDetailList = await _getOrderDetail(orderCache);
-      cartModel.addCartOrderCache(orderCache);
+      cartModel.addSubPosOrderCache(orderCache);
     }
     _orderDetailList = orderDetailList;
   }

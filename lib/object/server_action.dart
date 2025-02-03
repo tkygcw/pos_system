@@ -373,7 +373,7 @@ class ServerAction {
             var decodeParam = jsonDecode(param);
             PosTable posTable = PosTable.fromJson(decodeParam);
             TableFunction function = TableFunction();
-            bool isTableInPayment = await function.checkIsTableSelectedInPaymentCart(posTable);
+            bool isTableInPayment = await function.IsTableSelected(posTable);
             if(isTableInPayment == true){
               result = {'status': '2', 'action': '16', 'error': 'table_is_in_payment'};
             } else {
@@ -490,7 +490,7 @@ class ServerAction {
           var decodeParam = jsonDecode(param);
           OrderCache orderCache = OrderCache.fromJson(decodeParam);
           OtherOrderFunction orderFunction = OtherOrderFunction();
-          bool selectedStatus = await orderFunction.cartModel.isSubPosSelectedOtherOrderCache(orderCache);
+          bool selectedStatus = await orderFunction.cartModel.isOtherOrderCacheSelected(orderCache);
           if(selectedStatus == false){
             await orderFunction.readOrderCacheOrderDetail(orderCache);
             objectData = {
@@ -504,8 +504,7 @@ class ServerAction {
         }
         break;
         case '24': {
-          OtherOrderFunction orderFunction = OtherOrderFunction();
-          orderFunction.clearSubPosOrderCache(param);
+          TableFunction().removeSpecificBatchSubPosOrderCache(param);
           result = {'status': '1'};
         }
         break;

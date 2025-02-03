@@ -2564,7 +2564,7 @@ class CartPageState extends State<CartPage> {
       resetValue();
       List<cartProductItem> outOfStockItem = await checkOrderStock(cart);
       if(await checkTableStatus(cart) == true){
-        if(await cart.isSubPosSelectedOrderCache() == false){
+        if(await cart.isTableOrderCacheSelected() == false){
           if(outOfStockItem.isEmpty){
             cart.selectedTable.removeWhere((e) => e.status == 0);
             await createOrderCache(cart, isAddOrder: true);
@@ -2670,6 +2670,7 @@ class CartPageState extends State<CartPage> {
       resetValue();
       await createOrderCache(cart, isAddOrder: false);
       await createOrderDetail(cart);
+      server.sendMessageToClient("3");
       if(_appSettingModel.autoPrintChecklist == true){
         int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
         if (printStatus == 1) {

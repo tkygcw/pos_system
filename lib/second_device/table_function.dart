@@ -169,21 +169,28 @@ class TableFunction {
     }
   }
 
-  bool checkIsTableSelectedInPaymentCart(PosTable posTable){
-    bool isTableSelected = false;
-    List<PosTable> inCartTableList = Provider.of<CartModel>(_context, listen: false).selectedTable.where((e) => e.isInPaymentCart == true).toList();
-    if(inCartTableList.isNotEmpty){
-      return inCartTableList.any((e) => e.table_sqlite_id == posTable.table_sqlite_id);
+  void removeSpecificBatchSubPosOrderCache(String batch){
+    Provider.of<CartModel>(_context, listen: false).removeSpecificBatchSubPosOrderCache(batch);
+  }
 
-      // for(int i = 0; i < cart.selectedTable.length; i++){
-      //   for(int j = 0; j < inCartTableList.length; j++){
-      //     if(cart.selectedTable[i].table_sqlite_id == inCartTableList[j].table_sqlite_id){
-      //       isTableSelected = true;
-      //       break;
-      //     }
-      //   }
-      // }
+  Future<bool> IsTableSelected(PosTable posTable) async {
+    bool isTableSelected = false;
+    if(posTable.table_use_key != null){
+      isTableSelected = await Provider.of<CartModel>(_context, listen: false).isTableOrderCacheSelected(tableUseKey: posTable.table_use_key!);
     }
+    // List<PosTable> inCartTableList = Provider.of<CartModel>(_context, listen: false).selectedTable.where((e) => e.isInPaymentCart == true).toList();
+    // if(inCartTableList.isNotEmpty){
+    //   return inCartTableList.any((e) => e.table_sqlite_id == posTable.table_sqlite_id);
+    //
+    //   // for(int i = 0; i < cart.selectedTable.length; i++){
+    //   //   for(int j = 0; j < inCartTableList.length; j++){
+    //   //     if(cart.selectedTable[i].table_sqlite_id == inCartTableList[j].table_sqlite_id){
+    //   //       isTableSelected = true;
+    //   //       break;
+    //   //     }
+    //   //   }
+    //   // }
+    // }
     return isTableSelected;
   }
 

@@ -357,7 +357,7 @@ class CartModel extends ChangeNotifier {
     _subPosPaymentOrderCache.removeWhere((orderCache) => orderCache.batch_id == batch);
   }
 
-  Future<bool> isSubPosSelectedOrderCache({String? tableUseKey}) async {
+  Future<bool> isTableOrderCacheSelected({String? tableUseKey}) async {
     String posTableUseKey = tableUseKey ?? selectedTable.first.table_use_key!;
     List<OrderCache> tableOrderCache = await PosDatabase.instance.readSpecificOrderCacheByTableUseKey(posTableUseKey);
     // 1. Extract IDs from both lists into sets.
@@ -368,7 +368,9 @@ class CartModel extends ChangeNotifier {
     return ids1.intersection(ids2).isNotEmpty;
   }
 
-  Future<bool> isSubPosSelectedOtherOrderCache(OrderCache orderCache) async {
-    return _currentOrderCache.any((e) => e.order_cache_sqlite_id == orderCache.order_cache_sqlite_id!);
+  Future<bool> isOtherOrderCacheSelected(OrderCache orderCache) async {
+    bool subPosSelect = _subPosPaymentOrderCache.any((e) => e.order_cache_sqlite_id == orderCache.order_cache_sqlite_id!);
+    bool mainPosSelect = _currentOrderCache.any((e) => e.order_cache_sqlite_id == orderCache.order_cache_sqlite_id!);
+    return subPosSelect || mainPosSelect;
   }
 }
