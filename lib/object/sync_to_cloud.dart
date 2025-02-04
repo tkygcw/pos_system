@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/attendance.dart';
 import 'package:pos_system/object/branch_link_product.dart';
@@ -16,6 +17,11 @@ import 'package:pos_system/object/printer_link_category.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/receipt.dart';
 import 'package:pos_system/object/refund.dart';
+import 'package:pos_system/object/sales_per_day/category_sales_per_day.dart';
+import 'package:pos_system/object/sales_per_day/dining_sales_per_day.dart';
+import 'package:pos_system/object/sales_per_day/modifier_sales_per_day.dart';
+import 'package:pos_system/object/sales_per_day/product_sales_per_day.dart';
+import 'package:pos_system/object/sales_per_day/sales_per_day.dart';
 import 'package:pos_system/object/settlement.dart';
 import 'package:pos_system/object/settlement_link_payment.dart';
 import 'package:pos_system/object/table.dart';
@@ -63,14 +69,28 @@ class SyncToCloud {
   String? table_use_value, table_use_detail_value, order_cache_value, order_detail_value, order_detail_cancel_value,
       order_modifier_detail_value, order_value, order_promotion_value, order_tax_value, receipt_value, refund_value, table_value, settlement_value,
       settlement_link_payment_value, cash_record_value, app_setting_value, branch_link_product_value, printer_value, printer_link_category_value,
-      transfer_owner_value, checklist_value, kitchen_list_value, attendance_value, dynamic_qr_value, order_payment_split_value, cancel_receipt_value, product_value;
+      transfer_owner_value, checklist_value, kitchen_list_value, attendance_value, dynamic_qr_value, order_payment_split_value, cancel_receipt_value, product_value,
+      sales_per_day_value, sales_category_per_day_value, sales_product_per_day_value, sales_modifier_per_day_value, sales_dining_per_day_value;
+  late SharedPreferences prefs;
+  bool isNewSync = false;
+  int dataSelectLimit = 10;
 
   resetCount(){
     count = 0;
   }
 
+  getPrefData() async {
+    prefs = await SharedPreferences.getInstance();
+    if(prefs.getInt('new_sync') == null){
+      await prefs.setInt('new_sync', 0);
+    }
+    isNewSync = prefs.getInt('new_sync') == 1 ? true : false;
+  }
+
   Future<int> syncAllToCloud({bool? isManualSync}) async {
     print('sync to cloud called');
+    await getPrefData();
+    dataSelectLimit = isNewSync ? 1000 : 10;
     int status = 0;
     try{
       await getAllValue();
@@ -78,6 +98,12 @@ class SyncToCloud {
       final int? device_id = prefs.getInt('device_id');
       final String? login_value = prefs.getString('login_value');
 
+      DateTime syncStart = DateTime.now();
+      if(isPaused){
+        print("sync to cloud paused");
+        emptyResponse = true;
+        return status = 0;
+      }
       Map data = await Domain().syncLocalUpdateToCloud(
           device_id: device_id.toString(),
           value: login_value,
@@ -110,11 +136,18 @@ class SyncToCloud {
           order_payment_split_value: this.order_payment_split_value,
           cancel_receipt_value: this.cancel_receipt_value,
           product_value:  this.product_value,
+          sales_per_day_value: this.sales_per_day_value,
+          sales_category_per_day_value: this.sales_category_per_day_value,
+          sales_product_per_day_value: this.sales_product_per_day_value,
+          sales_modifier_per_day_value: this.sales_modifier_per_day_value,
+          sales_dining_per_day_value: this.sales_dining_per_day_value
       );
+      print("Step 2: order modifier detail length: ${order_modifier_detail_value!.length} local finished sync to cloud at ${DateTime.now()}, take ${DateTime.now().difference(syncStart).inSeconds} seconds");
       if (data['status'] == '1') {
         List responseJson = data['data'];
         if(responseJson.isNotEmpty){
           emptyResponse = false;
+          DateTime updateSyncStatusStart = DateTime.now();
           for(int i = 0; i < responseJson.length; i++){
             switch(responseJson[i]['table_name']){
               case 'tb_table_use': {
@@ -142,7 +175,7 @@ class SyncToCloud {
               }
               break;
               case 'tb_order': {
-                await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+                await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key'], settlement_key: responseJson[i]['settlement_key']);
               }
               break;
               case 'tb_order_promotion_detail': {
@@ -223,8 +256,29 @@ class SyncToCloud {
                 await PosDatabase.instance.updateProductSyncStatusFromCloud(responseJson[i]['product_id']);
               }
               break;
+              case 'tb_sales_per_day': {
+                await PosDatabase.instance.updateSalesPerDaySyncStatusFromCloud(responseJson[i]['date']);
+              }
+              break;
+              case 'tb_sales_category_per_day': {
+                await PosDatabase.instance.updateSalesCategoryPerDaySyncStatusFromCloud(responseJson[i]['date'], responseJson[i]['category_id']);
+              }
+              break;
+              case 'tb_sales_product_per_day': {
+                await PosDatabase.instance.updateSalesProductPerDaySyncStatusFromCloud(responseJson[i]['date'], responseJson[i]['product_id'], responseJson[i]['sales_product_per_day_sqlite_id']);
+              }
+              break;
+              case 'tb_sales_modifier_per_day': {
+                await PosDatabase.instance.updateSalesModifierPerDaySyncStatusFromCloud(responseJson[i]['date'], responseJson[i]['mod_item_id']);
+              }
+              break;
+              case 'tb_sales_dining_per_day': {
+                await PosDatabase.instance.updateSalesDiningPerDaySyncStatusFromCloud(responseJson[i]['date']);
+              }
+              break;
             }
           }
+          print("Step 3: update sync status finished at ${DateTime.now()}, take ${DateTime.now().difference(updateSyncStatusStart).inSeconds} seconds");
         } else {
           emptyResponse = true;
         }
@@ -237,6 +291,9 @@ class SyncToCloud {
         //error catch
         emptyResponse = true;
         status = 2;
+      } else {
+        //status 2, no data sync
+        emptyResponse = true;
       }
     }catch(e){
       emptyResponse = true;
@@ -279,43 +336,256 @@ class SyncToCloud {
     order_payment_split_value = [].toString();
     cancel_receipt_value = [].toString();
     product_value = [].toString();
+    sales_per_day_value = [].toString();
+    sales_category_per_day_value = [].toString();
+    sales_product_per_day_value = [].toString();
+    sales_modifier_per_day_value = [].toString();
+    sales_dining_per_day_value = [].toString();
   }
 
   getAllValue() async {
     resetValue();
+    if(isPaused){
+      print("sync to cloud paused");
+      emptyResponse = true;
+      return;
+    }
     await getNotSyncChecklist();
+    if(checklist_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncKitchenList();
+    if(kitchen_list_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncReceipt();
+    if(receipt_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncAttendance();
+    if(attendance_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncBranchLinkProduct();
+    if(branch_link_product_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncCashRecord();
+    if(cash_record_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncAppSetting();
+    if(app_setting_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncOrder();
+    if(order_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncOrderCache();
+    if(order_cache_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncOrderDetail();
+    if(order_detail_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncOrderDetailCancel();
+    if(order_detail_cancel_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncOrderModifierDetail();
+    if(order_modifier_detail_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncOrderPaymentSplit();
+    if(order_payment_split_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncOrderPromotionDetail();
+    if(order_promotion_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncOrderTaxDetail();
+    if(order_tax_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncPrinter();
+    if(printer_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncPrinterLinkCategory();
+    if(printer_link_category_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncRefund();
+    if(refund_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncSettlement();
+    if(settlement_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncSettlementLinkPayment();
+    if(settlement_link_payment_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncTableUse();
+    if(table_use_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncTableUseDetail();
+    if(table_use_detail_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncTable();
+    if(table_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncTransfer();
+    if(transfer_owner_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncDynamicQr();
+    if(dynamic_qr_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncCancelReceipt();
+    if(cancel_receipt_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncProduct();
+    if(product_value != '[]' && isNewSync){
+      return;
+    }
+    await getNotSyncSalesPerDay();
+    if(sales_per_day_value != '[]' && isNewSync){
+      return;
+    }
+    await getNotSyncSalesCategoryPerDay();
+    if(sales_category_per_day_value != '[]' && isNewSync){
+      return;
+    }
+    await getNotSyncSalesProductPerDay();
+    if(sales_product_per_day_value != '[]' && isNewSync){
+      return;
+    }
+    await getNotSyncSalesModifierPerDay();
+    if(sales_modifier_per_day_value != '[]' && isNewSync){
+      return;
+    }
+    await getNotSyncSalesDiningPerDay();
+  }
+
+  getNotSyncSalesDiningPerDay() async {
+    List<String> _value = [];
+    try{
+      List<SalesDiningPerDay> data = await PosDatabase.instance.readAllNotSyncSalesDiningPerDay(dataSelectLimit);
+      if(data.isNotEmpty){
+        for(int i = 0; i < data.length; i++){
+          _value.add(jsonEncode(data[i]));
+        }
+        sales_dining_per_day_value = _value.toString();
+        print("sales_dining_per_day_value: ${sales_dining_per_day_value}");
+      }
+    } catch(e, stackTrace){
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "getNotSyncSalesDiningPerDay error",
+        exception: 'Error: $e, StackTrace: $stackTrace',
+      );
+      sales_dining_per_day_value = null;
+    }
+  }
+
+  getNotSyncSalesModifierPerDay() async {
+    List<String> _value = [];
+    try{
+      List<SalesModifierPerDay> data = await PosDatabase.instance.readAllNotSyncSalesModifierPerDay(dataSelectLimit);
+      if(data.isNotEmpty){
+        for(int i = 0; i < data.length; i++){
+          _value.add(jsonEncode(data[i]));
+        }
+        sales_modifier_per_day_value = _value.toString();
+        print("sales_modifier_per_day_value: ${sales_modifier_per_day_value}");
+      }
+    } catch(e, stackTrace){
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "getNotSyncSalesModifierPerDay error",
+        exception: 'Error: $e, StackTrace: $stackTrace',
+      );
+      sales_modifier_per_day_value = null;
+    }
+  }
+
+  getNotSyncSalesProductPerDay() async {
+    List<String> _value = [];
+    try{
+      List<SalesProductPerDay> data = await PosDatabase.instance.readAllNotSyncSalesProductPerDay(dataSelectLimit);
+      if(data.isNotEmpty){
+        for(int i = 0; i < data.length; i++){
+          _value.add(jsonEncode(data[i]));
+        }
+        sales_product_per_day_value = _value.toString();
+        print("sales_product_per_day_value: ${sales_product_per_day_value}");
+      }
+    } catch(e, stackTrace){
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "getNotSyncSalesProductPerDay error",
+        exception: 'Error: $e, StackTrace: $stackTrace',
+      );
+      sales_product_per_day_value = null;
+    }
+  }
+
+  getNotSyncSalesCategoryPerDay() async {
+    List<String> _value = [];
+    try{
+      List<SalesCategoryPerDay> data = await PosDatabase.instance.readAllNotSyncSalesCategoryPerDay(dataSelectLimit);
+      if(data.isNotEmpty){
+        for(int i = 0; i < data.length; i++){
+          _value.add(jsonEncode(data[i]));
+        }
+        sales_category_per_day_value = _value.toString();
+        print("sales_category_per_day_value: ${sales_category_per_day_value}");
+      }
+    } catch(e, stackTrace){
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "getNotSyncSalesCategoryPerDay error",
+        exception: 'Error: $e, StackTrace: $stackTrace',
+      );
+      sales_category_per_day_value = null;
+    }
+  }
+
+  getNotSyncSalesPerDay() async {
+    List<String> _value = [];
+    try{
+      List<SalesPerDay> data = await PosDatabase.instance.readAllNotSyncSalesPerDay(dataSelectLimit);
+      if(data.isNotEmpty){
+        for(int i = 0; i < data.length; i++){
+          _value.add(jsonEncode(data[i]));
+        }
+        sales_per_day_value = _value.toString();
+        print("sales_per_day_value: ${sales_per_day_value}");
+      }
+    } catch(e, stackTrace){
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "getNotSyncSalesPerDay error",
+        exception: 'Error: $e, StackTrace: $stackTrace',
+      );
+      sales_per_day_value = null;
+    }
   }
 
   getNotSyncCancelReceipt() async {
     List<String> _value = [];
     try{
-      List<CancelReceipt> data = await PosDatabase.instance.readAllNotSyncCancelReceipt();
+      List<CancelReceipt> data = await PosDatabase.instance.readAllNotSyncCancelReceipt(dataSelectLimit);
       if(data.isNotEmpty){
         for(int i = 0; i < data.length; i++){
           _value.add(jsonEncode(data[i]));
@@ -336,7 +606,7 @@ class SyncToCloud {
   getNotSyncDynamicQr() async {
     List<String> _value = [];
     try{
-      List<DynamicQR> data = await PosDatabase.instance.readAllNotSyncDynamicQr();
+      List<DynamicQR> data = await PosDatabase.instance.readAllNotSyncDynamicQr(dataSelectLimit);
       if(data.isNotEmpty){
         for(int i = 0; i < data.length; i++){
           _value.add(jsonEncode(data[i]));
@@ -357,7 +627,7 @@ class SyncToCloud {
   getNotSyncChecklist() async {
     List<String> _value = [];
     try{
-      List<Checklist> data = await PosDatabase.instance.readAllNotSyncChecklist();
+      List<Checklist> data = await PosDatabase.instance.readAllNotSyncChecklist(dataSelectLimit);
       if(data.isNotEmpty){
         for(int i = 0; i < data.length; i++){
           _value.add(jsonEncode(data[i]));
@@ -378,7 +648,7 @@ class SyncToCloud {
   getNotSyncKitchenList() async {
     List<String> _value = [];
     try{
-      List<KitchenList> data = await PosDatabase.instance.readAllNotSyncKitchenList();
+      List<KitchenList> data = await PosDatabase.instance.readAllNotSyncKitchenList(dataSelectLimit);
       if(data.isNotEmpty){
         for(int i = 0; i < data.length; i++){
           _value.add(jsonEncode(data[i]));
@@ -399,7 +669,7 @@ class SyncToCloud {
   getNotSyncAttendance() async {
     List<String> _value = [];
     try{
-      List<Attendance> data = await PosDatabase.instance.readAllNotSyncAttendance();
+      List<Attendance> data = await PosDatabase.instance.readAllNotSyncAttendance(dataSelectLimit);
       if(data.isNotEmpty){
         for(int i = 0; i < data.length; i++){
           _value.add(jsonEncode(data[i]));
@@ -420,7 +690,7 @@ class SyncToCloud {
   getNotSyncReceipt() async {
     try{
       List<String> _value = [];
-      List<Receipt> data = await PosDatabase.instance.readAllNotSyncReceipt();
+      List<Receipt> data = await PosDatabase.instance.readAllNotSyncReceipt(dataSelectLimit);
       if(data.isNotEmpty){
         for(int i = 0; i < data.length; i++){
           _value.add(jsonEncode(data[i]));
@@ -447,7 +717,7 @@ class SyncToCloud {
   getNotSyncPrinterLinkCategory() async {
     try{
       List<String> _value = [];
-      List<PrinterLinkCategory> data = await PosDatabase.instance.readAllNotSyncPrinterLinkCategory();
+      List<PrinterLinkCategory> data = await PosDatabase.instance.readAllNotSyncPrinterLinkCategory(dataSelectLimit);
       notSyncPrinterCategoryList = data;
       if(notSyncPrinterCategoryList.isNotEmpty){
         for(int i = 0; i < notSyncPrinterCategoryList.length; i++){
@@ -523,7 +793,7 @@ class SyncToCloud {
   getNotSyncBranchLinkProduct() async {
     try{
       List<String> _value = [];
-      List<BranchLinkProduct> data = await PosDatabase.instance.readAllNotSyncBranchLinkProduct();
+      List<BranchLinkProduct> data = await PosDatabase.instance.readAllNotSyncBranchLinkProduct(dataSelectLimit);
       notSyncBranchLinkProductList = data;
       if(notSyncBranchLinkProductList.isNotEmpty){
         for(int i = 0; i < notSyncBranchLinkProductList.length; i++){
@@ -573,7 +843,7 @@ class SyncToCloud {
   getNotSyncSettlementLinkPayment() async {
     try{
       List<String> _value = [];
-      List<SettlementLinkPayment> data = await PosDatabase.instance.readAllNotSyncSettlementLinkPayment();
+      List<SettlementLinkPayment> data = await PosDatabase.instance.readAllNotSyncSettlementLinkPayment(dataSelectLimit);
       notSyncSettlementLinkPaymentList = data;
       if(notSyncSettlementLinkPaymentList.isNotEmpty){
         for(int i = 0; i < notSyncSettlementLinkPaymentList.length; i++){
@@ -623,7 +893,7 @@ class SyncToCloud {
   getNotSyncSettlement() async {
     try{
       List<String> _value = [];
-      List<Settlement> data = await PosDatabase.instance.readAllNotSyncSettlement();
+      List<Settlement> data = await PosDatabase.instance.readAllNotSyncSettlement(dataSelectLimit);
       notSyncSettlementList = data;
       if(notSyncSettlementList.isNotEmpty){
         for(int i = 0; i < notSyncSettlementList.length; i++){
@@ -676,7 +946,7 @@ class SyncToCloud {
   getNotSyncTransfer() async {
     try{
       List<String> _value = [];
-      List<TransferOwner> data = await PosDatabase.instance.readAllNotSyncTransferOwner();
+      List<TransferOwner> data = await PosDatabase.instance.readAllNotSyncTransferOwner(dataSelectLimit);
       notSyncTransferOwnerList = data;
       if(notSyncTransferOwnerList.isNotEmpty){
         for(int i = 0; i < notSyncTransferOwnerList.length; i++){
@@ -728,7 +998,7 @@ class SyncToCloud {
   getNotSyncRefund() async {
     try{
       List<String> _value = [];
-      List<Refund> data = await PosDatabase.instance.readAllNotSyncRefund();
+      List<Refund> data = await PosDatabase.instance.readAllNotSyncRefund(dataSelectLimit);
       notSyncRefundList = data;
       if(notSyncRefundList.isNotEmpty){
         for(int i = 0; i <  notSyncRefundList.length; i++){
@@ -794,7 +1064,7 @@ class SyncToCloud {
   getNotSyncCashRecord() async {
     try{
       List<String> _value = [];
-      List<CashRecord> data = await PosDatabase.instance.readAllNotSyncCashRecord();
+      List<CashRecord> data = await PosDatabase.instance.readAllNotSyncCashRecord(dataSelectLimit);
       notSyncCashRecordList = data;
       if(notSyncCashRecordList.isNotEmpty) {
         for(int i = 0; i < notSyncCashRecordList.length; i++){
@@ -890,7 +1160,7 @@ class SyncToCloud {
   getNotSyncTable() async {
     try{
       List<String> _value = [];
-      List<PosTable> data = await PosDatabase.instance.readAllNotSyncUpdatedPosTable();
+      List<PosTable> data = await PosDatabase.instance.readAllNotSyncUpdatedPosTable(dataSelectLimit);
       notSyncPosTableList = data;
       if(notSyncPosTableList.isNotEmpty){
         for (int i = 0; i < notSyncPosTableList.length; i++) {
@@ -912,7 +1182,7 @@ class SyncToCloud {
   getNotSyncProduct() async {
     try{
       List<String> _value = [];
-      List<Product> data = await PosDatabase.instance.readAllNotSyncUpdatedProduct();
+      List<Product> data = await PosDatabase.instance.readAllNotSyncUpdatedProduct(dataSelectLimit);
       notSyncProductList = data;
       if(notSyncProductList.isNotEmpty){
         for (int i = 0; i < notSyncProductList.length; i++) {
@@ -978,7 +1248,7 @@ class SyncToCloud {
   getNotSyncOrderPromotionDetail() async {
     try{
       List<String> _value = [];
-      List<OrderPromotionDetail> data = await PosDatabase.instance.readAllNotSyncOrderPromotionDetail();
+      List<OrderPromotionDetail> data = await PosDatabase.instance.readAllNotSyncOrderPromotionDetail(dataSelectLimit);
       notSyncOrderPromotionDetailList = data;
       if(notSyncOrderPromotionDetailList.isNotEmpty){
         for(int i = 0; i <  notSyncOrderPromotionDetailList.length; i++){
@@ -1044,7 +1314,7 @@ class SyncToCloud {
   getNotSyncOrderTaxDetail() async {
     try{
       List<String> _value = [];
-      List<OrderTaxDetail> data = await PosDatabase.instance.readAllNotSyncOrderTaxDetail();
+      List<OrderTaxDetail> data = await PosDatabase.instance.readAllNotSyncOrderTaxDetail(dataSelectLimit);
       notSyncOrderTaxDetailList = data;
       if(notSyncOrderTaxDetailList.isNotEmpty){
         for(int i = 0; i <  notSyncOrderTaxDetailList.length; i++){
@@ -1088,7 +1358,7 @@ class SyncToCloud {
   getNotSyncTableUseDetail() async {
     try{
       List<String> _value = [];
-      List<TableUseDetail> data = await PosDatabase.instance.readAllNotSyncTableUseDetail();
+      List<TableUseDetail> data = await PosDatabase.instance.readAllNotSyncTableUseDetail(dataSelectLimit);
       notSyncTableUseDetailList = data;
       if(notSyncTableUseDetailList.isNotEmpty){
         for(int i = 0; i <  notSyncTableUseDetailList.length; i++){
@@ -1132,7 +1402,7 @@ class SyncToCloud {
   getNotSyncTableUse() async {
     try{
       List<String> _value = [];
-      List<TableUse> data = await PosDatabase.instance.readAllNotSyncTableUse();
+      List<TableUse> data = await PosDatabase.instance.readAllNotSyncTableUse(dataSelectLimit);
       notSyncTableUseList = data;
       if(notSyncTableUseList.isNotEmpty){
         for(int i = 0; i < notSyncTableUseList.length; i++){
@@ -1198,7 +1468,7 @@ class SyncToCloud {
   getNotSyncOrderModifierDetail() async {
     try{
       List<String> _value = [];
-      List<OrderModifierDetail> data = await PosDatabase.instance.readAllNotSyncOrderModDetail();
+      List<OrderModifierDetail> data = await PosDatabase.instance.readAllNotSyncOrderModDetail(dataSelectLimit);
       notSyncOrderModifierDetailList = data;
       if(notSyncOrderModifierDetailList.isNotEmpty){
         for(int i = 0; i < notSyncOrderModifierDetailList.length; i++){
@@ -1221,7 +1491,7 @@ class SyncToCloud {
   getNotSyncOrderPaymentSplit() async {
     List<String> _value = [];
     try{
-      List<OrderPaymentSplit> data = await PosDatabase.instance.readAllNotSyncOrderPaymentSplit();
+      List<OrderPaymentSplit> data = await PosDatabase.instance.readAllNotSyncOrderPaymentSplit(dataSelectLimit);
       if(data.isNotEmpty){
         for(int i = 0; i < data.length; i++){
           _value.add(jsonEncode(data[i]));
@@ -1272,7 +1542,7 @@ class SyncToCloud {
   getNotSyncOrderDetailCancel() async {
     try{
       List<String> _value = [];
-      List<OrderDetailCancel> data = await PosDatabase.instance.readAllNotSyncOrderDetailCancel();
+      List<OrderDetailCancel> data = await PosDatabase.instance.readAllNotSyncOrderDetailCancel(dataSelectLimit);
       notSyncOrderDetailCancelList = data;
       if(notSyncOrderDetailCancelList.isNotEmpty){
         for(int i = 0; i < notSyncOrderDetailCancelList.length; i++){
@@ -1342,7 +1612,7 @@ class SyncToCloud {
   getNotSyncOrderDetail() async {
     try{
       List<String> _value = [];
-      List<OrderDetail> data = await PosDatabase.instance.readAllNotSyncOrderDetail();
+      List<OrderDetail> data = await PosDatabase.instance.readAllNotSyncOrderDetail(dataSelectLimit);
       notSyncOrderDetailList = data;
       if(notSyncOrderDetailList.isNotEmpty){
         for(int i = 0; i <  notSyncOrderDetailList.length; i++){
@@ -1386,7 +1656,7 @@ class SyncToCloud {
   getNotSyncOrderCache() async {
     try{
       List<String> _value = [];
-      List<OrderCache> data = await PosDatabase.instance.readAllNotSyncOrderCache();
+      List<OrderCache> data = await PosDatabase.instance.readAllNotSyncOrderCache(dataSelectLimit);
       notSyncOrderCacheList = data;
       if(notSyncOrderCacheList.isNotEmpty){
         for(int i = 0; i <  notSyncOrderCacheList.length; i++){
@@ -1408,24 +1678,24 @@ class SyncToCloud {
 /*
   ----------------------Order part---------------------------------------------------------------------------------------------------------------------------------------
 */
-  updatedOrderSyncToCloud() async {
-    List<String> value = [];
-    await getNotSyncUpdatedOrder();
-    if(notSyncOrderList.isNotEmpty){
-      for(int i = 0; i < notSyncOrderList.length; i++){
-        value.add(jsonEncode(notSyncOrderList[i]));
-      }
-      //sync to cloud
-      Map data = await Domain().SyncUpdatedOrderToCloud(value.toString());
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          //print('response order key: ${responseJson[i]['order_key']}');
-          int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
-        }
-      }
-    }
-  }
+  // updatedOrderSyncToCloud() async {
+  //   List<String> value = [];
+  //   await getNotSyncUpdatedOrder();
+  //   if(notSyncOrderList.isNotEmpty){
+  //     for(int i = 0; i < notSyncOrderList.length; i++){
+  //       value.add(jsonEncode(notSyncOrderList[i]));
+  //     }
+  //     //sync to cloud
+  //     Map data = await Domain().SyncUpdatedOrderToCloud(value.toString());
+  //     if (data['status'] == '1') {
+  //       List responseJson = data['data'];
+  //       for (var i = 0; i < responseJson.length; i++) {
+  //         //print('response order key: ${responseJson[i]['order_key']}');
+  //         int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
   orderSyncToCloud() async {
     List<String> value = [];
@@ -1453,7 +1723,7 @@ class SyncToCloud {
   getNotSyncOrder() async {
     try{
       List<String> _value = [];
-      List<Order> data = await PosDatabase.instance.readAllNotSyncOrder();
+      List<Order> data = await PosDatabase.instance.readAllNotSyncOrder(dataSelectLimit);
       notSyncOrderList = data;
       if(notSyncOrderList.isNotEmpty){
         for(int i = 0; i < notSyncOrderList.length; i++){

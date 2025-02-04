@@ -5,12 +5,16 @@ import 'package:archive/archive_io.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:f_logs/model/flog/log.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/domain.dart';
+import 'package:pos_system/page/pos_pin.dart';
+import 'package:pos_system/fragment/setting/product_img_sync/sync_dialog.dart';
+import 'package:pos_system/fragment/setting/sync_dialog.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
@@ -33,6 +37,8 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
   final adminPosPinController = TextEditingController();
   bool _submitted = false;
   bool inProgress = false;
+  late SharedPreferences prefs;
+  bool isNewSync = false;
 
   @override
   void initState() {
@@ -200,6 +206,41 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                                       height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
                                       child: ElevatedButton(
                                         onPressed: () async {
+                                          isNewSync = !isNewSync;
+                                          await prefs.setInt('new_sync', isNewSync ? 1 : 0);
+                                          setState(() {});
+                                        },
+                                        child: Text("${AppLocalizations.of(context)!.translate('advanced_sync')}: "
+                                            "${isNewSync ? '${AppLocalizations.of(context)!.translate('on')}'
+                                            : '${AppLocalizations.of(context)!.translate('off')}'}"),
+                                      ),
+                                    ),
+                                    SizedBox(height: 15),
+                                    //database import
+                                    // SizedBox(
+                                    //   width: MediaQuery.of(context).size.width / 4,
+                                    //   height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
+                                    //   child: ElevatedButton(
+                                    //     onPressed: () async {
+                                    //       setState(() {
+                                    //         inProgress = true;
+                                    //       });
+                                    //       await dataImport(context);
+                                    //       if(mounted){
+                                    //         setState(() {
+                                    //           inProgress = false;
+                                    //         });
+                                    //       }
+                                    //     },
+                                    //     child: Text(AppLocalizations.of(context)!.translate('db_import')),
+                                    //   ),
+                                    // ),
+                                    // SizedBox(height: 15),
+                                    SizedBox(
+                                      width: MediaQuery.of(context).size.width / 4,
+                                      height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
+                                      child: ElevatedButton(
+                                        onPressed: () async {
                                           setState(() {
                                             inProgress = true;
                                           });
@@ -234,35 +275,58 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                                         child: Text(AppLocalizations.of(context)!.translate('db_sync')),
                                       ),
                                     ),
-                                    SizedBox(height: 15),
+                                    const SizedBox(height: 15),
+                                    SizedBox(
+                                      width: MediaQuery.of(context).size.width / 4,
+                                      height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                          openSyncDialog(SyncType.sync_updates_from_cloud);
+                                        },
+                                        child: Text(AppLocalizations.of(context)!.translate('sync_updates_from_cloud')),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 15),
+                                    SizedBox(
+                                      width: MediaQuery.of(context).size.width / 4,
+                                      height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                          openSyncProductImgDialog();
+                                        },
+                                        child: Text(AppLocalizations.of(context)!.translate('sync_product_image')),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 15),
                                     Visibility(
-                                      visible: Platform.isAndroid,
-                                      child: SizedBox(
-                                        width: MediaQuery.of(context).size.width / 4,
-                                        height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
-                                        child: ElevatedButton(
-                                          onPressed: () async {
-                                            // Navigator.pop(context);
-                                            // await showSecondDialog(context, color);
-                                            setState(() {
-                                              inProgress = true;
-                                            });
-                                            await dataZip(3);
-                                            FLog.clearLogs();
-                                            logs.clear();
-                                            if(mounted){
+                                        visible: Platform.isAndroid,
+                                        child: SizedBox(
+                                          width: MediaQuery.of(context).size.width / 4,
+                                          height: MediaQuery.of(context).size.height / (constraints.maxWidth > 900 && constraints.maxHeight > 500 ? 12 : 10),
+                                          child: ElevatedButton(
+                                            onPressed: () async {
+                                              // Navigator.pop(context);
+                                              // await showSecondDialog(context, color);
                                               setState(() {
-                                                inProgress = false;
+                                                inProgress = true;
                                               });
-                                            }
-                                            Navigator.of(context).pop();
-                                            Navigator.of(context).pop();
-                                          },
-                                          child: Text(AppLocalizations.of(context)!.translate('debug')),
-                                        ),
-                                      )
-                                    )
-
+                                              await dataZip(3);
+                                              FLog.clearLogs();
+                                              logs.clear();
+                                              if(mounted){
+                                                setState(() {
+                                                  inProgress = false;
+                                                });
+                                              }
+                                              Navigator.of(context).pop();
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Text(AppLocalizations.of(context)!.translate('debug')),
+                                          ),
+                                        )
+                                    ),
                                   ],
                                 )
                                     : Container(
@@ -281,6 +345,7 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                 ),
               ],
             ) :
+            ///mobile view
             Row(
               children: [
                 Expanded(
@@ -333,6 +398,41 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                                         height: MediaQuery.of(context).size.height / 16,
                                         child: ElevatedButton(
                                           onPressed: () async {
+                                            isNewSync = !isNewSync;
+                                            await prefs.setInt('new_sync', isNewSync ? 1 : 0);
+                                            setState(() {});
+                                          },
+                                          child: Text("${AppLocalizations.of(context)!.translate('advanced_sync')}: "
+                                              "${isNewSync ? '${AppLocalizations.of(context)!.translate('on')}'
+                                              : '${AppLocalizations.of(context)!.translate('off')}'}"),
+                                        ),
+                                      ),
+                                      SizedBox(height: 15),
+                                      //database import
+                                      // SizedBox(
+                                      //   width: 300,
+                                      //   height: MediaQuery.of(context).size.height / 16,
+                                      //   child: ElevatedButton(
+                                      //     onPressed: () async {
+                                      //       setState(() {
+                                      //         inProgress = true;
+                                      //       });
+                                      //       await dataImport(context);
+                                      //       if(mounted){
+                                      //         setState(() {
+                                      //           inProgress = false;
+                                      //         });
+                                      //       }
+                                      //     },
+                                      //     child: Text(AppLocalizations.of(context)!.translate('db_import')),
+                                      //   ),
+                                      // ),
+                                      // SizedBox(height: 15),
+                                      SizedBox(
+                                        width: 300,
+                                        height: MediaQuery.of(context).size.height / 16,
+                                        child: ElevatedButton(
+                                          onPressed: () async {
                                             setState(() {
                                               inProgress = true;
                                             });
@@ -367,34 +467,58 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                                           child: Text(AppLocalizations.of(context)!.translate('db_sync')),
                                         ),
                                       ),
-                                      SizedBox(height: 15),
+                                      const SizedBox(height: 15),
+                                      SizedBox(
+                                        width: 300,
+                                        height: MediaQuery.of(context).size.height / 16,
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            openSyncDialog(SyncType.sync_updates_from_cloud);
+                                          },
+                                          child: Text(AppLocalizations.of(context)!.translate('sync_updates_from_cloud')),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 15),
+                                      SizedBox(
+                                        width: 300,
+                                        height: MediaQuery.of(context).size.height / 16,
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            openSyncProductImgDialog();
+                                          },
+                                          child: Text(AppLocalizations.of(context)!.translate('sync_product_image')),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 15),
                                       Visibility(
-                                          visible: Platform.isAndroid,
-                                          child: SizedBox(
-                                            width: 300,
-                                            height: MediaQuery.of(context).size.height / 16,
-                                            child: ElevatedButton(
-                                              onPressed: () async {
-                                                // Navigator.pop(context);
-                                                // await showSecondDialog(context, color);
+                                        visible: Platform.isAndroid,
+                                        child: SizedBox(
+                                          width: 300,
+                                          height: MediaQuery.of(context).size.height / 16,
+                                          child: ElevatedButton(
+                                            onPressed: () async {
+                                              // Navigator.pop(context);
+                                              // await showSecondDialog(context, color);
+                                              setState(() {
+                                                inProgress = true;
+                                              });
+                                              await dataZip(3);
+                                              FLog.clearLogs();
+                                              logs.clear();
+                                              if(mounted){
                                                 setState(() {
-                                                  inProgress = true;
+                                                  inProgress = false;
                                                 });
-                                                await dataZip(3);
-                                                FLog.clearLogs();
-                                                logs.clear();
-                                                if(mounted){
-                                                  setState(() {
-                                                    inProgress = false;
-                                                  });
-                                                }
-                                                Navigator.of(context).pop();
-                                                Navigator.of(context).pop();
-                                              },
-                                              child: Text(AppLocalizations.of(context)!.translate('debug')),
-                                            ),
-                                          ))
-
+                                              }
+                                              Navigator.of(context).pop();
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Text(AppLocalizations.of(context)!.translate('debug')),
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                   )
                                       : Container(
@@ -420,6 +544,50 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
     });
   }
 
+  Future<Future<Object?>> openSyncProductImgDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: const ProductImgSyncDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
+  Future<Future<Object?>> openSyncDialog(SyncType syncType) async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: SyncDialog(syncType: syncType, callBack: () {  },),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
   Future<void> addDirectoryToZip(ZipFileEncoder encoder, Directory dir, List<String> excludeDirs) async {
     var entities = dir.listSync(recursive: true);
     for (var entity in entities) {
@@ -431,6 +599,57 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
           encoder.addFile(entity, zipPath);
         }
       }
+    }
+  }
+
+  Future<void> dataImport(BuildContext context) async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.any,
+      );
+
+      if (result != null && result.files.single.path != null) {
+        String selectedFilePath = result.files.single.path!;
+        File selectedFile = File(selectedFilePath);
+
+        Directory appDocDir = await getApplicationDocumentsDirectory();
+        String appDbPath;
+        if(Platform.isAndroid) {
+          appDbPath = appDocDir.parent.path + '/databases/pos.db';
+        } else {
+          appDbPath = appDocDir.path + '/pos.db';
+        }
+
+        File appDbFile = File(appDbPath);
+        if (await appDbFile.exists()) {
+          await appDbFile.delete();
+        }
+
+        await selectedFile.copy(appDbPath);
+
+        await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(AppLocalizations.of(context)!.translate('import_successful')),
+              content: Text(AppLocalizations.of(context)!.translate('import_successful_desc')),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    exit(0);
+                  },
+                  child: Text(AppLocalizations.of(context)!.translate('ok')),
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_file_selected'));
+      }
+    } catch (e) {
+      print('Error importing database: $e');
     }
   }
 
@@ -759,6 +978,15 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
         logText += '${logs[i].timestamp}: ${logs[i].className}(${logs[i].text}) - ${logs[i].exception}\n';
       }
     });
+    await getPrefData();
+  }
+
+  getPrefData() async {
+    prefs = await SharedPreferences.getInstance();
+    if(prefs.getInt('new_sync') == null){
+      await prefs.setInt('new_sync', 0);
+    }
+    isNewSync = prefs.getInt('new_sync') == 1 ? true : false;
   }
 
   closeDialog(BuildContext context) {

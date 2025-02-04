@@ -24,7 +24,10 @@ class BranchFields {
     allow_livedata,
     qr_show_sku,
     qr_product_sequence,
-    show_qr_history
+    show_qr_history,
+    generate_sales,
+    allow_einvoice,
+    einvoice_status
   ];
 
   static String branch_id = 'branch_id';
@@ -51,6 +54,9 @@ class BranchFields {
   static String qr_product_sequence = 'qr_product_sequence';
   static String show_qr_history = 'show_qr_history';
   static String firestore_db_version = 'firestore_db_version';
+  static String generate_sales = 'generate_sales';
+  static String allow_einvoice = 'allow_einvoice';
+  static String einvoice_status = 'einvoice_status';
 }
 
 class Branch {
@@ -78,6 +84,9 @@ class Branch {
   int? qr_product_sequence;
   String? show_qr_history;
   int? firestore_db_version;
+  int? generate_sales;
+  int? allow_einvoice;
+  int? einvoice_status;
 
   Branch({
     this.branch_id,
@@ -103,10 +112,19 @@ class Branch {
     this.qr_show_sku,
     this.qr_product_sequence,
     this.show_qr_history,
-    this.firestore_db_version
+    this.firestore_db_version,
+    this.generate_sales,
+    this.allow_einvoice,
+    this.einvoice_status
   });
 
-  Branch copy({int? branch_id, String? name}) => Branch(
+  Branch copy({
+    int? branch_id,
+    String? name,
+    int? generate_sales,
+    int? allow_einvoice,
+    int? einvoice_status
+  }) => Branch(
     branch_id: branch_id ?? this.branch_id,
     branch_url: branch_url ?? this.branch_url,
     name: name ?? this.name,
@@ -129,7 +147,10 @@ class Branch {
     allow_livedata: allow_livedata ?? this.allow_livedata,
     qr_show_sku: qr_show_sku ?? this.qr_show_sku,
     qr_product_sequence: qr_product_sequence ?? this.qr_product_sequence,
-    show_qr_history: show_qr_history ?? this.show_qr_history
+    show_qr_history: show_qr_history ?? this.show_qr_history,
+    generate_sales: generate_sales ?? this.generate_sales,
+    allow_einvoice: allow_einvoice ?? this.allow_einvoice,
+    einvoice_status: einvoice_status ?? this.einvoice_status
   );
 
   factory Branch.fromJson(Map<String, dynamic> json) {
@@ -157,7 +178,10 @@ class Branch {
       qr_show_sku: json[BranchFields.qr_show_sku] as int?,
       qr_product_sequence: json[BranchFields.qr_product_sequence] as int?,
       show_qr_history: json[BranchFields.show_qr_history] as String?,
-      firestore_db_version: json[BranchFields.firestore_db_version] as int?
+      firestore_db_version: json[BranchFields.firestore_db_version] as int?,
+      generate_sales: json[BranchFields.generate_sales] as int?,
+      allow_einvoice: json[BranchFields.allow_einvoice] as int?,
+      einvoice_status: json[BranchFields.einvoice_status] as int?
     );
   }
 
@@ -184,7 +208,10 @@ class Branch {
     BranchFields.allow_livedata: allow_livedata,
     BranchFields.qr_show_sku: qr_show_sku,
     BranchFields.qr_product_sequence: qr_product_sequence,
-    BranchFields.show_qr_history: show_qr_history
+    BranchFields.show_qr_history: show_qr_history,
+    BranchFields.generate_sales: generate_sales,
+    BranchFields.allow_einvoice: allow_einvoice,
+    BranchFields.einvoice_status: einvoice_status
   };
 
   Map<String, Object?> toFirestoreJson() => {

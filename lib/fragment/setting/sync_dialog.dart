@@ -2,9 +2,12 @@ import 'dart:async';
 
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/firebase_sync/sync_to_firebase.dart';
 import 'package:pos_system/object/sync_to_cloud.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../main.dart';
 import '../../translation/AppLocalizations.dart';
@@ -17,7 +20,8 @@ enum SyncType {
 
 class SyncDialog extends StatefulWidget {
   final SyncType syncType;
-  const SyncDialog({Key? key, required this.syncType}) : super(key: key);
+  final Function() callBack;
+  const SyncDialog({Key? key, required this.syncType, required this.callBack}) : super(key: key);
 
   @override
   State<SyncDialog> createState() => _SyncDialogState();
@@ -33,11 +37,15 @@ class _SyncDialogState extends State<SyncDialog> {
   Timer? timer;
   bool isButtonDisable = false;
 
+  DateFormat dateFormat = DateFormat("HH:mm:ss");
+  String unsyncedData = "";
+
   @override
   void initState() {
     super.initState();
     contentStream = controller.stream.asBroadcastStream();
     actionStream = actionController.stream.asBroadcastStream();
+    calUnsyncedData();
     listenAction();
   }
 
@@ -46,6 +54,10 @@ class _SyncDialogState extends State<SyncDialog> {
     streamSubscription.cancel();
     timer?.cancel();
     super.dispose();
+  }
+
+  calUnsyncedData() async {
+    unsyncedData = await PosDatabase.instance.getUnsyncedData();
   }
 
   listenAction(){
@@ -66,6 +78,12 @@ class _SyncDialogState extends State<SyncDialog> {
         case 'close': {
           isButtonDisable = true;
           Navigator.of(context).pop(true);
+        }
+        break;
+        case 'pause': {
+          // isSyncing = false;
+          isPaused = true;
+          // Navigator.of(context).pop(true);
         }
         break;
         case SyncType.firestore_sync: {
@@ -92,13 +110,18 @@ class _SyncDialogState extends State<SyncDialog> {
                 return Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(AppLocalizations.of(context)!.translate('sync_done')),
+                    Text(isPaused ? AppLocalizations.of(context)!.translate('sync_paused') : AppLocalizations.of(context)!.translate('sync_done')),
                     SizedBox(height: 15),
                     ElevatedButton(
                       onPressed: isButtonDisable ? null : () {
-                        actionController.sink.add("close");
+                        if(isPaused){
+                          actionController.sink.add("retry");
+                        } else {
+                          actionController.sink.add("close");
+                        }
+                        widget.callBack();
                       },
-                      child: Icon(Icons.done, color: Colors.white),
+                      child: Icon(isPaused ? Icons.play_arrow : Icons.done, color: Colors.white),
                       style: ElevatedButton.styleFrom(
                         shape: CircleBorder(),
                         padding: EdgeInsets.all(20)
@@ -115,6 +138,7 @@ class _SyncDialogState extends State<SyncDialog> {
                     ElevatedButton(
                       onPressed: isButtonDisable ? null : () {
                         actionController.sink.add("close");
+                        widget.callBack();
                       },
                       child: Icon(Icons.close, color: Colors.white),
                       style: ElevatedButton.styleFrom(
@@ -139,7 +163,29 @@ class _SyncDialogState extends State<SyncDialog> {
                   ],
                 );
               } else {
-                return CustomProgressBar();
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    StreamBuilder<int>(
+                      stream: Stream.periodic(Duration(milliseconds: 500), (count) => count % 4),
+                      builder: (context, snapshot) {
+                        String dots = '.' * (snapshot.data ?? 0 + 1);
+                        return Text(!isPaused ? "${AppLocalizations.of(context)!.translate('syncing')}$dots" : "${AppLocalizations.of(context)!.translate('pausing')}$dots");
+                      },
+                    ),
+                    SizedBox(height: 15),
+                    ElevatedButton(
+                      onPressed: isButtonDisable ? null : () {
+                        actionController.sink.add("pause");
+                      },
+                      child: Icon(Icons.pause, color: Colors.white),
+                      style: ElevatedButton.styleFrom(
+                          shape: CircleBorder(),
+                          padding: EdgeInsets.all(20)
+                      ),
+                    ),
+                  ],
+                );
               }
             }),
       ),
@@ -147,6 +193,7 @@ class _SyncDialogState extends State<SyncDialog> {
         ElevatedButton.icon(
           onPressed: isButtonDisable ? null : () {
             actionController.sink.add("close");
+            widget.callBack();
           },
           style: ElevatedButton.styleFrom(
               backgroundColor: Colors.redAccent
@@ -197,10 +244,10 @@ class _SyncDialogState extends State<SyncDialog> {
         syncRecord.count = 1;
         await syncRecord.syncFromCloud();
         syncRecord.count = 0;
-        FLog.info(
-          className: "sync_dialog",
-          text: "Manual sync: Start",
-        );
+        // FLog.info(
+        //   className: "sync_dialog",
+        //   text: "Manual sync: Start",
+        // );
       }
     }catch(e){
       syncRecord.count = 0;
@@ -213,30 +260,49 @@ class _SyncDialogState extends State<SyncDialog> {
   }
 
   syncToCloudChecking() async {
+    DateTime startSync = DateTime.now();
     try{
       int status = 0;
       if(mainSyncToCloud.count == 0){
         mainSyncToCloud.count = 1;
         //start sync
-        if(!isSyncing){
+        if(!isSyncisSyncingingNotifier.value){
           print("sync called from sync dialog");
-          isSyncing = true;
+          isSyncisSyncingingNotifier.value = true;
           do{
+            widget.callBack();
             status = await syncToCloud.syncAllToCloud(isManualSync: true);
           }while(syncToCloud.emptyResponse == false);
           if(syncToCloud.emptyResponse == true){
-            isSyncing = false;
+            isSyncisSyncingingNotifier.value = false;
+            isPaused = false;
           }
           mainSyncToCloud.count = 0;
+          final prefs = await SharedPreferences.getInstance();
+          if(prefs.getInt('new_sync') == null){
+            await prefs.setInt('new_sync', 0);
+          }
           Future.delayed(const Duration(seconds: 2), () {
             if(status == 0){
+              // if(prefs.getInt('new_sync') == 1) {
+                print("sync take time: ${DateTime.now().difference(startSync).inSeconds} seconds");
+                FLog.info(
+                  className: "sync_dialog",
+                  text: "New Sync(Beta) | $unsyncedData |  ${DateTime.now().difference(startSync).inSeconds} seconds",
+                  exception: "Sync Start: ${dateFormat.format(startSync)}\n"
+                      "Sync End: ${dateFormat.format(DateTime.now())}\n"
+                      "Sync take time: ${DateTime.now().difference(startSync).inSeconds} seconds",
+                );
+
               controller.sink.add("refresh");
             } else {
               controller.sink.addError(Exception("Sync failed"));
             }
+            widget.callBack();
           });
         } else {
-          isSyncing = true;
+          isSyncisSyncingingNotifier.value = true;
+          controller.sink.add("refresh");
           print("sync to cloud is running");
         }
       } else {
@@ -251,7 +317,7 @@ class _SyncDialogState extends State<SyncDialog> {
               status = await syncToCloud.syncAllToCloud(isManualSync: true);
             }while(syncToCloud.emptyResponse == false);
             if(syncToCloud.emptyResponse == true){
-              isSyncing = false;
+              isSyncisSyncingingNotifier.value = false;
             }
             mainSyncToCloud.count = 0;
 

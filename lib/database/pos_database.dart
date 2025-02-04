@@ -32,6 +32,7 @@ import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/receipt.dart';
 import 'package:pos_system/object/refund.dart';
 import 'package:pos_system/object/sale.dart';
+import 'package:pos_system/object/sales_per_day/category_sales_per_day.dart';
 import 'package:pos_system/object/settlement.dart';
 import 'package:pos_system/object/subscription.dart';
 import 'package:pos_system/object/table.dart';
@@ -55,6 +56,10 @@ import '../object/color.dart';
 import '../object/dynamic_qr.dart';
 import '../object/order_promotion_detail.dart';
 import '../object/printer.dart';
+import '../object/sales_per_day/dining_sales_per_day.dart';
+import '../object/sales_per_day/modifier_sales_per_day.dart';
+import '../object/sales_per_day/product_sales_per_day.dart';
+import '../object/sales_per_day/sales_per_day.dart';
 import '../object/second_screen.dart';
 import '../object/settlement_link_payment.dart';
 
@@ -83,7 +88,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 34, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
+    return await openDatabase(path, version: 35, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
   }
 
 /*
@@ -1260,9 +1265,9 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableSettlement(settlement_id, settlement_key, company_id, branch_id, total_bill, '
-        'total_sales, total_refund_bill, total_refund_amount, total_discount, total_cancellation, total_charge, total_tax, '
+        'total_sales, total_refund_bill, total_refund_amount, total_discount, total_cancellation, total_charge, total_tax, total_rounding, '
         'settlement_by_user_id, settlement_by, status, sync_status, opened_at, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?, ?, ?, ?, ?)',
+        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.settlement_id,
           data.settlement_key,
@@ -1276,6 +1281,7 @@ class PosDatabase {
           data.total_cancellation,
           data.total_charge,
           data.total_tax,
+          data.total_rounding,
           data.settlement_by_user_id,
           data.settlement_by,
           data.status,
@@ -3787,7 +3793,8 @@ class PosDatabase {
     final result = await db.rawQuery(
         'SELECT *, SUM(total_bill) AS all_bill, SUM(total_sales) AS all_sales, SUM(total_refund_bill) AS all_refund_bill, '
         'SUM(total_refund_amount) AS all_refund_amount, SUM(total_discount) AS all_discount, '
-        'SUM(total_tax) AS all_tax_amount, SUM(total_cancellation) AS all_cancellation, SUM(total_charge) AS all_charge_amount '
+        'SUM(total_tax) AS all_tax_amount, SUM(total_cancellation) AS all_cancellation, SUM(total_charge) AS all_charge_amount, '
+        'SUM(total_rounding) AS all_rounding_amount '
         'FROM $tableSettlement WHERE soft_delete = ? AND status = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ? GROUP BY SUBSTR(created_at, 1, 10) ORDER BY SUBSTR(created_at, 1, 10) DESC ',
         ['', 0, date1, date2]);
     return result.map((json) => Settlement.fromJson(json)).toList();
@@ -4154,14 +4161,16 @@ class PosDatabase {
   Future<List<OrderModifierDetail>> readAllPaidModifier(String mod_group_id, String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, COUNT(a.order_modifier_detail_sqlite_id) AS item_sum, SUM(a.mod_price + 0.0) AS net_sales '
+        'SELECT a.*, '
+            'SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN 1 ELSE b.quantity END) AS item_sum, '
+            'SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN a.mod_price * 1 + 0.0 ELSE a.mod_price * b.quantity + 0.0 END) AS net_sales '
         'FROM $tableOrderModifierDetail AS a JOIN $tableOrderDetail AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
         'JOIN $tableOrderCache AS c ON b.order_cache_sqlite_id = c.order_cache_sqlite_id '
         'JOIN $tableOrder AS d ON c.order_sqlite_id = d.order_sqlite_id '
         'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND c.accepted = ? AND c.cancel_by = ? AND d.soft_delete = ? '
         'AND a.mod_group_id = ? AND b.status = ? AND d.payment_status = ? '
         'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY a.mod_name  ',
-        ['', '', '', 0, '', '', mod_group_id, 0, 1, date1, date2]);
+        ['each', 'each_c', 'each', 'each_c', '', '', '', 0, '', '', mod_group_id, 0, 1, date1, date2]);
     return result.map((json) => OrderModifierDetail.fromJson(json)).toList();
   }
 
@@ -4187,8 +4196,9 @@ class PosDatabase {
 */
   Future<List<ModifierGroup>> readAllPaidModifierGroup(String date1, String date2) async {
     final db = await instance.database;
-    final result = await db.rawQuery(
-        'SELECT a.created_at, b.*, SUM(a.mod_price + 0.0) AS net_sales, COUNT(a.order_modifier_detail_sqlite_id) AS item_sum '
+    final result = await db.rawQuery('SELECT a.created_at, b.*, '
+        'SUM(CASE WHEN c.unit != ? AND c.unit != ? THEN 1 ELSE c.quantity END) AS item_sum, '
+        'SUM(CASE WHEN c.unit != ? AND c.unit != ? THEN a.mod_price * 1 + 0.0 ELSE a.mod_price * c.quantity + 0.0 END) AS net_sales '
         'FROM $tableOrderModifierDetail AS a JOIN $tableModifierGroup AS b ON a.mod_group_id = b.mod_group_id '
         'JOIN $tableOrderDetail AS c ON a.order_detail_sqlite_id = c.order_detail_sqlite_id '
         'JOIN $tableOrderCache AS d ON c.order_cache_sqlite_id = d.order_cache_sqlite_id '
@@ -4196,7 +4206,7 @@ class PosDatabase {
         'WHERE a.soft_delete = ? AND c.soft_delete = ? AND d.soft_delete = ? AND e.soft_delete = ? '
         'AND c.status = ? AND d.accepted = ? AND d.cancel_by = ? AND e.payment_status = ? '
         'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY b.mod_group_id  ',
-        ['', '', '', '', 0, 0, '', 1, date1, date2]);
+        ['each', 'each_c', 'each', 'each_c', '', '', '', '', 0, 0, '', 1, date1, date2]);
     return result.map((json) => ModifierGroup.fromJson(json)).toList();
   }
 
@@ -4224,7 +4234,7 @@ class PosDatabase {
   Future<List<OrderDetail>> readAllCategoryWithOrderDetail2(String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT b.*, SUM(b.original_price * b.quantity + 0.0) AS category_net_sales, SUM(b.price * b.quantity + 0.0) AS category_gross_sales, '
+        'SELECT b.*, SUM(b.original_price * b.quantity + 0.0) AS category_gross_sales, SUM(b.price * b.quantity + 0.0) AS category_net_sales, '
             'SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN 1 ELSE b.quantity END) AS category_item_sum '
             'FROM $tableOrderDetail AS b JOIN $tableOrderCache AS c ON b.order_cache_sqlite_id = c.order_cache_sqlite_id '
             'JOIN $tableOrder AS d ON c.order_sqlite_id = d.order_sqlite_id '
@@ -4241,7 +4251,7 @@ class PosDatabase {
   Future<List<OrderDetail>> readAllCategoryWithOrderDetail2WithOB(String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT b.*, SUM(b.original_price * b.quantity + 0.0) AS category_net_sales, SUM(b.price * b.quantity + 0.0) AS category_gross_sales, '
+        'SELECT b.*, SUM(b.original_price * b.quantity + 0.0) AS category_gross_sales, SUM(b.price * b.quantity + 0.0) AS category_net_sales, '
             'SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN 1 ELSE b.quantity END) AS category_item_sum '
             'FROM $tableOrderDetail AS b JOIN $tableOrderCache AS c ON b.order_cache_sqlite_id = c.order_cache_sqlite_id '
             'JOIN $tableOrder AS d ON c.order_sqlite_id = d.order_sqlite_id JOIN $tableCashRecord AS e on d.settlement_key = e.settlement_key AND e.remark = ?'
@@ -4258,7 +4268,7 @@ class PosDatabase {
   Future<List<OrderDetail>> readAllPaidOrderDetailWithCategory2(String category_name, String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.created_at, a.product_name, a.product_variant_name, a.unit, SUM(a.original_price * a.quantity + 0.0) AS net_sales, SUM(a.price * a.quantity + 0.0) AS gross_price, '
+        'SELECT a.created_at, a.product_name, a.product_variant_name, a.unit, SUM(a.original_price * a.quantity + 0.0) AS gross_price, SUM(a.price * a.quantity + 0.0) AS net_sales, '
             'SUM(CASE WHEN a.unit != ? AND a.unit != ? THEN a.per_quantity_unit * a.quantity ELSE a.quantity END) AS item_sum, '
             'SUM(CASE WHEN a.unit != ? THEN 1 ELSE 0 END) AS item_qty '
             'FROM $tableOrderDetail AS a JOIN $tableOrderCache AS b ON a.order_cache_sqlite_id = b.order_cache_sqlite_id '
@@ -4276,7 +4286,7 @@ class PosDatabase {
   Future<List<OrderDetail>> readAllPaidOrderDetailWithCategory2WithOB(String category_name, String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.created_at, a.product_name, a.product_variant_name, a.unit, SUM(a.original_price * a.quantity + 0.0) AS net_sales, SUM(a.price * a.quantity + 0.0) AS gross_price, '
+        'SELECT a.created_at, a.product_name, a.product_variant_name, a.unit, SUM(a.original_price * a.quantity + 0.0) AS gross_price, SUM(a.price * a.quantity + 0.0) AS net_sales, '
             'SUM(CASE WHEN a.unit != ? AND a.unit != ? THEN a.per_quantity_unit * a.quantity ELSE a.quantity END) AS item_sum, '
             'SUM(CASE WHEN a.unit != ? THEN 1 ELSE 0 END) AS item_qty '
             'FROM $tableOrderDetail AS a JOIN $tableOrderCache AS b ON a.order_cache_sqlite_id = b.order_cache_sqlite_id '
@@ -4492,29 +4502,29 @@ class PosDatabase {
 /*
   read all order
 */
-  Future<List<Order>> readAllOrder() async {
+  Future<List<Order>> readAllOrder(String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.payment_type_id '
         'FROM $tableOrder AS a LEFT JOIN $tablePaymentLinkCompany AS b '
         'ON a.payment_link_company_id = b.payment_link_company_id '
-        'WHERE a.soft_delete = ? AND a.payment_status != ? ORDER BY a.created_at DESC',
-        ['', 0]);
+        'WHERE a.soft_delete = ? AND a.payment_status != ? AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? ORDER BY a.created_at DESC',
+        ['', 0, date1, date2]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
 /*
   read all order with opening balance
 */
-  Future<List<Order>> readAllOrderWithOB() async {
+  Future<List<Order>> readAllOrderWithOB(String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.payment_type_id, c.created_at AS counterOpenDate '
             'FROM $tableOrder AS a LEFT JOIN $tablePaymentLinkCompany AS b '
             'ON a.payment_link_company_id = b.payment_link_company_id '
-            'JOIN $tableCashRecord AS c on a.settlement_key = c.settlement_key AND c.remark = ?'
-            'WHERE a.soft_delete = ? AND a.payment_status != ? ORDER BY c.created_at DESC',
-        ['Opening Balance', '', 0]);
+            'JOIN $tableCashRecord AS c on a.settlement_key = c.settlement_key AND c.remark = ? '
+            'WHERE a.soft_delete = ? AND a.payment_status != ? AND SUBSTR(c.created_at, 1, 10) >= ? AND SUBSTR(c.created_at, 1, 10) < ? ORDER BY c.created_at DESC',
+        ['Opening Balance', '', 0, date1, date2]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
@@ -4705,12 +4715,31 @@ class PosDatabase {
 /*
   get not yet settlement order
 */
+  Future<List<Order>> readAllNotSettlementOrderSpecial() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT o.created_at, SUM(o.final_amount) AS total_sales, '
+            'SUM(opd.promotion_amount) as total_promo_amount, '
+            'SUM(CASE WHEN td.type = ? THEN td.tax_amount ELSE 0 END) as total_charge_amount, '
+            'SUM(CASE WHEN td.type = ? THEN td.tax_amount ELSE 0 END) AS total_tax_amount '
+            'FROM $tableOrder as o '
+            'LEFT JOIN $tableOrderPromotionDetail as opd ON o.order_sqlite_id = opd.order_sqlite_id '
+            'LEFT JOIN $tableOrderTaxDetail td ON opd.order_sqlite_id = td.order_sqlite_id GROUP BY SUBSTR(o.created_at, 1, 10)',
+        ['0', '1']);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  get not yet settlement order
+*/
   Future<List<Order>> readAllNotSettlementPaidOrder() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT *, (SELECT SUM(final_amount + 0.0) FROM $tableOrder WHERE settlement_key = ? AND refund_key = ?) AS gross_sales '
+        'SELECT *, '
+            '(SELECT SUM(final_amount + 0.0) FROM $tableOrder WHERE settlement_key = ? AND refund_key = ?) AS gross_sales,'
+            '(SELECT SUM(rounding + 0.0) FROM $tableOrder WHERE settlement_key = ? AND refund_key = ?) AS total_rounding '
         'FROM $tableOrder WHERE soft_delete = ? AND settlement_key = ? ',
-        ['', '', '', '']);
+        ['', '', '', '', '', '']);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
@@ -5451,7 +5480,8 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableBranch SET name = ?, logo = ?,  address = ?, phone = ?, email = ?, '
         'qr_order_status = ?, sub_pos_status = ?, attendance_status = ?, register_no = ?, allow_firestore = ?, '
-        'allow_livedata = ?, qr_show_sku = ?, qr_product_sequence = ?, show_qr_history = ? '
+        'allow_livedata = ?, qr_show_sku = ?, qr_product_sequence = ?, show_qr_history = ?, generate_sales = ?, '
+        'allow_einvoice = ?, einvoice_status = ? '
         'WHERE branch_id = ? ',
         [
           data.name,
@@ -5468,6 +5498,9 @@ class PosDatabase {
           data.qr_show_sku,
           data.qr_product_sequence,
           data.show_qr_history,
+          data.generate_sales,
+          data.allow_einvoice,
+          data.einvoice_status,
           data.branch_id,
         ]);
   }
@@ -7084,9 +7117,9 @@ class PosDatabase {
 /*
   update order(from cloud)
 */
-  Future<int> updateOrderSyncStatusFromCloud(String order_key) async {
+  Future<int> updateOrderSyncStatusFromCloud(String order_key, {String? settlement_key}) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableOrder SET sync_status = ? WHERE order_key = ?', [1, order_key]);
+    return await db.rawUpdate('UPDATE $tableOrder SET sync_status = ? WHERE order_key = ? AND settlement_key = ?', [1, order_key, settlement_key]);
   }
 
 /*
@@ -7159,6 +7192,16 @@ class PosDatabase {
   Future<int> updateCashRecordSyncStatusFromCloud(String cash_record_key) async {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableCashRecord SET sync_status = ? WHERE cash_record_key = ?', [1, cash_record_key]);
+  }
+
+  Future<int> resetAllDataToUnsynced() async {
+    final db = await instance.database;
+    await db.rawUpdate('UPDATE $tableCashRecord SET sync_status = ? WHERE cash_record_key != ?', [0, '']);
+    await db.rawUpdate('UPDATE $tableOrder SET sync_status = ? WHERE order_key != ?', [0, '']);
+    await db.rawUpdate('UPDATE $tableOrderCache SET sync_status = ? WHERE order_cache_key != ?', [0, '']);
+    await db.rawUpdate('UPDATE $tableOrderDetail SET sync_status = ? WHERE order_detail_key != ?', [0, '']);
+    await db.rawUpdate('UPDATE $tableOrderModifierDetail SET sync_status = ? WHERE order_modifier_detail_key != ?', [0, '']);
+    return await db.rawUpdate('UPDATE $tableOrderTaxDetail SET sync_status = ? WHERE order_tax_detail_key != ?', [0, '']);
   }
 
 /*
@@ -7291,8 +7334,103 @@ class PosDatabase {
   }
 
 /*
+  update sales per day sync status (from cloud)
+*/
+  Future<int> updateSalesPerDaySyncStatusFromCloud(String date) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableSalesPerDay SET sync_status = ? WHERE date = ?', [1, date]);
+  }
+
+/*
+  update sales category per day sync status (from cloud)
+*/
+  Future<int> updateSalesCategoryPerDaySyncStatusFromCloud(String date, String category_id) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableSalesCategoryPerDay SET sync_status = ? WHERE date = ? AND category_id = ?', [1, date, category_id]);
+  }
+
+/*
+  update sales product per day sync status (from cloud)
+*/
+  Future<int> updateSalesProductPerDaySyncStatusFromCloud(String date, String product_id, int sales_product_per_day_sqlite_id) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableSalesProductPerDay SET sync_status = ? '
+        'WHERE date = ? AND product_id = ? AND sales_product_per_day_sqlite_id = ? ',
+        [1, date, product_id, sales_product_per_day_sqlite_id]);
+  }
+
+/*
+  update sales modifier per day sync status (from cloud)
+*/
+  Future<int> updateSalesModifierPerDaySyncStatusFromCloud(String date, String mod_item_id) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableSalesModifierPerDay SET sync_status = ? WHERE date = ? AND mod_item_id = ?', [1, date, mod_item_id]);
+  }
+
+/*
+  update sales dining per day sync status (from cloud)
+*/
+  Future<int> updateSalesDiningPerDaySyncStatusFromCloud(String date) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableSalesDiningPerDay SET sync_status = ? WHERE date = ?', [1, date]);
+  }
+
+/*
   ----------------------Sync to cloud(update)--------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+  Future<String> getUnsyncedData() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('''
+  WITH table_counts AS (
+    SELECT 'tb_cash_record' AS table_name, 
+           COUNT(*) AS count, 
+           COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) AS unsynced 
+    FROM tb_cash_record
+    UNION ALL
+    SELECT 'tb_order', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order
+    UNION ALL
+    SELECT 'tb_order_cache', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order_cache
+    UNION ALL
+    SELECT 'tb_order_detail', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order_detail
+    UNION ALL
+    SELECT 'tb_order_modifier_detail', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order_modifier_detail
+    UNION ALL
+    SELECT 'tb_order_tax_detail', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order_tax_detail
+    UNION ALL
+    SELECT 'tb_checklist', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_checklist
+    UNION ALL
+    SELECT 'tb_attendance', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_attendance
+    UNION ALL
+    SELECT 'tb_modifier_link_product', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_modifier_link_product
+    UNION ALL
+    SELECT 'tb_order_detail_cancel', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order_detail_cancel
+    UNION ALL
+    SELECT 'tb_order_payment_split', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order_payment_split
+    UNION ALL
+    SELECT 'tb_order_promotion_detail', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order_promotion_detail
+    UNION ALL
+    SELECT 'tb_refund', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_refund
+    UNION ALL
+    SELECT 'tb_settlement', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_settlement
+    UNION ALL
+    SELECT 'tb_settlement_link_payment', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_settlement_link_payment
+    UNION ALL
+    SELECT 'tb_table_use', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_table_use
+    UNION ALL
+    SELECT 'tb_table_use_detail', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_table_use_detail
+    UNION ALL
+    SELECT 'tb_table', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_table
+    UNION ALL
+    SELECT 'tb_transfer_owner', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_transfer_owner
+    UNION ALL
+    SELECT 'tb_dynamic_qr', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_dynamic_qr
+)
+SELECT SUM(unsynced) AS unsynced 
+FROM table_counts;
+''');
+    return result[0]['unsynced'].toString();
+  }
 
 /*
   read all not yet sync to cloud updated cash record
@@ -7307,16 +7445,16 @@ class PosDatabase {
 /*
   read all not yet sync to cloud updated pos table
 */
-  Future<List<PosTable>> readAllNotSyncUpdatedPosTable() async {
+  Future<List<PosTable>> readAllNotSyncUpdatedPosTable(int dataSelectLimit) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tablePosTable WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ', ['', 1]);
+    final result = await db.rawQuery('SELECT * FROM $tablePosTable WHERE soft_delete = ? AND sync_status != ? LIMIT ? ', ['', 1, dataSelectLimit]);
 
     return result.map((json) => PosTable.fromJson(json)).toList();
   }
 
-  Future<List<Product>> readAllNotSyncUpdatedProduct() async {
+  Future<List<Product>> readAllNotSyncUpdatedProduct(int dataSelectLimit) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableProduct WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ', ['', 1]);
+    final result = await db.rawQuery('SELECT * FROM $tableProduct WHERE soft_delete = ? AND sync_status != ? LIMIT ? ', ['', 1, dataSelectLimit]);
     return result.map((json) => Product.fromJson(json)).toList();
   }
 
@@ -7414,11 +7552,61 @@ class PosDatabase {
 */
 
 /*
+  read all not yet sync sales dining per day
+*/
+  Future<List<SalesDiningPerDay>> readAllNotSyncSalesDiningPerDay(int dataSelectLimit) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableSalesDiningPerDay WHERE sync_status != ? LIMIT ? ', [1, dataSelectLimit]);
+
+    return result.map((json) => SalesDiningPerDay.fromJson(json)).toList();
+  }
+
+/*
+  read all not yet sync sales modifier per day
+*/
+  Future<List<SalesModifierPerDay>> readAllNotSyncSalesModifierPerDay(int dataSelectLimit) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableSalesModifierPerDay WHERE sync_status != ? LIMIT ? ', [1, dataSelectLimit]);
+
+    return result.map((json) => SalesModifierPerDay.fromJson(json)).toList();
+  }
+
+/*
+  read all not yet sync sales product per day
+*/
+  Future<List<SalesProductPerDay>> readAllNotSyncSalesProductPerDay(int dataSelectLimit) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableSalesProductPerDay WHERE sync_status != ? LIMIT ? ', [1, dataSelectLimit]);
+
+    return result.map((json) => SalesProductPerDay.fromJson(json)).toList();
+  }
+
+/*
+  read all not yet sync sales category per day
+*/
+  Future<List<SalesCategoryPerDay>> readAllNotSyncSalesCategoryPerDay(int dataSelectLimit) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableSalesCategoryPerDay WHERE sync_status != ? LIMIT ? ', [1, dataSelectLimit]);
+
+    return result.map((json) => SalesCategoryPerDay.fromJson(json)).toList();
+  }
+
+/*
+  read all not yet sync sales per day
+*/
+  Future<List<SalesPerDay>> readAllNotSyncSalesPerDay(int dataSelectLimit) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableSalesPerDay WHERE sync_status != ? LIMIT ? ', [1, dataSelectLimit]);
+
+    return result.map((json) => SalesPerDay.fromJson(json)).toList();
+  }
+
+/*
   read all not yet sync cancel receipt
 */
-  Future<List<CancelReceipt>> readAllNotSyncCancelReceipt() async {
+  Future<List<CancelReceipt>> readAllNotSyncCancelReceipt(int dataSelectLimit) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableCancelReceipt WHERE sync_status != ? LIMIT 10 ', [1]);
+    final result = await db.rawQuery('SELECT * FROM $tableCancelReceipt WHERE sync_status != ? LIMIT ? ', [1, dataSelectLimit]);
 
     return result.map((json) => CancelReceipt.fromJson(json)).toList();
   }
@@ -7426,9 +7614,9 @@ class PosDatabase {
 /*
   read all not yet sync dynamic qr
 */
-  Future<List<DynamicQR>> readAllNotSyncDynamicQr() async {
+  Future<List<DynamicQR>> readAllNotSyncDynamicQr(int dataSelectLimit) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableDynamicQR WHERE sync_status != ? LIMIT 10 ', [1]);
+    final result = await db.rawQuery('SELECT * FROM $tableDynamicQR WHERE sync_status != ? LIMIT ? ', [1, dataSelectLimit]);
 
     return result.map((json) => DynamicQR.fromJson(json)).toList();
   }
@@ -7436,9 +7624,9 @@ class PosDatabase {
 /*
   read all not yet sync checklist
 */
-  Future<List<Checklist>> readAllNotSyncChecklist() async {
+  Future<List<Checklist>> readAllNotSyncChecklist(int dataSelectLimit) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableChecklist WHERE sync_status != ? LIMIT 10 ', [1]);
+    final result = await db.rawQuery('SELECT * FROM $tableChecklist WHERE sync_status != ? LIMIT ? ', [1, dataSelectLimit]);
 
     return result.map((json) => Checklist.fromJson(json)).toList();
   }
@@ -7446,9 +7634,9 @@ class PosDatabase {
 /*
   read all not yet sync kitchen list
 */
-  Future<List<KitchenList>> readAllNotSyncKitchenList() async {
+  Future<List<KitchenList>> readAllNotSyncKitchenList(int dataSelectLimit) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableKitchenList WHERE sync_status != ? LIMIT 10 ', [1]);
+    final result = await db.rawQuery('SELECT * FROM $tableKitchenList WHERE sync_status != ? LIMIT ? ', [1, dataSelectLimit]);
 
     return result.map((json) => KitchenList.fromJson(json)).toList();
   }
@@ -7456,9 +7644,9 @@ class PosDatabase {
 /*
   read all not yet sync attendance
 */
-  Future<List<Attendance>> readAllNotSyncAttendance() async {
+  Future<List<Attendance>> readAllNotSyncAttendance(int dataSelectLimit) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableAttendance WHERE sync_status != ? LIMIT 10 ', [1]);
+    final result = await db.rawQuery('SELECT * FROM $tableAttendance WHERE sync_status != ? LIMIT ? ', [1, dataSelectLimit]);
 
     return result.map((json) => Attendance.fromJson(json)).toList();
   }
@@ -7466,9 +7654,9 @@ class PosDatabase {
 /*
   read all not yet sync order payment split
 */
-  Future<List<OrderPaymentSplit>> readAllNotSyncOrderPaymentSplit() async {
+  Future<List<OrderPaymentSplit>> readAllNotSyncOrderPaymentSplit(int dataSelectLimit) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableOrderPaymentSplit WHERE sync_status != ? LIMIT 10 ', [1]);
+    final result = await db.rawQuery('SELECT * FROM $tableOrderPaymentSplit WHERE sync_status != ? LIMIT ? ', [1, dataSelectLimit]);
 
     return result.map((json) => OrderPaymentSplit.fromJson(json)).toList();
   }
@@ -7476,9 +7664,9 @@ class PosDatabase {
 /*
   read all not yet sync receipt
 */
-  Future<List<Receipt>> readAllNotSyncReceipt() async {
+  Future<List<Receipt>> readAllNotSyncReceipt(int dataSelectLimit) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableReceipt WHERE sync_status != ? LIMIT 10 ', [1]);
+    final result = await db.rawQuery('SELECT * FROM $tableReceipt WHERE sync_status != ? LIMIT ? ', [1, dataSelectLimit]);
 
     return result.map((json) => Receipt.fromJson(json)).toList();
   }
@@ -7486,12 +7674,12 @@ class PosDatabase {
 /*
   read all not yet sync printer link category
 */
-  Future<List<PrinterLinkCategory>> readAllNotSyncPrinterLinkCategory() async {
+  Future<List<PrinterLinkCategory>> readAllNotSyncPrinterLinkCategory(int dataSelectLimit) async {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.* FROM $tablePrinterLinkCategory AS a JOIN $tablePrinter AS b ON a.printer_key = b.printer_key '
-        'WHERE b.type = ? AND a.sync_status != ? LIMIT 10 ',
-        [1, 1]);
+        'WHERE b.type = ? AND a.sync_status != ? LIMIT ? ',
+        [1, 1, dataSelectLimit]);
 
     return result.map((json) => PrinterLinkCategory.fromJson(json)).toList();
   }
@@ -7509,9 +7697,9 @@ class PosDatabase {
 /*
   read all not yet sync branch link product
 */
-  Future<List<BranchLinkProduct>> readAllNotSyncBranchLinkProduct() async {
+  Future<List<BranchLinkProduct>> readAllNotSyncBranchLinkProduct(int dataSelectLimit) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableBranchLinkProduct WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ', ['', 1]);
+    final result = await db.rawQuery('SELECT * FROM $tableBranchLinkProduct WHERE soft_delete = ? AND sync_status != ? LIMIT ? ', ['', 1, dataSelectLimit]);
 
     return result.map((json) => BranchLinkProduct.fromJson(json)).toList();
   }
@@ -7519,9 +7707,9 @@ class PosDatabase {
 /*
   read all not yet sync refund
 */
-  Future<List<Refund>> readAllNotSyncRefund() async {
+  Future<List<Refund>> readAllNotSyncRefund(int dataSelectLimit) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableRefund WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ', ['', 1]);
+    final result = await db.rawQuery('SELECT * FROM $tableRefund WHERE soft_delete = ? AND sync_status != ? LIMIT ? ', ['', 1, dataSelectLimit]);
 
     return result.map((json) => Refund.fromJson(json)).toList();
   }
@@ -7529,9 +7717,9 @@ class PosDatabase {
 /*
   read all not yet sync settlement link payment
 */
-  Future<List<SettlementLinkPayment>> readAllNotSyncSettlementLinkPayment() async {
+  Future<List<SettlementLinkPayment>> readAllNotSyncSettlementLinkPayment(int dataSelectLimit) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableSettlementLinkPayment WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ', ['', 1]);
+    final result = await db.rawQuery('SELECT * FROM $tableSettlementLinkPayment WHERE soft_delete = ? AND sync_status != ? LIMIT ? ', ['', 1, dataSelectLimit]);
 
     return result.map((json) => SettlementLinkPayment.fromJson(json)).toList();
   }
@@ -7539,9 +7727,9 @@ class PosDatabase {
 /*
   read all not yet sync settlement
 */
-  Future<List<Settlement>> readAllNotSyncSettlement() async {
+  Future<List<Settlement>> readAllNotSyncSettlement(int dataSelectLimit) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableSettlement WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ', ['', 1]);
+    final result = await db.rawQuery('SELECT * FROM $tableSettlement WHERE soft_delete = ? AND sync_status != ? LIMIT ? ', ['', 1, dataSelectLimit]);
 
     return result.map((json) => Settlement.fromJson(json)).toList();
   }
@@ -7549,9 +7737,9 @@ class PosDatabase {
 /*
   read all not yet sync to cloud transfer owner
 */
-  Future<List<TransferOwner>> readAllNotSyncTransferOwner() async {
+  Future<List<TransferOwner>> readAllNotSyncTransferOwner(int dataSelectLimit) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableTransferOwner WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ', ['', 1]);
+    final result = await db.rawQuery('SELECT * FROM $tableTransferOwner WHERE soft_delete = ? AND sync_status != ? LIMIT ? ', ['', 1, dataSelectLimit]);
 
     return result.map((json) => TransferOwner.fromJson(json)).toList();
   }
@@ -7559,9 +7747,9 @@ class PosDatabase {
 /*
   read all not yet sync to cloud cash record
 */
-  Future<List<CashRecord>> readAllNotSyncCashRecord() async {
+  Future<List<CashRecord>> readAllNotSyncCashRecord(int dataSelectLimit) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableCashRecord WHERE soft_delete = ? AND sync_status != ? LIMIT 10', ['', 1]);
+    final result = await db.rawQuery('SELECT * FROM $tableCashRecord WHERE soft_delete = ? AND sync_status != ? LIMIT ?', ['', 1, dataSelectLimit]);
 
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }
@@ -7578,13 +7766,13 @@ class PosDatabase {
 /*
   read all not yet sync to cloud table_use_detail
 */
-  Future<List<TableUseDetail>> readAllNotSyncTableUseDetail() async {
+  Future<List<TableUseDetail>> readAllNotSyncTableUseDetail(int dataSelectLimit) async {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.status, a.table_use_key, a.table_use_detail_key, CAST(b.table_id AS TEXT) AS table_id '
         'FROM $tableTableUseDetail AS a JOIN $tablePosTable AS b ON a.table_sqlite_id = b.table_sqlite_id '
-        'WHERE b.soft_delete = ? AND a.table_use_detail_key != ? AND a.sync_status != ? LIMIT 10 ',
-        ['', '', 1]);
+        'WHERE b.soft_delete = ? AND a.table_use_detail_key != ? AND a.sync_status != ? LIMIT ? ',
+        ['', '', 1, dataSelectLimit]);
 
     return result.map((json) => TableUseDetail.fromJson(json)).toList();
   }
@@ -7592,9 +7780,9 @@ class PosDatabase {
 /*
   read all not yet sync to cloud table use
 */
-  Future<List<TableUse>> readAllNotSyncTableUse() async {
+  Future<List<TableUse>> readAllNotSyncTableUse(int dataSelectLimit) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableTableUse WHERE table_use_key != ? AND sync_status != ? LIMIT 10 ', ['', 1]);
+    final result = await db.rawQuery('SELECT * FROM $tableTableUse WHERE table_use_key != ? AND sync_status != ? LIMIT ? ', ['', 1, dataSelectLimit]);
 
     return result.map((json) => TableUse.fromJson(json)).toList();
   }
@@ -7602,10 +7790,10 @@ class PosDatabase {
 /*
   read all not yet sync to cloud order modifier detail
 */
-  Future<List<OrderModifierDetail>> readAllNotSyncOrderModDetail() async {
+  Future<List<OrderModifierDetail>> readAllNotSyncOrderModDetail(int dataSelectLimit) async {
     final db = await instance.database;
     final result =
-        await db.rawQuery('SELECT * FROM $tableOrderModifierDetail WHERE order_modifier_detail_key != ? AND soft_delete = ? AND sync_status != ? LIMIT 10 ', ['', '', 1]);
+        await db.rawQuery('SELECT * FROM $tableOrderModifierDetail WHERE order_modifier_detail_key != ? AND soft_delete = ? AND sync_status != ? LIMIT ? ', ['', '', 1, dataSelectLimit]);
 
     return result.map((json) => OrderModifierDetail.fromJson(json)).toList();
   }
@@ -7613,9 +7801,9 @@ class PosDatabase {
 /*
   read all not yet sync order detail cancel
 */
-  Future<List<OrderDetailCancel>> readAllNotSyncOrderDetailCancel() async {
+  Future<List<OrderDetailCancel>> readAllNotSyncOrderDetailCancel(int dataSelectLimit) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableOrderDetailCancel WHERE soft_delete = ? AND order_detail_cancel_key != ? AND sync_status != ? LIMIT 10 ', ['', '', 1]);
+    final result = await db.rawQuery('SELECT * FROM $tableOrderDetailCancel WHERE soft_delete = ? AND order_detail_cancel_key != ? AND sync_status != ? LIMIT ? ', ['', '', 1, dataSelectLimit]);
     return result.map((json) => OrderDetailCancel.fromJson(json)).toList();
   }
 
@@ -7623,7 +7811,7 @@ class PosDatabase {
   read all not yet sync to cloud order detail
 */
   Future<List<OrderDetail>>
-  readAllNotSyncOrderDetail() async {
+  readAllNotSyncOrderDetail(int dataSelectLimit) async {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.product_sku, a.per_quantity_unit, a.unit, a.status, '
@@ -7638,8 +7826,8 @@ class PosDatabase {
         'a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.category_name, a.order_cache_key, a.order_detail_key, 0 AS category_id, b.branch_link_product_id '
         'FROM $tableOrderDetail AS a '
         'JOIN $tableBranchLinkProduct AS b ON a.branch_link_product_sqlite_id = b.branch_link_product_sqlite_id '
-        'WHERE a.category_sqlite_id = ? AND a.soft_delete = ? AND b.soft_delete = ? AND a.order_detail_key != ? AND a.sync_status != ? LIMIT 10 ',
-        ['', '', '', '', 1, 0, '', '', '', 1]);
+        'WHERE a.category_sqlite_id = ? AND a.soft_delete = ? AND b.soft_delete = ? AND a.order_detail_key != ? AND a.sync_status != ? LIMIT ? ',
+        ['', '', '', '', 1, 0, '', '', '', 1, dataSelectLimit]);
 
     return result.map((json) => OrderDetail.fromJson(json)).toList();
   }
@@ -7647,18 +7835,18 @@ class PosDatabase {
 /*
   read all not yet sync to cloud order cache
 */
-  Future<List<OrderCache>> readAllNotSyncOrderCache() async {
+  Future<List<OrderCache>> readAllNotSyncOrderCache(int dataSelectLimit) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE order_cache_key != ? AND sync_status != ? LIMIT 10 ', ['', 1]);
+    final result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE order_cache_key != ? AND sync_status != ? LIMIT ? ', ['', 1, dataSelectLimit]);
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
 
 /*
   read all not yet sync to cloud order promotion details
 */
-  Future<List<OrderPromotionDetail>> readAllNotSyncOrderPromotionDetail() async {
+  Future<List<OrderPromotionDetail>> readAllNotSyncOrderPromotionDetail(int dataSelectLimit) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableOrderPromotionDetail WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ', ['', 1]);
+    final result = await db.rawQuery('SELECT * FROM $tableOrderPromotionDetail WHERE soft_delete = ? AND sync_status != ? LIMIT ? ', ['', 1, dataSelectLimit]);
 
     return result.map((json) => OrderPromotionDetail.fromJson(json)).toList();
   }
@@ -7666,9 +7854,9 @@ class PosDatabase {
 /*
   read all not yet sync to cloud order tax details
 */
-  Future<List<OrderTaxDetail>> readAllNotSyncOrderTaxDetail() async {
+  Future<List<OrderTaxDetail>> readAllNotSyncOrderTaxDetail(int dataSelectLimit) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableOrderTaxDetail WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ', ['', 1]);
+    final result = await db.rawQuery('SELECT * FROM $tableOrderTaxDetail WHERE soft_delete = ? AND sync_status != ? LIMIT ? ', ['', 1, dataSelectLimit]);
 
     return result.map((json) => OrderTaxDetail.fromJson(json)).toList();
   }
@@ -7676,9 +7864,9 @@ class PosDatabase {
 /*
   read all not yet sync to cloud orders
 */
-  Future<List<Order>> readAllNotSyncOrder() async {
+  Future<List<Order>> readAllNotSyncOrder(int dataSelectLimit) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableOrder WHERE soft_delete = ? AND order_key != ? AND sync_status != ? LIMIT 10 ', ['', '', 1]);
+    final result = await db.rawQuery('SELECT * FROM $tableOrder WHERE soft_delete = ? AND order_key != ? AND sync_status != ? LIMIT ? ', ['', '', 1, dataSelectLimit]);
 
     return result.map((json) => Order.fromJson(json)).toList();
   }

@@ -167,6 +167,7 @@ class CartPageState extends State<CartPage> {
   void dispose() {
     _timer?.cancel();
     reInitSecondDisplay(cartEmpty: true);
+    controller.sink.close();
     super.dispose();
   }
 
@@ -2011,7 +2012,7 @@ class CartPageState extends State<CartPage> {
     await getDiningTax(cart);
     await calPromotion(cart);
     getTaxAmount();
-    getRounding();
+    await getRounding();
     await getAllPaymentSplit(cart);
     await getAllTotal();
     checkCartItem(cart);

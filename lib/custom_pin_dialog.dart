@@ -10,7 +10,8 @@ import 'object/user.dart';
 
 enum Permission {
   editPrice,
-  adminOnly
+  adminOnly,
+  settlement
 }
 
 class CustomPinDialog extends StatefulWidget {
@@ -72,7 +73,16 @@ class _CustomPinDialogState extends State<CustomPinDialog> {
                 showToastResetTextFieldButton('no_permission');
               }
             }break;
-            case Permission.adminOnly: {
+            case Permission.settlement: {
+              if(userData.settlement_permission == 1){
+                Navigator.of(context).pop();
+                widget.callback();
+              } else {
+                showToastResetTextFieldButton('no_permission');
+              }
+            }break;
+            default: {
+              //admin only
               if(userData.role == 0){
                 Navigator.of(context).pop();
                 widget.callback();
@@ -84,11 +94,6 @@ class _CustomPinDialogState extends State<CustomPinDialog> {
         }
       } else {
         showToastResetTextFieldButton('user_not_found');
-        // Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('user_not_found')}");
-        // adminPosPinController.clear();
-        // setState(() {
-        //   isButtonDisabled = false;
-        // });
       }
     } catch(e, stackTrace){
       FLog.error(

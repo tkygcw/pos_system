@@ -434,7 +434,7 @@ class _PosPinPageState extends State<PosPinPage> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: SyncDialog(syncType: SyncType.sync),
+              child: SyncDialog(syncType: SyncType.sync, callBack: () {}),
             ),
           );
         },

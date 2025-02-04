@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
+import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
 import 'package:pos_system/object/branch.dart';
@@ -24,6 +25,7 @@ class BillLayout extends ReceiptLayout{
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
     Map branchObject = json.decode(branch!);
+    Branch branchData = Branch.fromJson(json.decode(branch));
     await readReceiptLayout('80');
     if(isRefund != null && isRefund == true){
       await getRefundOrder(orderId);
@@ -305,6 +307,14 @@ class BillLayout extends ReceiptLayout{
         PosColumn(text: 'Change', width: 8, styles: PosStyles(align: PosAlign.right)),
         PosColumn(text: '${this.paidOrder!.payment_change}', width: 4, styles: PosStyles(align: PosAlign.right)),
       ]);
+      if(branchData.allow_einvoice == 1 && branchData.einvoice_status == 1){
+        bytes += generator.hr();
+        bytes += generator.text('E-invoice', styles: PosStyles(bold: true, align: PosAlign.center));
+        bytes += generator.qrcode(generateQrUrl(branchData.branch_url!), size: QRSize.Size3, cor: QRCorrection.M);
+        bytes += generator.text('Request Timeline:', styles: PosStyles(bold: true));
+        bytes += generator.text('Last Date: 1st calender day of the following month');
+        bytes += generator.hr();
+      }
       //footer
       if(receipt!.footer_text_status == 1 && paidOrder!.payment_status == 1){
         bytes += generator.emptyLines(1);
@@ -340,6 +350,7 @@ class BillLayout extends ReceiptLayout{
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
     Map branchObject = json.decode(branch!);
+    Branch branchData = Branch.fromJson(json.decode(branch));
     await readReceiptLayout('58');
     if(isRefund != null && isRefund == true){
       await getRefundOrder(orderId);
@@ -624,6 +635,14 @@ class BillLayout extends ReceiptLayout{
         PosColumn(text: '${this.paidOrder!.payment_change}', width: 4),
       ]);
       bytes += generator.reset();
+      if(branchData.allow_einvoice == 1 && branchData.einvoice_status == 1){
+        bytes += generator.hr();
+        bytes += generator.text('E-invoice', styles: PosStyles(bold: true, align: PosAlign.center));
+        bytes += generator.qrcode(generateQrUrl(branchData.branch_url!), size: QRSize.Size3, cor: QRCorrection.M);
+        bytes += generator.text('Request Timeline:', styles: PosStyles(bold: true));
+        bytes += generator.text('Last Date: 1st calender day of the following month');
+        bytes += generator.hr();
+      }
       //footer
       if(receipt!.footer_text_status == 1 && paidOrder!.payment_status == 1){
         bytes += generator.emptyLines(1);
@@ -650,6 +669,10 @@ class BillLayout extends ReceiptLayout{
       );
       return null;
     }
+  }
+
+  String generateQrUrl(String branchUrl){
+    return '${Domain.einvoice}$branchUrl/${this.paidOrder!.generateOrderNumber().toString().replaceAll('#', '')}';
   }
 
   Future<img.Image> getBranchLogo(int header_image_size) async {

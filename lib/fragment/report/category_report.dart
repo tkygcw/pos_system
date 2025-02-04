@@ -225,7 +225,7 @@ class _CategoryReportState extends State<CategoryReport> {
                 Text(AppLocalizations.of(context)!.translate('category')+' - Other'),
               ),
               DataCell(Text(orderDetailCategoryData[i].category_item_sum is double ? '${orderDetailCategoryData[i].category_item_sum!.toStringAsFixed(2)}' : '${orderDetailCategoryData[i].category_item_sum}')),
-              DataCell(Text('${Utils.to2Decimal(orderDetailCategoryData[i].category_gross_sales!)}')),
+              DataCell(Text(orderDetailCategoryData[i].category_gross_sales!.toStringAsFixed(2))),
             ],
           ),
         ]);

@@ -232,13 +232,13 @@ class _RefundDialogState extends State<RefundDialog> {
                     }
                     Branch? data = await PosDatabase.instance.readLocalBranch();
                     if(data != null && data.allow_livedata == 1){
-                      if(!isSyncing){
-                        isSyncing = true;
+                      if(!isSyncisSyncingingNotifier.value){
+                        isSyncisSyncingingNotifier.value = true;
                         do{
                           await syncToCloud.syncAllToCloud(isManualSync: true);
                         }while(syncToCloud.emptyResponse == false);
                         if(syncToCloud.emptyResponse == true){
-                          isSyncing = false;
+                          isSyncisSyncingingNotifier.value = false;
                         }
                       }
                     }
@@ -264,13 +264,13 @@ class _RefundDialogState extends State<RefundDialog> {
           Navigator.of(context).pop(true);
           Branch? data = await PosDatabase.instance.readLocalBranch();
           if(data != null && data.allow_livedata == 1){
-            if(!isSyncing){
-              isSyncing = true;
+            if(!isSyncisSyncingingNotifier.value){
+              isSyncisSyncingingNotifier.value = true;
               do{
                 await syncToCloud.syncAllToCloud(isManualSync: true);
               }while(syncToCloud.emptyResponse == false);
               if(syncToCloud.emptyResponse == true){
-                isSyncing = false;
+                isSyncisSyncingingNotifier.value = false;
               }
             }
           }

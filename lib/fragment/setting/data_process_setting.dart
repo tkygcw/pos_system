@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/custom_pin_dialog.dart';
+import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/fragment/setting/product_img_sync/sync_dialog.dart';
 import 'package:pos_system/fragment/setting/sync_dialog.dart';
 import 'package:pos_system/fragment/setting/system_log_dialog.dart';
 import 'package:pos_system/notifier/theme_color.dart';
@@ -27,17 +29,28 @@ class DataProcessingSetting extends StatefulWidget {
   State<DataProcessingSetting> createState() => _DataProcessingSettingState();
 }
 
-class _DataProcessingSettingState extends State<DataProcessingSetting> {
+class _DataProcessingSettingState extends State<DataProcessingSetting> with SingleTickerProviderStateMixin{
   final adminPosPinController = TextEditingController();
   bool inProgress = false;
   bool isButtonDisabled = false;
   bool _submitted = false, allowFirestore = false;
   late Branch? branch;
+  late AnimationController _rotationController;
 
   @override
   void initState() {
     super.initState();
+    calUnsyncedData();
+    _rotationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    )..repeat(); // Start rotation animation
     initLoad();
+  }
+
+  void dispose() {
+    _rotationController.dispose();
+    super.dispose();
   }
 
   initLoad() async {
@@ -45,6 +58,11 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
     setState(() {
       allowFirestore = branch!.allow_firestore == 1 ? true : false;
     });
+  }
+
+  Future<void> calUnsyncedData() async {
+    int unsyncedData = int.parse(await PosDatabase.instance.getUnsyncedData());
+    unsyncedDataNotifier.value = unsyncedData;
   }
 
   @override
@@ -75,9 +93,43 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
                   openSystemLog();
                 },
               ),
+              Divider(
+                color: Colors.grey,
+                height: 1,
+                thickness: 1,
+                indent: 20,
+                endIndent: 20,
+              ),
               ListTile(
-                title: Text(AppLocalizations.of(context)!.translate('sync')),
-                trailing: Icon(Icons.sync),
+                title: ValueListenableBuilder<int>(
+                  valueListenable: unsyncedDataNotifier,
+                  builder: (context, unsyncedValue, child) {
+                    return ValueListenableBuilder<bool>(
+                      valueListenable: isSyncisSyncingingNotifier,
+                      builder: (context, isSyncing, child) {
+                        return Text(
+                          '${AppLocalizations.of(context)!.translate('sync')} (${AppLocalizations.of(context)!.translate('unsynced')}: $unsyncedValue)',
+                        );
+                      },
+                    );
+                  },
+                ),
+                trailing: ValueListenableBuilder<bool>(
+                  valueListenable: isSyncisSyncingingNotifier,
+                  builder: (context, isSyncing, child) {
+                    return isSyncing
+                        ? AnimatedBuilder(
+                      animation: _rotationController,
+                      builder: (context, child) {
+                        return Transform.rotate(
+                          angle: _rotationController.value * 2 * 3.141592653589793,
+                          child: Icon(Icons.sync),
+                        );
+                      },
+                    )
+                        : Icon(Icons.sync);
+                  },
+                ),
                 onTap: () async {
                   openSyncDialog(SyncType.sync);
                 },
@@ -92,19 +144,12 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
                       context: context,
                       builder: (context) => CustomPinDialog(
                         permission: Permission.adminOnly,
-                        callback: () => openSyncDialog(SyncType.firestore_sync,),
+                        callback: () => openSyncDialog(SyncType.firestore_sync),
                       ),
                     );
                     // openSyncDialog(SyncType.firestore_sync);
                   },
                 ),
-              ),
-              ListTile(
-                title: Text(AppLocalizations.of(context)!.translate('sync_updates_from_cloud')),
-                trailing: Icon(Icons.cloud_download),
-                onTap: () async {
-                  openSyncDialog(SyncType.sync_updates_from_cloud);
-                },
               ),
               ///temporally hide sync reset button
               // ListTile(
@@ -139,6 +184,15 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
                   },
                   trailing: Icon(Icons.navigate_next)
               ),
+              // ListTile(
+              //     title: Text('RESET ALL DATA TO UNSYNCED STATUS'),
+              //     onTap: () async {
+              //       await PosDatabase.instance.resetAllDataToUnsynced();
+              //       Fluttertoast.showToast(msg: 'All data reset to unsynced status');
+              //       await calUnsyncedData();
+              //     },
+              //     trailing: Icon(Icons.navigate_next)
+              // ),
             ],
           ),
         ),
@@ -546,7 +600,14 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: SyncDialog(syncType: syncType),
+              child: SyncDialog(
+                syncType: syncType,
+                callBack: () async {
+                  await calUnsyncedData();
+                  if(mounted)
+                    setState(() {});
+                },
+              ),
             ),
           );
         },

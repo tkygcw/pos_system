@@ -171,7 +171,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
     );
     await PosDatabase.instance.updateProductSetting(object);
 
-    List<Product> data = await PosDatabase.instance.readAllNotSyncUpdatedProduct();
+    List<Product> data = await PosDatabase.instance.readAllNotSyncUpdatedProduct(1000);
     if(data.isNotEmpty){
       final prefs = await SharedPreferences.getInstance();
       final String? branch = prefs.getString('branch');
