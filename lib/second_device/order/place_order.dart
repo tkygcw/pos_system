@@ -375,26 +375,25 @@ abstract class PlaceOrder {
     }
   }
 
-  insertOtherOrderCacheKey(OrderCache orderCache, String dateTime) async {
+  Future<OrderCache?> insertOtherOrderCacheKey(OrderCache orderCache, String dateTime) async {
     try {
       OrderCache? data;
-      String otherOrderKey = '';
-
-      otherOrderKey = await generateOtherOrderKey(orderCache);
-
+      String otherOrderKey = await generateOtherOrderKey(orderCache);
       if (otherOrderKey != '') {
-        OrderCache orderCacheObject = OrderCache(other_order_key: otherOrderKey, sync_status: 0, updated_at: dateTime, order_cache_sqlite_id: orderCache.order_cache_sqlite_id);
+        OrderCache orderCacheObject = orderCache.copy(
+            other_order_key: otherOrderKey,
+            sync_status: 0,
+            updated_at: dateTime
+        );
         int otherOrderUniqueKey = await PosDatabase.instance.updateOtherOrderCacheUniqueKey(orderCacheObject);
         if (otherOrderUniqueKey == 1) {
-          OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCacheObject.order_cache_sqlite_id!);
-          if (orderCacheData.sync_status == 0) {
-            data = orderCacheData;
-          }
+          data = orderCacheObject;
         }
       }
       return data;
-    } catch(e) {
-      print("insertOtherOrderCacheKey error: ${e}");
+    } catch(e, s) {
+      print("insertOtherOrderCacheKey error: $e, stacktrace: $s");
+      rethrow;
     }
   }
 

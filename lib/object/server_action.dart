@@ -17,6 +17,7 @@ import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/tax_link_dining.dart';
 import 'package:pos_system/second_device/cart_dialog_function.dart';
+import 'package:pos_system/second_device/order/add_on_not_dine_in.dart';
 import 'package:pos_system/second_device/order/dine_in_order.dart';
 import 'package:pos_system/second_device/order/place_order.dart';
 import 'package:pos_system/second_device/other_order/other_order_function.dart';
@@ -235,7 +236,14 @@ class ServerAction {
             CartModel cart = CartModel();
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam['cart']);
-            result = await placeOrderFunction(PlaceAddOrder(), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
+            if(decodeParam['order_cache'] == ''){
+              result = await placeOrderFunction(PlaceAddOrder(), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
+            } else {
+              OrderCache orderCache = OrderCache.fromJson(decodeParam['order_cache']);
+              result = await placeOrderFunction(PlaceNotDineInAddOrder(addOnOrderCache: orderCache), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
+              //clear sub pos order cache after add on order
+              TableFunction().clearSubPosOrderCache();
+            }
           } catch(e){
             result = {'status': '4', 'exception': "add-order error: ${e.toString()}"};
             FLog.error(

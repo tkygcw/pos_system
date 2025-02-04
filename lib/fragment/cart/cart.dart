@@ -2629,6 +2629,7 @@ class CartPageState extends State<CartPage> {
       if(outOfStockItem.isEmpty){
         await createOrderCache(cart, isAddOrder: true);
         await createOrderDetail(cart);
+        server.sendMessageToClient("3");
         if (_appSettingModel.autoPrintChecklist == true) {
           int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
           if (printStatus == 1) {
