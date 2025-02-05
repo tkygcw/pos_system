@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 String? tablePromotion = 'tb_promotion ';
 
 class PromotionFields {
@@ -8,6 +10,8 @@ class PromotionFields {
     amount,
     specific_category,
     category_id,
+    multiple_category,
+    multiple_product,
     type,
     auto_apply,
     all_day,
@@ -27,6 +31,8 @@ class PromotionFields {
   static String amount = 'amount';
   static String specific_category = 'specific_category';
   static String category_id = 'category_id';
+  static String multiple_category = 'multiple_category';
+  static String multiple_product = 'multiple_product';
   static String type = 'type';
   static String auto_apply = 'auto_apply';
   static String all_day = 'all_day';
@@ -47,6 +53,8 @@ class Promotion{
   String? amount;
   String? specific_category;
   String? category_id;
+  List<dynamic>? multiple_category;
+  List<dynamic>? multiple_product;
   int? type;
   String? auto_apply;
   String? all_day;
@@ -68,6 +76,8 @@ class Promotion{
         this.amount,
         this.specific_category,
         this.category_id,
+        this.multiple_category,
+        this.multiple_product,
         this.type,
         this.auto_apply,
         this.all_day,
@@ -89,6 +99,8 @@ class Promotion{
     String? amount,
     String? specific_category,
     String? category_id,
+    List<dynamic>? multiple_category,
+    List<dynamic>? multiple_product,
     int? type,
     String? auto_apply,
     String? all_day,
@@ -108,6 +120,8 @@ class Promotion{
           amount: amount ?? this.amount,
           specific_category: specific_category ?? this.specific_category,
           category_id: category_id ?? this.category_id,
+          multiple_category: multiple_category ?? this.multiple_category,
+          multiple_product: multiple_product ?? this.multiple_product,
           type: type ?? this.type,
           auto_apply: auto_apply ?? this.auto_apply,
           all_day: all_day ?? this.all_day,
@@ -129,6 +143,17 @@ class Promotion{
     amount: json[PromotionFields.amount] as String?,
     specific_category: json[PromotionFields.specific_category] as String?,
     category_id: json[PromotionFields.category_id] as String?,
+    multiple_category: json[PromotionFields.multiple_category].toString() == 'null' || json[PromotionFields.multiple_category].toString() == '[]'
+        ? <dynamic>[]
+        : json[PromotionFields.multiple_category] is String
+        ? jsonDecode(json[PromotionFields.multiple_category] as String) as List<dynamic>?
+        : json[PromotionFields.multiple_category] as List<dynamic>?,
+
+    multiple_product: json[PromotionFields.multiple_product].toString() == '[]' || json[PromotionFields.multiple_product].toString() == 'null'
+        ? <dynamic>[]
+        : json[PromotionFields.multiple_product] is String
+        ? jsonDecode(json[PromotionFields.multiple_product] as String) as List<dynamic>
+        : json[PromotionFields.multiple_product] as List<dynamic>?,
     type: json[PromotionFields.type] as int?,
     auto_apply: json[PromotionFields.auto_apply] as String?,
     all_day: json[PromotionFields.all_day] as String?,
@@ -149,6 +174,12 @@ class Promotion{
     PromotionFields.amount: amount,
     PromotionFields.specific_category: specific_category,
     PromotionFields.category_id: category_id,
+    PromotionFields.multiple_category: multiple_category != null
+        ? jsonEncode(multiple_category)
+        : null,
+    PromotionFields.multiple_product: multiple_product != null
+        ? jsonEncode(multiple_product)
+        : null,
     PromotionFields.type: type,
     PromotionFields.auto_apply: auto_apply,
     PromotionFields.all_day: all_day,
