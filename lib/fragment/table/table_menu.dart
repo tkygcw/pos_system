@@ -659,7 +659,8 @@ class _TableMenuState extends State<TableMenu> {
           if (!editingMode) {
             if (productDetailLoaded) {
               if (tableList[index].status == 1) {
-                if(await cart.isTableOrderCacheSelected(tableUseKey: tableList[index].table_use_key) == false){
+                bool isTableSelected = await cart.isTableSelectedBySubPos(tableUseKey: tableList[index].table_use_key);
+                if(isTableSelected == false){
                   // table in use (colored)
                   for (int i = 0; i < tableList.length; i++) {
                     if (tableList[index].group == tableList[i].group || ((tableList[index].order_key == tableList[i].order_key) && tableList[index].order_key != null)) {

@@ -2564,7 +2564,7 @@ class CartPageState extends State<CartPage> {
       resetValue();
       List<cartProductItem> outOfStockItem = await checkOrderStock(cart);
       if(await checkTableStatus(cart) == true){
-        if(await cart.isTableOrderCacheSelected() == false){
+        if(await cart.isTableSelectedBySubPos() == false){
           if(outOfStockItem.isEmpty){
             cart.selectedTable.removeWhere((e) => e.status == 0);
             await createOrderCache(cart, isAddOrder: true);

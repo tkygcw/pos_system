@@ -5367,9 +5367,9 @@ class PosDatabase {
   Future<int> updateUser(User data) async {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableUser SET name = ?, email = ?, phone = ?, role = ?, pos_pin = ?, edit_price_without_pin = ?, refund_permission = ?, '
-        'cash_drawer_permission = ?, settlement_permission = ?, report_permission = ?, status = ?, updated_at = ?, soft_delete = ? WHERE user_id = ? ',
+        'cash_drawer_permission = ?, settlement_permission = ?, report_permission = ?, sub_pos_payment = ?, status = ?, updated_at = ?, soft_delete = ? WHERE user_id = ? ',
         [data.name, data.email, data.phone, data.role, data.pos_pin, data.edit_price_without_pin, data.refund_permission, data.cash_drawer_permission,
-          data.settlement_permission, data.report_permission, data.status, data.updated_at, data.soft_delete, data.user_id]);
+          data.settlement_permission, data.report_permission, data.sub_pos_payment, data.status, data.updated_at, data.soft_delete, data.user_id]);
   }
 
 /*

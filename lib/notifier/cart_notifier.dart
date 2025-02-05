@@ -357,12 +357,27 @@ class CartModel extends ChangeNotifier {
     _subPosPaymentOrderCache.removeWhere((orderCache) => orderCache.batch_id == batch);
   }
 
-  Future<bool> isTableOrderCacheSelected({String? tableUseKey}) async {
+  Future<bool> isTableSelectedBySubPos({String? tableUseKey}) async {
+    if (selectedTable.isEmpty && tableUseKey == null) return false; // Prevent crash
+
     String posTableUseKey = tableUseKey ?? selectedTable.first.table_use_key!;
     List<OrderCache> tableOrderCache = await PosDatabase.instance.readSpecificOrderCacheByTableUseKey(posTableUseKey);
     // 1. Extract IDs from both lists into sets.
     final Set<int>ids1 = tableOrderCache.map((orderCache) => orderCache.order_cache_sqlite_id!).toSet();
     final Set<int> ids2 = _subPosPaymentOrderCache.map((orderCache) => orderCache.order_cache_sqlite_id!).toSet();
+    // 2. Check for intersection.
+    // If there's any intersection, it means there are common IDs.
+    return ids1.intersection(ids2).isNotEmpty;
+  }
+
+  Future<bool> isTableSelectedByMainPos({String? tableUseKey}) async {
+    if (selectedTable.isEmpty && tableUseKey == null) return false; // Prevent crash
+
+    String posTableUseKey = tableUseKey ?? selectedTable.first.table_use_key!;
+    List<OrderCache> tableOrderCache = await PosDatabase.instance.readSpecificOrderCacheByTableUseKey(posTableUseKey);
+    // 1. Extract IDs from both lists into sets.
+    final Set<int>ids1 = tableOrderCache.map((orderCache) => orderCache.order_cache_sqlite_id!).toSet();
+    final Set<int> ids2 = _currentOrderCache.map((orderCache) => orderCache.order_cache_sqlite_id!).toSet();
     // 2. Check for intersection.
     // If there's any intersection, it means there are common IDs.
     return ids1.intersection(ids2).isNotEmpty;

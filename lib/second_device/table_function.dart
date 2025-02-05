@@ -174,9 +174,12 @@ class TableFunction {
   }
 
   Future<bool> IsTableSelected(PosTable posTable) async {
+    CartModel cartModel =  Provider.of<CartModel>(_context, listen: false);
+    bool status1 = await cartModel.isTableSelectedBySubPos(tableUseKey: posTable.table_use_key!);
+    bool status2 = await cartModel.isTableSelectedByMainPos(tableUseKey: posTable.table_use_key!);
     bool isTableSelected = false;
     if(posTable.table_use_key != null){
-      isTableSelected = await Provider.of<CartModel>(_context, listen: false).isTableOrderCacheSelected(tableUseKey: posTable.table_use_key!);
+      isTableSelected = status1 || status2;
     }
     // List<PosTable> inCartTableList = Provider.of<CartModel>(_context, listen: false).selectedTable.where((e) => e.isInPaymentCart == true).toList();
     // if(inCartTableList.isNotEmpty){
