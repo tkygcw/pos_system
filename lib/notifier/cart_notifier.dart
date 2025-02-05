@@ -13,6 +13,7 @@ import '../object/branch_link_dining_option.dart';
 import '../object/table.dart';
 
 class CartModel extends ChangeNotifier {
+  Map<String, double> categoryTotalPriceMap = {};
   List<cartProductItem> cartNotifierItem = [];
   List<cartPaymentDetail> cartNotifierPayment = [];
   List<Promotion> autoPromotion = [];
@@ -150,6 +151,10 @@ class CartModel extends ChangeNotifier {
   void addPaymentDetail(cartPaymentDetail object) {
     cartNotifierPayment.add(object);
     notifyListeners();
+  }
+
+  void addCategoryTotalPrice(String category_id, double categoryTotalPrice) {
+    categoryTotalPriceMap[category_id] = categoryTotalPrice;
   }
 
   void addItem(cartProductItem object) {
@@ -335,6 +340,10 @@ class CartModel extends ChangeNotifier {
 
   void removeAllCartOrderCache(){
     _currentOrderCache.clear();
+  }
+
+  void clearCategoryTotalPriceMap(){
+    categoryTotalPriceMap.clear();
   }
 
   void addSubPosOrderCache(OrderCache value){

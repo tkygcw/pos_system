@@ -5453,13 +5453,15 @@ class PosDatabase {
   Future<int> updatePromotion(Promotion data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tablePromotion SET name = ?, amount = ?, specific_category = ?, category_id = ?, type = ?, '
+        'UPDATE $tablePromotion SET name = ?, amount = ?, specific_category = ?, category_id = ?, multiple_category = ?, multiple_product = ?, type = ?, '
         'auto_apply = ?, all_day = ?, all_time = ?, sdate = ?, edate = ?, stime = ?, etime = ?, updated_at = ?, soft_delete = ? WHERE promotion_id = ? ',
         [
           data.name,
           data.amount,
           data.specific_category,
           data.category_id,
+          jsonEncode(data.multiple_category),
+          jsonEncode(data.multiple_product),
           data.type,
           data.auto_apply,
           data.all_day,

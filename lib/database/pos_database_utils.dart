@@ -71,6 +71,7 @@ class PosDatabaseUtils {
   static final idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
   static final textType = 'TEXT NOT NULL';
   static final integerType = 'INTEGER NOT NULL';
+  static final jsonType = 'JSON DEFAULT "[]"';
 
   static void onUpgrade (Database db, int oldVersion, int newVersion) async {
     //get pref
@@ -266,6 +267,10 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.einvoice_status} $integerType DEFAULT 0 ");
           }break;
           case 35: {
+            await db.execute("ALTER TABLE $tablePromotion ADD ${PromotionFields.multiple_category} $jsonType");
+            await db.execute("ALTER TABLE $tablePromotion ADD ${PromotionFields.multiple_product} $jsonType");
+          }break;
+          case 36: {
             await db.execute("ALTER TABLE $tableUser ADD ${UserFields.sub_pos_payment} $integerType DEFAULT 0");
           }break;
         }
@@ -538,7 +543,8 @@ class PosDatabaseUtils {
 */
     await db.execute(
         '''CREATE TABLE $tablePromotion ( ${PromotionFields.promotion_id} $idType, ${PromotionFields.company_id} $textType,${PromotionFields.name} $textType,${PromotionFields.amount} $textType, 
-           ${PromotionFields.specific_category} $textType, ${PromotionFields.category_id} $textType, ${PromotionFields.type} $integerType,
+           ${PromotionFields.specific_category} $textType, ${PromotionFields.category_id} $textType, ${PromotionFields.multiple_category} $jsonType, 
+           ${PromotionFields.multiple_product} $jsonType, ${PromotionFields.type} $integerType,
            ${PromotionFields.auto_apply} $textType,${PromotionFields.all_day} $textType, ${PromotionFields.all_time} $textType, ${PromotionFields.sdate} $textType,
            ${PromotionFields.edate} $textType, ${PromotionFields.stime} $textType, ${PromotionFields.etime} $textType,
            ${PromotionFields.created_at} $textType, ${PromotionFields.updated_at} $textType, ${PromotionFields.soft_delete} $textType)''');
