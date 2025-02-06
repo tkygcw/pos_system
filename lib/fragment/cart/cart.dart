@@ -1039,6 +1039,10 @@ class CartPageState extends State<CartPage> {
             }
           }
           break;
+        case '4':
+          {
+
+          } break;
         default:
           {
             hasStock = true;

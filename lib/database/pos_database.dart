@@ -12,6 +12,10 @@ import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/current_version.dart';
 import 'package:pos_system/object/customer.dart';
 import 'package:pos_system/object/dining_option.dart';
+import 'package:pos_system/object/ingredient_branch_link_modifier.dart';
+import 'package:pos_system/object/ingredient_branch_link_product.dart';
+import 'package:pos_system/object/ingredient_company.dart';
+import 'package:pos_system/object/ingredient_company_link_branch.dart';
 import 'package:pos_system/object/kitchen_list.dart';
 import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/modifier_item.dart';
@@ -88,7 +92,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 36, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
+    return await openDatabase(path, version: 37, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
   }
 
 /*
@@ -340,6 +344,71 @@ class PosDatabase {
     final db = await instance.database;
     final id = await db.insert(tableBranchLinkModifier!, data.toJson());
     return data.copy(branch_link_modifier_id: id);
+  }
+
+/*
+  add ingredient company to sqlite (from cloud)
+*/
+  Future<IngredientCompany> insertIngredientCompany(IngredientCompany data) async {
+    final db = await instance.database;
+    final id = db.rawInsert(
+        'INSERT INTO $tableIngredientCompany(ingredient_company_id, company_id, name, description, image, unit, sync_status, created_at, updated_at, soft_delete) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          data.ingredient_company_id,
+          data.company_id,
+          data.name,
+          data.description,
+          data.image,
+          data.unit,
+          data.sync_status,
+          data.created_at,
+          data.updated_at,
+          data.soft_delete
+        ]);
+    return data.copy(ingredient_company_sqlite_id: await id);
+  }
+
+/*
+  add ingredient company link branch to sqlite (from cloud)
+*/
+  Future<IngredientCompanyLinkBranch> insertIngredientCompanyLinkBranch(IngredientCompanyLinkBranch data) async {
+    final db = await instance.database;
+    final id = db.rawInsert(
+        'INSERT INTO $tableIngredientCompanyLinkBranch(ingredient_company_link_branch_id, ingredient_company_id, branch_id, stock_quantity, sync_status, created_at, updated_at, soft_delete) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          data.ingredient_company_link_branch_id,
+          data.ingredient_company_id,
+          data.branch_id,
+          data.stock_quantity,
+          data.sync_status,
+          data.created_at,
+          data.updated_at,
+          data.soft_delete
+        ]);
+    return data.copy(ingredient_company_link_branch_sqlite_id: await id);
+  }
+
+/*
+  add ingredient branch link product to sqlite (from cloud)
+*/
+  Future<IngredientBranchLinkProduct> insertIngredientBranchLinkProduct(IngredientBranchLinkProduct data) async {
+    final db = await instance.database;
+    final id = db.rawInsert(
+        'INSERT INTO $tableIngredientBranchLinkProduct(ingredient_branch_link_product_id, ingredient_company_link_branch_id, branch_link_product_id, ingredient_usage, sync_status, created_at, updated_at, soft_delete) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          data.ingredient_branch_link_product_id,
+          data.ingredient_company_link_branch_id,
+          data.branch_link_product_id,
+          data.ingredient_usage,
+          data.sync_status,
+          data.created_at,
+          data.updated_at,
+          data.soft_delete
+        ]);
+    return data.copy(ingredient_branch_link_product_sqlite_id: await id);
   }
 
   /*
@@ -4465,6 +4534,28 @@ class PosDatabase {
     return result.map((json) => OrderDetailCancel.fromJson(json)).toList();
   }
 
+  /*
+  read specific product ingredient
+*/
+  Future<List<IngredientBranchLinkProduct>> readAllProductIngredient(String branch_link_product_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableIngredientBranchLinkProduct WHERE branch_link_product_id = ? AND soft_delete = ?',
+        [branch_link_product_id, '']);
+    return result.map((json) => IngredientBranchLinkProduct.fromJson(json)).toList();
+  }
+
+  /*
+  read specific ingredient company link branch
+*/
+  Future<List<IngredientCompanyLinkBranch>> readSpecificIngredientCompanyLinkBranch(String ingredient_company_link_branch_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableIngredientCompanyLinkBranch WHERE ingredient_company_link_branch_id = ? AND soft_delete = ?',
+        [ingredient_company_link_branch_id, '']);
+    return result.map((json) => IngredientCompanyLinkBranch.fromJson(json)).toList();
+  }
+
 /*
   read all cancel item
 */
@@ -6771,6 +6862,38 @@ class PosDatabase {
   Future clearAllModifierLinkProduct() async {
     final db = await instance.database;
     return await db.rawDelete('DELETE FROM $tableModifierLinkProduct');
+  }
+
+/*
+  Delete All Ingredient Company
+*/
+  Future clearAllIngredientCompany() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableIngredientCompany');
+  }
+
+/*
+  Delete All Ingredient Company Link Branch
+*/
+  Future clearAllIngredientCompanyLinkBranch() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableIngredientCompanyLinkBranch');
+  }
+
+/*
+  Delete All Ingredient Branch Link Product
+*/
+  Future clearAllIngredientBranchLinkProduct() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableIngredientBranchLinkProduct');
+  }
+
+/*
+  Delete All Ingredient Branch Link Modifier
+*/
+  Future clearAllIngredientBranchLinkModifier() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableIngredientBranchLinkModifier');
   }
 
 /*

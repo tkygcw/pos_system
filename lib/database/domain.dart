@@ -34,6 +34,7 @@ class Domain {
   static Uri refund = Uri.parse(domain + 'mobile-api/refund/index.php');
   static Uri modifier = Uri.parse(domain + 'mobile-api/modifier/index.php');
   static Uri product = Uri.parse(domain + 'mobile-api/product/index.php');
+  static Uri ingredient = Uri.parse(domain + 'mobile-api/ingredient/index.php');
   static Uri variant = Uri.parse(domain + 'mobile-api/variant/index.php');
   static Uri order = Uri.parse(domain + 'mobile-api/order/index.php');
   static Uri sale = Uri.parse(domain + 'mobile-api/sale/index.php');
@@ -1639,6 +1640,42 @@ class Domain {
     try {
       var response = await http
           .post(Domain.modifier, body: {'getBranchLinkModifier': '1', 'branch_id': branch_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get ingredient company
+  * */
+  getAllIngredientCompany(company_id) async {
+    try {
+      var response = await http.post(Domain.ingredient, body: {'getAllIngredientCompany': '1', 'company_id': company_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get ingredient company link branch
+  * */
+  getAllIngredientCompanyLinkBranch(branch_id) async {
+    try {
+      var response = await http.post(Domain.ingredient, body: {'getAllIngredientCompanyLinkBranch': '1', 'branch_id': branch_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get ingredient branch link product
+  * */
+  getAllIngredientBranchLinkProduct(ingredient_company_link_branch_id) async {
+    try {
+      var response = await http.post(Domain.ingredient, body: {'getAllIngredientBranchLinkProduct': '1', 'ingredient_company_link_branch_id': ingredient_company_link_branch_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());

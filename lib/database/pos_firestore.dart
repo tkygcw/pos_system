@@ -9,6 +9,9 @@ import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/dining_option.dart';
+import 'package:pos_system/object/ingredient_branch_link_product.dart';
+import 'package:pos_system/object/ingredient_company.dart';
+import 'package:pos_system/object/ingredient_company_link_branch.dart';
 import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/modifier_item.dart';
 import 'package:pos_system/object/modifier_link_product.dart';
@@ -121,6 +124,27 @@ class PosFirestore {
       return;
     }
     await firestore.collection(tableModifierLinkProduct!).doc(data.modifier_link_product_id.toString()).set(data.toJson(), SetOptions(merge: true));
+  }
+
+  insertIngredientCompany(IngredientCompany data) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
+    await firestore.collection(tableIngredientCompany!).doc(data.ingredient_company_id.toString()).set(data.toJson(), SetOptions(merge: true));
+  }
+
+  insertIngredientCompanyLinkBranch(IngredientCompanyLinkBranch data) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
+    await firestore.collection(tableIngredientCompanyLinkBranch!).doc(data.ingredient_company_link_branch_id.toString()).set(data.toJson(), SetOptions(merge: true));
+  }
+
+  insertIngredientBranchLinkProduct(IngredientBranchLinkProduct data) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
+    await firestore.collection(tableIngredientBranchLinkProduct!).doc(data.ingredient_branch_link_product_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertProduct(Product data) async {

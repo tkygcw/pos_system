@@ -1,6 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:pos_system/object/ingredient_branch_link_modifier.dart';
+import 'package:pos_system/object/ingredient_branch_link_product.dart';
+import 'package:pos_system/object/ingredient_company.dart';
+import 'package:pos_system/object/ingredient_company_link_branch.dart';
 import 'package:pos_system/object/sales_per_day/category_sales_per_day.dart';
 import 'package:pos_system/object/sales_per_day/dining_sales_per_day.dart';
 import 'package:pos_system/object/sales_per_day/product_sales_per_day.dart';
@@ -269,6 +273,9 @@ class PosDatabaseUtils {
           case 35: {
             await db.execute("ALTER TABLE $tablePromotion ADD ${PromotionFields.multiple_category} $jsonType");
             await db.execute("ALTER TABLE $tablePromotion ADD ${PromotionFields.multiple_product} $jsonType");
+          }break;
+          case 36: {
+            await dbVersion37Upgrade(db);
           }break;
         }
       }
@@ -1234,6 +1241,108 @@ class PosDatabaseUtils {
           ${SalesDiningPerDayFields.updated_at} $textType,
           ${SalesDiningPerDayFields.soft_delete} $textType)''');
 
+/*
+    create ingredient company table
+*/
+    await db.execute('''CREATE TABLE $tableIngredientCompany(
+            ${IngredientCompanyFields.ingredient_company_sqlite_id} $idType,
+            ${IngredientCompanyFields.ingredient_company_id} $integerType,
+            ${IngredientCompanyFields.company_id} $textType,
+            ${IngredientCompanyFields.name} $textType,
+            ${IngredientCompanyFields.description} $textType,
+            ${IngredientCompanyFields.image} $textType,
+            ${IngredientCompanyFields.unit} $textType,
+            ${IngredientCompanyFields.sync_status} $integerType,
+            ${IngredientCompanyFields.created_at} $textType,
+            ${IngredientCompanyFields.updated_at} $textType,
+            ${IngredientCompanyFields.soft_delete} $textType)''');
+
+/*
+    create ingredient company link branch table
+*/
+    await db.execute('''CREATE TABLE $tableIngredientCompanyLinkBranch(
+            ${IngredientCompanyLinkBranchFields.ingredient_company_link_branch_sqlite_id} $idType,
+            ${IngredientCompanyLinkBranchFields.ingredient_company_link_branch_id} $integerType,
+            ${IngredientCompanyLinkBranchFields.ingredient_company_id} $textType,
+            ${IngredientCompanyLinkBranchFields.branch_id} $textType,
+            ${IngredientCompanyLinkBranchFields.stock_quantity} $textType,
+            ${IngredientCompanyLinkBranchFields.sync_status} $integerType,
+            ${IngredientCompanyLinkBranchFields.created_at} $textType,
+            ${IngredientCompanyLinkBranchFields.updated_at} $textType,
+            ${IngredientCompanyLinkBranchFields.soft_delete} $textType)''');
+
+/*
+    create ingredient branch link product table
+*/
+    await db.execute('''CREATE TABLE $tableIngredientBranchLinkProduct(
+            ${IngredientBranchLinkProductFields.ingredient_branch_link_product_sqlite_id} $idType,
+            ${IngredientBranchLinkProductFields.ingredient_branch_link_product_id} $integerType,
+            ${IngredientBranchLinkProductFields.ingredient_company_link_branch_id} $textType,
+            ${IngredientBranchLinkProductFields.branch_link_product_id} $textType,
+            ${IngredientBranchLinkProductFields.ingredient_usage} $textType,
+            ${IngredientBranchLinkProductFields.sync_status} $integerType,
+            ${IngredientBranchLinkProductFields.created_at} $textType,
+            ${IngredientBranchLinkProductFields.updated_at} $textType,
+            ${IngredientBranchLinkProductFields.soft_delete} $textType)''');
+
+/*
+    create ingredient branch link modifier table
+*/
+    await db.execute('''CREATE TABLE $tableIngredientBranchLinkModifier(
+            ${IngredientBranchLinkModifierFields.ingredient_branch_link_modifier_sqlite_id} $idType,
+            ${IngredientBranchLinkModifierFields.ingredient_branch_link_modifier_id} $integerType,
+            ${IngredientBranchLinkModifierFields.ingredient_company_link_branch_id} $textType,
+            ${IngredientBranchLinkModifierFields.branch_link_modifier_id} $textType,
+            ${IngredientBranchLinkModifierFields.ingredient_usage} $textType,
+            ${IngredientBranchLinkModifierFields.sync_status} $integerType,
+            ${IngredientBranchLinkModifierFields.created_at} $textType,
+            ${IngredientBranchLinkModifierFields.updated_at} $textType,
+            ${IngredientBranchLinkModifierFields.soft_delete} $textType)''');
+  }
+
+  static dbVersion37Upgrade(Database db) async {
+    await db.execute('''CREATE TABLE $tableIngredientCompany(
+            ${IngredientCompanyFields.ingredient_company_sqlite_id} $idType,
+            ${IngredientCompanyFields.ingredient_company_id} $integerType,
+            ${IngredientCompanyFields.company_id} $textType,
+            ${IngredientCompanyFields.name} $textType,
+            ${IngredientCompanyFields.description} $textType,
+            ${IngredientCompanyFields.image} $textType,
+            ${IngredientCompanyFields.unit} $textType,
+            ${IngredientCompanyFields.sync_status} $integerType,
+            ${IngredientCompanyFields.created_at} $textType,
+            ${IngredientCompanyFields.updated_at} $textType,
+            ${IngredientCompanyFields.soft_delete} $textType)''');
+    await db.execute('''CREATE TABLE $tableIngredientCompanyLinkBranch(
+            ${IngredientCompanyLinkBranchFields.ingredient_company_link_branch_sqlite_id} $idType,
+            ${IngredientCompanyLinkBranchFields.ingredient_company_link_branch_id} $integerType,
+            ${IngredientCompanyLinkBranchFields.ingredient_company_id} $textType,
+            ${IngredientCompanyLinkBranchFields.branch_id} $textType,
+            ${IngredientCompanyLinkBranchFields.stock_quantity} $textType,
+            ${IngredientCompanyLinkBranchFields.sync_status} $integerType,
+            ${IngredientCompanyLinkBranchFields.created_at} $textType,
+            ${IngredientCompanyLinkBranchFields.updated_at} $textType,
+            ${IngredientCompanyLinkBranchFields.soft_delete} $textType)''');
+    await db.execute('''CREATE TABLE $tableIngredientBranchLinkProduct(
+            ${IngredientBranchLinkProductFields.ingredient_branch_link_product_sqlite_id} $idType,
+            ${IngredientBranchLinkProductFields.ingredient_branch_link_product_id} $integerType,
+            ${IngredientBranchLinkProductFields.ingredient_company_link_branch_id} $textType,
+            ${IngredientBranchLinkProductFields.branch_link_product_id} $textType,
+            ${IngredientBranchLinkProductFields.ingredient_usage} $textType,
+            ${IngredientBranchLinkProductFields.sync_status} $integerType,
+            ${IngredientBranchLinkProductFields.created_at} $textType,
+            ${IngredientBranchLinkProductFields.updated_at} $textType,
+            ${IngredientBranchLinkProductFields.soft_delete} $textType)''');
+    await db.execute('''CREATE TABLE $tableIngredientBranchLinkModifier(
+            ${IngredientBranchLinkModifierFields.ingredient_branch_link_modifier_sqlite_id} $idType,
+            ${IngredientBranchLinkModifierFields.ingredient_branch_link_modifier_id} $integerType,
+            ${IngredientBranchLinkModifierFields.ingredient_company_link_branch_id} $textType,
+            ${IngredientBranchLinkModifierFields.branch_link_modifier_id} $textType,
+            ${IngredientBranchLinkModifierFields.ingredient_usage} $textType,
+            ${IngredientBranchLinkModifierFields.sync_status} $integerType,
+            ${IngredientBranchLinkModifierFields.created_at} $textType,
+            ${IngredientBranchLinkModifierFields.updated_at} $textType,
+            ${IngredientBranchLinkModifierFields.soft_delete} $textType)''');
   }
 
   static dbVersion33Upgrade(Database db, SharedPreferences prefs) async {
