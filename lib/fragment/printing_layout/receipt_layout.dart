@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:image/image.dart' as img;
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:esc_pos_utils_plus/gbk_codec/gbk_codec.dart';
@@ -168,6 +169,15 @@ class ReceiptLayout{
     } else {
       return '';
     }
+  }
+
+  Map<String, double> groupStaffSales(){
+    var groupedOrders = groupBy(orderList, (Order order) => order.close_by);
+    Map<String, double> totalByUser = {};
+    groupedOrders.forEach((username, userOrders) {
+      totalByUser[username!] = userOrders.fold(0, (sum, order) => sum + double.parse(order.final_amount!));
+    });
+    return totalByUser;
   }
 
 
@@ -2177,7 +2187,7 @@ class ReceiptLayout{
         ]);
         bytes += generator.hr();
         if(orderTaxList.isNotEmpty){
-          bytes += generator.text('Charges overview', styles: PosStyles(align: PosAlign.left, bold: true));
+          bytes += generator.text('Charges Overview', styles: PosStyles(align: PosAlign.left, bold: true));
           bytes += generator.hr();
           bytes += generator.reset();
           for(int j = 0; j < orderTaxList.length; j++){
@@ -2200,26 +2210,51 @@ class ReceiptLayout{
           }
           bytes += generator.hr();
         }
-        bytes += generator.text('Dining overview', styles: PosStyles(align: PosAlign.left, bold: true));
-        bytes += generator.hr();
-        bytes += generator.reset();
-        for(int k = 0; k < orderList.length; k++){
-          bytes += generator.row([
-            PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
-            PosColumn(
-                text: '${orderList[k].dining_name}',
-                width: 8,
-                containsChinese: true,
-                styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
-            PosColumn(
-                text: '${orderList[k].gross_sales!.toStringAsFixed(2)}',
-                width: 2,
-                styles: PosStyles(align: PosAlign.right)),
-            PosColumn(
-                text: '',
-                width: 1,
-                styles: PosStyles(align: PosAlign.right)),
-          ]);
+        if(orderList.isNotEmpty){
+          bytes += generator.text('Dining Overview', styles: PosStyles(align: PosAlign.left, bold: true));
+          bytes += generator.hr();
+          bytes += generator.reset();
+          for(int k = 0; k < orderList.length; k++){
+            bytes += generator.row([
+              PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
+              PosColumn(
+                  text: '${orderList[k].dining_name}',
+                  width: 8,
+                  containsChinese: true,
+                  styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+              PosColumn(
+                  text: '${orderList[k].gross_sales!.toStringAsFixed(2)}',
+                  width: 2,
+                  styles: PosStyles(align: PosAlign.right)),
+              PosColumn(
+                  text: '',
+                  width: 1,
+                  styles: PosStyles(align: PosAlign.right)),
+            ]);
+          }
+          bytes += generator.hr();
+          bytes += generator.text('Staff Sales', styles: PosStyles(align: PosAlign.left, bold: true));
+          bytes += generator.hr();
+          bytes += generator.reset();
+          var totalByUser = groupStaffSales();
+          totalByUser.forEach((username, total) {
+            bytes += generator.row([
+              PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
+              PosColumn(
+                  text: username,
+                  width: 8,
+                  containsChinese: true,
+                  styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+              PosColumn(
+                  text: total.toStringAsFixed(2),
+                  width: 2,
+                  styles: PosStyles(align: PosAlign.right)),
+              PosColumn(
+                  text: '',
+                  width: 1,
+                  styles: PosStyles(align: PosAlign.right)),
+            ]);
+          });
         }
         //final part
         bytes += generator.feed(1);
@@ -2401,28 +2436,24 @@ class ReceiptLayout{
         ]);
         bytes += generator.hr();
         if(orderTaxList.isNotEmpty){
-          bytes += generator.text('Charges overview', styles: PosStyles(align: PosAlign.left, bold: true));
+          bytes += generator.text('Charges Overview', styles: PosStyles(align: PosAlign.left, bold: true));
           bytes += generator.hr();
           bytes += generator.reset();
           for(int j = 0; j < orderTaxList.length; j++){
             bytes += generator.row([
-              PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
               PosColumn(
                   text: '${orderTaxList[j].tax_name}',
                   width: 8,
                   containsChinese: true),
               PosColumn(
                   text: '${orderTaxList[j].total_tax_amount!.toStringAsFixed(2)}',
-                  width: 2),
-              PosColumn(
-                  text: '',
-                  width: 1),
+                  width: 4),
             ]);
           }
           bytes += generator.hr();
         }
         if(orderList.isNotEmpty){
-          bytes += generator.text('Dining overview', styles: PosStyles(align: PosAlign.left, bold: true));
+          bytes += generator.text('Dining Overview', styles: PosStyles(align: PosAlign.left, bold: true));
           bytes += generator.hr();
           bytes += generator.reset();
           for(int k = 0; k < orderList.length; k++){
@@ -2436,6 +2467,24 @@ class ReceiptLayout{
                   width: 4),
             ]);
           }
+          bytes += generator.hr();
+          bytes += generator.text('Staff Sales', styles: PosStyles(align: PosAlign.left, bold: true));
+          bytes += generator.hr();
+          bytes += generator.reset();
+          var totalByUser = groupStaffSales();
+          totalByUser.forEach((username, total) {
+            bytes += generator.row([
+              PosColumn(
+                  text: username,
+                  width: 8,
+                  containsChinese: true,
+              ),
+              PosColumn(
+                  text: total.toStringAsFixed(2),
+                  width: 4,
+              ),
+            ]);
+          });
         }
         //final part
         bytes += generator.feed(1);
