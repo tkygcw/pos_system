@@ -2,7 +2,10 @@ import 'dart:convert';
 
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/cart_product.dart';
+import 'package:pos_system/object/ingredient_branch_link_product.dart';
+import 'package:pos_system/object/ingredient_company_link_branch.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 
@@ -284,6 +287,7 @@ class CancelQuery{
       // readSpecificBranchLinkProduct
       List<BranchLinkProduct> checkData = await _readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
       // List<BranchLinkProduct> checkData = await posDatabase.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+      print("checkData.first.stock_type: ${checkData.first.stock_type}");
       if(checkData.isNotEmpty){
         switch(checkData.first.stock_type){
           case '1': {
@@ -305,6 +309,33 @@ class CancelQuery{
                 branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
             updateStock = await _updateBranchLinkProductStock(object);
             // updateStock = await posDatabase.updateBranchLinkProductStock(object);
+          }break;
+          // optimization required
+          case '4': {
+            print("case 4");
+            List<IngredientBranchLinkProduct> detailData = await PosDatabase.instance.readAllProductIngredient(checkData.first.branch_link_product_id.toString());
+            List<int> ingredientList = [];
+            for(int i =0; i < detailData.length; i++){
+              IngredientBranchLinkProduct data1 = detailData[i];
+              List<IngredientCompanyLinkBranch> ingredientCompanyLinkBranch = await PosDatabase.instance.readSpecificIngredientCompanyLinkBranch(data1.ingredient_company_link_branch_id.toString());
+              ingredientList.add(ingredientCompanyLinkBranch[0].ingredient_company_link_branch_id!);
+            }
+
+            print("ingredientList length: ${ingredientList.length}");
+            for (var value in ingredientList) {
+              List<IngredientCompanyLinkBranch> ingredientCompanyLinkBranch = await PosDatabase.instance.readSpecificIngredientCompanyLinkBranch(value.toString());
+              List<IngredientBranchLinkProduct> ingredientDetail = await PosDatabase.instance.readSpecificProductIngredient(value.toString());
+              int ingredientUsed = int.parse(ingredientCompanyLinkBranch[0].stock_quantity!) + (int.parse(_cancelQuantity.toString())*int.parse(ingredientDetail[0].ingredient_usage!));
+
+              print("ingredient restock: ${ingredientUsed}");
+              IngredientCompanyLinkBranch object = IngredientCompanyLinkBranch(
+                updated_at: _dateTime,
+                sync_status: 2,
+                stock_quantity: ingredientUsed.toString(),
+                ingredient_company_link_branch_id: value,
+              );
+              updateStock = await PosDatabase.instance.updateIngredientCompanyLinkBranchStock(object);
+            }
           }break;
           default: {
             updateStock = 0;

@@ -12,6 +12,8 @@ import 'package:pos_system/firebase_sync/qr_order_sync.dart';
 import 'package:pos_system/fragment/qr_order/adjust_stock_dialog.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/branch_link_product.dart';
+import 'package:pos_system/object/ingredient_branch_link_product.dart';
+import 'package:pos_system/object/ingredient_company_link_branch.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
@@ -382,6 +384,24 @@ class _QrMainPageState extends State<QrMainPage> {
             }break;
             case '2': {
               orderDetailList[i].available_stock = data[0].stock_quantity!;
+            } break;
+            case '4': {
+              List<IngredientBranchLinkProduct> detailData = await PosDatabase.instance.readAllProductIngredient(data[0].branch_link_product_id.toString());
+              List<int> ingredientStockList = [];
+              for(int i =0; i < detailData.length; i++){
+                IngredientBranchLinkProduct data1 = detailData[i];
+                List<IngredientCompanyLinkBranch> ingredientCompanyLinkBranch = await PosDatabase.instance.readSpecificIngredientCompanyLinkBranch(data1.ingredient_company_link_branch_id.toString());
+                int ingredientStock = (double.parse(ingredientCompanyLinkBranch[0].stock_quantity!) / double.parse(data1.ingredient_usage!)).toInt();
+                ingredientStockList.add(ingredientStock);
+              }
+              if (ingredientStockList.isNotEmpty) {
+                int minIngredientStock = ingredientStockList.reduce((a, b) => a < b ? a : b);
+                orderDetailList[i].available_stock = minIngredientStock.toString();
+              } else {
+                orderDetailList[i].available_stock = '';
+              }
+
+
             } break;
             default: {
               orderDetailList[i].available_stock = '';

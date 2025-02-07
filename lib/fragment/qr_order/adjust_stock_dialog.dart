@@ -12,6 +12,8 @@ import 'package:pos_system/fragment/custom_toastification.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
+import 'package:pos_system/object/ingredient_branch_link_product.dart';
+import 'package:pos_system/object/ingredient_company_link_branch.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/utils/Utils.dart';
@@ -836,6 +838,30 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                   branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
               updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
               posFirestore.updateBranchLinkProductStock(object);
+            }break;
+            case '4' :{
+              List<IngredientBranchLinkProduct> detailData = await PosDatabase.instance.readAllProductIngredient(checkData[0].branch_link_product_id.toString());
+              List<int> ingredientList = [];
+              for(int i =0; i < detailData.length; i++){
+                IngredientBranchLinkProduct data1 = detailData[i];
+                List<IngredientCompanyLinkBranch> ingredientCompanyLinkBranch = await PosDatabase.instance.readSpecificIngredientCompanyLinkBranch(data1.ingredient_company_link_branch_id.toString());
+                ingredientList.add(ingredientCompanyLinkBranch[0].ingredient_company_link_branch_id!);
+              }
+
+              for (var value in ingredientList) {
+                List<IngredientCompanyLinkBranch> ingredientCompanyLinkBranch = await PosDatabase.instance.readSpecificIngredientCompanyLinkBranch(value.toString());
+                List<IngredientBranchLinkProduct> ingredientDetail = await PosDatabase.instance.readSpecificProductIngredient(value.toString());
+                int ingredientUsed = int.parse(ingredientCompanyLinkBranch[0].stock_quantity!) - (int.parse(orderDetailList[i].quantity!)*int.parse(ingredientDetail[0].ingredient_usage!));
+
+                IngredientCompanyLinkBranch object = IngredientCompanyLinkBranch(
+                  updated_at: dateTime,
+                  sync_status: 2,
+                  stock_quantity: ingredientUsed.toString(),
+                  ingredient_company_link_branch_id: value,
+                );
+                updateStock = await PosDatabase.instance.updateIngredientCompanyLinkBranchStock(object);
+                posFirestore.updateIngredientCompanyLinkBranchStock(object);
+              }
             }break;
             default: {
               updateStock = 0;

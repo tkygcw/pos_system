@@ -310,6 +310,32 @@ class PosFirestore {
     return status;
   }
 
+  Future<int> updateIngredientCompanyLinkBranchStock(IngredientCompanyLinkBranch branchIngredient) async {
+    int status = 0;
+    try{
+     if(firestore_status == FirestoreStatus.offline){
+        return 0;
+      }
+      final batch = firestore.batch();
+      Map<String, dynamic> jsonMap = {
+        BranchLinkProductFields.updated_at: branchIngredient.updated_at,
+        BranchLinkProductFields.stock_quantity: branchIngredient.stock_quantity,
+      };
+      final docRef = await firestore.collection(tableIngredientCompanyLinkBranch!).doc(branchIngredient.ingredient_company_link_branch_id!.toString());
+      batch.update(docRef, jsonMap);
+      batch.commit();
+      status = 1;
+    }catch(e){
+      FLog.error(
+        className: "pos_firestore",
+        text: "updateIngredientCompanyLinkBranchStock error",
+        exception: e,
+      );
+      status = 0;
+    }
+    return status;
+  }
+
   Future<Branch?> readCurrentBranch(String branch_id) async {
     if(firestore_status == 0){
       return null;

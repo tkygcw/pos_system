@@ -27,6 +27,8 @@ import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/dining_option.dart';
+import 'package:pos_system/object/ingredient_branch_link_product.dart';
+import 'package:pos_system/object/ingredient_company_link_branch.dart';
 import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/modifier_item.dart';
 import 'package:pos_system/object/order.dart';
@@ -1041,8 +1043,27 @@ class CartPageState extends State<CartPage> {
           break;
         case '4':
           {
-
-          } break;
+            List<IngredientBranchLinkProduct> detailData = await PosDatabase.instance.readAllProductIngredient(data[0].branch_link_product_id.toString());
+            List<int> ingredientStockList = [];
+            for(int i =0; i < detailData.length; i++){
+              IngredientBranchLinkProduct data1 = detailData[i];
+              List<IngredientCompanyLinkBranch> ingredientCompanyLinkBranch = await PosDatabase.instance.readSpecificIngredientCompanyLinkBranch(data1.ingredient_company_link_branch_id.toString());
+              int ingredientStock = (double.parse(ingredientCompanyLinkBranch[0].stock_quantity!) / double.parse(data1.ingredient_usage!)).toInt();
+              ingredientStockList.add(ingredientStock);
+            }
+            if (ingredientStockList.isNotEmpty) {
+              int minIngredientStock = ingredientStockList.reduce((a, b) => a < b ? a : b);
+              num stockLeft = minIngredientStock - checkCartProductQuantity(cart, product);
+              if (stockLeft > 0) {
+                hasStock = true;
+              } else {
+                hasStock = false;
+              }
+            } else {
+              hasStock = false;
+            }
+          }
+          break;
         default:
           {
             hasStock = true;
@@ -3625,6 +3646,30 @@ class CartPageState extends State<CartPage> {
               posFirestore.updateBranchLinkProductStock(object);
             }
             break;
+          case '4' :{
+            List<IngredientBranchLinkProduct> detailData = await PosDatabase.instance.readAllProductIngredient(checkData[0].branch_link_product_id.toString());
+            List<int> ingredientList = [];
+            for(int i =0; i < detailData.length; i++){
+              IngredientBranchLinkProduct data1 = detailData[i];
+              List<IngredientCompanyLinkBranch> ingredientCompanyLinkBranch = await PosDatabase.instance.readSpecificIngredientCompanyLinkBranch(data1.ingredient_company_link_branch_id.toString());
+              ingredientList.add(ingredientCompanyLinkBranch[0].ingredient_company_link_branch_id!);
+            }
+
+            for (var value in ingredientList) {
+              List<IngredientCompanyLinkBranch> ingredientCompanyLinkBranch = await PosDatabase.instance.readSpecificIngredientCompanyLinkBranch(value.toString());
+              List<IngredientBranchLinkProduct> ingredientDetail = await PosDatabase.instance.readSpecificProductIngredient(value.toString());
+              int ingredientUsed = int.parse(ingredientCompanyLinkBranch[0].stock_quantity!) - (int.parse(quantity.toString())*int.parse(ingredientDetail[0].ingredient_usage!));
+
+              IngredientCompanyLinkBranch object = IngredientCompanyLinkBranch(
+                updated_at: dateTime,
+                sync_status: 2,
+                stock_quantity: ingredientUsed.toString(),
+                ingredient_company_link_branch_id: value,
+              );
+              updateStock = await PosDatabase.instance.updateIngredientCompanyLinkBranchStock(object);
+              posFirestore.updateIngredientCompanyLinkBranchStock(object);
+            }
+          }break;
           default:
             {
               updateStock = 0;

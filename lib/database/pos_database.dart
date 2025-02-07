@@ -4534,8 +4534,8 @@ class PosDatabase {
     return result.map((json) => OrderDetailCancel.fromJson(json)).toList();
   }
 
-  /*
-  read specific product ingredient
+/*
+  read all ingredient for a specific product
 */
   Future<List<IngredientBranchLinkProduct>> readAllProductIngredient(String branch_link_product_id) async {
     final db = await instance.database;
@@ -4545,7 +4545,18 @@ class PosDatabase {
     return result.map((json) => IngredientBranchLinkProduct.fromJson(json)).toList();
   }
 
-  /*
+/*
+  read specific ingredient
+*/
+  Future<List<IngredientBranchLinkProduct>> readSpecificProductIngredient(String ingredient_company_link_branch_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableIngredientBranchLinkProduct WHERE ingredient_company_link_branch_id = ? AND soft_delete = ?',
+        [ingredient_company_link_branch_id, '']);
+    return result.map((json) => IngredientBranchLinkProduct.fromJson(json)).toList();
+  }
+
+/*
   read specific ingredient company link branch
 */
   Future<List<IngredientCompanyLinkBranch>> readSpecificIngredientCompanyLinkBranch(String ingredient_company_link_branch_id) async {
@@ -4554,6 +4565,15 @@ class PosDatabase {
         'SELECT * FROM $tableIngredientCompanyLinkBranch WHERE ingredient_company_link_branch_id = ? AND soft_delete = ?',
         [ingredient_company_link_branch_id, '']);
     return result.map((json) => IngredientCompanyLinkBranch.fromJson(json)).toList();
+  }
+
+  /*
+  update ingredient company link branch stock
+*/
+  Future<int> updateIngredientCompanyLinkBranchStock(IngredientCompanyLinkBranch data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableIngredientCompanyLinkBranch SET updated_at = ?, sync_status = ?, stock_quantity = ? WHERE ingredient_company_link_branch_id = ?',
+        [data.updated_at, data.sync_status, data.stock_quantity, data.ingredient_company_link_branch_id]);
   }
 
 /*
