@@ -555,6 +555,7 @@
   "reprint_settlement": "重新打印结算单",
   "reprint_product_ticket": "重印产品票",
   "reset_all_table": "重置所有桌子",
+  "reset_order_select_status": "重置订单选择状态",
   "reset_pos": "重置 POS",
   "reset_screen": "重置屏幕",
   "reset_table_data": "重置桌子数据",

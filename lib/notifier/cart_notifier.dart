@@ -338,7 +338,7 @@ class CartModel extends ChangeNotifier {
     }
   }
 
-  void removeAllCartOrderCache(){
+  void clearCurrentOrderCache(){
     _currentOrderCache.clear();
   }
 

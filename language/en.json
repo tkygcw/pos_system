@@ -555,6 +555,7 @@
   "reprint_settlement": "Reprint settlement",
   "reprint_product_ticket": "Reprint product ticket",
   "reset_all_table": "Reset all table",
+  "reset_order_select_status": "Reset order select status",
   "reset_pos": "Reset Pos",
   "reset_screen": "Reset Screen",
   "reset_second_display": "Reset second display",

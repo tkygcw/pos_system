@@ -17,6 +17,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../main.dart';
+import '../../notifier/cart_notifier.dart';
 import '../../object/branch.dart';
 import '../../object/table_use.dart';
 import '../../object/table_use_detail.dart';
@@ -173,6 +174,14 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> with Sing
                   subtitle: Text(AppLocalizations.of(context)!.translate('reset_table_desc')),
                   onTap: (){
                     openSelectTableDialog();
+                  },
+                  trailing: Icon(Icons.navigate_next)
+              ),
+              ListTile(
+                  title: Text(AppLocalizations.of(context)!.translate('reset_order_select_status')),
+                  onTap: (){
+                    Provider.of<CartModel>(context, listen: false).clearSubPosOrderCache();
+                    Provider.of<CartModel>(context, listen: false).clearCurrentOrderCache();
                   },
                   trailing: Icon(Icons.navigate_next)
               ),

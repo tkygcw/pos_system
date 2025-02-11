@@ -248,12 +248,17 @@ class _TableMenuState extends State<TableMenu> {
                                     selectedTable = [tableList[index]];
                                     openChooseQRDialog(selectedTable);
                                     },
-                                  onDoubleTap: () {
+                                  onDoubleTap: () async {
                                     if (tableList[index].status != 1) {
                                       //openAddTableDialog(tableList[index]);
                                     } else {
                                       if(tableList[index].order_key == null) {
-                                        openChangeTableDialog(tableList[index], cart);
+                                        bool isTableSelected = await cart.isTableSelectedBySubPos(tableUseKey: tableList[index].table_use_key);
+                                        print("isTableSelected: $isTableSelected");
+                                        if(!isTableSelected){
+                                          openChangeTableDialog(tableList[index], cart);
+                                        } else {
+                                          CustomFailedToast.showToast(title: 'Table is in payment');                                        }
                                       } else {
                                         Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
                                       }
@@ -385,12 +390,18 @@ class _TableMenuState extends State<TableMenu> {
                 selectedTable = [tableList[index]];
                 openChooseQRDialog(selectedTable);
               },
-              onDoubleTap: () {
+              onDoubleTap: () async {
                 if (tableList[index].status != 1) {
                   //openAddTableDialog(tableList[index]);
                 } else {
                   if(tableList[index].order_key == null) {
-                    openChangeTableDialog(tableList[index], cart);
+                    bool isTableSelected = await cart.isTableSelectedBySubPos(tableUseKey: tableList[index].table_use_key);
+                    print("isTableSelected: $isTableSelected");
+                    if(!isTableSelected) {
+                      openChangeTableDialog(tableList[index], cart);
+                    } else {
+                      CustomFailedToast.showToast(title: 'Table is in payment');
+                    }
                   } else {
                     Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
                   }
@@ -737,10 +748,10 @@ class _TableMenuState extends State<TableMenu> {
                     }
                   }
                 } else {
-                  CustomFailedToast.showToast(title: 'Table is in payment');
+                  CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('table_is_in_payment'));
                 }
               } else {
-                cart.removeAllCartOrderCache();
+                cart.clearCurrentOrderCache();
                 for (int j = 0; j < tableList.length; j++) {
                   //reset all using table to un-select (table status == 1)
                   if (tableList[j].status == 1) {
@@ -760,7 +771,12 @@ class _TableMenuState extends State<TableMenu> {
               //openEditTableDialog(tableList[index]);
             } else {
               if(tableList[index].order_key == null) {
-                openChangeTableDialog(tableList[index], cart);
+                bool isTableSelected = await cart.isTableSelectedBySubPos(tableUseKey: tableList[index].table_use_key);
+                if(!isTableSelected) {
+                  openChangeTableDialog(tableList[index], cart);
+                } else {
+                  CustomFailedToast.showToast(title: 'Table is in payment');
+                }
               } else {
                 Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
               }
@@ -1320,7 +1336,7 @@ class _TableMenuState extends State<TableMenu> {
                 tableList: tableList,
                 tableLength: tableList.length,
                 editingMode: editingMode,
-                callBack: onTapDisable ? (action, value){} : (action, value) {
+                callBack: onTapDisable ? (action, value){} : (action, value) async {
                   if (action == 'on_tap'){
                     tapCount++;
                     setState(() {
@@ -1346,7 +1362,12 @@ class _TableMenuState extends State<TableMenu> {
                   }
                   else if (action == 'on_double_tap') {
                     if(tableList[i].order_key == null) {
-                      openChangeTableDialog(tableList[i], cart);
+                      bool isTableSelected = await cart.isTableSelectedBySubPos(tableUseKey: tableList[i].table_use_key);
+                      if(!isTableSelected) {
+                        openChangeTableDialog(tableList[i], cart);
+                      } else {
+                        CustomFailedToast.showToast(title: 'Table is in payment');
+                      }
                     } else {
                       Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
                     }

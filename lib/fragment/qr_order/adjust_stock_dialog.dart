@@ -23,6 +23,7 @@ import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../firebase_sync/qr_order_sync.dart';
 import '../../main.dart';
+import '../../notifier/cart_notifier.dart';
 import '../../notifier/fail_print_notifier.dart';
 import '../../object/branch_link_product.dart';
 import '../../object/cart_product.dart';
@@ -30,6 +31,7 @@ import '../../object/order_cache.dart';
 import '../../object/order_detail.dart';
 import '../../object/table_use.dart';
 import '../../object/table_use_detail.dart';
+import '../../second_device/server.dart';
 import '../../translation/AppLocalizations.dart';
 import '../logout_dialog.dart';
 
@@ -68,13 +70,14 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   bool willPop = true;
   bool paymentNotComplete = false;
   late AppSettingModel _appSettingModel;
-
   late FailPrintModel _failPrintModel;
+  late CartModel _cartModel;
 
   @override
   void initState() {
     super.initState();
     readAllPrinters();
+    _cartModel = Provider.of<CartModel>(context, listen: false);
   }
 
   readAllPrinters() async {
@@ -373,9 +376,17 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                               if (widget.tableLocalId != '') {
                                 await checkTable();
                                 if (tableInUsed == true) {
-                                  await updateOrderDetail();
-                                  await updateOrderCache();
-                                  await updateProductStock();
+                                  //check is table selected by sub pos
+                                  bool isTableSelectedBySubPos = await _cartModel.isTableSelectedBySubPos(tableUseKey: tableUseKey);
+                                  if(!isTableSelectedBySubPos){
+                                    await updateOrderDetail();
+                                    await updateOrderCache();
+                                    await updateProductStock();
+                                  } else {
+                                    CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('table_is_in_payment'));
+                                    Navigator.of(context).pop();
+                                    return;
+                                  }
                                 } else {
                                   await callNewOrder();
                                   await updateProductStock();
@@ -383,6 +394,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                               } else {
                                 await callOtherOrder();
                               }
+                              Server.instance.sendMessageToClient("2");
                               if(_appSettingModel.autoPrintChecklist == true){
                                 await printCheckList();
                               }
