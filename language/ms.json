@@ -270,6 +270,8 @@
   "file_upload_error": "Muat naik fail gagal",
   "file_upload_success": "Muat naik fail berjaya",
   "final_amount": "Jumlah akhir",
+  "final_amount_is_zero": "Jumlah akhir adalah sifar",
+  "final_amount_is_zero_desc": "Jumlah akhir untuk pesanan ini adalah sifar, sila sahkan untuk meneruskan",
   "fixed_qr": "QR tetap",
   "food": "Makanan",
   "food_and_beverage": "Makanan dan Minuman",
