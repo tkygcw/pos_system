@@ -270,6 +270,8 @@
   "file_upload_error": "File upload failed",
   "file_upload_success": "File uploaded successfully",
   "final_amount": "Final Amount",
+  "final_amount_is_zero": "Final amount is zero",
+  "final_amount_is_zero_desc": "Final amount for this order is zero, please confirm to proceed",
   "fixed_qr": "Fixed QR",
   "food": "Food",
   "food_and_beverage": "Food and Beverage",

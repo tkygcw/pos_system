@@ -21,6 +21,7 @@ import 'package:pos_system/fragment/custom_toastification.dart';
 import 'package:pos_system/fragment/product_cancel/adjust_quantity.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/fail_print_notifier.dart';
+import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/branch_link_dining_option.dart';
 import 'package:pos_system/object/branch_link_product.dart';
@@ -144,6 +145,7 @@ class CartPageState extends State<CartPage> {
 
   String orderKey = '';
   String cacheOtherOrderKey = '';
+  bool doubleCheckFinalAmount = false;
 
   void _scrollDown() {
     _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
@@ -834,11 +836,19 @@ class CartPageState extends State<CartPage> {
                                                               textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
                                                             )) {
                                                               paymentAddToCart(cart);
-                                                              return openPaymentSelect(cart);
+                                                              if(finalAmount != '0.00'){
+                                                                return openPaymentSelect(cart);
+                                                              } else {
+                                                                showZeroAmountDialog(context, cart);
+                                                              }
                                                             }
                                                           } else {
                                                             paymentAddToCart(cart);
-                                                            openPaymentSelect(cart);
+                                                            if(finalAmount != '0.00'){
+                                                              return openPaymentSelect(cart);
+                                                            } else {
+                                                              showZeroAmountDialog(context, cart);
+                                                            }
                                                           }
                                                         }
                                                       } else {
@@ -858,7 +868,11 @@ class CartPageState extends State<CartPage> {
                                                           _isSettlement = false;
                                                         } else {
                                                           paymentAddToCart(cart);
-                                                          openPaymentSelect(cart);
+                                                          if(finalAmount != '0.00'){
+                                                            openPaymentSelect(cart);
+                                                          } else {
+                                                            showZeroAmountDialog(context, cart);
+                                                          }
                                                         }
                                                       } else {
                                                         Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
@@ -1001,6 +1015,42 @@ class CartPageState extends State<CartPage> {
     } else {
       return 0;
     }
+  }
+
+  Future showZeroAmountDialog(BuildContext context, CartModel cart) {
+    return showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) => Center(
+        child: SingleChildScrollView(
+          physics: NeverScrollableScrollPhysics(),
+          child: AlertDialog(
+            title: Text(AppLocalizations.of(context)!.translate('final_amount_is_zero')),
+            content: SizedBox(child: Text(AppLocalizations.of(context)!.translate('final_amount_is_zero_desc'))),
+            actions: <Widget>[
+              TextButton(
+                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                onPressed: () {
+                  TableModel.instance.changeContent(true);
+                  cart.removeAllTable();
+                  cart.removeAllCartItem();
+                  cart.removeAllGroupList();
+                  cart.removeAllCartOrderCache();
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  openPaymentSelect(cart);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   checkProductStock(CartModel cart, cartProductItem cartItem) async {
@@ -1303,46 +1353,62 @@ class CartPageState extends State<CartPage> {
 */
   calPromotion(CartModel cart) async {
     print("calPromotion");
-    promoAmount = 0.0;
-    cart.clearCategoryTotalPriceMap();
-    // check if it is a split payment
-    if(orderKey != '' && cart.cartNotifierItem.isNotEmpty) {
-      List<OrderPromotionDetail> promotionData = await PosDatabase.instance.readSpecificOrderPromotionDetailByOrderKey(orderKey);
-      // check if promotion apply
-      if(promotionData.isNotEmpty && cart.selectedPromotion == null) {
-        for(int i = 0 ; i < promotionData.length; i++ ) {
-          for(int j = 0 ; j < promotionList.length; j++) {
-            if(promotionList[j].promotion_id == int.parse(promotionData[i].promotion_id!)) {
-              if(promotionList[j].auto_apply == '0') {
-                cart.addPromotion(promotionList[j]);
+    try {
+      promoAmount = 0.0;
+      cart.clearCategoryTotalPriceMap();
+      // check if it is a split payment
+      if(orderKey != '' && cart.cartNotifierItem.isNotEmpty) {
+        List<OrderPromotionDetail> promotionData = await PosDatabase.instance.readSpecificOrderPromotionDetailByOrderKey(orderKey);
+        // check if promotion apply
+        if(promotionData.isNotEmpty && cart.selectedPromotion == null) {
+          for(int i = 0 ; i < promotionData.length; i++ ) {
+            for(int j = 0 ; j < promotionList.length; j++) {
+              if(promotionList[j].promotion_id == int.parse(promotionData[i].promotion_id!)) {
+                if(promotionList[j].auto_apply == '0') {
+                  cart.addPromotion(promotionList[j]);
+                }
               }
             }
           }
         }
       }
-    }
-    calculateCategoryPrice(cart);
+      calculateCategoryPrice(cart);
 
-    getAutoApplyPromotion(cart);
-    getManualApplyPromotion(cart);
-    getAutoApplyPromotionAllCategories(cart);
-    getManualApplyPromotionAllCategories(cart);
-    // if (!controller.isClosed) {
-    //   controller.sink.add('refresh');
-    // }
+      getAutoApplyPromotion(cart);
+      getManualApplyPromotion(cart);
+      getAutoApplyPromotionAllCategories(cart);
+      getManualApplyPromotionAllCategories(cart);
+      // if (!controller.isClosed) {
+      //   controller.sink.add('refresh');
+      // }
+    } catch(e){
+      FLog.error(
+        className: "cart",
+        text: "calPromotion error",
+        exception: e,
+      );
+    }
   }
 
   calculateCategoryPrice(CartModel cart){
-    for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-      double thisProductTotalPrice = double.parse(cart.cartNotifierItem[i].price!) * cart.cartNotifierItem[i].quantity!;
-      if (!cart.categoryTotalPriceMap.containsKey(cart.cartNotifierItem[i].category_id)) {
-        // category not exist in map
-        cart.addCategoryTotalPrice(cart.cartNotifierItem[i].category_id!, thisProductTotalPrice);
-      } else {
-        // category exist in map
-        double currentCategoryPrice = cart.categoryTotalPriceMap[cart.cartNotifierItem[i].category_id]!;
-        cart.categoryTotalPriceMap[cart.cartNotifierItem[i].category_id!] = currentCategoryPrice + thisProductTotalPrice;
+    try {
+      for (int i = 0; i < cart.cartNotifierItem.length; i++) {
+        double thisProductTotalPrice = double.parse(cart.cartNotifierItem[i].price!) * cart.cartNotifierItem[i].quantity!;
+        if (!cart.categoryTotalPriceMap.containsKey(cart.cartNotifierItem[i].category_id)) {
+          // category not exist in map
+          cart.addCategoryTotalPrice(cart.cartNotifierItem[i].category_id!, thisProductTotalPrice);
+        } else {
+          // category exist in map
+          double currentCategoryPrice = cart.categoryTotalPriceMap[cart.cartNotifierItem[i].category_id]!;
+          cart.categoryTotalPriceMap[cart.cartNotifierItem[i].category_id!] = currentCategoryPrice + thisProductTotalPrice;
+        }
       }
+    } catch(e){
+      FLog.error(
+        className: "cart",
+        text: "calculateCategoryPrice error",
+        exception: e,
+      );
     }
   }
 
@@ -1422,6 +1488,11 @@ class CartPageState extends State<CartPage> {
       }
     } catch (error) {
       print('Get manual promotion error all categories: $error');
+      FLog.error(
+        className: "cart",
+        text: "getManualApplyPromotionAllCategories error",
+        exception: e,
+      );
     }
     // if (!controller.isClosed) {
     //   controller.sink.add('refresh');
@@ -1477,6 +1548,11 @@ class CartPageState extends State<CartPage> {
     } catch (e) {
       print('Specific category offer amount error: $e');
       selectedPromo = 0.0;
+      FLog.error(
+        className: "cart",
+        text: "specificCategoryAmount error",
+        exception: e,
+      );
     }
     controller.add('refresh');
   }
@@ -1519,6 +1595,11 @@ class CartPageState extends State<CartPage> {
     } catch (error) {
       print('check promotion type error: $error');
       selectedPromo = 0.0;
+      FLog.error(
+        className: "cart",
+        text: "nonSpecificCategoryAmount error",
+        exception: e,
+      );
     }
     controller.add('refresh');
   }
@@ -1802,6 +1883,11 @@ class CartPageState extends State<CartPage> {
     } catch (error) {
       print('Promotion error $error');
       promo = 0.0;
+      FLog.error(
+        className: "cart",
+        text: "getAutoApplyPromotionAllCategories error",
+        exception: e,
+      );
     }
     if (!controller.isClosed) {
       controller.sink.add('refresh');
@@ -1853,6 +1939,11 @@ class CartPageState extends State<CartPage> {
       print("calc auto apply non specific error: $e");
       promoRate = '';
       promo = 0.0;
+      FLog.error(
+        className: "cart",
+        text: "autoApplyNonSpecificCategoryAmount error",
+        exception: e,
+      );
     }
 
     controller.add('refresh');
@@ -1909,6 +2000,11 @@ class CartPageState extends State<CartPage> {
       print("calc auto apply specific category error: $e");
       promoRate = '';
       promo = 0.0;
+      FLog.error(
+        className: "cart",
+        text: "autoApplySpecificCategoryAmount error",
+        exception: e,
+      );
     }
     controller.add('refresh');
   }
@@ -1931,6 +2027,11 @@ class CartPageState extends State<CartPage> {
       }
     } catch (error) {
       print('get dining tax in cart error: $error');
+      FLog.error(
+        className: "cart",
+        text: "getDiningTax error",
+        exception: e,
+      );
     }
     // if (!controller.isClosed) {
     //   controller.sink.add('refresh');
@@ -2008,33 +2109,64 @@ class CartPageState extends State<CartPage> {
     } catch (e) {
       print('Sub Total Error: $e');
       total = 0.0;
+      FLog.error(
+        className: "cart",
+        text: "Sub Total Error",
+        exception: e,
+      );
     }
     await getDiningTax(cart);
     await calPromotion(cart);
-    getTaxAmount();
+    await getTaxAmount();
     await getRounding();
     await getAllPaymentSplit(cart);
     await getAllTotal();
     checkCartItem(cart);
-    print("cart scroll down: ${cart.scrollDown }");
-    if (cart.scrollDown == 0) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        setState(() {
-          _scrollDown();
+
+    try {
+      if (cart.scrollDown == 0) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          setState(() {
+            _scrollDown();
+          });
         });
-      });
-      cart.setScrollDown = 1;
-    }
-    if((widget.currentPage == 'table' || widget.currentPage == 'other_order') && cart.cartNotifierItem.isNotEmpty)
-      isButtonDisabled = false;
-    if(cart.cartNotifierItem.isNotEmpty){
-      reInitSecondDisplay(cartEmpty: false, cart: cart);
-    } else {
-      reInitSecondDisplay(cartEmpty: true);
-    }
-    if (!controller.isClosed) {
-      controller.sink.add('refresh');
-      print("refresh called");
+        cart.setScrollDown = 1;
+      }
+      //testing
+      // if(!doubleCheckFinalAmount)
+      //   finalAmount = '0.00';
+      if(!doubleCheckFinalAmount){
+        if((widget.currentPage == 'table' || widget.currentPage == 'other_order') && cart.cartNotifierItem.isNotEmpty){
+          if(finalAmount != '0.00'){
+            isButtonDisabled = false;
+          } else {
+            doubleCheckFinalAmount = true;
+            getSubTotal(cart);
+          }
+        }
+      } else {
+        if((widget.currentPage == 'table' || widget.currentPage == 'other_order') && cart.cartNotifierItem.isNotEmpty){
+          isButtonDisabled = false;
+          doubleCheckFinalAmount = false;
+        }
+      }
+
+      if(cart.cartNotifierItem.isNotEmpty){
+        reInitSecondDisplay(cartEmpty: false, cart: cart);
+      } else {
+        reInitSecondDisplay(cartEmpty: true);
+      }
+      if (!controller.isClosed) {
+        controller.sink.add('refresh');
+        print("refresh called");
+      }
+    } catch(e){
+      print("getSubTotal error: $e");
+      FLog.error(
+        className: "cart",
+        text: "getSubTotal error",
+        exception: e,
+      );
     }
   }
 
@@ -2071,6 +2203,11 @@ class CartPageState extends State<CartPage> {
       }
     } catch (e) {
       print('get tax amount error: $e');
+      FLog.error(
+        className: "cart",
+        text: "getTaxAmount error",
+        exception: e,
+      );
     }
     // if (!controller.isClosed) {
     //   controller.sink.add('refresh');
@@ -2091,22 +2228,31 @@ class CartPageState extends State<CartPage> {
     final int? branch_id = prefs.getInt('branch_id');
     AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
 
-    getAllTaxAmount();
-    double _round = 0.0;
-    totalAmount = 0.0;
-    discountPrice = total - promoAmount;
-    totalAmount = discountPrice + priceIncAllTaxes;
-    if(localSetting!.rounding_absorb == 1) {
-      _round = double.parse(absorbAmount(totalAmount)) - double.parse(totalAmount.toStringAsFixed(2));
-    } else {
-      _round = Utils.roundToNearestFiveSen(double.parse(totalAmount.toStringAsFixed(2))) - double.parse(totalAmount.toStringAsFixed(2));
+    try {
+      getAllTaxAmount();
+      double _round = 0.0;
+      totalAmount = 0.0;
+      discountPrice = total - promoAmount;
+      totalAmount = discountPrice + priceIncAllTaxes;
+      if(localSetting!.rounding_absorb == 1) {
+        _round = double.parse(absorbAmount(totalAmount)) - double.parse(totalAmount.toStringAsFixed(2));
+      } else {
+        _round = Utils.roundToNearestFiveSen(double.parse(totalAmount.toStringAsFixed(2))) - double.parse(totalAmount.toStringAsFixed(2));
+      }
+
+      rounding = _round;
+
+      // if (!controller.isClosed) {
+      //   controller.sink.add('refresh');
+      // }
+    } catch(e){
+      print("getRounding error: $e");
+      FLog.error(
+        className: "cart",
+        text: "getRounding error",
+        exception: e,
+      );
     }
-
-    rounding = _round;
-
-    // if (!controller.isClosed) {
-    //   controller.sink.add('refresh');
-    // }
   }
 
   getAllTotal() async {
@@ -2123,6 +2269,11 @@ class CartPageState extends State<CartPage> {
 
     } catch (error) {
       print('Total calc error: $error');
+      FLog.error(
+        className: "cart",
+        text: "getAllTotal error",
+        exception: e,
+      );
     }
 
     // if (!controller.isClosed) {
@@ -2158,6 +2309,11 @@ class CartPageState extends State<CartPage> {
       }
     } catch(e) {
       print("Total payment split: $e");
+      FLog.error(
+        className: "cart",
+        text: "getAllPaymentSplit error",
+        exception: e,
+      );
     }
   }
 
@@ -2843,7 +2999,11 @@ class CartPageState extends State<CartPage> {
     if (appSettingModel.directPaymentStatus == true) {
       paymentAddToCart(cart);
       updateCartItem(cart);
-      openPaymentSelect(cart);
+      if(finalAmount != '0.00'){
+        openPaymentSelect(cart);
+      } else {
+        showZeroAmountDialog(context, cart);
+      }
     } else {
       cart.removeAllCartItem();
       cart.selectedTable.clear();
