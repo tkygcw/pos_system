@@ -16,6 +16,7 @@ import 'package:pos_system/object/ingredient_branch_link_modifier.dart';
 import 'package:pos_system/object/ingredient_branch_link_product.dart';
 import 'package:pos_system/object/ingredient_company.dart';
 import 'package:pos_system/object/ingredient_company_link_branch.dart';
+import 'package:pos_system/object/ingredient_movement.dart';
 import 'package:pos_system/object/kitchen_list.dart';
 import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/modifier_item.dart';
@@ -1325,6 +1326,15 @@ class PosDatabase {
     final db = await instance.database;
     final id = await db.insert(tableSettlement!, data.toJson());
     return data.copy(settlement_sqlite_id: id);
+  }
+
+/*
+  add ingredient movement data into local db
+*/
+  Future<IngredientMovement> insertSqliteIngredientMovement(IngredientMovement data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableIngredientMovement!, data.toJson());
+    return data.copy(ingredient_movement_sqlite_id: id);
   }
 
 /*
@@ -6215,6 +6225,19 @@ class PosDatabase {
   }
 
 /*
+  update ingredient movement unique key
+*/
+  Future<int> updateIngredientMovementKey(IngredientMovement data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableIngredientMovement SET ingredient_movement_key = ?, sync_status = ?, updated_at = ? WHERE ingredient_movement_sqlite_id = ?', [
+      data.ingredient_movement_key,
+      data.sync_status,
+      data.updated_at,
+      data.ingredient_movement_sqlite_id,
+    ]);
+  }
+
+/*
   update order payment split unique key
 */
   Future<int> updateOrderPaymentSplitUniqueKey(OrderPaymentSplit data) async {
@@ -6914,6 +6937,14 @@ class PosDatabase {
   Future clearAllIngredientBranchLinkModifier() async {
     final db = await instance.database;
     return await db.rawDelete('DELETE FROM $tableIngredientBranchLinkModifier');
+  }
+
+/*
+  Delete All Ingredient Movement
+*/
+  Future clearAllIngredientMovement() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableIngredientMovement');
   }
 
 /*

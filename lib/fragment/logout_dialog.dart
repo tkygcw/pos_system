@@ -148,6 +148,7 @@ class _LogoutConfirmDialogState extends State<LogoutConfirmDialog> {
     PosDatabase.instance.clearAllIngredientCompanyLinkBranch();
     PosDatabase.instance.clearAllIngredientBranchLinkProduct();
     PosDatabase.instance.clearAllIngredientBranchLinkModifier();
+    PosDatabase.instance.clearAllIngredientMovement();
     //clear branch link
     PosDatabase.instance.clearAllBranch();
     PosDatabase.instance.clearAllBranchLinkModifier();

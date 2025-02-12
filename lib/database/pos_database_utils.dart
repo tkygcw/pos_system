@@ -5,6 +5,7 @@ import 'package:pos_system/object/ingredient_branch_link_modifier.dart';
 import 'package:pos_system/object/ingredient_branch_link_product.dart';
 import 'package:pos_system/object/ingredient_company.dart';
 import 'package:pos_system/object/ingredient_company_link_branch.dart';
+import 'package:pos_system/object/ingredient_movement.dart';
 import 'package:pos_system/object/sales_per_day/category_sales_per_day.dart';
 import 'package:pos_system/object/sales_per_day/dining_sales_per_day.dart';
 import 'package:pos_system/object/sales_per_day/product_sales_per_day.dart';
@@ -1298,6 +1299,28 @@ class PosDatabaseUtils {
             ${IngredientBranchLinkModifierFields.created_at} $textType,
             ${IngredientBranchLinkModifierFields.updated_at} $textType,
             ${IngredientBranchLinkModifierFields.soft_delete} $textType)''');
+
+/*
+    create ingredient movement table
+*/
+    await db.execute('''CREATE TABLE $tableIngredientMovement(
+            ${IngredientMovementFields.ingredient_movement_sqlite_id} $idType,
+            ${IngredientMovementFields.ingredient_movement_id} $integerType,
+            ${IngredientMovementFields.ingredient_movement_key} $textType,
+            ${IngredientMovementFields.branch_id} $textType,
+            ${IngredientMovementFields.ingredient_company_link_branch_id} $textType,
+            ${IngredientMovementFields.order_cache_key} $textType,
+            ${IngredientMovementFields.order_detail_key} $textType,
+            ${IngredientMovementFields.order_modifier_detail_key} $textType,
+            ${IngredientMovementFields.type} $integerType,
+            ${IngredientMovementFields.movement} $textType,
+            ${IngredientMovementFields.source} $integerType,
+            ${IngredientMovementFields.remark} $textType,
+            ${IngredientMovementFields.calculate_status} $integerType,
+            ${IngredientMovementFields.sync_status} $integerType,
+            ${IngredientMovementFields.created_at} $textType,
+            ${IngredientMovementFields.updated_at} $textType,
+            ${IngredientMovementFields.soft_delete} $textType)''');
   }
 
   static dbVersion37Upgrade(Database db) async {
@@ -1343,6 +1366,24 @@ class PosDatabaseUtils {
             ${IngredientBranchLinkModifierFields.created_at} $textType,
             ${IngredientBranchLinkModifierFields.updated_at} $textType,
             ${IngredientBranchLinkModifierFields.soft_delete} $textType)''');
+    await db.execute('''CREATE TABLE $tableIngredientMovement(
+            ${IngredientMovementFields.ingredient_movement_sqlite_id} $idType,
+            ${IngredientMovementFields.ingredient_movement_id} $integerType,
+            ${IngredientMovementFields.ingredient_movement_key} $textType,
+            ${IngredientMovementFields.branch_id} $textType,
+            ${IngredientMovementFields.ingredient_company_link_branch_id} $textType,
+            ${IngredientMovementFields.order_cache_key} $textType,
+            ${IngredientMovementFields.order_detail_key} $textType,
+            ${IngredientMovementFields.order_modifier_detail_key} $textType,
+            ${IngredientMovementFields.type} $integerType,
+            ${IngredientMovementFields.movement} $textType,
+            ${IngredientMovementFields.source} $integerType,
+            ${IngredientMovementFields.remark} $textType,
+            ${IngredientMovementFields.calculate_status} $integerType,
+            ${IngredientMovementFields.sync_status} $integerType,
+            ${IngredientMovementFields.created_at} $textType,
+            ${IngredientMovementFields.updated_at} $textType,
+            ${IngredientMovementFields.soft_delete} $textType)''');
   }
 
   static dbVersion33Upgrade(Database db, SharedPreferences prefs) async {

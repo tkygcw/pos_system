@@ -14,6 +14,7 @@ import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
 import 'package:pos_system/object/ingredient_branch_link_product.dart';
 import 'package:pos_system/object/ingredient_company_link_branch.dart';
+import 'package:pos_system/object/ingredient_movement.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/utils/Utils.dart';
@@ -806,6 +807,8 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   }
 
   updateProductStock() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
     PosFirestore posFirestore = PosFirestore.instance;
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
@@ -851,16 +854,37 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
               for (var value in ingredientList) {
                 List<IngredientCompanyLinkBranch> ingredientCompanyLinkBranch = await PosDatabase.instance.readSpecificIngredientCompanyLinkBranch(value.toString());
                 List<IngredientBranchLinkProduct> ingredientDetail = await PosDatabase.instance.readSpecificProductIngredient(value.toString());
-                int ingredientUsed = int.parse(ingredientCompanyLinkBranch[0].stock_quantity!) - (int.parse(orderDetailList[i].quantity!)*int.parse(ingredientDetail[0].ingredient_usage!));
+                int newIngredientStock = int.parse(ingredientCompanyLinkBranch[0].stock_quantity!) - (int.parse(orderDetailList[i].quantity!)*int.parse(ingredientDetail[0].ingredient_usage!));
 
                 IngredientCompanyLinkBranch object = IngredientCompanyLinkBranch(
                   updated_at: dateTime,
                   sync_status: 2,
-                  stock_quantity: ingredientUsed.toString(),
+                  stock_quantity: newIngredientStock.toString(),
                   ingredient_company_link_branch_id: value,
                 );
                 updateStock = await PosDatabase.instance.updateIngredientCompanyLinkBranchStock(object);
                 posFirestore.updateIngredientCompanyLinkBranchStock(object);
+
+                IngredientMovement ingredientMovement = IngredientMovement(
+                  ingredient_movement_id: 0,
+                  ingredient_movement_key: '',
+                  branch_id: branch_id.toString(),
+                  ingredient_company_link_branch_id: value.toString(),
+                  order_cache_key: widget.currentOrderCache!.order_cache_key,
+                  order_detail_key: orderDetailList[i].order_detail_key,
+                  order_modifier_detail_key: '',
+                  type: 2,
+                  movement: (int.parse(orderDetailList[i].quantity!)*int.parse(ingredientDetail[0].ingredient_usage!)).toString(),
+                  source: 0,
+                  remark: '',
+                  calculate_status: 1,
+                  sync_status: 0,
+                  created_at: dateTime,
+                  updated_at: '',
+                  soft_delete: ''
+                );
+                IngredientMovement data = await PosDatabase.instance.insertSqliteIngredientMovement(ingredientMovement);
+                await insertIngredientMovementKey(data, dateTime);
               }
             }break;
             default: {
@@ -900,6 +924,25 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   //     }
   //   }
   // }
+
+  insertIngredientMovementKey(IngredientMovement ingredientMovement, String dateTime) async {
+    String key = await generateIngredientMovementKey(ingredientMovement);
+    IngredientMovement data = IngredientMovement(
+        updated_at: dateTime,
+        sync_status: 0,
+        ingredient_movement_key: key,
+        ingredient_movement_sqlite_id: ingredientMovement.ingredient_movement_sqlite_id
+    );
+    await PosDatabase.instance.updateIngredientMovementKey(data);
+  }
+
+  Future<String> generateIngredientMovementKey(IngredientMovement ingredientMovement) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    var bytes = ingredientMovement.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + ingredientMovement.ingredient_movement_sqlite_id.toString() + device_id.toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
+  }
 
   updatePosTable() async {
     try {

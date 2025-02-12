@@ -286,6 +286,7 @@ class CancelQuery{
     try{
       // readSpecificBranchLinkProduct
       List<BranchLinkProduct> checkData = await _readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+
       // List<BranchLinkProduct> checkData = await posDatabase.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
       print("checkData.first.stock_type: ${checkData.first.stock_type}");
       if(checkData.isNotEmpty){
@@ -313,18 +314,20 @@ class CancelQuery{
           // optimization required
           case '4': {
             print("case 4");
-            List<IngredientBranchLinkProduct> detailData = await PosDatabase.instance.readAllProductIngredient(checkData.first.branch_link_product_id.toString());
+            List<IngredientBranchLinkProduct> detailData = await _readAllProductIngredient(checkData.first.branch_link_product_id.toString());
+            // List<IngredientBranchLinkProduct> detailData = await PosDatabase.instance.readAllProductIngredient(checkData.first.branch_link_product_id.toString());
             List<int> ingredientList = [];
+            print("22222");
             for(int i =0; i < detailData.length; i++){
               IngredientBranchLinkProduct data1 = detailData[i];
-              List<IngredientCompanyLinkBranch> ingredientCompanyLinkBranch = await PosDatabase.instance.readSpecificIngredientCompanyLinkBranch(data1.ingredient_company_link_branch_id.toString());
+              List<IngredientCompanyLinkBranch> ingredientCompanyLinkBranch = await _readSpecificIngredientCompanyLinkBranch(data1.ingredient_company_link_branch_id.toString());
               ingredientList.add(ingredientCompanyLinkBranch[0].ingredient_company_link_branch_id!);
             }
-
+            print("33333");
             print("ingredientList length: ${ingredientList.length}");
             for (var value in ingredientList) {
-              List<IngredientCompanyLinkBranch> ingredientCompanyLinkBranch = await PosDatabase.instance.readSpecificIngredientCompanyLinkBranch(value.toString());
-              List<IngredientBranchLinkProduct> ingredientDetail = await PosDatabase.instance.readSpecificProductIngredient(value.toString());
+              List<IngredientCompanyLinkBranch> ingredientCompanyLinkBranch = await _readSpecificIngredientCompanyLinkBranch(value.toString());
+              List<IngredientBranchLinkProduct> ingredientDetail = await _readSpecificProductIngredient(value.toString());
               int ingredientUsed = int.parse(ingredientCompanyLinkBranch[0].stock_quantity!) + (int.parse(_cancelQuantity.toString())*int.parse(ingredientDetail[0].ingredient_usage!));
 
               print("ingredient restock: ${ingredientUsed}");
@@ -334,7 +337,7 @@ class CancelQuery{
                 stock_quantity: ingredientUsed.toString(),
                 ingredient_company_link_branch_id: value,
               );
-              updateStock = await PosDatabase.instance.updateIngredientCompanyLinkBranchStock(object);
+              updateStock = await _updateIngredientCompanyLinkBranchStock(object);
             }
           }break;
           default: {
@@ -359,6 +362,78 @@ class CancelQuery{
     //print('branch link product value in function: ${branch_link_product_value}');
     //sync to cloud
     //syncBranchLinkProductStock(value.toString());
+  }
+
+  Future<int> _updateIngredientCompanyLinkBranchStock(IngredientCompanyLinkBranch data) async {
+    try{
+      return await _transaction.rawUpdate('UPDATE $tableIngredientCompanyLinkBranch SET updated_at = ?, sync_status = ?, stock_quantity = ? WHERE ingredient_company_link_branch_id = ?', [
+        data.updated_at,
+        data.sync_status,
+        data.stock_quantity,
+        data.ingredient_company_link_branch_id,
+      ]);
+    }catch(e, stackTrace){
+      FLog.error(
+        className: "cancel query",
+        text: "_updateIngredientCompanyLinkBranchStock error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  Future<List<IngredientBranchLinkProduct>> _readSpecificProductIngredient(String ingredient_company_link_branch_id) async {
+    try{
+      final result = await _transaction.rawQuery('SELECT * '
+          'FROM $tableIngredientBranchLinkProduct WHERE soft_delete = ? AND ingredient_company_link_branch_id = ?',
+          ['', ingredient_company_link_branch_id]) as List<Map<String, Object?>>;
+
+      return result.map((json) => IngredientBranchLinkProduct.fromJson(json)).toList();
+    }catch(e, stackTrace){
+      print("_readSpecificProductIngredient Error: $e, StackTrace: $stackTrace");
+      FLog.error(
+        className: "cancel query",
+        text: "_readSpecificProductIngredient error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  Future<List<IngredientCompanyLinkBranch>> _readSpecificIngredientCompanyLinkBranch(String ingredient_company_link_branch_id) async {
+    try{
+      final result = await _transaction.rawQuery('SELECT * '
+          'FROM $tableIngredientCompanyLinkBranch WHERE soft_delete = ? AND ingredient_company_link_branch_id = ?',
+          ['', ingredient_company_link_branch_id]) as List<Map<String, Object?>>;
+
+      return result.map((json) => IngredientCompanyLinkBranch.fromJson(json)).toList();
+    }catch(e, stackTrace){
+      print("_readSpecificIngredientCompanyLinkBranch Error: $e, StackTrace: $stackTrace");
+      FLog.error(
+        className: "cancel query",
+        text: "_readSpecificIngredientCompanyLinkBranch error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  Future<List<IngredientBranchLinkProduct>> _readAllProductIngredient(String branch_link_product_id) async {
+    try{
+      final result = await _transaction.rawQuery('SELECT * '
+          'FROM $tableIngredientBranchLinkProduct WHERE soft_delete = ? AND branch_link_product_id = ?',
+          ['', branch_link_product_id]) as List<Map<String, Object?>>;
+
+      return result.map((json) => IngredientBranchLinkProduct.fromJson(json)).toList();
+    }catch(e, stackTrace){
+      print("_readAllProductIngredient Error: $e, StackTrace: $stackTrace");
+      FLog.error(
+        className: "cancel query",
+        text: "_readAllProductIngredient error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
   }
 
   Future<OrderCache?> _updateOrderCacheSubtotal(String orderCacheLocalId, String price) async {
