@@ -270,6 +270,8 @@
   "file_upload_error": "文件上传失败",
   "file_upload_success": "文件上传成功",
   "final_amount": "最终金额",
+  "final_amount_is_zero": "最终金额为零",
+  "final_amount_is_zero_desc": "此订单的最终金额为零，请确认以继续",
   "fixed_qr": "固定QR",
   "food": "食品",
   "food_and_beverage": "食品与饮料",
