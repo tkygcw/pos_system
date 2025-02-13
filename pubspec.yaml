@@ -121,7 +121,6 @@ dependencies:
   permission_handler: ^11.3.1
   file_picker: ^8.1.7
   sqflite_common_ffi: ^2.3.4+4
-  thermal_printer: ^1.0.5
 
 dependency_overrides:
   image_picker_android: 0.8.6+6
