@@ -1679,19 +1679,20 @@ class _PrinterDialogState extends State<PrinterDialog> {
 
   _printLAN() async {
     var printerDetail = jsonDecode(printerValue[0]);
+    print("printer detail: $printerDetail");
     if(_paperSize == 0){
       PaperSize paper = PaperSize.mm80;
       final profile = await CapabilityProfile.load();
       final printer = NetworkPrinter(paper, profile);
       final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-
       if (res == PosPrintResult.success) {
         await ReceiptLayout().testTicket80mm(false, value: printer);
         printer.disconnect();
       } else {
-        Fluttertoast.showToast(
-            backgroundColor: Color(0xFFFF0000),
-            msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
+        print("printer connect error res: ${res.msg}");
+        // Fluttertoast.showToast(
+        //     backgroundColor: Color(0xFFFF0000),
+        //     msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
       }
     } if(_paperSize == 1){
       PaperSize paper = PaperSize.mm58;

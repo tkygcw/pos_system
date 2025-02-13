@@ -46,6 +46,7 @@ import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/object/variant_item.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../object/branch_link_dining_option.dart';
 import '../object/branch_link_modifier.dart';
 import '../object/branch_link_product.dart';
@@ -86,6 +87,7 @@ class PosDatabase {
   }
 
   Future<Database> _initDB(String filePath) async {
+    databaseFactory = databaseFactoryFfi;
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
     return await openDatabase(path, version: 36, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);

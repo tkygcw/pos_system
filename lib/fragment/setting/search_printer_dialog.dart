@@ -12,6 +12,7 @@ import 'package:network_info_plus/network_info_plus.dart';
 import 'package:pos_system/notifier/printer_notifier.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:provider/provider.dart';
+import 'package:thermal_printer/thermal_printer.dart';
 
 import '../../notifier/theme_color.dart';
 import '../../translation/AppLocalizations.dart';
@@ -29,8 +30,11 @@ class SearchPrinterDialog extends StatefulWidget {
 }
 
 class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
+  var printerManager = PrinterManager.instance;
+  var currentPrinterType = PrinterType.usb;
   StreamSubscription? streamSub;
   List<Map<String, dynamic>> devices = [];
+  List<PrinterDevice> printerDevice = [];
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   List<String> ips = [];
   double percentage = 0.0;
@@ -62,6 +66,13 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
       streamSub!.cancel();
     }
     super.dispose();
+  }
+
+  _scan(PrinterType type, {bool isBle = false}) {
+    // Find printers
+    PrinterManager.instance.discovery(type: type, isBle: isBle).listen((device) {
+      printerDevice.add(device);
+    });
   }
 
   checkPermission() async {
@@ -259,8 +270,7 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return Consumer<PrinterModel>(
-          builder: (context, PrinterModel printerModel, child) {
+      return Consumer<PrinterModel>(builder: (context, PrinterModel printerModel, child) {
         return AlertDialog(
           insetPadding: EdgeInsets.all(0),
           actionsPadding: EdgeInsets.zero,

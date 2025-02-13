@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:async_queue/async_queue.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:firebase_core/firebase_core.dart';
+// import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -52,18 +52,18 @@ String appVersionCode = '', patch = '';
 ValueNotifier<int> unsyncedDataNotifier = ValueNotifier<int>(0);
 final ValueNotifier<bool> isSyncisSyncingingNotifier = ValueNotifier<bool>(false);
 
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
+// Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   //firebase method
-  await Firebase.initializeApp();
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  setupNotificationChannel();
-  configFirestore();
+  // await Firebase.initializeApp();
+  // FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  // setupNotificationChannel();
+  // configFirestore();
 
   //check second screen
-  getSecondScreen();
+  //getSecondScreen();
 
   //device detect
   deviceDetect();
@@ -72,7 +72,7 @@ Future<void> main() async {
   statusBarColor();
 
   //init lcd screen
-  initLCDScreen();
+  //initLCDScreen();
 
   //get app version
   await getAppVersion();
@@ -122,10 +122,10 @@ deviceDetect() async {
 }
 
 configFirestore(){
-  PosFirestore.instance.firestore.settings = const Settings(
-    persistenceEnabled: true,
-    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-  );
+  // PosFirestore.instance.firestore.settings = const Settings(
+  //   persistenceEnabled: true,
+  //   cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  // );
 }
 
 setupNotificationChannel() {

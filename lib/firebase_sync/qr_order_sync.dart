@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/database/pos_firestore.dart';
@@ -27,7 +27,7 @@ class FirestoreQROrderSync {
 
   get qrOrderListener => _qrOrderListener;
 
-  FirebaseFirestore get firestore => posFirestore.firestore;
+  get firestore => posFirestore.firestore;
 
   FirestoreStatus get firestore_status => posFirestore.firestore_status;
 
@@ -41,65 +41,65 @@ class FirestoreQROrderSync {
   }
 
   realtimeQROrder(String branch_id) {
-    if(_qrOrderListener == null){
-      final docRef = firestore.collection(_tb_qr_order_cache)
-          .where(OrderCacheFields.branch_id, isEqualTo: branch_id)
-          .where(OrderCacheFields.soft_delete, isEqualTo: '')
-          .where(OrderCacheFields.accepted, isEqualTo: 1)
-          .where(OrderCacheFields.sync_status, isEqualTo: 0);
-      _qrOrderListener = docRef.snapshots(includeMetadataChanges: true).listen((event) async {
-        if(firestore_status == FirestoreStatus.offline){
-          terminateQrOrder();
-          return;
-        }
-        for (var changes in event.docChanges) {
-          final source = (event.metadata.isFromCache) ? "local cache" : "server";
-          switch (changes.type) {
-            case DocumentChangeType.added:
-              print("New product from $source: ${changes.doc.id}");
-              readOrderCache(changes.doc);
-              break;
-            case DocumentChangeType.modified:
-              print("Modified product from $source: ${changes.doc.data()}");
-              break;
-            case DocumentChangeType.removed:
-              print("Removed order from $source: ${changes.doc.id}");
-              print("Removed order from $source: ${changes.doc.data()}");
-              break;
-          }
-        }
-      },
-        onError: (error) => print("Listen failed: $error"),
-      );
-    }
+    // if(_qrOrderListener == null){
+    //   final docRef = firestore.collection(_tb_qr_order_cache)
+    //       .where(OrderCacheFields.branch_id, isEqualTo: branch_id)
+    //       .where(OrderCacheFields.soft_delete, isEqualTo: '')
+    //       .where(OrderCacheFields.accepted, isEqualTo: 1)
+    //       .where(OrderCacheFields.sync_status, isEqualTo: 0);
+    //   _qrOrderListener = docRef.snapshots(includeMetadataChanges: true).listen((event) async {
+    //     if(firestore_status == FirestoreStatus.offline){
+    //       terminateQrOrder();
+    //       return;
+    //     }
+    //     for (var changes in event.docChanges) {
+    //       final source = (event.metadata.isFromCache) ? "local cache" : "server";
+    //       switch (changes.type) {
+    //         case DocumentChangeType.added:
+    //           print("New product from $source: ${changes.doc.id}");
+    //           readOrderCache(changes.doc);
+    //           break;
+    //         case DocumentChangeType.modified:
+    //           print("Modified product from $source: ${changes.doc.data()}");
+    //           break;
+    //         case DocumentChangeType.removed:
+    //           print("Removed order from $source: ${changes.doc.id}");
+    //           print("Removed order from $source: ${changes.doc.data()}");
+    //           break;
+    //       }
+    //     }
+    //   },
+    //     onError: (error) => print("Listen failed: $error"),
+    //   );
+    // }
   }
 
   Future<void> readAllNotAcceptedOrderCache(String branch_id) async {
-    try{
-      if(firestore_status == FirestoreStatus.offline){
-        terminateQrOrder();
-        return;
-      }
-      Query orderCache = firestore.collection(_tb_qr_order_cache)
-          .where(OrderCacheFields.branch_id, isEqualTo: branch_id)
-          .where(OrderCacheFields.soft_delete, isEqualTo: '')
-          .where(OrderCacheFields.accepted, isEqualTo: 1)
-          .where(OrderCacheFields.sync_status, isEqualTo: 0);
-      var querySnapshot = await orderCache.get();
-      for (var docSnapshot in querySnapshot.docs) {
-        print('${docSnapshot.id} => ${docSnapshot.data()}');
-        readOrderCache(docSnapshot);
-      }
-    }catch(e){
-      FLog.error(
-        className: "firebase_sync/qr_order_sync",
-        text: "readAllNotAcceptedOrderCache error",
-        exception: e,
-      );
-    }
+    // try{
+    //   if(firestore_status == FirestoreStatus.offline){
+    //     terminateQrOrder();
+    //     return;
+    //   }
+    //   Query orderCache = firestore.collection(_tb_qr_order_cache)
+    //       .where(OrderCacheFields.branch_id, isEqualTo: branch_id)
+    //       .where(OrderCacheFields.soft_delete, isEqualTo: '')
+    //       .where(OrderCacheFields.accepted, isEqualTo: 1)
+    //       .where(OrderCacheFields.sync_status, isEqualTo: 0);
+    //   var querySnapshot = await orderCache.get();
+    //   for (var docSnapshot in querySnapshot.docs) {
+    //     print('${docSnapshot.id} => ${docSnapshot.data()}');
+    //     readOrderCache(docSnapshot);
+    //   }
+    // }catch(e){
+    //   FLog.error(
+    //     className: "firebase_sync/qr_order_sync",
+    //     text: "readAllNotAcceptedOrderCache error",
+    //     exception: e,
+    //   );
+    // }
   }
 
-  Future<void> readOrderCache(DocumentSnapshot docSnapshot) async {
+  Future<void> readOrderCache(docSnapshot) async {
     try{
       updateDocSyncStatus(docSnapshot.reference);
       OrderCache? localData = await insertLocalOrderCache(docSnapshot.data() as Map<String, dynamic>);
@@ -115,7 +115,7 @@ class FirestoreQROrderSync {
     }
   }
 
-  Future<void> readOrderDetail(DocumentReference parentDoc, OrderCache localOrderCache) async {
+  Future<void> readOrderDetail(parentDoc, OrderCache localOrderCache) async {
     try{
       var querySnapshot = await parentDoc.collection(tableOrderDetail!).get();
       print("order detail doc length: ${querySnapshot.docs.length}");
@@ -160,15 +160,15 @@ class FirestoreQROrderSync {
     }
   }
 
-  Future<OrderModifierDetail?> readOrderModDetail(QuerySnapshot<Map<String, dynamic>> querySnapshot, OrderDetail orderDetail) async {
+  Future<OrderModifierDetail?> readOrderModDetail(Map<String, dynamic> querySnapshot, OrderDetail orderDetail) async {
     OrderModifierDetail? orderModDetail;
     try{
-      for (var docSnapshot in querySnapshot.docs){
-        print('${docSnapshot.id} => ${docSnapshot.data()}');
-        updateDocSyncStatus(docSnapshot.reference);
-        OrderModifierDetail? modDetail= await insertLocalOrderModifierDetail(docSnapshot.data(), orderDetail);
-        orderModDetail = modDetail;
-      }
+      // for (var docSnapshot in querySnapshot.docs){
+      //   print('${docSnapshot.id} => ${docSnapshot.data()}');
+      //   updateDocSyncStatus(docSnapshot.reference);
+      //   OrderModifierDetail? modDetail= await insertLocalOrderModifierDetail(docSnapshot.data(), orderDetail);
+      //   orderModDetail = modDetail;
+      // }
     }catch(e){
       orderModDetail = null;
     }
@@ -312,7 +312,7 @@ class FirestoreQROrderSync {
     return await PosDatabase.instance.softDeleteOrderCache(orderCache);
   }
 
-  updateDocSyncStatus(DocumentReference docRef){
+  updateDocSyncStatus(docRef){
     final batch = firestore.batch();
     batch.update(docRef, {"sync_status": 1});
     batch.commit();
@@ -596,8 +596,8 @@ class FirestoreQROrderSync {
         var orderDetailDocSnapshot = await transaction.get(orderDetailDocRef);
         var orderCacheDocSnapshot = await transaction.get(orderCacheDocRef);
         if(orderDetailDocSnapshot.exists){
-          transaction.set(orderDetailDocSnapshot.reference, orderDetail.toFirestoreJson(), SetOptions(merge: true));
-          transaction.set(orderCacheDocSnapshot.reference, orderCache.toFirestoreJson(), SetOptions(merge: true));
+          // transaction.set(orderDetailDocSnapshot.reference, orderDetail.toFirestoreJson(), SetOptions(merge: true));
+          // transaction.set(orderCacheDocSnapshot.reference, orderCache.toFirestoreJson(), SetOptions(merge: true));
         }
       });
     }catch(e, stackTrace){

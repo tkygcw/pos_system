@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:assets_audio_player/assets_audio_player.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+// import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
 
 import 'package:collapsible_sidebar/collapsible_sidebar.dart';
@@ -569,75 +569,75 @@ class _HomePageState extends State<HomePage> {
   *
   * */
   Future<void> setupFirebaseMessaging() async {
-    print('setup firebase called');
-    notificationModel.setNotificationAsStarted();
-    // Update the iOS foreground notification presentation options to allow
-    // heads up notifications.
-    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('has notification');
-      showFlutterNotification(message);
-    });
-
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-      print('testing purpose on app open');
-    });
-
-    FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
-      if (message != null) {}
-    });
-
-    if (Platform.isIOS) {
-      FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        announcement: false,
-        badge: true,
-        carPlay: false,
-        criticalAlert: false,
-        provisional: false,
-        sound: true,
-      );
-    }
+    // print('setup firebase called');
+    // notificationModel.setNotificationAsStarted();
+    // // Update the iOS foreground notification presentation options to allow
+    // // heads up notifications.
+    // await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+    //   alert: true,
+    //   badge: true,
+    //   sound: true,
+    // );
+    //
+    // FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    //   print('has notification');
+    //   showFlutterNotification(message);
+    // });
+    //
+    // FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
+    //   print('testing purpose on app open');
+    // });
+    //
+    // FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
+    //   if (message != null) {}
+    // });
+    //
+    // if (Platform.isIOS) {
+    //   FirebaseMessaging.instance.requestPermission(
+    //     alert: true,
+    //     announcement: false,
+    //     badge: true,
+    //     carPlay: false,
+    //     criticalAlert: false,
+    //     provisional: false,
+    //     sound: true,
+    //   );
+    // }
   }
 
-  void showFlutterNotification(RemoteMessage message) async {
-    try {
-      RemoteNotification? notification = message.notification;
-      AndroidNotification? android = message.notification?.android;
-      if (notification != null && android != null) {
-        /*
-      * qr ordering come in
-      * */
-        if (message.data['type'] == '0') {
-          if (qrOrder.count == 0) {
-            qrOrder.count = 1;
-            await QrOrder.instance.getQrOrder(MyApp.navigatorKey.currentContext!);
-            manageNotificationTimer();
-            qrOrder.count = 0;
-          }
-        }
-        /*
-      * sync request
-      * */
-        else {
-          notificationModel.setNotification(true);
-          if (syncRecord.count == 0) {
-            syncRecord.count = 1;
-            notificationModel.setContentLoad();
-            await syncRecord.syncFromCloud();
-            syncRecord.count = 0;
-          }
-        }
-      }
-    } catch (e) {
-      print("show notification error: ${e}");
-    }
-  }
+  // void showFlutterNotification(RemoteMessage message) async {
+  //   try {
+  //     RemoteNotification? notification = message.notification;
+  //     AndroidNotification? android = message.notification?.android;
+  //     if (notification != null && android != null) {
+  //       /*
+  //     * qr ordering come in
+  //     * */
+  //       if (message.data['type'] == '0') {
+  //         if (qrOrder.count == 0) {
+  //           qrOrder.count = 1;
+  //           await QrOrder.instance.getQrOrder(MyApp.navigatorKey.currentContext!);
+  //           manageNotificationTimer();
+  //           qrOrder.count = 0;
+  //         }
+  //       }
+  //       /*
+  //     * sync request
+  //     * */
+  //       else {
+  //         notificationModel.setNotification(true);
+  //         if (syncRecord.count == 0) {
+  //           syncRecord.count = 1;
+  //           notificationModel.setContentLoad();
+  //           await syncRecord.syncFromCloud();
+  //           syncRecord.count = 0;
+  //         }
+  //       }
+  //     }
+  //   } catch (e) {
+  //     print("show notification error: ${e}");
+  //   }
+  // }
 
   manageNotificationTimer() {
     try {

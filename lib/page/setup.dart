@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:animations/animations.dart';
 import 'package:f_logs/model/flog/flog.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+// import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:path_provider/path_provider.dart';
@@ -78,9 +78,9 @@ class _SetupPageState extends State<SetupPage> {
       if(_hasInternetAccess == false){
         throw SocketException("Connection failed");
       }
-      token = await FirebaseMessaging.instance.getToken();
+      // token = await FirebaseMessaging.instance.getToken();
       print('token: ${token}');
-      //token = 'testing';
+      token = 'testing';
     }on SocketException catch(_){
       backToLogin();
     } catch(e){
