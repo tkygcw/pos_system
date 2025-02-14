@@ -30,6 +30,7 @@ import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/dining_option.dart';
 import 'package:pos_system/object/ingredient_branch_link_product.dart';
 import 'package:pos_system/object/ingredient_company_link_branch.dart';
+import 'package:pos_system/object/ingredient_movement.dart';
 import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/modifier_item.dart';
 import 'package:pos_system/object/order.dart';
@@ -148,6 +149,7 @@ class CartPageState extends State<CartPage> {
   String orderKey = '';
   String cacheOtherOrderKey = '';
   bool doubleCheckFinalAmount = false;
+  int ingredientMovementSqliteId = 0;
 
   void _scrollDown() {
     _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
@@ -3762,6 +3764,14 @@ class CartPageState extends State<CartPage> {
             }
           }
         }
+        IngredientMovement data = IngredientMovement(
+            updated_at: dateTime,
+            sync_status: 0,
+            order_detail_key: order_detail_value,
+            order_modifier_detail_key: order_modifier_detail_value ?? '',
+            ingredient_movement_sqlite_id: ingredientMovementSqliteId
+        );
+        await PosDatabase.instance.updateIngredientMovementKey(data);
       } catch(e) {
         FLog.error(
           className: "cart",
@@ -3807,6 +3817,8 @@ class CartPageState extends State<CartPage> {
             }
             break;
           case '4' :{
+            final prefs = await SharedPreferences.getInstance();
+            final int? branch_id = prefs.getInt('branch_id');
             List<IngredientBranchLinkProduct> detailData = await PosDatabase.instance.readAllProductIngredient(checkData[0].branch_link_product_id.toString());
             List<int> ingredientList = [];
             for(int i =0; i < detailData.length; i++){
@@ -3828,6 +3840,37 @@ class CartPageState extends State<CartPage> {
               );
               updateStock = await PosDatabase.instance.updateIngredientCompanyLinkBranchStock(object);
               posFirestore.updateIngredientCompanyLinkBranchStock(object);
+
+              try{
+                IngredientMovement ingredientMovement = IngredientMovement(
+                    ingredient_movement_id: 0,
+                    ingredient_movement_key: '',
+                    branch_id: branch_id.toString(),
+                    ingredient_company_link_branch_id: value.toString(),
+                    order_cache_key: orderCacheKey,
+                    order_detail_key: '',
+                    order_modifier_detail_key: '',
+                    type: 2,
+                    movement: '-${(quantity*int.parse(ingredientDetail[0].ingredient_usage!)).toString()}',
+                    source: 0,
+                    remark: '',
+                    calculate_status: 1,
+                    sync_status: 0,
+                    created_at: dateTime,
+                    updated_at: '',
+                    soft_delete: ''
+                );
+                print("ingredientMovement data: ${jsonEncode(ingredientMovement)}");
+                IngredientMovement data = await PosDatabase.instance.insertSqliteIngredientMovement(ingredientMovement);
+                await insertIngredientMovementKey(data, dateTime);
+              }catch(e){
+                print("insertIngredientMovement error: $e");
+                FLog.error(
+                  className: "cart",
+                  text: "ingredient movement insert failed",
+                  exception: e,
+                );
+              }
             }
           }break;
           default:
@@ -3852,6 +3895,26 @@ class CartPageState extends State<CartPage> {
         exception: e,
       );
     }
+  }
+
+  insertIngredientMovementKey(IngredientMovement ingredientMovement, String dateTime) async {
+    String key = await generateIngredientMovementKey(ingredientMovement);
+    ingredientMovementSqliteId = ingredientMovement.ingredient_movement_sqlite_id!;
+    IngredientMovement data = IngredientMovement(
+        updated_at: dateTime,
+        sync_status: 0,
+        ingredient_movement_key: key,
+        ingredient_movement_sqlite_id: ingredientMovement.ingredient_movement_sqlite_id
+    );
+    await PosDatabase.instance.updateIngredientMovementKey(data);
+  }
+
+  Future<String> generateIngredientMovementKey(IngredientMovement ingredientMovement) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    var bytes = ingredientMovement.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + ingredientMovement.ingredient_movement_sqlite_id.toString() + device_id.toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
   }
 
   insertOrderModifierDetailKey(OrderModifierDetail orderModifierDetail, String dateTime) async {

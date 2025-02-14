@@ -9,6 +9,7 @@ import 'package:pos_system/object/attendance.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/cancel_receipt.dart';
 import 'package:pos_system/object/checklist.dart';
+import 'package:pos_system/object/ingredient_movement.dart';
 import 'package:pos_system/object/kitchen_list.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:pos_system/object/order_payment_split.dart';
@@ -46,6 +47,7 @@ class SyncToCloud {
   bool emptyResponse = false;
   List<PosTable> notSyncPosTableList = [];
   List<Product> notSyncProductList = [];
+  List<IngredientMovement> notSyncIngredientMovementList = [];
   List<Order> notSyncOrderList = [];
   List<OrderTaxDetail> notSyncOrderTaxDetailList = [];
   List<OrderPromotionDetail> notSyncOrderPromotionDetailList = [];
@@ -70,7 +72,7 @@ class SyncToCloud {
       order_modifier_detail_value, order_value, order_promotion_value, order_tax_value, receipt_value, refund_value, table_value, settlement_value,
       settlement_link_payment_value, cash_record_value, app_setting_value, branch_link_product_value, printer_value, printer_link_category_value,
       transfer_owner_value, checklist_value, kitchen_list_value, attendance_value, dynamic_qr_value, order_payment_split_value, cancel_receipt_value, product_value,
-      sales_per_day_value, sales_category_per_day_value, sales_product_per_day_value, sales_modifier_per_day_value, sales_dining_per_day_value;
+      ingredient_movement_value, sales_per_day_value, sales_category_per_day_value, sales_product_per_day_value, sales_modifier_per_day_value, sales_dining_per_day_value;
   late SharedPreferences prefs;
   bool isNewSync = false;
   int dataSelectLimit = 10;
@@ -136,6 +138,7 @@ class SyncToCloud {
           order_payment_split_value: this.order_payment_split_value,
           cancel_receipt_value: this.cancel_receipt_value,
           product_value:  this.product_value,
+          ingredient_movement_value:  this.ingredient_movement_value,
           sales_per_day_value: this.sales_per_day_value,
           sales_category_per_day_value: this.sales_category_per_day_value,
           sales_product_per_day_value: this.sales_product_per_day_value,
@@ -254,6 +257,9 @@ class SyncToCloud {
               }break;
               case 'tb_product': {
                 await PosDatabase.instance.updateProductSyncStatusFromCloud(responseJson[i]['product_id']);
+              }break;
+              case 'tb_ingredient_movement': {
+                await PosDatabase.instance.updateIngredientMovementSyncStatusFromCloud(responseJson[i]['ingredient_movement_key']);
               }
               break;
               case 'tb_sales_per_day': {
@@ -336,6 +342,7 @@ class SyncToCloud {
     order_payment_split_value = [].toString();
     cancel_receipt_value = [].toString();
     product_value = [].toString();
+    ingredient_movement_value = [].toString();
     sales_per_day_value = [].toString();
     sales_category_per_day_value = [].toString();
     sales_product_per_day_value = [].toString();
@@ -458,6 +465,10 @@ class SyncToCloud {
     if(product_value != '[]' && isNewSync){
       return;
     }
+    await getNotSyncIngredientMovement();
+    if(ingredient_movement_value != '[]' && isNewSync){
+      return;
+    }
     await getNotSyncSalesPerDay();
     if(sales_per_day_value != '[]' && isNewSync){
       return;
@@ -475,6 +486,7 @@ class SyncToCloud {
       return;
     }
     await getNotSyncSalesDiningPerDay();
+
   }
 
   getNotSyncSalesDiningPerDay() async {
@@ -1195,6 +1207,28 @@ class SyncToCloud {
       FLog.error(
         className: "sync_to_cloud",
         text: "table sync to cloud error",
+        exception: error,
+      );
+      return;
+    }
+  }
+
+  getNotSyncIngredientMovement() async {
+    try{
+      List<String> _value = [];
+      List<IngredientMovement> data = await PosDatabase.instance.readAllNotSyncUpdatedIngredientMovement(dataSelectLimit);
+      notSyncIngredientMovementList = data;
+      if(notSyncIngredientMovementList.isNotEmpty){
+        for (int i = 0; i < notSyncIngredientMovementList.length; i++) {
+          _value.add(jsonEncode(notSyncIngredientMovementList[i]));
+        }
+        this.ingredient_movement_value = _value.toString();
+      }
+    }catch(error){
+      print('getNotSyncIngredientMovement error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "getNotSyncIngredientMovement error",
         exception: error,
       );
       return;

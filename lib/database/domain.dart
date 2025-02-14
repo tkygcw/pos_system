@@ -305,6 +305,21 @@ class Domain {
   }
 
   /*
+  * check and remove duplicated row in ingredient movement
+  * */
+  checkDuplicateIngredientMovement(branch_id) async {
+    try {
+      var response = await http.post(Domain.ingredient, body: {
+        'checkDuplicateIngredientMovement': '1',
+        'branch_id': branch_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get all attendance
   * */
   getAllAttendance(branch_id) async {
@@ -645,6 +660,7 @@ class Domain {
         dynamic_qr_value,
         cancel_receipt_value,
         product_value,
+        ingredient_movement_value,
         String? sales_per_day_value,
         String? sales_category_per_day_value,
         String? sales_product_per_day_value,
@@ -688,6 +704,7 @@ class Domain {
         'tb_dynamic_qr_create': dynamic_qr_value != null ? dynamic_qr_value : [].toString(),
         'tb_cancel_receipt_create': cancel_receipt_value != null ? cancel_receipt_value : [].toString(),
         'tb_product_create': product_value != null ? product_value : [].toString(),
+        'tb_ingredient_movement_create': ingredient_movement_value != null ? ingredient_movement_value : [].toString(),
         'tb_sales_per_day_create': sales_per_day_value ?? [].toString(),
         'tb_sales_category_per_day_create': sales_category_per_day_value ?? [].toString(),
         'tb_sales_product_per_day_create': sales_product_per_day_value ?? [].toString(),

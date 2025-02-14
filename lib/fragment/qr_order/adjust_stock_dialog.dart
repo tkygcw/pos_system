@@ -874,7 +874,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                   order_detail_key: orderDetailList[i].order_detail_key,
                   order_modifier_detail_key: '',
                   type: 2,
-                  movement: (int.parse(orderDetailList[i].quantity!)*int.parse(ingredientDetail[0].ingredient_usage!)).toString(),
+                  movement: '-${(int.parse(orderDetailList[i].quantity!)*int.parse(ingredientDetail[0].ingredient_usage!)).toString()}',
                   source: 0,
                   remark: '',
                   calculate_status: 1,

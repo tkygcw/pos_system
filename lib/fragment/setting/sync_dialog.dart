@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/firebase_sync/sync_to_firebase.dart';
 import 'package:pos_system/object/sync_to_cloud.dart';
@@ -260,6 +261,8 @@ class _SyncDialogState extends State<SyncDialog> {
   }
 
   syncToCloudChecking() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
     DateTime startSync = DateTime.now();
     try{
       int status = 0;
@@ -274,6 +277,10 @@ class _SyncDialogState extends State<SyncDialog> {
             status = await syncToCloud.syncAllToCloud(isManualSync: true);
           }while(syncToCloud.emptyResponse == false);
           if(syncToCloud.emptyResponse == true){
+            if(!isPaused){
+              // check duplicate ingredient movement and update ingredient stock
+              await Domain().checkDuplicateIngredientMovement(branch_id.toString());
+            }
             isSyncisSyncingingNotifier.value = false;
             isPaused = false;
           }

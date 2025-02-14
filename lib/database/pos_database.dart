@@ -6238,6 +6238,20 @@ class PosDatabase {
   }
 
 /*
+  update ingredient movement orderDetail unique key
+*/
+  Future<int> updateIngredientMovementDetailKey(IngredientMovement data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableIngredientMovement SET order_detail_key = ?, order_modifier_detail_key = ?, sync_status = ?, updated_at = ? WHERE ingredient_movement_sqlite_id = ?', [
+      data.order_detail_key,
+      data.order_modifier_detail_key,
+      data.sync_status,
+      data.updated_at,
+      data.ingredient_movement_sqlite_id,
+    ]);
+  }
+
+/*
   update order payment split unique key
 */
   Future<int> updateOrderPaymentSplitUniqueKey(OrderPaymentSplit data) async {
@@ -7435,6 +7449,14 @@ class PosDatabase {
   }
 
 /*
+  update ingredient movement sync status (from cloud)
+*/
+  Future<int> updateIngredientMovementSyncStatusFromCloud(String ingredient_movement_key) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableIngredientMovement SET sync_status = ? WHERE ingredient_movement_key = ? AND soft_delete = ?', [1, ingredient_movement_key, '']);
+  }
+
+/*
   update settlement (from cloud)
 */
   Future<int> updateSettlementSyncStatusFromCloud(String settlement_key) async {
@@ -7599,6 +7621,8 @@ class PosDatabase {
     SELECT 'tb_transfer_owner', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_transfer_owner
     UNION ALL
     SELECT 'tb_dynamic_qr', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_dynamic_qr
+    UNION ALL
+    SELECT 'tb_ingredient_movement', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_ingredient_movement
 )
 SELECT SUM(unsynced) AS unsynced 
 FROM table_counts;
@@ -7630,6 +7654,12 @@ FROM table_counts;
     final db = await instance.database;
     final result = await db.rawQuery('SELECT * FROM $tableProduct WHERE soft_delete = ? AND sync_status != ? LIMIT ? ', ['', 1, dataSelectLimit]);
     return result.map((json) => Product.fromJson(json)).toList();
+  }
+
+  Future<List<IngredientMovement>> readAllNotSyncUpdatedIngredientMovement(int dataSelectLimit) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableIngredientMovement WHERE soft_delete = ? AND sync_status != ? LIMIT ? ', ['', 1, dataSelectLimit]);
+    return result.map((json) => IngredientMovement.fromJson(json)).toList();
   }
 
 /*
