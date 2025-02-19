@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:async_queue/async_queue.dart';
-// import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:firebase_core/firebase_core.dart';
-// import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -52,18 +53,24 @@ String appVersionCode = '', patch = '';
 ValueNotifier<int> unsyncedDataNotifier = ValueNotifier<int>(0);
 final ValueNotifier<bool> isSyncisSyncingingNotifier = ValueNotifier<bool>(false);
 
-// Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   //firebase method
-  // await Firebase.initializeApp();
-  // FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  // setupNotificationChannel();
-  // configFirestore();
+  await Firebase.initializeApp(
+    options: FirebaseOptions(
+        apiKey: 'AIzaSyCw5m1txfmZIHhrjc5gnQmElcjh2IfkZWA',
+        appId: '1:837940125447:web:90e55e25e0d6b1a63aafa2',
+        messagingSenderId: '837940125447',
+        projectId: 'test-13a67')
+  );
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  setupNotificationChannel();
+  configFirestore();
 
   //check second screen
-  //getSecondScreen();
+  // getSecondScreen();
 
   //device detect
   deviceDetect();
@@ -71,15 +78,14 @@ Future<void> main() async {
   //other method
   statusBarColor();
 
-  //init lcd screen
-  //initLCDScreen();
+  //init lcd screen (if is not win devices)
+  // initLCDScreen();
 
   //get app version
   await getAppVersion();
 
   await calUnsyncedData();
 
-  WidgetsFlutterBinding.ensureInitialized();
   //create default app color
   await appLanguage.fetchLocale();
 
@@ -87,12 +93,6 @@ Future<void> main() async {
     appLanguage: appLanguage,
   ));
 
-  // runApp(
-  //     ChangeNotifierProvider.value(
-  //       value: notificationModel,
-  //       child: MyApp(appLanguage: appLanguage),
-  //     )
-  // );
 }
 
 Future<void> calUnsyncedData() async {
@@ -122,10 +122,10 @@ deviceDetect() async {
 }
 
 configFirestore(){
-  // PosFirestore.instance.firestore.settings = const Settings(
-  //   persistenceEnabled: true,
-  //   cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-  // );
+  PosFirestore.instance.firestore.settings = const Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  );
 }
 
 setupNotificationChannel() {
@@ -257,9 +257,11 @@ class MyApp extends StatelessWidget {
 }
 
 initLCDScreen() async {
-  int status = await iminLib.checkLcdScreen();
-  if(status == 1){
-    await iminLib.initLcd();
+  if(!Platform.isWindows){
+    int status = await iminLib.checkLcdScreen();
+    if(status == 1){
+      await iminLib.initLcd();
+    }
   }
 }
 

@@ -423,6 +423,7 @@ class PrintReceipt{
 
               if (res == PosPrintResult.success) {
                 await BillLayout().printReceipt80mm(false, orderId, selectedTableList, value: printer);
+                await Future.delayed(Duration(milliseconds: 100));
                 printer.disconnect();
                 printStatus = 0;
               } else if (res == PosPrintResult.timeout){
@@ -438,6 +439,7 @@ class PrintReceipt{
 
               if (res == PosPrintResult.success) {
                 await BillLayout().printReceipt58mm(false, orderId, selectedTableList,value: printer);
+                await Future.delayed(Duration(milliseconds: 100));
                 printer.disconnect();
                 printStatus = 0;
               } else if (res == PosPrintResult.timeout){
@@ -637,6 +639,7 @@ class PrintReceipt{
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                 if (res == PosPrintResult.success) {
                   await BillLayout().printReceipt80mm(false, localOrderId, cart.selectedTable, value: printer, isRefund: cart.cartNotifierItem[0].isRefund);
+                  await Future.delayed(Duration(milliseconds: 100));
                   printer.disconnect();
                   printStatus = 0;
                 }  else if (res == PosPrintResult.timeout){
@@ -653,6 +656,7 @@ class PrintReceipt{
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                 if (res == PosPrintResult.success) {
                   await BillLayout().printReceipt58mm(false, localOrderId, cart.selectedTable,value: printer, isRefund: cart.cartNotifierItem[0].isRefund);
+                  await Future.delayed(Duration(milliseconds: 100));
                   printer.disconnect();
                   printStatus = 0;
                 } else if (res == PosPrintResult.timeout){

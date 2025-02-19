@@ -65,13 +65,29 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
   }
 
   checkPermission() async {
-    Location location = new Location();
-    //check location permission is granted or not
-    var permissionGranted = await location.hasPermission();
-    if (permissionGranted == PermissionStatus.denied) {
-      permissionGranted = await location.requestPermission();
-      if (permissionGranted != PermissionStatus.granted) {
-        Navigator.of(context).pop();
+    //check for location permission (only android)
+    if(Platform.Platform.isAndroid){
+      Location location = new Location();
+      //check location permission is granted or not
+      var permissionGranted = await location.hasPermission();
+      if (permissionGranted == PermissionStatus.denied) {
+        permissionGranted = await location.requestPermission();
+        if (permissionGranted != PermissionStatus.granted) {
+          Navigator.of(context).pop();
+        } else {
+          //check location is on or not
+          var _locationOn = await location.serviceEnabled();
+          if (!_locationOn) {
+            _locationOn = await location.requestService();
+            if (!_locationOn) {
+              Navigator.of(context).pop();
+            } else {
+              await scan_network();
+            }
+          } else {
+            await scan_network();
+          }
+        }
       } else {
         //check location is on or not
         var _locationOn = await location.serviceEnabled();
@@ -87,18 +103,7 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
         }
       }
     } else {
-      //check location is on or not
-      var _locationOn = await location.serviceEnabled();
-      if (!_locationOn) {
-        _locationOn = await location.requestService();
-        if (!_locationOn) {
-          Navigator.of(context).pop();
-        } else {
-          await scan_network();
-        }
-      } else {
-        await scan_network();
-      }
+      await scan_network();
     }
   }
 
@@ -195,8 +200,8 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
       wifiName = '"mobile data"';
     }
     var subnet = ipToCSubnet(wifiIP!);
-
-    if(Platform.Platform.isAndroid) {
+    //start scan for IP
+    if(Platform.Platform.isAndroid || Platform.Platform.isWindows) {
       final stream = scanner.icmpScan(subnet, progressCallback: (progress) {
         if (mounted) {
           setState(() {

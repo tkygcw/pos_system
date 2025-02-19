@@ -210,7 +210,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                               Row(
                                 children: [
                                   Visibility(
-                                    visible: !Platform.Platform.isIOS,
+                                    visible: !Platform.Platform.isIOS && !Platform.Platform.isWindows,
                                     child: Expanded(
                                       child: RadioListTile<int>(
                                         activeColor: color.backgroundColor,
@@ -1638,7 +1638,6 @@ class _PrinterDialogState extends State<PrinterDialog> {
   _print() async {
     try {
       var printerDetail = jsonDecode(printerValue[0]);
-
       if (_paperSize == 0) {
         var data = Uint8List.fromList(await ReceiptLayout().testTicket80mm(true));
         bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
@@ -1687,6 +1686,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
 
       if (res == PosPrintResult.success) {
         await ReceiptLayout().testTicket80mm(false, value: printer);
+        await Future.delayed(Duration(milliseconds: 100));
         printer.disconnect();
       } else {
         Fluttertoast.showToast(
@@ -1701,6 +1701,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
 
       if (res == PosPrintResult.success) {
         await ReceiptLayout().testTicket58mm(false, value: printer);
+        await Future.delayed(Duration(milliseconds: 100));
         printer.disconnect();
       } else {
         Fluttertoast.showToast(
@@ -1717,6 +1718,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
       if (res == PosPrintResult.success) {
         print("Printer connected");
         await ReceiptLayout().testTicket35mm(false, value: printer);
+        await Future.delayed(Duration(milliseconds: 100));
         printer.disconnect();
         print("Printer Disconected");
       } else {
