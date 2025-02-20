@@ -1037,7 +1037,7 @@ class CartPageState extends State<CartPage> {
                   cart.removeAllTable();
                   cart.removeAllCartItem();
                   cart.removeAllGroupList();
-                  cart.removeAllCartOrderCache();
+                  cart.clearCurrentOrderCache();
                   Navigator.of(context).pop();
                 },
               ),
