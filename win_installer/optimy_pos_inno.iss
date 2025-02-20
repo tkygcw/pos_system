@@ -42,7 +42,7 @@ WizardStyle=modern
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Dirs]
-Name: "{userappdata}\optimy.com; Flags: uninsneveruninstall
+Name: "{userappdata}\optimy.com"; Flags: uninsneveruninstall
 
 [Files]
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
