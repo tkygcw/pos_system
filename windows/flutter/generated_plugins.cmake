@@ -10,7 +10,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   firebase_core
   permission_handler_windows
   printing
-  thermal_printer
   url_launcher_windows
 )
 
