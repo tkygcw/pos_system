@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:async_queue/async_queue.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -25,11 +28,14 @@ import 'package:pos_system/page/second_display.dart';
 import 'package:pos_system/second_device/server.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/translation/appLanguage.dart';
+import 'package:pos_system/windows_app/customer_display.dart';
 import 'package:presentation_displays/display.dart';
 import 'package:presentation_displays/displays_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:screen_retriever/screen_retriever.dart' as Retriever;
 import 'package:toastification/toastification.dart';
+import 'package:window_manager/window_manager.dart';
 import 'notifier/cart_notifier.dart';
 import 'notifier/connectivity_change_notifier.dart';
 import 'notifier/printer_notifier.dart';
@@ -55,22 +61,11 @@ final ValueNotifier<bool> isSyncisSyncingingNotifier = ValueNotifier<bool>(false
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
 
-Future<void> main() async {
+Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
-  //firebase method
-  await Firebase.initializeApp(
-    options: FirebaseOptions(
-        apiKey: 'AIzaSyCw5m1txfmZIHhrjc5gnQmElcjh2IfkZWA',
-        appId: '1:837940125447:web:90e55e25e0d6b1a63aafa2',
-        messagingSenderId: '837940125447',
-        projectId: 'test-13a67')
-  );
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  setupNotificationChannel();
-  configFirestore();
 
   //check second screen
-  // getSecondScreen();
+  await getSecondScreen();
 
   //device detect
   deviceDetect();
@@ -79,7 +74,7 @@ Future<void> main() async {
   statusBarColor();
 
   //init lcd screen (if is not win devices)
-  // initLCDScreen();
+  initLCDScreen();
 
   //get app version
   await getAppVersion();
@@ -89,10 +84,88 @@ Future<void> main() async {
   //create default app color
   await appLanguage.fetchLocale();
 
-  runApp(MyApp(
-    appLanguage: appLanguage,
-  ));
+  print("windows arg: ${args.length}");
+  if (args.isNotEmpty) {
+    //windows manager initialized
+    print("windows arg: ${args[0]}");
+    print("windows arg: ${args[1]}");
+    print("windows arg: ${args[2]}");
+    // This block executes if the window is a newly created secondary window
+    final Map<String, dynamic> windowArgs = jsonDecode(args[2]);
+    runApp(WinCustomerDisplay());
+  } else {
+    //windows manager initialized
+    await windowManager.ensureInitialized();
 
+    WindowOptions windowOptions = const WindowOptions(
+      fullScreen: true, // Enable full-screen mode
+    );
+
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
+
+    //firebase method
+    await Firebase.initializeApp(
+      options: FirebaseOptions(
+          apiKey: 'AIzaSyCw5m1txfmZIHhrjc5gnQmElcjh2IfkZWA',
+          appId: '1:837940125447:web:90e55e25e0d6b1a63aafa2',
+          messagingSenderId: '837940125447',
+          projectId: 'test-13a67')
+    );
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    setupNotificationChannel();
+    configFirestore();
+    runApp(MyApp(
+      appLanguage: appLanguage,
+    ));
+    await createNewWindows();
+  }
+
+  // runApp(MyApp(
+  //   appLanguage: appLanguage,
+  // ));
+
+}
+
+createNewWindows() async {
+  final window = await DesktopMultiWindow.createWindow(jsonEncode({
+    'title': 'Sub window',
+    'content': 'business_test',
+  }));
+  // window
+  //   ..setFrame(const Offset(0, 0) & const Size(1280, 720))
+  //   ..center()
+  //   ..setTitle('Optimy POS')
+  //   ..show();
+
+  // Retrieve all available screens
+  final screens = await Retriever.screenRetriever.getAllDisplays();
+  if (screens.length > 1) {
+    // Assuming the external display is the second screen
+    final internalScreen = screens[0];
+    final externalScreen = screens[1];
+    print("external screen: ${externalScreen.name}");
+
+    // Calculate the center position on the external display
+    // final externalScreenFrame = externalScreen.visibleSize!;
+    // final newPosition = Offset();
+
+    // Set the window's position to the external display
+    await window
+        ..setFrame(
+            Offset(
+                externalScreen.visibleSize!.width.toDouble(),
+                0) &
+            Size(internalScreen.visibleSize!.width.toDouble(),
+                internalScreen.visibleSize!.height.toDouble()))
+        ..center();
+    window.show();
+
+  } else {
+    print('No external display detected.');
+  }
 }
 
 Future<void> calUnsyncedData() async {
@@ -139,6 +212,43 @@ setupNotificationChannel() {
         sound: 'notification')
   ];
   NotificationPlugin(channels);
+}
+
+initLCDScreen() async {
+  if(!Platform.isWindows){
+    int status = await iminLib.checkLcdScreen();
+    if(status == 1){
+      await iminLib.initLcd();
+    }
+  }
+}
+
+getSecondScreen() async {
+  if(!Platform.isWindows){
+    List<Display?> displays = [];
+    final values = await displayManager.getDisplays();
+    displays.clear();
+    displays.addAll(values!);
+    if (displays.length > 1) {
+      notificationModel.setHasSecondScreen();
+      notificationModel.insertDisplay(value: displays);
+      //await displayManager.showSecondaryDisplay(displayId: 1, routerName: "/init");
+    }
+    print('display list = ${displays.length}');
+  }
+}
+
+statusBarColor() {
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    statusBarColor: Colors.white, // status bar color
+    statusBarBrightness: Brightness.dark, //status bar brightness
+    statusBarIconBrightness: Brightness.dark,
+  ));
+}
+
+getAppVersion() async {
+  PackageInfo packageInfo = await PackageInfo.fromPlatform();
+  appVersionCode = '${packageInfo.version}${patch != '' ? '+$patch' : ''}';
 }
 
 class MyApp extends StatelessWidget {
@@ -203,6 +313,7 @@ class MyApp extends StatelessWidget {
       child: Consumer<AppLanguage>(builder: (context, model, child) {
         return ToastificationWrapper(
           child: MaterialApp(
+            scrollBehavior: CustomScrollBehavior(),
             navigatorKey: MyApp.navigatorKey,
             scaffoldMessengerKey: snackBarKey,
             locale: model.appLocal,
@@ -256,37 +367,15 @@ class MyApp extends StatelessWidget {
   }
 }
 
-initLCDScreen() async {
-  if(!Platform.isWindows){
-    int status = await iminLib.checkLcdScreen();
-    if(status == 1){
-      await iminLib.initLcd();
-    }
-  }
-}
 
-getSecondScreen() async {
-  List<Display?> displays = [];
-  final values = await displayManager.getDisplays();
-  displays.clear();
-  displays.addAll(values!);
-  if (displays.length > 1) {
-    notificationModel.setHasSecondScreen();
-    notificationModel.insertDisplay(value: displays);
-    //await displayManager.showSecondaryDisplay(displayId: 1, routerName: "/init");
-  }
-  print('display list = ${displays.length}');
-}
-
-statusBarColor() {
-  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-    statusBarColor: Colors.white, // status bar color
-    statusBarBrightness: Brightness.dark, //status bar brightness
-    statusBarIconBrightness: Brightness.dark,
-  ));
-}
-
-getAppVersion() async {
-  PackageInfo packageInfo = await PackageInfo.fromPlatform();
-  appVersionCode = '${packageInfo.version}${patch != '' ? '+$patch' : ''}';
+class CustomScrollBehavior extends MaterialScrollBehavior {
+  // Override behavior methods and getters like dragDevices
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.trackpad,
+    PointerDeviceKind.stylus,
+    PointerDeviceKind.invertedStylus
+  };
 }
