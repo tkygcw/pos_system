@@ -84,7 +84,18 @@ Future<void> main(List<String> args) async {
   //create default app color
   await appLanguage.fetchLocale();
 
-  print("windows arg: ${args.length}");
+  //windows manager initialized
+  await windowManager.ensureInitialized();
+
+  WindowOptions windowOptions = const WindowOptions(
+    fullScreen: true, // Enable full-screen mode
+  );
+
+  windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.show();
+    await windowManager.focus();
+  });
+
   if (args.isNotEmpty) {
     //windows manager initialized
     print("windows arg: ${args[0]}");
@@ -94,18 +105,6 @@ Future<void> main(List<String> args) async {
     final Map<String, dynamic> windowArgs = jsonDecode(args[2]);
     runApp(WinCustomerDisplay());
   } else {
-    //windows manager initialized
-    await windowManager.ensureInitialized();
-
-    WindowOptions windowOptions = const WindowOptions(
-      fullScreen: true, // Enable full-screen mode
-    );
-
-    windowManager.waitUntilReadyToShow(windowOptions, () async {
-      await windowManager.show();
-      await windowManager.focus();
-    });
-
     //firebase method
     await Firebase.initializeApp(
       options: FirebaseOptions(
@@ -156,7 +155,7 @@ createNewWindows() async {
     await window
         ..setFrame(
             Offset(
-                externalScreen.visibleSize!.width.toDouble(),
+                -externalScreen.visibleSize!.width.toDouble(),
                 0) &
             Size(internalScreen.visibleSize!.width.toDouble(),
                 internalScreen.visibleSize!.height.toDouble()))
