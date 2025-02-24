@@ -4969,7 +4969,7 @@ class ReceiptLayout{
 */
   getAllTodayOrderOverview(Settlement settlement) async {
     List<OrderTaxDetail> data = await PosDatabase.instance.readAllSettlementOrderTaxDetailBySettlementKey(settlement.settlement_key!);
-    List<Order> orderData = await PosDatabase.instance.readAllSettlementOrderBySettlementKey(settlement.settlement_key!);
+    List<Order> orderData = await PosDatabase.instance.readAllSettlementOrderBySettlementKeyGroupByDiningId(settlement.settlement_key!);
     orderTaxList = data;
     orderList = orderData;
 
