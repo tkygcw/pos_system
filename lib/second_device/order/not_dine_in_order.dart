@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../database/pos_database.dart';
 import '../../main.dart';
 import '../../notifier/cart_notifier.dart';
+import '../../notifier/table_notifier.dart';
 import '../../object/cart_product.dart';
 import '../../object/order_cache.dart';
 
@@ -21,7 +22,6 @@ class PlaceNotDineInOrder extends PlaceOrder {
     String batch = '';
     try {
       int? orderQueue = await generateOrderQueue(cart);
-
       batch = await batchChecking();
       // if (isAddOrder == true) {
       //   batch = cart.cartNotifierItem[0].first_cache_batch!;
@@ -75,10 +75,12 @@ class PlaceNotDineInOrder extends PlaceOrder {
         orderCacheSqliteId = data.order_cache_sqlite_id.toString();
         //orderNumber = data.order_queue.toString();
         await insertOrderCacheKey(data, dateTime);
-        OrderCache? cacheData = await PosDatabase.instance.readOrderCacheWithSqliteId(orderCacheSqliteId);
-        if(cacheData!.other_order_key == ''){
-          await insertOtherOrderCacheKey(cacheData, dateTime);
-        }
+        await insertOtherOrderCacheKey(data, dateTime);
+        // OrderCache? cacheData = await PosDatabase.instance.readOrderCacheWithSqliteId(orderCacheSqliteId);
+        //insert other order key
+        // if(cacheData!.other_order_key == ''){
+        //   await insertOtherOrderCacheKey(cacheData, dateTime);
+        // }
         //sync to cloud
         //syncOrderCacheToCloud(updatedCache);
         //cart.addOrder(data);
@@ -97,6 +99,7 @@ class PlaceNotDineInOrder extends PlaceOrder {
     if(stockResponse == null){
       await createOrderCache(cart, orderBy, orderByUserId);
       await createOrderDetail(cart);
+      TableModel.instance.changeContent(true);
       await printCheckList(orderBy);
       List<cartProductItem> ticketProduct = cart.cartNotifierItem.where((e) => e.allow_ticket == 1).toList();
       if(ticketProduct.isNotEmpty){

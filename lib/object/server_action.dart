@@ -8,14 +8,21 @@ import 'package:pos_system/fragment/product/product_order_dialog.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/branch_link_product.dart';
+import 'package:pos_system/object/dining_option.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
+import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table.dart';
+import 'package:pos_system/object/tax_link_dining.dart';
 import 'package:pos_system/second_device/cart_dialog_function.dart';
+import 'package:pos_system/second_device/order/add_on_not_dine_in.dart';
 import 'package:pos_system/second_device/order/dine_in_order.dart';
 import 'package:pos_system/second_device/order/place_order.dart';
+import 'package:pos_system/second_device/other_order/other_order_function.dart';
+import 'package:pos_system/second_device/payment/payment_function.dart';
+import 'package:pos_system/second_device/promotion/promotion_function.dart';
 import 'package:pos_system/second_device/reprint_kitchen_list_function.dart';
 import 'package:pos_system/second_device/table_function.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,6 +33,7 @@ import '../main.dart';
 import '../second_device/order/add_on_order.dart';
 import '../second_device/order/not_dine_in_order.dart';
 import 'branch_link_promotion.dart';
+import 'order.dart';
 
 class ServerAction {
   String? action;
@@ -228,7 +236,14 @@ class ServerAction {
             CartModel cart = CartModel();
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam['cart']);
-            result = await placeOrderFunction(PlaceAddOrder(), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
+            if(decodeParam['order_cache'] == ''){
+              result = await placeOrderFunction(PlaceAddOrder(), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
+            } else {
+              OrderCache orderCache = OrderCache.fromJson(decodeParam['order_cache']);
+              result = await placeOrderFunction(PlaceNotDineInAddOrder(addOnOrderCache: orderCache), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
+              //clear sub pos order cache after add on order
+              TableFunction().clearSubPosOrderCache();
+            }
           } catch(e){
             result = {'status': '4', 'exception': "add-order error: ${e.toString()}"};
             FLog.error(
@@ -325,9 +340,13 @@ class ServerAction {
               'table_list': function.tableList,
             };
             result = {'status': '1', 'data': objectData};
-          }catch(e){
+          }catch(e, s){
             result = {'status': '4'};
-            print("cart dialog remove merged table request error: $e");
+            FLog.error(
+              className: "checkAction",
+              text: "Server action 13 error",
+              exception: "Error: $e, StackTrace: $s",
+            );
           }
         }
         break;
@@ -357,20 +376,160 @@ class ServerAction {
           }
         }
         break;
+        case '16': {
+          try{
+            var decodeParam = jsonDecode(param);
+            PosTable posTable = PosTable.fromJson(decodeParam);
+            TableFunction function = TableFunction();
+            bool isTableInPayment = await function.IsTableSelected(posTable);
+            if(isTableInPayment == true){
+              result = {'status': '2', 'action': '16', 'error': 'table_is_in_payment'};
+            } else {
+              await function.readSpecificTableDetail(posTable);
+              objectData = {
+                'orderCacheList': function.orderCacheList,
+                'orderDetailList': function.orderDetailList
+              };
+              result = {'status': '1', 'action': '16', 'data': objectData};
+            }
+          }catch(e, s){
+            result = {'status': '4'};
+            FLog.error(
+              className: "checkAction",
+              text: "Server action 16 error",
+              exception: "Error: $e, StackTrace: $s",
+            );
+          }
+        }
+        break;
+        case '17': {
+          //get company payment method
+          try{
+            var function = PaymentFunction();
+            List<PaymentLinkCompany> paymentMethod = await function.getCompanyPaymentMethod();
+            objectData = {
+              'paymentMethod': paymentMethod,
+            };
+            result = {'status': '1', 'action': '17', 'data': objectData};
+          }catch(e, s){
+            result = {'status': '4'};
+            FLog.error(
+              className: "checkAction",
+              text: "Server action 17 error",
+              exception: "Error: $e, StackTrace: $s",
+            );
+          }
+        }
+        break;
+        case '18': {
+          //get branch selected promotion
+          try{
+            var function = PromotionFunction();
+            List<Promotion> promotion = await function.getBranchPromotion();
+            objectData = {
+              'promotion': promotion,
+            };
+            result = {'status': '1', 'action': '18', 'data': objectData};
+          }catch(e, s){
+            result = {'status': '4'};
+            FLog.error(
+              className: "checkAction",
+              text: "Server action 18 error",
+              exception: "Error: $e, StackTrace: $s",
+            );
+          }
+        }
+        break;
+        case '19': {
+          //make payment function
+          try{
+            var decodeParam = jsonDecode(param);
+            int? close_by_user_id =  decodeParam['user_id'];
+            String? ipay_result_code = decodeParam['ipayResultCode'];
+            Order orderData = Order.fromJson(decodeParam['orderData']);
+            var promoJson = decodeParam['promotion'] as List;
+            var taxJson = decodeParam['tax'] as List;
+            var orderCacheJson = decodeParam['orderCacheList'] as List;
+            var posTableJson = decodeParam['selectedTable'] as List;
+            List<Promotion>? promotionList = promoJson.isNotEmpty ? promoJson.map((tagJson) => Promotion.fromJson(tagJson)).toList() : [];
+            List<TaxLinkDining>? taxList = taxJson.isNotEmpty ? taxJson.map((tagJson) => TaxLinkDining.fromJson(tagJson)).toList() : [];
+            List<OrderCache>? orderCacheList = orderCacheJson.isNotEmpty ? orderCacheJson.map((tagJson) => OrderCache.fromJson(tagJson)).toList() : [];
+            List<PosTable>? tableList = posTableJson.isNotEmpty ? posTableJson.map((tagJson) => PosTable.fromJson(tagJson)).toList() : [];
+            PaymentFunction function = PaymentFunction(
+              order: orderData,
+              promotion: promotionList,
+              taxLinkDining: taxList,
+              orderCache: orderCacheList,
+              tableList: tableList,
+              ipayResultCode: ipay_result_code,
+              user_id: close_by_user_id
+            );
+            if(function.ipayResultCode != null) {
+              result = await function.ipayMakePayment();
+            } else {
+              result = await function.makePayment();
+            }
+          }catch(e, s){
+            result = {'status': '4'};
+            FLog.error(
+              className: "checkAction",
+              text: "Server action 19 error",
+              exception: "Error: $e, StackTrace: $s",
+            );
+          }
+        }
+        break;
+        case '20': {
+          TableFunction().clearSubPosOrderCache(table_use_key: param);
+          result = {'status': '1'};
+        }
+        break;
+        case '21': {
+          List<DiningOption> diningOption = await OtherOrderFunction().getDiningList();
+          result = {'status': '1', 'data': diningOption};
+        }
+        break;
+        case '22': {
+          List<OrderCache> data = await OtherOrderFunction().getAllOtherOrder(param);
+          result = {'status': '1', 'data': data};
+        }
+        break;
+        case '23': {
+          var decodeParam = jsonDecode(param);
+          OrderCache orderCache = OrderCache.fromJson(decodeParam);
+          OtherOrderFunction orderFunction = OtherOrderFunction();
+          bool selectedStatus = await orderFunction.cartModel.isOtherOrderCacheSelected(orderCache);
+          if(selectedStatus == false){
+            await orderFunction.readOrderCacheOrderDetail(orderCache);
+            objectData = {
+              'orderCacheList': orderFunction.orderCacheList,
+              'orderDetailList': orderFunction.orderDetailList
+            };
+            result = {'status': '1', 'data': objectData};
+          } else {
+            result = {'status': '2', 'action': '23'};
+          }
+        }
+        break;
+        case '24': {
+          TableFunction().removeSpecificBatchSubPosOrderCache(param);
+          result = {'status': '1'};
+        }
+        break;
       }
       return result;
-    } catch(e){
+    } catch(e, s){
       FLog.error(
         className: "server_action",
         text: "checkAction error",
-        exception: e,
+        exception: 'Error: $e, StackTrace: $s',
       );
       result = {'status': '2'};
       return result;
     }
   }
 
-  Future<Map<String, dynamic>>placeOrderFunction(PlaceOrder orderType, cart, address, orderBy, orderByUserId) async {
+  Future<Map<String, dynamic>> placeOrderFunction(PlaceOrder orderType, cart, address, orderBy, orderByUserId) async {
     return await orderType.placeOrder(cart, address, orderBy, orderByUserId);
   }
 

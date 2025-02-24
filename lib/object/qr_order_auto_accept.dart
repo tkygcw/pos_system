@@ -34,6 +34,7 @@ import '../database/pos_firestore.dart';
 import '../firebase_sync/qr_order_sync.dart';
 import '../fragment/custom_toastification.dart';
 import '../notifier/cart_notifier.dart';
+import '../second_device/server.dart';
 import '../utils/Utils.dart';
 
 class QrOrderAutoAccept {
@@ -225,6 +226,7 @@ class QrOrderAutoAccept {
 
   autoAcceptQrOrder(OrderCache qrOrderCacheList, List<OrderDetail> orderDetailList, int index) async {
     try {
+      Server server = Server.instance;
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
       AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
@@ -244,8 +246,10 @@ class QrOrderAutoAccept {
         if (qrOrderCacheList.qr_order_table_sqlite_id != '') {
           await checkTable(qrOrderCacheList.qr_order_table_sqlite_id!);
           if (tableInUsed == true) {
-            if(checkIsTableSelectedInPaymentCart(qrOrderCacheList.qr_order_table_sqlite_id!) == true){
+            bool isTableSelected = await IsTableSelectedBySubOrMainPos(qrOrderCacheList.qr_order_table_sqlite_id!);
+            if(isTableSelected){
               QrOrder.instance.getAllNotAcceptedQrOrder();
+              CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('table_is_in_payment'));
               // if(localSetting!.qr_order_alert == 1){
               //   ShowQRToast.showToast();
               // }
@@ -277,6 +281,7 @@ class QrOrderAutoAccept {
         // syncToCloudFunction();
         await callPrinter(qrOrderCacheList.order_cache_sqlite_id!);
         TableModel.instance.changeContent(true);
+        server.sendMessageToClient("2");
       }
     } catch(e) {
       print("auto accept qr order error: ${e}");
@@ -345,12 +350,17 @@ class QrOrderAutoAccept {
     this.delete_order_detail_value = value.toString();
   }
 
-  checkIsTableSelectedInPaymentCart(String qr_table_sqlite_id){
+  IsTableSelectedBySubOrMainPos(String qr_table_sqlite_id) async {
     bool isTableSelected = false;
-    List<PosTable> inCartTableList = Provider.of<CartModel>(context, listen: false).selectedTable.where((e) => e.isInPaymentCart == true).toList();
-    if(inCartTableList.isNotEmpty){
-      isTableSelected = inCartTableList.any((e) => e.table_sqlite_id.toString() == qr_table_sqlite_id);
-    }
+    CartModel cartModel = Provider.of<CartModel>(context, listen: false);
+    //Group selected table in main pos into a list
+    List<PosTable> inCartTableList = cartModel.selectedTable.where((e) => e.isInPaymentCart == true).toList();
+    //check is table selected by main pos
+    bool isTableInCart = inCartTableList.isNotEmpty && inCartTableList.any((e) => e.table_sqlite_id.toString() == qr_table_sqlite_id);
+    //check is table selected by sub pos
+    bool isTableSelectedBySubPos = await cartModel.isTableSelectedBySubPos(tableUseKey: tableUseKey);
+    // Ensure both conditions are true
+    isTableSelected = isTableInCart || isTableSelectedBySubPos;
     return isTableSelected;
   }
 

@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
 
 import '../database/pos_database.dart';
+import '../object/order_cache.dart';
 import '../object/table.dart';
 
 class TableModel extends ChangeNotifier {
-  static final TableModel instance = TableModel.init();
+  static final TableModel instance = TableModel._init();
   List<PosTable> notifierTableList = [];
+  OrderCache? _inPaymentOrderCache;
   bool isChange = false;
 
-  TableModel.init();
+  OrderCache? get inPaymentOrderCache => _inPaymentOrderCache;
+
+  set setInPaymentOrderCache(OrderCache? value) {
+    _inPaymentOrderCache = value;
+  }
+
+  TableModel._init();
 
   void initialLoad() async {
     print('table notifier called');
@@ -25,8 +33,4 @@ class TableModel extends ChangeNotifier {
     isChange = action;
   }
 
-  readAllTable() async {
-    List<PosTable> data = await PosDatabase.instance.readAllTable();
-    notifierTableList = List.from(data);
-  }
 }
