@@ -4594,9 +4594,21 @@ class PosDatabase {
   }
 
 /*
-  get all settlement order tax detail based on settlement id
+  get all settlement order based on settlement key join payment link company
 */
-  Future<List<Order>> readAllSettlementOrderBySettlementKey(String settlement_key) async {
+  Future<List<Order>> readAllSettlementOrderBySettlementKeyJoinPayment(String settlement_key) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.name FROM $tableOrder AS a LEFT JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
+            'WHERE a.soft_delete = ? AND a.refund_key = ? AND a.settlement_key = ? ',
+        ['', '', settlement_key]);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  get settlement order based on settlement key group by dining id
+*/
+  Future<List<Order>> readAllSettlementOrderBySettlementKeyGroupByDiningId(String settlement_key) async {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT *, SUM(final_amount + 0.0) AS gross_sales FROM $tableOrder '
