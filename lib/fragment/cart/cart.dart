@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:assets_audio_player/assets_audio_player.dart';
@@ -42,6 +43,7 @@ import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/page/loading_dialog.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:pos_system/windows_app/win_display_function.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -2173,7 +2175,7 @@ class CartPageState extends State<CartPage> {
   reInitSecondDisplay({required bool cartEmpty, CartModel? cart}) async {
     if (notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true) {
       if(cartEmpty){
-        await displayManager.transferDataToPresentation("init");
+        await transferDisplay('init');
       } else {
         if(cart != null){
           SecondDisplayData data = SecondDisplayData(
@@ -2186,9 +2188,23 @@ class CartPageState extends State<CartPage> {
               finalAmount: finalAmount,
               selectedOption: cart.selectedOption
           );
-          await displayManager.transferDataToPresentation(jsonEncode(data));
+          await transferDisplay(data);
         }
       }
+    }
+  }
+
+  Future<void> transferDisplay(dynamic data) async {
+    final isInit = data == 'init';
+    final jsonData = (data is String) ? data : jsonEncode(data);
+
+    if (Platform.isWindows) {
+      await WinDisplayFunction.instance.transferDataToDisplayWindows(
+        isInit ? 'init' : 'display',
+        arguments: isInit ? null : jsonData,
+      );
+    } else {
+      await displayManager.transferDataToPresentation(isInit ? 'init' : jsonData);
     }
   }
 

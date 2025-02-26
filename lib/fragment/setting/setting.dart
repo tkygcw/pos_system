@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/fragment/setting/device_setting.dart';
 import 'package:pos_system/fragment/Attendance/attendance_dialog.dart';
@@ -157,6 +159,7 @@ class _SettingMenuState extends State<SettingMenu> {
                               },
                               child: Text('${AppLocalizations.of(context)?.translate('clock_in_out')}')
                             ),
+                            SizedBox(height: 10),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: color.backgroundColor,
@@ -180,6 +183,19 @@ class _SettingMenuState extends State<SettingMenu> {
 
                               },
                               child: Text(AppLocalizations.of(context)!.translate('close_counter')),
+                            ),
+                            SizedBox(height: 10),
+                            Visibility(
+                              visible: Platform.isWindows,
+                              child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red
+                                  ),
+                                  onPressed: () async {
+                                    exit(0);
+                                  },
+                                  child: Text('Close Optimy POS')
+                              ),
                             ),
                           ],
                         )),

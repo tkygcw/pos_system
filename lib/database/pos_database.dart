@@ -92,7 +92,7 @@ class PosDatabase {
     }
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 36, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
+    return await openDatabase(path, version: 36, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade, singleInstance: Platform.isWindows ? false : true);
   }
 
 /*

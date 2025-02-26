@@ -64,7 +64,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    if (notificationModel.notificationStarted == false) {
+    if (notificationModel.notificationStarted == false && !Platform.isWindows) {
       setupFirebaseMessaging();
     }
 
@@ -125,7 +125,7 @@ class _HomePageState extends State<HomePage> {
         notificationModel.secondScreenEnable = false;
       }
     }
-    if (notificationModel.hasSecondScreen == true) {
+    if (notificationModel.hasSecondScreen == true && !Platform.isWindows) {
       await displayManager.showSecondaryDisplay(displayId: notificationModel.displays[1]!.displayId, routerName: "presentation");
     }
   }

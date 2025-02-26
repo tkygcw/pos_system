@@ -42,6 +42,7 @@ import '../../notifier/cart_notifier.dart';
 import '../../object/branch_link_dining_option.dart';
 import '../../object/cart_product.dart';
 import '../../object/modifier_group.dart';
+import '../../windows_app/win_display_function.dart';
 import '../printing_layout/print_receipt.dart';
 import '../../object/promotion.dart';
 import '../../object/second_display_data.dart';
@@ -208,7 +209,8 @@ class _MakePaymentState extends State<MakePayment> {
 
   reInitSecondDisplay({isWillPop, CartModel? cart}) async {
     if (isWillPop == true) {
-      await displayManager.transferDataToPresentation("init");
+      await transferDisplay('init');
+      //await displayManager.transferDataToPresentation("init");
     } else {
       if(cart != null){
         SecondDisplayData data = SecondDisplayData(
@@ -223,8 +225,23 @@ class _MakePaymentState extends State<MakePayment> {
             payment_link_company_id: widget.payment_link_company_id,
             selectedOption: cart.selectedOption
         );
-        await displayManager.transferDataToPresentation(jsonEncode(data));
+        await transferDisplay(data);
+        //await displayManager.transferDataToPresentation(jsonEncode(data));
       }
+    }
+  }
+
+  Future<void> transferDisplay(dynamic data) async {
+    final isInit = data == 'init';
+    final jsonData = (data is String) ? data : jsonEncode(data);
+
+    if (Platform.isWindows) {
+      await WinDisplayFunction.instance.transferDataToDisplayWindows(
+        isInit ? 'init' : 'display',
+        arguments: isInit ? null : jsonData,
+      );
+    } else {
+      await displayManager.transferDataToPresentation(isInit ? 'init' : jsonData);
     }
   }
 

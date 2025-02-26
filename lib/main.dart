@@ -6,6 +6,7 @@ import 'dart:ui';
 import 'package:async_queue/async_queue.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -87,23 +88,18 @@ Future<void> main(List<String> args) async {
   //windows manager initialized
   await windowManager.ensureInitialized();
 
-  WindowOptions windowOptions = const WindowOptions(
-    fullScreen: true, // Enable full-screen mode
-  );
-
-  windowManager.waitUntilReadyToShow(windowOptions, () async {
+  windowManager.waitUntilReadyToShow(null, () async {
     await windowManager.show();
     await windowManager.focus();
+    await windowManager.setFullScreen(true);
   });
 
   if (args.isNotEmpty) {
-    //windows manager initialized
-    print("windows arg: ${args[0]}");
-    print("windows arg: ${args[1]}");
-    print("windows arg: ${args[2]}");
-    // This block executes if the window is a newly created secondary window
-    final Map<String, dynamic> windowArgs = jsonDecode(args[2]);
-    runApp(WinCustomerDisplay());
+    runApp(WinCustomerDisplay(appLanguage: appLanguage,));
+    windowManager.waitUntilReadyToShow(null, () async {
+      await windowManager.show();
+      await windowManager.setFullScreen(true);
+    });
   } else {
     //firebase method
     await Firebase.initializeApp(
@@ -119,51 +115,43 @@ Future<void> main(List<String> args) async {
     runApp(MyApp(
       appLanguage: appLanguage,
     ));
+    //open a new windows for customer display
     await createNewWindows();
   }
 
-  // runApp(MyApp(
-  //   appLanguage: appLanguage,
-  // ));
-
 }
 
-createNewWindows() async {
-  final window = await DesktopMultiWindow.createWindow(jsonEncode({
-    'title': 'Sub window',
-    'content': 'business_test',
-  }));
-  // window
-  //   ..setFrame(const Offset(0, 0) & const Size(1280, 720))
-  //   ..center()
-  //   ..setTitle('Optimy POS')
-  //   ..show();
-
-  // Retrieve all available screens
-  final screens = await Retriever.screenRetriever.getAllDisplays();
-  if (screens.length > 1) {
-    // Assuming the external display is the second screen
-    final internalScreen = screens[0];
-    final externalScreen = screens[1];
-    print("external screen: ${externalScreen.name}");
-
-    // Calculate the center position on the external display
-    // final externalScreenFrame = externalScreen.visibleSize!;
-    // final newPosition = Offset();
-
-    // Set the window's position to the external display
-    await window
-        ..setFrame(
-            Offset(
-                -externalScreen.visibleSize!.width.toDouble(),
-                0) &
-            Size(internalScreen.visibleSize!.width.toDouble(),
-                internalScreen.visibleSize!.height.toDouble()))
+Future<void> createNewWindows() async {
+  try{
+    Offset screenPosition;
+    // Retrieve all available screens
+    final screens = await Retriever.screenRetriever.getAllDisplays();
+    if (screens.length > 1) {
+      notificationModel.setHasSecondScreen();
+      //internal will always be the first
+      final internalScreen = screens.first;
+      //primary screen is the screen set as main display in windows setting
+      final primaryScreens = await Retriever.screenRetriever.getPrimaryDisplay();
+      //move customer display to non-main display screen
+      if(primaryScreens.id == internalScreen){
+        screenPosition = screens[1].visiblePosition!;
+      } else {
+        screenPosition = internalScreen.visiblePosition!;
+      }
+      //call create windows
+      final window = await DesktopMultiWindow.createWindow();
+      // Set the window's initial position to the external display
+      await window
+        ..setFrame(screenPosition & Size(1280, 720))
         ..center();
-    window.show();
-
-  } else {
-    print('No external display detected.');
+      window.show();
+    }
+  }catch(e, s){
+    FLog.error(
+      className: "main",
+      text: "createNewWindows failed",
+      exception: "Error: $e, StackTrace: $s",
+    );
   }
 }
 
@@ -173,24 +161,26 @@ Future<void> calUnsyncedData() async {
 }
 
 deviceDetect() async {
-  final double screenWidth = WidgetsBinding
-      .instance.platformDispatcher.views.first.physicalSize.width /
-      WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
-  // if (screenWidth < 500) {
-  //   await SystemChrome.setPreferredOrientations(
-  //       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
-  // } else {
-  //   await SystemChrome.setPreferredOrientations([
-  //     DeviceOrientation.landscapeLeft,
-  //     DeviceOrientation.landscapeRight,
-  //   ]);
-  // }
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight,
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown
-  ]);
+  if(Platform.isWindows){
+    final double screenWidth = WidgetsBinding
+        .instance.platformDispatcher.views.first.physicalSize.width /
+        WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
+    // if (screenWidth < 500) {
+    //   await SystemChrome.setPreferredOrientations(
+    //       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+    // } else {
+    //   await SystemChrome.setPreferredOrientations([
+    //     DeviceOrientation.landscapeLeft,
+    //     DeviceOrientation.landscapeRight,
+    //   ]);
+    // }
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown
+    ]);
+  }
 }
 
 configFirestore(){

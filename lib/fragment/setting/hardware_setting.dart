@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
@@ -60,7 +61,7 @@ class _HardwareSettingState extends State<HardwareSetting> {
   int? tableMode = 0;
   bool cashDrawer = false, secondDisplay = false, directPayment = false, showSKU = false,
       qrOrderAutoAccept = false, showProductDesc = false, hasQrAccess = true;
-  String subscriptionEndDate = '', source = "";
+  String subscriptionEndDate = '', source = "-";
   int daysLeft = 0;
 
   @override
@@ -550,74 +551,76 @@ class _HardwareSettingState extends State<HardwareSetting> {
   }
 
   getAppVersion() async {
-    Source installationSource;
-    try {
-      installationSource = await StoreChecker.getSource;
-    } on PlatformException {
-      installationSource = Source.UNKNOWN;
-    }
+    if(!Platform.isWindows){
+      Source installationSource;
+      try {
+        installationSource = await StoreChecker.getSource;
+      } on PlatformException {
+        installationSource = Source.UNKNOWN;
+      }
 
-    switch (installationSource) {
-      case Source.IS_INSTALLED_FROM_PLAY_STORE:
-      // Installed from Play Store
-        source = "Play Store";
-        break;
-      case Source.IS_INSTALLED_FROM_PLAY_PACKAGE_INSTALLER:
-      // Installed from Google Package installer
-        source = "Google Package installer";
-        break;
-      case Source.IS_INSTALLED_FROM_LOCAL_SOURCE:
-      // Installed using adb commands or side loading or any cloud service
-        source = "Local Source";
-        break;
-      case Source.IS_INSTALLED_FROM_AMAZON_APP_STORE:
-      // Installed from Amazon app store
-        source = "Amazon Store";
-        break;
-      case Source.IS_INSTALLED_FROM_HUAWEI_APP_GALLERY:
-      // Installed from Huawei app store
-        source = "Huawei App Gallery";
-        break;
-      case Source.IS_INSTALLED_FROM_SAMSUNG_GALAXY_STORE:
-      // Installed from Samsung app store
-        source = "Samsung Galaxy Store";
-        break;
-      case Source.IS_INSTALLED_FROM_SAMSUNG_SMART_SWITCH_MOBILE:
-      // Installed from Samsung Smart Switch Mobile
-        source = "Samsung Smart Switch Mobile";
-        break;
-      case Source.IS_INSTALLED_FROM_XIAOMI_GET_APPS:
-      // Installed from Xiaomi app store
-        source = "Xiaomi Get Apps";
-        break;
-      case Source.IS_INSTALLED_FROM_OPPO_APP_MARKET:
-      // Installed from Oppo app store
-        source = "Oppo App Market";
-        break;
-      case Source.IS_INSTALLED_FROM_VIVO_APP_STORE:
-      // Installed from Vivo app store
-        source = "Vivo App Store";
-        break;
-      case Source.IS_INSTALLED_FROM_RU_STORE:
-      // Installed apk from RuStore
-        source = "RuStore";
-        break;
-      case Source.IS_INSTALLED_FROM_OTHER_SOURCE:
-      // Installed from other market store
-        source = "Other Source";
-        break;
-      case Source.IS_INSTALLED_FROM_APP_STORE:
-      // Installed from app store
-        source = "App Store";
-        break;
-      case Source.IS_INSTALLED_FROM_TEST_FLIGHT:
-      // Installed from Test Flight
-        source = "Test Flight";
-        break;
-      case Source.UNKNOWN:
-      // Installed from Unknown source
-        source = "Unknown Source";
-        break;
+      switch (installationSource) {
+        case Source.IS_INSTALLED_FROM_PLAY_STORE:
+        // Installed from Play Store
+          source = "Play Store";
+          break;
+        case Source.IS_INSTALLED_FROM_PLAY_PACKAGE_INSTALLER:
+        // Installed from Google Package installer
+          source = "Google Package installer";
+          break;
+        case Source.IS_INSTALLED_FROM_LOCAL_SOURCE:
+        // Installed using adb commands or side loading or any cloud service
+          source = "Local Source";
+          break;
+        case Source.IS_INSTALLED_FROM_AMAZON_APP_STORE:
+        // Installed from Amazon app store
+          source = "Amazon Store";
+          break;
+        case Source.IS_INSTALLED_FROM_HUAWEI_APP_GALLERY:
+        // Installed from Huawei app store
+          source = "Huawei App Gallery";
+          break;
+        case Source.IS_INSTALLED_FROM_SAMSUNG_GALAXY_STORE:
+        // Installed from Samsung app store
+          source = "Samsung Galaxy Store";
+          break;
+        case Source.IS_INSTALLED_FROM_SAMSUNG_SMART_SWITCH_MOBILE:
+        // Installed from Samsung Smart Switch Mobile
+          source = "Samsung Smart Switch Mobile";
+          break;
+        case Source.IS_INSTALLED_FROM_XIAOMI_GET_APPS:
+        // Installed from Xiaomi app store
+          source = "Xiaomi Get Apps";
+          break;
+        case Source.IS_INSTALLED_FROM_OPPO_APP_MARKET:
+        // Installed from Oppo app store
+          source = "Oppo App Market";
+          break;
+        case Source.IS_INSTALLED_FROM_VIVO_APP_STORE:
+        // Installed from Vivo app store
+          source = "Vivo App Store";
+          break;
+        case Source.IS_INSTALLED_FROM_RU_STORE:
+        // Installed apk from RuStore
+          source = "RuStore";
+          break;
+        case Source.IS_INSTALLED_FROM_OTHER_SOURCE:
+        // Installed from other market store
+          source = "Other Source";
+          break;
+        case Source.IS_INSTALLED_FROM_APP_STORE:
+        // Installed from app store
+          source = "App Store";
+          break;
+        case Source.IS_INSTALLED_FROM_TEST_FLIGHT:
+        // Installed from Test Flight
+          source = "Test Flight";
+          break;
+        case Source.UNKNOWN:
+        // Installed from Unknown source
+          source = "Unknown Source";
+          break;
+      }
     }
   }
 }

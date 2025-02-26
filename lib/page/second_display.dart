@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -27,29 +28,50 @@ class SecondDisplay extends StatefulWidget {
 }
 
 class _SecondDisplayState extends State<SecondDisplay> {
-  String value = "init", imagePath = '';
+  String method = "init", imagePath = '';
   FileImage? paymentImg;
   List<FileImage> imageList = [];
-  SecondDisplayData? obj;
+  SecondDisplayData? displayData;
   late SharedPreferences prefs;
   bool isLoaded = false, bannerLoaded = false, paymentImgLoaded = false;
 
   @override
   void initState() {
     initBanner();
+    if(Platform.isWindows){
+      DesktopMultiWindow.setMethodHandler((call, fromWindowId) async {
+        debugPrint('${call.method} ${call.arguments} $fromWindowId');
+        method = call.method;
+        switch(call.method){
+          case 'display': {
+            var json = jsonDecode(call.arguments);
+            displayData = SecondDisplayData.fromJson(json);
+            await initPaymentImage(secondDisplayData: displayData!);
+            setState(() {
+              paymentImgLoaded = true;
+            });
+          }break;
+          default: {
+            setState(() {});
+          }
+        }
+      });
+    }
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SecondaryDisplay(
+      body: Platform.isWindows ?
+      DisplayWidget(context) :
+      SecondaryDisplay(
           callback: (argument) async {
             try{
               switch(argument){
                 case "init": {
                   setState(() {
-                    value = argument;
+                    method = argument;
                   });
                 }break;
                 case "refresh_img": {
@@ -57,10 +79,10 @@ class _SecondDisplayState extends State<SecondDisplay> {
                 }break;
                 default: {
                   var decode = jsonDecode(argument);
-                  obj = SecondDisplayData.fromJson(decode);
-                  await initPaymentImage(secondDisplayData: obj!);
+                  displayData = SecondDisplayData.fromJson(decode);
+                  await initPaymentImage(secondDisplayData: displayData!);
                   setState(() {
-                    value = argument;
+                    method = argument;
                     paymentImgLoaded = true;
                   });
                 }
@@ -72,162 +94,166 @@ class _SecondDisplayState extends State<SecondDisplay> {
                 exception: e,
               );
               setState(() {
-                value == "init";
+                method == "init";
               });
             }
           },
-          child: value == "init" && bannerLoaded == true ?
-              imageList.isNotEmpty ?
-              CarouselSlider(
-                items: imageList.map((item) {
-                  return Builder(
-                    builder: (BuildContext context) {
-                      return Container(
-                          width: MediaQuery.of(context).size.width,
-                          child: Image(image: item, fit: BoxFit.cover)
-                      );
-                    },
-                  );
-                }).toList(),
-                options: CarouselOptions(
-                  height: MediaQuery.of(context).size.height,
-                  autoPlay: imageList.length > 1 ? true : false,
-                  autoPlayInterval: Duration(seconds: 8),
-                  viewportFraction: 1,
-                  pageSnapping: false,
-                ),
-              ) :
-              Center(
-                  child: Container(
-                    height: 150,
-                      child: Image(image: AssetImage("drawable/logo_cus_display.png"),)
-                  )
-              ) :
-          obj != null && paymentImgLoaded ?
-          Row(
-            children: [
-              Expanded(
-                  flex: 2,
-                  child: paymentImg != null ? Column(
-                    children: [
-                      SizedBox(
-                          height: 150,
-                          child: Image(image: AssetImage("drawable/logo_cus_display.png"))
-                      ),
-                      SizedBox(
-                          height: 200,
-                          child: Image(image: paymentImg!)
-                      )
-                    ],
-                  ) :
-                  Center(
-                    child: SizedBox(
-                      height: 150,
-                      child: Image(image: AssetImage("drawable/logo_cus_display.png"),
-                      ),
-                    ),
-                  )
-              ),
-              Expanded(
-                flex: 3,
-                child: Padding(
-                  padding: EdgeInsets.all(10),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(AppLocalizations.of(context)!.translate('table_no')+': ${obj?.tableNo ?? '-'}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
-                          Text(obj?.selectedOption ?? '', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
-                        ],
-                      ),
-                      Card(
-                        elevation: 5,
-                        child: Container(
-                          padding: EdgeInsets.all(5),
-                          child: Row(
-                            children: [
-                              Expanded(flex: 1, child: Text(AppLocalizations.of(context)!.translate('qty')),),
-                              Expanded(flex: 4, child: Text(AppLocalizations.of(context)!.translate('item')),),
-                              Expanded(flex: 1, child: Text(AppLocalizations.of(context)!.translate('price_unit'))),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: ListView.builder(
-                            padding: EdgeInsets.zero,
-                            itemCount: obj!.itemList!.length,
-                            shrinkWrap: true,
-                            itemBuilder: (context, index) {
-                              return SizedBox(
-                                height: 20,
-                                child: ListTile(
-                                  dense: true,
-                                  visualDensity: VisualDensity(horizontal: 0, vertical: -4),
-                                  title: Text('${obj!.itemList![index].product_name} ${getVariant(obj!.itemList![index])}'),
-                                  leading: Text('${obj!.itemList![index].quantity}'),
-                                  trailing: Text('${obj!.itemList![index].price!}/${obj!.itemList![index].per_quantity_unit!}${getProductUnit(obj!.itemList![index])}'),
-                                ),
-                              );
-                            }
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          Expanded(
-                              child: Card(
-                                elevation: 10,
-                                child: Container(
-                                  padding: EdgeInsets.all(10),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(AppLocalizations.of(context)!.translate('subtotal')+': ${obj?.subtotal}', style: TextStyle(fontSize: 12)),
-                                      SizedBox(height: 5),
-                                      Text(AppLocalizations.of(context)!.translate('total_discount')+': ${obj?.totalDiscount}', style: TextStyle(fontSize: 12))
-                                    ],
-                                  ),
-                                )
-                              )
-                          ),
-                          Expanded(
-                              child: Card(
-                                elevation: 10,
-                                child: Container(
-                                  padding: EdgeInsets.all(10),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(AppLocalizations.of(context)!.translate('total_tax')+': ${obj?.totalTax}', style: TextStyle(fontSize: 12)),
-                                      SizedBox(height: 5),
-                                      Text(AppLocalizations.of(context)!.translate('rounding')+': ${obj?.rounding}', style: TextStyle(fontSize: 12)),
-                                    ],
-                                  ),
-                                )
-                              )
-                          )
-                        ],
-                      ),
-                      Card(
-                        elevation: 10,
-                        child: Container(
-                          alignment: Alignment.centerRight,
-                          padding: EdgeInsets.all(10),
-                          child: Text('Total Amount: ${obj?.finalAmount}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30))
-                        ),
-                      )
-                    ],
-                  ),
-
-                )
-              ),
-            ],
-          )
-              :
-          CustomProgressBar()
+          child: DisplayWidget(context)
       ),
     );
+  }
+
+  Widget DisplayWidget(BuildContext context) {
+    return method == "init" && bannerLoaded == true ?
+            imageList.isNotEmpty ?
+            CarouselSlider(
+              items: imageList.map((item) {
+                return Builder(
+                  builder: (BuildContext context) {
+                    return Container(
+                        width: MediaQuery.of(context).size.width,
+                        child: Image(image: item, fit: BoxFit.cover)
+                    );
+                  },
+                );
+              }).toList(),
+              options: CarouselOptions(
+                height: MediaQuery.of(context).size.height,
+                autoPlay: imageList.length > 1 ? true : false,
+                autoPlayInterval: Duration(seconds: 8),
+                viewportFraction: 1,
+                pageSnapping: false,
+              ),
+            ) :
+            Center(
+                child: Container(
+                  height: 150,
+                    child: Image(image: AssetImage("drawable/logo_cus_display.png"),)
+                )
+            ) :
+        displayData != null && paymentImgLoaded ?
+        Row(
+          children: [
+            Expanded(
+                flex: 2,
+                child: paymentImg != null ? Column(
+                  children: [
+                    SizedBox(
+                        height: 150,
+                        child: Image(image: AssetImage("drawable/logo_cus_display.png"))
+                    ),
+                    SizedBox(
+                        height: 200,
+                        child: Image(image: paymentImg!)
+                    )
+                  ],
+                ) :
+                Center(
+                  child: SizedBox(
+                    height: 150,
+                    child: Image(image: AssetImage("drawable/logo_cus_display.png"),
+                    ),
+                  ),
+                )
+            ),
+            Expanded(
+              flex: 3,
+              child: Padding(
+                padding: EdgeInsets.all(10),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(AppLocalizations.of(context)!.translate('table_no')+': ${displayData?.tableNo ?? '-'}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                        Text(displayData?.selectedOption ?? '', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                      ],
+                    ),
+                    Card(
+                      elevation: 5,
+                      child: Container(
+                        padding: EdgeInsets.all(5),
+                        child: Row(
+                          children: [
+                            Expanded(flex: 1, child: Text(AppLocalizations.of(context)!.translate('qty')),),
+                            Expanded(flex: 4, child: Text(AppLocalizations.of(context)!.translate('item')),),
+                            Expanded(flex: 1, child: Text(AppLocalizations.of(context)!.translate('price_unit'))),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                          padding: EdgeInsets.zero,
+                          itemCount: displayData!.itemList!.length,
+                          shrinkWrap: true,
+                          itemBuilder: (context, index) {
+                            return SizedBox(
+                              height: 20,
+                              child: ListTile(
+                                dense: true,
+                                visualDensity: VisualDensity(horizontal: 0, vertical: -4),
+                                title: Text('${displayData!.itemList![index].product_name} ${getVariant(displayData!.itemList![index])}'),
+                                leading: Text('${displayData!.itemList![index].quantity}'),
+                                trailing: Text('${displayData!.itemList![index].price!}/${displayData!.itemList![index].per_quantity_unit!}${getProductUnit(displayData!.itemList![index])}'),
+                              ),
+                            );
+                          }
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                            child: Card(
+                              elevation: 10,
+                              child: Container(
+                                padding: EdgeInsets.all(10),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(AppLocalizations.of(context)!.translate('subtotal')+': ${displayData?.subtotal}', style: TextStyle(fontSize: 12)),
+                                    SizedBox(height: 5),
+                                    Text(AppLocalizations.of(context)!.translate('total_discount')+': ${displayData?.totalDiscount}', style: TextStyle(fontSize: 12))
+                                  ],
+                                ),
+                              )
+                            )
+                        ),
+                        Expanded(
+                            child: Card(
+                              elevation: 10,
+                              child: Container(
+                                padding: EdgeInsets.all(10),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(AppLocalizations.of(context)!.translate('total_tax')+': ${displayData?.totalTax}', style: TextStyle(fontSize: 12)),
+                                    SizedBox(height: 5),
+                                    Text(AppLocalizations.of(context)!.translate('rounding')+': ${displayData?.rounding}', style: TextStyle(fontSize: 12)),
+                                  ],
+                                ),
+                              )
+                            )
+                        )
+                      ],
+                    ),
+                    Card(
+                      elevation: 10,
+                      child: Container(
+                        alignment: Alignment.centerRight,
+                        padding: EdgeInsets.all(10),
+                        child: Text('Total Amount: ${displayData?.finalAmount}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30))
+                      ),
+                    )
+                  ],
+                ),
+
+              )
+            ),
+          ],
+        )
+            :
+        CustomProgressBar();
   }
 
   String getProductUnit(cartProductItem item){
