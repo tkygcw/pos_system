@@ -310,7 +310,13 @@ class _QrMainPageState extends State<QrMainPage> {
       textCancel: Text('${AppLocalizations.of(context)!.translate('no')}'),
     )) {
       if(mounted){
-        asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
+        asyncQ.addJob((_) async {
+          try{
+            await QrOrderAutoAccept().load();
+          }catch(e, s) {
+            print("accept all function error: $e, $s");
+          }
+        });
       }
     }
   }
