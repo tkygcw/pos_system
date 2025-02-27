@@ -8,6 +8,8 @@ import 'package:pos_system/firebase_sync/qr_order_sync.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/attendance.dart';
 import 'package:pos_system/object/branch_link_promotion.dart';
+import 'package:pos_system/object/ingredient_company_link_branch.dart';
+import 'package:pos_system/object/ingredient_movement.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/printer_link_category.dart';
 import 'package:pos_system/object/product.dart';
@@ -112,6 +114,8 @@ class SyncRecord {
       print("branch id: ${branchObject.branch_id}");
       print("device id: ${device_id.toString()}");
       print("login value: ${login_value.toString()}");
+      ///check duplicate and update ingredient stock
+      await updateIngredientStock();
       ///get data
       Map data = await Domain().getAllSyncRecord(branchObject.branch_id!.toString(), device_id.toString(), login_value.toString());
       print('data: ${data}');
@@ -303,7 +307,7 @@ class SyncRecord {
               }
               break;
             case '29':
-              bool status = await callAttendanceQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+              bool status = await callIngredientMovementQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
               if(status == true){
                 syncRecordIdList.add(responseJson[i]['id']);
               }
@@ -313,6 +317,7 @@ class SyncRecord {
         print('sync record length: ${syncRecordIdList.length}');
         //update sync record
         await Domain().updateAllCloudSyncRecord(branchObject.branch_id!.toString(), syncRecordIdList.toString());
+        await updateIngredientStock();
         notificationModel.setContentLoaded();
         notificationModel.setCartContentLoaded();
         status = 0;
@@ -382,6 +387,15 @@ class SyncRecord {
     return isComplete;
   }
 
+  updateIngredientStock() async {
+    try {
+      int result = await PosDatabase.instance.checkDuplicateIngredientMovement();
+      int updateStock = await PosDatabase.instance.updateIngredientStock();
+    }catch(e){
+      print("update ingredient stock error: $e");
+    }
+  }
+
 /*
   download banner image
 */
@@ -425,18 +439,15 @@ class SyncRecord {
     return isComplete;
   }
 
-  callAttendanceQuery({data, method}) async {
+  callIngredientMovementQuery({data, method}) async {
+    print("callIngredientMovementQuery called");
     bool isComplete = false;
     try{
-      Attendance attendanceData = Attendance.fromJson(data[0]);
+      IngredientMovement ingredientMovementData = IngredientMovement.fromJson(data[0]);
+      print("ingredientMovementData: ${jsonEncode(ingredientMovementData)}");
       if(method == '0'){
-        Attendance data = await PosDatabase.instance.insertSqliteAttendance(attendanceData);
+        IngredientMovement data = await PosDatabase.instance.insertSqliteIngredientMovement(ingredientMovementData);
         if(data.created_at != ''){
-          isComplete = true;
-        }
-      } else {
-        int data = await PosDatabase.instance.updateAttendance(attendanceData);
-        if(data == 1){
           isComplete = true;
         }
       }

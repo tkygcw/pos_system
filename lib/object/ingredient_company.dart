@@ -41,6 +41,7 @@ class IngredientCompany {
   String? created_at;
   String? updated_at;
   String? soft_delete;
+  String? stock;
 
   IngredientCompany(
       {this.ingredient_company_sqlite_id,
@@ -54,6 +55,7 @@ class IngredientCompany {
         this.created_at,
         this.updated_at,
         this.soft_delete,
+        this.stock,
       });
 
   IngredientCompany copy({
@@ -95,6 +97,7 @@ class IngredientCompany {
       created_at: json[IngredientCompanyFields.created_at] as String?,
       updated_at: json[IngredientCompanyFields.updated_at] as String?,
       soft_delete: json[IngredientCompanyFields.soft_delete] as String?,
+      stock: json['stock'] as String?,
   );
 
   Map<String, Object?> toJson() => {

@@ -18,6 +18,7 @@ import 'package:pos_system/object/branch_link_tax.dart';
 import 'package:pos_system/object/cancel_receipt.dart';
 import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/categories.dart';
+import 'package:pos_system/object/ingredient_branch_link_modifier.dart';
 import 'package:pos_system/object/ingredient_branch_link_product.dart';
 import 'package:pos_system/object/ingredient_company.dart';
 import 'package:pos_system/object/ingredient_company_link_branch.dart';
@@ -808,6 +809,7 @@ class _LoadingPageState extends State<LoadingPage> {
                 soft_delete: ingredientItem.soft_delete));
             posFirestore.insertIngredientCompanyLinkBranch(data);
             getAllIngredientBranchLinkProduct(ingredientItem.ingredient_company_link_branch_id!);
+            getAllIngredientBranchLinkModifier(ingredientItem.ingredient_company_link_branch_id!);
           } catch(e) {
             print("getAllIngredientCompanyLinkBranch insert error: ${e}");
             FLog.error(
@@ -851,6 +853,44 @@ class _LoadingPageState extends State<LoadingPage> {
             FLog.error(
               className: "loading",
               text: "IngredientBranchLinkProduct insert failed (${ingredientItem.ingredient_branch_link_product_id})",
+              exception: "$e\n${responseJson[i].toJson()}",
+            );
+          }
+        }
+      }
+    } catch(e) {
+      print("getAllIngredientBranchLinkProduct error: ${e}");
+      FLog.error(
+        className: "loading",
+        text: "getAllIngredientBranchLinkProduct error",
+        exception: e,
+      );
+    }
+  }
+
+  getAllIngredientBranchLinkModifier(int ingredient_company_link_branch_id) async {
+    try {
+      Map data = await Domain().getAllIngredientBranchLinkModifier(ingredient_company_link_branch_id.toString());
+      if (data['status'] == '1') {
+        List responseJson = data['ingredient'];
+        for (var i = 0; i < responseJson.length; i++) {
+          IngredientBranchLinkModifier ingredientItem = IngredientBranchLinkModifier.fromJson(responseJson[i]);
+          try {
+            IngredientBranchLinkModifier data = await PosDatabase.instance.insertIngredientBranchLinkModifier(IngredientBranchLinkModifier(
+                ingredient_branch_link_modifier_id: ingredientItem.ingredient_branch_link_modifier_id,
+                ingredient_company_link_branch_id: ingredientItem.ingredient_company_link_branch_id,
+                branch_link_modifier_id: ingredientItem.branch_link_modifier_id,
+                ingredient_usage: ingredientItem.ingredient_usage,
+                sync_status: 1,
+                created_at: ingredientItem.created_at,
+                updated_at: ingredientItem.updated_at,
+                soft_delete: ingredientItem.soft_delete));
+            posFirestore.insertIngredientBranchLinkModifier(data);
+          } catch(e) {
+            print("IngredientBranchLinkModifier insert error: ${e}");
+            FLog.error(
+              className: "loading",
+              text: "IngredientBranchLinkModifier insert failed (${ingredientItem.ingredient_branch_link_modifier_id})",
               exception: "$e\n${responseJson[i].toJson()}",
             );
           }

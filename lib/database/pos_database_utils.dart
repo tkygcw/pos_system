@@ -640,7 +640,7 @@ class PosDatabaseUtils {
 */
     await db.execute('''CREATE TABLE $tableBranchLinkModifier ( ${BranchLinkModifierFields.branch_link_modifier_id} $idType, ${BranchLinkModifierFields.branch_id} $textType,
            ${BranchLinkModifierFields.mod_group_id} $textType, ${BranchLinkModifierFields.mod_item_id} $textType, ${BranchLinkModifierFields.name} $textType, 
-           ${BranchLinkModifierFields.price} $textType, ${BranchLinkModifierFields.sequence} $integerType, ${BranchLinkModifierFields.status} $textType,
+           ${BranchLinkModifierFields.price} $textType, ${BranchLinkModifierFields.stock_type}, ${BranchLinkModifierFields.sequence} $integerType, ${BranchLinkModifierFields.status} $textType,
            ${BranchLinkModifierFields.created_at} $textType, ${BranchLinkModifierFields.updated_at} $textType,${BranchLinkModifierFields.soft_delete} $textType)''');
 /*
     create branch link product table
@@ -1384,6 +1384,7 @@ class PosDatabaseUtils {
             ${IngredientMovementFields.created_at} $textType,
             ${IngredientMovementFields.updated_at} $textType,
             ${IngredientMovementFields.soft_delete} $textType)''');
+    await db.execute("ALTER TABLE $tableBranchLinkModifier ADD ${BranchLinkModifierFields.stock_type} INTEGER NOT NULL DEFAULT 0");
   }
 
   static dbVersion33Upgrade(Database db, SharedPreferences prefs) async {

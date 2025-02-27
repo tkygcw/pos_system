@@ -8,6 +8,7 @@ class BranchLinkModifierFields {
     mod_item_id,
     name,
     price,
+    stock_type,
     sequence,
     status,
     created_at,
@@ -21,6 +22,7 @@ class BranchLinkModifierFields {
   static String mod_item_id = 'mod_item_id';
   static String name = 'name';
   static String price = 'price';
+  static String stock_type = 'stock_type';
   static String sequence = 'sequence';
   static String status = 'status';
   static String created_at = 'created_at';
@@ -35,6 +37,7 @@ class BranchLinkModifier {
   String? mod_item_id;
   String? name;
   String? price;
+  int? stock_type;
   int? sequence;
   String? status;
   String? created_at;
@@ -50,6 +53,7 @@ class BranchLinkModifier {
       this.mod_item_id,
       this.name,
       this.price,
+      this.stock_type,
       this.sequence,
       this.status,
       this.created_at,
@@ -65,6 +69,7 @@ class BranchLinkModifier {
     String? mod_item_id,
     String? name,
     String? price,
+    int? stock_type,
     int? sequence,
     String? status,
     String? created_at,
@@ -79,6 +84,7 @@ class BranchLinkModifier {
           mod_item_id: mod_item_id ?? this.mod_item_id,
           name: name ?? this.name,
           price: price ?? this.price,
+          stock_type: stock_type ?? this.stock_type,
           sequence: sequence ?? this.sequence,
           status: status ?? this.status,
           created_at: created_at ?? this.created_at,
@@ -94,6 +100,7 @@ class BranchLinkModifier {
         mod_item_id: json[BranchLinkModifierFields.mod_item_id] as String?,
         name: json[BranchLinkModifierFields.name] as String?,
         price: json[BranchLinkModifierFields.price] as String?,
+          stock_type: json[BranchLinkModifierFields.stock_type] as int?,
         sequence: json[BranchLinkModifierFields.sequence] as int?,
         status: json[BranchLinkModifierFields.status] as String?,
         created_at: json[BranchLinkModifierFields.created_at] as String?,
@@ -111,6 +118,7 @@ class BranchLinkModifier {
         BranchLinkModifierFields.mod_item_id: mod_item_id,
         BranchLinkModifierFields.name: name,
         BranchLinkModifierFields.price: price,
+        BranchLinkModifierFields.stock_type: stock_type,
         BranchLinkModifierFields.sequence: sequence,
         BranchLinkModifierFields.status: status,
         BranchLinkModifierFields.created_at: created_at,

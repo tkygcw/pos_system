@@ -3,9 +3,14 @@ import 'dart:convert';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/database/pos_firestore.dart';
+import 'package:pos_system/object/branch_link_modifier.dart';
 import 'package:pos_system/object/cart_product.dart';
+import 'package:pos_system/object/ingredient_branch_link_modifier.dart';
 import 'package:pos_system/object/ingredient_branch_link_product.dart';
 import 'package:pos_system/object/ingredient_company_link_branch.dart';
+import 'package:pos_system/object/ingredient_movement.dart';
+import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 
@@ -28,6 +33,7 @@ class CancelQuery{
   String _reason = '';
   bool _restock = false;
   late final OrderDetail _orderDetail;
+  late final List<OrderModifierDetail> _cartOrderModDetailList;
   late final cartProductItem _cartItem;
   late final num _cancelQuantity;
   late final User _user;
@@ -39,8 +45,10 @@ class CancelQuery{
     required cartProductItem widgetCartItem,
     required num simpleIntInput,
     required OrderDetail orderDetail,
+    required List<OrderModifierDetail> cartOrderModDetailList,
     bool? restock,
-    String? reason
+    String? reason,
+
   }) {
     this._user = user;
     this._transaction = transaction;
@@ -48,6 +56,7 @@ class CancelQuery{
     this._cartItem = widgetCartItem;
     this._cancelQuantity = simpleIntInput;
     this._orderDetail = orderDetail;
+    this._cartOrderModDetailList = cartOrderModDetailList;
     this._restock = restock ?? this._restock;
     this._reason = reason ?? this._reason;
  }
@@ -264,6 +273,7 @@ class CancelQuery{
         OrderCache? orderCache = await _updateOrderCacheSubtotal(updatedOrderDetail.order_cache_sqlite_id!, updatedOrderDetail.price!);
         if(_restock){
           await _updateProductStock(updatedOrderDetail.branch_link_product_sqlite_id!);
+          await _updateIngredientStock(updatedOrderDetail);
         }
         // _firestoreQROrderSync.updateOrderDetailAndCacheSubtotal(updatedOrderDetail, orderCache!);
         // _value.add(jsonEncode(updatedOrderDetail.syncJson()));
@@ -286,9 +296,7 @@ class CancelQuery{
     try{
       // readSpecificBranchLinkProduct
       List<BranchLinkProduct> checkData = await _readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
-
       // List<BranchLinkProduct> checkData = await posDatabase.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
-      print("checkData.first.stock_type: ${checkData.first.stock_type}");
       if(checkData.isNotEmpty){
         switch(checkData.first.stock_type){
           case '1': {
@@ -313,24 +321,20 @@ class CancelQuery{
           }break;
           // optimization required
           case '4': {
-            print("case 4");
+            final prefs = await SharedPreferences.getInstance();
+            final int? branch_id = prefs.getInt('branch_id');
             List<IngredientBranchLinkProduct> detailData = await _readAllProductIngredient(checkData.first.branch_link_product_id.toString());
-            // List<IngredientBranchLinkProduct> detailData = await PosDatabase.instance.readAllProductIngredient(checkData.first.branch_link_product_id.toString());
             List<int> ingredientList = [];
-            print("22222");
             for(int i =0; i < detailData.length; i++){
               IngredientBranchLinkProduct data1 = detailData[i];
               List<IngredientCompanyLinkBranch> ingredientCompanyLinkBranch = await _readSpecificIngredientCompanyLinkBranch(data1.ingredient_company_link_branch_id.toString());
               ingredientList.add(ingredientCompanyLinkBranch[0].ingredient_company_link_branch_id!);
             }
-            print("33333");
-            print("ingredientList length: ${ingredientList.length}");
             for (var value in ingredientList) {
               List<IngredientCompanyLinkBranch> ingredientCompanyLinkBranch = await _readSpecificIngredientCompanyLinkBranch(value.toString());
               List<IngredientBranchLinkProduct> ingredientDetail = await _readSpecificProductIngredient(value.toString());
               int ingredientUsed = int.parse(ingredientCompanyLinkBranch[0].stock_quantity!) + (int.parse(_cancelQuantity.toString())*int.parse(ingredientDetail[0].ingredient_usage!));
 
-              print("ingredient restock: ${ingredientUsed}");
               IngredientCompanyLinkBranch object = IngredientCompanyLinkBranch(
                 updated_at: _dateTime,
                 sync_status: 2,
@@ -338,6 +342,36 @@ class CancelQuery{
                 ingredient_company_link_branch_id: value,
               );
               updateStock = await _updateIngredientCompanyLinkBranchStock(object);
+
+              try{
+                IngredientMovement ingredientMovement = IngredientMovement(
+                    ingredient_movement_id: 0,
+                    ingredient_movement_key: '',
+                    branch_id: branch_id.toString(),
+                    ingredient_company_link_branch_id: value.toString(),
+                    order_cache_key: _orderDetail.order_cache_key,
+                    order_detail_key: _orderDetail.order_detail_key,
+                    order_modifier_detail_key: '',
+                    type: 3,
+                    movement: '+${(_cancelQuantity*int.parse(ingredientDetail[0].ingredient_usage!)).toString()}',
+                    source: 0,
+                    remark: '',
+                    calculate_status: 1,
+                    sync_status: 0,
+                    created_at: _dateTime,
+                    updated_at: '',
+                    soft_delete: ''
+                );
+                IngredientMovement data = await _insertSqliteIngredientMovement(ingredientMovement);
+                await _insertIngredientMovementKey(data, _dateTime);
+              }catch(e){
+                print("insertIngredientMovement error: $e");
+                FLog.error(
+                  className: "cart",
+                  text: "ingredient movement insert failed",
+                  exception: e,
+                );
+              }
             }
           }break;
           default: {
@@ -362,6 +396,110 @@ class CancelQuery{
     //print('branch link product value in function: ${branch_link_product_value}');
     //sync to cloud
     //syncBranchLinkProductStock(value.toString());
+  }
+
+  _updateIngredientStock(OrderDetail updatedOrderDetail) async {
+    print("_updateIngredientStock called");
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    PosFirestore posFirestore = PosFirestore.instance;
+    print("_updateIngredientStock 1");
+    print("updatedOrderDetail.orderModifierDetail.length: ${_cartOrderModDetailList.length}");
+    for(int j = 0; j < _cartOrderModDetailList.length; j++){
+      print("_updateIngredientStock 2");
+      List<BranchLinkModifier> modData = await _readBranchLinkModifier(_cartOrderModDetailList[j].mod_item_id.toString());
+      if(modData.first.stock_type == 1){
+        print("_updateIngredientStock 3");
+        List<IngredientBranchLinkModifier> modIngredientData = await _readSpecificModifierIngredient(modData.first.branch_link_modifier_id.toString());
+        List<IngredientCompanyLinkBranch> ingredientCompanyLinkBranch = await _readSpecificIngredientCompanyLinkBranch(modIngredientData[0].ingredient_company_link_branch_id!);
+        print("_updateIngredientStock 4");
+        int ingredientUsed = int.parse(ingredientCompanyLinkBranch[0].stock_quantity!) + (int.parse(_cancelQuantity.toString())*int.parse(modIngredientData[0].ingredient_usage!));
+        print("_updateIngredientStock 5");
+        IngredientCompanyLinkBranch object = IngredientCompanyLinkBranch(
+          updated_at: _dateTime,
+          sync_status: 2,
+          stock_quantity: ingredientUsed.toString(),
+          ingredient_company_link_branch_id: int.parse(modIngredientData[0].ingredient_company_link_branch_id!),
+        );
+        await _updateIngredientCompanyLinkBranchStock(object);
+        print("_updateIngredientStock 6");
+        posFirestore.updateIngredientCompanyLinkBranchStock(object);
+        IngredientMovement ingredientMovement = IngredientMovement(
+            ingredient_movement_id: 0,
+            ingredient_movement_key: '',
+            branch_id: ingredientCompanyLinkBranch[0].branch_id,
+            ingredient_company_link_branch_id: ingredientCompanyLinkBranch[0].ingredient_company_link_branch_id.toString(),
+            order_cache_key: updatedOrderDetail.order_cache_key,
+            order_detail_key: updatedOrderDetail.order_detail_key,
+            order_modifier_detail_key: _cartOrderModDetailList[j].order_modifier_detail_key,
+            type: 3,
+            movement: '+${(_cancelQuantity*int.parse(modIngredientData[0].ingredient_usage!)).toString()}',
+            source: 0,
+            remark: '',
+            calculate_status: 1,
+            sync_status: 0,
+            created_at: dateFormat.format(DateTime.now()),
+            updated_at: '',
+            soft_delete: ''
+        );
+        IngredientMovement data = await _insertSqliteIngredientMovement(ingredientMovement);
+        await _insertIngredientMovementKey(data, _dateTime);
+      }
+    }
+  }
+
+  Future<String> generateIngredientMovementKey(IngredientMovement ingredientMovement) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    var bytes = ingredientMovement.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + ingredientMovement.ingredient_movement_sqlite_id.toString() + device_id.toString();
+    var md5Hash = md5.convert(utf8.encode(bytes));
+    return Utils.shortHashString(hashCode: md5Hash);
+  }
+
+  Future<void> _insertIngredientMovementKey(IngredientMovement ingredientMovement, String dateTime) async {
+    try {
+      String key = await generateIngredientMovementKey(ingredientMovement);
+
+      IngredientMovement data = IngredientMovement(
+        updated_at: dateTime,
+        sync_status: 0,
+        ingredient_movement_key: key,
+        ingredient_movement_sqlite_id: ingredientMovement.ingredient_movement_sqlite_id,
+      );
+
+      await _transaction.rawUpdate(
+        'UPDATE $tableIngredientMovement '
+            'SET updated_at = ?, sync_status = ?, ingredient_movement_key = ? '
+            'WHERE ingredient_movement_sqlite_id = ?',
+        [data.updated_at, data.sync_status, data.ingredient_movement_key, data.ingredient_movement_sqlite_id],
+      );
+    } catch (e, stackTrace) {
+      print("_insertIngredientMovementKey Error: $e, StackTrace: $stackTrace");
+      FLog.error(
+        className: "_insertIngredientMovementKey",
+        text: "Error inserting ingredient movement key",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  Future<IngredientMovement> _insertSqliteIngredientMovement(IngredientMovement data) async {
+    try {
+      final id = await _transaction.rawInsert(
+        'INSERT INTO $tableIngredientMovement (${data.toJson().keys.join(', ')}) VALUES (${List.filled(data.toJson().length, '?').join(', ')})',
+        data.toJson().values.toList(),
+      );
+
+      return data.copy(ingredient_movement_sqlite_id: id);
+    } catch (e, stackTrace) {
+      print("_insertSqliteIngredientMovement Error: $e, StackTrace: $stackTrace");
+      FLog.error(
+        className: "_insertSqliteIngredientMovement",
+        text: "Error inserting ingredient movement",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
   }
 
   Future<int> _updateIngredientCompanyLinkBranchStock(IngredientCompanyLinkBranch data) async {
@@ -394,6 +532,40 @@ class CancelQuery{
       FLog.error(
         className: "cancel query",
         text: "_readSpecificProductIngredient error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  Future<List<BranchLinkModifier>> _readBranchLinkModifier(String mod_item_id) async {
+    try{
+      final result = await _transaction.rawQuery('SELECT * FROM $tableBranchLinkModifier WHERE soft_delete = ? AND mod_item_id = ?',
+          ['', mod_item_id]) as List<Map<String, Object?>>;
+
+      return result.map((json) => BranchLinkModifier.fromJson(json)).toList();
+    }catch(e, stackTrace){
+      print("_readBranchLinkModifier Error: $e, StackTrace: $stackTrace");
+      FLog.error(
+        className: "cancel query",
+        text: "_readBranchLinkModifier error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  Future<List<IngredientBranchLinkModifier>> _readSpecificModifierIngredient(String branch_link_modifier_id) async {
+    try{
+      final result = await _transaction.rawQuery('SELECT * FROM $tableIngredientBranchLinkModifier WHERE branch_link_modifier_id = ? AND soft_delete = ?',
+          [branch_link_modifier_id, '']) as List<Map<String, Object?>>;
+
+      return result.map((json) => IngredientBranchLinkModifier.fromJson(json)).toList();
+    }catch(e, stackTrace){
+      print("_readSpecificModifierIngredient Error: $e, StackTrace: $stackTrace");
+      FLog.error(
+        className: "cancel query",
+        text: "_readSpecificModifierIngredient error",
         exception: "Error: $e, StackTrace: $stackTrace",
       );
       rethrow;

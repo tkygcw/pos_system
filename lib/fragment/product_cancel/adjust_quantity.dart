@@ -301,6 +301,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
             simpleIntInput: this.simpleIntInput,
             widgetCartItem: widget.cartItem,
             reason: this.reason,
+            cartOrderModDetailList: cartOrderModDetailList,
             restock: restock
         );
         if (simpleIntInput == widget.cartItem.quantity || (widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c')) {
@@ -340,6 +341,11 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
           await cancelQuery.callUpdateOrderDetail();
           // await callUpdateOrderDetail(userData, dateTime, cancelQuery);
           await cart.updateItemQty(widget.cartItem, cancelQuery, notify: true);
+          if(widget.currentPage == 'other_order'){
+            cart.removeAllCartItem();
+            cart.removeAllGroupList();
+            cart.removeAllCartOrderCache();
+          }
         }
         return 1;
       }catch(e, stackTrace){

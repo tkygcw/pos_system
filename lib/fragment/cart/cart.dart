@@ -149,7 +149,7 @@ class CartPageState extends State<CartPage> {
   String orderKey = '';
   String cacheOtherOrderKey = '';
   bool doubleCheckFinalAmount = false;
-  int ingredientMovementSqliteId = 0;
+  List<int> ingredientMovementSqliteIds = [];
 
   void _scrollDown() {
     _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
@@ -3681,6 +3681,8 @@ class CartPageState extends State<CartPage> {
   // }
 
   createOrderDetail(CartModel cart) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     List<String> _orderDetailValue = [];
@@ -3736,6 +3738,16 @@ class CartPageState extends State<CartPage> {
         _orderDetailValue.add(jsonEncode(updatedOrderDetailData.syncJson()));
         order_detail_value = _orderDetailValue.toString();
 
+        ///insert order detail key to ingredient movement
+        IngredientMovement data = IngredientMovement(
+            updated_at: dateTime,
+            sync_status: 0,
+            order_cache_key: orderCacheKey,
+            order_detail_key: orderDetailKey,
+        );
+        await PosDatabase.instance.updateIngredientMovementDetailKey(data);
+
+
         ///insert order modifier detail
         if (newOrderDetailList[j].checkedModifierItem!.isNotEmpty) {
           List<ModifierItem> modItem = newOrderDetailList[j].checkedModifierItem!;
@@ -3762,16 +3774,59 @@ class CartPageState extends State<CartPage> {
               _orderModifierValue.add(jsonEncode(updatedOrderModifierDetail));
               order_modifier_detail_value = _orderModifierValue.toString();
             }
+            // if mod item has stock
+            if(modItem[k].ingredient_company_link_branch_id != null) {
+              try {
+              List<IngredientCompanyLinkBranch> ingredientCompanyLinkBranch = await PosDatabase.instance.readSpecificIngredientCompanyLinkBranch(modItem[k].ingredient_company_link_branch_id!);
+              num ingredientUsed = int.parse(ingredientCompanyLinkBranch[0].stock_quantity!) - (int.parse(modItem[k].usage!)*newOrderDetailList[j].quantity!);
+                IngredientCompanyLinkBranch object = IngredientCompanyLinkBranch(
+                  updated_at: dateTime,
+                  sync_status: 2,
+                  stock_quantity: ingredientUsed.toString(),
+                  ingredient_company_link_branch_id: int.parse(modItem[k].ingredient_company_link_branch_id!),
+                );
+                await PosDatabase.instance.updateIngredientCompanyLinkBranchStock(object);
+                posFirestore.updateIngredientCompanyLinkBranchStock(object);
+              } catch(e) {
+                FLog.error(
+                  className: "cart",
+                  text: "ingredient company link branch stock update failed",
+                  exception: "$e\n${object.toJson()}",
+                );
+              }
+
+              try {
+                IngredientMovement ingredientMovement = IngredientMovement(
+                    ingredient_movement_id: 0,
+                    ingredient_movement_key: '',
+                    branch_id: branch_id.toString(),
+                    ingredient_company_link_branch_id: modItem[k].ingredient_company_link_branch_id,
+                    order_cache_key: orderCacheKey,
+                    order_detail_key: orderDetailKey,
+                    order_modifier_detail_key: updatedOrderModifierDetail.order_modifier_detail_key,
+                    type: 2,
+                    movement: '-${int.parse(modItem[k].usage!)*newOrderDetailList[j].quantity!}',
+                    source: 0,
+                    remark: '',
+                    calculate_status: 1,
+                    sync_status: 0,
+                    created_at: dateTime,
+                    updated_at: '',
+                    soft_delete: ''
+                );
+                IngredientMovement data = await PosDatabase.instance.insertSqliteIngredientMovement(ingredientMovement);
+                await insertIngredientMovementKey(data, dateTime);
+              } catch(e) {
+                FLog.error(
+                  className: "cart",
+                  text: "ingredient movement insert failed",
+                  exception: "$e\n${object.toJson()}",
+                );
+              }
+
+            }
           }
         }
-        IngredientMovement data = IngredientMovement(
-            updated_at: dateTime,
-            sync_status: 0,
-            order_detail_key: order_detail_value,
-            order_modifier_detail_key: order_modifier_detail_value ?? '',
-            ingredient_movement_sqlite_id: ingredientMovementSqliteId
-        );
-        await PosDatabase.instance.updateIngredientMovementKey(data);
       } catch(e) {
         FLog.error(
           className: "cart",
@@ -3860,11 +3915,9 @@ class CartPageState extends State<CartPage> {
                     updated_at: '',
                     soft_delete: ''
                 );
-                print("ingredientMovement data: ${jsonEncode(ingredientMovement)}");
                 IngredientMovement data = await PosDatabase.instance.insertSqliteIngredientMovement(ingredientMovement);
                 await insertIngredientMovementKey(data, dateTime);
               }catch(e){
-                print("insertIngredientMovement error: $e");
                 FLog.error(
                   className: "cart",
                   text: "ingredient movement insert failed",
@@ -3888,7 +3941,6 @@ class CartPageState extends State<CartPage> {
         }
       }
     } catch (e) {
-      print("cart update product stock error: $e");
       FLog.error(
         className: "cart",
         text: "product stock update failed (branch_link_product_sqlite_id: ${branch_link_product_sqlite_id})",
@@ -3899,7 +3951,7 @@ class CartPageState extends State<CartPage> {
 
   insertIngredientMovementKey(IngredientMovement ingredientMovement, String dateTime) async {
     String key = await generateIngredientMovementKey(ingredientMovement);
-    ingredientMovementSqliteId = ingredientMovement.ingredient_movement_sqlite_id!;
+    ingredientMovementSqliteIds.add(ingredientMovement.ingredient_movement_sqlite_id!);
     IngredientMovement data = IngredientMovement(
         updated_at: dateTime,
         sync_status: 0,

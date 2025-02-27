@@ -9,6 +9,7 @@ import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/dining_option.dart';
+import 'package:pos_system/object/ingredient_branch_link_modifier.dart';
 import 'package:pos_system/object/ingredient_branch_link_product.dart';
 import 'package:pos_system/object/ingredient_company.dart';
 import 'package:pos_system/object/ingredient_company_link_branch.dart';
@@ -145,6 +146,13 @@ class PosFirestore {
       return;
     }
     await firestore.collection(tableIngredientBranchLinkProduct!).doc(data.ingredient_branch_link_product_id.toString()).set(data.toJson(), SetOptions(merge: true));
+  }
+
+  insertIngredientBranchLinkModifier(IngredientBranchLinkModifier data) async {
+    if(firestore_status == FirestoreStatus.offline){
+      return;
+    }
+    await firestore.collection(tableIngredientBranchLinkProduct!).doc(data.ingredient_branch_link_modifier_id.toString()).set(data.toJson(), SetOptions(merge: true));
   }
 
   insertProduct(Product data) async {

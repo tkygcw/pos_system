@@ -37,6 +37,9 @@ class ModifierItem{
   String? updated_at;
   String? soft_delete;
   String? mod_status;
+  String? stock_available;
+  String? usage;
+  String? ingredient_company_link_branch_id;
   bool? isChecked;
 
   ModifierItem(
@@ -50,6 +53,9 @@ class ModifierItem{
         this.updated_at,
         this.soft_delete,
         this.mod_status,
+        this.stock_available,
+        this.usage,
+        this.ingredient_company_link_branch_id,
         this.isChecked });
 
   ModifierItem copy({
@@ -85,6 +91,9 @@ class ModifierItem{
     updated_at: json[ModifierItemFields.updated_at] as String?,
     soft_delete: json[ModifierItemFields.soft_delete] as String?,
     mod_status: json['mod_status'] as String?,
+    stock_available: json['stock_available'] as String?,
+    usage: json['usage'] as String?,
+    ingredient_company_link_branch_id: json['ingredient_company_link_branch_id'] as String?,
     isChecked: json['isChecked'] as bool?
   );
 
@@ -99,6 +108,9 @@ class ModifierItem{
     ModifierItemFields.updated_at: updated_at,
     ModifierItemFields.soft_delete: soft_delete,
     'mod_status': mod_status,
+    'stock_available': stock_available,
+    'usage': usage,
+    'ingredient_company_link_branch_id': ingredient_company_link_branch_id,
     'isChecked': isChecked
   };
 

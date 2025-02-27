@@ -199,11 +199,15 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
               children: [
                 Text('${modifierGroup.modifierChild![i].name!}'),
                 Text(
-                  ' (+RM ${Utils.convertTo2Dec(modifierGroup.modifierChild![i].price)})',
-                  style: TextStyle(fontSize: 12),
+                  ' (+RM ${Utils.convertTo2Dec(modifierGroup.modifierChild![i].price)}) '
+                      '${modifierGroup.modifierChild![i].stock_available != '' ? '${AppLocalizations.of(context)!.translate('stock')}: ${modifierGroup.modifierChild![i].stock_available}' : ''}',
+                  style: TextStyle(
+                      fontSize: 12,
+                  ),
                 )
               ],
             ),
+            enabled: modifierGroup.modifierChild![i].stock_available != '' ? double.parse(modifierGroup.modifierChild![i].stock_available!) <= 0 ? false : true : true,
             value: modifierGroup.modifierChild![i].isChecked,
             onChanged: modifierGroup.modifierChild![i].mod_status! == '2'
                 ? null
@@ -232,6 +236,15 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
           )
       ],
     );
+  }
+
+  String calStockAvailable(String stockLeft, String usage) {
+    if(stockLeft != '' && usage != ''){
+      int newStock = (double.parse(stockLeft)/double.parse(usage)).toInt();
+      return newStock.toString();
+    } else {
+      return '';
+    }
   }
 
   addCheckedModItem(ModifierItem modifierItem){
@@ -1229,14 +1242,23 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
           max_select: data[i].max_select,
         ));
         List<ModifierItem> itemData = await PosDatabase.instance.readProductModifierItem(data[i].mod_group_id!);
+
         List<ModifierItem> modItemChild = [];
         if(itemData.isNotEmpty){
           for (int j = 0; j < itemData.length; j++) {
+            List<IngredientCompanyLinkBranch> ingredientCompanyLinkBranchList = [];
+            if(itemData[j].ingredient_company_link_branch_id != null) {
+              ingredientCompanyLinkBranchList = await PosDatabase.instance.readSpecificIngredientCompanyLinkBranch(itemData[j].ingredient_company_link_branch_id!);
+            }
+
             modItemChild.add(ModifierItem(
                 mod_group_id: data[i].mod_group_id.toString(),
                 name: itemData[j].name!,
                 mod_item_id: itemData[j].mod_item_id,
                 mod_status: itemData[j].mod_status,
+                usage: itemData[j].usage,
+                stock_available: itemData[j].ingredient_company_link_branch_id != null ? calStockAvailable(ingredientCompanyLinkBranchList[0].stock_quantity!, itemData[j].usage!) : '',
+                ingredient_company_link_branch_id: itemData[j].ingredient_company_link_branch_id,
                 isChecked: false));
           }
           if(modifierGroup[i].compulsory == '1' && modifierGroup[i].dining_id == currentDiningOptionId){

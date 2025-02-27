@@ -12,6 +12,8 @@ import 'package:pos_system/fragment/custom_toastification.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
+import 'package:pos_system/object/branch_link_modifier.dart';
+import 'package:pos_system/object/ingredient_branch_link_modifier.dart';
 import 'package:pos_system/object/ingredient_branch_link_product.dart';
 import 'package:pos_system/object/ingredient_company_link_branch.dart';
 import 'package:pos_system/object/ingredient_movement.dart';
@@ -66,7 +68,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   String? table_use_value, table_use_detail_value, order_cache_value, order_detail_value,
       delete_order_detail_value, order_modifier_detail_value, table_value, branch_link_product_value;
   double newSubtotal = 0.0;
-  bool hasNoStockProduct = false, hasNotAvailableProduct = false, tableInUsed = false;
+  bool hasNoStockProduct = false, hasNotAvailableProduct = false, tableInUsed = false, modifierIngredientNoStock = false;
   bool isButtonDisabled = false, isCancelButtonDisabled = false,  isLogOut = false;
   bool willPop = true;
   bool paymentNotComplete = false;
@@ -362,7 +364,6 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                           asyncQ.addJob((_) async {
                             await checkTablePaymentSplit();
                             await checkOrderDetailStock();
-                            print('available check: ${hasNotAvailableProduct}');
                             if (paymentNotComplete) {
                               Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
                             } else if (hasNoStockProduct) {
@@ -370,30 +371,35 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                             } else if(hasNotAvailableProduct){
                               Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
                             } else {
-                              if (removeDetailList.isNotEmpty) {
-                                await removeOrderDetail();
-                              }
-                              if (widget.tableLocalId != '') {
-                                await checkTable();
-                                if (tableInUsed == true) {
-                                  await updateOrderDetail();
-                                  await updateOrderCache();
-                                  await updateProductStock();
-                                } else {
-                                  await callNewOrder();
-                                  await updateProductStock();
+                              await checkModifierStock();
+                              if(!modifierIngredientNoStock) {
+                                if (removeDetailList.isNotEmpty) {
+                                  await removeOrderDetail();
                                 }
-                              } else {
-                                await callOtherOrder();
+                                if (widget.tableLocalId != '') {
+                                  await checkTable();
+                                  if (tableInUsed == true) {
+                                    await updateOrderDetail();
+                                    await updateOrderCache();
+                                    await updateProductStock();
+                                    await updateModifierStock();
+                                  } else {
+                                    await callNewOrder();
+                                    await updateProductStock();
+                                    await updateModifierStock();
+                                  }
+                                } else {
+                                  await callOtherOrder();
+                                }
+                                if(_appSettingModel.autoPrintChecklist == true){
+                                  await printCheckList();
+                                }
+                                printProductTicket(widget.orderCacheLocalId);
+                                // syncToCloudFunction();
+                                widget.callBack();
+                                Navigator.of(context).pop();
+                                await callPrinter();
                               }
-                              if(_appSettingModel.autoPrintChecklist == true){
-                                await printCheckList();
-                              }
-                              printProductTicket(widget.orderCacheLocalId);
-                              // syncToCloudFunction();
-                              widget.callBack();
-                              Navigator.of(context).pop();
-                              await callPrinter();
                             }
                           });
                         }
@@ -912,6 +918,54 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     //syncBranchLinkProductStock(_branchLinkProductValue.toString());
   }
 
+  updateModifierStock() async {
+    PosFirestore posFirestore = PosFirestore.instance;
+    orderDetailList = widget.orderDetailList;
+    for (int i = 0; i < orderDetailList.length; i++) {
+      for(int j = 0; j < orderDetailList[i].orderModifierDetail.length; j++){
+        List<BranchLinkModifier> modData = await PosDatabase.instance.readBranchLinkModifier(orderDetailList[i].orderModifierDetail[j].mod_item_id.toString());
+        if(modData.first.stock_type == 1){
+          List<IngredientBranchLinkModifier> modIngredientData = await PosDatabase.instance.readSpecificModifierIngredient(modData.first.branch_link_modifier_id.toString());
+          List<IngredientCompanyLinkBranch> ingredientCompanyLinkBranch = await PosDatabase.instance.readSpecificIngredientCompanyLinkBranch(modIngredientData[0].ingredient_company_link_branch_id!);
+          if(int.parse(ingredientCompanyLinkBranch[0].stock_quantity!) >= int.parse(modIngredientData[0].ingredient_usage!)){
+            num ingredientUsed = int.parse(ingredientCompanyLinkBranch[0].stock_quantity!) - (int.parse(modIngredientData[0].ingredient_usage!)*int.parse(orderDetailList[i].quantity!));
+            IngredientCompanyLinkBranch object = IngredientCompanyLinkBranch(
+              updated_at: dateFormat.format(DateTime.now()),
+              sync_status: 2,
+              stock_quantity: ingredientUsed.toString(),
+              ingredient_company_link_branch_id: ingredientCompanyLinkBranch[0].ingredient_company_link_branch_id,
+            );
+            await PosDatabase.instance.updateIngredientCompanyLinkBranchStock(object);
+            posFirestore.updateIngredientCompanyLinkBranchStock(object);
+            IngredientMovement ingredientMovement = IngredientMovement(
+              ingredient_movement_id: 0,
+              ingredient_movement_key: '',
+              branch_id: ingredientCompanyLinkBranch[0].branch_id,
+              ingredient_company_link_branch_id: ingredientCompanyLinkBranch[0].ingredient_company_link_branch_id.toString(),
+              order_cache_key: widget.currentOrderCache!.order_cache_key,
+              order_detail_key: orderDetailList[i].order_detail_key,
+              order_modifier_detail_key: orderDetailList[i].orderModifierDetail[j].order_modifier_detail_key,
+              type: 2,
+              movement: '-${int.parse(modIngredientData[0].ingredient_usage!)*int.parse(orderDetailList[i].quantity!) }',
+              source: 0,
+              remark: '',
+              calculate_status: 1,
+              sync_status: 0,
+              created_at: dateFormat.format(DateTime.now()),
+              updated_at: '',
+              soft_delete: ''
+            );
+            IngredientMovement data = await PosDatabase.instance.insertSqliteIngredientMovement(ingredientMovement);
+            await insertIngredientMovementKey(data, dateFormat.format(DateTime.now()));
+          } else {
+            modifierIngredientNoStock = true;
+            return;
+          }
+        }
+      }
+    }
+  }
+
   // syncBranchLinkProductStock(String value) async {
   //   bool _hasInternetAccess = await Domain().isHostReachable();
   //   if (_hasInternetAccess) {
@@ -1370,6 +1424,24 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       print('has no available product status: ${hasNotAvailableProduct}');
       //orderDetailList[i].isRemove = false;
       //noStockOrderDetailList.add(orderDetailList[i]);
+    }
+  }
+
+  checkModifierStock() async {
+    modifierIngredientNoStock = false;
+    orderDetailList = widget.orderDetailList;
+    for (int i = 0; i < orderDetailList.length; i++) {
+      for(int j = 0; j < orderDetailList[i].orderModifierDetail.length; j++){
+        List<BranchLinkModifier> modData = await PosDatabase.instance.readBranchLinkModifier(orderDetailList[i].orderModifierDetail[j].mod_item_id.toString());
+        if(modData.first.stock_type == 1){
+          List<IngredientBranchLinkModifier> modIngredientData = await PosDatabase.instance.readSpecificModifierIngredient(modData.first.branch_link_modifier_id.toString());
+          List<IngredientCompanyLinkBranch> ingredientCompanyLinkBranch = await PosDatabase.instance.readSpecificIngredientCompanyLinkBranch(modIngredientData[0].ingredient_company_link_branch_id!);
+          if(int.parse(modIngredientData[0].ingredient_usage!) > int.parse(ingredientCompanyLinkBranch[0].stock_quantity!)){
+            modifierIngredientNoStock = true;
+            Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: '${orderDetailList[i].productName} ${AppLocalizations.of(context)!.translate('modifier')} ${AppLocalizations.of(context)!.translate('out_of_stock')}');
+          }
+        }
+      }
     }
   }
 

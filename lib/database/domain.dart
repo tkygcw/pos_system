@@ -1700,6 +1700,18 @@ class Domain {
   }
 
   /*
+  * get ingredient branch link modifier
+  * */
+  getAllIngredientBranchLinkModifier(ingredient_company_link_branch_id) async {
+    try {
+      var response = await http.post(Domain.ingredient, body: {'getAllIngredientBranchLinkModifier': '1', 'ingredient_company_link_branch_id': ingredient_company_link_branch_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get product
   * */
   getAllProduct(company_id) async {

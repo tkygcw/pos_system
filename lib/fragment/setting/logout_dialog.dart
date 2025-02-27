@@ -194,7 +194,7 @@ class _logout_dialogState extends State<logout_dialog> {
     PosDatabase.instance.clearAllModifierItem();
     PosDatabase.instance.clearAllModifierGroup();
     PosDatabase.instance.clearAllModifierLinkProduct();
-    //clear Ingredient
+    //clear ingredient movement
     PosDatabase.instance.clearAllIngredientCompany();
     PosDatabase.instance.clearAllIngredientCompanyLinkBranch();
     PosDatabase.instance.clearAllIngredientBranchLinkProduct();

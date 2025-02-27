@@ -412,6 +412,29 @@ class PosDatabase {
     return data.copy(ingredient_branch_link_product_sqlite_id: await id);
   }
 
+/*
+  add ingredient branch link modifier to sqlite (from cloud)
+*/
+  Future<IngredientBranchLinkModifier> insertIngredientBranchLinkModifier(IngredientBranchLinkModifier data) async {
+    final db = await instance.database;
+    final id = db.rawInsert(
+        'INSERT INTO $tableIngredientBranchLinkModifier(ingredient_branch_link_modifier_id, ingredient_company_link_branch_id, branch_link_modifier_id, ingredient_usage, sync_status, created_at, updated_at, soft_delete ) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          data.ingredient_branch_link_modifier_id,
+          data.ingredient_company_link_branch_id,
+          data.branch_link_modifier_id,
+          data.ingredient_usage,
+          data.sync_status,
+          data.created_at,
+          data.updated_at,
+          data.soft_delete
+        ]);
+    return data.copy(ingredient_branch_link_modifier_sqlite_id: await id);
+  }
+
+
+
   /*
   add product to sqlite (from cloud)
 */
@@ -2221,6 +2244,18 @@ class PosDatabase {
   }
 
 /*
+  read all ingredient company
+*/
+  Future<List<IngredientCompany>> readAllIngredientCompany() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.stock_quantity as stock FROM $tableIngredientCompany AS a '
+            'LEFT JOIN $tableIngredientCompanyLinkBranch AS b ON a.ingredient_company_id = b.ingredient_company_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ?', ['', '']);
+    return result.map((json) => IngredientCompany.fromJson(json)).toList();
+  }
+
+/*
   set default sku
 */
   Future<List<Product>> readDefaultSKU(String companyID) async {
@@ -2256,6 +2291,17 @@ class PosDatabase {
         'SELECT DISTINCT a.* FROM $tableProduct AS a JOIN $tableBranchLinkProduct AS b ON a.product_id = b.product_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND (a.name LIKE ? OR a.SKU LIKE ?)',
         ['', '', '%' + text + '%', '%' + text + '%']);
     return result.map((json) => Product.fromJson(json)).toList();
+  }
+
+/*
+  search ingredient
+*/
+  Future<List<IngredientCompany>> searchIngredient(String text) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT DISTINCT a.*, b.stock_quantity as stock  FROM $tableIngredientCompany AS a LEFT JOIN $tableIngredientCompanyLinkBranch AS b ON a.ingredient_company_id = b.ingredient_company_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND (a.name LIKE ?)',
+        ['', '', '%' + text + '%']);
+    return result.map((json) => IngredientCompany.fromJson(json)).toList();
   }
 
 /*
@@ -2357,9 +2403,13 @@ class PosDatabase {
   Future<List<ModifierItem>> readProductModifierItem(int modGroupID) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.status AS mod_status FROM $tableModifierItem AS a LEFT JOIN $tableBranchLinkModifier AS b ON a.mod_item_id = b.mod_item_id '
+        'SELECT a.*, b.status AS mod_status, '
+        'CASE WHEN b.stock_type = ? THEN c.ingredient_usage ELSE ? END AS usage, '
+        'c.ingredient_company_link_branch_id AS ingredient_company_link_branch_id '
+        'FROM tb_modifier_item AS a LEFT JOIN tb_branch_link_modifier AS b ON a.mod_item_id = b.mod_item_id '
+        'LEFT JOIN tb_ingredient_branch_link_modifier AS c ON b.branch_link_modifier_id = c.branch_link_modifier_id '
         'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.mod_group_id = ? AND b.status = ? ORDER BY a.sequence',
-        ['', '', modGroupID, '1']);
+        [1, '', '', '', modGroupID, '1']);
     return result.map((json) => ModifierItem.fromJson(json)).toList();
   }
 
@@ -4556,7 +4606,7 @@ class PosDatabase {
   }
 
 /*
-  read specific ingredient
+  read specific product ingredient
 */
   Future<List<IngredientBranchLinkProduct>> readSpecificProductIngredient(String ingredient_company_link_branch_id) async {
     final db = await instance.database;
@@ -4567,6 +4617,17 @@ class PosDatabase {
   }
 
 /*
+  read specific modifier ingredient
+*/
+  Future<List<IngredientBranchLinkModifier>> readSpecificModifierIngredient(String branch_link_modifier_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableIngredientBranchLinkModifier WHERE branch_link_modifier_id = ? AND soft_delete = ?',
+        [branch_link_modifier_id, '']);
+    return result.map((json) => IngredientBranchLinkModifier.fromJson(json)).toList();
+  }
+
+/*
   read specific ingredient company link branch
 */
   Future<List<IngredientCompanyLinkBranch>> readSpecificIngredientCompanyLinkBranch(String ingredient_company_link_branch_id) async {
@@ -4574,6 +4635,17 @@ class PosDatabase {
     final result = await db.rawQuery(
         'SELECT * FROM $tableIngredientCompanyLinkBranch WHERE ingredient_company_link_branch_id = ? AND soft_delete = ?',
         [ingredient_company_link_branch_id, '']);
+    return result.map((json) => IngredientCompanyLinkBranch.fromJson(json)).toList();
+  }
+
+/*
+  read specific ingredient company link branch with ingredient company id
+*/
+  Future<List<IngredientCompanyLinkBranch>> readIngredientCompanyLinkBranchWithIngredientCompanyId(int ingredient_company_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableIngredientCompanyLinkBranch WHERE ingredient_company_id = ? AND soft_delete = ?',
+        [ingredient_company_id, '']);
     return result.map((json) => IngredientCompanyLinkBranch.fromJson(json)).toList();
   }
 
@@ -6242,13 +6314,77 @@ class PosDatabase {
 */
   Future<int> updateIngredientMovementDetailKey(IngredientMovement data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableIngredientMovement SET order_detail_key = ?, order_modifier_detail_key = ?, sync_status = ?, updated_at = ? WHERE ingredient_movement_sqlite_id = ?', [
+    return await db.rawUpdate('UPDATE $tableIngredientMovement SET order_detail_key = ?, sync_status = ?, updated_at = ? WHERE order_cache_key = ?', [
       data.order_detail_key,
-      data.order_modifier_detail_key,
       data.sync_status,
       data.updated_at,
-      data.ingredient_movement_sqlite_id,
+      data.order_cache_key,
     ]);
+  }
+
+/*
+  update ingredient movement orderDetail unique key
+*/
+  Future<int> checkDuplicateIngredientMovement() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableIngredientMovement WHERE ingredient_movement_id IN '
+            '(SELECT MAX(ingredient_movement_id) FROM $tableIngredientMovement WHERE soft_delete = ? '
+            'GROUP BY ingredient_movement_key, branch_id)', ['']
+    );
+
+    // delete duplicates
+    int deletedRows = await db.rawDelete(
+        'DELETE FROM $tableIngredientMovement WHERE ingredient_movement_id NOT IN '
+            '(SELECT * FROM (SELECT MAX(ingredient_movement_id) FROM $tableIngredientMovement WHERE soft_delete = ? '
+            'GROUP BY ingredient_movement_key, branch_id) AS subquery)', ['']
+    );
+
+    return deletedRows;
+  }
+
+/*
+  update ingredient stock
+*/
+  Future<int> updateIngredientStock() async {
+    final db = await instance.database;
+    int updatedRows = 0;
+
+    try {
+      // Calculate the sum of movements for each ingredient
+      final List<Map<String, dynamic>> result = await db.rawQuery(
+          'SELECT b.ingredient_company_link_branch_id, SUM(a.movement) as total_movement '
+              'FROM tb_ingredient_movement as a JOIN tb_ingredient_company_link_branch as b '
+              'ON a.ingredient_company_link_branch_id = b.ingredient_company_link_branch_id '
+              'WHERE a.calculate_status = 0 AND a.soft_delete = ? GROUP BY b.ingredient_company_link_branch_id',
+          ['']
+      );
+
+      for (var row in result) {
+        int ingredientCompanyLinkBranchId = row['ingredient_company_link_branch_id'];
+        String totalMovement = (row['total_movement'] ?? 0).toString();
+
+        // Update stock quantity in tb_ingredient_company_link_branch
+        await db.rawUpdate(
+            'UPDATE tb_ingredient_company_link_branch '
+                'SET stock_quantity = stock_quantity + ?, updated_at = CURRENT_TIMESTAMP '
+                'WHERE ingredient_company_link_branch_id = ?',
+            [totalMovement, ingredientCompanyLinkBranchId]
+        );
+
+        // Set calculate_status = 1 in tb_ingredient_movement
+        updatedRows = await db.rawUpdate(
+            'UPDATE tb_ingredient_movement '
+                'SET calculate_status = ?, updated_at = CURRENT_TIMESTAMP '
+                'WHERE ingredient_company_link_branch_id = ? AND calculate_status = ?',
+            [1, ingredientCompanyLinkBranchId, 0]
+        );
+      }
+      return updatedRows;
+    } catch (e, stackTrace) {
+      print("updateIngredientStock Error: $e, StackTrace: $stackTrace");
+      return 0;
+    }
   }
 
 /*
@@ -8100,6 +8236,22 @@ FROM table_counts;
     final result = await db.rawQuery('SELECT * FROM $tableProduct WHERE soft_delete = ? AND product_id = ? LIMIT 1 ', ['', product_id]);
     if (result.isNotEmpty) {
       return Product.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific ingredient (sync record)
+*/
+  Future<IngredientCompany?> checkSpecificIngredientCompanyId(int ingredient_company_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.stock_quantity as stock FROM $tableIngredientCompany AS a '
+            'LEFT JOIN $tableIngredientCompanyLinkBranch AS b ON a.ingredient_company_id = b.ingredient_company_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.ingredient_company_id = ? LIMIT 1 ', ['', '', ingredient_company_id]);
+    if (result.isNotEmpty) {
+      return IngredientCompany.fromJson(result.first);
     } else {
       return null;
     }
