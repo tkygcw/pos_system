@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 
@@ -133,7 +132,7 @@ Future<void> createNewWindows() async {
       //primary screen is the screen set as main display in windows setting
       final primaryScreens = await Retriever.screenRetriever.getPrimaryDisplay();
       //move customer display to non-main display screen
-      if(primaryScreens.id == internalScreen){
+      if(primaryScreens.id == internalScreen.id){
         screenPosition = screens[1].visiblePosition!;
       } else {
         screenPosition = internalScreen.visiblePosition!;
@@ -143,8 +142,8 @@ Future<void> createNewWindows() async {
       // Set the window's initial position to the external display
       await window
         ..setFrame(screenPosition & Size(1280, 720))
-        ..center();
-      window.show();
+        ..center()
+        ..show();
     }
   }catch(e, s){
     FLog.error(

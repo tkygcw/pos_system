@@ -29,6 +29,7 @@ import 'package:http/http.dart' as http;
 
 import '../database/domain.dart';
 import '../database/pos_database.dart';
+import '../windows_app/win_display_function.dart';
 import 'branch.dart';
 import 'branch_link_dining_option.dart';
 import 'branch_link_modifier.dart';
@@ -374,7 +375,12 @@ class SyncRecord {
           }
         }
       }
-      displayManager.transferDataToPresentation("refresh_img");
+      //send data to second display
+      if (Platform.isWindows) {
+        await WinDisplayFunction.instance.transferDataToDisplayWindows('refresh_img');
+      } else {
+        await displayManager.transferDataToPresentation('refresh_img');
+      }
     } catch(e){
       print("second screen query error: ${e}");
       isComplete = false;

@@ -1,4 +1,5 @@
 import 'package:desktop_multi_window/desktop_multi_window.dart';
+import 'package:f_logs/model/flog/flog.dart';
 
 class WinDisplayFunction {
   static final WinDisplayFunction instance = WinDisplayFunction._init();
@@ -16,7 +17,26 @@ class WinDisplayFunction {
         );
       }
     }catch(e, s){
-      print("error: $e, $s");
+      FLog.error(
+        className: "WinDisplayFunction",
+        text: "transferDataToDisplayWindows error",
+        exception: 'Error: $e, StackTrace: $s',
+      );
+    }
+  }
+
+  Future<void> closeAllSubWindows() async {
+    try{
+      final subWindowIds = await DesktopMultiWindow.getAllSubWindowIds();
+      for (final windowId in subWindowIds) {
+        WindowController.fromWindowId(windowId).close();
+      }
+    }catch(e, s){
+      FLog.error(
+        className: "WinDisplayFunction",
+        text: "closeAllSubWindows error",
+        exception: 'Error: $e, StackTrace: $s',
+      );
     }
   }
 }

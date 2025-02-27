@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Optimy POS"
-#define MyAppVersion "1.1.42+154"
+#define MyAppVersion "1.1.44+156"
 #define MyAppPublisher "optimy.com"
 #define MyAppURL "https://optimy.com.my/"
 #define MyAppExeName "optimy_pos.exe"
@@ -41,14 +41,12 @@ WizardStyle=modern
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
-[Dirs]
-Name: "{userappdata}\optimy.com"; Flags: uninsneveruninstall
-
 [Files]
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\charset_converter_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\cloud_firestore_plugin.lib"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\connectivity_plus_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\desktop_multi_window_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\file_selector_windows_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\firebase_core_plugin.lib"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\flutter_windows.dll"; DestDir: "{app}"; Flags: ignoreversion
@@ -58,10 +56,12 @@ Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\permissi
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\optimy_pos.exp"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\optimy_pos.lib"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\printing_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\screen_retriever_windows_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\sqlite3.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\url_launcher_windows_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\vcruntime140.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\vcruntime140_1.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\window_manager_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\data\*"; DestDir: "{app}\data"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 

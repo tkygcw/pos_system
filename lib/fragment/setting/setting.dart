@@ -16,9 +16,11 @@ import 'package:pos_system/fragment/setting/receipt_setting.dart';
 import 'package:pos_system/fragment/setting/table_setting/table_setting.dart';
 import 'package:pos_system/page/login.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:pos_system/windows_app/win_display_function.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:side_navigation/side_navigation.dart';
+import 'package:window_manager/window_manager.dart';
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../main.dart';
@@ -192,7 +194,8 @@ class _SettingMenuState extends State<SettingMenu> {
                                       backgroundColor: Colors.red
                                   ),
                                   onPressed: () async {
-                                    exit(0);
+                                    await WinDisplayFunction.instance.closeAllSubWindows();
+                                    await windowManager.close();
                                   },
                                   child: Text('Close Optimy POS')
                               ),

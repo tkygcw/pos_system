@@ -20,9 +20,9 @@ import '../../main.dart';
 import '../../notifier/app_setting_notifier.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/app_setting.dart';
-import '../../object/receipt.dart';
 import '../../page/progress_bar.dart';
 import '../../translation/AppLocalizations.dart';
+import '../../windows_app/win_display_function.dart';
 
 class HardwareSetting extends StatefulWidget {
   const HardwareSetting({Key? key}) : super(key: key);
@@ -295,7 +295,11 @@ class _HardwareSettingState extends State<HardwareSetting> {
                             subtitle: Text(AppLocalizations.of(context)!.translate('reset_second_display_desc')),
                             trailing: ElevatedButton(
                                 onPressed: () async {
-                                  await displayManager.transferDataToPresentation("init");
+                                  if (Platform.isWindows) {
+                                    await WinDisplayFunction.instance.transferDataToDisplayWindows('init');
+                                  } else {
+                                    await displayManager.transferDataToPresentation('init');
+                                  }
                                 },
                                 style: ElevatedButton.styleFrom(
                                     backgroundColor: color.backgroundColor

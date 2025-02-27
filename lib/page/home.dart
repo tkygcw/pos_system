@@ -33,6 +33,7 @@ import '../object/branch.dart';
 import '../object/order_cache.dart';
 import '../object/user.dart';
 import '../translation/AppLocalizations.dart';
+import '../windows_app/win_display_function.dart';
 import 'progress_bar.dart';
 
 //11
@@ -125,8 +126,12 @@ class _HomePageState extends State<HomePage> {
         notificationModel.secondScreenEnable = false;
       }
     }
-    if (notificationModel.hasSecondScreen == true && !Platform.isWindows) {
-      await displayManager.showSecondaryDisplay(displayId: notificationModel.displays[1]!.displayId, routerName: "presentation");
+    if (notificationModel.hasSecondScreen == true) {
+      if(!Platform.isWindows){
+        await displayManager.showSecondaryDisplay(displayId: notificationModel.displays[1]!.displayId, routerName: "presentation");
+      } else {
+        await WinDisplayFunction.instance.transferDataToDisplayWindows('refresh_img');
+      }
     }
   }
 

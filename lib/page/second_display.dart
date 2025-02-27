@@ -40,7 +40,6 @@ class _SecondDisplayState extends State<SecondDisplay> {
     initBanner();
     if(Platform.isWindows){
       DesktopMultiWindow.setMethodHandler((call, fromWindowId) async {
-        debugPrint('${call.method} ${call.arguments} $fromWindowId');
         method = call.method;
         switch(call.method){
           case 'display': {
@@ -50,6 +49,9 @@ class _SecondDisplayState extends State<SecondDisplay> {
             setState(() {
               paymentImgLoaded = true;
             });
+          }break;
+          case 'refresh_img': {
+            await initBanner();
           }break;
           default: {
             setState(() {});
@@ -104,7 +106,8 @@ class _SecondDisplayState extends State<SecondDisplay> {
   }
 
   Widget DisplayWidget(BuildContext context) {
-    return method == "init" && bannerLoaded == true ?
+    bool methodStatus  = (method == "init" || method == "refresh_img");
+    return methodStatus && bannerLoaded == true ?
             imageList.isNotEmpty ?
             CarouselSlider(
               items: imageList.map((item) {
@@ -354,9 +357,12 @@ class _SecondDisplayState extends State<SecondDisplay> {
       imageList.clear();
       prefs = await getPreferences();
       if(prefs.getString('banner_path') == null){
-        //if pref did not have folder path
-        await _createBannerImgFolder();
-        await getBanner();
+        //create banner image folder
+        bool status = await _createBannerImgFolder();
+        //start download banner if status = true
+        if(status){
+          await getBanner();
+        }
         setState(() {
           bannerLoaded = true;
         });
@@ -404,13 +410,17 @@ class _SecondDisplayState extends State<SecondDisplay> {
     return directory.path;
   }
 
-  _createBannerImgFolder() async {
+  Future<bool> _createBannerImgFolder() async {
     final folderName = 'banner';
     final directory = await _localPath;
     final path = '$directory/assets/$folderName';
     final pathImg = Directory(path);
-    pathImg.create();
-    await prefs.setString('banner_path', path);
+    bool isPathExisted = await pathImg.exists();
+    if(isPathExisted){
+      pathImg.create();
+      await prefs.setString('banner_path', path);
+    }
+    return isPathExisted;
   }
 
 /*
