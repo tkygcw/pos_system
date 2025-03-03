@@ -2014,7 +2014,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                           await syncToCloud.syncAllToCloud(isManualSync: true);
                                                         }while(syncToCloud.emptyResponse == false);
                                                         if(syncToCloud.emptyResponse == true){
-                                                          isSyncisSyncingingNotifier.value = true;
+                                                          isSyncisSyncingingNotifier.value = false;
                                                         }
                                                       }
                                                     }
@@ -3030,7 +3030,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                             await syncToCloud.syncAllToCloud(isManualSync: true);
                                                           }while(syncToCloud.emptyResponse == false);
                                                           if(syncToCloud.emptyResponse == true){
-                                                            isSyncisSyncingingNotifier.value = true;
+                                                            isSyncisSyncingingNotifier.value = false;
                                                           }
                                                         }
                                                       }
@@ -3609,7 +3609,7 @@ class _MakePaymentState extends State<MakePayment> {
                     await syncToCloud.syncAllToCloud(isManualSync: true);
                   }while(syncToCloud.emptyResponse == false);
                   if(syncToCloud.emptyResponse == true){
-                    isSyncisSyncingingNotifier.value = true;
+                    isSyncisSyncingingNotifier.value = false;
                   }
                 }
               }
@@ -4556,7 +4556,7 @@ class _MakePaymentState extends State<MakePayment> {
                 await syncToCloud.syncAllToCloud(isManualSync: true);
               }while(syncToCloud.emptyResponse == false);
               if(syncToCloud.emptyResponse == true){
-                isSyncisSyncingingNotifier.value = true;
+                isSyncisSyncingingNotifier.value = false;
               }
             }
           }
