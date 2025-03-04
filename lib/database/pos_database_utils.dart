@@ -272,6 +272,7 @@ class PosDatabaseUtils {
           }break;
           case 36: {
             await db.execute("ALTER TABLE $tableUser ADD ${UserFields.sub_pos_payment} $integerType DEFAULT 0");
+            await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_total_amount} $integerType DEFAULT 0");
           }break;
         }
       }
@@ -1030,6 +1031,7 @@ class PosDatabaseUtils {
           ${ChecklistFields.check_list_show_separator} $integerType,
           ${ChecklistFields.paper_size} $textType,
           ${ChecklistFields.show_product_sku} $integerType,
+          ${ChecklistFields.show_total_amount} $integerType,
           ${ChecklistFields.sync_status} $integerType,
           ${ChecklistFields.created_at} $textType,
           ${ChecklistFields.updated_at} $textType,

@@ -105,6 +105,8 @@
   "check_list_setting": "清单设置",
   "check_list_show_price": "清单显示价格",
   "check_list_show_price_desc": "在打印清单时显示产品单价",
+  "check_list_show_total_amount": "清单显示总金额",
+  "check_list_show_total_amount_desc": "在打印清单时显示总金额",
   "choose_an_option": "选择一个选项",
   "choose_at_least": "至少选择",
   "choose_maximum": "最多选择",

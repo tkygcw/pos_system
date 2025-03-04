@@ -1376,14 +1376,15 @@ class PosDatabase {
   Future<Checklist> insertChecklist(Checklist data) async {
     final db = await instance.database;
     final id = db.rawInsert(
-        'INSERT INTO $tableChecklist(soft_delete, updated_at, created_at, sync_status, show_product_sku, paper_size, check_list_show_separator, '
+        'INSERT INTO $tableChecklist(soft_delete, updated_at, created_at, sync_status, show_total_amount, show_product_sku, paper_size, check_list_show_separator, '
             'check_list_show_price, other_font_size, product_name_font_size, branch_id, checklist_key, checklist_id) '
-            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           '',
           data.updated_at,
           data.created_at,
           data.sync_status,
+          data.show_total_amount,
           data.show_product_sku,//change later
           data.paper_size,
           data.check_list_show_separator,
@@ -6020,9 +6021,9 @@ class PosDatabase {
 */
   Future<int> updateChecklist(Checklist data) async {
     final db = await instance.database;
-    return await db.rawUpdate("UPDATE $tableChecklist SET updated_at = ?, sync_status = ?, show_product_sku = ?, product_name_font_size = ?, other_font_size = ? , "
+    return await db.rawUpdate("UPDATE $tableChecklist SET updated_at = ?, sync_status = ?, show_total_amount = ?, show_product_sku = ?, product_name_font_size = ?, other_font_size = ? , "
         "check_list_show_price = ? , check_list_show_separator = ? WHERE checklist_sqlite_id = ?",
-        [data.updated_at, data.sync_status, data.show_product_sku, data.product_name_font_size, data.other_font_size, data.check_list_show_price, data.check_list_show_separator, data.checklist_sqlite_id]);
+        [data.updated_at, data.sync_status, data.show_total_amount, data.show_product_sku, data.product_name_font_size, data.other_font_size, data.check_list_show_price, data.check_list_show_separator, data.checklist_sqlite_id]);
   }
 
 /*
