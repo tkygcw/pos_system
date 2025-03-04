@@ -181,7 +181,7 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> with Sing
                   title: Text(AppLocalizations.of(context)!.translate('reset_order_select_status')),
                   onTap: (){
                     Provider.of<CartModel>(context, listen: false).clearSubPosOrderCache();
-                    Provider.of<CartModel>(context, listen: false).clearCurrentOrderCache();
+                    Provider.of<CartModel>(context, listen: false).removeAllCartOrderCache();
                   },
                   trailing: Icon(Icons.navigate_next)
               ),
