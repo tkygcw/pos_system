@@ -7,7 +7,10 @@ class TaxLinkDiningFields {
     dining_id,
     created_at,
     updated_at,
-    soft_delete
+    soft_delete,
+    tax_name,
+    tax_rate,
+    tax_amount
   ];
 
   static String tax_link_dining_id = 'tax_link_dining_id';
@@ -16,6 +19,10 @@ class TaxLinkDiningFields {
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
+  static String tax_name = 'tax_name';
+  static String tax_rate = 'tax_rate';
+  static String tax_amount = 'tax_amount';
+  static String tax_type = 'tax_type';
 }
 
 class TaxLinkDining{
@@ -28,6 +35,8 @@ class TaxLinkDining{
   String? tax_rate;
   String? tax_name;
   String? dining_name;
+  String? tax_amount;
+  int? tax_type;
 
   TaxLinkDining(
       {this.tax_link_dining_id,
@@ -39,6 +48,8 @@ class TaxLinkDining{
         this.tax_rate,
         this.tax_name,
         this.dining_name,
+        this.tax_amount,
+        this.tax_type
       });
 
   TaxLinkDining copy({
@@ -49,15 +60,22 @@ class TaxLinkDining{
     String? updated_at,
     String? soft_delete,
     String? tax_rate,
+    String? tax_name,
+    String? tax_amount,
+    int? tax_type
   }) =>
       TaxLinkDining(
-          tax_link_dining_id: tax_link_dining_id ?? this.tax_link_dining_id,
-          tax_id: tax_id ?? this.tax_id,
-          dining_id: dining_id ?? this.dining_id,
-          created_at: created_at ?? this.created_at,
-          updated_at: updated_at ?? this.updated_at,
-          soft_delete: soft_delete ?? this.soft_delete,
-          tax_rate: tax_rate ?? this.tax_rate);
+        tax_link_dining_id: tax_link_dining_id ?? this.tax_link_dining_id,
+        tax_id: tax_id ?? this.tax_id,
+        dining_id: dining_id ?? this.dining_id,
+        created_at: created_at ?? this.created_at,
+        updated_at: updated_at ?? this.updated_at,
+        soft_delete: soft_delete ?? this.soft_delete,
+        tax_rate: tax_rate ?? this.tax_rate,
+        tax_name: tax_name ?? this.tax_name,
+        tax_amount: tax_amount ?? this.tax_amount,
+        tax_type: tax_type ?? this.tax_type
+      );
 
   static TaxLinkDining fromJson(Map<String, Object?> json) => TaxLinkDining (
     tax_link_dining_id: json[TaxLinkDiningFields.tax_link_dining_id] as int?,
@@ -66,9 +84,11 @@ class TaxLinkDining{
     created_at: json[TaxLinkDiningFields.created_at] as String?,
     updated_at: json[TaxLinkDiningFields.updated_at] as String?,
     soft_delete: json[TaxLinkDiningFields .soft_delete] as String?,
-    tax_rate: json['tax_rate'] as String?,
-    tax_name: json['tax_name'] as String?,
-    dining_name: json['dining_name'] as String?
+    tax_rate: json[TaxLinkDiningFields.tax_rate] as String?,
+    tax_name: json[TaxLinkDiningFields.tax_name] as String?,
+    dining_name: json['dining_name'] as String?,
+    tax_amount: json[TaxLinkDiningFields.tax_amount] as String?,
+    tax_type: json[TaxLinkDiningFields.tax_type] as int?
   );
 
   Map<String, Object?> toJson() => {
@@ -78,8 +98,10 @@ class TaxLinkDining{
     TaxLinkDiningFields.created_at: created_at,
     TaxLinkDiningFields.updated_at: updated_at,
     TaxLinkDiningFields.soft_delete: soft_delete,
-    'tax_rate': tax_rate,
-    'tax_name': tax_name,
+    TaxLinkDiningFields.tax_rate: tax_rate,
+    TaxLinkDiningFields.tax_name: tax_name,
+    TaxLinkDiningFields.tax_amount: tax_amount,
+    TaxLinkDiningFields.tax_type: tax_type,
     'dining_name': dining_name
   };
 

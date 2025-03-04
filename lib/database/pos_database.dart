@@ -898,7 +898,7 @@ class PosDatabase {
 */
   Future<OrderCache> insertSqLiteOrderCache(OrderCache data) async {
     final db = await instance.database;
-    final id = await db.insert(tableOrderCache!, data.toJson());
+    final id = await db.insert(tableOrderCache!, data.toInsertJson());
     return data.copy(order_cache_sqlite_id: id);
   }
 
@@ -1269,7 +1269,7 @@ class PosDatabase {
 */
   Future<Order> insertSqliteOrder(Order data) async {
     final db = await instance.database;
-    final id = await db.insert(tableOrder!, data.toJson());
+    final id = await db.insert(tableOrder!, data.toInsertJson());
     return data.copy(order_sqlite_id: id);
   }
 
@@ -2065,7 +2065,7 @@ class PosDatabase {
   Future<List<TaxLinkDining>> readAllTaxLinkDining() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.tax_rate, b.name AS tax_name, c.name AS dining_name '
+        'SELECT a.*, b.tax_rate, b.name AS tax_name, b.type AS tax_type, c.name AS dining_name '
             'FROM $tableTaxLinkDining AS a JOIN $tableTax AS b ON a.tax_id = b.tax_id '
             'JOIN $tableDiningOption AS c ON a.dining_id = c.dining_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ?',
         ['', '', '']);
@@ -2125,6 +2125,18 @@ class PosDatabase {
   Future<List<Promotion>> checkPromotion(String promotion_id) async {
     final db = await instance.database;
     final result = await db.rawQuery('SELECT * FROM $tablePromotion WHERE soft_delete = ? AND promotion_id = ?', ['', promotion_id]);
+
+    return result.map((json) => Promotion.fromJson(json)).toList();
+  }
+
+/*
+  read branch not-auto apply promotion
+*/
+  Future<List<Promotion>> readNotAutoApplyPromotion() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT a.* FROM $tablePromotion AS a JOIN $tableBranchLinkPromotion AS b ''ON a.promotion_id == b.promotion_id '
+        'WHERE a.auto_apply = ? AND a.soft_delete = ? AND b.soft_delete = ?',
+        [0, '', '']);
 
     return result.map((json) => Promotion.fromJson(json)).toList();
   }
@@ -4775,9 +4787,21 @@ class PosDatabase {
   }
 
 /*
-  get all settlement order tax detail based on settlement id
+  get all settlement order based on settlement key join payment link company
 */
-  Future<List<Order>> readAllSettlementOrderBySettlementKey(String settlement_key) async {
+  Future<List<Order>> readAllSettlementOrderBySettlementKeyJoinPayment(String settlement_key) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.name FROM $tableOrder AS a LEFT JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
+            'WHERE a.soft_delete = ? AND a.refund_key = ? AND a.settlement_key = ? ',
+        ['', '', settlement_key]);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  get settlement order based on settlement key group by dining id
+*/
+  Future<List<Order>> readAllSettlementOrderBySettlementKeyGroupByDiningId(String settlement_key) async {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT *, SUM(final_amount + 0.0) AS gross_sales FROM $tableOrder '
@@ -5548,9 +5572,9 @@ class PosDatabase {
   Future<int> updateUser(User data) async {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableUser SET name = ?, email = ?, phone = ?, role = ?, pos_pin = ?, edit_price_without_pin = ?, refund_permission = ?, '
-        'cash_drawer_permission = ?, settlement_permission = ?, report_permission = ?, status = ?, updated_at = ?, soft_delete = ? WHERE user_id = ? ',
+        'cash_drawer_permission = ?, settlement_permission = ?, report_permission = ?, sub_pos_payment = ?, status = ?, updated_at = ?, soft_delete = ? WHERE user_id = ? ',
         [data.name, data.email, data.phone, data.role, data.pos_pin, data.edit_price_without_pin, data.refund_permission, data.cash_drawer_permission,
-          data.settlement_permission, data.report_permission, data.status, data.updated_at, data.soft_delete, data.user_id]);
+          data.settlement_permission, data.report_permission, data.sub_pos_payment, data.status, data.updated_at, data.soft_delete, data.user_id]);
   }
 
 /*

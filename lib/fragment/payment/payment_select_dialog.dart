@@ -164,7 +164,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                       cart.removeAllTable();
                       cart.removeAllCartItem();
                       cart.removeAllGroupList();
-                      cart.removeAllCartOrderCache();
+                      cart.clearCurrentOrderCache();
                       if (canPop) {
                         Navigator.of(context).pop();
                         canPop = false;
@@ -279,7 +279,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                       cart.removeAllTable();
                       cart.removeAllCartItem();
                       cart.removeAllGroupList();
-                      cart.removeAllCartOrderCache();
+                      cart.clearCurrentOrderCache();
                       if (canPop) {
                         Navigator.of(context).pop();
                         canPop = false;

@@ -23,6 +23,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
 import '../../translation/AppLocalizations.dart';
+import '../custom_toastification.dart';
 
 class OtherOrderAddtoCart extends StatefulWidget {
   final String cartFinalAmount;
@@ -119,77 +120,81 @@ class _OtherOrderAddtoCartState extends State<OtherOrderAddtoCart> {
                                 try {
                                   if(orderCacheList[index].is_selected == false){
                                     await Future.delayed(Duration(milliseconds: 300));
-                                    if(cart.cartNotifierItem.isEmpty){
-                                      // orderCacheList[index].is_selected = true;
-                                      // cart.selectedOptionId = orderCacheList[index].dining_id!;
-                                      // await getOrderDetail(orderCacheList[index]);
-                                      // await addToCart(cart, orderCacheList[index]);
-                                      if (orderCacheList[index].order_key != '') {
-                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
-                                        return;
-                                      } else {
-                                        orderCacheList[index].is_selected = true;
-                                        cart.selectedOptionId = orderCacheList[index].dining_id!;
-                                        cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
-                                        if(orderCacheList[index].other_order_key != ''){
-                                          List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[index].other_order_key!);
-                                          for(int i = 0; i < data.length; i++){
-                                            await getOrderDetail(data[i]);
-                                            await addToCart(cart, data[i]);
-                                          }
+                                    bool selectedStatus = await cart.isOtherOrderCacheSelected(orderCacheList[index]);
+                                    if(!selectedStatus) {
+                                      if(cart.cartNotifierItem.isEmpty){
+                                        // orderCacheList[index].is_selected = true;
+                                        // cart.selectedOptionId = orderCacheList[index].dining_id!;
+                                        // await getOrderDetail(orderCacheList[index]);
+                                        // await addToCart(cart, orderCacheList[index]);
+                                        if (orderCacheList[index].order_key != '') {
+                                          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
+                                          return;
                                         } else {
-                                          await getOrderDetail(orderCacheList[index]);
-                                          await addToCart(cart, orderCacheList[index]);
-                                        }
-                                      }
-                                    } else {
-                                      if(orderCacheList[index].dining_id == cart.selectedOptionId){
-                                        if(cart.selectedOptionOrderKey == orderCacheList[index].order_key) {
-                                          if (orderCacheList[index].order_key != '') {
-                                            for(int i = 0; i < orderCacheList.length; i++) {
-                                              if(orderCacheList[i].order_key == orderCacheList[index].order_key && orderCacheList[index].order_key != '') {
-                                                orderCacheList[i].is_selected = true;
-                                                cart.selectedOptionId = orderCacheList[i].dining_id!;
-                                                cart.selectedOptionOrderKey = orderCacheList[i].order_key!;
-                                                await getOrderDetail(orderCacheList[i]);
-                                                await addToCart(cart, orderCacheList[i]);
-                                              } else {
-                                                orderCacheList[index].is_selected = true;
-                                                cart.selectedOptionId = orderCacheList[index].dining_id!;
-                                                cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
-                                                await getOrderDetail(orderCacheList[index]);
-                                                await addToCart(cart, orderCacheList[index]);
-                                              }
+                                          orderCacheList[index].is_selected = true;
+                                          cart.selectedOptionId = orderCacheList[index].dining_id!;
+                                          cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
+                                          if(orderCacheList[index].other_order_key != ''){
+                                            List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[index].other_order_key!);
+                                            for(int i = 0; i < data.length; i++){
+                                              await getOrderDetail(data[i]);
+                                              await addToCart(cart, data[i]);
                                             }
                                           } else {
-                                            orderCacheList[index].is_selected = true;
-                                            cart.selectedOptionId = orderCacheList[index].dining_id!;
-                                            cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
                                             await getOrderDetail(orderCacheList[index]);
                                             await addToCart(cart, orderCacheList[index]);
                                           }
+                                        }
+                                      } else {
+                                        if(orderCacheList[index].dining_id == cart.selectedOptionId){
+                                          if(cart.selectedOptionOrderKey == orderCacheList[index].order_key) {
+                                            if (orderCacheList[index].order_key != '') {
+                                              for(int i = 0; i < orderCacheList.length; i++) {
+                                                if(orderCacheList[i].order_key == orderCacheList[index].order_key && orderCacheList[index].order_key != '') {
+                                                  orderCacheList[i].is_selected = true;
+                                                  cart.selectedOptionId = orderCacheList[i].dining_id!;
+                                                  cart.selectedOptionOrderKey = orderCacheList[i].order_key!;
+                                                  await getOrderDetail(orderCacheList[i]);
+                                                  await addToCart(cart, orderCacheList[i]);
+                                                } else {
+                                                  orderCacheList[index].is_selected = true;
+                                                  cart.selectedOptionId = orderCacheList[index].dining_id!;
+                                                  cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
+                                                  await getOrderDetail(orderCacheList[index]);
+                                                  await addToCart(cart, orderCacheList[index]);
+                                                }
+                                              }
+                                            } else {
+                                              orderCacheList[index].is_selected = true;
+                                              cart.selectedOptionId = orderCacheList[index].dining_id!;
+                                              cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
+                                              await getOrderDetail(orderCacheList[index]);
+                                              await addToCart(cart, orderCacheList[index]);
+                                            }
+                                          } else {
+                                            Fluttertoast.showToast(
+                                                backgroundColor: Colors.red,
+                                                msg: "${AppLocalizations.of(context)?.translate('payment_status_not_match')}");
+                                          }
+
+
+                                          // orderCacheList[index].is_selected = true;
+                                          // await getOrderDetail(orderCacheList[index]);
+                                          // await addToCart(cart, orderCacheList[index]);
                                         } else {
                                           Fluttertoast.showToast(
                                               backgroundColor: Colors.red,
-                                              msg: "${AppLocalizations.of(context)?.translate('payment_status_not_match')}");
+                                              msg: "${AppLocalizations.of(context)?.translate('dining_option_not_match')}");
                                         }
-
-
-                                        // orderCacheList[index].is_selected = true;
-                                        // await getOrderDetail(orderCacheList[index]);
-                                        // await addToCart(cart, orderCacheList[index]);
-                                      } else {
-                                        Fluttertoast.showToast(
-                                            backgroundColor: Colors.red,
-                                            msg: "${AppLocalizations.of(context)?.translate('dining_option_not_match')}");
                                       }
+                                      //reset other selected order
+                                      // for(int i = 0; i < orderCacheList.length; i++){
+                                      //   orderCacheList[i].is_selected = false;
+                                      //   cart.notDineInInitLoad();
+                                      // }
+                                    } else {
+                                      CustomFailedToast.showToast(title: 'Order is in payment');
                                     }
-                                    //reset other selected order
-                                    // for(int i = 0; i < orderCacheList.length; i++){
-                                    //   orderCacheList[i].is_selected = false;
-                                    //   cart.notDineInInitLoad();
-                                    // }
-
                                   } else if(orderCacheList[index].is_selected == true) {
                                     if(orderCacheList[index].order_key != '') {
                                       for(int i = 0; i < orderCacheList.length; i++) {

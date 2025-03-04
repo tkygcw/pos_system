@@ -609,52 +609,70 @@ class _FoodSettingState extends State<FoodSetting> {
   }
 
   Widget _buildSpecificProduct(BuildContext context, String label) {
-    return GridView.count(
-        padding: const EdgeInsets.all(10),
-        shrinkWrap: true,
-        crossAxisCount: MediaQuery.of(context).orientation == Orientation.landscape
-            ? MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 7
-            : MediaQuery.of(context).size.height > 450 && MediaQuery.of(context).size.width > 800 ? 5
-            : 4
-            : MediaQuery.of(context).size.height > 900 && MediaQuery.of(context).size.width > 500 ? 5
-            : MediaQuery.of(context).size.height > 800 && MediaQuery.of(context).size.width > 450 ? 4
-            : 3,
-        children: List.generate(specificProduct.length, //this is the total number of cards
-            (index) {
-          return Card(
-            child: Container(
-              decoration: (specificProduct[index].graphic_type == '2'
-                  ? BoxDecoration(
-                      image: DecorationImage(image: FileImage(File(imagePath + '/' + specificProduct[index].image!)), fit: BoxFit.cover))
-                  : BoxDecoration(color: HexColor(specificProduct[index].color!))),
-              child: InkWell(
-                splashColor: Colors.blue.withAlpha(30),
-                onTap: () {
-                  openEditProductDialog(specificProduct[index]);
-                },
-                child: Stack(
-                  alignment: Alignment.bottomLeft,
-                  children: [
-                    Container(
-                      color: Colors.black.withOpacity(0.5),
-                      height: 30,
-                      width: 200,
-                      alignment: Alignment.center,
-                      child: Text(
-                        specificProduct[index].SKU! + ' ' + specificProduct[index].name!,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          fontSize: 13,
+    return FutureBuilder<void>(
+      future: readSpecificProduct(label), // Fetch data asynchronously
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CustomProgressBar()); // Show loading indicator
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+
+        return GridView.count(
+          padding: const EdgeInsets.all(10),
+          shrinkWrap: true,
+          crossAxisCount: MediaQuery.of(context).orientation == Orientation.landscape
+              ? MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 7
+              : MediaQuery.of(context).size.height > 450 && MediaQuery.of(context).size.width > 800 ? 5
+              : 4
+              : MediaQuery.of(context).size.height > 900 && MediaQuery.of(context).size.width > 500 ? 5
+              : MediaQuery.of(context).size.height > 800 && MediaQuery.of(context).size.width > 450 ? 4
+              : 3,
+          children: List.generate(specificProduct.length, (index) {
+            return Card(
+              child: Container(
+                decoration: (specificProduct[index].graphic_type == '2'
+                    ? BoxDecoration(
+                  image: DecorationImage(
+                    image: FileImage(File(imagePath + '/' + specificProduct[index].image!)),
+                    fit: BoxFit.cover,
+                  ),
+                )
+                    : BoxDecoration(color: HexColor(specificProduct[index].color!))),
+                child: InkWell(
+                  splashColor: Colors.blue.withAlpha(30),
+                  onTap: () {
+                    openEditProductDialog(specificProduct[index]);
+                  },
+                  child: Stack(
+                    alignment: Alignment.bottomLeft,
+                    children: [
+                      Container(
+                        color: Colors.black.withOpacity(0.5),
+                        padding: EdgeInsets.fromLTRB(5, 2, 5, 2),
+                        height: 50,
+                        width: 200,
+                        alignment: Alignment.center,
+                        child: Text(
+                          '${specificProduct[index].SKU!} ${specificProduct[index].name!}',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            fontSize: 13,
+                          ),
                         ),
-                      ),
-                    )
-                  ],
+                      )
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        }));
+            );
+          }),
+        );
+      },
+    );
   }
 
   Widget _buildSpecificIngredient(BuildContext context) {

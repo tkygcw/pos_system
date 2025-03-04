@@ -29,12 +29,11 @@ class CartModel extends ChangeNotifier {
   List<String> groupList = [];
   List<OrderCache> _currentOrderCache = [];
   int _scrollDown = 0;
+  List<OrderCache> _subPosPaymentOrderCache = [];
+
+  List<OrderCache> get subPosPaymentOrderCache => _subPosPaymentOrderCache;
 
   int get scrollDown => _scrollDown;
-
-  set setScrollDown(int value) {
-    _scrollDown = value;
-  }
 
   List<OrderCache> get currentOrderCache => _currentOrderCache;
 
@@ -42,6 +41,13 @@ class CartModel extends ChangeNotifier {
     return cartNotifierItem.fold(0.0, (sum, item) => sum + (double.parse(item.price!) * item.quantity!));
   }
 
+  set setSubPosPaymentOrderCache(List<OrderCache> value) {
+    _subPosPaymentOrderCache = value;
+  }
+
+  set setScrollDown(int value) {
+    _scrollDown = value;
+  }
 
   CartModel({
     List<cartProductItem>? cartNotifierItem,
@@ -322,17 +328,73 @@ class CartModel extends ChangeNotifier {
     _currentOrderCache.removeWhere((e) => e.order_cache_sqlite_id == orderCache.order_cache_sqlite_id);
   }
 
+  void removeSpecificBatchOrderCache(String batch){
+    _currentOrderCache.removeWhere((e) => e.batch_id == batch);
+  }
+
   void removeCartOrderCache(List<OrderCache> orderCacheList){
     for(final cache in orderCacheList){
       _currentOrderCache.removeWhere((e) => e.order_cache_sqlite_id == cache.order_cache_sqlite_id);
     }
   }
 
-  void removeAllCartOrderCache(){
+  void clearCurrentOrderCache(){
     _currentOrderCache.clear();
   }
 
   void clearCategoryTotalPriceMap(){
     categoryTotalPriceMap.clear();
+  }
+
+  void addSubPosOrderCache(OrderCache value){
+    _subPosPaymentOrderCache.add(value);
+  }
+
+  void addAllSubPosOrderCache(List<OrderCache> value){
+    _subPosPaymentOrderCache.addAll(value);
+  }
+
+  void clearSubPosOrderCache(){
+    _subPosPaymentOrderCache.clear();
+  }
+
+  void removeSpecificSubPosOrderCache(String table_use_key){
+    _subPosPaymentOrderCache.removeWhere((orderCache) => orderCache.table_use_key == table_use_key);
+  }
+
+  void removeSpecificBatchSubPosOrderCache(String batch){
+    _subPosPaymentOrderCache.removeWhere((orderCache) => orderCache.batch_id == batch);
+  }
+
+  Future<bool> isTableSelectedBySubPos({String? tableUseKey}) async {
+    if (selectedTable.isEmpty && tableUseKey == null) return false; // Prevent crash
+
+    String posTableUseKey = tableUseKey ?? selectedTable.first.table_use_key!;
+    List<OrderCache> tableOrderCache = await PosDatabase.instance.readSpecificOrderCacheByTableUseKey(posTableUseKey);
+    // 1. Extract IDs from both lists into sets.
+    final Set<int>ids1 = tableOrderCache.map((orderCache) => orderCache.order_cache_sqlite_id!).toSet();
+    final Set<int> ids2 = _subPosPaymentOrderCache.map((orderCache) => orderCache.order_cache_sqlite_id!).toSet();
+    // 2. Check for intersection.
+    // If there's any intersection, it means there are common IDs.
+    return ids1.intersection(ids2).isNotEmpty;
+  }
+
+  Future<bool> isTableSelectedByMainPos({String? tableUseKey}) async {
+    if (selectedTable.isEmpty && tableUseKey == null) return false; // Prevent crash
+
+    String posTableUseKey = tableUseKey ?? selectedTable.first.table_use_key!;
+    List<OrderCache> tableOrderCache = await PosDatabase.instance.readSpecificOrderCacheByTableUseKey(posTableUseKey);
+    // 1. Extract IDs from both lists into sets.
+    final Set<int>ids1 = tableOrderCache.map((orderCache) => orderCache.order_cache_sqlite_id!).toSet();
+    final Set<int> ids2 = _currentOrderCache.map((orderCache) => orderCache.order_cache_sqlite_id!).toSet();
+    // 2. Check for intersection.
+    // If there's any intersection, it means there are common IDs.
+    return ids1.intersection(ids2).isNotEmpty;
+  }
+
+  Future<bool> isOtherOrderCacheSelected(OrderCache orderCache) async {
+    bool subPosSelect = _subPosPaymentOrderCache.any((e) => e.order_cache_sqlite_id == orderCache.order_cache_sqlite_id!);
+    bool mainPosSelect = _currentOrderCache.any((e) => e.order_cache_sqlite_id == orderCache.order_cache_sqlite_id!);
+    return subPosSelect || mainPosSelect;
   }
 }

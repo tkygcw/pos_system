@@ -45,6 +45,7 @@ import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/page/loading_dialog.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -87,6 +88,7 @@ class CartPageState extends State<CartPage> {
   late FailPrintModel _failPrintModel;
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   PrintReceipt printReceipt = PrintReceipt();
+  Server server = Server.instance;
   List<Printer> printerList = [];
   List<Promotion> promotionList = [], autoApplyPromotionList = [];
   List<OrderPaymentSplit> paymentSplitList = [];
@@ -1039,7 +1041,7 @@ class CartPageState extends State<CartPage> {
                   cart.removeAllTable();
                   cart.removeAllCartItem();
                   cart.removeAllGroupList();
-                  cart.removeAllCartOrderCache();
+                  cart.clearCurrentOrderCache();
                   Navigator.of(context).pop();
                 },
               ),
@@ -2716,6 +2718,7 @@ class CartPageState extends State<CartPage> {
         if(cart.selectedOption == 'Dine in' && localSetting!.table_order == 1) {
           await updatePosTable(cart);
         }
+        server.sendMessageToClient("2");
         if (_appSettingModel.autoPrintChecklist == true) {
           int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
           if (printStatus == 1) {
@@ -2772,38 +2775,44 @@ class CartPageState extends State<CartPage> {
       resetValue();
       List<cartProductItem> outOfStockItem = await checkOrderStock(cart);
       if(await checkTableStatus(cart) == true){
-        if(outOfStockItem.isEmpty){
-          cart.selectedTable.removeWhere((e) => e.status == 0);
-          await createOrderCache(cart, isAddOrder: true);
-          await createOrderDetail(cart);
-          if (_appSettingModel.autoPrintChecklist == true) {
-            int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
-            if (printStatus == 1) {
-              Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
-            } else if (printStatus == 2) {
-              Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
-            } else if (printStatus == 5) {
-              Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
+        if(await cart.isTableSelectedBySubPos() == false){
+          if(outOfStockItem.isEmpty){
+            cart.selectedTable.removeWhere((e) => e.status == 0);
+            await createOrderCache(cart, isAddOrder: true);
+            await createOrderDetail(cart);
+            server.sendMessageToClient("2");
+            if (_appSettingModel.autoPrintChecklist == true) {
+              int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
+              if (printStatus == 1) {
+                Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+              } else if (printStatus == 2) {
+                Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+              } else if (printStatus == 5) {
+                Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
+              }
             }
-          }
-          List<cartProductItem> ticketProduct = cart.cartNotifierItem.where((e) => e.allow_ticket == 1 && e.status == 0).toList();
-          if(ticketProduct.isNotEmpty){
-            asyncQ.addJob((_) => printReceipt.printProductTicket(printerList, int.parse(this.orderCacheId), ticketProduct));
-          }
-          cart.removeAllCartItem();
-          cart.removeAllTable();
-          Navigator.of(context).pop();
+            List<cartProductItem> ticketProduct = cart.cartNotifierItem.where((e) => e.allow_ticket == 1 && e.status == 0).toList();
+            if(ticketProduct.isNotEmpty){
+              asyncQ.addJob((_) => printReceipt.printProductTicket(printerList, int.parse(this.orderCacheId), ticketProduct));
+            }
+            cart.removeAllCartItem();
+            cart.removeAllTable();
+            Navigator.of(context).pop();
 
-          //syncAllToCloud();
-          // if (this.isLogOut == true) {
-          //   openLogOutDialog();
-          //   return;
-          // }
-          asyncQ.addJob((_) => printKitchenList());
-          isCartExpanded = !isCartExpanded;
+            //syncAllToCloud();
+            // if (this.isLogOut == true) {
+            //   openLogOutDialog();
+            //   return;
+            // }
+            asyncQ.addJob((_) => printKitchenList());
+            isCartExpanded = !isCartExpanded;
+          } else {
+            Navigator.of(context).pop();
+            showOutOfStockDialog(outOfStockItem);
+          }
         } else {
           Navigator.of(context).pop();
-          showOutOfStockDialog(outOfStockItem);
+          ShowPlaceOrderFailedToast.showToast('Table is in payment');
         }
       } else {
         // cart.removeAllCartItem();
@@ -2831,6 +2840,7 @@ class CartPageState extends State<CartPage> {
       if(outOfStockItem.isEmpty){
         await createOrderCache(cart, isAddOrder: true);
         await createOrderDetail(cart);
+        server.sendMessageToClient("3");
         if (_appSettingModel.autoPrintChecklist == true) {
           int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
           if (printStatus == 1) {
@@ -2872,6 +2882,7 @@ class CartPageState extends State<CartPage> {
       resetValue();
       await createOrderCache(cart, isAddOrder: false);
       await createOrderDetail(cart);
+      server.sendMessageToClient("3");
       if(_appSettingModel.autoPrintChecklist == true){
         int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
         if (printStatus == 1) {

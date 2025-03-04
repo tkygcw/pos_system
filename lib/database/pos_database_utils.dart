@@ -276,7 +276,10 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tablePromotion ADD ${PromotionFields.multiple_product} $jsonType");
           }break;
           case 36: {
-            await dbVersion37Upgrade(db);
+            await db.execute("ALTER TABLE $tableUser ADD ${UserFields.sub_pos_payment} $integerType DEFAULT 0");
+          }break;
+          case 37: {
+            await dbVersion38Upgrade(db);
           }break;
         }
       }
@@ -290,8 +293,8 @@ class PosDatabaseUtils {
     await db.execute('''CREATE TABLE $tableUser ( ${UserFields.user_id} $idType, ${UserFields.name} $textType, ${UserFields.email} $textType, 
            ${UserFields.phone} $textType, ${UserFields.role} $integerType, ${UserFields.pos_pin} $textType, ${UserFields.edit_price_without_pin} $integerType, 
            ${UserFields.refund_permission} $integerType, ${UserFields.cash_drawer_permission} $integerType, ${UserFields.settlement_permission} $integerType, 
-           ${UserFields.report_permission} $integerType, ${UserFields.status} $integerType, ${UserFields.created_at} $textType, 
-           ${UserFields.updated_at} $textType, ${UserFields.soft_delete} $textType)''');
+           ${UserFields.report_permission} $integerType, ${UserFields.sub_pos_payment} $integerType, ${UserFields.status} $integerType, 
+           ${UserFields.created_at} $textType, ${UserFields.updated_at} $textType, ${UserFields.soft_delete} $textType)''');
 /*
     create subscription table
 */
@@ -1323,7 +1326,7 @@ class PosDatabaseUtils {
             ${IngredientMovementFields.soft_delete} $textType)''');
   }
 
-  static dbVersion37Upgrade(Database db) async {
+  static dbVersion38Upgrade(Database db) async {
     await db.execute('''CREATE TABLE $tableIngredientCompany(
             ${IngredientCompanyFields.ingredient_company_sqlite_id} $idType,
             ${IngredientCompanyFields.ingredient_company_id} $integerType,

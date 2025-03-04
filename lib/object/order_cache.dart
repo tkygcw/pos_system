@@ -64,6 +64,7 @@ class OrderCacheFields {
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
+  static String dining_name = 'dining_name';
 }
 
 class OrderCache{
@@ -234,6 +235,39 @@ class OrderCache{
   );
 
   Map<String, Object?> toJson() => {
+    OrderCacheFields.order_cache_sqlite_id: order_cache_sqlite_id,
+    OrderCacheFields.order_cache_id: order_cache_id,
+    OrderCacheFields.order_cache_key: order_cache_key,
+    OrderCacheFields.order_queue: order_queue,
+    OrderCacheFields.company_id: company_id,
+    OrderCacheFields.branch_id: branch_id,
+    OrderCacheFields.order_detail_id: order_detail_id,
+    OrderCacheFields.table_use_sqlite_id: table_use_sqlite_id,
+    OrderCacheFields.table_use_key: table_use_key,
+    OrderCacheFields.other_order_key: other_order_key,
+    OrderCacheFields.batch_id: batch_id,
+    OrderCacheFields.dining_id: dining_id,
+    OrderCacheFields.order_sqlite_id: order_sqlite_id,
+    OrderCacheFields.order_key: order_key,
+    OrderCacheFields.order_by: order_by,
+    OrderCacheFields.order_by_user_id: order_by_user_id,
+    OrderCacheFields.cancel_by: cancel_by,
+    OrderCacheFields.cancel_by_user_id: cancel_by_user_id,
+    OrderCacheFields.customer_id: customer_id,
+    OrderCacheFields.total_amount: total_amount,
+    OrderCacheFields.qr_order: qr_order,
+    OrderCacheFields.qr_order_table_sqlite_id: qr_order_table_sqlite_id,
+    OrderCacheFields.qr_order_table_id: qr_order_table_id,
+    OrderCacheFields.accepted: accepted,
+    OrderCacheFields.payment_status: payment_status,
+    OrderCacheFields.sync_status: sync_status,
+    OrderCacheFields.created_at: created_at,
+    OrderCacheFields.updated_at: updated_at,
+    OrderCacheFields.soft_delete: soft_delete,
+    OrderCacheFields.dining_name: dining_name
+  };
+
+  Map<String, Object?> toInsertJson() => {
     OrderCacheFields.order_cache_sqlite_id: order_cache_sqlite_id,
     OrderCacheFields.order_cache_id: order_cache_id,
     OrderCacheFields.order_cache_key: order_cache_key,
