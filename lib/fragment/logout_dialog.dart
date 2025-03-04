@@ -13,6 +13,7 @@ import '../notifier/cart_notifier.dart';
 import '../notifier/theme_color.dart';
 import '../page/login.dart';
 import '../translation/AppLocalizations.dart';
+import '../windows_app/win_display_function.dart';
 
 class LogoutConfirmDialog extends StatefulWidget {
   final String? currentPage;
@@ -103,11 +104,15 @@ class _LogoutConfirmDialogState extends State<LogoutConfirmDialog> {
     notificationModel.resetSyncCount();
     prefs.clear();
     deleteAllLocalRecord();
-    deleteDirectory();
+    await deleteDirectory();
     cart.removeAllTable();
     cart.removeAllCartItem();
     cart.removePromotion();
-    displayManager.transferDataToPresentation("refresh_img");
+    if(Platform.isWindows){
+      await WinDisplayFunction.instance.refreshCusDisplayImg();
+    } else {
+      displayManager.transferDataToPresentation("refresh_img");
+    }
     setState(() {});
     FLog.info(
       className: "logout_dialog",
@@ -220,7 +225,7 @@ class _LogoutConfirmDialogState extends State<LogoutConfirmDialog> {
   Future<int> deleteDirectory() async {
     try {
       final folder = await _localDirectory;
-      folder.delete(recursive: true);
+      await folder.delete(recursive: true);
       print("delete successful");
       return 1;
     } catch (e) {

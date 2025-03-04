@@ -377,7 +377,7 @@ class SyncRecord {
       }
       //send data to second display
       if (Platform.isWindows) {
-        await WinDisplayFunction.instance.transferDataToDisplayWindows('refresh_img');
+        await WinDisplayFunction.instance.refreshCusDisplayImg();
       } else {
         await displayManager.transferDataToPresentation('refresh_img');
       }

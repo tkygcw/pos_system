@@ -51,7 +51,8 @@ class _SecondDisplayState extends State<SecondDisplay> {
             });
           }break;
           case 'refresh_img': {
-            await initBanner();
+            await getBanner(bannerPath: call.arguments);
+            setState(() {});
           }break;
           default: {
             setState(() {});
@@ -385,19 +386,33 @@ class _SecondDisplayState extends State<SecondDisplay> {
     }
   }
 
-  getBanner() async {
-    imagePath = prefs.getString('banner_path')!;
-    List<SecondScreen> data = await PosDatabase.instance.readAllNotDeletedSecondScreen();
-    if(data.isNotEmpty){
-      for(int i = 0; i < data.length; i++){
-        //check is image exist or not
-        if(await FileImage(File(imagePath + '/' + data[i].name!)).file.exists() == true){
-          imageList.add(FileImage(File(imagePath + '/' + data[i].name!)));
-        } else {
-          await downloadBannerImage(imagePath);
-          imageList.add(FileImage(File(imagePath + '/' + data[i].name!)));
+  getBanner({String? bannerPath}) async {
+    try{
+      imagePath = Platform.isWindows ? bannerPath ?? '' : prefs.getString('banner_path')!;
+      List<SecondScreen> data = await PosDatabase.instance.readAllNotDeletedSecondScreen();
+      if(data.isNotEmpty){
+        for(int i = 0; i < data.length; i++){
+          //check is image exist or not
+          bool isImgExisted = await FileImage(File(imagePath + '/' + data[i].name!)).file.exists();
+          if(isImgExisted == true){
+            imageList.add(FileImage(File(imagePath + '/' + data[i].name!)));
+          } else {
+            if(!Platform.isWindows){
+              await downloadBannerImage(imagePath);
+              imageList.add(FileImage(File(imagePath + '/' + data[i].name!)));
+            } else {
+              imageList.clear();
+            }
+          }
         }
       }
+    }catch(e, s){
+      FLog.error(
+        className: "second_display",
+        text: "getBanner error",
+        exception: 'Error: $e, StackTrace: $s',
+      );
+      imageList.clear();
     }
   }
 

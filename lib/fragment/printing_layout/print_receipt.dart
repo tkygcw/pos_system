@@ -104,6 +104,7 @@ class PrintReceipt{
             final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
             if (res == PosPrintResult.success) {
               await ReceiptLayout().openCashDrawer(isUSB: false, value: printer);
+              await Future.delayed(Duration(milliseconds: 100));
               printer.disconnect();
               printStatus = 0;
             } else if(res == PosPrintResult.timeout){

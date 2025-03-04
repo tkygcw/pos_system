@@ -84,14 +84,16 @@ Future<void> main(List<String> args) async {
   //create default app color
   await appLanguage.fetchLocale();
 
-  //windows manager initialized
-  await windowManager.ensureInitialized();
+  if(Platform.isWindows){
+    //windows manager initialized
+    await windowManager.ensureInitialized();
 
-  windowManager.waitUntilReadyToShow(null, () async {
-    await windowManager.show();
-    await windowManager.focus();
-    await windowManager.setFullScreen(true);
-  });
+    windowManager.waitUntilReadyToShow(null, () async {
+      await windowManager.show();
+      await windowManager.focus();
+      await windowManager.setFullScreen(true);
+    });
+  }
 
   if (args.isNotEmpty) {
     runApp(WinCustomerDisplay(appLanguage: appLanguage,));
@@ -114,10 +116,11 @@ Future<void> main(List<String> args) async {
     runApp(MyApp(
       appLanguage: appLanguage,
     ));
-    //open a new windows for customer display
-    await createNewWindows();
+    if(Platform.isWindows){
+      //open a new windows for customer display
+      await createNewWindows();
+    }
   }
-
 }
 
 Future<void> createNewWindows() async {

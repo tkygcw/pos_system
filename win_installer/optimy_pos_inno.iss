@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Optimy POS"
-#define MyAppVersion "1.1.44+156"
+#define MyAppVersion "1.1.47+159"
 #define MyAppPublisher "optimy.com"
 #define MyAppURL "https://optimy.com.my/"
 #define MyAppExeName "optimy_pos.exe"
@@ -73,4 +73,7 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}";
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
-Type: filesandordirs; Name: "{userappdata}\optimy.com\pos_system"
+Type: filesandordirs; Name: "{userappdata}\optimy.com"
+
+[UninstallRun]
+Filename: "taskkill"; Parameters: "/F /IM {#MyAppExeName}"; Flags: runhidden

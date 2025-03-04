@@ -130,7 +130,7 @@ class _HomePageState extends State<HomePage> {
       if(!Platform.isWindows){
         await displayManager.showSecondaryDisplay(displayId: notificationModel.displays[1]!.displayId, routerName: "presentation");
       } else {
-        await WinDisplayFunction.instance.transferDataToDisplayWindows('refresh_img');
+        await WinDisplayFunction.instance.refreshCusDisplayImg();
       }
     }
   }

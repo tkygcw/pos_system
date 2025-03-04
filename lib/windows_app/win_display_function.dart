@@ -1,5 +1,6 @@
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:f_logs/model/flog/flog.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class WinDisplayFunction {
   static final WinDisplayFunction instance = WinDisplayFunction._init();
@@ -23,6 +24,12 @@ class WinDisplayFunction {
         exception: 'Error: $e, StackTrace: $s',
       );
     }
+  }
+
+  Future<void> refreshCusDisplayImg() async {
+    var prefs = await SharedPreferences.getInstance();
+    var path = prefs.getString('banner_path');
+    await transferDataToDisplayWindows('refresh_img', arguments: path ?? '');
   }
 
   Future<void> closeAllSubWindows() async {
