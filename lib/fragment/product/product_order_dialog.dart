@@ -1423,6 +1423,22 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
           case '2': {
             dialogStock = data.stock_quantity.toString();
           }break;
+          case '4': {
+            List<IngredientBranchLinkProduct> detailData = await PosDatabase.instance.readAllProductIngredient(data.branch_link_product_id.toString());
+            List<int> ingredientStockList = [];
+            for(int i =0; i < detailData.length; i++){
+              IngredientBranchLinkProduct data = detailData[i];
+              List<IngredientCompanyLinkBranch> ingredientCompanyLinkBranch = await PosDatabase.instance.readSpecificIngredientCompanyLinkBranch(data.ingredient_company_link_branch_id.toString());
+              int ingredientStock = (double.parse(ingredientCompanyLinkBranch[0].stock_quantity!) / double.parse(data.ingredient_usage!)).toInt();
+              ingredientStockList.add(ingredientStock);
+            }
+            if (ingredientStockList.isNotEmpty) {
+              int minIngredientStock = ingredientStockList.reduce((a, b) => a < b ? a : b);
+              dialogStock = minIngredientStock.toString();
+            } else {
+              dialogStock = '0';
+            }
+          }break;
           default:{
             dialogStock = '';
           }

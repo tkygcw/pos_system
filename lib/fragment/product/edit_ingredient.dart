@@ -194,7 +194,7 @@ class _EditIngredientDialogState extends State<EditIngredientDialog> {
             child: Text(AppLocalizations.of(context)!.translate('save')),
             onPressed: () async {
               if (selectedStockAction != null && stockAdjustmentController.text.isNotEmpty) {
-                updateIngredientStock(context, stockAdjustmentController.text);
+                await updateIngredientStock(context, stockAdjustmentController.text);
               }
 
               Navigator.of(context).pop();

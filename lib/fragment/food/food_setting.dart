@@ -420,7 +420,7 @@ class _FoodSettingState extends State<FoodSetting> {
             child: Opacity(
               opacity: a1.value,
               child: EditIngredientDialog(
-                callBack: () => readAllCategories(),
+                callBack: () => readAllIngredient(),
                 ingredient_company: data,
               ),
             ),
