@@ -329,7 +329,10 @@ class _MakePaymentState extends State<MakePayment> {
                                         Container(
                                           padding: EdgeInsets.all(20),
                                           alignment: Alignment.center,
-                                          child: Text(_appSettingModel.table_order == 0 ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
+                                          child: Text(_appSettingModel.table_order == 0
+                                              ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
+                                              : _appSettingModel.table_order == 3
+                                              ? AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedCustomTable(cart, appSettingModel)}'
                                               : AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
                                               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
                                         ),
@@ -3717,6 +3720,35 @@ class _MakePaymentState extends State<MakePayment> {
         for (int i = 0; i < selectedTableList.length; i++) {
           result.add('${selectedTableList[i].number}');
         }
+      }
+      return result.toString().replaceAll('[', '').replaceAll(']', '');
+    } else {
+      return '-';
+    }
+  }
+
+/*
+  get selected custom table
+*/
+  getSelectedCustomTable(CartModel cart, AppSettingModel appSettingModel) {
+    String? customTable = '';
+    List<String> result = [];
+    if (widget.dining_name == 'Dine in' && appSettingModel.table_order == 3) {
+      if(cart.cartNotifierItem.isNotEmpty) {
+        for(int i = 0; i < cart.cartNotifierItem.length; i++) {
+          if(cart.cartNotifierItem[i].custom_table_number != '' && cart.cartNotifierItem[i].custom_table_number != null) {
+            customTable = cart.cartNotifierItem[i].custom_table_number;
+          }
+        }
+        if(customTable == ''){
+          if(cart.selectedTableIndex != '') {
+            customTable = cart.selectedTableIndex;
+          }
+        }
+        if(customTable != '')
+          return customTable;
+        else
+          return '-';
       }
       return result.toString().replaceAll('[', '').replaceAll(']', '');
     } else {

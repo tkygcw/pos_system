@@ -272,6 +272,9 @@ class PosDatabaseUtils {
           }break;
           case 36: {
             await db.execute("ALTER TABLE $tableUser ADD ${UserFields.sub_pos_payment} $integerType DEFAULT 0");
+          }break;
+          case 37: {
+            await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.custom_table_number} $textType DEFAULT ''");
             await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_total_amount} $integerType DEFAULT 0");
           }break;
         }
@@ -408,6 +411,7 @@ class PosDatabaseUtils {
           ${OrderCacheFields.company_id} $textType, 
           ${OrderCacheFields.branch_id} $textType, 
           ${OrderCacheFields.order_detail_id} $textType, 
+          ${OrderCacheFields.custom_table_number} $textType, 
           ${OrderCacheFields.table_use_sqlite_id} $textType, 
           ${OrderCacheFields.table_use_key} $textType,
           ${OrderCacheFields.other_order_key} $textType,

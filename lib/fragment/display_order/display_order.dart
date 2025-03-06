@@ -87,7 +87,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
     final int? branch_id = prefs.getInt('branch_id');
     AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
 
-    if(localSetting!.table_order == 2) {
+    if(localSetting!.table_order == 2 || localSetting!.table_order == 3) {
       if (selectDiningOption == 'All') {
         data = await PosDatabase.instance.readOrderCacheNoDineInAdvanced(branch_id.toString(), userObject['company_id']);
       } else {
@@ -561,6 +561,9 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
     cart.addCartOrderCache(orderCache);
     var value;
     for (int i = 0; i < orderDetailList.length; i++) {
+      // if(orderCache.custom_table_number != '') {
+      //   cart.selectedTableIndex = orderCache.custom_table_number!;
+      // }
       value = cartProductItem(
           branch_link_product_sqlite_id: orderDetailList[i].branch_link_product_sqlite_id!,
           product_name: orderDetailList[i].productName!,
@@ -574,6 +577,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
           unit: orderDetailList[i].unit,
           per_quantity_unit: orderDetailList[i].per_quantity_unit,
           order_queue: orderCache.order_queue,
+          custom_table_number: orderCache.custom_table_number,
           status: 0,
           order_cache_sqlite_id: orderCache.order_cache_sqlite_id.toString(),
           order_cache_key: orderCache.order_cache_key,

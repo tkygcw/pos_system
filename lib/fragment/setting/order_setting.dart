@@ -45,7 +45,8 @@ class _OrderSettingState extends State<OrderSetting> {
   final List<String> tableModeOption = [
     'table_mode_no_table',
     'table_mode_full_table',
-    'table_mode_no_table_special'
+    'table_mode_no_table_special',
+    'table_mode_custom_note',
   ];
   int? tableMode = 0;
 

@@ -13,7 +13,6 @@ class ChecklistLayout extends ReceiptLayout {
   Check list layout 80mm
 */
   printCheckList80mm(bool isUSB, int localId, {value, isQrOrder, String? order_by, int? printer_id}) async {
-    print("printer value: ${value}");
     double subtotal = 0;
     Checklist? checklistLayout = await PosDatabase.instance.readSpecificChecklist('80');
     if(checklistLayout == null){
@@ -42,6 +41,8 @@ class ChecklistLayout extends ReceiptLayout {
           for(int i = 0; i < tableList.length; i++){
             bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
           }
+        } else if(orderCache!.custom_table_number != ''){
+          bytes += generator.text('Table No: ${orderCache!.custom_table_number}', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
         } else {
           bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
         }
@@ -167,6 +168,7 @@ class ChecklistLayout extends ReceiptLayout {
   Check list layout 58mm
 */
   printCheckList58mm(bool isUSB, int localId, {value, isQrOrder, String? order_by, int? printer_id}) async {
+    double subtotal = 0;
     Checklist? checklistLayout = await PosDatabase.instance.readSpecificChecklist('58');
     if(checklistLayout == null){
       checklistLayout = checklistDefaultLayout;
@@ -195,7 +197,9 @@ class ChecklistLayout extends ReceiptLayout {
           for(int i = 0; i < tableList.length; i++){
             bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
           }
-        } else {
+        } else if(orderCache!.custom_table_number != ''){
+          bytes += generator.text('Table No: ${orderCache!.custom_table_number}', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
+        }else {
           bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
         }
         //order queue
@@ -283,6 +287,19 @@ class ChecklistLayout extends ReceiptLayout {
                       width: PosTextSize.size1)),
             ]);
           }
+          subtotal += double.parse(orderDetailList[i].price!) * double.parse(orderDetailList[i].quantity!);
+        }
+
+        if(subtotal != 0 && checklistLayout.show_total_amount == 1) {
+          bytes += generator.reset();
+          bytes += generator.emptyLines(1);
+          bytes += generator.text('Total: RM ${subtotal.toStringAsFixed(2)}',
+              styles: PosStyles(
+                  align: PosAlign.right,
+                  height: checklistLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                  width: PosTextSize.size1
+              )
+          );
         }
         bytes += generator.feed(1);
         bytes += generator.cut(mode: PosCutMode.partial);

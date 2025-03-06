@@ -134,6 +134,8 @@ class _OtherOrderAddtoCartState extends State<OtherOrderAddtoCart> {
                                           orderCacheList[index].is_selected = true;
                                           cart.selectedOptionId = orderCacheList[index].dining_id!;
                                           cart.selectedOptionOrderKey = orderCacheList[index].order_key!;
+                                          if(orderCacheList[index].custom_table_number != '' && orderCacheList[index].custom_table_number != null)
+                                            cart.selectedTableIndex = orderCacheList[index].custom_table_number!;
                                           if(orderCacheList[index].other_order_key != ''){
                                             List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[index].other_order_key!);
                                             for(int i = 0; i < data.length; i++){
@@ -405,6 +407,7 @@ class _OtherOrderAddtoCartState extends State<OtherOrderAddtoCart> {
         unit: orderDetailList[i].unit,
         per_quantity_unit: orderDetailList[i].per_quantity_unit,
         order_queue: orderCache.order_queue,
+        custom_table_number: orderCache.custom_table_number,
         status: 1,
         order_cache_sqlite_id: orderCache.order_cache_sqlite_id.toString(),
         order_cache_key: orderCache.order_cache_key,
