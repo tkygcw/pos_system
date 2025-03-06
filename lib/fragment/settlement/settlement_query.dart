@@ -407,9 +407,9 @@ class SettlementQuery {
               'FROM $tableOrder o '
               'LEFT JOIN PromoSums P ON o.order_sqlite_id = P.order_sqlite_id '
               'LEFT JOIN TaxSums T ON o.order_sqlite_id = T.order_sqlite_id '
-              'WHERE SUBSTR(o.created_at, 1, 10) >= ? AND SUBSTR(o.created_at, 1, 10) < ? '
+              'WHERE SUBSTR(o.created_at, 1, 10) >= ? AND SUBSTR(o.created_at, 1, 10) < ? AND o.refund_key = ? '
               'GROUP BY SUBSTR(o.created_at, 1, 10) ',
-          ['0', '1', currentDate, endDate]) as List<Map<String, Object?>>;
+          ['0', '1', currentDate, endDate, '']) as List<Map<String, Object?>>;
       return result.map((json) => Order.fromJson(json)).toList();
     }catch(e, s){
       FLog.error(
