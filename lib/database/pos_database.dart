@@ -4599,9 +4599,12 @@ class PosDatabase {
   Future<List<Order>> readAllSettlementOrderBySettlementKeyJoinPayment(String settlement_key) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.name FROM $tableOrder AS a LEFT JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
-            'WHERE a.soft_delete = ? AND a.refund_key = ? AND a.settlement_key = ? ',
-        ['', '', settlement_key]);
+        'SELECT a.*, c.name, COUNT(a.order_sqlite_id) AS item_sum, SUM(CASE WHEN a.payment_split = 0 THEN a.final_amount + 0.0 ELSE b.amount + 0.0 END) AS total_sales, '
+            'CASE WHEN a.payment_split = ? THEN a.payment_link_company_id ELSE b.payment_link_company_id END AS used_payment_method '
+            'FROM $tableOrder AS a LEFT JOIN $tableOrderPaymentSplit AS b ON a.order_key = b.order_key '
+            'JOIN $tablePaymentLinkCompany AS c ON c.payment_link_company_id = used_payment_method '
+            'WHERE a.soft_delete = ? AND a.payment_status = ? AND a.settlement_key = ? GROUP BY used_payment_method ',
+        [0, '', 1, settlement_key]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 

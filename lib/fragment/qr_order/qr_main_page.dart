@@ -56,86 +56,99 @@ class _QrMainPageState extends State<QrMainPage> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return hasAccess ?
-        Scaffold(
+      return Padding(
+        padding: const EdgeInsets.only(right: 8.0),
+        child: Scaffold(
           appBar: QrAppBar(context, color),
-          body: Consumer<QrOrder>(builder: (context, order, child) {
-            getAllNotAcceptedQrOrder(order);
-            return Container(
-              padding: const EdgeInsets.all(10),
-              child: qrOrderCacheList.isNotEmpty ?
-              OrderListView()
-                  :
-              NoOrderView(context),
-            );
-          })
-      ) :
-      Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.lock),
-          Text(AppLocalizations.of(context)!.translate('upgrade_to_use_qr_order'))
-        ],
+          body: buildContent(),
+        ),
       );
     });
   }
 
+  Widget buildContent() {
+    if(hasAccess){
+      return Consumer<QrOrder>(builder: (context, order, child) {
+        getAllNotAcceptedQrOrder(order);
+        return Container(
+          padding: const EdgeInsets.all(10),
+          child: qrOrderCacheList.isNotEmpty ?
+          OrderListView()
+              :
+          NoOrderView(context),
+        );
+      },
+      );
+    } else {
+      return Align(
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.lock),
+            Text(AppLocalizations.of(context)!.translate('upgrade_to_use_qr_order'))
+          ],
+        ),
+      );
+    }
+  }
+
   AppBar QrAppBar(BuildContext context, ThemeColor color) {
     return MediaQuery.of(context).orientation == Orientation.landscape && MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? AppBar(
-      primary: false,
       elevation: 0,
       automaticallyImplyLeading: false,
-      title: Row(
-        children: [
-          Text(AppLocalizations.of(context)!.translate('qr_order'), style: TextStyle(fontSize: 25)),
-          Spacer(),
-          Row(
-           children: [
-             Text(AppLocalizations.of(context)!.translate("close_qr_order")),
-             Switch(
-                activeColor: color.backgroundColor,
-                 value: closeQrOrderStatus,
-                 onChanged: (value) {
-                   setState(() {
-                     closeQrOrderStatus = value;
-                   });
-                   Branch data = Branch(
-                       close_qr_order: closeQrOrderStatus ? 1 : 0,
-                       branch_id: branchObject.branch_id
-                   );
-                   updateCloseQrOrderStatusFunction(data);
-                 }
-             ),
-           ],
+      centerTitle: false,
+      title: Text(AppLocalizations.of(context)!.translate('qr_order'), style: TextStyle(fontSize: 25)),
+      actions: [
+        Visibility(
+          visible: hasAccess,
+          child: Row(
+            children: [
+              Text(AppLocalizations.of(context)!.translate("close_qr_order"), style: TextStyle(color: Colors.black)),
+              Switch(
+                  activeColor: color.backgroundColor,
+                  value: closeQrOrderStatus,
+                  onChanged: (value) {
+                    setState(() {
+                      closeQrOrderStatus = value;
+                    });
+                    Branch data = Branch(
+                        close_qr_order: closeQrOrderStatus ? 1 : 0,
+                        branch_id: branchObject.branch_id
+                    );
+                    updateCloseQrOrderStatusFunction(data);
+                  }
+              ),
+              SizedBox(width: 10),
+              ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: color.backgroundColor,
+                  ),
+                  icon: Icon(Icons.sync),
+                  label: Text(
+                    AppLocalizations.of(context)!.translate('sync_qr_order'),
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  onPressed: syncAllQrFunction
+              ),
+              SizedBox(width: 10),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: color.backgroundColor,
+                ),
+                icon: Icon(Icons.receipt_long),
+                label: Text(
+                  AppLocalizations.of(context)!.translate('accept_all'),
+                  style: TextStyle(color: Colors.white),
+                ),
+                onPressed: () async {
+                  await acceptAllQrFunction();
+                },
+              )
+            ],
           ),
-          SizedBox(width: 10),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: color.backgroundColor,
-            ),
-            icon: Icon(Icons.sync),
-            label: Text(
-              AppLocalizations.of(context)!.translate('sync_qr_order'),
-              style: TextStyle(color: Colors.white),
-            ),
-            onPressed: syncAllQrFunction
-          ),
-          SizedBox(width: 10),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: color.backgroundColor,
-            ),
-            icon: Icon(Icons.receipt_long),
-            label: Text(
-              AppLocalizations.of(context)!.translate('accept_all'),
-              style: TextStyle(color: Colors.white),
-            ),
-            onPressed: () async {
-              await acceptAllQrFunction();
-            },
-          ),
-        ],
-      ),
+        )
+      ],
     ) : AppBar(
       automaticallyImplyLeading: false,
       elevation: 0,
@@ -153,17 +166,20 @@ class _QrMainPageState extends State<QrMainPage> {
       ),
       centerTitle: false,
       actions: [
-        PopupMenuButton<String>(
-          onSelected: handleClick,
-          itemBuilder: (BuildContext context) {
-            return {'${closeQrOption}', 'sync_qr_order', 'accept_all'}.map((String choice) {
-              return PopupMenuItem<String>(
-                value: choice,
-                child: Text(AppLocalizations.of(context)!.translate(choice)),
-              );
-            }).toList();
-          },
-          icon: Icon(Icons.more_vert, color: color.backgroundColor,),
+        Visibility(
+          visible: hasAccess,
+          child: PopupMenuButton<String>(
+            onSelected: handleClick,
+            itemBuilder: (BuildContext context) {
+              return {'${closeQrOption}', 'sync_qr_order', 'accept_all'}.map((String choice) {
+                return PopupMenuItem<String>(
+                  value: choice,
+                  child: Text(AppLocalizations.of(context)!.translate(choice)),
+                );
+              }).toList();
+            },
+            icon: Icon(Icons.more_vert, color: color.backgroundColor,),
+          ),
         ),
       ],
     );

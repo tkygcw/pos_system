@@ -12,6 +12,7 @@ import 'package:pos_system/fragment/setting/order_setting.dart';
 import 'package:pos_system/fragment/setting/printer_setting.dart';
 import 'package:pos_system/fragment/setting/receipt_setting.dart';
 import 'package:pos_system/fragment/setting/table_setting/table_setting.dart';
+import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/page/login.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
@@ -37,7 +38,7 @@ class _SettingMenuState extends State<SettingMenu> {
   List<CashRecord> cashRecordList = [];
   String userEmail = '';
   int count = 0;
-  bool isLoaded = false;
+  bool isLoaded = false, attendance_status = false;
   String serverIp = '';
 
   List<Widget> views = [
@@ -86,7 +87,7 @@ class _SettingMenuState extends State<SettingMenu> {
   @override
   void initState() {
     super.initState();
-    getLoginUserInfo();
+    initializePreferences();
     checkCashRecord();
   }
 
@@ -148,15 +149,7 @@ class _SettingMenuState extends State<SettingMenu> {
                         label: Column(
                           children: [
                             Text("${userEmail}"),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                  backgroundColor: color.buttonColor
-                              ),
-                              onPressed: () async {
-                                openAttendanceDialog();
-                              },
-                              child: Text('${AppLocalizations.of(context)?.translate('clock_in_out')}')
-                            ),
+                            buildAttendanceBtn(color, context),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: color.backgroundColor,
@@ -267,15 +260,7 @@ class _SettingMenuState extends State<SettingMenu> {
                           label: Column(
                             children: [
                               Text("${userEmail}"),
-                              ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                      backgroundColor: color.buttonColor
-                                  ),
-                                onPressed: () async {
-                                  openAttendanceDialog();
-                                },
-                                child: Text('${AppLocalizations.of(context)?.translate('clock_in_out')}')
-                              ),
+                              buildAttendanceBtn(color, context),
                               ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: color.backgroundColor,
@@ -490,15 +475,7 @@ class _SettingMenuState extends State<SettingMenu> {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     Text(userEmail),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: color.buttonColor
-                      ),
-                      onPressed: () async {
-                        openAttendanceDialog();
-                      },
-                      child: Text('${AppLocalizations.of(context)?.translate('clock_in_out')}'),
-                    ),
+                    buildAttendanceBtn(color, context),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: color.backgroundColor,
@@ -532,6 +509,21 @@ class _SettingMenuState extends State<SettingMenu> {
         }
       });
     });
+  }
+
+  Widget buildAttendanceBtn(ThemeColor color, BuildContext context) {
+    return Visibility(
+      visible: attendance_status,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+            backgroundColor: color.buttonColor
+        ),
+        onPressed: () async {
+          openAttendanceDialog();
+        },
+        child: Text('${AppLocalizations.of(context)?.translate('clock_in_out')}'),
+      ),
+    );
   }
   
   logout() async{
@@ -585,13 +577,14 @@ class _SettingMenuState extends State<SettingMenu> {
         });
   }
 
-  getLoginUserInfo() async {
+  initializePreferences() async {
     final prefs = await SharedPreferences.getInstance();
+    final String? branchJson = prefs.getString('branch');
     final String? login_user = prefs.getString('user');
     Map logInUser = json.decode(login_user!);
+    Branch branch = Branch.fromJson(json.decode(branchJson!));
+    attendance_status = branch.attendance_status == 0 ? true : false;
     this.userEmail = logInUser['email'];
-    this.isLoaded = false;
-
   }
 
   checkCashRecord() async {
