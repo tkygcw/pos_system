@@ -48,7 +48,7 @@ class MainActivity: FlutterActivity() {
                 result.success(true)
 
             } else if(call.method == "cashBox"){
-                IminSDKManager.opencashBox()
+                IminSDKManager.opencashBox(this)
                 result.success(true)
 
             } else {
