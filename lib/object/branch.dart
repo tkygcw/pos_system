@@ -9,6 +9,8 @@ class BranchFields {
     address,
     phone,
     email,
+    currency_code,
+    currency_symbol,
     ipay_merchant_code,
     ipay_merchant_key,
     notification_token,
@@ -37,6 +39,8 @@ class BranchFields {
   static String address = 'address';
   static String phone = 'phone';
   static String email = 'email';
+  static String currency_code = 'currency_code';
+  static String currency_symbol = 'currency_symbol';
   static String ipay_merchant_code = 'ipay_merchant_code';
   static String ipay_merchant_key = 'ipay_merchant_key';
   static String notification_token = 'notification_token';
@@ -67,6 +71,8 @@ class Branch {
   String? address;
   String? phone;
   String? email;
+  String? currency_code;
+  String? currency_symbol;
   String? ipay_merchant_code;
   String? ipay_merchant_key;
   String? notification_token;
@@ -96,6 +102,8 @@ class Branch {
     this.address,
     this.phone,
     this.email,
+    this.currency_code,
+    this.currency_symbol,
     this.ipay_merchant_code,
     this.ipay_merchant_key,
     this.notification_token,
@@ -132,6 +140,8 @@ class Branch {
     address: address ?? this.address,
     phone: phone ?? this.phone,
     email: email ?? this.email,
+    currency_code: currency_code ?? this.currency_code,
+    currency_symbol: currency_symbol ?? this.currency_symbol,
     ipay_merchant_code: ipay_merchant_code ?? this.ipay_merchant_code,
     ipay_merchant_key: ipay_merchant_key ?? this.ipay_merchant_key,
     notification_token: notification_token ?? this.notification_token,
@@ -162,6 +172,8 @@ class Branch {
       address: json['address'] as String,
       phone: json['phone'] as String,
       email: json['email'] as String,
+      currency_code: json['currency_code'] as String,
+      currency_symbol: json['currency_symbol'] as String,
       ipay_merchant_code: json['ipay_merchant_code'] as String,
       ipay_merchant_key: json['ipay_merchant_key'] as String,
       notification_token: json['notification_token'] as String,
@@ -193,6 +205,8 @@ class Branch {
     BranchFields.address: address,
     BranchFields.phone: phone,
     BranchFields.email: email,
+    BranchFields.currency_code: currency_code,
+    BranchFields.currency_symbol: currency_symbol,
     BranchFields.ipay_merchant_code: ipay_merchant_code,
     BranchFields.ipay_merchant_key: ipay_merchant_key,
     BranchFields.notification_token: notification_token,
@@ -221,6 +235,8 @@ class Branch {
     BranchFields.address: address,
     BranchFields.phone: phone,
     BranchFields.email: email,
+    BranchFields.currency_code: currency_code,
+    BranchFields.currency_symbol: currency_symbol,
     BranchFields.ipay_merchant_code: ipay_merchant_code,
     BranchFields.ipay_merchant_key: ipay_merchant_key,
     BranchFields.notification_token: notification_token,
