@@ -1168,8 +1168,8 @@ class ReceiptLayout{
       //register no
       if(receipt!.show_register_no == 1){
         bytes += generator.text(branchObject[BranchFields.register_no],
-            containsChinese: true,
-            styles: PosStyles(align: PosAlign.center, ),
+          containsChinese: true,
+          styles: PosStyles(align: PosAlign.center, ),
         );
       }
       //Address
@@ -2263,66 +2263,77 @@ class ReceiptLayout{
           bytes += generator.reset();
           var userOrder = await groupStaffSales(settlement.settlement_key!);
           userOrder.forEach((username, order) {
-            double userSubtotal = order.fold(0, (sum, order) => sum + double.parse(order.final_amount!));
-            bytes += generator.row([
-              PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left)),
-              PosColumn(
-                  text: username!,
-                  width: 8,
-                  containsChinese: true,
-                  styles: PosStyles(align: PosAlign.left, height: PosTextSize.size1, width: PosTextSize.size1, bold: true)),
-              PosColumn(
-                  text: 'Amount',
-                  width: 2,
-                  styles: PosStyles(align: PosAlign.right, bold: true)),
-              PosColumn(
-                  text: '',
-                  width: 1,
-                  styles: PosStyles(align: PosAlign.right)),
-            ]);
-            var groupedPaymentOrder = groupBy(order, (Order order) => order.payment_name);
-            // Convert the map to a sorted list of entries
-            var sortedPaymentOrder = Map.fromEntries(
-                groupedPaymentOrder.entries.toList()
-                  ..sort((a, b) => a.key!.compareTo(b.key!)) // Sorting by payment_name
-            );
-            sortedPaymentOrder.forEach((paymentName, paymentOrder) {
-              double totalAmount = paymentOrder.fold(0, (sum, order) => sum + double.parse(order.final_amount!));
+            try {
+              double userSubtotal = order.fold(0, (sum, order) => sum + order.total_sales!);
               bytes += generator.row([
                 PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left)),
                 PosColumn(
-                    text: paymentName!,
+                    text: username!,
                     width: 8,
                     containsChinese: true,
-                    styles: PosStyles(align: PosAlign.left, height: PosTextSize.size1, width: PosTextSize.size1)),
+                    styles: PosStyles(align: PosAlign.left, height: PosTextSize.size1, width: PosTextSize.size1, bold: true)),
                 PosColumn(
-                    text: totalAmount.toStringAsFixed(2),
+                    text: 'Amount',
                     width: 2,
-                    styles: PosStyles(align: PosAlign.right)),
+                    styles: PosStyles(align: PosAlign.right, bold: true)),
                 PosColumn(
                     text: '',
                     width: 1,
                     styles: PosStyles(align: PosAlign.right)),
               ]);
-            });
-            bytes += generator.hr();
-            bytes += generator.row([
-              PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left)),
-              PosColumn(
-                  text: 'Subtotal',
-                  width: 8,
-                  containsChinese: true,
-                  styles: PosStyles(align: PosAlign.left, height: PosTextSize.size1, width: PosTextSize.size1, bold: true)),
-              PosColumn(
-                  text: userSubtotal.toStringAsFixed(2),
-                  width: 2,
-                  styles: PosStyles(align: PosAlign.right, bold: true)),
-              PosColumn(
-                  text: '',
-                  width: 1,
-                  styles: PosStyles(align: PosAlign.right)),
-            ]);
-            bytes += generator.hr();
+              try {
+                var groupedPaymentOrder = groupBy(order, (Order order) => order.payment_name);
+                // Convert the map to a sorted list of entries
+                var sortedPaymentOrder = Map.fromEntries(
+                    groupedPaymentOrder.entries.toList()
+                      ..sort((a, b) => a.key!.compareTo(b.key!)) // Sorting by payment_name
+                );
+                sortedPaymentOrder.forEach((paymentName, paymentOrder) {
+                  double totalAmount = paymentOrder.fold(0, (sum, order) => sum + order.total_sales!);
+                  bytes += generator.row([
+                    PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left)),
+                    PosColumn(
+                        text: paymentName!,
+                        width: 8,
+                        containsChinese: true,
+                        styles: PosStyles(align: PosAlign.left, height: PosTextSize.size1, width: PosTextSize.size1)),
+                    PosColumn(
+                        text: totalAmount.toStringAsFixed(2),
+                        width: 2,
+                        styles: PosStyles(align: PosAlign.right)),
+                    PosColumn(
+                        text: '',
+                        width: 1,
+                        styles: PosStyles(align: PosAlign.right)),
+                  ]);
+                });
+              } catch(e, s){
+                print("payment_name checking $s");
+              }
+
+
+              bytes += generator.hr();
+              bytes += generator.row([
+                PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left)),
+                PosColumn(
+                    text: 'Subtotal',
+                    width: 8,
+                    containsChinese: true,
+                    styles: PosStyles(align: PosAlign.left, height: PosTextSize.size1, width: PosTextSize.size1, bold: true)),
+                PosColumn(
+                    text: userSubtotal.toStringAsFixed(2),
+                    width: 2,
+                    styles: PosStyles(align: PosAlign.right, bold: true)),
+                PosColumn(
+                    text: '',
+                    width: 1,
+                    styles: PosStyles(align: PosAlign.right)),
+              ]);
+              bytes += generator.hr();
+            } catch(e,s) {
+              print("userOrder.forEach((username, order) error: ${s}");
+            }
+
           });
         }
         //final part
@@ -2583,9 +2594,9 @@ class ReceiptLayout{
                   containsChinese: true,
                   styles: PosStyles(height: PosTextSize.size1, width: PosTextSize.size1, bold: true)),
               PosColumn(
-                  text: userSubtotal.toStringAsFixed(2),
-                  width: 4,
-                  styles: PosStyles(bold: true),
+                text: userSubtotal.toStringAsFixed(2),
+                width: 4,
+                styles: PosStyles(bold: true),
               ),
             ]);
             bytes += generator.hr();

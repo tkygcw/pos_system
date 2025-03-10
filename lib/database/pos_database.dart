@@ -4603,9 +4603,12 @@ class PosDatabase {
   Future<List<Order>> readAllSettlementOrderBySettlementKeyJoinPayment(String settlement_key) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.name FROM $tableOrder AS a LEFT JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
-            'WHERE a.soft_delete = ? AND a.refund_key = ? AND a.settlement_key = ? ',
-        ['', '', settlement_key]);
+        'SELECT a.*, c.name, COUNT(a.order_sqlite_id) AS item_sum, SUM(CASE WHEN a.payment_split = 0 THEN a.final_amount + 0.0 ELSE b.amount + 0.0 END) AS total_sales, '
+            'CASE WHEN a.payment_split = ? THEN a.payment_link_company_id ELSE b.payment_link_company_id END AS used_payment_method '
+            'FROM $tableOrder AS a LEFT JOIN $tableOrderPaymentSplit AS b ON a.order_key = b.order_key '
+            'JOIN $tablePaymentLinkCompany AS c ON c.payment_link_company_id = used_payment_method '
+            'WHERE a.soft_delete = ? AND a.payment_status = ? AND a.settlement_key = ? GROUP BY used_payment_method ',
+        [0, '', 1, settlement_key]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
@@ -7847,15 +7850,15 @@ FROM table_counts;
         'a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.category_name, a.order_cache_key, a.order_detail_key, b.category_id, c.branch_link_product_id '
         'FROM $tableOrderDetail AS a JOIN $tableCategories as b ON a.category_sqlite_id = b.category_sqlite_id '
         'JOIN $tableBranchLinkProduct AS c ON a.branch_link_product_sqlite_id = c.branch_link_product_sqlite_id '
-        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND a.order_detail_key != ? AND a.sync_status != ? '
+        'WHERE a.order_detail_key != ? AND a.sync_status != ? '
         'UNION ALL '
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.product_sku, a.per_quantity_unit, a.unit, a.status, '
         'a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, a.account, a.remark, a.quantity, '
         'a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.category_name, a.order_cache_key, a.order_detail_key, 0 AS category_id, b.branch_link_product_id '
         'FROM $tableOrderDetail AS a '
         'JOIN $tableBranchLinkProduct AS b ON a.branch_link_product_sqlite_id = b.branch_link_product_sqlite_id '
-        'WHERE a.category_sqlite_id = ? AND a.soft_delete = ? AND b.soft_delete = ? AND a.order_detail_key != ? AND a.sync_status != ? LIMIT ? ',
-        ['', '', '', '', 1, 0, '', '', '', 1, dataSelectLimit]);
+        'WHERE a.category_sqlite_id = ? AND a.order_detail_key != ? AND a.sync_status != ? LIMIT ? ',
+        ['', 1, 0, '', 1, dataSelectLimit]);
 
     return result.map((json) => OrderDetail.fromJson(json)).toList();
   }

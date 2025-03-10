@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
@@ -36,15 +34,18 @@ class SettlementQuery {
     var db = await _posDatabase.database;
     await db.transaction((txn) async {
       _transaction = txn;
-      List<Order> data = await _readSales();
-      if(data.isNotEmpty){
-        for(var sales in data){
-          _currentSalesDate = sales.created_at!;
-          await _insertSqliteSalesPerDay(sales);
-          await _generateCategorySales();
-          await _generateProductSales();
-          await _generateModSales();
-          await _generateDiningSales();
+      List<Order> orderData = await _readOrder();
+      for(var order in orderData){
+        List<Order> data = await _readSales(order.created_at!);
+        if(data.isNotEmpty){
+          for(var sales in data){
+            _currentSalesDate = sales.created_at!;
+            await _insertSqliteSalesPerDay(sales);
+            await _generateCategorySales();
+            await _generateProductSales();
+            await _generateModSales();
+            await _generateDiningSales();
+          }
         }
       }
     });
@@ -390,10 +391,10 @@ class SettlementQuery {
 /*
   get not yet settlement order
 */
-  Future<List<Order>> _readSales() async {
+  Future<List<Order>> _readSales(String orderDate) async {
     try{
-      String currentDate = _currentDateTime.substring(0, 10);
-      String endDate = DateFormat("yyyy-MM-dd").format(DateTime.parse(_currentDateTime).add(Duration(days: 1)));
+      String currentDate = orderDate.substring(0, 10);
+      String endDate = DateFormat("yyyy-MM-dd").format(DateTime.parse(orderDate).add(Duration(days: 1)));
       final result = await _transaction.rawQuery(
           'WITH PromoSums AS (SELECT order_sqlite_id, SUM(promotion_amount) AS TotalPromoAmount FROM $tableOrderPromotionDetail GROUP BY order_sqlite_id ), '
               'TaxSums AS (SELECT order_sqlite_id, SUM(CASE WHEN type = ? THEN tax_amount ELSE 0.0 END) AS TaxType0Amount, '
@@ -406,9 +407,9 @@ class SettlementQuery {
               'FROM $tableOrder o '
               'LEFT JOIN PromoSums P ON o.order_sqlite_id = P.order_sqlite_id '
               'LEFT JOIN TaxSums T ON o.order_sqlite_id = T.order_sqlite_id '
-              'WHERE SUBSTR(o.created_at, 1, 10) >= ? AND SUBSTR(o.created_at, 1, 10) < ? '
+              'WHERE SUBSTR(o.created_at, 1, 10) >= ? AND SUBSTR(o.created_at, 1, 10) < ? AND o.refund_key = ? '
               'GROUP BY SUBSTR(o.created_at, 1, 10) ',
-          ['0', '1', currentDate, endDate]) as List<Map<String, Object?>>;
+          ['0', '1', currentDate, endDate, '']) as List<Map<String, Object?>>;
       return result.map((json) => Order.fromJson(json)).toList();
     }catch(e, s){
       FLog.error(
@@ -419,4 +420,26 @@ class SettlementQuery {
       rethrow;
     }
   }
+
+/*
+  get not yet settlement order
+*/
+  Future<List<Order>> _readOrder() async {
+    try{
+      final result = await _transaction.rawQuery(
+          'SELECT created_at FROM $tableOrder '
+              'WHERE settlement_key = ? '
+              'GROUP BY SUBSTR(created_at, 1, 10) ',
+          ['']) as List<Map<String, Object?>>;
+      return result.map((json) => Order.fromJson(json)).toList();
+    }catch(e, s){
+      FLog.error(
+        className: "settlement query",
+        text: "_readSales error",
+        exception: 'Error: $e, Stacktrace: $s',
+      );
+      rethrow;
+    }
+  }
+
 }
