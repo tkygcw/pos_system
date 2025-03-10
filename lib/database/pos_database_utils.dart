@@ -277,6 +277,10 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.currency_code} $textType DEFAULT 'MYR'");
             await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.currency_symbol} $textType DEFAULT 'RM'");
           }break;
+          case 38: {
+            await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.specific_category} $integerType DEFAULT 0");
+            await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.multiple_category} $jsonType");
+          }break;
         }
       }
     }
@@ -603,8 +607,8 @@ class PosDatabaseUtils {
     create tax table
 */
     await db.execute('''CREATE TABLE $tableTax ( ${TaxFields.tax_id} $idType, ${TaxFields.company_id} $textType,${TaxFields.name} $textType,
-           ${TaxFields.type} $integerType, ${TaxFields.tax_rate} $textType,${TaxFields.created_at} $textType,${TaxFields.updated_at} $textType, 
-           ${TaxFields.soft_delete} $textType)''');
+           ${TaxFields.type} $integerType, ${TaxFields.tax_rate} $textType, ${TaxFields.specific_category} $integerType, ${TaxFields.multiple_category} $jsonType, 
+           ${TaxFields.created_at} $textType, ${TaxFields.updated_at} $textType, ${TaxFields.soft_delete} $textType)''');
 /*
     create tax link dining table
 */

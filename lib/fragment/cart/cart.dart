@@ -2119,7 +2119,7 @@ class CartPageState extends State<CartPage> {
     }
     await getDiningTax(cart);
     await calPromotion(cart);
-    await getTaxAmount();
+    await getTaxAmount(cart);
     await getRounding();
     await getAllPaymentSplit(cart);
     await getAllTotal();
@@ -2194,13 +2194,25 @@ class CartPageState extends State<CartPage> {
     }
   }
 
-  getTaxAmount() {
+  getTaxAmount(CartModel cart) {
     try {
+      cart.clearCategoryTotalPriceMap();
+      calculateCategoryPrice(cart);
       discountPrice = total - promoAmount;
       if (taxRateList.length > 0) {
         for (int i = 0; i < taxRateList.length; i++) {
-          priceIncTaxes = discountPrice * (double.parse(taxRateList[i].tax_rate!) / 100);
-          taxRateList[i].tax_amount = priceIncTaxes;
+          if(taxRateList[i].specific_category == 0){
+            priceIncTaxes = discountPrice * (double.parse(taxRateList[i].tax_rate!) / 100);
+            taxRateList[i].tax_amount = priceIncTaxes;
+          } else {
+            taxRateList[i].tax_amount = 0;
+            for (var item in cart.categoryTotalPriceMap.entries) {
+              if (taxRateList[i].multiple_category!.any((category) => category['category_id'].toString() == item.key)) {
+                isCategoryMatch = true;
+                break;
+              }
+            }
+          }
         }
       }
     } catch (e) {
