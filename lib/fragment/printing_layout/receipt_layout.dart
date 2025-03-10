@@ -233,9 +233,7 @@ class ReceiptLayout{
     bytes += generator.reset();
 
     bytes += generator.feed(1);
-    bytes += generator.drawer();
     bytes += generator.cut(mode: PosCutMode.full);
-    iminLib.openCashDrawer();
     return bytes;
   }
 
@@ -254,13 +252,37 @@ class ReceiptLayout{
     List<int> bytes = [];
 
     //LOGO
-    bytes += generator.text('Self test', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
-    bytes += generator.text('This is 58mm', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
+    bytes += generator.text('Self test print 58mm', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
+    bytes += generator.text(
+        'Optimy pos',
+        styles: PosStyles(align: PosAlign.center));
+    //telephone
+    bytes += generator.text('Tel: 012-3456789',
+        styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1));
+    bytes += generator.text('optimy@hotmail.com',
+        styles: PosStyles(align: PosAlign.center));
+    bytes += generator.hr();
+    bytes += generator.reset();
+    //receipt no
+    bytes += generator.text('abcdefghijk',
+        styles: PosStyles(
+            align: PosAlign.left,
+            width: PosTextSize.size1,
+            height: PosTextSize.size1));
+    bytes += generator.text('lmnopqrstu',
+        styles: PosStyles(
+            align: PosAlign.center,
+            width: PosTextSize.size1,
+            height: PosTextSize.size1));
+    bytes += generator.text('vwxyz',
+        styles: PosStyles(
+            align: PosAlign.right,
+            width: PosTextSize.size1,
+            height: PosTextSize.size1));
+    bytes += generator.reset();
 
     bytes += generator.feed(1);
-    bytes += generator.drawer();
     bytes += generator.cut(mode: PosCutMode.partial);
-    iminLib.openCashDrawer();
     return bytes;
   }
 

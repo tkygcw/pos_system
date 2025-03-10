@@ -12,6 +12,7 @@ import 'package:network_info_plus/network_info_plus.dart';
 import 'package:pos_system/notifier/printer_notifier.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:provider/provider.dart';
+import 'package:thermal_printer/thermal_printer.dart';
 
 import '../../notifier/theme_color.dart';
 import '../../translation/AppLocalizations.dart';
@@ -250,14 +251,33 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
   }
 
   _getDevicelist() async {
-    isLoad = false;
-    List<Map<String, dynamic>> results = [];
-    results = await FlutterUsbPrinter.getUSBDeviceList();
-    if (this.mounted) {
+    if(Platform.Platform.isWindows){
+      await PrinterManager.instance.discovery(type: PrinterType.usb).listen((device) {
+        print("device name: ${device.name}");
+        print("prodId: ${device.productId}");
+        print("venId: ${device.vendorId}");
+        print("os: ${device.operatingSystem}");
+        print("address: ${device.address}");
+        Map<String, dynamic> printer = {
+          'name': device.name,
+          'vendorId': device.vendorId ?? '',
+          'productId': device.productId ?? ''
+        };
+        devices.add(printer);
+      });
       setState(() {
-        devices = results;
         isLoad = true;
       });
+    } else {
+      isLoad = false;
+      List<Map<String, dynamic>> results = [];
+      results = await FlutterUsbPrinter.getUSBDeviceList();
+      if (this.mounted) {
+        setState(() {
+          devices = results;
+          isLoad = true;
+        });
+      }
     }
   }
 
@@ -316,7 +336,7 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
                             itemBuilder: (context, index) {
                               return Card(
                                 elevation: 5,
-                                child: _buildList(devices, printerModel)[index],
+                                child: _buildList(printerModel)[index],
                               );
                             })
                         : widget.type == 1
@@ -450,21 +470,17 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
     });
   }
 
-  List<Widget> _buildList(
-      List<Map<String, dynamic>> devices, PrinterModel printerModel) {
-    return devices
-        .map((device) => new ListTile(
+  List<Widget> _buildList(PrinterModel printerModel) {
+    return devices.map((device) => ListTile(
               onTap: () {
                 printerModel.removeAllPrinter();
                 //printerModel.addPrinter(jsonEncode(device));
                 widget.callBack(jsonEncode(device));
                 Navigator.of(context).pop();
               },
-              leading: new Icon(Icons.usb),
-              title: new Text(
-                  device['manufacturer'] + " " + device['productName']),
-              subtitle:
-                  new Text(device['vendorId'] + " " + device['productId']),
+              leading: const Icon(Icons.usb),
+              title: Text(device['name'] ?? device['productName']),
+              subtitle: Text(device['vendorId'] + " " + device['productId']),
             ))
         .toList();
   }

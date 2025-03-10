@@ -6,6 +6,7 @@ import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:esc_pos_printer/esc_pos_printer.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:pos_system/fragment/dynamic_qr/dynamic_qr_layout.dart';
+import 'package:pos_system/fragment/printing_layout/usb_print.dart';
 import 'package:pos_system/object/dynamic_qr.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,6 +16,7 @@ import '../../../object/printer.dart';
 import '../../../object/table.dart';
 
 class PrintDynamicQr {
+  USBPrintFunction _usbPrintFunction = USBPrintFunction.instance;
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   DynamicQrLayout layout = DynamicQrLayout();
   Duration duration = Duration(seconds: 1);
@@ -88,23 +90,28 @@ class PrintDynamicQr {
   }
 
   testPrintDynamicQR({required DynamicQR qrLayout, required String paperSize}) async {
-    print("cashier printer length: ${cashierPrinter.length}");
     if(cashierPrinter.isNotEmpty){
       for(final printers in cashierPrinter){
         var printerDetail = jsonDecode(printers.value!);
         if (printers.type == 0) {
           if(paperSize == '80'){
-            var data = Uint8List.fromList(await layout.testPrint80mmFormat(true, dynamicQR: qrLayout));
-            bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
-            if (isConnected == true) {
-              await flutterUsbPrinter.write(data);
-            }
+            var bytes = await layout.testPrint80mmFormat(true, dynamicQR: qrLayout);
+            await _usbPrintFunction.connect(printerDetail: printerDetail);
+            await _usbPrintFunction.printReceipt(bytes);
+            // var data = Uint8List.fromList(await layout.testPrint80mmFormat(true, dynamicQR: qrLayout));
+            // bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+            // if (isConnected == true) {
+            //   await flutterUsbPrinter.write(data);
+            // }
           } else {
-            var data = Uint8List.fromList(await layout.testPrint58mmFormat(true, dynamicQR: qrLayout));
-            bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
-            if (isConnected == true) {
-              await flutterUsbPrinter.write(data);
-            }
+            var bytes = await layout.testPrint58mmFormat(true, dynamicQR: qrLayout);
+            await _usbPrintFunction.connect(printerDetail: printerDetail);
+            await _usbPrintFunction.printReceipt(bytes);
+            // var data = Uint8List.fromList(await layout.testPrint58mmFormat(true, dynamicQR: qrLayout));
+            // bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+            // if (isConnected == true) {
+            //   await flutterUsbPrinter.write(data);
+            // }
           }
         } else {
           if(paperSize == '80'){

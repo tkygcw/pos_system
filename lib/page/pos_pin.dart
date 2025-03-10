@@ -948,8 +948,7 @@ class _PosPinPageState extends State<PosPinPage> {
         );
       }
     } else {
-      Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('wrong_pin_please_insert_valid_pin'));
-
+      CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('wrong_pin_please_insert_valid_pin'));
     }
   }
 

@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/fragment/printing_layout/usb_print.dart';
 import 'package:pos_system/fragment/setting/search_printer_dialog.dart';
 import 'package:pos_system/fragment/setting/printer_category_dialog.dart';
 import 'package:pos_system/object/printer.dart';
@@ -44,6 +45,7 @@ class PrinterDialog extends StatefulWidget {
 class _PrinterDialogState extends State<PrinterDialog> {
   final printerLabelController = TextEditingController();
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
+  USBPrintFunction _usbPrintFunction = USBPrintFunction.instance;
   Printer? printer;
   List<String> printerValue = [];
   List<Categories> selectedCategories = [];
@@ -119,13 +121,14 @@ class _PrinterDialogState extends State<PrinterDialog> {
             await callAddNewPrinter(printerValue, selectedCategories);
             if (_typeStatus == 0) {
               var printerDetail = jsonDecode(printerValue[0]);
-              await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              await _usbPrintFunction.connect(printerDetail: printerDetail);
+              // await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
             }
           } else {
             await callUpdatePrinter(selectedCategories, widget.printerObject!);
             if (_typeStatus == 0) {
               var printerDetail = jsonDecode(printerValue[0]);
-              await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              await _usbPrintFunction.connect(printerDetail: printerDetail);
             }
           }
           // if (_typeStatus == 1) {
@@ -210,7 +213,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                               Row(
                                 children: [
                                   Visibility(
-                                    visible: !Platform.Platform.isIOS && !Platform.Platform.isWindows,
+                                    //visible: !Platform.Platform.isIOS && !Platform.Platform.isWindows,
                                     child: Expanded(
                                       child: RadioListTile<int>(
                                         activeColor: color.backgroundColor,
@@ -308,7 +311,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                           child: Icon(Icons.delete)),
                                       subtitle: _typeStatus == 0
                                           ? Text(
-                                              '${jsonDecode(printerValue[index])["manufacturer"] + jsonDecode(printerValue[index])["productName"]}')
+                                              '${jsonDecode(printerValue[index])["name"]}')
                                           : Text('${jsonDecode(printerValue[index])}'),
                                       title: Text(AppLocalizations.of(context)!.translate('printer')));
                                 },
@@ -1639,35 +1642,34 @@ class _PrinterDialogState extends State<PrinterDialog> {
     try {
       var printerDetail = jsonDecode(printerValue[0]);
       if (_paperSize == 0) {
-        var data = Uint8List.fromList(await ReceiptLayout().testTicket80mm(true));
-        bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
-        if (isConnected == true) {
-          await flutterUsbPrinter.write(data);
-        } else {
-          print('not connected');
-        }
+        var data = await ReceiptLayout().testTicket80mm(true); //Uint8List.fromList(await ReceiptLayout().testTicket80mm(true));
+        await _usbPrintFunction.connect(printerDetail: printerDetail);
+        await _usbPrintFunction.printReceipt(data);
+        // var data = Uint8List.fromList(await ReceiptLayout().testTicket80mm(true));
+        // bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+        // if (isConnected == true) {
+        //   await flutterUsbPrinter.write(data);
+        // } else {
+        //   print('not connected');
+        // }
       } else if (_paperSize == 1) {
         print('print 58mm');
-        var data = Uint8List.fromList(await ReceiptLayout().testTicket58mm(true));
-        bool? isConnected = await flutterUsbPrinter.connect(
-            int.parse(printerDetail['vendorId']),
-            int.parse(printerDetail['productId']));
-        if (isConnected == true) {
-          await flutterUsbPrinter.write(data);
-        } else {
-          print('not connected');
-        }
+        var data = await ReceiptLayout().testTicket58mm(true);//Uint8List.fromList(await ReceiptLayout().testTicket58mm(true));
+        await _usbPrintFunction.connect(printerDetail: printerDetail);
+        await _usbPrintFunction.printReceipt(data);
       } else {
         print('print 35mm');
-        var data = Uint8List.fromList(await ReceiptLayout().testTicket35mm(true));
-        bool? isConnected = await flutterUsbPrinter.connect(
-            int.parse(printerDetail['vendorId']),
-            int.parse(printerDetail['productId']));
-        if (isConnected == true) {
-          await flutterUsbPrinter.write(data);
-        } else {
-          print('not connected');
-        }
+        var data =  await ReceiptLayout().testTicket35mm(true); //Uint8List.fromList(await ReceiptLayout().testTicket35mm(true));
+        await _usbPrintFunction.connect(printerDetail: printerDetail);
+        await _usbPrintFunction.printReceipt(data);
+        // bool? isConnected = await flutterUsbPrinter.connect(
+        //     int.parse(printerDetail['vendorId']),
+        //     int.parse(printerDetail['productId']));
+        // if (isConnected == true) {
+        //   await flutterUsbPrinter.write(data);
+        // } else {
+        //   print('not connected');
+        // }
       }
     } catch (e) {
       print('error $e');
