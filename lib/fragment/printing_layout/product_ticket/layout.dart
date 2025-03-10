@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
+import 'package:pos_system/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 
@@ -69,7 +70,7 @@ class ProductTicketLayout extends ReceiptLayout {
                 height: checklistLayout != null && checklistLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
                 width: checklistLayout != null && checklistLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
         PosColumn(
-            text: '${cartItem.product_name}${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
+            text: '${cartItem.product_name}${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '($currency_symbol${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -235,7 +236,7 @@ class ProductTicketLayout extends ReceiptLayout {
                 height: checklistLayout != null && checklistLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
                 width: checklistLayout != null && checklistLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
         PosColumn(
-            text: '${cartItem.product_name}${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
+            text: '${cartItem.product_name}${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '($currency_symbol${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(

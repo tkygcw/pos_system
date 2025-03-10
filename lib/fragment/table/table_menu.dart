@@ -341,7 +341,7 @@ class _TableMenuState extends State<TableMenu> {
                                           visible: MediaQuery.of(context).orientation == Orientation.landscape ? false : true,
                                           child: Container(
                                               alignment: Alignment.bottomCenter,
-                                              child: Text("RM ${tableList[index].total_amount ?? '0.00'}")),
+                                              child: Text("$currency_symbol ${tableList[index].total_amount ?? '0.00'}")),
                                         ),
                                       ],
                                     ),
@@ -501,7 +501,7 @@ class _TableMenuState extends State<TableMenu> {
                             visible: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? true : false,
                             child: Container(
                                 alignment: Alignment.bottomCenter,
-                                child: Text("RM ${tableList[index].total_amount ?? '0.00'}", style: TextStyle(fontSize: 18))),
+                                child: Text("$currency_symbol ${tableList[index].total_amount ?? '0.00'}", style: TextStyle(fontSize: 18))),
                           ),
                         ],
                       ),

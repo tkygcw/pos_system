@@ -362,7 +362,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                             ),
                                                           ),
                                                           TextSpan(
-                                                              text: "RM" + getItemTotalPrice(productItem: itemList[index]),
+                                                              text: "${currency_symbol}" + getItemTotalPrice(productItem: itemList[index]),
                                                               style: TextStyle(fontSize: 15, color: color.backgroundColor)),
                                                         ],
                                                       ),
@@ -534,7 +534,7 @@ class _MakePaymentState extends State<MakePayment> {
                                             mainAxisAlignment: MainAxisAlignment.center,
                                             children: [
                                               Container(
-                                                child: Text('RM${finalAmount}',
+                                                child: Text('$currency_symbol${finalAmount}',
                                                     style: TextStyle(
                                                         fontSize: 24,
                                                         fontWeight:
@@ -588,7 +588,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                       spacing: 10,
                                                       children: [
                                                     ChoiceChip(
-                                                      label: Text('RM $finalAmount'),
+                                                      label: Text('$currency_symbol $finalAmount'),
                                                       selected: chipSelected,
                                                       elevation: 5,
                                                       onSelected: (chipSelected) {
@@ -597,7 +597,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                       },
                                                     ),
                                                     ChoiceChip(
-                                                      label: Text('RM 10.00'),
+                                                      label: Text('$currency_symbol 10.00'),
                                                       selected: chipSelected,
                                                       elevation: 5,
                                                       onSelected: (chipSelected) {
@@ -606,7 +606,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                       },
                                                     ),
                                                     ChoiceChip(
-                                                      label: Text('RM 20.00'),
+                                                      label: Text('$currency_symbol 20.00'),
                                                       selected: chipSelected,
                                                       elevation: 5,
                                                       onSelected: (chipSelected) {
@@ -615,7 +615,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                       },
                                                     ),
                                                     ChoiceChip(
-                                                      label: Text('RM 50.00'),
+                                                      label: Text('$currency_symbol 50.00'),
                                                       selected: chipSelected,
                                                       elevation: 5,
                                                       onSelected: (chipSelected) {
@@ -624,7 +624,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                       },
                                                     ),
                                                     ChoiceChip(
-                                                      label: Text('RM 100.00'),
+                                                      label: Text('$currency_symbol 100.00'),
                                                       selected: chipSelected,
                                                       elevation: 5,
                                                       onSelected: (chipSelected) {
@@ -907,7 +907,7 @@ class _MakePaymentState extends State<MakePayment> {
                                               ),
                                               Container(
                                                 margin: EdgeInsets.all(20),
-                                                child: Text('RM${finalAmount}',
+                                                child: Text('$currency_symbol${finalAmount}',
                                                   style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
                                                 ),
                                               ),
@@ -1190,7 +1190,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                   Container(
                                                     alignment: Alignment.center,
                                                     child: Text(
-                                                        'RM${finalAmount}',
+                                                        '$currency_symbol${finalAmount}',
                                                         style: TextStyle(
                                                             fontSize: 40,
                                                             fontWeight: FontWeight.bold)),
@@ -1508,7 +1508,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                   fontWeight: FontWeight.bold),
                                                             ),
                                                             TextSpan(
-                                                                text: "RM" + itemList[index].price!,
+                                                                text: "${currency_symbol}" + itemList[index].price!,
                                                                 style: TextStyle(
                                                                   fontSize: 15,
                                                                   color: color.backgroundColor,
@@ -2531,7 +2531,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                           ),
                                                         ),
                                                         TextSpan(
-                                                          text: "RM" + itemList[index].price!,
+                                                          text: "${currency_symbol}" + itemList[index].price!,
                                                           style: TextStyle(
                                                             fontSize: 15,
                                                             color: color.backgroundColor,

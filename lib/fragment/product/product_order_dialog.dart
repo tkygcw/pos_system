@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/controller/controllerObject.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/branch_link_modifier.dart';
@@ -196,7 +197,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
               children: [
                 Text('${modifierGroup.modifierChild![i].name!}'),
                 Text(
-                  ' (+RM ${Utils.convertTo2Dec(modifierGroup.modifierChild![i].price)})',
+                  ' (+$currency_symbol ${Utils.convertTo2Dec(modifierGroup.modifierChild![i].price)})',
                   style: TextStyle(fontSize: 12),
                 )
               ],
@@ -269,12 +270,12 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
                                     widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ?
-                                    Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
+                                    Text("$currency_symbol ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
                                         ))
-                                        : Text("RM ${Utils.convertTo2Dec(dialogPrice)} / each",
+                                        : Text("$currency_symbol ${Utils.convertTo2Dec(dialogPrice)} / each",
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
@@ -395,7 +396,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                     textAlign: TextAlign.center,
                                                     decoration: InputDecoration(
                                                       errorText: getPriceErrorText(priceController.text),
-                                                      prefixText: 'RM ',
+                                                      prefixText: '$currency_symbol ',
                                                       focusedBorder: OutlineInputBorder(
                                                         borderSide: BorderSide(color: color.backgroundColor),
                                                       ),
@@ -682,12 +683,12 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
                                     widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ?
-                                    Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
+                                    Text("$currency_symbol ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
                                         )) :
-                                    Text("RM ${Utils.convertTo2Dec(dialogPrice)} / each",
+                                    Text("$currency_symbol ${Utils.convertTo2Dec(dialogPrice)} / each",
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
@@ -720,12 +721,12 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ?
-                                          Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
+                                          Text("$currency_symbol ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
                                               style: TextStyle(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.bold,
                                               )) :
-                                          Text("RM ${Utils.convertTo2Dec(dialogPrice)} / each",
+                                          Text("$currency_symbol ${Utils.convertTo2Dec(dialogPrice)} / each",
                                               style: TextStyle(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.bold,
@@ -828,7 +829,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                     textAlign: TextAlign.center,
                                                     decoration: InputDecoration(
                                                       errorText: getPriceErrorText(priceController.text),
-                                                      prefixText: 'RM ',
+                                                      prefixText: '$currency_symbol ',
                                                       focusedBorder: OutlineInputBorder(
                                                         borderSide: BorderSide(color: color.backgroundColor),
                                                       ),

@@ -602,7 +602,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                             child: Row(
                               children: [
                                 Visibility(visible: showSKU, child: Text("SKU001 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
-                                Text("Product 1${kitchenListShowPrice ? "(RM6.90)" : ''}",
+                                Text("Product 1${kitchenListShowPrice ? "(${currency_symbol}6.90)" : ''}",
                                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
                               ],
                             ),
@@ -635,7 +635,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                                   child: Row(
                                     children: [
                                       Visibility(visible: showSKU, child: Text("SKU002 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
-                                      Text("Product 2${kitchenListShowPrice ? "(RM8.80)" : ''}",
+                                      Text("Product 2${kitchenListShowPrice ? "(${currency_symbol}8.80)" : ''}",
                                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
                                     ],
                                   ),
@@ -664,7 +664,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                                   child: Row(
                                     children: [
                                       Visibility(visible: showSKU, child: Text("SKU003 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
-                                      Text("Product 3${kitchenListShowPrice ? "(RM15.90)" : ''}",
+                                      Text("Product 3${kitchenListShowPrice ? "(${currency_symbol}15.90)" : ''}",
                                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
                                     ],
                                   ),
@@ -681,7 +681,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                             child: Row(
                               children: [
                                 Spacer(),
-                                Text("Total: RM 31.60", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                Text("Total: $currency_symbol 31.60", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
                               ],
                             ),
                           ),
@@ -934,7 +934,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                             child: Row(
                               children: [
                                 Visibility(visible: showSKU, child: Text("SKU001 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
-                                Text("Product 1${kitchenListShowPrice ? "(RM6.90)" : ''}",
+                                Text("Product 1${kitchenListShowPrice ? "(${currency_symbol}6.90)" : ''}",
                                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
                               ],
                             ),
@@ -967,7 +967,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                                   child: Row(
                                     children: [
                                       Visibility(visible: showSKU, child: Text("SKU002 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
-                                      Text("Product 2${kitchenListShowPrice ? "(RM8.80)" : ''}",
+                                      Text("Product 2${kitchenListShowPrice ? "(${currency_symbol}8.80)" : ''}",
                                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
                                     ],
                                   ),
@@ -996,7 +996,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                                   child: Row(
                                     children: [
                                       Visibility(visible: showSKU, child: Text("SKU003 ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize))),
-                                      Text("Product 3${kitchenListShowPrice ? "(RM15.90)" : ''}",
+                                      Text("Product 3${kitchenListShowPrice ? "(${currency_symbol}15.90)" : ''}",
                                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
                                     ],
                                   ),
@@ -1013,7 +1013,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                             child: Row(
                               children: [
                                 Spacer(),
-                                Text("Total: RM 31.60", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                Text("Total: $currency_symbol 31.60", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
                               ],
                             ),
                           ),

@@ -1,6 +1,7 @@
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
+import 'package:pos_system/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../database/pos_database.dart';
@@ -86,7 +87,7 @@ class DefaultKitchenListLayout extends ReceiptLayout {
                 width: productFontSize)),
         PosColumn(
             text: '${getCartProductSKU(cartItem, layout: kitchenListLayout)}${cartItem.product_name}${kitchenListLayout.kitchen_list_show_price == 1 ?
-            '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
+            '($currency_symbol${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -250,7 +251,7 @@ class DefaultKitchenListLayout extends ReceiptLayout {
                 width: productFontSize)),
         PosColumn(
             text: '${getCartProductSKU(cartItem, layout: kitchenListLayout)}${cartItem.product_name}${kitchenListLayout.kitchen_list_show_price == 1 ?
-            '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
+            '($currency_symbol${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
             width: 9,
             containsChinese: true,
             styles: PosStyles(
