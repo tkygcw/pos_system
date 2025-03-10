@@ -2267,22 +2267,32 @@ class PrintReceipt{
           if (printerList[i].type == 0) {
             if (printerList[i].paper_size == 0) {
               //print usb 80mm
-              var data = Uint8List.fromList(await ReceiptLayout().printCashBalanceList80mm(true, cashBalance));
-              bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              var bytes = await await ReceiptLayout().printCashBalanceList80mm(true, cashBalance);
+              bool? isConnected = await _usbPrintFunction.connect(printerDetail: printerDetail);
               if (isConnected == true) {
-                await flutterUsbPrinter.write(data);
-              } else {
-                Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
+                await _usbPrintFunction.printReceipt(bytes);
               }
+              // var data = Uint8List.fromList(await ReceiptLayout().printCashBalanceList80mm(true, cashBalance));
+              // bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              // if (isConnected == true) {
+              //   await flutterUsbPrinter.write(data);
+              // } else {
+              //   Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
+              // }
             } else {
               //print usb 58mm
-              var data = Uint8List.fromList(await ReceiptLayout().printCashBalanceList58mm(true, cashBalance));
-              bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              var bytes = await await ReceiptLayout().printCashBalanceList58mm(true, cashBalance);
+              bool? isConnected = await _usbPrintFunction.connect(printerDetail: printerDetail);
               if (isConnected == true) {
-                await flutterUsbPrinter.write(data);
-              } else {
-                Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
+                await _usbPrintFunction.printReceipt(bytes);
               }
+              // var data = Uint8List.fromList(await ReceiptLayout().printCashBalanceList58mm(true, cashBalance));
+              // bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              // if (isConnected == true) {
+              //   await flutterUsbPrinter.write(data);
+              // } else {
+              //   Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
+              // }
             }
           } else if(printerList[i].type == 1) {
             //print LAN
