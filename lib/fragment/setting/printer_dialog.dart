@@ -311,7 +311,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                           child: Icon(Icons.delete)),
                                       subtitle: _typeStatus == 0
                                           ? Text(
-                                              '${jsonDecode(printerValue[index])["name"]}')
+                                              '${jsonDecode(printerValue[index])["name"] ?? jsonDecode(printerValue[index])["manufacturer"] + jsonDecode(printerValue[index])["productName"]}')
                                           : Text('${jsonDecode(printerValue[index])}'),
                                       title: Text(AppLocalizations.of(context)!.translate('printer')));
                                 },
@@ -1645,6 +1645,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
         var data = await ReceiptLayout().testTicket80mm(true); //Uint8List.fromList(await ReceiptLayout().testTicket80mm(true));
         await _usbPrintFunction.connect(printerDetail: printerDetail);
         await _usbPrintFunction.printReceipt(data);
+        //await _usbPrintFunction.disconnect();
         // var data = Uint8List.fromList(await ReceiptLayout().testTicket80mm(true));
         // bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
         // if (isConnected == true) {

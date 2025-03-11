@@ -126,6 +126,7 @@ dependencies:
   thermal_printer:
     git:
       url: https://github.com/tkygcw/thermal_printer.git
+      ref: main
 
 dependency_overrides:
   image_picker_android: 0.8.6+6
