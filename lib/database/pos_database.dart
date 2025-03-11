@@ -88,7 +88,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 39, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
+    return await openDatabase(path, version: 38, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
   }
 
 /*
