@@ -103,7 +103,6 @@ class Tax{
     TaxFields.type: type,
     TaxFields.tax_rate: tax_rate,
     TaxFields.specific_category: specific_category,
-    TaxFields.multiple_category: multiple_category,
     TaxFields.multiple_category: multiple_category != null
         ? jsonEncode(multiple_category)
         : null,

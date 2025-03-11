@@ -330,7 +330,6 @@ class CartPageState extends State<CartPage> {
                             icon: Icon(Icons.discount),
                             color: color.backgroundColor,
                             onPressed: () {
-                              print("app setting: ${appSettingModel.directPaymentStatus}");
                               openPromotionDialog();
                             },
                           ),
@@ -1354,7 +1353,6 @@ class CartPageState extends State<CartPage> {
   -----------------Calculation-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
   calPromotion(CartModel cart) async {
-    print("calPromotion");
     try {
       promoAmount = 0.0;
       cart.clearCategoryTotalPriceMap();
@@ -1417,16 +1415,16 @@ class CartPageState extends State<CartPage> {
   getManualApplyPromotion(CartModel cart) {
     allPromo = '';
     selectedPromoRate = '';
-    double rate = 0.0;
+    // double rate = 0.0;
     try {
       if (cart.selectedPromotion != null) {
         allPromo = cart.selectedPromotion!.name!;
         if (cart.selectedPromotion!.type == 0) {
           selectedPromoRate = cart.selectedPromotion!.amount.toString() + '%';
-          rate = double.parse(cart.selectedPromotion!.amount!) / 100;
+          // rate = double.parse(cart.selectedPromotion!.amount!) / 100;
         } else {
           selectedPromoRate = double.parse(cart.selectedPromotion!.amount!).toStringAsFixed(2);
-          rate = double.parse(cart.selectedPromotion!.amount!);
+          // rate = double.parse(cart.selectedPromotion!.amount!);
         }
         cart.selectedPromotion!.promoRate = selectedPromoRate;
 
@@ -1538,12 +1536,26 @@ class CartPageState extends State<CartPage> {
       }
       double remainingPromo = selectedPromo;
       for (var item in cart.categoryTotalPriceMap.entries) {
-        if (item.value >= remainingPromo) {
-          cart.categoryTotalPriceMap[item.key] = item.value - remainingPromo;
-          remainingPromo = 0;
-        } else {
-          remainingPromo -= item.value;
-          cart.categoryTotalPriceMap[item.key] = 0;
+        if(promotion.specific_category == '1') {
+          if(promotion.category_id == item.key) {
+            if (item.value >= remainingPromo) {
+              cart.categoryTotalPriceMap[item.key] = item.value - remainingPromo;
+              remainingPromo = 0;
+            } else {
+              remainingPromo -= item.value;
+              cart.categoryTotalPriceMap[item.key] = 0;
+            }
+          }
+        } else if(promotion.specific_category == '2'){
+          if (promotion.multiple_category!.any((category) => category['category_id'].toString() == item.key)) {
+            if (item.value >= remainingPromo) {
+              cart.categoryTotalPriceMap[item.key] = item.value - remainingPromo;
+              remainingPromo = 0;
+            } else {
+              remainingPromo -= item.value;
+              cart.categoryTotalPriceMap[item.key] = 0;
+            }
+          }
         }
       }
       promoAmount += selectedPromo;
@@ -1582,7 +1594,7 @@ class CartPageState extends State<CartPage> {
       }
 
       //update new value to category total price map
-      double remainingPromo = promo;
+      double remainingPromo = selectedPromo;
       cart.categoryTotalPriceMap.forEach((key, value) {
         if (value >= remainingPromo) {
           cart.categoryTotalPriceMap[key] = value - remainingPromo;
@@ -1847,7 +1859,6 @@ class CartPageState extends State<CartPage> {
   }
 
   getAutoApplyPromotionAllCategories(CartModel cart) {
-    print("getAutoApplyPromotion all category called");
     try {
       if (autoApplyPromotionList.isEmpty) {
         cart.autoPromotion = [];
@@ -1988,12 +1999,26 @@ class CartPageState extends State<CartPage> {
 
       double remainingPromo = promo;
       for (var item in cart.categoryTotalPriceMap.entries) {
-        if (item.value >= remainingPromo) {
-          cart.categoryTotalPriceMap[item.key] = item.value - remainingPromo;
-          remainingPromo = 0;
-        } else {
-          remainingPromo -= item.value;
-          cart.categoryTotalPriceMap[item.key] = 0;
+        if(promotion.specific_category == '1') {
+          if(promotion.category_id == item.key) {
+            if (item.value >= remainingPromo) {
+              cart.categoryTotalPriceMap[item.key] = item.value - remainingPromo;
+              remainingPromo = 0;
+            } else {
+              remainingPromo -= item.value;
+              cart.categoryTotalPriceMap[item.key] = 0;
+            }
+          }
+        } else if(promotion.specific_category == '2') {
+          if(promotion.multiple_category!.any((category) => category['category_id'].toString() == item.key)) {
+            if (item.value >= remainingPromo) {
+              cart.categoryTotalPriceMap[item.key] = item.value - remainingPromo;
+              remainingPromo = 0;
+            } else {
+              remainingPromo -= item.value;
+              cart.categoryTotalPriceMap[item.key] = 0;
+            }
+          }
         }
       }
 
@@ -2085,7 +2110,6 @@ class CartPageState extends State<CartPage> {
   Cart Ordering initial called
 */
   getSubTotal(CartModel cart) async {
-    print("getSubTotal");
     // await Future.delayed(Duration(milliseconds: 6000));
     try {
       // widget.currentPage == 'table' || widget.currentPage == 'qr_order'
@@ -2160,7 +2184,6 @@ class CartPageState extends State<CartPage> {
       }
       if (!controller.isClosed) {
         controller.sink.add('refresh');
-        print("refresh called");
       }
     } catch(e){
       print("getSubTotal error: $e");
@@ -2196,22 +2219,23 @@ class CartPageState extends State<CartPage> {
 
   getTaxAmount(CartModel cart) {
     try {
-      cart.clearCategoryTotalPriceMap();
-      calculateCategoryPrice(cart);
+      // cart.clearCategoryTotalPriceMap();
+      // calculateCategoryPrice(cart);
       discountPrice = total - promoAmount;
       if (taxRateList.length > 0) {
         for (int i = 0; i < taxRateList.length; i++) {
           if(taxRateList[i].specific_category == 0){
-            priceIncTaxes = discountPrice * (double.parse(taxRateList[i].tax_rate!) / 100);
+            double total = cart.categoryTotalPriceMap.values.fold(0.0, (sum, value) => sum + value);
+            priceIncTaxes = total * (double.parse(taxRateList[i].tax_rate!) / 100);
             taxRateList[i].tax_amount = priceIncTaxes;
           } else {
-            taxRateList[i].tax_amount = 0;
+            double taxCategoryAmount = 0;
             for (var item in cart.categoryTotalPriceMap.entries) {
               if (taxRateList[i].multiple_category!.any((category) => category['category_id'].toString() == item.key)) {
-                isCategoryMatch = true;
-                break;
+                taxCategoryAmount += item.value;
               }
             }
+            taxRateList[i].tax_amount = taxCategoryAmount * (double.parse(taxRateList[i].tax_rate!) / 100);
           }
         }
       }
@@ -2311,7 +2335,6 @@ class CartPageState extends State<CartPage> {
     try {
       paymentSplitList = [];
       paymentSplitAmount = 0.0;
-      print("Cart item: ${cart.cartNotifierItem.length}");
       if(cart.cartNotifierItem.length != 0) {
         if(orderKey != '') {
           List<OrderPaymentSplit> orderSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(orderKey);

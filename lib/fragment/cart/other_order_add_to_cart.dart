@@ -1,10 +1,7 @@
-import 'dart:convert';
-
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
-import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/categories.dart';
