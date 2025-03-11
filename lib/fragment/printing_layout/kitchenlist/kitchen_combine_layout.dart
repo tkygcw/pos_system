@@ -66,6 +66,8 @@ class CombineKitchenListLayout extends ReceiptLayout {
         for(int i = 0; i < tableList.length; i++){
           bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
         }
+      } else if(orderCache!.custom_table_number != ''){
+        bytes += generator.text('Table No: ${orderCache!.custom_table_number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
       } else {
         bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
       }
@@ -238,6 +240,8 @@ class CombineKitchenListLayout extends ReceiptLayout {
         for(int i = 0; i < tableList.length; i++){
           bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
         }
+      } else if(orderCache!.custom_table_number != ''){
+        bytes += generator.text('Table No: ${orderCache!.custom_table_number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
       } else {
         bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
       }

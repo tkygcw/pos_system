@@ -603,21 +603,41 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                         await checkProductStock(widget.productDetail!, cart);
                                         //await getBranchLinkProductItem(widget.productDetail!);
                                         if (hasStock) {
-                                          if (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 0) {
-                                            if(simpleIntInput > 0){
-                                              if (cart.selectedTable.isNotEmpty) {
-                                                // Disable the button after it has been pressed
-                                                setState(() {
-                                                  isButtonDisabled = true;
-                                                });
-                                                checkModifierMinSelect(modifierGroup);
-                                                await addToCart(cart);
-                                                Navigator.of(context).pop();
+                                          if (cart.selectedOption == 'Dine in') {
+                                            // custom table number mode
+                                            if(appSettingModel.table_order == 3){
+                                              if(simpleIntInput > 0){
+                                                if (cart.selectedTableIndex != '') {
+                                                  // Disable the button after it has been pressed
+                                                  setState(() {
+                                                    isButtonDisabled = true;
+                                                  });
+                                                  checkModifierMinSelect(modifierGroup);
+                                                  await addToCart(cart);
+                                                  Navigator.of(context).pop();
+                                                } else {
+                                                  // openChooseTableDialog(cart, context);
+                                                  enterTableNumberDialog(cart, context, color);
+                                                }
                                               } else {
-                                                openChooseTableDialog(cart, context);
+                                                Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
                                               }
-                                            } else {
-                                              Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
+                                            } else if(appSettingModel.table_order != 0){
+                                              if(simpleIntInput > 0){
+                                                if (cart.selectedTable.isNotEmpty) {
+                                                  // Disable the button after it has been pressed
+                                                  setState(() {
+                                                    isButtonDisabled = true;
+                                                  });
+                                                  checkModifierMinSelect(modifierGroup);
+                                                  await addToCart(cart);
+                                                  Navigator.of(context).pop();
+                                                } else {
+                                                  openChooseTableDialog(cart, context);
+                                                }
+                                              } else {
+                                                Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
+                                              }
                                             }
                                           } else if (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 1) {
                                             // Disable the button after it has been pressed
@@ -1534,7 +1554,105 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     }
   }
 
+  Future<void> enterTableNumberDialog(CartModel cart, BuildContext context, ThemeColor color) async {
+    TextEditingController tableController = TextEditingController();
+    bool isButtonDisabled = true;
+    if(cart.selectedTableIndex != ''){
+      tableController.text = cart.selectedTableIndex;
+      isButtonDisabled = false;
+    }
 
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(AppLocalizations.of(context)!.translate('table_mode_custom_note')),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      height: 75,
+                      width: 350,
+                      child: TextField(
+                        autofocus: true,
+                        controller: tableController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly
+                        ],
+                        textAlign: TextAlign.center,
+                        decoration: InputDecoration(
+                          errorText: tableController.text.isEmpty ? AppLocalizations.of(context)!.translate('enter_table_number') : null,
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: color.backgroundColor),
+                          ),
+                          hintText: AppLocalizations.of(context)!.translate('enter_table_number'),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            tableController.text = value.replaceFirst(RegExp(r'^0+'), '');
+                            tableController.selection = TextSelection.fromPosition(
+                              TextPosition(offset: tableController.text.length),
+                            );
+                            isButtonDisabled = tableController.text.isEmpty;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: <Widget>[
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: SizedBox(
+                        height: 50,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: color.backgroundColor,
+                          ),
+                          child: Text(AppLocalizations.of(context)!.translate('close'), style: TextStyle(color: Colors.white)),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    Expanded(
+                      flex: 1,
+                      child: SizedBox(
+                        height: 50,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: color.buttonColor,
+                          ),
+                          child: Text(AppLocalizations.of(context)!.translate('ok'), style: TextStyle(color: Colors.white)),
+                          onPressed: isButtonDisabled
+                              ? null
+                              : () {
+                            cart.selectedTableIndex = tableController.text;
+                            Navigator.of(context).pop(tableController.text);
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 
   Future<Future<Object?>> openChooseTableDialog(CartModel cartModel, context) async {
     return showGeneralDialog(

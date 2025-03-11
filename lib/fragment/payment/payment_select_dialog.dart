@@ -161,6 +161,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                         widget.callBack!('');
                       }
                       TableModel.instance.changeContent(true);
+                      cart.removeSelectedTableIndex();
                       cart.removeAllTable();
                       cart.removeAllCartItem();
                       cart.removeAllGroupList();
@@ -276,6 +277,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                         widget.callBack!('');
                       }
                       TableModel.instance.changeContent(true);
+                      cart.removeSelectedTableIndex();
                       cart.removeAllTable();
                       cart.removeAllCartItem();
                       cart.removeAllGroupList();

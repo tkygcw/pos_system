@@ -27,6 +27,7 @@ class BillLayout extends ReceiptLayout{
     final String? branch = prefs.getString('branch');
     Map branchObject = json.decode(branch!);
     Branch branchData = Branch.fromJson(json.decode(branch));
+    List<String> customTableNumber = [];
     await readReceiptLayout('80');
     if(isRefund != null && isRefund == true){
       await getRefundOrder(orderId);
@@ -36,6 +37,17 @@ class BillLayout extends ReceiptLayout{
       await getPaidOrder(orderId);
       await callOrderTaxPromoDetail();
       await callPaidOrderDetail(orderId);
+    }
+    // check custom table number value
+    if(paidOrder!.dining_name == 'Dine in' && selectedTableList.isEmpty) {
+      await getOrderCache(orderId);
+      for(int i = 0; i < paidOrderCacheList.length; i++){
+        if (paidOrderCacheList[i].custom_table_number != '') {
+          if (!customTableNumber.contains(paidOrderCacheList[i].custom_table_number)) {
+            customTableNumber.add(paidOrderCacheList[i].custom_table_number!);
+          }
+        }
+      }
     }
     await getAllPaymentSplit(paidOrder!.order_key!);
     // final ByteData data = await rootBundle.load('drawable/logo2.png');
@@ -146,6 +158,8 @@ class BillLayout extends ReceiptLayout{
       if(receipt!.hide_dining_method_table_no == 0){
         if(selectedTableList.isNotEmpty){
           bytes += generator.text('Table No: ${getCartTableNumber(selectedTableList).toString().replaceAll('[', '').replaceAll(']', '')}');
+        } else if(customTableNumber.isNotEmpty) {
+          bytes += generator.text('Table No: ${customTableNumber.toString().replaceAll('[', '').replaceAll(']', '')}');
         }
         bytes += generator.text('${paidOrder!.dining_name}');
       }

@@ -6,6 +6,7 @@ import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
@@ -305,8 +306,8 @@ class CartPageState extends State<CartPage> {
                             child: IconButton(
                               tooltip: 'table',
                               icon: Badge(
-                                isLabelVisible: cart.selectedTable.isEmpty ? false : true,
-                                label: Text("${cart.selectedTable.length}"),
+                                isLabelVisible: cart.selectedTable.isEmpty ? cart.selectedTableIndex != '' ? true : false : true,
+                                label: Text("${cart.selectedTable.isNotEmpty ? cart.selectedTable.length : 1}"),
                                 child: const Icon(
                                   Icons.table_restaurant,
                                 ),
@@ -314,7 +315,11 @@ class CartPageState extends State<CartPage> {
                               color: color.backgroundColor,
                               onPressed: () {
                                 //tableDialog(context);
-                                openChooseTableDialog(cart);
+                                if(appSettingModel.table_order == 3){
+                                  enterTableNumberDialog(cart, context, color);
+                                } else {
+                                  openChooseTableDialog(cart);
+                                }
                               },
                             ),
                           ),
@@ -347,6 +352,7 @@ class CartPageState extends State<CartPage> {
                                 // cart.initialLoad();
                                 cart.removeAllCartItem();
                                 // cart.removePartialCartItem();
+                                cart.removeSelectedTableIndex();
                                 cart.removeAllTable();
                               },
                             ),
@@ -763,7 +769,7 @@ class CartPageState extends State<CartPage> {
                                                         _isSettlement = false;
                                                       } else {
                                                         disableButton();
-                                                        if (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 0) {
+                                                        if (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 0 && appSettingModel.table_order != 3) {
                                                           if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
                                                             openLoadingDialogBox();
                                                             //_startTimer();
@@ -792,6 +798,7 @@ class CartPageState extends State<CartPage> {
                                                             //     msg: AppLocalizations.of(context)!.translate('make_sure_cart_is_not_empty_and_table_is_selected'));
                                                           }
                                                         } else {
+                                                          print("not dine in call");
                                                           // not dine in call
                                                           cart.removeAllTable();
                                                           if (cart.cartNotifierItem.isNotEmpty) {
@@ -802,6 +809,7 @@ class CartPageState extends State<CartPage> {
                                                               // create a new order
                                                               openLoadingDialogBox();
                                                               asyncQ.addJob((_) async => await callCreateNewNotDineOrder(cart, appSettingModel));
+                                                              print("local: cart add new order done");
                                                             } else {
                                                               Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('cannot_replace_same_order'));
                                                             }
@@ -1319,12 +1327,24 @@ class CartPageState extends State<CartPage> {
 */
   getSelectedTable(CartModel cart, AppSettingModel appSettingModel) {
     List<String> result = [];
-    String? orderQueue = '';
+    List<String> orderQueue = [];
+    List<String> customTableNumber = [];
     for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-      if (cart.cartNotifierItem[i].order_queue != '') orderQueue = cart.cartNotifierItem[i].order_queue;
+      if (cart.cartNotifierItem[i].order_queue != '' && cart.cartNotifierItem[i].order_queue != null) {
+        if (!orderQueue.contains(cart.cartNotifierItem[i].order_queue)) {
+          orderQueue.add(cart.cartNotifierItem[i].order_queue!);
+        }
+      }
+      if (cart.cartNotifierItem[i].custom_table_number != null && cart.cartNotifierItem[i].custom_table_number != '') {
+        if (!customTableNumber.contains(cart.cartNotifierItem[i].custom_table_number)) {
+          customTableNumber.add(cart.cartNotifierItem[i].custom_table_number!);
+        }
+      }
     }
 
-    if (cart.selectedTable.isEmpty && cart.selectedOption == 'Dine in') {
+    if (customTableNumber.isNotEmpty && cart.selectedOption == 'Dine in') {
+      result = customTableNumber;
+    } else if (cart.selectedTable.isEmpty && cart.selectedOption == 'Dine in') {
       result.add('-');
     } else if (cart.selectedOption != 'Dine in') {
       result.add('-');
@@ -1339,9 +1359,9 @@ class CartPageState extends State<CartPage> {
     }
 
     if (result[0] == '-') {
-      if (orderQueue != '') {
-        result.clear();
-        result.add(AppLocalizations.of(context)!.translate('order') + ': ${orderQueue}');
+      if (orderQueue.isNotEmpty) {
+        result = orderQueue;
+        result[0] = AppLocalizations.of(context)!.translate('table') + ': ${result.toString().replaceAll('[', '').replaceAll(']', '')}';
         return result[0];
       }
     }
@@ -2386,6 +2406,106 @@ class CartPageState extends State<CartPage> {
         });
   }
 
+  Future<void> enterTableNumberDialog(CartModel cart, BuildContext context, ThemeColor color) async {
+    TextEditingController tableController = TextEditingController();
+    bool isButtonDisabled = true;
+    if(cart.selectedTableIndex != ''){
+      tableController.text = cart.selectedTableIndex;
+      isButtonDisabled = false;
+    }
+
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(AppLocalizations.of(context)!.translate('table_mode_custom_note')),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      height: 75,
+                      width: 350,
+                      child: TextField(
+                        autofocus: true,
+                        controller: tableController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly
+                        ],
+                        textAlign: TextAlign.center,
+                        decoration: InputDecoration(
+                          errorText: tableController.text.isEmpty ? AppLocalizations.of(context)!.translate('enter_table_number') : null,
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: color.backgroundColor),
+                          ),
+                          hintText: AppLocalizations.of(context)!.translate('enter_table_number'),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            tableController.text = value.replaceFirst(RegExp(r'^0+'), '');
+                            tableController.selection = TextSelection.fromPosition(
+                              TextPosition(offset: tableController.text.length),
+                            );
+                            isButtonDisabled = tableController.text.isEmpty;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: <Widget>[
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: SizedBox(
+                        height: 50,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: color.backgroundColor,
+                          ),
+                          child: Text(AppLocalizations.of(context)!.translate('close'), style: TextStyle(color: Colors.white)),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    Expanded(
+                      flex: 1,
+                      child: SizedBox(
+                        height: 50,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: color.buttonColor,
+                          ),
+                          child: Text(AppLocalizations.of(context)!.translate('ok'), style: TextStyle(color: Colors.white)),
+                          onPressed: isButtonDisabled
+                              ? null
+                              : () {
+                            cart.selectedTableIndex = tableController.text;
+                            Navigator.of(context).pop(tableController.text);
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   Future<Future<Object?>> openChooseTableDialog(CartModel cartModel) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
@@ -3389,7 +3509,7 @@ class CartPageState extends State<CartPage> {
           batch = await batchChecking();
         }
         //check selected table is in use or not
-        if (cart.selectedOption == 'Dine in' && localSetting.table_order != 0) {
+        if (cart.selectedOption == 'Dine in' && localSetting.table_order != 0 && localSetting.table_order != 3) {
           if(isAddOrder == true){
             inUsedTable = await checkCartTableStatus(cart.selectedTable);
           } else {
@@ -3413,6 +3533,7 @@ class CartPageState extends State<CartPage> {
 
           }
         }
+        print("cart.selectedTableIndex2222: ${cart.selectedTableIndex}");
         if (batch != '') {
           try {
             //create order cache
@@ -3423,8 +3544,9 @@ class CartPageState extends State<CartPage> {
                 company_id: loginUserObject['company_id'].toString(),
                 branch_id: branch_id.toString(),
                 order_detail_id: '',
-                table_use_sqlite_id: cart.selectedOption == 'Dine in' && localSetting.table_order != 0 ? _tableUse!.table_use_sqlite_id.toString() : '',
-                table_use_key: cart.selectedOption == 'Dine in' && localSetting.table_order != 0 ? _tableUse!.table_use_key : '',
+                custom_table_number: cart.selectedOption == 'Dine in' && localSetting.table_order == 3 ? cart.selectedTableIndex : '',
+                table_use_sqlite_id: cart.selectedOption == 'Dine in' && localSetting.table_order != 0 && localSetting.table_order != 3 ? _tableUse!.table_use_sqlite_id.toString() : '',
+                table_use_key: cart.selectedOption == 'Dine in' && localSetting.table_order != 0 && localSetting.table_order != 3 ? _tableUse!.table_use_key : '',
                 other_order_key: '',
                 batch_id: batch.toString().padLeft(6, '0'),
                 dining_id: this.diningOptionID.toString(),
@@ -3450,10 +3572,9 @@ class CartPageState extends State<CartPage> {
 
             try {
               if(isAddOrder){
-                if((localSetting.table_order == 1 && cart.selectedOption != 'Dine in') || cart.selectedOption != 'Dine in' && cart.cartNotifierItem[0].order_cache_key! != ''){
+                if(localSetting.table_order == 3 && cart.selectedOption == 'Dine in' || (localSetting.table_order == 1 && cart.selectedOption != 'Dine in') || cart.selectedOption != 'Dine in' && cart.cartNotifierItem[0].order_cache_key! != ''){
                   OrderCache? cacheData = await PosDatabase.instance.readOrderCacheSqliteID(cart.cartNotifierItem[0].order_cache_key!);
                   if(cacheData!.other_order_key == ''){
-                    print("first cache other order key: ${cacheData.other_order_key}");
                     await insertOtherOrderCacheKey(cacheData, dateTime);
                   } else {
                     cacheOtherOrderKey = cacheData.other_order_key!;

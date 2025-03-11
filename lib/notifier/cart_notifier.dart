@@ -19,6 +19,7 @@ class CartModel extends ChangeNotifier {
   List<Promotion> autoPromotion = [];
   Promotion? selectedPromotion;
   List<PosTable> selectedTable = [];
+  String selectedTableIndex = '';
   List<OrderCache> selectedOrderQueue = [];
   String selectedOption = '';
   String selectedOptionId = '';
@@ -53,6 +54,7 @@ class CartModel extends ChangeNotifier {
     List<cartProductItem>? cartNotifierItem,
     List<cartPaymentDetail>? cartNotifierPayment,
     List<PosTable>? selectedTable,
+    String? selectedTableIndex,
     String? selectedOption,
     String? selectedOptionId,
     String? selectedOptionOrderKey,
@@ -60,6 +62,7 @@ class CartModel extends ChangeNotifier {
   }){
     this.groupList = groupList ?? [];
     this.selectedTable = selectedTable ?? [];
+    this.selectedTableIndex = selectedTableIndex ?? '';
     this.cartNotifierItem = cartNotifierItem ?? [];
     this.selectedOption = selectedOption ?? '';
     this.selectedOptionId = selectedOptionId ?? '';
@@ -98,6 +101,7 @@ class CartModel extends ChangeNotifier {
   }
 
   void initialLoad() {
+    removeSelectedTableIndex();
     removeAllTable();
     removeAllCartItem();
     removePromotion();
@@ -112,6 +116,7 @@ class CartModel extends ChangeNotifier {
   }
 
   void notDineInInitLoad() {
+    removeSelectedTableIndex();
     removeAllTable();
     removeAllCartItem();
     removeAutoPromotion();
@@ -265,6 +270,10 @@ class CartModel extends ChangeNotifier {
     if(notify == true){
       notifyListeners();
     }
+  }
+
+  void removeSelectedTableIndex({bool? notify = true}) {
+    selectedTableIndex = '';
   }
 
   void removeSpecificTable(PosTable posTable) {
