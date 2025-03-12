@@ -33,17 +33,18 @@ class PrintDynamicQr {
         for(final printers in cashierPrinter){
           var printerDetail = jsonDecode(printers.value!);
           if (printers.type == 0) {
+            //print USB
             if(printers.paper_size == 0){
-              var data = Uint8List.fromList(await layout.print80mmFormat(true, posTable: table));
-              bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              var data = await layout.print80mmFormat(true, posTable: table);
+              bool? isConnected = await _usbPrintFunction.connect(printerDetail: printerDetail);
               if (isConnected == true) {
-                await flutterUsbPrinter.write(data);
+                await _usbPrintFunction.printReceipt(data);
               }
             } else {
-              var data = Uint8List.fromList(await layout.print58mmFormat(true, posTable: table));
-              bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              var data = await layout.print58mmFormat(true, posTable: table);
+              bool? isConnected = await _usbPrintFunction.connect(printerDetail: printerDetail);
               if (isConnected == true) {
-                await flutterUsbPrinter.write(data);
+                await _usbPrintFunction.printReceipt(data);
               }
             }
           } else if(printers.type == 1) {

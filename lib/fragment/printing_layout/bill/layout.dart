@@ -307,8 +307,8 @@ class BillLayout extends ReceiptLayout{
         PosColumn(text: 'Change', width: 8, styles: PosStyles(align: PosAlign.right)),
         PosColumn(text: '${this.paidOrder!.payment_change}', width: 4, styles: PosStyles(align: PosAlign.right)),
       ]);
+      bytes += generator.hr();
       if(branchData.allow_einvoice == 1 && branchData.einvoice_status == 1){
-        bytes += generator.hr();
         bytes += generator.text('E-invoice', styles: PosStyles(bold: true, align: PosAlign.center));
         bytes += generator.qrcode(generateQrUrl(branchData.branch_url!), size: QRSize.Size3, cor: QRCorrection.M);
         bytes += generator.text('Request Timeline:', styles: PosStyles(bold: true));
@@ -320,7 +320,6 @@ class BillLayout extends ReceiptLayout{
         bytes += generator.emptyLines(1);
         bytes += generator.text('${receipt!.footer_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1), containsChinese: true);
       } else if(paidOrder!.payment_status == 2) {
-        bytes += generator.hr();
         bytes += generator.text('refund by: ${paidOrder!.refund_by}', styles: PosStyles(align: PosAlign.center));
         // bytes += generator.text('${paidOrder!.refund_by}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('refund at: ${Utils.formatDate(paidOrder!.refund_at)}', styles: PosStyles(align: PosAlign.center));
@@ -634,9 +633,9 @@ class BillLayout extends ReceiptLayout{
         PosColumn(text: 'Change', width: 8),
         PosColumn(text: '${this.paidOrder!.payment_change}', width: 4),
       ]);
+      bytes += generator.hr();
       bytes += generator.reset();
       if(branchData.allow_einvoice == 1 && branchData.einvoice_status == 1){
-        bytes += generator.hr();
         bytes += generator.text('E-invoice', styles: PosStyles(bold: true, align: PosAlign.center));
         bytes += generator.qrcode(generateQrUrl(branchData.branch_url!), size: QRSize.Size3, cor: QRCorrection.M);
         bytes += generator.text('Request Timeline:', styles: PosStyles(bold: true));
@@ -648,7 +647,6 @@ class BillLayout extends ReceiptLayout{
         bytes += generator.emptyLines(1);
         bytes += generator.text('${receipt!.footer_text}', styles: PosStyles(bold: true, height: PosTextSize.size1, width: PosTextSize.size1, align: PosAlign.center), containsChinese: true);
       } else if (paidOrder!.payment_status == 2) {
-        bytes += generator.hr();
         bytes += generator.text('refund by: ${paidOrder!.refund_by}', styles: PosStyles(align: PosAlign.center));
         // bytes += generator.text('${paidOrder!.refund_by}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('refund at: ${Utils.formatDate(paidOrder!.refund_at)}', styles: PosStyles(align: PosAlign.center));

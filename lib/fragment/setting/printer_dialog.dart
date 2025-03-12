@@ -310,8 +310,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                           ),
                                           child: Icon(Icons.delete)),
                                       subtitle: _typeStatus == 0
-                                          ? Text(
-                                              '${jsonDecode(printerValue[index])["name"] ?? jsonDecode(printerValue[index])["manufacturer"] + jsonDecode(printerValue[index])["productName"]}')
+                                          ? Text('${jsonDecode(printerValue[index])["name"] ?? jsonDecode(printerValue[index])["productName"]}')
                                           : Text('${jsonDecode(printerValue[index])}'),
                                       title: Text(AppLocalizations.of(context)!.translate('printer')));
                                 },
@@ -764,8 +763,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                           ),
                                           child: Icon(Icons.delete)),
                                       subtitle: _typeStatus == 0
-                                          ? Text(
-                                              '${jsonDecode(printerValue[index])["manufacturer"] + jsonDecode(printerValue[index])["productName"]}')
+                                          ? Text('${jsonDecode(printerValue[index])["name"] ?? jsonDecode(printerValue[index])["productName"]}')
                                           : Text('${jsonDecode(printerValue[index])}'),
                                       title: Text(AppLocalizations.of(context)!.translate('printer')));
                                 },

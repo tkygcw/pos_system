@@ -9,8 +9,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../database/pos_database.dart';
 import '../../../object/printer.dart';
+import '../../printing_layout/usb_print.dart';
 
 class PrintReportReceipt {
+  USBPrintFunction _usbPrintFunction = USBPrintFunction.instance;
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   Duration duration = Duration(seconds: 1);
   List<Printer> cashierPrinterList = [];
@@ -26,16 +28,16 @@ class PrintReportReceipt {
         var printerDetail = jsonDecode(printers.value!);
         if (printers.type == 0) {
           if(printers.paper_size == 0){
-            var data = Uint8List.fromList(await layout.print80mmFormat(true));
-            bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+            var data = await layout.print80mmFormat(true);
+            bool? isConnected = await _usbPrintFunction.connect(printerDetail: printerDetail);
             if (isConnected == true) {
-              await flutterUsbPrinter.write(data);
+              await _usbPrintFunction.printReceipt(data);
             }
           } else {
-            var data = Uint8List.fromList(await layout.print58mmFormat(true));
-            bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+            var data = await layout.print58mmFormat(true);
+            bool? isConnected = await _usbPrintFunction.connect(printerDetail: printerDetail);
             if (isConnected == true) {
-              await flutterUsbPrinter.write(data);
+              await _usbPrintFunction.printReceipt(data);
             }
           }
         } else if(printers.type == 1){
