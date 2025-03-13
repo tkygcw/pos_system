@@ -605,7 +605,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                         if (hasStock) {
                                           if (cart.selectedOption == 'Dine in') {
                                             // custom table number mode
-                                            if(appSettingModel.table_order == 3){
+                                            if(appSettingModel.table_order == 2){
                                               if(simpleIntInput > 0){
                                                 if (cart.selectedTableIndex != '') {
                                                   // Disable the button after it has been pressed
@@ -638,14 +638,14 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                               } else {
                                                 Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
                                               }
+                                            } else {
+                                              // Disable the button after it has been pressed
+                                              setState(() {
+                                                isButtonDisabled = true;
+                                              });
+                                              await addToCart(cart);
+                                              Navigator.of(context).pop();
                                             }
-                                          } else if (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 1) {
-                                            // Disable the button after it has been pressed
-                                            setState(() {
-                                              isButtonDisabled = true;
-                                            });
-                                            await addToCart(cart);
-                                            Navigator.of(context).pop();
                                           } else {
                                             // Disable the button after it has been pressed
                                             setState(() {

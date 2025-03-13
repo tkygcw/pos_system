@@ -331,7 +331,7 @@ class _MakePaymentState extends State<MakePayment> {
                                           alignment: Alignment.center,
                                           child: Text(_appSettingModel.table_order == 0
                                               ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
-                                              : _appSettingModel.table_order == 3
+                                              : _appSettingModel.table_order == 2
                                               ? AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedCustomTable(cart, appSettingModel)}'
                                               : AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
                                               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
@@ -3733,7 +3733,7 @@ class _MakePaymentState extends State<MakePayment> {
   getSelectedCustomTable(CartModel cart, AppSettingModel appSettingModel) {
     String? customTable = '';
     List<String> result = [];
-    if (widget.dining_name == 'Dine in' && appSettingModel.table_order == 3) {
+    if (widget.dining_name == 'Dine in' && appSettingModel.table_order == 2) {
       if(cart.cartNotifierItem.isNotEmpty) {
         for(int i = 0; i < cart.cartNotifierItem.length; i++) {
           if(cart.cartNotifierItem[i].custom_table_number != '' && cart.cartNotifierItem[i].custom_table_number != null) {

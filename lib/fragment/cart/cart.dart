@@ -315,7 +315,7 @@ class CartPageState extends State<CartPage> {
                               color: color.backgroundColor,
                               onPressed: () {
                                 //tableDialog(context);
-                                if(appSettingModel.table_order == 3){
+                                if(appSettingModel.table_order == 2){
                                   enterTableNumberDialog(cart, context, color);
                                 } else {
                                   openChooseTableDialog(cart);
@@ -769,7 +769,7 @@ class CartPageState extends State<CartPage> {
                                                         _isSettlement = false;
                                                       } else {
                                                         disableButton();
-                                                        if (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 0 && appSettingModel.table_order != 3) {
+                                                        if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == 1) {
                                                           if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
                                                             openLoadingDialogBox();
                                                             //_startTimer();
@@ -2863,14 +2863,11 @@ class CartPageState extends State<CartPage> {
           // printReceipt.printProductTicket(printerList, int.parse(this.orderCacheId), ticketProduct);
         }
 
-        if(appSettingModel.table_order == 2) {
-          Navigator.of(context).pop();
-          await checkDirectPayment(appSettingModel, cart);
-        } else {
-          cart.removeAllCartItem();
-          cart.removeAllTable();
-          Navigator.of(context).pop();
-        }
+
+        cart.removeAllCartItem();
+        cart.removeAllTable();
+        Navigator.of(context).pop();
+
         //syncAllToCloud();
         // print('finish sync');
         // if (this.isLogOut == true) {
@@ -2962,7 +2959,6 @@ class CartPageState extends State<CartPage> {
 */
   callAddNotDineInOrderCache(CartModel cart, AppSettingModel appSettingModel) async {
     try{
-      print("first_cache_other_order_key: ${cart.cartNotifierItem[0].first_cache_other_order_key}");
       resetValue();
       List<cartProductItem> outOfStockItem = await checkOrderStock(cart);
       if(outOfStockItem.isEmpty){
@@ -3509,7 +3505,7 @@ class CartPageState extends State<CartPage> {
           batch = await batchChecking();
         }
         //check selected table is in use or not
-        if (cart.selectedOption == 'Dine in' && localSetting.table_order != 0 && localSetting.table_order != 3) {
+        if (cart.selectedOption == 'Dine in' && localSetting.table_order != 0 && localSetting.table_order != 2) {
           if(isAddOrder == true){
             inUsedTable = await checkCartTableStatus(cart.selectedTable);
           } else {
@@ -3544,9 +3540,9 @@ class CartPageState extends State<CartPage> {
                 company_id: loginUserObject['company_id'].toString(),
                 branch_id: branch_id.toString(),
                 order_detail_id: '',
-                custom_table_number: cart.selectedOption == 'Dine in' && localSetting.table_order == 3 ? cart.selectedTableIndex : '',
-                table_use_sqlite_id: cart.selectedOption == 'Dine in' && localSetting.table_order != 0 && localSetting.table_order != 3 ? _tableUse!.table_use_sqlite_id.toString() : '',
-                table_use_key: cart.selectedOption == 'Dine in' && localSetting.table_order != 0 && localSetting.table_order != 3 ? _tableUse!.table_use_key : '',
+                custom_table_number: cart.selectedOption == 'Dine in' && localSetting.table_order == 2 ? cart.selectedTableIndex : '',
+                table_use_sqlite_id: cart.selectedOption == 'Dine in' && localSetting.table_order != 0 && localSetting.table_order != 2 ? _tableUse!.table_use_sqlite_id.toString() : '',
+                table_use_key: cart.selectedOption == 'Dine in' && localSetting.table_order != 0 && localSetting.table_order != 2 ? _tableUse!.table_use_key : '',
                 other_order_key: '',
                 batch_id: batch.toString().padLeft(6, '0'),
                 dining_id: this.diningOptionID.toString(),
@@ -3572,7 +3568,7 @@ class CartPageState extends State<CartPage> {
 
             try {
               if(isAddOrder){
-                if(localSetting.table_order == 3 && cart.selectedOption == 'Dine in' || (localSetting.table_order == 1 && cart.selectedOption != 'Dine in') || cart.selectedOption != 'Dine in' && cart.cartNotifierItem[0].order_cache_key! != ''){
+                if(cart.selectedOption == 'Dine in' && localSetting.table_order != 1 || cart.selectedOption != 'Dine in' && cart.cartNotifierItem[0].order_cache_key! != ''){
                   OrderCache? cacheData = await PosDatabase.instance.readOrderCacheSqliteID(cart.cartNotifierItem[0].order_cache_key!);
                   if(cacheData!.other_order_key == ''){
                     await insertOtherOrderCacheKey(cacheData, dateTime);
@@ -3609,7 +3605,7 @@ class CartPageState extends State<CartPage> {
           }
         }
       } catch (e) {
-        print('createOrderCache error: ${e}');
+        print('cart, createOrderCache error: ${e}');
       }
     } catch(e) {
       FLog.error(
@@ -3661,7 +3657,6 @@ class CartPageState extends State<CartPage> {
   }
 
   Future<int> generateOrderQueue() async {
-    print("generateOrderQueue called");
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());

@@ -212,14 +212,15 @@ class ServerAction {
         }
         break;
         case '8': {
+          // create new order
           try{
             CartModel cart = CartModel();
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam['cart']);
-            if(cart.selectedOption == 'Dine in' && AppSettingModel.instance.table_order != 0){
+            if(cart.selectedOption == 'Dine in' && AppSettingModel.instance.table_order == 1){
               result = await placeOrderFunction(PlaceDineInOrder(), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
             } else {
-              result = await placeOrderFunction(PlaceNotDineInOrder(), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
+              result = await placeOrderFunction(PlaceNotDineInOrder(customTable: decodeParam['custom_table']), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
             }
           } catch(e){
             result = {'status': '4', 'exception': "New-order error: ${e.toString()}"};
@@ -232,11 +233,12 @@ class ServerAction {
         }
         break;
         case '9': {
+          // add-on order
           try{
             CartModel cart = CartModel();
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam['cart']);
-            if(decodeParam['order_cache'] == ''){
+            if(decodeParam['order_cache'] == '' && cart.selectedOption == 'Dine in' && AppSettingModel.instance.table_order == 1){
               result = await placeOrderFunction(PlaceAddOrder(), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
             } else {
               OrderCache orderCache = OrderCache.fromJson(decodeParam['order_cache']);
@@ -513,6 +515,12 @@ class ServerAction {
         break;
         case '24': {
           TableFunction().removeSpecificBatchSubPosOrderCache(param);
+          result = {'status': '1'};
+        }
+        break;
+        case '25': {
+          // remove all sub pos order cache
+          TableFunction().clearSubPosOrderCache();
           result = {'status': '1'};
         }
         break;

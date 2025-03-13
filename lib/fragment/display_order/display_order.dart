@@ -87,7 +87,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
     final int? branch_id = prefs.getInt('branch_id');
     AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
 
-    if(localSetting!.table_order == 2 || localSetting!.table_order == 3) {
+    if(localSetting!.table_order == 2) {
       if (selectDiningOption == 'All') {
         data = await PosDatabase.instance.readOrderCacheNoDineInAdvanced(branch_id.toString(), userObject['company_id']);
       } else {

@@ -623,7 +623,6 @@ abstract class PlaceOrder {
   }
 
   Future<int?> generateOrderQueue(CartModel cart) async {
-    print("generateOrderQueue called");
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     AppSetting? localSetting = await posDatabase.readLocalAppSetting(branch_id.toString());
