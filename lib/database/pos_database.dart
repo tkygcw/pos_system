@@ -1964,8 +1964,8 @@ class PosDatabase {
   Future<List<TaxLinkDining>> readAllTaxLinkDining() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.tax_rate, b.name AS tax_name, b.type AS tax_type, c.name AS dining_name '
-            'FROM $tableTaxLinkDining AS a JOIN $tableTax AS b ON a.tax_id = b.tax_id '
+        'SELECT a.*, b.tax_rate, b.name AS tax_name, b.type AS tax_type, b.specific_category AS specific_category, b.multiple_category AS multiple_category, '
+            'c.name AS dining_name FROM $tableTaxLinkDining AS a JOIN $tableTax AS b ON a.tax_id = b.tax_id '
             'JOIN $tableDiningOption AS c ON a.dining_id = c.dining_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ?',
         ['', '', '']);
 

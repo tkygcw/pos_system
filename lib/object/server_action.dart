@@ -113,6 +113,7 @@ class ServerAction {
           var data11 = appLanguage.appLocal.languageCode;
           var data12 = await PosDatabase.instance.readAllSubscription();
 
+          print("data9: ${json.encode(data9)}");
           print("data2 length: ${data2.length}");
            objectData = {
              'tb_categories': data,
