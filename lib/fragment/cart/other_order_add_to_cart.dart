@@ -91,7 +91,9 @@ class _OtherOrderAddtoCartState extends State<OtherOrderAddtoCart> {
                                   style: TextStyle(fontSize: checkPortraitSmallScreen() ? 16 : 18)),
                               trailing: checkPortraitSmallScreen() ? null
                                 : Text(
-                                  '#'+orderCacheList[index].batch_id.toString(),
+                                  orderCacheList[index].custom_table_number! != ''
+                                      ? '${AppLocalizations.of(context)!.translate('table')} ${orderCacheList[index].custom_table_number!}'
+                                      : '#'+orderCacheList[index].batch_id.toString(),
                                   style: TextStyle(fontSize: 15),
                                 ),
                               subtitle: Column(
@@ -107,7 +109,12 @@ class _OtherOrderAddtoCartState extends State<OtherOrderAddtoCart> {
                                     : AppLocalizations.of(context)!.translate('order_at')+': ' + Utils.formatDate(orderCacheList[index].created_at!),
                                     style: TextStyle(fontSize: MediaQuery.of(context).orientation == Orientation.landscape || MediaQuery.of(context).size.width > 500 ? 14 : 13),
                                   ),
-                                  checkPortraitSmallScreen() ? Text('#'+orderCacheList[index].batch_id.toString(),
+
+                                  checkPortraitSmallScreen()
+                                      ? Text(
+                                      orderCacheList[index].custom_table_number != ''
+                                          ? '${AppLocalizations.of(context)!.translate('table')} ${orderCacheList[index].custom_table_number!}'
+                                          : '#${orderCacheList[index].batch_id.toString()}',
                                     style: TextStyle(fontSize: MediaQuery.of(context).orientation == Orientation.landscape || MediaQuery.of(context).size.width > 500 ? 14 : 13),
                                   ) : Container(),
                                 ],

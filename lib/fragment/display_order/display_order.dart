@@ -482,7 +482,9 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                                   size: 30.0,
                                 ),
                                 trailing: Text(
-                                  '#'+orderCacheList[index].batch_id.toString(),
+                                  orderCacheList[index].custom_table_number! != ''
+                                  ? '${AppLocalizations.of(context)!.translate('table')} ${orderCacheList[index].custom_table_number!}'
+                                  : '#${orderCacheList[index].batch_id.toString()}',
                                   style: TextStyle(fontSize: MediaQuery.of(context).orientation == Orientation.landscape || MediaQuery.of(context).size.width > 500 ? 20 : 15),
                                 ),
                                 subtitle: Column(

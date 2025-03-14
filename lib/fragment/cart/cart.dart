@@ -1361,7 +1361,7 @@ class CartPageState extends State<CartPage> {
     if (result[0] == '-') {
       if (orderQueue.isNotEmpty) {
         result = orderQueue;
-        result[0] = AppLocalizations.of(context)!.translate('table') + ': ${result.toString().replaceAll('[', '').replaceAll(']', '')}';
+        result[0] = AppLocalizations.of(context)!.translate('order') + ': ${result.toString().replaceAll('[', '').replaceAll(']', '')}';
         return result[0];
       }
     }
