@@ -2579,9 +2579,14 @@ class Domain {
     try {
       await http.post(Domain.login).timeout(Duration(seconds: 20), onTimeout: () => throw TimeoutException("Timeout"));
       return true;
-    } catch (e) {
+    } catch (e, s) {
       print('host check error: $e');
-      return false;
+      FLog.error(
+        className: "domain",
+        text: "isHostReachable failed",
+        exception: "Error: $e, StackTrace: $s",
+      );
     }
+      return false;
   }
 }

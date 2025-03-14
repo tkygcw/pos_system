@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Optimy POS"
-#define MyAppVersion "1.1.47+159"
+#define MyAppVersion "1.1.46+158"
 #define MyAppPublisher "optimy.com"
 #define MyAppURL "https://optimy.com.my/"
 #define MyAppExeName "optimy_pos.exe"
