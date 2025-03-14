@@ -2,6 +2,7 @@ import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:f_logs/model/flog/flog.dart';
+import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/order_payment_split.dart';
 
 import '../../../notifier/cart_notifier.dart';
@@ -63,6 +64,8 @@ class PreviewLayout extends ReceiptLayout {
         PosColumn(text: 'Price', width: 3, styles: PosStyles(bold: true, align: PosAlign.right)),
       ]);
       bytes += generator.hr();
+      //merge same item
+      checkMergeCartItems(cartModel);
       //order product
       for(int i = 0; i < cartModel.cartNotifierItem.length; i++){
         bool productUnitPriceSplit = productNameDisplayCart(cartModel.cartNotifierItem, i, 80);
@@ -447,5 +450,29 @@ class PreviewLayout extends ReceiptLayout {
     } catch(e) {
       print("Total payment split: $e");
     }
+  }
+
+  void checkMergeCartItems(CartModel cartModel) {
+    for (int i = cartModel.cartNotifierItem.length - 1; i >= 0; i--) {
+      for (int j = i - 1; j >= 0; j--) {
+        var item1 = cartModel.cartNotifierItem[i], item2 = cartModel.cartNotifierItem[j];
+
+        if (item1.branch_link_product_sqlite_id == item2.branch_link_product_sqlite_id &&
+            item1.product_name == item2.product_name &&
+            item1.price == item2.price &&
+            item1.productVariantName == item2.productVariantName &&
+            haveSameModifiers(item1.orderModifierDetail ?? [], item2.orderModifierDetail ?? [])) {
+
+          item2.quantity = (item2.quantity ?? 0) + (item1.quantity ?? 0);
+          cartModel.cartNotifierItem.removeAt(i);
+          break;
+        }
+      }
+    }
+  }
+
+  bool haveSameModifiers(List<OrderModifierDetail> modList1, List<OrderModifierDetail> modList2) {
+    return modList1.length == modList2.length && modList1.map((mod) => int.parse(mod.mod_item_id!)).toSet()
+            .containsAll(modList2.map((mod) => int.parse(mod.mod_item_id!)).toSet());
   }
 }
