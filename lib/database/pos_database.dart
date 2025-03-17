@@ -3469,12 +3469,17 @@ class PosDatabase {
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
 
-  /*
+/*
   read order cache by table_use_key
 */
-  Future<List<OrderCache>> readSpecificOrderCacheByTableUseKey(String table_use_key) async {
+  Future<List<OrderCache>> readSpecificOrderCacheByTableUseKey(String table_use_key, {bool includeDeleted = true}) async {
+    List<Map<String, Object?>> result;
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE table_use_key = ?', [table_use_key]);
+    if(!includeDeleted){
+      result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE table_use_key = ? AND soft_delete = ?', [table_use_key, '']);
+    } else {
+      result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE table_use_key = ?', [table_use_key]);
+    }
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
 
