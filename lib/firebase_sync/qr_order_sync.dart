@@ -628,11 +628,11 @@ class FirestoreQROrderSync {
         batch.commit();
         status = 1;
       }
-    }catch(e){
+    }catch(e, s){
       FLog.error(
-        className: "firebase_sync/qr_order_sync",
-        text: "cancelOrderCache error",
-        exception: "Error: $e, order_cache_key: ${orderCache.order_cache_key}",
+        className: "qr order sync",
+        text: "updateOrderCacheTableId error",
+        exception: "Error: $e, Stacktrace: $s",
       );
       status = 0;
     }
