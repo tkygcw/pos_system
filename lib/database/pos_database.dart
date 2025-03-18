@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:pos_system/database/pos_database_utils.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/attendance.dart';
@@ -3771,6 +3772,28 @@ class PosDatabase {
 /*
   --------------------Report part--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  get not yet settlement order
+*/
+  Future<List<SalesPerDay>> readSalesPerDayWithDate(String startDate, String endDate) async {
+    try{
+      final db = await instance.database;
+      final result = await db.rawQuery(
+        'SELECT * FROM $tableSalesPerDay '
+            'WHERE soft_delete = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ? ',
+        ['', startDate, endDate]
+      );
+      return result.map((json) => SalesPerDay.fromJson(json)).toList();
+    }catch(e, s){
+      FLog.error(
+        className: "settlement query",
+        text: "_readSales error",
+        exception: 'Error: $e, Stacktrace: $s',
+      );
+      rethrow;
+    }
+  }
 
 /*
   read all order detail cancel with OB
