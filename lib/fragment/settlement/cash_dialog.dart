@@ -18,6 +18,7 @@ import '../../database/domain.dart';
 import '../../main.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/app_setting.dart';
+import '../custom_toastification.dart';
 import '../printing_layout/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../translation/AppLocalizations.dart';
@@ -634,12 +635,8 @@ class _CashDialogState extends State<CashDialog> {
       Fluttertoast.showToast(
           backgroundColor: Colors.orangeAccent,
           msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
-    }else if(printStatus == 3){
-      Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('no_cashier_printer_added'));
-    } else if(printStatus == 4){
-      Fluttertoast.showToast(
-          backgroundColor: Colors.orangeAccent,
-          msg: "${AppLocalizations.of(context)?.translate('no_cashier_printer')}");
+    } else {
+      CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('no_cashier_printer'));
     }
   }
 

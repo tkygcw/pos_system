@@ -11,6 +11,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:media_kit/media_kit.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/database/pos_firestore.dart';
@@ -63,6 +64,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
 
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Necessary initialization for package:media_kit.
+  MediaKit.ensureInitialized();
 
   //check second screen
   await getSecondScreen();

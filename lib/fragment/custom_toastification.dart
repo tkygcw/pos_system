@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
+import 'package:media_kit/media_kit.dart';
 import 'package:toastification/toastification.dart';
 
 import '../main.dart';
@@ -11,10 +14,15 @@ class _CustomToastification {
 
   static playReviewSound() {
     try {
-      final assetsAudioPlayer = AssetsAudioPlayer();
-      assetsAudioPlayer.open(
-        Audio("audio/review.mp3"),
-      );
+      if(Platform.isWindows){
+        var player = Player();
+        player.open(Media('audio/review.mp3'));
+      } else {
+        final assetsAudioPlayer = AssetsAudioPlayer();
+        assetsAudioPlayer.open(
+          Audio("audio/review.mp3"),
+        );
+      }
     } catch (e) {
       print("Play Sound Error: ${e}");
     }
@@ -103,12 +111,12 @@ class ShowPlaceOrderFailedToast {
 }
 
 class CustomFailedToast {
-  static showToast({required String title, String? description, int? duration}){
+  static showToast({required String title, String? description, int? duration, bool? playSound}){
     _CustomToastification.showToastificationAndSound(
       title: title,
       description: description != null ? Text(description) : null,
       isError: true,
-      playSound: true,
+      playSound: playSound ?? true,
       playTimes: 2,
       autoCloseDuration: duration
     );

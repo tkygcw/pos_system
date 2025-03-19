@@ -127,6 +127,8 @@ dependencies:
     git:
       url: https://github.com/tkygcw/thermal_printer.git
       ref: main
+  media_kit: ^1.1.11
+  media_kit_libs_audio: ^1.0.5
 
 dependency_overrides:
   image_picker_android: 0.8.6+6

@@ -9,6 +9,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   desktop_multi_window
   file_selector_windows
   firebase_core
+  media_kit_libs_windows_audio
   permission_handler_windows
   printing
   screen_retriever_windows
@@ -18,6 +19,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
+  media_kit_native_event_loop
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

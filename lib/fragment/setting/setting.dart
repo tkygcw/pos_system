@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:pos_system/fragment/custom_toastification.dart';
 import 'package:pos_system/fragment/setting/device_setting.dart';
 import 'package:pos_system/fragment/Attendance/attendance_dialog.dart';
 import 'package:pos_system/fragment/setting/features_setting.dart';
@@ -154,6 +154,7 @@ class _SettingMenuState extends State<SettingMenu> {
                           children: [
                             Text("${userEmail}"),
                             buildAttendanceBtn(color, context),
+                            SizedBox(height: 10),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: color.backgroundColor,
@@ -170,9 +171,7 @@ class _SettingMenuState extends State<SettingMenu> {
                                         msg: "${AppLocalizations.of(context)?.translate('check_internet_connection')}");
                                   }
                                 } else {
-                                  Fluttertoast.showToast(
-                                      backgroundColor: Colors.red,
-                                      msg: "${AppLocalizations.of(context)?.translate('log_out_settlement')}");
+                                  CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('log_out_settlement'));
                                 }
 
                               },
@@ -295,9 +294,7 @@ class _SettingMenuState extends State<SettingMenu> {
                                           msg: "${AppLocalizations.of(context)?.translate('check_internet_connection')}");
                                     }
                                   } else {
-                                    Fluttertoast.showToast(
-                                        backgroundColor: Colors.red,
-                                        msg: "${AppLocalizations.of(context)?.translate('log_out_settlement')}");
+                                    CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('log_out_settlement'));
                                   }
 
                                 },
@@ -511,10 +508,7 @@ class _SettingMenuState extends State<SettingMenu> {
                             );
                           }
                         } else {
-                          Fluttertoast.showToast(
-                            backgroundColor: Colors.red,
-                            msg: "${AppLocalizations.of(context)?.translate('log_out_settlement')}",
-                          );
+                          CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('log_out_settlement'));
                         }
                       },
                       child: Text(AppLocalizations.of(context)!.translate('close_counter')),
