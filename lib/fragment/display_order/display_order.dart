@@ -100,13 +100,9 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
         data = await PosDatabase.instance.readOrderCacheSpecial(selectDiningOption!);
       }
     }
-
-    if(!mounted) return;
-    setState(() {
-      orderCacheList = data;
-    });
+    orderCacheList = data;
     for(int i = 0; i < orderCacheList.length; i++) {
-      if(orderCacheList[i].order_key != '') {
+      if(orderCacheList[i].order_key != null && orderCacheList[i].order_key != '') {
         double amountPaid = 0;
         double total_amount = double.parse(orderCacheList[i].total_amount!);
         List<OrderPaymentSplit> orderSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(orderCacheList[i].order_key!);
@@ -119,9 +115,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
         total_amount = double.parse(orderData[0].final_amount!);
 
         total_amount -= amountPaid;
-        setState(() {
-          orderCacheList[i].total_amount = total_amount.toString();
-        });
+        orderCacheList[i].total_amount = total_amount.toString();
       } else {
         if(orderCacheList[i].other_order_key !=''){
           List<OrderCache> data = await PosDatabase.instance.readOrderCacheByOtherOrderKey(orderCacheList[i].other_order_key!);
@@ -129,13 +123,27 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
           for(int j = 0; j < data.length; j++){
             total_amount += double.parse(data[j].total_amount!);
           }
-          setState(() {
-            orderCacheList[i].total_amount = total_amount.toString();
-          });
+          orderCacheList[i].total_amount = total_amount.toString();
         }
       }
     }
-    _isLoad = true;
+    orderCacheList = removeDuplicateOrderCache(orderCacheList);
+    if(!mounted) return;
+    setState(() {
+      _isLoad = true;
+    });
+
+  }
+
+  List<OrderCache> removeDuplicateOrderCache(List<OrderCache> orderCacheList) {
+    final seenKeys = <String>{}; // Set to store unique other_order_key values
+
+    return orderCacheList.where((orderCache) {
+      final key = orderCache.other_order_key;
+      if (key == null || key == '') return true; // Keep entries with empty keys
+
+      return seenKeys.add(key); // Adds to set & returns true if it's a new key
+    }).toList();
   }
 
   // Future<Future<Object?>> openViewOrderDialog(OrderCache data) async {

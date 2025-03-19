@@ -2555,7 +2555,7 @@ class ReceiptLayout{
           bytes += generator.reset();
           var userOrder = await groupStaffSales(settlement.settlement_key!);
           userOrder.forEach((username, order) {
-            double userSubtotal = order.fold(0, (sum, order) => sum + double.parse(order.final_amount!));
+            double userSubtotal = order.fold(0, (sum, order) => sum + order.total_sales!);
             bytes += generator.row([
               PosColumn(
                   text: username!,
