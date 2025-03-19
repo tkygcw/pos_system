@@ -672,7 +672,7 @@ class BillLayout extends ReceiptLayout{
   }
 
   String generateQrUrl(String branchUrl){
-    return '${Domain.einvoice}$branchUrl/${this.paidOrder!.generateOrderNumber().toString().replaceAll('#', '')}';
+    return '${Domain.einvoice}$branchUrl/${this.paidOrder!.generateOrderNumber().toString().replaceAll('#', '')}?id=${paidOrder!.order_key}';
   }
 
   Future<img.Image> getBranchLogo(int header_image_size) async {
