@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/object/sales_per_day/sales_per_day.dart';
 import 'package:pos_system/page/progress_bar.dart';
@@ -25,7 +26,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
         elevation: 0.0,
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
-        title: Text(AppLocalizations.of(context)!.translate('sales_summary'), style: TextStyle(fontSize: 25)),
+        title: Text(AppLocalizations.of(context)!.translate('daily_sales'), style: TextStyle(fontSize: 25)),
         centerTitle: false,
       ),
       body: _buildReport(),
@@ -60,87 +61,100 @@ class _buildReportState extends State<_buildReport> {
       preload();
       return StreamBuilder(stream: stream, builder: (context, snapshot){
         if(snapshot.hasData){
-          return Padding(
-            padding: EdgeInsets.all(8.0),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
+          if(_dataRow.isNotEmpty){
+            return Padding(
+              padding: EdgeInsets.all(8.0),
               child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
-                  headingTextStyle: TextStyle(color: Colors.white),
-                  headingRowColor: WidgetStateColor.resolveWith((states) {return Colors.black;},),
-                  columns: [
-                    DataColumn(
-                      label: Expanded(
-                        child: Text(
-                          AppLocalizations.of(context)!.translate('date'),
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                scrollDirection: Axis.vertical,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: DataTable(
+                    border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
+                    headingTextStyle: TextStyle(color: Colors.white),
+                    headingRowColor: WidgetStateColor.resolveWith((states) {return Colors.black;},),
+                    columns: [
+                      DataColumn(
+                        label: Expanded(
+                          child: Text(
+                            AppLocalizations.of(context)!.translate('date'),
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
-                    ),
-                    DataColumn(
-                      label: Expanded(
-                        child: Text(
-                          AppLocalizations.of(context)!.translate('total_sales'),
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                      DataColumn(
+                        label: Expanded(
+                          child: Text(
+                            AppLocalizations.of(context)!.translate('total_sales'),
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
-                    ),
-                    DataColumn(
-                      label: Expanded(
-                        child: Text(
-                          AppLocalizations.of(context)!.translate('total_rounding'),
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                      DataColumn(
+                        label: Expanded(
+                          child: Text(
+                            AppLocalizations.of(context)!.translate('total_rounding'),
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
-                    ),
-                    DataColumn(
-                      label: Expanded(
-                        child: Text(
-                          AppLocalizations.of(context)!.translate('total_tax'),
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                      DataColumn(
+                        label: Expanded(
+                          child: Text(
+                            AppLocalizations.of(context)!.translate('total_tax'),
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
-                    ),
-                    DataColumn(
-                      label: Expanded(
-                        child: Text(
-                          AppLocalizations.of(context)!.translate('total_charge'),
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                      DataColumn(
+                        label: Expanded(
+                          child: Text(
+                            AppLocalizations.of(context)!.translate('total_charge'),
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
-                    ),
-                    DataColumn(
-                      label: Expanded(
-                        child: Text(
-                          AppLocalizations.of(context)!.translate('total_discount'),
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                      DataColumn(
+                        label: Expanded(
+                          child: Text(
+                            AppLocalizations.of(context)!.translate('total_discount'),
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
-                    ),
-                    DataColumn(
-                      label: Expanded(
-                        child: Text(
-                          AppLocalizations.of(context)!.translate('gross_sales'),
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                      DataColumn(
+                        label: Expanded(
+                          child: Text(
+                            AppLocalizations.of(context)!.translate('gross_sales'),
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
-                    ),
-                    DataColumn(
-                      label: Expanded(
-                        child: Text(
-                          AppLocalizations.of(context)!.translate('net_sales'),
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                      DataColumn(
+                        label: Expanded(
+                          child: Text(
+                            AppLocalizations.of(context)!.translate('net_sales'),
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                  rows: _dataRow,
+                    ],
+                    rows: _dataRow,
+                  ),
                 ),
               ),
-            ),
-          );
+            );
+          } else {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(Icons.menu),
+                  Text(AppLocalizations.of(context)!.translate('no_record_found')),
+                ],
+              ),
+            );
+          }
         } else if (snapshot.hasError) {
           return Center(
             child: Text("Something went wrong..."),
@@ -153,23 +167,33 @@ class _buildReportState extends State<_buildReport> {
   }
 
   preload() async {
-    _dataRow = [];
-    List<SalesPerDay> salesPerDay = await ReportObject().getAllSalesPerDay(currentStDate:  _reportModel.startDateTime, currentEdDate: _reportModel.endDateTime);
-    for(var sales in salesPerDay) {
-      _dataRow.addAll([
-        DataRow(cells: [
-          DataCell(Text('${sales.created_at}')),
-          DataCell(Text('${sales.total_amount}')),
-          DataCell(Text('${sales.rounding}')),
-          DataCell(Text('${sales.tax}')),
-          DataCell(Text('${sales.charge}')),
-          DataCell(Text('${sales.promotion}')),
-          DataCell(Text('${(double.parse(sales.total_amount!) + double.parse(sales.promotion!)).toStringAsFixed(2)}')),
-          DataCell(Text('${sales.total_amount}')),
-        ])
-      ]);
+    try{
+      _dataRow = [];
+      List<SalesPerDay> salesPerDay = await ReportObject().getAllSalesPerDay(currentStDate:  _reportModel.startDateTime, currentEdDate: _reportModel.endDateTime);
+      for(var sales in salesPerDay) {
+        _dataRow.addAll([
+          DataRow(cells: [
+            DataCell(Text('${sales.created_at}')),
+            DataCell(Text('${sales.total_amount}')),
+            DataCell(Text('${sales.rounding}')),
+            DataCell(Text('${sales.tax}')),
+            DataCell(Text('${sales.charge}')),
+            DataCell(Text('${sales.promotion}')),
+            DataCell(Text('${(double.parse(sales.total_amount!) + double.parse(sales.promotion!)).toStringAsFixed(2)}')),
+            DataCell(Text('${sales.total_amount}')),
+          ])
+        ]);
+      }
+      _controller.sink.add('refresh');
+    }catch(e, s){
+      FLog.error(
+        className: "daily sales report",
+        text: "preload failed",
+        exception: "Error: $e, StackTrace: $s",
+      );
+      _controller.sink.addError(e);
+      rethrow;
     }
-    _controller.sink.add('refresh');
   }
 }
 

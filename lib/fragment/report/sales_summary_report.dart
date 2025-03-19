@@ -203,7 +203,7 @@ class _SalesSummaryReportState extends State<SalesSummaryReport> {
                             Row(
                               children: [
                                 Container(
-                                  child: Text(AppLocalizations.of(context)!.translate('sales_summary_report'),
+                                  child: Text(AppLocalizations.of(context)!.translate('sales_summary'),
                                       style: TextStyle(fontSize: 25, color: Colors.black)),
                                 ),
                               ],
