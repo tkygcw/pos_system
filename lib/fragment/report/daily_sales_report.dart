@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:pos_system/object/sales_per_day/sales_per_day.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 
 import '../../notifier/report_notifier.dart';
-import '../../notifier/theme_color.dart';
 import '../../object/report_class.dart';
 import '../../translation/AppLocalizations.dart';
 
@@ -28,6 +28,16 @@ class _DailySalesReportState extends State<DailySalesReport> {
         backgroundColor: Colors.transparent,
         title: Text(AppLocalizations.of(context)!.translate('daily_sales'), style: TextStyle(fontSize: 25)),
         centerTitle: false,
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0), // Thickness of the underline
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Container(
+              color:  Colors.grey, // Color of the underline
+              height: 0.5, // Thickness of the underline
+            ),
+          ),
+        ),
       ),
       body: _buildReport(),
     );
@@ -63,7 +73,7 @@ class _buildReportState extends State<_buildReport> {
         if(snapshot.hasData){
           if(_dataRow.isNotEmpty){
             return Padding(
-              padding: EdgeInsets.all(8.0),
+              padding: EdgeInsets.only(top: 15, left: 8, right: 8),
               child: SingleChildScrollView(
                 scrollDirection: Axis.vertical,
                 child: SingleChildScrollView(
@@ -173,7 +183,7 @@ class _buildReportState extends State<_buildReport> {
       for(var sales in salesPerDay) {
         _dataRow.addAll([
           DataRow(cells: [
-            DataCell(Text('${sales.created_at}')),
+            DataCell(Text('${formatDate(sales.created_at!)}')),
             DataCell(Text('${sales.total_amount}')),
             DataCell(Text('${sales.rounding}')),
             DataCell(Text('${sales.tax}')),
@@ -194,6 +204,14 @@ class _buildReportState extends State<_buildReport> {
       _controller.sink.addError(e);
       rethrow;
     }
+  }
+
+  String formatDate(String createdAt){
+    // Convert String to DateTime
+    DateTime dateTime = DateTime.parse(createdAt);
+
+    // Format DateTime to "yyyy-MM-dd"
+    return DateFormat("yyyy-MM-dd").format(dateTime);
   }
 }
 
