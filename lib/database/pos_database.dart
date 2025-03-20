@@ -1898,7 +1898,7 @@ class PosDatabase {
   Future<BranchLinkProduct?> readSpecificAvailableBranchLinkProduct(String branch_link_product_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.name, b.allow_ticket, b.ticket_count, b.ticket_exp FROM $tableBranchLinkProduct AS a JOIN $tableProduct AS b ON a.product_id = b.product_id '
+        'SELECT a.*, b.name, b.allow_ticket, b.ticket_count, b.ticket_exp, b.show_in_qr FROM $tableBranchLinkProduct AS a JOIN $tableProduct AS b ON a.product_id = b.product_id '
         'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_link_product_sqlite_id = ? AND b.available = ?',
         ['', '', branch_link_product_sqlite_id, 1]);
 
