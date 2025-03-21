@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:toastification/toastification.dart';
@@ -16,15 +17,19 @@ class _CustomToastification {
     try {
       if(Platform.isWindows){
         var player = Player();
-        player.open(Media('audio/review.mp3'));
+        player.open(Media('data/flutter_assets/audio/review.mp3'));
       } else {
         final assetsAudioPlayer = AssetsAudioPlayer();
         assetsAudioPlayer.open(
           Audio("audio/review.mp3"),
         );
       }
-    } catch (e) {
-      print("Play Sound Error: ${e}");
+    } catch (e, s) {
+      FLog.error(
+        className: "custom toastification",
+        text: "playReviewSound failed",
+        exception: "Error: $e, StackTrace: $s",
+      );
     }
   }
 

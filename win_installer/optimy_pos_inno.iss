@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Optimy POS"
-#define MyAppVersion "1.1.46+158"
+#define MyAppVersion "1.1.48+160"
 #define MyAppPublisher "optimy.com"
 #define MyAppURL "https://optimy.com.my/"
 #define MyAppExeName "optimy_pos.exe"
@@ -50,6 +50,9 @@ Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\desktop_
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\file_selector_windows_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\firebase_core_plugin.lib"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\flutter_windows.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\libmpv-2.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\media_kit_libs_windows_audio_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\media_kit_native_event_loop.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\msvcp140.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\pdfium.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\permission_handler_windows_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
@@ -58,6 +61,7 @@ Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\optimy_p
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\printing_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\screen_retriever_windows_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\sqlite3.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\thermal_printer_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\url_launcher_windows_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\vcruntime140.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\flutter_project\pos_system\build\windows\x64\runner\Release\vcruntime140_1.dll"; DestDir: "{app}"; Flags: ignoreversion
