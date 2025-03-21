@@ -1,3 +1,4 @@
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/database/pos_firestore_utils.dart';
@@ -52,23 +53,31 @@ class SyncToFirebase {
   }
 
   checkBranchInFirestore(Branch branch) async {
-    if(branch.allow_firestore == 0) {
-      posFirestore.setFirestoreStatus = FirestoreStatus.offline;
-    } else {
-      final localDbVersion = await _posDatabase.dbVersion;
-      posFirestore.setFirestoreStatus = FirestoreStatus.online;
-      Branch? data = await posFirestore.readCurrentBranch(branch.branch_id.toString());
-      if(data == null){
-        syncBranch();
+    try{
+      if(branch.allow_firestore == 0) {
+        posFirestore.setFirestoreStatus = FirestoreStatus.offline;
       } else {
-        if(data.firestore_db_version == null){
+        final localDbVersion = await _posDatabase.dbVersion;
+        posFirestore.setFirestoreStatus = FirestoreStatus.online;
+        Branch? data = await posFirestore.readCurrentBranch(branch.branch_id.toString());
+        if(data == null){
           syncBranch();
-        } else if(data.firestore_db_version! < localDbVersion) {
-          syncBranch();
+        } else {
+          if(data.firestore_db_version == null){
+            syncBranch();
+          } else if(data.firestore_db_version! < localDbVersion) {
+            syncBranch();
+          }
         }
       }
+      isBranchExisted = true;
+    }catch(e, s){
+      FLog.error(
+        className: "sync to firestore",
+        text: "checkBranchInFirestore failed",
+        exception: "Error: $e, StackTrace: $s",
+      );
     }
-    isBranchExisted = true;
   }
 
   sync() async {
