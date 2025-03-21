@@ -273,6 +273,9 @@ class PosDatabaseUtils {
           case 36: {
             await db.execute("ALTER TABLE $tableUser ADD ${UserFields.sub_pos_payment} $integerType DEFAULT 0");
           }break;
+          case 37: {
+            await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.promo} $jsonType");
+          }break;
         }
       }
     }

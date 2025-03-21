@@ -20,6 +20,7 @@ import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
 import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
+import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
@@ -3807,21 +3808,40 @@ class _MakePaymentState extends State<MakePayment> {
 
 
   addAllPromotion(CartModel cartModel) {
-    if (autoApplyPromotionList.isNotEmpty) {
-      for (int i = 0; i < autoApplyPromotionList.length; i++) {
-        if (!appliedPromotionList.contains(autoApplyPromotionList[i])) {
-          appliedPromotionList.add(autoApplyPromotionList[i]);
-        }
-      }
+    List<Promotion> promotionsToApply = [];
+
+    // auto apply, specific_category != 0
+    promotionsToApply.addAll(autoApplyPromotionList
+        .where((promo) => promo.auto_apply == '1'));
+
+    // manual apply, specific_category != 0
+    if (cartModel.selectedPromotion != null &&
+        cartModel.selectedPromotion!.auto_apply == '0' &&
+        cartModel.selectedPromotion!.specific_category != '0') {
+      promotionsToApply.add(cartModel.selectedPromotion!);
     }
-    if (cartModel.selectedPromotion != null) {
-      if (!appliedPromotionList.contains(cartModel.selectedPromotion!)) {
-        appliedPromotionList.add(cartModel.selectedPromotion!);
+
+    // auto apply, specific_category == 0
+    promotionsToApply.addAll(autoApplyPromotionList
+        .where((promo) => promo.auto_apply == '1' && promo.specific_category == '0'));
+
+    // manual apply, specific_category == 0
+    if (cartModel.selectedPromotion != null &&
+        cartModel.selectedPromotion!.auto_apply == '0' &&
+        cartModel.selectedPromotion!.specific_category == '0') {
+      promotionsToApply.add(cartModel.selectedPromotion!);
+    }
+
+    print("promotionsToApply length: ${promotionsToApply.length}");
+    for (var promo in promotionsToApply) {
+      if (!appliedPromotionList.contains(promo)) {
+        appliedPromotionList.add(promo);
       }
     }
   }
 
   getCartItemList(CartModel cart) {
+    print("getCartItemList called");
     if(orderCacheIdList.isEmpty){
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
         if (!orderCacheIdList.contains(cart.cartNotifierItem[i].order_cache_sqlite_id!)) {
@@ -3839,6 +3859,183 @@ class _MakePaymentState extends State<MakePayment> {
     }
     if(cart.cartNotifierItem.isNotEmpty && itemList.isEmpty){
       itemList.addAll((cart.cartNotifierItem));
+    }
+    for(int k = 0; k < itemList.length; k++) {
+      itemList[k].promo = {};
+    }
+    calculateCategoryPriceBeforePromo(cart);
+    print("cart.categoryTotalPriceMap: ${cart.categoryTotalPriceMap}");
+    print("cart.categoryTotalPriceMapBeforePromo: ${cart.categoryTotalPriceMapBeforePromo}");
+    // specific category promo
+
+    if (appliedPromotionList.isNotEmpty) {
+      double promoAmountAppliedOnDetail = 0;
+      for (int i = 0; i < appliedPromotionList.length; i++) {
+        if ((appliedPromotionList[i].auto_apply == '1' && appliedPromotionList[i].specific_category != '0')
+            || (appliedPromotionList[i].auto_apply == '0' && appliedPromotionList[i].specific_category != '0')) {
+          // specific_category is not '0'
+          if (appliedPromotionList[i].specific_category == '1') {
+            print("one category");
+            // One category
+            double thisCategoryTotal = 0;
+            for(var data in itemList) {
+              double singleItemDiscount = 0;
+              if (data.category_id == appliedPromotionList[i].category_id) {
+                for (var item in data.promo!.entries) {
+                  singleItemDiscount += item.value;
+                }
+                thisCategoryTotal += (double.parse(data.price!) * data.quantity!) - singleItemDiscount;
+              }
+            }
+
+            for (var item in itemList) {
+              if (item.category_id == appliedPromotionList[i].category_id) {
+                promoAmountAppliedOnDetail = appliedPromotionList[i].promoAmount! *
+                    (double.parse(item.price!) * item.quantity!) / thisCategoryTotal;
+                // item list add promoJson
+                item.promo![appliedPromotionList[i].name!] = double.parse(promoAmountAppliedOnDetail.toStringAsFixed(2));
+              }
+            }
+          } else {
+            // multiple category
+            print("multiple category called");
+            double multipleCategoryTotal = 0;
+            for(var data in itemList) {
+              double singleItemDiscount = 0;
+              if (appliedPromotionList[i].multiple_category!.any((category) => category['category_id'].toString() == data.category_id)) {
+                for (var item in data.promo!.entries) {
+                  singleItemDiscount += item.value;
+                }
+                multipleCategoryTotal += (double.parse(data.price!) * data.quantity!) - singleItemDiscount;
+              }
+            }
+            for (int j = 0; j < itemList.length; j++) {
+              if (appliedPromotionList[i].multiple_category!.any((category) => category['category_id'].toString() == itemList[j].category_id)) {
+                promoAmountAppliedOnDetail = appliedPromotionList[i].promoAmount! *
+                    (double.parse(itemList[j].price!) * itemList[j].quantity!) / multipleCategoryTotal;
+                print("${itemList[j].product_name}: ${appliedPromotionList[i].promoAmount!} * (${double.parse(itemList[j].price!)} * ${itemList[j].quantity!} / ${multipleCategoryTotal}) = ${double.parse(promoAmountAppliedOnDetail.toStringAsFixed(2))}");
+                // item list add promoJson
+                itemList[j].promo![appliedPromotionList[i].name!] = double.parse(promoAmountAppliedOnDetail.toStringAsFixed(2));
+              }
+            }
+          }
+        }
+      }
+    } else {
+      // all order detail promo json set empty {}
+    }
+
+    print("auto apply called");
+    for(int i = 0; i<itemList.length; i++)
+    // all category promo
+    if (appliedPromotionList.isNotEmpty) {
+      for (int i = 0; i < appliedPromotionList.length; i++) {
+        double promoAmountAppliedOnDetail = 0;
+        if((appliedPromotionList[i].auto_apply == '1' && appliedPromotionList[i].specific_category == '0')
+            || (appliedPromotionList[i].auto_apply == '0' && appliedPromotionList[i].specific_category == '0')) {
+          // specific_category == 0
+          double subtotalAfterPromoTotal = 0;
+          for(var data in itemList) {
+            double singleItemDiscount = 0;
+            for (var item in data.promo!.entries) {
+              singleItemDiscount += item.value;
+            }
+            subtotalAfterPromoTotal += (double.parse(data.price!) * data.quantity!) - singleItemDiscount;
+          }
+
+          for(var data in itemList) {
+            double singleItemDiscount = 0;
+            for (var item in data.promo!.entries) {
+              singleItemDiscount += item.value;
+            }
+            promoAmountAppliedOnDetail =
+                appliedPromotionList[i].promoAmount! * (double.parse(data.price!) * data.quantity!-singleItemDiscount) / subtotalAfterPromoTotal;
+            data.promo![appliedPromotionList[i].name!] = double.parse(promoAmountAppliedOnDetail.toStringAsFixed(2));
+          }
+
+          double thisPromoAmount = 0;
+          for(var data in itemList) {
+            for (var item in data.promo!.entries) {
+              if(item.key == appliedPromotionList[i].name) {
+                thisPromoAmount += item.value;
+              }
+            }
+          }
+          double compareAmount = double.parse((thisPromoAmount - appliedPromotionList[i].promoAmount!).toStringAsFixed(2));
+          if(compareAmount != 0) {
+            int loopCount = (compareAmount * 100).round().abs();
+            int x = 0;
+            if(compareAmount > 0) {
+              // promo too much need round down
+              while (x < loopCount) {
+                for (var item in itemList) {
+                  if (x >= loopCount) break;
+                  for (var data in item.promo!.entries) {
+                    if(data.key == appliedPromotionList[i].name) {
+                      item.promo![data.key] = item.promo![data.key]! - 0.01;
+                      // update data.value
+                      x++;  // Increment i
+                    }
+                  }
+                }
+              }
+            } else if(compareAmount < 0) {
+              // promo too less need round up
+              while (x < loopCount) {
+                for (var item in itemList) {
+                  if (x >= loopCount) break;
+                  for (var data in item.promo!.entries) {
+                    if(data.key == appliedPromotionList[i].name!) {
+                      item.promo![data.key] = item.promo![data.key]! + 0.01;
+                      // update data.value
+                      x++;  // Increment i
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    {
+      for(int i = 0; i<itemList.length; i++)
+        print("itemListPromo: ${jsonEncode(itemList[i].product_name)}, ${jsonEncode(itemList[i].promo)}");
+      double a = 0;
+      for(var data in itemList)
+        for (var item in data.promo!.entries) {
+          a += item.value;
+        }
+      double totall= 0;
+      for(var item in cart.categoryTotalPriceMapBeforePromo.entries) {
+        totall += item.value;
+      }
+      print("total discount = ${a.toStringAsFixed(2)}");
+      print("final amount = ${(totall-a).toStringAsFixed(2)}");
+    }
+  }
+
+  calculateCategoryPriceBeforePromo(CartModel cart){
+    try {
+      cart.clearCategoryTotalPriceMapBeforePromo();
+      for (int i = 0; i < cart.cartNotifierItem.length; i++) {
+        double thisProductTotalPrice = double.parse(cart.cartNotifierItem[i].price!) * cart.cartNotifierItem[i].quantity!;
+        if (!cart.categoryTotalPriceMapBeforePromo.containsKey(cart.cartNotifierItem[i].category_id)) {
+          // category not exist in map
+          cart.addCategoryTotalPriceBeforePromo(cart.cartNotifierItem[i].category_id!, thisProductTotalPrice);
+        } else {
+          // category exist in map
+          double currentCategoryPrice = cart.categoryTotalPriceMapBeforePromo[cart.cartNotifierItem[i].category_id]!;
+          cart.categoryTotalPriceMapBeforePromo[cart.cartNotifierItem[i].category_id!] = currentCategoryPrice + thisProductTotalPrice;
+        }
+      }
+    } catch(e){
+      FLog.error(
+        className: "cart",
+        text: "calculateCategoryPriceBeforePromo error",
+        exception: e,
+      );
     }
   }
 
@@ -3918,11 +4115,14 @@ class _MakePaymentState extends State<MakePayment> {
   }
 
   callCreateOrder(String? paymentReceived, {orderChange, String? ipayTransId}) async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
     OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(int.parse(orderCacheSqliteId));
     if(orderCacheData.order_key == null || orderCacheData.order_key == '') {
       await createOrder(double.parse(paymentReceived!), orderChange, ipayTransId: ipayTransId);
       await crateOrderTaxDetail();
       await createOrderPromotionDetail();
+      await updateOrderDetail(dateTime);
       //await syncAllToCloud();
     }
 
@@ -4328,6 +4528,21 @@ class _MakePaymentState extends State<MakePayment> {
       }
     }
     order_tax_value = _value.toString();
+  }
+
+  updateOrderDetail(String dateTime) async {
+    print("itemList get: ${itemList.length}");
+    for(var item in itemList){
+      print("itemListttt: ${jsonEncode(item)}");
+      OrderDetail thisOrderDetail = await PosDatabase.instance.readSpecificOrderDetailByLocalIdNoJoin(item.order_detail_sqlite_id!);
+      OrderDetail orderDetailObject = OrderDetail(
+          promo: item.promo,
+          sync_status: thisOrderDetail.sync_status == 0 ? 0 : 2,
+          updated_at: dateTime,
+          order_detail_sqlite_id: int.parse(item.order_detail_sqlite_id!)
+      );
+      await PosDatabase.instance.updateOrderDetailJson(orderDetailObject);
+    }
   }
 
   readSpecificPaymentMethod() async {

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/modifier_item.dart';
@@ -23,6 +25,7 @@ class OrderDetailFields {
     price,
     original_price,
     quantity,
+    promo,
     remark,
     account,
     edited_by,
@@ -53,6 +56,7 @@ class OrderDetailFields {
   static String price = 'price';
   static String original_price = 'original_price';
   static String quantity = 'quantity';
+  static String promo = 'promo';
   static String remark = 'remark';
   static String account = 'account';
   static String edited_by = 'edited_by';
@@ -84,6 +88,7 @@ class OrderDetail{
   String? price = '';
   String? original_price = '';
   String? quantity;
+  Map<String, double>? promo = {};
   String? remark;
   String? account;
   String? edited_by;
@@ -150,6 +155,7 @@ class OrderDetail{
         this.price,
         this.original_price,
         this.quantity,
+        this.promo,
         this.remark,
         this.account,
         this.edited_by,
@@ -210,6 +216,7 @@ class OrderDetail{
     String? price,
     String? original_price,
     String? quantity,
+    Map<String, double>? promo,
     String? remark,
     String? account,
     String? edited_by,
@@ -240,6 +247,7 @@ class OrderDetail{
           price: price ?? this.price,
           original_price: original_price ?? this.original_price,
           quantity: quantity ?? this.quantity,
+          promo: promo ?? this.promo,
           remark: remark ?? this.remark,
           account: account ?? this.account,
           edited_by: edited_by ?? this.edited_by,
@@ -276,6 +284,17 @@ class OrderDetail{
       price: json[OrderDetailFields.price] as String?,
       original_price: json[OrderDetailFields.original_price] as String?,
       quantity: json[OrderDetailFields.quantity] as String?,
+      promo: json['promo'] == null
+          ? {}
+          : (json['promo'] is String)
+          ? (json['promo'].toString().trim().isNotEmpty
+          ? Map<String, double>.from(jsonDecode(json['promo'] as String).map(
+              (key, value) => MapEntry(key as String, (value as num).toDouble())))
+          : {})
+          : (json['promo'] is Map)
+          ? Map<String, double>.from((json['promo'] as Map).map(
+              (key, value) => MapEntry(key as String, (value as num).toDouble())))
+          : {},
       remark: json[OrderDetailFields.remark] as String?,
       account: json[OrderDetailFields.account] as String?,
       edited_by: json[OrderDetailFields.edited_by] as String?,
@@ -332,6 +351,7 @@ class OrderDetail{
     OrderDetailFields.price: price,
     OrderDetailFields.original_price: original_price,
     OrderDetailFields.quantity: quantity,
+    OrderDetailFields.promo: jsonEncode(promo),
     OrderDetailFields.remark: remark,
     OrderDetailFields.account: account,
     OrderDetailFields.edited_by: edited_by,
@@ -371,6 +391,7 @@ class OrderDetail{
     OrderDetailFields.price: price,
     OrderDetailFields.original_price: original_price,
     OrderDetailFields.quantity: quantity,
+    OrderDetailFields.promo: jsonEncode(promo),
     OrderDetailFields.remark: remark,
     OrderDetailFields.account: account,
     OrderDetailFields.edited_by: edited_by,
@@ -397,6 +418,7 @@ class OrderDetail{
     OrderDetailFields.price: price,
     OrderDetailFields.original_price: original_price,
     OrderDetailFields.quantity: quantity,
+    OrderDetailFields.promo: jsonEncode(promo),
     OrderDetailFields.remark: remark,
     OrderDetailFields.account: account,
     OrderDetailFields.edited_by: edited_by,
@@ -425,6 +447,7 @@ class OrderDetail{
     OrderDetailFields.price: price,
     OrderDetailFields.original_price: original_price,
     OrderDetailFields.quantity: quantity,
+    OrderDetailFields.promo: jsonEncode(promo),
     OrderDetailFields.remark: remark,
     OrderDetailFields.account: account,
     OrderDetailFields.edited_by: edited_by,

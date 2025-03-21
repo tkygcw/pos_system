@@ -14,6 +14,7 @@ import '../object/table.dart';
 
 class CartModel extends ChangeNotifier {
   Map<String, double> categoryTotalPriceMap = {};
+  Map<String, double> categoryTotalPriceMapBeforePromo = {};
   List<cartProductItem> cartNotifierItem = [];
   List<cartPaymentDetail> cartNotifierPayment = [];
   List<Promotion> autoPromotion = [];
@@ -155,6 +156,10 @@ class CartModel extends ChangeNotifier {
 
   void addCategoryTotalPrice(String category_id, double categoryTotalPrice) {
     categoryTotalPriceMap[category_id] = categoryTotalPrice;
+  }
+
+  void addCategoryTotalPriceBeforePromo(String category_id, double categoryTotalPrice) {
+    categoryTotalPriceMapBeforePromo[category_id] = categoryTotalPrice;
   }
 
   void addItem(cartProductItem object) {
@@ -344,6 +349,10 @@ class CartModel extends ChangeNotifier {
 
   void clearCategoryTotalPriceMap(){
     categoryTotalPriceMap.clear();
+  }
+
+  void clearCategoryTotalPriceMapBeforePromo(){
+    categoryTotalPriceMapBeforePromo.clear();
   }
 
   void addSubPosOrderCache(OrderCache value){

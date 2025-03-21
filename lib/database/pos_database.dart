@@ -88,7 +88,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 37, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
+    return await openDatabase(path, version: 38, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
   }
 
 /*
@@ -6347,6 +6347,19 @@ class PosDatabase {
   }
 
 /*
+  update order detail promo, charge, tax json
+*/
+  Future<int> updateOrderDetailJson(OrderDetail data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableOrderDetail SET promo = ?, sync_status = ?, updated_at = ? WHERE order_detail_sqlite_id = ?', [
+      jsonEncode(data.promo),
+      data.sync_status,
+      data.updated_at,
+      data.order_detail_sqlite_id,
+    ]);
+  }
+
+/*
   update order modifier detail unique key
 */
   Future<int> updateOrderModifierDetailUniqueKey(OrderModifierDetail data) async {
@@ -7524,8 +7537,8 @@ FROM table_counts;
   Future<List<OrderDetail>> readAllNotSyncUpdatedOrderDetail() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.status, a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, a.account, a.remark, a.quantity, '
-        'a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.order_cache_key, a.order_detail_key, b.category_id, c.branch_link_product_id '
+        'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.status, a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, a.account, a.remark, a.promo, '
+        'a.quantity, a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.order_cache_key, a.order_detail_key, b.category_id, c.branch_link_product_id '
         'FROM $tableOrderDetail AS a JOIN $tableCategories as b ON a.category_sqlite_id = b.category_sqlite_id '
         'JOIN $tableBranchLinkProduct AS c ON a.branch_link_product_sqlite_id = c.branch_link_product_sqlite_id '
         'WHERE b.soft_delete = ? AND c.soft_delete = ? AND a.sync_status = ? ',
@@ -7842,14 +7855,14 @@ FROM table_counts;
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.product_sku, a.per_quantity_unit, a.unit, a.status, '
-        'a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, a.account, a.remark, a.quantity,'
+        'a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, a.account, a.remark, a.promo, a.quantity,'
         'a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.category_name, a.order_cache_key, a.order_detail_key, b.category_id, c.branch_link_product_id '
         'FROM $tableOrderDetail AS a JOIN $tableCategories as b ON a.category_sqlite_id = b.category_sqlite_id '
         'JOIN $tableBranchLinkProduct AS c ON a.branch_link_product_sqlite_id = c.branch_link_product_sqlite_id '
         'WHERE a.order_detail_key != ? AND a.sync_status != ? '
         'UNION ALL '
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.product_sku, a.per_quantity_unit, a.unit, a.status, '
-        'a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, a.account, a.remark, a.quantity, '
+        'a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, a.account, a.remark, a.promo, a.quantity, '
         'a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.category_name, a.order_cache_key, a.order_detail_key, 0 AS category_id, b.branch_link_product_id '
         'FROM $tableOrderDetail AS a '
         'JOIN $tableBranchLinkProduct AS b ON a.branch_link_product_sqlite_id = b.branch_link_product_sqlite_id '
