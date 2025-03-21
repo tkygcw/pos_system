@@ -183,7 +183,7 @@ class _buildReportState extends State<_buildReport> {
       for(var sales in salesPerDay) {
         _dataRow.addAll([
           DataRow(cells: [
-            DataCell(Text('${formatDate(sales.created_at!)}')),
+            DataCell(Text('${sales.date ?? '-'}')),
             DataCell(Text('${sales.total_amount}')),
             DataCell(Text('${sales.rounding}')),
             DataCell(Text('${sales.tax}')),
@@ -204,14 +204,6 @@ class _buildReportState extends State<_buildReport> {
       _controller.sink.addError(e);
       rethrow;
     }
-  }
-
-  String formatDate(String createdAt){
-    // Convert String to DateTime
-    DateTime dateTime = DateTime.parse(createdAt);
-
-    // Format DateTime to "yyyy-MM-dd"
-    return DateFormat("yyyy-MM-dd").format(dateTime);
   }
 }
 

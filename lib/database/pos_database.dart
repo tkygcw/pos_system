@@ -3781,7 +3781,7 @@ class PosDatabase {
       final db = await instance.database;
       final result = await db.rawQuery(
         'SELECT * FROM $tableSalesPerDay '
-            'WHERE soft_delete = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ? ',
+            'WHERE soft_delete = ? AND date >= ? AND date < ? ',
         ['', startDate, endDate]
       );
       return result.map((json) => SalesPerDay.fromJson(json)).toList();
@@ -7235,6 +7235,18 @@ class PosDatabase {
   Future clearAllCancelReceipt() async {
     final db = await instance.database;
     return await db.rawDelete('DELETE FROM $tableCancelReceipt');
+  }
+
+/*
+  Delete All sales per day
+*/
+  Future<void> clearAllSalesPerDay() async {
+    final db = await instance.database;
+    await db.rawDelete('DELETE FROM $tableSalesPerDay');
+    await db.rawDelete('DELETE FROM $tableSalesCategoryPerDay');
+    await db.rawDelete('DELETE FROM $tableSalesProductPerDay');
+    await db.rawDelete('DELETE FROM $tableSalesModifierPerDay');
+    await db.rawDelete('DELETE FROM $tableSalesDiningPerDay');
   }
 
 /*
