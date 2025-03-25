@@ -234,11 +234,16 @@ class QrOrderAutoAccept {
       await checkOrderDetailStock();
       print('available check: ${hasNotAvailableProduct}');
       if(paymentNotComplete) {
-
+        QrOrder.instance.getAllNotAcceptedQrOrder();
+        CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('table_is_in_payment'));
       } else if (hasNoStockProduct) {
-        Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
+        QrOrder.instance.getAllNotAcceptedQrOrder();
+        CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
+        //Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
       } else if(hasNotAvailableProduct){
-        Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
+        QrOrder.instance.getAllNotAcceptedQrOrder();
+        CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('contain_not_available_product'));
+        //Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
       } else {
         if (removeDetailList.isNotEmpty) {
           await removeOrderDetail();
@@ -300,26 +305,30 @@ class QrOrderAutoAccept {
     for (int i = 0; i < orderDetailList.length; i++) {
       BranchLinkProduct? data = await PosDatabase.instance.readSpecificAvailableBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
       if(data != null){
-        switch(data.stock_type){
-          case '1':{
-            orderDetailList[i].available_stock = data.daily_limit_amount!;
-            if (int.parse(orderDetailList[i].quantity!) > int.parse(data.daily_limit_amount!)) {
-              hasNoStockProduct = true;
-            } else {
+        if(data.show_in_qr == 1){
+          switch(data.stock_type){
+            case '1':{
+              orderDetailList[i].available_stock = data.daily_limit_amount!;
+              if (int.parse(orderDetailList[i].quantity!) > int.parse(data.daily_limit_amount!)) {
+                hasNoStockProduct = true;
+              } else {
+                hasNoStockProduct = false;
+              }
+            }break;
+            case '2': {
+              orderDetailList[i].available_stock = data.stock_quantity!;
+              if (int.parse(orderDetailList[i].quantity!) > int.parse(data.stock_quantity!)) {
+                hasNoStockProduct = true;
+              } else {
+                hasNoStockProduct = false;
+              }
+            }break;
+            default: {
               hasNoStockProduct = false;
             }
-          }break;
-          case '2': {
-            orderDetailList[i].available_stock = data.stock_quantity!;
-            if (int.parse(orderDetailList[i].quantity!) > int.parse(data.stock_quantity!)) {
-              hasNoStockProduct = true;
-            } else {
-              hasNoStockProduct = false;
-            }
-          }break;
-          default: {
-            hasNoStockProduct = false;
           }
+        } else {
+          hasNotAvailableProduct = true;
         }
       } else {
         hasNotAvailableProduct = true;

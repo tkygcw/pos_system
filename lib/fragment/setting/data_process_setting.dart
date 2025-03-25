@@ -512,6 +512,7 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> with Sing
     PosDatabase.instance.clearAllSettlementLinkPayment();
     PosDatabase.instance.clearAllTransferOwner();
     PosDatabase.instance.clearAllCustomer();
+    PosDatabase.instance.clearAllSalesPerDay();
   }
 
   resetAllInUsedTableStatus() async {

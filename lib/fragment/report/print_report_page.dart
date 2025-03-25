@@ -64,44 +64,44 @@ class _PrintReportPageState extends State<PrintReportPage> {
                   case 0:
                     return reportFormat.generateOverviewReportPdf(format, 'Overview', reportModel);
                   case 1:
-                    return reportFormat.generateDailySalesPdf(format, 'Daily Sales Report', reportModel);
-                  case 2:
+                    return reportFormat.generateDailySalesPdf(format, 'Sales summary Report', reportModel);
+                  case 3:
                     //generate product report
                     return reportFormat.generateProductReportPdf(format, 'Product Report', reportModel);
-                  case 3:
+                  case 4:
                     //generate category report
                     return reportFormat.generateCategoryReportPdf(format, 'Category Report', reportModel);
-                  case 4:
+                  case 5:
                     //generate modifier report
                     return reportFormat.generateModifierReportPdf(format, 'Modifier Report', reportModel);
-                  case 5:
+                  case 6:
                     //generate edit report
                     return reportFormat.generatePriceEditReportPdf(format, 'Price Edit Report', reportModel);
-                  case 6:
+                  case 7:
                     //generate cancel report
                     return reportFormat.generateCancelProductReportPdf(format, 'Cancellation Report', reportModel);
-                  case 7:
+                  case 8:
                   //generate cancel modifier report
                     return reportFormat.generateCancelRecordReportPdf(format, 'Cancel record Report', reportModel);
-                  case 8:
+                  case 9:
                     //generate cancel modifier report
                     return reportFormat.generateCancelModifierReportPdf(format, 'Cancel Modifier Report', reportModel);
-                  case 9:
+                  case 10:
                     //generate dining report
                     return reportFormat.generateDiningReport(format, 'Dining Report', reportModel);
-                  case 10:
+                  case 11:
                     //generate payment report
                     return reportFormat.generatePaymentReport(format, 'Payment Report', reportModel);
-                  case 11:
+                  case 12:
                     //generate refund report
                     return reportFormat.generateRefundReport(format, 'Refund Report', reportModel);
-                  case 12:
+                  case 13:
                   //generate cash record report
                     return reportFormat.generateCashRecordReport(format, 'Cash Record Report', reportModel);
-                  case 13:
+                  case 14:
                   //generate user sales report
                     return reportFormat.generateStaffSalesReport(format, 'Staff Sales Report', reportModel);
-                  case 14:
+                  case 15:
                   // generate attendance report
                     return reportFormat.generateAttendanceReport(format, 'Attendance Report', reportModel);
                   default:
