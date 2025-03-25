@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:provider/provider.dart';
@@ -38,7 +39,6 @@ class _PromotionDialogState extends State<PromotionDialog> {
   void initState() {
     super.initState();
     readAllPromotion();
-    print('final amount = ${widget.cartFinalAmount}');
   }
 
   @override
@@ -207,7 +207,7 @@ class _PromotionDialogState extends State<PromotionDialog> {
                                   border: OutlineInputBorder(),
                                   focusedBorder: OutlineInputBorder(),
                                   labelText: "Discount",
-                                    prefixText: 'RM '
+                                    prefixText: '$currency_symbol '
                                 ),
                               ),
                             );

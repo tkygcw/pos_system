@@ -1,5 +1,6 @@
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/object/cancel_receipt.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:pos_system/object/order_detail.dart';
@@ -310,7 +311,7 @@ class CancelReceiptLayout extends ReceiptLayout {
         unit: 'each',
         productName: 'Product 1',
         product_sku: 'SKU001',
-        price: 'RM6.90'
+        price: '${currency_symbol}6.90'
     );
     PosFontType productFontType = cancelReceipt.product_name_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
     PosFontType otherFontType = cancelReceipt.other_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
@@ -441,7 +442,7 @@ class CancelReceiptLayout extends ReceiptLayout {
         unit: 'each',
         productName: 'Product 1',
         product_sku: 'SKU001',
-        price: 'RM6.90'
+        price: '${currency_symbol}6.90'
     );
     PosFontType productFontType = cancelReceipt.product_name_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
     PosFontType otherFontType = cancelReceipt.other_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
@@ -567,18 +568,18 @@ class CancelReceiptLayout extends ReceiptLayout {
       if(cancelReceipt.show_product_price == 1 && cancelReceipt.show_product_sku == 1){
         if(orderDetail.unit != 'each' && orderDetail.unit != 'each_c'){
           var price = double.parse(orderDetail.price!) * double.parse(orderDetail.quantity_before_cancel!);
-          return '${orderDetail.product_sku} ${orderDetail.productName}(RM$price)';
+          return '${orderDetail.product_sku} ${orderDetail.productName}($price)';
         } else {
-          return '${orderDetail.product_sku} ${orderDetail.productName}(RM${orderDetail.price})';
+          return '${orderDetail.product_sku} ${orderDetail.productName}(${orderDetail.price})';
         }
       } else if (cancelReceipt.show_product_sku == 1) {
         return '${orderDetail.product_sku}${orderDetail.productName}';
       } else {
         if(orderDetail.unit != 'each' && orderDetail.unit != 'each_c'){
           var price = double.parse(orderDetail.price!) * double.parse(orderDetail.quantity_before_cancel!);
-          return '${orderDetail.product_sku} ${orderDetail.productName}(RM$price)';
+          return '${orderDetail.product_sku} ${orderDetail.productName}($price)';
         } else {
-          return '${orderDetail.productName}(RM${orderDetail.price})';
+          return '${orderDetail.productName}(${orderDetail.price})';
         }
       }
     }

@@ -40,6 +40,7 @@ class cartProductItem{
    String? unit;
    String? per_quantity_unit;
    String? order_queue;
+   String? custom_table_number;
    int? allow_ticket;
    int? ticket_count;
    String? ticket_exp;
@@ -82,6 +83,7 @@ class cartProductItem{
          this.unit,
          this.per_quantity_unit,
          this.order_queue,
+         this.custom_table_number,
          this.allow_ticket,
          this.ticket_count,
          this.ticket_exp,
@@ -133,6 +135,7 @@ class cartProductItem{
          unit: json['unit'] as String?,
          per_quantity_unit: json['per_quantity_unit'] as String?,
          order_queue: json['order_queue'] as String?,
+         custom_table_number: json['custom_table_number'] as String?,
          allow_ticket: json['allow_ticket'] as int?,
          ticket_count: json['ticket_count'] as int?,
          ticket_exp: json['ticket_exp'] as String?,
@@ -176,6 +179,7 @@ class cartProductItem{
      'unit': unit,
      'per_quantity_unit': per_quantity_unit,
      'order_queue': order_queue,
+     'custom_table_number': custom_table_number,
      'allow_ticket': allow_ticket,
      'ticket_count': ticket_count,
      'ticket_exp': ticket_exp,

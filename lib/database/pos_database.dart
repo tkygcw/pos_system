@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:pos_system/database/pos_database_utils.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/attendance.dart';
@@ -44,8 +45,10 @@ import 'package:pos_system/object/transfer_owner.dart';
 import 'package:pos_system/object/user.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/object/variant_item.dart';
+import 'package:pos_system/utils/Utils.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:version/version.dart';
 import '../object/branch_link_dining_option.dart';
 import '../object/branch_link_modifier.dart';
 import '../object/branch_link_product.dart';
@@ -1376,14 +1379,15 @@ class PosDatabase {
   Future<Checklist> insertChecklist(Checklist data) async {
     final db = await instance.database;
     final id = db.rawInsert(
-        'INSERT INTO $tableChecklist(soft_delete, updated_at, created_at, sync_status, show_product_sku, paper_size, check_list_show_separator, '
+        'INSERT INTO $tableChecklist(soft_delete, updated_at, created_at, sync_status, show_total_amount, show_product_sku, paper_size, check_list_show_separator, '
             'check_list_show_price, other_font_size, product_name_font_size, branch_id, checklist_key, checklist_id) '
-            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           '',
           data.updated_at,
           data.created_at,
           data.sync_status,
+          data.show_total_amount,
           data.show_product_sku,//change later
           data.paper_size,
           data.check_list_show_separator,
@@ -1895,7 +1899,7 @@ class PosDatabase {
   Future<BranchLinkProduct?> readSpecificAvailableBranchLinkProduct(String branch_link_product_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.name, b.allow_ticket, b.ticket_count, b.ticket_exp FROM $tableBranchLinkProduct AS a JOIN $tableProduct AS b ON a.product_id = b.product_id '
+        'SELECT a.*, b.name, b.allow_ticket, b.ticket_count, b.ticket_exp, b.show_in_qr FROM $tableBranchLinkProduct AS a JOIN $tableProduct AS b ON a.product_id = b.product_id '
         'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_link_product_sqlite_id = ? AND b.available = ?',
         ['', '', branch_link_product_sqlite_id, 1]);
 
@@ -1963,8 +1967,8 @@ class PosDatabase {
   Future<List<TaxLinkDining>> readAllTaxLinkDining() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.tax_rate, b.name AS tax_name, b.type AS tax_type, c.name AS dining_name '
-            'FROM $tableTaxLinkDining AS a JOIN $tableTax AS b ON a.tax_id = b.tax_id '
+        'SELECT a.*, b.tax_rate, b.name AS tax_name, b.type AS tax_type, b.specific_category AS specific_category, b.multiple_category AS multiple_category, '
+            'c.name AS dining_name FROM $tableTaxLinkDining AS a JOIN $tableTax AS b ON a.tax_id = b.tax_id '
             'JOIN $tableDiningOption AS c ON a.dining_id = c.dining_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ?',
         ['', '', '']);
 
@@ -2516,7 +2520,7 @@ class PosDatabase {
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.accepted, a.qr_order_table_id, a.qr_order_table_sqlite_id, a.qr_order, a.total_amount, '
         'a.customer_id, a.cancel_by_user_id, a.cancel_by, '
         'a.order_by_user_id, a.order_by, a.order_key, a.order_sqlite_id, a.dining_id, a.batch_id, a.other_order_key, a.table_use_key, a.table_use_sqlite_id, a.order_detail_id, a.branch_id, '
-        'a.company_id, a.order_queue, a.order_cache_key, a.order_cache_id, a.order_cache_sqlite_id, '
+        'a.company_id, a.order_queue, a.custom_table_number, a.order_cache_key, a.order_cache_id, a.order_cache_sqlite_id, '
         'b.name AS name FROM $tableOrderCache AS a JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id WHERE a.order_cache_sqlite_id = ? AND b.soft_delete = ?',
         [order_cache_sqlite_id, '']);
     return OrderCache.fromJson(result.first);
@@ -2568,26 +2572,44 @@ class PosDatabase {
 */
   Future<List<OrderCache>> readOrderCacheNoDineIn(String branch_id, String company_id) async {
     try {
+      List<Map<String, Object?>> result;
       final db = await instance.database;
-      final result = await db.rawQuery(
-          'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
-          'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
-          'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a '
-          'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
-          'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
-          'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.table_use_key = ? AND a.other_order_key = ? '
-          'UNION ALL '
-          'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
-          'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
-          'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a '
-          'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
-          'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
-          'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.table_use_key = ? AND a.other_order_key != ? GROUP BY a.other_order_key ORDER BY a.created_at DESC  ',
-          ['1', '', '', branch_id, company_id, 0, '', '', '', '1', '', '', branch_id, company_id, 0, '', '', '']);
-
+      String? version = await Utils.getAndroidVersion();
+      bool isOutdatedVersion = Version.parse(version ?? '9.0.0') < Version.parse('8.0.0');
+      if(isOutdatedVersion){
+         result = await db.rawQuery(
+            'SELECT a.*, b.name AS name '
+                'FROM $tableOrderCache AS a '
+                'JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id '
+                'WHERE a.payment_status != ? '
+                'AND a.soft_delete = ? '
+                'AND b.soft_delete = ? '
+                'AND a.accepted = ? '
+                'AND a.cancel_by = ? '
+                'AND a.table_use_key = ? '
+                'ORDER BY a.created_at DESC',
+            ['1', '', '', 0, '', '']
+        );
+      } else {
+         result = await db.rawQuery(
+            'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
+                'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
+                'a.created_at, a.updated_at, a.soft_delete, a.custom_table_number, b.name AS name FROM tb_order_cache as a '
+                'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
+                'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
+                'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.table_use_key = ? AND a.other_order_key = ? '
+                'UNION ALL '
+                'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
+                'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
+                'a.created_at, a.updated_at, a.soft_delete, a.custom_table_number, b.name AS name FROM tb_order_cache as a '
+                'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
+                'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
+                'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.table_use_key = ? AND a.other_order_key != ? GROUP BY a.other_order_key ORDER BY a.created_at DESC  ',
+            ['1', '', '', branch_id, company_id, 0, '', '', '', '1', '', '', branch_id, company_id, 0, '', '', '']);
+      }
       return result.map((json) => OrderCache.fromJson(json)).toList();
-    } catch (e) {
-      print(e);
+    } catch (e, s) {
+      print('Error: $e, $s');
       return [];
     }
   }
@@ -2601,7 +2623,7 @@ class PosDatabase {
       final result = await db.rawQuery(
           'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
           'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
-          'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a '
+          'a.created_at, a.updated_at, a.soft_delete, a.custom_table_number, b.name AS name FROM tb_order_cache as a '
           'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
           'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.other_order_key = ? '
           'AND a.accepted = ? AND cancel_by = ?',
@@ -2618,22 +2640,43 @@ class PosDatabase {
 */
   Future<List<OrderCache>> readOrderCacheByDiningOptionId(String diningId) async {
     try {
+      List<Map<String, Object?>> result;
       final db = await instance.database;
-      final result = await db.rawQuery(
-          'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
-          'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
-          'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM $tableOrderCache as a '
-          'JOIN $tableDiningOption as b ON a.dining_id = b.dining_id '
-          'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.payment_status != ? AND a.dining_id = ? AND '
-            'a.accepted = ? AND a.cancel_by = ? AND a.other_order_key = ? '
-          'UNION ALL '
-              'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
-              'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
-              'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM $tableOrderCache as a '
-              'JOIN $tableDiningOption as b ON a.dining_id = b.dining_id '
-              'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.payment_status != ? AND a.dining_id = ? AND '
-              'a.accepted = ? AND a.cancel_by = ? AND a.other_order_key != ? GROUP BY a.other_order_key ORDER BY a.created_at DESC ',
-          ['', '', '1', diningId, 0, '', '', '', '', '1', diningId, 0, '', '']);
+      String? version = await Utils.getAndroidVersion();
+      bool isOutdatedVersion = Version.parse(version ?? '9.0.0') < Version.parse('8.0.0');
+      if(isOutdatedVersion){
+        result = await db.rawQuery(
+            'SELECT a.*, b.name AS name '
+                'FROM $tableOrderCache AS a '
+                'JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id '
+                'WHERE a.payment_status != ? '
+                'AND a.soft_delete = ? '
+                'AND b.soft_delete = ? '
+                'AND a.accepted = ? '
+                'AND a.cancel_by = ? '
+                'AND a.dining_id = ? '
+                'AND (a.other_order_key = ? OR a.other_order_key != ?) '
+                'GROUP BY (CASE WHEN a.other_order_key = ? THEN a.order_cache_sqlite_id ELSE a.other_order_key END) '
+                'ORDER BY a.created_at DESC',
+            ['1', '', '', 0, '', diningId, '', '', '']
+        );
+      } else {
+        result = await db.rawQuery(
+            'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
+                'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
+                'a.created_at, a.updated_at, a.soft_delete, a.custom_table_number, b.name AS name FROM $tableOrderCache as a '
+                'JOIN $tableDiningOption as b ON a.dining_id = b.dining_id '
+                'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.payment_status != ? AND a.dining_id = ? AND '
+                'a.accepted = ? AND a.cancel_by = ? AND a.other_order_key = ? '
+                'UNION ALL '
+                'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
+                'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
+                'a.created_at, a.updated_at, a.soft_delete, a.custom_table_number, b.name AS name FROM $tableOrderCache as a '
+                'JOIN $tableDiningOption as b ON a.dining_id = b.dining_id '
+                'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.payment_status != ? AND a.dining_id = ? AND '
+                'a.accepted = ? AND a.cancel_by = ? AND a.other_order_key != ? GROUP BY a.other_order_key ORDER BY a.created_at DESC ',
+            ['', '', '1', diningId, 0, '', '', '', '', '1', diningId, 0, '', '']);
+      }
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {
       print(e);
@@ -2646,23 +2689,40 @@ class PosDatabase {
 */
   Future<List<OrderCache>> readOrderCacheNoDineInAdvanced(String branch_id, String company_id) async {
     try {
+      List<Map<String, Object?>> result;
       final db = await instance.database;
-      final result = await db.rawQuery(
-          'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
-          'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
-          'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a '
-          'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
-          'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
-          'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.other_order_key = ? '
-          'UNION ALL '
-          'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
-          'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
-          'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a '
-          'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
-          'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
-          'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.other_order_key != ? GROUP BY a.other_order_key ORDER BY a.created_at DESC ',
-          ['1', '', '', branch_id, company_id, 0, '', '', '1', '', '', branch_id, company_id, 0, '', '']);
-
+      String? version = await Utils.getAndroidVersion();
+      bool isOutdatedVersion = Version.parse(version ?? '9.0.0') < Version.parse('8.0.0');
+      if(isOutdatedVersion){
+        result = await db.rawQuery(
+            'SELECT a.*, b.name AS name '
+                'FROM $tableOrderCache AS a '
+                'JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id '
+                'WHERE a.payment_status != ? '
+                'AND a.soft_delete = ? '
+                'AND b.soft_delete = ? '
+                'AND a.accepted = ? '
+                'AND a.cancel_by = ? '
+                'ORDER BY a.created_at DESC',
+            ['1', '', '', 0, '']
+        );
+      } else {
+        result = await db.rawQuery(
+            'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
+                'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
+                'a.created_at, a.updated_at, a.soft_delete, a.custom_table_number, b.name AS name FROM tb_order_cache as a '
+                'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
+                'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
+                'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.other_order_key = ? '
+                'UNION ALL '
+                'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
+                'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
+                'a.created_at, a.updated_at, a.soft_delete, a.custom_table_number, b.name AS name FROM tb_order_cache as a '
+                'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
+                'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
+                'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.other_order_key != ? GROUP BY a.other_order_key ORDER BY a.created_at DESC ',
+            ['1', '', '', branch_id, company_id, 0, '', '', '1', '', '', branch_id, company_id, 0, '', '']);
+      }
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {
       print(e);
@@ -2675,19 +2735,38 @@ class PosDatabase {
 */
   Future<List<OrderCache>> readOrderCacheSpecial(String name) async {
     try {
+      List<Map<String, Object?>> result;
       final db = await instance.database;
-      final result = await db.rawQuery(
-          'SELECT a.order_cache_sqlite_id, a.order_queue, a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
-          'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, a.payment_status,'
-          'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
-          'WHERE a.payment_status != ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND a.accepted = ? AND b.name = ? AND a.table_use_key = ? AND a.other_order_key = ? '
-          'UNION ALL '
-          'SELECT a.order_cache_sqlite_id, a.order_queue, a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
-          'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, a.payment_status,'
-          'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
-          'WHERE a.payment_status != ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND a.accepted = ? AND b.name = ? AND a.table_use_key = ? AND a.other_order_key != ? GROUP BY a.other_order_key ORDER BY a.created_at DESC ',
-          ['1', '', '', '', 0, name, '', '', '1', '', '', '', 0, name, '', '']);
-
+      String? version = await Utils.getAndroidVersion();
+      bool isOutdatedVersion = Version.parse(version ?? '9.0.0') < Version.parse('8.0.0');
+      if(isOutdatedVersion){
+        result = await db.rawQuery(
+            'SELECT a.*, b.name AS name '
+                'FROM $tableOrderCache AS a '
+                'JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id '
+                'WHERE a.payment_status != ? '
+                'AND a.soft_delete = ? '
+                'AND b.soft_delete = ? '
+                'AND a.accepted = ? '
+                'AND a.cancel_by = ? '
+                'AND a.table_use_key = ? '
+                'AND b.name = ? '
+                'ORDER BY a.created_at DESC',
+            ['1', '', '', 0, '', '', name]
+        );
+      } else {
+        result = await db.rawQuery(
+            'SELECT a.order_cache_sqlite_id, a.order_queue, a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
+                'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, a.payment_status,'
+                'a.created_at, a.updated_at, a.soft_delete, a.custom_table_number, b.name AS name FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
+                'WHERE a.payment_status != ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND a.accepted = ? AND b.name = ? AND a.table_use_key = ? AND a.other_order_key = ? '
+                'UNION ALL '
+                'SELECT a.order_cache_sqlite_id, a.order_queue, a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
+                'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, a.payment_status,'
+                'a.created_at, a.updated_at, a.soft_delete, a.custom_table_number, b.name AS name FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
+                'WHERE a.payment_status != ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND a.accepted = ? AND b.name = ? AND a.table_use_key = ? AND a.other_order_key != ? GROUP BY a.other_order_key ORDER BY a.created_at DESC ',
+            ['1', '', '', '', 0, name, '', '', '1', '', '', '', 0, name, '', '']);
+      }
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {
       print(e);
@@ -2700,22 +2779,42 @@ class PosDatabase {
 */
   Future<List<OrderCache>> readOrderCacheSpecialAdvanced(String name) async {
     try {
+      List<Map<String, Object?>> result;
       final db = await instance.database;
-      final result = await db.rawQuery(
-          'SELECT a.order_cache_sqlite_id, a.order_queue, a.order_detail_id, a.dining_id, a.table_use_sqlite_id, a.table_use_key, '
-          'a.other_order_key, a.batch_id, a.dining_id, a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, a.payment_status, '
-          'a.created_at, a.updated_at, a.soft_delete, b.name AS name '
-          'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
-          'WHERE a.payment_status != ? AND a.order_key = ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ? AND a.other_order_key = ? '
-          'UNION ALL '
-          'SELECT a.order_cache_sqlite_id, a.order_queue, a.order_detail_id, a.dining_id, a.table_use_sqlite_id, a.table_use_key, '
-          'a.other_order_key, a.batch_id, a.dining_id, a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, a.payment_status, '
-          'a.created_at, a.updated_at, a.soft_delete, b.name AS name '
-          'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
-          'WHERE a.payment_status != ? AND a.order_key = ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ? AND a.other_order_key != ? '
-          'GROUP BY a.other_order_key ORDER BY a.created_at DESC ',
-          ['1', '', '', '', '', name, '', '1', '', '', '', '', name, '']);
-
+      String? version = await Utils.getAndroidVersion();
+      bool isOutdatedVersion = Version.parse(version ?? '9.0.0') < Version.parse('8.0.0');
+      print("version: ${version}");
+      if(isOutdatedVersion){
+        result = await db.rawQuery(
+            'SELECT a.*, b.name AS name '
+                'FROM $tableOrderCache AS a '
+                'JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id '
+                'WHERE a.payment_status != ? '
+                'AND a.soft_delete = ? '
+                'AND b.soft_delete = ? '
+                'AND a.accepted = ? '
+                'AND a.cancel_by = ? '
+                'AND b.name = ? '
+                'ORDER BY a.created_at DESC',
+            ['1', '', '', 0, '', name]
+        );
+      } else {
+        result = await db.rawQuery(
+            'SELECT a.order_cache_sqlite_id, a.order_queue, a.order_detail_id, a.dining_id, a.table_use_sqlite_id, a.table_use_key, '
+                'a.other_order_key, a.batch_id, a.dining_id, a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, a.payment_status, '
+                'a.created_at, a.updated_at, a.soft_delete, a.custom_table_number, b.name AS name '
+                'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
+                'WHERE a.payment_status != ? AND a.order_key = ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ? AND a.other_order_key = ? '
+                'UNION ALL '
+                'SELECT a.order_cache_sqlite_id, a.order_queue, a.order_detail_id, a.dining_id, a.table_use_sqlite_id, a.table_use_key, '
+                'a.other_order_key, a.batch_id, a.dining_id, a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, a.payment_status, '
+                'a.created_at, a.updated_at, a.soft_delete, a.custom_table_number, b.name AS name '
+                'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
+                'WHERE a.payment_status != ? AND a.order_key = ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ? AND a.other_order_key != ? '
+                'GROUP BY a.other_order_key ORDER BY a.created_at DESC ',
+            ['1', '', '', '', '', name, '', '1', '', '', '', '', name, ''],
+        );
+      }
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {
       print(e);
@@ -3469,12 +3568,17 @@ class PosDatabase {
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
 
-  /*
+/*
   read order cache by table_use_key
 */
-  Future<List<OrderCache>> readSpecificOrderCacheByTableUseKey(String table_use_key) async {
+  Future<List<OrderCache>> readSpecificOrderCacheByTableUseKey(String table_use_key, {bool includeDeleted = true}) async {
+    List<Map<String, Object?>> result;
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE table_use_key = ?', [table_use_key]);
+    if(!includeDeleted){
+      result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE table_use_key = ? AND soft_delete = ?', [table_use_key, '']);
+    } else {
+      result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE table_use_key = ?', [table_use_key]);
+    }
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
 
@@ -3669,6 +3773,28 @@ class PosDatabase {
 /*
   --------------------Report part--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  get not yet settlement order
+*/
+  Future<List<SalesPerDay>> readSalesPerDayWithDate(String startDate, String endDate) async {
+    try{
+      final db = await instance.database;
+      final result = await db.rawQuery(
+        'SELECT * FROM $tableSalesPerDay '
+            'WHERE soft_delete = ? AND date >= ? AND date < ? ',
+        ['', startDate, endDate]
+      );
+      return result.map((json) => SalesPerDay.fromJson(json)).toList();
+    }catch(e, s){
+      FLog.error(
+        className: "settlement query",
+        text: "_readSales error",
+        exception: 'Error: $e, Stacktrace: $s',
+      );
+      rethrow;
+    }
+  }
 
 /*
   read all order detail cancel with OB
@@ -5421,8 +5547,10 @@ class PosDatabase {
 */
   Future<int> updateTax(Tax data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableTax SET company_id = ?, name = ?, type = ?, tax_rate = ?, updated_at = ?, soft_delete = ? WHERE tax_id = ?',
-        [data.company_id, data.name, data.type, data.tax_rate, data.updated_at, data.soft_delete, data.tax_id]);
+    return await db.rawUpdate('UPDATE $tableTax SET company_id = ?, name = ?, type = ?, tax_rate = ?, specific_category = ?, '
+        'multiple_category = ?, updated_at = ?, soft_delete = ? WHERE tax_id = ?',
+        [data.company_id, data.name, data.type, data.tax_rate, data.specific_category,
+          jsonEncode(data.multiple_category), data.updated_at, data.soft_delete, data.tax_id]);
   }
 
 /*
@@ -5508,7 +5636,7 @@ class PosDatabase {
     return await db.rawUpdate('UPDATE $tableBranch SET name = ?, logo = ?,  address = ?, phone = ?, email = ?, '
         'qr_order_status = ?, sub_pos_status = ?, attendance_status = ?, register_no = ?, allow_firestore = ?, '
         'allow_livedata = ?, qr_show_sku = ?, qr_product_sequence = ?, show_qr_history = ?, generate_sales = ?, '
-        'allow_einvoice = ?, einvoice_status = ? '
+        'allow_einvoice = ?, einvoice_status = ?, currency_code = ?, currency_symbol = ? '
         'WHERE branch_id = ? ',
         [
           data.name,
@@ -5528,6 +5656,8 @@ class PosDatabase {
           data.generate_sales,
           data.allow_einvoice,
           data.einvoice_status,
+          data.currency_code,
+          data.currency_symbol,
           data.branch_id,
         ]);
   }
@@ -6023,9 +6153,9 @@ class PosDatabase {
 */
   Future<int> updateChecklist(Checklist data) async {
     final db = await instance.database;
-    return await db.rawUpdate("UPDATE $tableChecklist SET updated_at = ?, sync_status = ?, show_product_sku = ?, product_name_font_size = ?, other_font_size = ? , "
+    return await db.rawUpdate("UPDATE $tableChecklist SET updated_at = ?, sync_status = ?, show_total_amount = ?, show_product_sku = ?, product_name_font_size = ?, other_font_size = ? , "
         "check_list_show_price = ? , check_list_show_separator = ? WHERE checklist_sqlite_id = ?",
-        [data.updated_at, data.sync_status, data.show_product_sku, data.product_name_font_size, data.other_font_size, data.check_list_show_price, data.check_list_show_separator, data.checklist_sqlite_id]);
+        [data.updated_at, data.sync_status, data.show_total_amount, data.show_product_sku, data.product_name_font_size, data.other_font_size, data.check_list_show_price, data.check_list_show_separator, data.checklist_sqlite_id]);
   }
 
 /*
@@ -7123,6 +7253,18 @@ class PosDatabase {
   Future clearAllCancelReceipt() async {
     final db = await instance.database;
     return await db.rawDelete('DELETE FROM $tableCancelReceipt');
+  }
+
+/*
+  Delete All sales per day
+*/
+  Future<void> clearAllSalesPerDay() async {
+    final db = await instance.database;
+    await db.rawDelete('DELETE FROM $tableSalesPerDay');
+    await db.rawDelete('DELETE FROM $tableSalesCategoryPerDay');
+    await db.rawDelete('DELETE FROM $tableSalesProductPerDay');
+    await db.rawDelete('DELETE FROM $tableSalesModifierPerDay');
+    await db.rawDelete('DELETE FROM $tableSalesDiningPerDay');
   }
 
 /*

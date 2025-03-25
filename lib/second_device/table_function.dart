@@ -161,7 +161,6 @@ class TableFunction {
   }
 
   void clearSubPosOrderCache({String? table_use_key}){
-    print("table use key: ${table_use_key}");
     if(table_use_key != null){
       Provider.of<CartModel>(_context, listen: false).removeSpecificSubPosOrderCache(table_use_key);
     } else {

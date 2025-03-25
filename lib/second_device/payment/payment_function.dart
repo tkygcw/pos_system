@@ -17,7 +17,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 import 'package:sqflite/sqflite.dart';
 
-import '../../firebase_sync/qr_order_sync.dart';
 import '../../fragment/payment/ipay_api.dart';
 import '../../fragment/printing_layout/print_receipt.dart';
 import '../../object/app_setting.dart';
@@ -163,10 +162,6 @@ class PaymentFunction {
       //   text: "paymentApi error",
       //   exception: "$e",
       // );
-      return {
-        'status': '0',
-        'data': e
-      };
     }
   }
 
@@ -222,7 +217,6 @@ class PaymentFunction {
 
   _updatePosTableStatus(Transaction txn) async {
     try{
-      List<String> _value = [];
       if (_selectedTableList.isNotEmpty) {
         print("selected table length: ${_selectedTableList.length}");
         for (var posTable in _selectedTableList) {
@@ -253,7 +247,6 @@ class PaymentFunction {
   }
 
   _updateTableUseDetailAndTableUse(Transaction txn, List<String> uniqueTableUseSqliteId) async {
-    List<String> _value = [];
     try {
       for (var tableUseSqliteId in uniqueTableUseSqliteId) {
         List<TableUseDetail> tableUseDetail = await _readAllInUsedTableUseDetail(txn, tableUseSqliteId);
@@ -264,7 +257,7 @@ class PaymentFunction {
               status: 1,
               table_use_sqlite_id: tableUseSqliteId
            );
-          int status = await _updateTableUseDetailStatus(txn, data);
+          await _updateTableUseDetailStatus(txn, data);
         }
        await _updateCurrentTableUseStatus(txn, tableUseSqliteId);
       }
@@ -283,7 +276,6 @@ class PaymentFunction {
   }
 
   _updateCurrentTableUseStatus(Transaction txn, String tableUseSqliteId) async {
-    List<String> _value = [];
     try {
       TableUse? tableUseData = await _readSpecificTableUse(txn, tableUseSqliteId);
       if(tableUseData != null){
@@ -326,9 +318,7 @@ class PaymentFunction {
       List<String> _value = [];
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
-      final String? pos_user = prefs.getString('pos_pin_user');
       final String? login_user = prefs.getString('user');
-      Map userObject = json.decode(pos_user!);
       Map logInUser = json.decode(login_user!);
       // normal payment
       // List<Order> orderData = await PosDatabase.instance.readSpecificPaidOrder(widget.orderId);
@@ -394,7 +384,6 @@ class PaymentFunction {
 
   _updateOrderCache(Transaction txn) async {
     print("server action updateOrderCache");
-    List<String> _value = [];
     try{
       final inPaymentOrderCache = TableModel.instance.inPaymentOrderCache;
       if (_orderCacheList.isNotEmpty) {
@@ -498,7 +487,6 @@ class PaymentFunction {
 
   _createOrder(Transaction txn, {String? ipayTransId}) async {
     print('create order called');
-    List<String> _value = [];
     final prefs = await SharedPreferences.getInstance();
     final String? login_user = prefs.getString('user');
     final int? branch_id = prefs.getInt('branch_id');
@@ -629,7 +617,6 @@ class PaymentFunction {
   }
 
   _insertOrderKey(Transaction txn, Order order) async {
-    List<String> _value = [];
     Order? _updatedOrder;
     try{
       var orderKey = await _generateOrderKey(order);

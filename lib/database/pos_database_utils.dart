@@ -274,6 +274,14 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableUser ADD ${UserFields.sub_pos_payment} $integerType DEFAULT 0");
           }break;
           case 37: {
+            await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.currency_code} $textType DEFAULT 'MYR'");
+            await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.currency_symbol} $textType DEFAULT 'RM'");
+            await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.specific_category} $integerType DEFAULT 0");
+            await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.multiple_category} $jsonType");
+            await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.custom_table_number} $textType DEFAULT ''");
+            await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_total_amount} $integerType DEFAULT 0");
+          }break;
+          case 38: {
             await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.promo} $jsonType");
           }break;
         }
@@ -410,6 +418,7 @@ class PosDatabaseUtils {
           ${OrderCacheFields.company_id} $textType, 
           ${OrderCacheFields.branch_id} $textType, 
           ${OrderCacheFields.order_detail_id} $textType, 
+          ${OrderCacheFields.custom_table_number} $textType, 
           ${OrderCacheFields.table_use_sqlite_id} $textType, 
           ${OrderCacheFields.table_use_key} $textType,
           ${OrderCacheFields.other_order_key} $textType,
@@ -603,8 +612,8 @@ class PosDatabaseUtils {
     create tax table
 */
     await db.execute('''CREATE TABLE $tableTax ( ${TaxFields.tax_id} $idType, ${TaxFields.company_id} $textType,${TaxFields.name} $textType,
-           ${TaxFields.type} $integerType, ${TaxFields.tax_rate} $textType,${TaxFields.created_at} $textType,${TaxFields.updated_at} $textType, 
-           ${TaxFields.soft_delete} $textType)''');
+           ${TaxFields.type} $integerType, ${TaxFields.tax_rate} $textType, ${TaxFields.specific_category} $integerType, ${TaxFields.multiple_category} $jsonType, 
+           ${TaxFields.created_at} $textType, ${TaxFields.updated_at} $textType, ${TaxFields.soft_delete} $textType)''');
 /*
     create tax link dining table
 */
@@ -680,6 +689,8 @@ class PosDatabaseUtils {
            ${BranchFields.address} $textType,
            ${BranchFields.phone} $textType,
            ${BranchFields.email} $textType,
+           ${BranchFields.currency_code} $textType,
+           ${BranchFields.currency_symbol} $textType,
            ${BranchFields.ipay_merchant_code} $textType,
            ${BranchFields.ipay_merchant_key} $textType,
            ${BranchFields.notification_token} $textType,
@@ -1034,6 +1045,7 @@ class PosDatabaseUtils {
           ${ChecklistFields.check_list_show_separator} $integerType,
           ${ChecklistFields.paper_size} $textType,
           ${ChecklistFields.show_product_sku} $integerType,
+          ${ChecklistFields.show_total_amount} $integerType,
           ${ChecklistFields.sync_status} $integerType,
           ${ChecklistFields.created_at} $textType,
           ${ChecklistFields.updated_at} $textType,

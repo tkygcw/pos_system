@@ -198,7 +198,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                               text: "${widget.orderDetailList[index].productName}" + "\n",
                                               style: TextStyle(fontSize: 14, color: Colors.black)),
                                           TextSpan(
-                                              text: "RM ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 13, color: Colors.black)),
+                                              text: "$currency_symbol ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 13, color: Colors.black)),
                                         ],
                                       ),
                                     ),
@@ -364,11 +364,23 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                             await checkOrderDetailStock();
                             print('available check: ${hasNotAvailableProduct}');
                             if (paymentNotComplete) {
-                              Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
+                              CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('table_is_in_payment'));
+                              setState(() {
+                                isButtonDisabled = false;
+                                willPop = true;
+                              });
                             } else if (hasNoStockProduct) {
-                              Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
+                              CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
+                              setState(() {
+                                isButtonDisabled = false;
+                                willPop = true;
+                              });
                             } else if(hasNotAvailableProduct){
-                              Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
+                              CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('contain_not_available_product'));
+                              setState(() {
+                                isButtonDisabled = false;
+                                willPop = true;
+                              });
                             } else {
                               if (removeDetailList.isNotEmpty) {
                                 await removeOrderDetail();
@@ -491,7 +503,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                             text: "${widget.orderDetailList[index].productName}" + "\n",
                                             style: TextStyle(fontSize: 13, color: Colors.black)),
                                         TextSpan(
-                                            text: "RM ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 12, color: Colors.black)),
+                                            text: "$currency_symbol ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 12, color: Colors.black)),
                                       ],
                                     ),
                                   ),
@@ -1283,29 +1295,33 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       print("blp id in adj stock dialog: ${orderDetailList[i].branch_link_product_sqlite_id!}");
       BranchLinkProduct? data = await PosDatabase.instance.readSpecificAvailableBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
       if(data != null){
-        orderDetailList[i].allow_ticket = data.allow_ticket;
-        orderDetailList[i].ticket_count = data.ticket_count;
-        orderDetailList[i].ticket_exp = data.ticket_exp;
-        switch(data.stock_type){
-          case '1':{
-            orderDetailList[i].available_stock = data.daily_limit_amount!;
-            if (int.parse(orderDetailList[i].quantity!) > int.parse(data.daily_limit_amount!)) {
-              hasNoStockProduct = true;
-            } else {
+        if(data.show_in_qr == 1){
+          orderDetailList[i].allow_ticket = data.allow_ticket;
+          orderDetailList[i].ticket_count = data.ticket_count;
+          orderDetailList[i].ticket_exp = data.ticket_exp;
+          switch(data.stock_type){
+            case '1':{
+              orderDetailList[i].available_stock = data.daily_limit_amount!;
+              if (int.parse(orderDetailList[i].quantity!) > int.parse(data.daily_limit_amount!)) {
+                hasNoStockProduct = true;
+              } else {
+                hasNoStockProduct = false;
+              }
+            }break;
+            case '2': {
+              orderDetailList[i].available_stock = data.stock_quantity!;
+              if (int.parse(orderDetailList[i].quantity!) > int.parse(data.stock_quantity!)) {
+                hasNoStockProduct = true;
+              } else {
+                hasNoStockProduct = false;
+              }
+            }break;
+            default: {
               hasNoStockProduct = false;
             }
-          }break;
-          case '2': {
-            orderDetailList[i].available_stock = data.stock_quantity!;
-            if (int.parse(orderDetailList[i].quantity!) > int.parse(data.stock_quantity!)) {
-              hasNoStockProduct = true;
-            } else {
-              hasNoStockProduct = false;
-            }
-          }break;
-          default: {
-            hasNoStockProduct = false;
           }
+        } else {
+          hasNotAvailableProduct = true;
         }
       } else {
         hasNotAvailableProduct = true;

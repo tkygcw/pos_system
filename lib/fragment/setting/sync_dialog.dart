@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/firebase_sync/sync_to_firebase.dart';
 import 'package:pos_system/object/sync_to_cloud.dart';
-import 'package:pos_system/page/progress_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../main.dart';

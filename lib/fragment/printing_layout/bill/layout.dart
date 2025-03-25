@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/order_payment_split.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,6 +27,7 @@ class BillLayout extends ReceiptLayout{
     final String? branch = prefs.getString('branch');
     Map branchObject = json.decode(branch!);
     Branch branchData = Branch.fromJson(json.decode(branch));
+    List<String> customTableNumber = [];
     await readReceiptLayout('80');
     if(isRefund != null && isRefund == true){
       await getRefundOrder(orderId);
@@ -35,6 +37,17 @@ class BillLayout extends ReceiptLayout{
       await getPaidOrder(orderId);
       await callOrderTaxPromoDetail();
       await callPaidOrderDetail(orderId);
+    }
+    // check custom table number value
+    if(paidOrder!.dining_name == 'Dine in' && selectedTableList.isEmpty) {
+      await getOrderCache(orderId);
+      for(int i = 0; i < paidOrderCacheList.length; i++){
+        if (paidOrderCacheList[i].custom_table_number != '') {
+          if (!customTableNumber.contains(paidOrderCacheList[i].custom_table_number)) {
+            customTableNumber.add(paidOrderCacheList[i].custom_table_number!);
+          }
+        }
+      }
     }
     await getAllPaymentSplit(paidOrder!.order_key!);
     // final ByteData data = await rootBundle.load('drawable/logo2.png');
@@ -145,6 +158,8 @@ class BillLayout extends ReceiptLayout{
       if(receipt!.hide_dining_method_table_no == 0){
         if(selectedTableList.isNotEmpty){
           bytes += generator.text('Table No: ${getCartTableNumber(selectedTableList).toString().replaceAll('[', '').replaceAll(']', '')}');
+        } else if(customTableNumber.isNotEmpty) {
+          bytes += generator.text('Table No: ${customTableNumber.toString().replaceAll('[', '').replaceAll(']', '')}');
         }
         bytes += generator.text('${paidOrder!.dining_name}');
       }
@@ -159,7 +174,7 @@ class BillLayout extends ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: 'Qty ', width: 2, styles: PosStyles(bold: true)),
         PosColumn(text: 'Item', width: 7, styles: PosStyles(bold: true)),
-        PosColumn(text: 'Price(MYR)', width: 3, styles: PosStyles(bold: true, align: PosAlign.right)),
+        PosColumn(text: 'Price($currency_code)', width: 3, styles: PosStyles(bold: true, align: PosAlign.right)),
       ]);
       bytes += generator.hr();
       //order product
@@ -275,7 +290,7 @@ class BillLayout extends ReceiptLayout{
       //total
       bytes += generator.hr();
       bytes += generator.row([
-        PosColumn(text: 'Final Amount(MYR)', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2)),
+        PosColumn(text: 'Final Amount($currency_code)', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2)),
         PosColumn(
             text: '${this.paidOrder!.final_amount}',
             width: 4,
@@ -501,7 +516,7 @@ class BillLayout extends ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: 'Qty ', width: 2, styles: PosStyles(bold: true)),
         PosColumn(text: 'Item', width: 6, styles: PosStyles(bold: true)),
-        PosColumn(text: 'Price(MYR)', width: 4, styles: PosStyles(bold: true)),
+        PosColumn(text: 'Price($currency_code)', width: 4, styles: PosStyles(bold: true)),
       ]);
       bytes += generator.hr();
       //order product
@@ -602,7 +617,7 @@ class BillLayout extends ReceiptLayout{
       //total
       bytes += generator.hr();
       bytes += generator.row([
-        PosColumn(text: 'Final Amount(MYR)', width: 8),
+        PosColumn(text: 'Final Amount($currency_code)', width: 8),
         PosColumn(
             text: '${this.paidOrder!.final_amount}',
             width: 4,
@@ -672,7 +687,7 @@ class BillLayout extends ReceiptLayout{
   }
 
   String generateQrUrl(String branchUrl){
-    return '${Domain.einvoice}$branchUrl/${this.paidOrder!.generateOrderNumber().toString().replaceAll('#', '')}';
+    return '${Domain.einvoice}$branchUrl/${this.paidOrder!.generateOrderNumber().toString().replaceAll('#', '')}?id=${paidOrder!.order_key}';
   }
 
   Future<img.Image> getBranchLogo(int header_image_size) async {

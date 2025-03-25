@@ -2,6 +2,7 @@ import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:f_logs/model/flog/flog.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/object/order_payment_split.dart';
 
 import '../../../notifier/cart_notifier.dart';
@@ -60,7 +61,7 @@ class PreviewLayout extends ReceiptLayout {
       bytes += generator.row([
         PosColumn(text: 'Qty ', width: 2, styles: PosStyles(bold: true)),
         PosColumn(text: 'Item', width: 7, styles: PosStyles(bold: true, align: PosAlign.left)),
-        PosColumn(text: 'Price', width: 3, styles: PosStyles(bold: true, align: PosAlign.right)),
+        PosColumn(text: 'Price($currency_code)', width: 3, styles: PosStyles(bold: true, align: PosAlign.right)),
       ]);
       bytes += generator.hr();
       //order product
@@ -280,7 +281,7 @@ class PreviewLayout extends ReceiptLayout {
       bytes += generator.row([
         PosColumn(text: 'Qty ', width: 2, styles: PosStyles(bold: true)),
         PosColumn(text: 'Item', width: 6, styles: PosStyles(bold: true)),
-        PosColumn(text: 'Price', width: 4, styles: PosStyles(bold: true)),
+        PosColumn(text: 'Price($currency_code)', width: 4, styles: PosStyles(bold: true)),
       ]);
       bytes += generator.hr();
       //order product
