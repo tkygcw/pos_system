@@ -134,8 +134,11 @@ class _PosPinPageState extends State<PosPinPage> {
     if(notificationModel.syncCountStarted == false){
       startTimers(hasGMS);
     }
-    SyncToFirebase.instance.syncToFirebase();
-    listenQROrder();
+    //check firestore status
+    if(pos_firestore.firestore_status == FirestoreStatus.online){
+      SyncToFirebase.instance.syncToFirebase();
+      listenQROrder();
+    }
   }
 
   initFirestoreStatus(bool hasGMS) async {
