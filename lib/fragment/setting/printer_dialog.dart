@@ -162,7 +162,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
         if (constraints.maxWidth > 900 && constraints.maxHeight > 500) {
           return Center(
             child: SingleChildScrollView(
-              physics: NeverScrollableScrollPhysics(),
+              //physics: NeverScrollableScrollPhysics(),
               child: AlertDialog(
                 title: _isUpdate
                     ? Text(AppLocalizations.of(context)!.translate('edit_printer'))
