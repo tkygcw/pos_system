@@ -450,6 +450,7 @@ class PosDatabaseUtils {
         ${OrderDetailFields.price} $textType, 
         ${OrderDetailFields.original_price} $textType, 
         ${OrderDetailFields.quantity} $textType, 
+        ${OrderDetailFields.promo} $jsonType,
         ${OrderDetailFields.remark} $textType, 
         ${OrderDetailFields.account} $textType,
         ${OrderDetailFields.edited_by} $textType,
