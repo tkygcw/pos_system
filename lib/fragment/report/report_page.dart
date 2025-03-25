@@ -12,6 +12,7 @@ import 'package:pos_system/fragment/report/cancellation_report.dart';
 import 'package:pos_system/fragment/report/cash_record_report.dart';
 import 'package:pos_system/fragment/report/category_report.dart';
 import 'package:pos_system/fragment/report/daily_sales_report.dart';
+import 'package:pos_system/fragment/report/sales_summary_report.dart';
 import 'package:pos_system/fragment/report/dining_report.dart';
 import 'package:pos_system/fragment/report/modifier_report.dart';
 import 'package:pos_system/fragment/report/payment_report.dart';
@@ -159,7 +160,7 @@ class _ReportPageState extends State<ReportPage> {
                     Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 25, color: Colors.black)),
                     Spacer(),
                     Visibility(
-                      visible: currentPage != 14 && currentPage != 15 ? true : false,
+                      visible: currentPage != 2 && currentPage != 15 && currentPage != 16 ? true : false,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
@@ -190,7 +191,7 @@ class _ReportPageState extends State<ReportPage> {
                     ),
                     SizedBox(width: 25),
                     Visibility(
-                      visible: currentPage != 15 ? true : false,
+                      visible: currentPage != 2 && currentPage != 16 ? true : false,
                       child: Container(
                         child: IconButton(
                           icon: Icon(Icons.print),
@@ -208,7 +209,8 @@ class _ReportPageState extends State<ReportPage> {
                       ),
                     ),
                     Visibility(
-                      visible: currentPage != 1 && currentPage != 5 && currentPage != 11 && currentPage != 12 && currentPage != 14 && currentPage != 15  ? true : false,
+                      visible: currentPage != 1 && currentPage != 2 && currentPage != 6 && currentPage != 12 && currentPage != 13
+                          && currentPage != 15 && currentPage != 16  ? true : false,
                       child: Container(
                         child: IconButton(
                           icon: Icon(Icons.receipt),
@@ -312,6 +314,10 @@ class _ReportPageState extends State<ReportPage> {
                         SideNavigationBarItem(
                           icon: Icons.view_comfy_alt,
                           label: AppLocalizations.of(context)!.translate('overview'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.list_alt,
+                          label: AppLocalizations.of(context)!.translate('sales_summary'),
                         ),
                         SideNavigationBarItem(
                           icon: Icons.list_alt,
@@ -506,7 +512,7 @@ class _ReportPageState extends State<ReportPage> {
                     Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 20, color: color.backgroundColor)),
                     Spacer(),
                     Visibility(
-                      visible: currentPage != 14 && currentPage != 15 ? true : false,
+                      visible: currentPage != 2 && currentPage != 15 && currentPage != 16 ? true : false,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
@@ -537,7 +543,7 @@ class _ReportPageState extends State<ReportPage> {
                     ),
                     SizedBox(width: 10),
                     Visibility(
-                      visible: currentPage != 15 ? true : false,
+                      visible: currentPage != 2 && currentPage != 16 ? true : false,
                       child: IconButton(
                         icon: Icon(Icons.print),
                         color: color.backgroundColor,
@@ -553,7 +559,8 @@ class _ReportPageState extends State<ReportPage> {
                       ),
                     ),
                     Visibility(
-                      visible: currentPage != 1 && currentPage != 5 && currentPage != 11 && currentPage != 12 && currentPage != 14 && currentPage != 15  ? true : false,
+                      visible: currentPage != 1 && currentPage != 2 && currentPage != 6 && currentPage != 12 && currentPage != 13
+                          && currentPage != 15 && currentPage != 16  ? true : false,
                       child: Container(
                         child: IconButton(
                           icon: Icon(Icons.receipt),
@@ -838,16 +845,16 @@ class _ReportPageState extends State<ReportPage> {
                     ),
                   ),
                   Visibility(
-                    visible: currentPage != 14,
+                    visible: currentPage != 2 && currentPage != 16,
                     child: PopupMenuButton<String>(
                       onSelected: handleClick,
                       itemBuilder: (BuildContext context) {
                         final List<String> choices = [];
-                        if (currentPage != 13) {
+                        if (currentPage != 15) {
                           choices.add('advanced');
                         }
                         choices.add('pdf');
-                        if (currentPage != 1 && currentPage != 5 && currentPage != 10 && currentPage != 11 && currentPage != 13) {
+                        if (currentPage != 1 && currentPage != 6 && currentPage != 12 && currentPage != 13 && currentPage != 15 && currentPage != 16) {
                           choices.add('print');
                         }
                         return choices.map((String choice) {
@@ -879,62 +886,66 @@ class _ReportPageState extends State<ReportPage> {
                           ),
                           DropdownMenuItem(
                             value: 1,
-                            child: Text(AppLocalizations.of(context)!.translate('daily_sales')),
+                            child: Text(AppLocalizations.of(context)!.translate('sales_summary')),
                           ),
                           DropdownMenuItem(
                             value: 2,
-                            child: Text(AppLocalizations.of(context)!.translate('product_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('daily_sales')),
                           ),
                           DropdownMenuItem(
                             value: 3,
-                            child: Text(AppLocalizations.of(context)!.translate('category_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('product_report')),
                           ),
                           DropdownMenuItem(
                             value: 4,
-                            child: Text(AppLocalizations.of(context)!.translate('modifier_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('category_report')),
                           ),
                           DropdownMenuItem(
                             value: 5,
-                            child: Text(AppLocalizations.of(context)!.translate('edit_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('modifier_report')),
                           ),
                           DropdownMenuItem(
                             value: 6,
-                            child: Text(AppLocalizations.of(context)!.translate('cancel_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('edit_report')),
                           ),
                           DropdownMenuItem(
                             value: 7,
-                            child: Text(AppLocalizations.of(context)!.translate('cancel_record_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('cancel_report')),
                           ),
                           DropdownMenuItem(
                             value: 8,
-                            child: Text(AppLocalizations.of(context)!.translate('cancel_modifier_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('cancel_record_report')),
                           ),
                           DropdownMenuItem(
                             value: 9,
-                            child: Text(AppLocalizations.of(context)!.translate('dining_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('cancel_modifier_report')),
                           ),
                           DropdownMenuItem(
                             value: 10,
-                            child: Text(AppLocalizations.of(context)!.translate('payment_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('dining_report')),
                           ),
                           DropdownMenuItem(
                             value: 11,
-                            child: Text(AppLocalizations.of(context)!.translate('refund_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('payment_report')),
                           ),
                           DropdownMenuItem(
                             value: 12,
-                            child: Text(AppLocalizations.of(context)!.translate('cashflow_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('refund_report')),
                           ),
                           DropdownMenuItem(
                             value: 13,
-                            child: Text(AppLocalizations.of(context)!.translate('staff_sales_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('cashflow_report')),
                           ),
                           DropdownMenuItem(
                             value: 14,
-                            child: Text(AppLocalizations.of(context)!.translate('attendance_report')),
+                            child: Text(AppLocalizations.of(context)!.translate('staff_sales_report')),
                           ),
                           DropdownMenuItem(
                             value: 15,
+                            child: Text(AppLocalizations.of(context)!.translate('attendance_report')),
+                          ),
+                          DropdownMenuItem(
+                            value: 16,
                             child: Text(AppLocalizations.of(context)!.translate('transfer_report')),
                           ),
                         ],
@@ -1091,31 +1102,31 @@ class _ReportPageState extends State<ReportPage> {
       case 0: {
         await receipt.printReceipt(layout: OverviewReceiptLayout());
       }break;
-      case 2: {
+      case 3: {
         await receipt.printReceipt(layout: ProductReceiptLayout());
       }break;
-      case 3: {
+      case 4: {
         await receipt.printReceipt(layout: CategoryReceiptLayout());
       }break;
-      case 4: {
+      case 5: {
         await receipt.printReceipt(layout: ModifierReceiptLayout());
       }break;
-      case 6: {
+      case 7: {
         await receipt.printReceipt(layout: CancellationReceiptLayout());
       }break;
-      case 7: {
+      case 8: {
         await receipt.printReceipt(layout: CancelRecordLayout());
       }break;
-      case 8: {
+      case 9: {
         await receipt.printReceipt(layout: CancelledModReceiptLayout());
       }break;
-      case 9: {
+      case 10: {
         await receipt.printReceipt(layout: DiningReceiptLayout());
       }break;
-      case 10: {
+      case 11: {
         await receipt.printReceipt(layout: PaymentReceiptLayout());
       }break;
-      case 13: {
+      case 14: {
         await receipt.printReceipt(layout: StaffReceiptLayout());
       }break;
     }
@@ -1141,49 +1152,52 @@ class _ReportPageState extends State<ReportPage> {
         child: ReportOverview(),//0
       ),
       Container(
-        child: DailySalesReport(),//1
+        child: SalesSummaryReport(),//1
       ),
       Container(
-        child: ProductReport(),//2
+        child: DailySalesReport(),//2
       ),
       Container(
-        child: CategoryReport(),//3
+        child: ProductReport(),//3
       ),
       Container(
-        child: ModifierReport(),//4
+        child: CategoryReport(),//4
       ),
       Container(
-        child: ProductEditedReport(),//5
+        child: ModifierReport(),//5
       ),
       Container(
-        child: CancellationReport(),//6
+        child: ProductEditedReport(),//6
       ),
       Container(
-        child: CancelRecordReport(),//7
+        child: CancellationReport(),//7
       ),
       Container(
-        child: CancelModifierReport(),//8
+        child: CancelRecordReport(),//8
       ),
       Container(
-        child: DiningReport(),//9
+        child: CancelModifierReport(),//9
       ),
       Container(
-        child: PaymentReport(),//10
+        child: DiningReport(),//10
       ),
       Container(
-        child: RefundReport(),//11
+        child: PaymentReport(),//11
       ),
       Container(
-        child: CashRecordReport(),//12
+        child: RefundReport(),//12
       ),
       Container(
-        child: StaffSalesReport(),//13
+        child: CashRecordReport(),//13
       ),
       Container(
-        child: AttendanceReport(),//14
+        child: StaffSalesReport(),//14
       ),
       Container(
-        child: TransferRecord(),//15
+        child: AttendanceReport(),//15
+      ),
+      Container(
+        child: TransferRecord(),//16
       ),
     ]);
   }

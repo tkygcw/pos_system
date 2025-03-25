@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:pos_system/database/pos_database_utils.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/attendance.dart';
@@ -1902,7 +1903,7 @@ class PosDatabase {
   Future<BranchLinkProduct?> readSpecificAvailableBranchLinkProduct(String branch_link_product_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.name, b.allow_ticket, b.ticket_count, b.ticket_exp FROM $tableBranchLinkProduct AS a JOIN $tableProduct AS b ON a.product_id = b.product_id '
+        'SELECT a.*, b.name, b.allow_ticket, b.ticket_count, b.ticket_exp, b.show_in_qr FROM $tableBranchLinkProduct AS a JOIN $tableProduct AS b ON a.product_id = b.product_id '
         'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_link_product_sqlite_id = ? AND b.available = ?',
         ['', '', branch_link_product_sqlite_id, 1]);
 
@@ -3571,12 +3572,17 @@ class PosDatabase {
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
 
-  /*
+/*
   read order cache by table_use_key
 */
-  Future<List<OrderCache>> readSpecificOrderCacheByTableUseKey(String table_use_key) async {
+  Future<List<OrderCache>> readSpecificOrderCacheByTableUseKey(String table_use_key, {bool includeDeleted = true}) async {
+    List<Map<String, Object?>> result;
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE table_use_key = ?', [table_use_key]);
+    if(!includeDeleted){
+      result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE table_use_key = ? AND soft_delete = ?', [table_use_key, '']);
+    } else {
+      result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE table_use_key = ?', [table_use_key]);
+    }
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
 
@@ -3771,6 +3777,28 @@ class PosDatabase {
 /*
   --------------------Report part--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  get not yet settlement order
+*/
+  Future<List<SalesPerDay>> readSalesPerDayWithDate(String startDate, String endDate) async {
+    try{
+      final db = await instance.database;
+      final result = await db.rawQuery(
+        'SELECT * FROM $tableSalesPerDay '
+            'WHERE soft_delete = ? AND date >= ? AND date < ? ',
+        ['', startDate, endDate]
+      );
+      return result.map((json) => SalesPerDay.fromJson(json)).toList();
+    }catch(e, s){
+      FLog.error(
+        className: "settlement query",
+        text: "_readSales error",
+        exception: 'Error: $e, Stacktrace: $s',
+      );
+      rethrow;
+    }
+  }
 
 /*
   read all order detail cancel with OB
@@ -7212,6 +7240,18 @@ class PosDatabase {
   Future clearAllCancelReceipt() async {
     final db = await instance.database;
     return await db.rawDelete('DELETE FROM $tableCancelReceipt');
+  }
+
+/*
+  Delete All sales per day
+*/
+  Future<void> clearAllSalesPerDay() async {
+    final db = await instance.database;
+    await db.rawDelete('DELETE FROM $tableSalesPerDay');
+    await db.rawDelete('DELETE FROM $tableSalesCategoryPerDay');
+    await db.rawDelete('DELETE FROM $tableSalesProductPerDay');
+    await db.rawDelete('DELETE FROM $tableSalesModifierPerDay');
+    await db.rawDelete('DELETE FROM $tableSalesDiningPerDay');
   }
 
 /*

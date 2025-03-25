@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -15,6 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
+import '../../firebase_sync/qr_order_sync.dart';
 import '../../main.dart';
 import '../printing_layout/print_receipt.dart';
 import '../../object/printer.dart';
@@ -198,7 +200,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
           table_sqlite_id: table_local_id,
           table_id: table_id,
           sync_status: checkData[0].sync_status == 0 ? 0 : 2,
-          updated_at: dateTime
+          updated_at: dateTime,
       );
       int updatedData = await PosDatabase.instance.updateTableUseDetail(tableUseDetailObject);
       if(updatedData == 1){
@@ -306,11 +308,11 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
         await updatePosTable(NowUseDetailData[0].table_use_detail_key!, dateTime, NowUseDetailData[0].table_use_key!, tableUseDetailList: tableUseDetailList);
       }
 
-      await syncAllToCloud();
-      if(this.isLogOut == true){
-        openLogOutDialog();
-        return;
-      }
+      //await syncAllToCloud();
+      // if(this.isLogOut == true){
+      //   openLogOutDialog();
+      //   return;
+      // }
       widget.callBack();
       Navigator.of(context).pop();
       Future.delayed(Duration(seconds: 2), () {
@@ -322,6 +324,21 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
           backgroundColor: Colors.red,
           msg: "${AppLocalizations.of(context)?.translate("table_not_found")}");
       Navigator.of(context).pop();
+    }
+  }
+
+  Future<void> syncToFirestore(int table_id) async {
+    try{
+      List<OrderCache> orderCache = await PosDatabase.instance.readSpecificOrderCacheByTableUseKey(widget.object.table_use_key!, includeDeleted: false);
+      for(var order in orderCache){
+        await FirestoreQROrderSync.instance.updateOrderCacheTableId(table_id.toString(), order.order_cache_key!);
+      }
+    }catch(e, s){
+      FLog.error(
+        className: "table change dialog",
+        text: "syncToFirestore failed",
+        exception: "Error: $e, StackTrace: $s",
+      );
     }
   }
 
@@ -351,7 +368,6 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
 
   }
 
-
   updatePosTable(String key, String dateTime, String currantTableUseKey, {required List<TableUseDetail> tableUseDetailList}) async {
     List<String> _value = [];
     List<String> _tableNumberList = [];
@@ -372,7 +388,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
           _tableNumberList.add(lastTable[0].number!);
         }
       }
-
+      syncToFirestore(newTable.first.table_id!);
       this.table_value = _value.toString();
       //sync to cloud
       //syncUpdatedTableToCloud(_value.toString());
