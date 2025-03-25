@@ -1,3 +1,5 @@
+import 'package:pos_system/object/product.dart';
+
 String? tableBranchLinkProduct = 'tb_branch_link_product';
 
 class BranchLinkProductFields {
@@ -67,6 +69,7 @@ class BranchLinkProduct {
   int? allow_ticket;
   int? ticket_count;
   String? ticket_exp;
+  int? show_in_qr;
 
   BranchLinkProduct(
       {this.branch_link_product_sqlite_id,
@@ -92,6 +95,7 @@ class BranchLinkProduct {
         this.allow_ticket,
         this.ticket_count,
         this.ticket_exp,
+        this.show_in_qr
       });
 
   BranchLinkProduct copy({
@@ -162,7 +166,8 @@ class BranchLinkProduct {
       product_name: json['name'] as String?,
       allow_ticket: json['allow_ticket'] as int?,
       ticket_count: json['ticket_count'] as int?,
-      ticket_exp: json['ticket_exp'] as String?
+      ticket_exp: json['ticket_exp'] as String?,
+      show_in_qr: json[ProductFields.show_in_qr] as int?
   );
 
   Map<String, Object?> toJson() => {

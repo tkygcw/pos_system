@@ -933,7 +933,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                           openLogOutDialog();
                                                           return;
                                                         }
-                                                        openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
+                                                        await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
                                                         Branch? data = await PosDatabase.instance.readLocalBranch();
                                                         if(data != null && data.allow_livedata == 1){
                                                           if(!isSyncisSyncingingNotifier.value){
@@ -1987,7 +1987,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                       openLogOutDialog();
                                                       return;
                                                     }
-                                                    openPaymentSuccessDialog(
+                                                    await openPaymentSuccessDialog(
                                                         widget.dining_id,
                                                         split_payment,
                                                         isCashMethod: false,
@@ -3007,7 +3007,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                         openLogOutDialog();
                                                         return;
                                                       }
-                                                      openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
+                                                      await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
                                                       Branch? data = await PosDatabase.instance.readLocalBranch();
                                                       if(data != null && data.allow_livedata == 1){
                                                         if(!isSyncisSyncingingNotifier.value){
@@ -3586,7 +3586,7 @@ class _MakePaymentState extends State<MakePayment> {
                 Audio("audio/payment_success.mp3"),
               );
               //pass trans id from api res to payment success dialog
-              openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name, ipayTransId: apiRes['data']);
+              await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name, ipayTransId: apiRes['data']);
               Branch? data = await PosDatabase.instance.readLocalBranch();
               if(data != null && data.allow_livedata == 1){
                 if(!isSyncisSyncingingNotifier.value){
@@ -4562,7 +4562,7 @@ class _MakePaymentState extends State<MakePayment> {
             openLogOutDialog();
             return;
           }
-          openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: true, diningName: widget.dining_name);
+          await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: true, diningName: widget.dining_name);
           Branch? data = await PosDatabase.instance.readLocalBranch();
           if(data != null && data.allow_livedata == 1){
             if(!isSyncisSyncingingNotifier.value){

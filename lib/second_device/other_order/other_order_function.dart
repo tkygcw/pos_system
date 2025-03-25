@@ -134,7 +134,19 @@ class OtherOrderFunction {
         }
       }
     }
+    orderCacheList = removeDuplicateOrderCache(orderCacheList);
     return orderCacheList;
+  }
+
+  List<OrderCache> removeDuplicateOrderCache(List<OrderCache> orderCacheList) {
+    final seenKeys = <String>{}; // Set to store unique other_order_key values
+
+    return orderCacheList.where((orderCache) {
+      final key = orderCache.other_order_key;
+      if (key == null || key == '') return true; // Keep entries with empty keys
+
+      return seenKeys.add(key); // Adds to set & returns true if it's a new key
+    }).toList();
   }
 
   Future<List<DiningOption>> getDiningList() async{

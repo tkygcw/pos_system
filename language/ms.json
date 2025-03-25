@@ -572,6 +572,7 @@
   "rounding": "Rounding",
   "rounding_absorb": "Rounding absorb",
   "rounding_absorb_desc": "Harga dibundarkan ke bawah di bawah 8 sen (mis., 1.07 -> 1.00) dan naik pada 8/9 sen (mis., 1.08 -> 1.10)",
+  "sales_summary": "Ringkasan Jualan",
   "save": "Simpan",
   "same_payment_method_error": "Tidak boleh mengemas kini kepada cara pembayaran yang sama",
   "scan": "Imbas",

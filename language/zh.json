@@ -572,6 +572,7 @@
   "rounding": "Rounding",
   "rounding_absorb": "只在 8 分以上向上舍入",
   "rounding_absorb_desc": "价格在 8 分以下向下舍入（例如，1.07 -> 1.00），在 8/9 美分以上向上舍入（例如，1.08 -> 1.10）",
+  "sales_summary": "销售摘要",
   "save": "储存",
   "same_payment_method_error": "无法更新为相同的支付方式",
   "scan": "扫描",

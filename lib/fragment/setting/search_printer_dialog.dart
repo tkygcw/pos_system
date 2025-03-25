@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:io' as Platform;
 import 'package:app_settings/app_settings.dart';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:lan_scanner/lan_scanner.dart';
@@ -245,14 +246,22 @@ class _SearchPrinterDialogState extends State<SearchPrinterDialog> {
   }
 
   _getDevicelist() async {
-    isLoad = false;
-    List<Map<String, dynamic>> results = [];
-    results = await FlutterUsbPrinter.getUSBDeviceList();
-    if (this.mounted) {
-      setState(() {
-        devices = results;
-        isLoad = true;
-      });
+    try{
+      isLoad = false;
+      List<Map<String, dynamic>> results = [];
+      results = await FlutterUsbPrinter.getUSBDeviceList();
+      if (this.mounted) {
+        setState(() {
+          devices = results;
+          isLoad = true;
+        });
+      }
+    }catch(e, s){
+      FLog.error(
+        className: "search printer dialog",
+        text: "_getDevicelist failed",
+        exception: "Error: $e, Stacktrace: $s",
+      );
     }
   }
 
