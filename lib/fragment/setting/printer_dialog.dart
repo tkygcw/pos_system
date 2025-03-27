@@ -213,7 +213,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                               Row(
                                 children: [
                                   Visibility(
-                                    //visible: !Platform.Platform.isIOS && !Platform.Platform.isWindows,
+                                    visible: !Platform.Platform.isIOS,
                                     child: Expanded(
                                       child: RadioListTile<int>(
                                         activeColor: color.backgroundColor,
