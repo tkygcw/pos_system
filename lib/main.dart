@@ -108,11 +108,11 @@ Future<void> main(List<String> args) async {
   } else {
     //firebase method
     await Firebase.initializeApp(
-      options: FirebaseOptions(
+      options: Platform.isWindows ? FirebaseOptions(
           apiKey: 'AIzaSyCw5m1txfmZIHhrjc5gnQmElcjh2IfkZWA',
           appId: '1:837940125447:web:90e55e25e0d6b1a63aafa2',
           messagingSenderId: '837940125447',
-          projectId: 'test-13a67')
+          projectId: 'test-13a67') : null
     );
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     setupNotificationChannel();

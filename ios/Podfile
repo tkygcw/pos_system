@@ -33,7 +33,7 @@ target 'Runner' do
 
    pod 'FirebaseFirestore',
       :git => 'https://github.com/invertase/firestore-ios-sdk-frameworks.git',
-      :tag => '11.2.0'
+      :tag => '11.7.0'
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
@@ -44,6 +44,8 @@ post_install do |installer|
 
     target.build_configurations.each do |config|
     config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '12.0'
+    config.build_settings['VALID_ARCHS'] = 'x86_64 arm64'
+    config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64' # Exclude arm64 for the simulator
     end
   end
 end
