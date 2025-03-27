@@ -3840,6 +3840,8 @@ class CartPageState extends State<CartPage> {
           original_price: newOrderDetailList[j].base_price,
           quantity: newOrderDetailList[j].quantity.toString(),
           promo: {},
+          charge: {},
+          tax: {},
           remark: newOrderDetailList[j].remark,
           account: '',
           edited_by: '',

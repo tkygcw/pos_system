@@ -280,9 +280,9 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.multiple_category} $jsonType");
             await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.custom_table_number} $textType DEFAULT ''");
             await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_total_amount} $integerType DEFAULT 0");
-          }break;
-          case 38: {
             await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.promo} $jsonType");
+            await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.charge} $jsonType");
+            await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.tax} $jsonType");
           }break;
         }
       }
@@ -460,6 +460,8 @@ class PosDatabaseUtils {
         ${OrderDetailFields.original_price} $textType, 
         ${OrderDetailFields.quantity} $textType, 
         ${OrderDetailFields.promo} $jsonType,
+        ${OrderDetailFields.charge} $jsonType,
+        ${OrderDetailFields.tax} $jsonType,
         ${OrderDetailFields.remark} $textType, 
         ${OrderDetailFields.account} $textType,
         ${OrderDetailFields.edited_by} $textType,
