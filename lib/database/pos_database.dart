@@ -4370,6 +4370,7 @@ class PosDatabase {
             'JOIN $tableOrderCache AS d ON c.order_cache_sqlite_id = d.order_cache_sqlite_id '
             'JOIN $tableOrder AS e ON d.order_sqlite_id = e.order_sqlite_id '
             'JOIN (SELECT * FROM $tableCashRecord GROUP BY settlement_key) AS f on e.settlement_key = f.settlement_key AND f.remark = ?'
+            'WHERE a.soft_delete = ? AND c.soft_delete = ? AND d.soft_delete = ? AND e.soft_delete = ? '
             'AND c.status = ? AND d.accepted = ? AND d.cancel_by = ? AND e.payment_status = ? '
             'AND SUBSTR(f.created_at, 1, 10) >= ? AND SUBSTR(f.created_at, 1, 10) < ? GROUP BY b.mod_group_id  ',
         ['each', 'each_c', 'each', 'each_c', 'Opening Balance', '', '', '', '', 0, 0, '', 1, date1, date2]);
