@@ -1267,6 +1267,7 @@ class _TableMenuState extends State<TableMenu> {
           ticket_exp: orderDetailList[i].ticket_exp,
           product_sku: orderDetailList[i].product_sku,
           order_key: orderKey,
+          internal_name: orderDetailList[i].internal_name ?? ''
         );
         cartItemList.add(value);
       }

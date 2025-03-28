@@ -2,11 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:f_logs/model/flog/flog.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/payment/ipay_api.dart';
@@ -146,30 +144,6 @@ class _MakePaymentState extends State<MakePayment> {
   bool paymentSplitDialog = false;
   String order_split_payment_link_company_id = '';
 
-  // Array of button
-  final List<String> buttons = [
-    '7', //0
-    '8', //1
-    '9', //2
-    'C', //3
-    '4', //4
-    '5', //5
-    '6', //6
-    'DEL', //7
-    '1', //8
-    '2', //9
-    '3', //10
-    '', //11
-    '00', //12
-    '0', //13
-    '.', //14
-    '', //15
-    '20.00', //16
-    '50.00', //17
-    '100.00', //18
-    'GO', //19
-  ];
-
   void _scrollDown() {
     _controller.jumpTo(_controller.position.maxScrollExtent);
   }
@@ -256,6 +230,13 @@ class _MakePaymentState extends State<MakePayment> {
           // ignore: null_check_always_fails
           return null!;
         });
+  }
+
+  String displayMenuName(cartProductItem cartItem) {
+    if (cartItem.internal_name?.isNotEmpty ?? false) {
+      return cartItem.internal_name!;
+    }
+    return cartItem.product_name ?? "Unnamed Product";
   }
 
   @override
@@ -354,7 +335,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                       text: TextSpan(
                                                         children: <TextSpan>[
                                                           TextSpan(
-                                                            text: '${itemList[index].product_name!} (${itemList[index].price!}/${itemList[index].per_quantity_unit!}${itemList[index].unit! == 'each' || itemList[index].unit! == 'each_c' ? 'each' : itemList[index].unit!})\n',
+                                                            text: '${displayMenuName(itemList[index])} (${itemList[index].price!}/${itemList[index].per_quantity_unit!}${itemList[index].unit! == 'each' || itemList[index].unit! == 'each_c' ? 'each' : itemList[index].unit!})\n',
                                                             style: TextStyle(
                                                               fontSize: MediaQuery.of(context).size.height > 500 ? 20 : 15,
                                                               color: color.backgroundColor,

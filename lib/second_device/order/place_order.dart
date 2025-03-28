@@ -457,6 +457,7 @@ abstract class PlaceOrder {
           unit: newOrderDetailList[j].unit,
           per_quantity_unit: newOrderDetailList[j].per_quantity_unit,
           product_sku: newOrderDetailList[j].product_sku,
+          internal_name: newOrderDetailList[j].internal_name ?? '',
           created_at: dateTime,
           updated_at: '',
           soft_delete: '');

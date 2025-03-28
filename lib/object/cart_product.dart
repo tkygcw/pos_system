@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/modifier_item.dart';
+import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/variant_group.dart';
 
 import 'order_modifier_detail.dart';
@@ -44,6 +45,7 @@ class cartProductItem{
    int? ticket_count;
    String? ticket_exp;
    String? product_sku;
+   String? internal_name;
 
    cartProductItem(
        {
@@ -83,6 +85,7 @@ class cartProductItem{
          this.ticket_count,
          this.ticket_exp,
          this.product_sku,
+         this.internal_name
        });
 
    static cartProductItem fromJson(Map<String, Object?> json) {
@@ -130,7 +133,8 @@ class cartProductItem{
          allow_ticket: json['allow_ticket'] as int?,
          ticket_count: json['ticket_count'] as int?,
          ticket_exp: json['ticket_exp'] as String?,
-         product_sku: json['product_sku'] as String?
+         product_sku: json['product_sku'] as String?,
+         internal_name: json[ProductFields.internal_name] as String
      );
    }
 
@@ -171,6 +175,7 @@ class cartProductItem{
      'ticket_count': ticket_count,
      'ticket_exp': ticket_exp,
      'product_sku': product_sku,
+     ProductFields.internal_name: internal_name
    };
 
 }

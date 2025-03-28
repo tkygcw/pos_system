@@ -273,6 +273,10 @@ class PosDatabaseUtils {
           case 36: {
             await db.execute("ALTER TABLE $tableUser ADD ${UserFields.sub_pos_payment} $integerType DEFAULT 0");
           }break;
+          case 37: {
+            await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.internal_name} $textType DEFAULT '' ");
+            await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.internal_name} $textType DEFAULT '' ");
+          }break;
         }
       }
     }
@@ -458,6 +462,7 @@ class PosDatabaseUtils {
         ${OrderDetailFields.unit} $textType, 
         ${OrderDetailFields.per_quantity_unit} $textType,
         ${OrderDetailFields.product_sku} $textType,
+        ${OrderDetailFields.internal_name} $textType,
         ${OrderDetailFields.created_at} $textType, 
         ${OrderDetailFields.updated_at} $textType,
         ${OrderDetailFields.soft_delete} $textType)''');
@@ -523,7 +528,7 @@ class PosDatabaseUtils {
            ${ProductFields.graphic_type} $textType, ${ProductFields.color} $textType, ${ProductFields.daily_limit} $textType, ${ProductFields.daily_limit_amount} $textType, 
            ${ProductFields.sync_status} $integerType, ${ProductFields.unit} $textType, ${ProductFields.per_quantity_unit} $textType, ${ProductFields.sequence_number} $textType, 
            ${ProductFields.allow_ticket} $integerType, ${ProductFields.ticket_count} $integerType, ${ProductFields.ticket_exp} $textType, ${ProductFields.show_in_qr} $integerType, 
-           ${ProductFields.created_at} $textType, ${ProductFields.updated_at} $textType, ${ProductFields.soft_delete} $textType)''');
+           ${ProductFields.internal_name} $textType, ${ProductFields.created_at} $textType, ${ProductFields.updated_at} $textType, ${ProductFields.soft_delete} $textType)''');
 /*
     create product variant table
 */

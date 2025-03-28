@@ -597,6 +597,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
           ticket_exp: orderDetailList[i].ticket_exp,
           product_sku: orderDetailList[i].product_sku,
           order_key: orderCache.order_key,
+          internal_name: orderDetailList[i].internal_name
       );
       cartItemList.add(value);
       if(orderCache.dining_name == 'Take Away'){

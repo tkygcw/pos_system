@@ -258,7 +258,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                               children: [
                                 Container(
                                   // constraints: BoxConstraints(maxWidth: 300),
-                                  child: Text("${widget.productDetail!.name!}",
+                                  child: Text("${displayMenuName(widget.productDetail!)}",
                                       style: TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
@@ -1101,6 +1101,13 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     });
   }
 
+  String displayMenuName(Product product) {
+    if (product.internal_name?.isNotEmpty ?? false) {
+      return product.internal_name!;
+    }
+    return product.name ?? "Unnamed Product";
+  }
+
   bool checkModifierMinSelect(List<ModifierGroup> modifierGroup){
     int checkedModifiersCount = 0;
     for(int i = 0; i < modifierGroup.length; i++){
@@ -1673,7 +1680,8 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         product_sku: widget.productDetail!.SKU!,
         allow_ticket: widget.productDetail?.allow_ticket,
         ticket_count: widget.productDetail?.ticket_count,
-        ticket_exp: widget.productDetail?.ticket_exp
+        ticket_exp: widget.productDetail?.ticket_exp,
+        internal_name: widget.productDetail!.internal_name ?? ''
     );
     List<cartProductItem> item = [];
     if(cart.cartNotifierItem.isEmpty){

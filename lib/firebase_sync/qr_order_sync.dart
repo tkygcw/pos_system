@@ -255,6 +255,7 @@ class FirestoreQROrderSync {
           unit: 'each',
           per_quantity_unit: '',
           product_sku: data['product_sku'] ?? '',
+          internal_name: data[OrderDetailFields.internal_name] ?? '',
           sync_status: 0,
           created_at: data['created_at']!,
           updated_at: '',

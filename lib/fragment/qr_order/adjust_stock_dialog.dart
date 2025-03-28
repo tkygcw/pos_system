@@ -121,8 +121,8 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
           _failPrintModel = failPrintModel;
           return LayoutBuilder(builder: (context, constraints) {
             if (constraints.maxWidth > 800) {
-              return WillPopScope(
-                onWillPop: () async => willPop,
+              return PopScope(
+                canPop: willPop,
                 child: AlertDialog(
                   title: Row(
                     children: [
@@ -195,7 +195,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                       text: TextSpan(
                                         children: <TextSpan>[
                                           TextSpan(
-                                              text: "${widget.orderDetailList[index].productName}" + "\n",
+                                              text: displayMenuName(widget.orderDetailList[index]) + "\n",
                                               style: TextStyle(fontSize: 14, color: Colors.black)),
                                           TextSpan(
                                               text: "RM ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 13, color: Colors.black)),
@@ -500,7 +500,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                     text: TextSpan(
                                       children: <TextSpan>[
                                         TextSpan(
-                                            text: "${widget.orderDetailList[index].productName}" + "\n",
+                                            text: displayMenuName(widget.orderDetailList[index]) + "\n",
                                             style: TextStyle(fontSize: 13, color: Colors.black)),
                                         TextSpan(
                                             text: "RM ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 12, color: Colors.black)),
@@ -706,6 +706,13 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
         });
       });
     });
+  }
+
+  String displayMenuName(OrderDetail orderDetail) {
+    if (orderDetail.internal_name?.isNotEmpty ?? false) {
+      return orderDetail.internal_name!;
+    }
+    return orderDetail.productName ?? "Unnamed Product";
   }
 
   enableCancelButton() {

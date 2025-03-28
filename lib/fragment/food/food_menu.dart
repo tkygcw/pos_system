@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:collection/collection.dart';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/fragment/product/product_order_dialog.dart';
@@ -177,6 +178,17 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
     controller.sink.add("refresh");
   }
 
+  String displayMenuName(Product product) {
+    String productName = '';
+    if(_appSettingModel.show_sku!){
+      productName = "${product.SKU!} ";
+    }
+    if (product.internal_name?.isNotEmpty ?? false) {
+      return "$productName${product.internal_name!}";
+    }
+    return "$productName${product.name ?? "Unnamed Product"}";
+  }
+
   readAllCategories() async {
     List<Categories> _data = [];
     await getPreferences();
@@ -224,19 +236,8 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                             color: Colors.black.withOpacity(0.5),
                             width: 200,
                             alignment: Alignment.center,
-                            child: _appSettingModel.show_sku! ?
-                            Text(
-                              data[index].SKU! + ' ' + data[index].name!,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                fontSize: 13,
-                              ),
-                            ) :
-                            Text(
-                              data[index].name!,
+                            child: Text(
+                              displayMenuName(data[index]),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -281,18 +282,8 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                             height: 50,
                             width: 200,
                             alignment: Alignment.center,
-                            child:  _appSettingModel.show_sku! ? Text(
-                              data[index].SKU! + ' ' + data[index].name!,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                fontSize: 13,
-                              ),
-                            ) :
-                            Text(
-                              data[index].name!,
+                            child: Text(
+                              displayMenuName(data[index]),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(

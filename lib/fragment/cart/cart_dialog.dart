@@ -765,7 +765,6 @@ class CartDialogState extends State<CartDialog> {
     cart.overrideCartOrderCache(orderCacheList);
     var value;
     List<cartProductItem> itemList = [];
-    print('order detail length: ${orderDetailList.length}');
     for (int i = 0; i < orderDetailList.length; i++) {
       value = cartProductItem(
           branch_link_product_sqlite_id: orderDetailList[i].branch_link_product_sqlite_id!,
@@ -788,7 +787,8 @@ class CartDialogState extends State<CartDialog> {
           allow_ticket: orderDetailList[i].allow_ticket,
           ticket_count: orderDetailList[i].ticket_count,
           ticket_exp: orderDetailList[i].ticket_exp,
-          product_sku: orderDetailList[i].product_sku
+          product_sku: orderDetailList[i].product_sku,
+          internal_name: orderDetailList[i].internal_name
       );
       itemList.add(value);
     }

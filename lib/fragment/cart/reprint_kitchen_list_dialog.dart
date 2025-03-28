@@ -64,8 +64,8 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
       return Consumer<FailPrintModel>(builder: (context, FailPrintModel failPrintModel, child) {
         orderDetail = failPrintModel.failedPrintOrderDetail;
         _failPrintModel = failPrintModel;
-        return WillPopScope(
-          onWillPop: () async => false,
+        return PopScope(
+          canPop: false,
           child: AlertDialog(
             titlePadding: EdgeInsets.fromLTRB(24, 12, 24, 0),
             contentPadding: EdgeInsets.fromLTRB(12, 10, 12, 0),
@@ -186,7 +186,7 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
                                   return CheckboxListTile(
                                     // isThreeLine: true,
                                     secondary: Text("x${item.quantity}"),
-                                    title: Text("${item.productName}"),
+                                    title: Text(displayMenuName(item)),
                                     subtitle: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
@@ -281,6 +281,13 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
         );
       });
     });
+  }
+
+  String displayMenuName(OrderDetail orderDetail) {
+    if (orderDetail.internal_name?.isNotEmpty ?? false) {
+      return orderDetail.internal_name!;
+    }
+    return orderDetail.productName ?? "Unnamed Product";
   }
 
   checkIsLastOrder(){

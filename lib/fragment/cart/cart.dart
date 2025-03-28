@@ -452,7 +452,7 @@ class CartPageState extends State<CartPage> {
                                                 text: TextSpan(
                                                   children: <TextSpan>[
                                                     TextSpan(
-                                                      text: cart.cartNotifierItem[index].product_name! + '\n',
+                                                      text: displayMenuName(cart.cartNotifierItem[index]) + '\n',
                                                       style: TextStyle(
                                                           fontSize: 14,
                                                           color: cart.cartNotifierItem[index].status == 1 ? font : cart.cartNotifierItem[index].refColor,
@@ -1004,6 +1004,13 @@ class CartPageState extends State<CartPage> {
         });
       });
     });
+  }
+
+  String displayMenuName(cartProductItem cartItem) {
+    if (cartItem.internal_name?.isNotEmpty ?? false) {
+      return cartItem.internal_name!;
+    }
+    return cartItem.product_name ?? "Unnamed Product";
   }
 
   num checkCartProductQuantity(CartModel cart, BranchLinkProduct branchLinkProduct) {
@@ -2953,7 +2960,7 @@ class CartPageState extends State<CartPage> {
                           child: ListTile(
                             dense: screenHeight < 750.0 ? true : false,
                             isThreeLine: true,
-                            title: Text(item[index].product_name!, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                            title: Text(displayMenuName(item[index]), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                             subtitle: Text(getVariant(item[index]) + getModifier(item[index])),
                             trailing: Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
@@ -3699,6 +3706,7 @@ class CartPageState extends State<CartPage> {
           unit: newOrderDetailList[j].unit,
           per_quantity_unit: newOrderDetailList[j].per_quantity_unit,
           product_sku: newOrderDetailList[j].product_sku,
+          internal_name: newOrderDetailList[j].internal_name,
           created_at: dateTime,
           updated_at: '',
           soft_delete: '');

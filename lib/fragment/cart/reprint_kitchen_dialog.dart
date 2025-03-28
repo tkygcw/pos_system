@@ -57,8 +57,8 @@ class _ReprintKitchenDialogState extends State<ReprintKitchenDialog> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return WillPopScope(
-        onWillPop: () async => false,
+      return PopScope(
+        canPop: false,
         child: AlertDialog(
           titlePadding: EdgeInsets.fromLTRB(24, 12, 24, 0),
           contentPadding: EdgeInsets.fromLTRB(12, 10, 12, 0),
@@ -154,7 +154,7 @@ class _ReprintKitchenDialogState extends State<ReprintKitchenDialog> {
                               return CheckboxListTile(
                                 // isThreeLine: true,
                                 secondary: Text("x${item.quantity}"),
-                                title: Text("${item.productName}"),
+                                title: Text(displayMenuName(item)),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -249,6 +249,13 @@ class _ReprintKitchenDialogState extends State<ReprintKitchenDialog> {
         ),
       );
     });
+  }
+
+  String displayMenuName(OrderDetail orderDetail) {
+    if (orderDetail.internal_name?.isNotEmpty ?? false) {
+      return orderDetail.internal_name!;
+    }
+    return orderDetail.productName ?? "Unnamed Product";
   }
 
   readAllOrderDetail() async {

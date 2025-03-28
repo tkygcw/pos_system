@@ -420,6 +420,7 @@ class _OtherOrderAddtoCartState extends State<OtherOrderAddtoCart> {
         ticket_exp: orderDetailList[i].ticket_exp,
         product_sku: orderDetailList[i].product_sku,
         order_key: orderCache.order_key,
+        internal_name: orderDetailList[i].internal_name
       );
       print("order_cache_sqlite_id: ${orderCache.order_cache_sqlite_id.toString()}");
       cartItemList.add(value);

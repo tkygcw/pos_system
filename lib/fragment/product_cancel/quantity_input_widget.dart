@@ -71,7 +71,7 @@ class _QuantityInputWidgetState extends State<QuantityInputWidget> {
                 return ListTile(
                   dense: getDense(),
                   contentPadding: EdgeInsets.zero,
-                  title: Text(widget.cartItemList[i].product_name!),
+                  title: Text(displayMenuName(widget.cartItemList[i])),
                   subtitle: Text('${AppLocalizations.of(context)!.translate('max')}: $maxQty', style: TextStyle(color: Colors.redAccent)),
                   trailing: FittedBox(
                       child: Padding(
@@ -182,6 +182,13 @@ class _QuantityInputWidgetState extends State<QuantityInputWidget> {
         ],
       ),
     );
+  }
+
+  String displayMenuName(cartProductItem cartItem) {
+    if (cartItem.internal_name?.isNotEmpty ?? false) {
+      return cartItem.internal_name!;
+    }
+    return cartItem.product_name ?? "Unnamed Product";
   }
 
   getDense(){

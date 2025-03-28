@@ -34,6 +34,7 @@ class OrderDetailFields {
     unit,
     per_quantity_unit,
     product_sku,
+    internal_name,
     created_at,
     updated_at,
     soft_delete
@@ -64,6 +65,7 @@ class OrderDetailFields {
   static String unit = 'unit';
   static String per_quantity_unit = 'per_quantity_unit';
   static String product_sku = 'product_sku';
+  static String internal_name = 'internal_name';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
@@ -95,6 +97,7 @@ class OrderDetail{
   String? unit;
   String? per_quantity_unit;
   String? product_sku;
+  String? internal_name;
   String? created_at;
   String? updated_at;
   String? soft_delete;
@@ -161,6 +164,7 @@ class OrderDetail{
         this.unit,
         this.per_quantity_unit,
         this.product_sku,
+        this.internal_name,
         this.created_at,
         this.updated_at,
         this.soft_delete,
@@ -221,6 +225,7 @@ class OrderDetail{
     String? unit,
     String? per_quantity_unit,
     String? product_sku,
+    String? internal_name,
     String? created_at,
     String? updated_at,
     String? soft_delete
@@ -251,6 +256,7 @@ class OrderDetail{
           unit: unit ?? this.unit,
           per_quantity_unit: per_quantity_unit ?? this.per_quantity_unit,
           product_sku: product_sku ?? this.product_sku,
+          internal_name: internal_name ?? this.internal_name,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete);
@@ -287,6 +293,7 @@ class OrderDetail{
       unit: json[OrderDetailFields.unit] as String?,
       per_quantity_unit: json[OrderDetailFields.per_quantity_unit] as String?,
       product_sku: json[OrderDetailFields.product_sku] as String?,
+      internal_name: json[OrderDetailFields.internal_name] as String?,
       created_at: json[OrderDetailFields.created_at] as String?,
       updated_at: json[OrderDetailFields.updated_at] as String?,
       soft_delete: json[OrderDetailFields.soft_delete] as String?,
@@ -343,6 +350,7 @@ class OrderDetail{
     OrderDetailFields.unit: unit,
     OrderDetailFields.per_quantity_unit: per_quantity_unit,
     OrderDetailFields.product_sku: product_sku,
+    OrderDetailFields.internal_name: internal_name,
     OrderDetailFields.created_at: created_at,
     OrderDetailFields.updated_at: updated_at,
     OrderDetailFields.soft_delete: soft_delete,
@@ -382,6 +390,7 @@ class OrderDetail{
     OrderDetailFields.unit: unit,
     OrderDetailFields.per_quantity_unit: per_quantity_unit,
     OrderDetailFields.product_sku: product_sku,
+    OrderDetailFields.internal_name: internal_name,
     OrderDetailFields.created_at: created_at,
     OrderDetailFields.updated_at: updated_at,
     OrderDetailFields.soft_delete: soft_delete
@@ -408,6 +417,7 @@ class OrderDetail{
     OrderDetailFields.unit: unit,
     OrderDetailFields.per_quantity_unit: per_quantity_unit,
     OrderDetailFields.product_sku: product_sku,
+    OrderDetailFields.internal_name: internal_name,
     OrderDetailFields.created_at: created_at,
     OrderDetailFields.updated_at: updated_at,
     OrderDetailFields.soft_delete: soft_delete,
@@ -435,6 +445,7 @@ class OrderDetail{
     OrderDetailFields.unit: unit,
     OrderDetailFields.per_quantity_unit: per_quantity_unit,
     OrderDetailFields.product_sku: product_sku,
+    OrderDetailFields.internal_name: internal_name,
     OrderDetailFields.created_at: created_at,
     OrderDetailFields.updated_at: updated_at,
     OrderDetailFields.soft_delete: soft_delete,

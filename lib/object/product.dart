@@ -27,6 +27,7 @@ class ProductFields {
     ticket_count,
     ticket_exp,
     show_in_qr,
+    internal_name,
     sync_status,
     created_at,
     updated_at,
@@ -58,6 +59,7 @@ class ProductFields {
   static String ticket_count = 'ticket_count';
   static String ticket_exp = 'ticket_exp';
   static String show_in_qr = 'show_in_qr';
+  static String internal_name = 'internal_name';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -90,6 +92,7 @@ class Product{
   int? ticket_count;
   String? ticket_exp;
   int? show_in_qr;
+  String? internal_name;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -122,6 +125,7 @@ class Product{
         this.ticket_count,
         this.ticket_exp,
         this.show_in_qr,
+        this.internal_name,
         this.sync_status,
         this.created_at,
         this.updated_at,
@@ -155,6 +159,7 @@ class Product{
     int? ticket_count,
     String? ticket_exp,
     int? show_in_qr,
+    String? internal_name,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -186,6 +191,7 @@ class Product{
           ticket_count: ticket_count ?? this.ticket_count,
           ticket_exp: ticket_exp ?? this.ticket_exp,
           show_in_qr: show_in_qr ?? this.show_in_qr,
+          internal_name: internal_name ?? this.internal_name,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -217,6 +223,7 @@ class Product{
     ticket_count: json[ProductFields.ticket_count] as int?,
     ticket_exp: json[ProductFields.ticket_exp] as String?,
     show_in_qr: json[ProductFields.show_in_qr] as int?,
+    internal_name: json[ProductFields.internal_name] as String?,
     sync_status: json[ProductFields.sync_status] as int?,
     created_at: json[ProductFields.created_at] as String?,
     updated_at: json[ProductFields.updated_at] as String?,
@@ -250,6 +257,7 @@ class Product{
     ProductFields.ticket_count: ticket_count,
     ProductFields.ticket_exp: ticket_exp,
     ProductFields.show_in_qr: show_in_qr,
+    ProductFields.internal_name: internal_name,
     ProductFields.sync_status: sync_status,
     ProductFields.created_at: created_at,
     ProductFields.updated_at: updated_at,

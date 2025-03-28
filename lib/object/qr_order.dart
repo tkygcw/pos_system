@@ -127,6 +127,7 @@ class QrOrder extends ChangeNotifier {
             unit: 'each',
             per_quantity_unit: '',
             product_sku: response['data'][i]['order_detail'][j]['product_sku'] ?? '',
+            internal_name: response['data'][i]['order_detail'][j][OrderDetailFields.internal_name] ?? '',
             sync_status: 1,
             created_at: dateTime,
             updated_at: '',

@@ -16,11 +16,7 @@ class _BillPageState extends State<BillPage> {
   Widget build(BuildContext context) {
     return Consumer<CartModel>(builder: (context, CartModel cart, child) {
       return Scaffold(
-        body: Row(
-          children: [
-            Expanded(flex: 12,child: ReceiptMenu(cartModel: cart,))
-          ],
-        ),
+        body: ReceiptMenu(cartModel: cart,),
       );
     });
 
