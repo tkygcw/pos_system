@@ -141,7 +141,17 @@ class FirestoreQROrderSync {
         print("auto accept status: ${AppSettingModel.instance.qr_order_auto_accept}");
         if(AppSettingModel.instance.qr_order_auto_accept == true){
           await QrOrder.instance.getAllNotAcceptedQrOrder(notify: false);
-          asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
+          asyncQ.addJob((_) async {
+            try{
+              await QrOrderAutoAccept().load();
+            }catch(e, s){
+              FLog.error(
+                className: "firebase_sync/qr_order_sync",
+                text: "auto accept qr error",
+                exception: "Error: $e, Stacktrace: $s",
+              );
+            }
+          });
           return;
         }
         await QrOrder.instance.getAllNotAcceptedQrOrder();

@@ -10,6 +10,7 @@ import 'package:pos_system/object/sales_per_day/category_sales_per_day.dart';
 import 'package:pos_system/object/sales_per_day/modifier_sales_per_day.dart';
 import 'package:pos_system/object/sales_per_day/sales_per_day.dart';
 import 'package:pos_system/utils/Utils.dart';
+import 'package:sqflite/sqflite.dart';
 
 import '../../object/order.dart';
 import '../../object/order_cache.dart';
@@ -376,6 +377,7 @@ class SettlementQuery {
         updated_at: '',
         soft_delete: '',
       );
+      await _transaction.delete(tableSalesPerDay, where: 'date = ?', whereArgs: [data.date!]);
       final id = await _transaction.insert(tableSalesPerDay, data.toJson());
       return data.copy(sales_per_day_sqlite_id: id);
     }catch(e, s){
