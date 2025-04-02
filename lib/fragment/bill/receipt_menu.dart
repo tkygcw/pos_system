@@ -643,10 +643,12 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                                     paidOrderList[index].isSelected = false;
                                     cart.initialLoad();
                                   }
-                                  setState(() {
-                                    isCartExpanded = !isCartExpanded;
-                                    paidOrderList[index].isSelected = false;
-                                  });
+                                  if(MediaQuery.of(context).orientation == Orientation.portrait){
+                                    setState(() {
+                                      isCartExpanded = !isCartExpanded;
+                                      paidOrderList[index].isSelected = false;
+                                    });
+                                  }
                                 },
                                 onLongPress: paidOrderList[index].payment_status == 1
                                     ? () {

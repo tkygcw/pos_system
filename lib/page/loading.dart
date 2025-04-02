@@ -1376,7 +1376,7 @@ class _LoadingPageState extends State<LoadingPage> {
             FLog.error(
               className: "loading",
               text: "promotion insert error",
-              exception: "$e\n${responseJson[i].toJson()}",
+              exception: "$e\n${responseJson[i]}",
             );
           }
         }

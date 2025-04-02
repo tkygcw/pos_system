@@ -5332,7 +5332,7 @@ class PosDatabase {
         'UPDATE $tableProduct SET category_sqlite_id = ?, category_id = ?, name = ?, price = ?, description = ?, SKU = ?, '
         'image = ?, has_variant = ?, stock_type = ?, stock_quantity = ?, available = ?, graphic_type = ?, color = ?, '
         'daily_limit_amount = ?, daily_limit = ?, sync_status = ?, unit = ?, per_quantity_unit = ?, sequence_number = ?, allow_ticket = ?, '
-        'ticket_count = ?, ticket_exp = ?, show_in_qr = ?, updated_at = ?, soft_delete = ? WHERE product_id = ? ',
+        'ticket_count = ?, ticket_exp = ?, show_in_qr = ?, internal_name = ?, updated_at = ?, soft_delete = ? WHERE product_id = ? ',
         [
           data.category_sqlite_id,
           data.category_id,
@@ -5357,6 +5357,7 @@ class PosDatabase {
           data.ticket_count,
           data.ticket_exp,
           data.show_in_qr,
+          data.internal_name,
           data.updated_at,
           data.soft_delete,
           data.product_id,
@@ -7982,14 +7983,14 @@ FROM table_counts;
   readAllNotSyncOrderDetail(int dataSelectLimit) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.product_sku, a.per_quantity_unit, a.unit, a.status, '
+        'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.internal_name, a.product_sku, a.per_quantity_unit, a.unit, a.status, '
         'a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, a.account, a.remark, a.quantity,'
         'a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.category_name, a.order_cache_key, a.order_detail_key, b.category_id, c.branch_link_product_id '
         'FROM $tableOrderDetail AS a JOIN $tableCategories as b ON a.category_sqlite_id = b.category_sqlite_id '
         'JOIN $tableBranchLinkProduct AS c ON a.branch_link_product_sqlite_id = c.branch_link_product_sqlite_id '
         'WHERE a.order_detail_key != ? AND a.sync_status != ? '
         'UNION ALL '
-        'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.product_sku, a.per_quantity_unit, a.unit, a.status, '
+        'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.internal_name, a.product_sku, a.per_quantity_unit, a.unit, a.status, '
         'a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, a.account, a.remark, a.quantity, '
         'a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.category_name, a.order_cache_key, a.order_detail_key, 0 AS category_id, b.branch_link_product_id '
         'FROM $tableOrderDetail AS a '

@@ -1379,6 +1379,7 @@ class SyncRecord {
           ticket_count: productItem.ticket_count,
           ticket_exp: productItem.ticket_exp,
           show_in_qr: productItem.show_in_qr ?? 1,
+          internal_name: productItem.internal_name ?? '',
           created_at: productItem.created_at,
           updated_at: productItem.updated_at,
           soft_delete: productItem.soft_delete
@@ -1413,7 +1414,8 @@ class SyncRecord {
           isComplete = true;
         }
       }
-    }catch(e){
+    }catch(e, s){
+      print("error: $e, stacktrace: $s");
       isComplete = false;
     }
     return isComplete;

@@ -671,7 +671,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                               children: [
                                 Container(
                                   constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width / 2),
-                                  child: Text(widget.productDetail!.name!,
+                                  child: Text(displayMenuName(widget.productDetail!),
                                       style: TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
