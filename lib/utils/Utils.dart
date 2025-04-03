@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -156,6 +159,15 @@ class Utils {
         show_product_sku: 0,
         show_product_price: 0
     );
+  }
+
+  static Future<String?> getAndroidVersion() async {
+    if (Platform.isAndroid) {
+      final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+      final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      return androidInfo.version.release;
+    }
+    return null;
   }
 
 }

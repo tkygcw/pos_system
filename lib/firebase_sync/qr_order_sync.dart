@@ -17,6 +17,7 @@ import '../object/order_detail.dart';
 import '../object/order_modifier_detail.dart';
 import '../object/qr_order.dart';
 import '../object/qr_order_auto_accept.dart';
+import '../object/table.dart';
 
 class FirestoreQROrderSync {
   static final FirestoreQROrderSync instance = FirestoreQROrderSync._init();
@@ -608,5 +609,33 @@ class FirestoreQROrderSync {
       );
       rethrow;
     }
+  }
+
+  Future<int> updateOrderCacheTableId(String table_id, String orderCacheKey) async {
+    int status = 0;
+    try{
+      if(firestore_status == FirestoreStatus.offline){
+        return 0;
+      }
+      final batch = firestore.batch();
+      Map<String, dynamic> jsonMap = {
+        OrderCacheFields.updated_at:  Utils.dbCurrentDateTimeFormat(),
+        PosTableFields.table_id: table_id,
+      };
+      final docSnapshot = await firestore.collection(_tb_qr_order_cache).doc(orderCacheKey).get();
+      if(docSnapshot.exists){
+        batch.update(docSnapshot.reference, jsonMap);
+        batch.commit();
+        status = 1;
+      }
+    }catch(e, s){
+      FLog.error(
+        className: "qr order sync",
+        text: "updateOrderCacheTableId error",
+        exception: "Error: $e, Stacktrace: $s",
+      );
+      status = 0;
+    }
+    return status;
   }
 }
