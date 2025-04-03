@@ -2881,6 +2881,17 @@ class PosDatabase {
   }
 
 /*
+  read specific order detail by local id no left join with tnx
+*/
+  Future<OrderDetail> readSpecificOrderDetailByLocalIdNoJoinWithTxn(Transaction txn, String order_detail_sqlite_id) async {
+    final result = await txn.rawQuery(
+        'SELECT * FROM $tableOrderDetail WHERE order_detail_sqlite_id = ? ',
+        [order_detail_sqlite_id]);
+
+    return OrderDetail.fromJson(result.first);
+  }
+
+/*
   read specific order modifier detail by local id
 */
   Future<OrderModifierDetail> readSpecificOrderModifierDetailByLocalId(int order_modifier_detail_sqlite_id) async {
@@ -6482,6 +6493,20 @@ class PosDatabase {
   Future<int> updateOrderDetailJson(OrderDetail data) async {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableOrderDetail SET promo = ?, charge = ?, tax = ?, sync_status = ?, updated_at = ? WHERE order_detail_sqlite_id = ?', [
+      jsonEncode(data.promo),
+      jsonEncode(data.charge),
+      jsonEncode(data.tax),
+      data.sync_status,
+      data.updated_at,
+      data.order_detail_sqlite_id,
+    ]);
+  }
+
+/*
+  update order detail promo, charge, tax json with txn
+*/
+  Future<int> updateOrderDetailJsonWithTxn(Transaction txn, OrderDetail data) async {
+    return await txn.rawUpdate('UPDATE $tableOrderDetail SET promo = ?, charge = ?, tax = ?, sync_status = ?, updated_at = ? WHERE order_detail_sqlite_id = ?', [
       jsonEncode(data.promo),
       jsonEncode(data.charge),
       jsonEncode(data.tax),

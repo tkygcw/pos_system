@@ -3897,579 +3897,224 @@ class _MakePaymentState extends State<MakePayment> {
       itemList[k].tax = {};
     }
     calculateCategoryPriceBeforePromo(cart);
-    // specific category promo
 
-    if (appliedPromotionList.isNotEmpty) {
-      for (int i = 0; i < appliedPromotionList.length; i++) {
-        if ((appliedPromotionList[i].auto_apply == '1' && appliedPromotionList[i].specific_category != '0')
-            || (appliedPromotionList[i].auto_apply == '0' && appliedPromotionList[i].specific_category != '0')) {
-          if (appliedPromotionList[i].specific_category == '1') {
-            print("one category");
-            // One category
-            double thisCategoryTotal = 0;
-            for(var data in itemList) {
-              double singleItemDiscount = 0;
-              if (data.category_id == appliedPromotionList[i].category_id) {
-                for (var item in data.promo!.entries) {
-                  if(!item.value.isNaN) {
-                    singleItemDiscount += item.value;
-                  }
-                }
-                thisCategoryTotal += (double.parse(data.price!) * data.quantity!) - singleItemDiscount;
-              }
-            }
-
-            for (var data in itemList) {
-              if (data.category_id == appliedPromotionList[i].category_id) {
-                double singleItemDiscount = 0;
-                for (var item in data.promo!.entries) {
-                  if(!item.value.isNaN) {
-                    singleItemDiscount += item.value;
-                  }
-                }
-                double promoAmountAppliedOnDetail = appliedPromotionList[i].promoAmount! * (double.parse(data.price!) * data.quantity! - singleItemDiscount) / thisCategoryTotal;
-                // item list add promoJson
-                data.promo![appliedPromotionList[i].name!] = double.parse(promoAmountAppliedOnDetail.toStringAsFixed(2));
-              }
-            }
-            double thisPromoAmount = 0;
-            for(var data in itemList) {
-              for (var item in data.promo!.entries) {
-                if(item.key == appliedPromotionList[i].name) {
-                  if(!item.value.isNaN) {
-                    thisPromoAmount += item.value;
-                  }
-                }
-              }
-            }
-            
-            double compareAmount = double.parse((thisPromoAmount - appliedPromotionList[i].promoAmount!).toStringAsFixed(2));
-            if(compareAmount != 0) {
-              int loopCount = (compareAmount * 100).round().abs();
-              int x = 0;
-              if(compareAmount > 0) {
-                // promo too much need round down
-                while (x < loopCount) {
-                  for (var item in itemList) {
-                    if (x >= loopCount) break;
-                    for (var data in item.promo!.entries) {
-                      if(data.key == appliedPromotionList[i].name) {
-                        item.promo![data.key] = item.promo![data.key]! - 0.01;
-                        x++;
-                      }
-                    }
-                  }
-                }
-              } else if(compareAmount < 0) {
-                // promo too less need round up
-                while (x < loopCount) {
-                  for (var item in itemList) {
-                    if (x >= loopCount) break;
-                    for (var data in item.promo!.entries) {
-                      if(data.key == appliedPromotionList[i].name!) {
-                        item.promo![data.key] = item.promo![data.key]! + 0.01;
-                        x++;
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          } else {
-            // multiple category
-            print("multiple category called");
-            double multipleCategoryTotal = 0;
-            for(var data in itemList) {
-              double singleItemDiscount = 0;
-              if (appliedPromotionList[i].multiple_category!.any((category) => category['category_id'].toString() == data.category_id)) {
-                for (var item in data.promo!.entries) {
-                  if(!item.value.isNaN) {
-                    singleItemDiscount += item.value;
-                  }
-                }
-                multipleCategoryTotal += (double.parse(data.price!) * data.quantity!) - singleItemDiscount;
-              }
-            }
-            for(var data in itemList) {
-              if (appliedPromotionList[i].multiple_category!.any((category) => category['category_id'].toString() == data.category_id)) {
-                double singleItemDiscount = 0;
-                for (var item in data.promo!.entries) {
-                  if(!item.value.isNaN) {
-                    singleItemDiscount += item.value;
-                  }
-                }
-                double promoAmountAppliedOnDetail = appliedPromotionList[i].promoAmount! * (double.parse(data.price!) * data.quantity! - singleItemDiscount) / multipleCategoryTotal;
-                // print("${data.product_name}: ${appliedPromotionList[i].promoAmount!} * (${double.parse(data.price!)} * ${data.quantity!} - $singleItemDiscount)/ ${multipleCategoryTotal} = ${double.parse(promoAmountAppliedOnDetail.toStringAsFixed(2))}");
-                // item list add promoJson
-                data.promo![appliedPromotionList[i].name!] = double.parse(promoAmountAppliedOnDetail.toStringAsFixed(2));
-              }
-            }
-            double thisPromoAmount = 0;
-            for(var data in itemList) {
-              for (var item in data.promo!.entries) {
-                if(item.key == appliedPromotionList[i].name) {
-                  if(!item.value.isNaN) {
-                    thisPromoAmount += item.value;
-                  }
-                }
-              }
-            }
-
-            double compareAmount = double.parse((thisPromoAmount - appliedPromotionList[i].promoAmount!).toStringAsFixed(2));
-            if(compareAmount != 0) {
-              int loopCount = (compareAmount * 100).round().abs();
-              int x = 0;
-              if(compareAmount > 0) {
-                // promo too much need round down
-                while (x < loopCount) {
-                  for (var item in itemList) {
-                    if (x >= loopCount) break;
-                    for (var data in item.promo!.entries) {
-                      if(data.key == appliedPromotionList[i].name) {
-                        item.promo![data.key] = item.promo![data.key]! - 0.01;
-                        x++;
-                      }
-                    }
-                  }
-                }
-              } else if(compareAmount < 0) {
-                // promo too less need round up
-                while (x < loopCount) {
-                  for (var item in itemList) {
-                    if (x >= loopCount) break;
-                    for (var data in item.promo!.entries) {
-                      if(data.key == appliedPromotionList[i].name!) {
-                        item.promo![data.key] = item.promo![data.key]! + 0.01;
-                        x++;
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    print("auto apply called");
-    // all category promo
-    if (appliedPromotionList.isNotEmpty) {
-      for (int i = 0; i < appliedPromotionList.length; i++) {
-        double promoAmountAppliedOnDetail = 0;
-        if((appliedPromotionList[i].auto_apply == '1' && appliedPromotionList[i].specific_category == '0')
-            || (appliedPromotionList[i].auto_apply == '0' && appliedPromotionList[i].specific_category == '0')) {
-          // all category
-          double subtotalAfterPromoTotal = 0;
-          for(var data in itemList) {
-            double singleItemDiscount = 0;
-            for (var item in data.promo!.entries) {
-              if(!item.value.isNaN) {
-                singleItemDiscount += item.value;
-              }
-            }
-            subtotalAfterPromoTotal += (double.parse(data.price!) * data.quantity!) - singleItemDiscount;
-          }
-
-          for(var data in itemList) {
-            double singleItemDiscount = 0;
-            for (var item in data.promo!.entries) {
-              if(!item.value.isNaN) {
-                singleItemDiscount += item.value;
-              }
-            }
-            promoAmountAppliedOnDetail = appliedPromotionList[i].promoAmount! * (double.parse(data.price!) * data.quantity! - singleItemDiscount) / subtotalAfterPromoTotal;
-            data.promo![appliedPromotionList[i].name!] = double.parse(promoAmountAppliedOnDetail.toStringAsFixed(2));
-          }
-
-          double thisPromoAmount = 0;
-          for(var data in itemList) {
-            for (var item in data.promo!.entries) {
-              if(item.key == appliedPromotionList[i].name) {
-                if(!item.value.isNaN) {
-                  thisPromoAmount += item.value;
-                }
-              }
-            }
-          }
-          double compareAmount = double.parse((thisPromoAmount - appliedPromotionList[i].promoAmount!).toStringAsFixed(2));
-          if(compareAmount != 0) {
-            int loopCount = (compareAmount * 100).round().abs();
-            int x = 0;
-            if(compareAmount > 0) {
-              // promo too much need round down
-              while (x < loopCount) {
-                for (var item in itemList) {
-                  if (x >= loopCount) break;
-                  for (var data in item.promo!.entries) {
-                    if(data.key == appliedPromotionList[i].name) {
-                      item.promo![data.key] = item.promo![data.key]! - 0.01;
-                      x++;
-                    }
-                  }
-                }
-              }
-            } else if(compareAmount < 0) {
-              // promo too less need round up
-              while (x < loopCount) {
-                for (var item in itemList) {
-                  if (x >= loopCount) break;
-                  for (var data in item.promo!.entries) {
-                    if(data.key == appliedPromotionList[i].name!) {
-                      item.promo![data.key] = item.promo![data.key]! + 0.01;
-                      x++;
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    {
-      for(int i = 0; i<itemList.length; i++)
-        print("itemListPromo: ${jsonEncode(itemList[i].product_name)}, ${jsonEncode(itemList[i].promo)}");
-      double a = 0;
-      for(var data in itemList)
-        for (var item in data.promo!.entries) {
-          if(!item.value.isNaN) {
-            a += item.value;
-          }
-        }
-      double totall= 0;
-      for(var item in cart.categoryTotalPriceMapBeforePromo.entries) {
-        totall += item.value;
-      }
-      // print("total discount = ${a.toStringAsFixed(2)}");
-      // print("final amount = ${(totall-a).toStringAsFixed(2)}");
-    }
+    // get order promo detail
+    calculatePromotion(appliedPromotionList);
 
     // get order charge detail
-    if(taxList.isNotEmpty) {
-      for(var chargeItem in taxList) {
-        // filter charge
-        if(chargeItem.type == 0) {
-          if(chargeItem.specific_category == 1) {
-            // multiple category charge
-            double multipleCategoryTotal = 0;
-            for(var data in itemList) {
-              double singleItemDiscount = 0;
-              if (chargeItem.multiple_category!.any((category) => category['category_id'].toString() == data.category_id)) {
-                for (var item in data.promo!.entries) {
-                  if(!item.value.isNaN) {
-                    // print("${data.product_name} item.value: ${item.value}");
-                    singleItemDiscount += item.value;
-                  }
-                }
-                multipleCategoryTotal += (double.parse(data.price!) * data.quantity!) - singleItemDiscount;
-              }
-            }
-            for(var data in itemList) {
-              if (chargeItem.multiple_category!.any((category) => category['category_id'].toString() == data.category_id)) {
-                double singleItemDiscount = 0;
-                for (var item in data.promo!.entries) {
-                  if(!item.value.isNaN) {
-                    singleItemDiscount += item.value;
-                  }
-                }
-                double taxAmountAppliedOnDetail = chargeItem.tax_amount! * (double.parse(data.price!) * data.quantity! - singleItemDiscount) / multipleCategoryTotal;
-                // print("${data.product_name}: ${chargeItem.tax_amount!} * (${double.parse(data.price!)} * ${data.quantity!} - $singleItemDiscount) / ${multipleCategoryTotal} = ${double.parse(taxAmountAppliedOnDetail.toStringAsFixed(2))}");
-                // item list add promoJson
-                data.charge![chargeItem.name!] = double.parse(taxAmountAppliedOnDetail.toStringAsFixed(2));
-              }
-            }
-
-            double thisChargeAmount = 0;
-            for(var data in itemList) {
-              for (var item in data.charge!.entries) {
-                if(item.key == chargeItem.name) {
-                  if(!item.value.isNaN) {
-                    thisChargeAmount += item.value;
-                  }
-                }
-              }
-            }
-
-            double compareAmount = double.parse((thisChargeAmount - chargeItem.tax_amount!).toStringAsFixed(2));
-            if(compareAmount != 0) {
-              int loopCount = (compareAmount * 100).round().abs();
-              int x = 0;
-              if(compareAmount > 0) {
-                // charge too much need round down
-                while (x < loopCount) {
-                  for (var item in itemList) {
-                    if (x >= loopCount) break;
-                    for (var data in item.charge!.entries) {
-                      if(data.key == chargeItem.name) {
-                        item.charge![data.key] = item.charge![data.key]! - 0.01;
-                        x++;
-                      }
-                    }
-                  }
-                }
-              } else if(compareAmount < 0) {
-                // charge too less need round up
-                while (x < loopCount) {
-                  for (var item in itemList) {
-                    if (x >= loopCount) break;
-                    for (var data in item.charge!.entries) {
-                      if(data.key == chargeItem.name!) {
-                        item.charge![data.key] = item.charge![data.key]! + 0.01;
-                        x++;
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          } else {
-            // all category charge
-            double subtotalAfterPromoTotal = 0;
-            for(var data in itemList) {
-              double singleItemDiscount = 0;
-              for (var item in data.promo!.entries) {
-                if(!item.value.isNaN) {
-                  singleItemDiscount += item.value;
-                }
-              }
-              subtotalAfterPromoTotal += (double.parse(data.price!) * data.quantity!) - singleItemDiscount;
-            }
-
-            for(var data in itemList) {
-              double singleItemDiscount = 0;
-              for (var item in data.promo!.entries) {
-                if(!item.value.isNaN) {
-                  singleItemDiscount += item.value;
-                }
-              }
-              double taxAmountAppliedOnDetail = chargeItem.tax_amount! * (double.parse(data.price!) * data.quantity! - singleItemDiscount) / subtotalAfterPromoTotal;
-              data.charge![chargeItem.name!] = double.parse(taxAmountAppliedOnDetail.toStringAsFixed(2));
-            }
-
-            double thisChargeAmount = 0;
-            for(var data in itemList) {
-              for (var item in data.charge!.entries) {
-                if(item.key == chargeItem.name) {
-                  if(!item.value.isNaN) {
-                    thisChargeAmount += item.value;
-                  }
-                }
-              }
-            }
-
-            double compareAmount = double.parse((thisChargeAmount - chargeItem.tax_amount!).toStringAsFixed(2));
-            print("compareAmountttt: ${compareAmount}");
-            if(compareAmount != 0) {
-              int loopCount = (compareAmount * 100).round().abs();
-              int x = 0;
-              if(compareAmount > 0) {
-                // charge too much need round down
-                while (x < loopCount) {
-                  for (var item in itemList) {
-                    if (x >= loopCount) break;
-                    for (var data in item.charge!.entries) {
-                      if(data.key == chargeItem.name) {
-                        item.charge![data.key] = item.charge![data.key]! - 0.01;
-                        x++;
-                      }
-                    }
-                  }
-                }
-              } else if(compareAmount < 0) {
-                // charge too less need round up
-                while (x < loopCount) {
-                  for (var item in itemList) {
-                    if (x >= loopCount) break;
-                    for (var data in item.charge!.entries) {
-                      if(data.key == chargeItem.name!) {
-                        item.charge![data.key] = item.charge![data.key]! + 0.01;
-                        x++;
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    // {
-    //   for(int i = 0; i<itemList.length; i++)
-    //     print("itemListCharge: ${jsonEncode(itemList[i].product_name)}, ${jsonEncode(itemList[i].charge!)}");
-    // }
-    double a = 0;
-    for(var data in itemList)
-      for (var item in data.charge!.entries) {
-        if(!item.value.isNaN) {
-          a += item.value;
-        }
-      }
-    print("total charge: ${a.toStringAsFixed(2)}");
+    calculateCharges(taxList);
 
     // get order tax detail
-    if(taxList.isNotEmpty) {
-      for(var taxItem in taxList) {
-        // filter tax
-        if(taxItem.type == 1) {
-          if(taxItem.specific_category == 1) {
-            // multiple category tax
-            double multipleCategoryTotal = 0;
-            for(var data in itemList) {
-              double singleItemDiscount = 0;
-              if (taxItem.multiple_category!.any((category) => category['category_id'].toString() == data.category_id)) {
-                for (var item in data.promo!.entries) {
-                  if(!item.value.isNaN) {
-                    // print("${data.product_name} item.value: ${item.value}");
-                    singleItemDiscount += item.value;
-                  }
-                }
-                multipleCategoryTotal += (double.parse(data.price!) * data.quantity!) - singleItemDiscount;
-              }
-            }
-            for(var data in itemList) {
-              if (taxItem.multiple_category!.any((category) => category['category_id'].toString() == data.category_id)) {
-                double singleItemDiscount = 0;
-                for (var item in data.promo!.entries) {
-                  if(!item.value.isNaN) {
-                    singleItemDiscount += item.value;
-                  }
-                }
-                double taxAmountAppliedOnDetail = taxItem.tax_amount! * (double.parse(data.price!) * data.quantity! - singleItemDiscount) / multipleCategoryTotal;
-                // print("${data.product_name}: ${taxItem.tax_amount!} * (${double.parse(data.price!)} * ${data.quantity!} - $singleItemDiscount) / ${multipleCategoryTotal} = ${double.parse(taxAmountAppliedOnDetail.toStringAsFixed(2))}");
-                // item list add promoJson
-                data.tax![taxItem.name!] = double.parse(taxAmountAppliedOnDetail.toStringAsFixed(2));
-              }
-            }
+    calculateTaxes(taxList);
 
-            double thisTaxAmount = 0;
-            for(var data in itemList) {
-              for (var item in data.tax!.entries) {
-                if(item.key == taxItem.name) {
-                  if(!item.value.isNaN) {
-                    thisTaxAmount += item.value;
-                  }
-                }
-              }
-            }
+    for(int i = 0; i<itemList.length; i++)
+      print("itemListPromo: ${jsonEncode(itemList[i].product_name)}, ${jsonEncode(itemList[i].promo)}");
+    for(int i = 0; i<itemList.length; i++)
+      print("itemListCharge: ${jsonEncode(itemList[i].product_name)}, ${jsonEncode(itemList[i].charge!)}");
+    for(int i = 0; i<itemList.length; i++)
+      print("itemListTax: ${jsonEncode(itemList[i].product_name)}, ${jsonEncode(itemList[i].tax ?? '0')}");
+  }
 
-            double compareAmount = double.parse((thisTaxAmount - taxItem.tax_amount!).toStringAsFixed(2));
-            if(compareAmount != 0) {
-              int loopCount = (compareAmount * 100).round().abs();
-              int x = 0;
-              if(compareAmount > 0) {
-                // tax too much need round down
-                while (x < loopCount) {
-                  for (var item in itemList) {
-                    if (x >= loopCount) break;
-                    for (var data in item.tax!.entries) {
-                      if(data.key == taxItem.name) {
-                        item.tax![data.key] = item.tax![data.key]! - 0.01;
-                        x++;
-                      }
-                    }
-                  }
-                }
-              } else if(compareAmount < 0) {
-                // tax too less need round up
-                while (x < loopCount) {
-                  for (var item in itemList) {
-                    if (x >= loopCount) break;
-                    for (var data in item.tax!.entries) {
-                      if(data.key == taxItem.name!) {
-                        item.tax![data.key] = item.tax![data.key]! + 0.01;
-                        x++;
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          } else {
-            // all category tax
-            double subtotalAfterPromoTotal = 0;
-            for(var data in itemList) {
-              double singleItemDiscount = 0;
-              for (var item in data.promo!.entries) {
-                if(!item.value.isNaN) {
-                  singleItemDiscount += item.value;
-                }
-              }
-              subtotalAfterPromoTotal += (double.parse(data.price!) * data.quantity!) - singleItemDiscount;
-            }
+  calculatePromotion(List appliedPromotionList) {
+    if (appliedPromotionList.isEmpty) return;
 
-            for(var data in itemList) {
-              double singleItemDiscount = 0;
-              for (var item in data.promo!.entries) {
-                if(!item.value.isNaN) {
-                  singleItemDiscount += item.value;
-                }
-              }
-              double taxAmountAppliedOnDetail = taxItem.tax_amount! * (double.parse(data.price!) * data.quantity! - singleItemDiscount) / subtotalAfterPromoTotal;
-              data.tax![taxItem.name!] = double.parse(taxAmountAppliedOnDetail.toStringAsFixed(2));
-            }
+    double _calculateSingleItemDiscount(dynamic data) {
+      return data.promo!.entries.where((item) => !item.value.isNaN).fold(0.0, (sum, item) => sum + item.value);
+    }
 
-            double thisTaxAmount = 0;
-            for(var data in itemList) {
-              for (var item in data.tax!.entries) {
-                if(item.key == taxItem.name) {
-                  if(!item.value.isNaN) {
-                    thisTaxAmount += item.value;
-                  }
-                }
-              }
-            }
+    double _calculateCategoryTotal({String? categoryId, bool Function(dynamic)? filter,}) {
+      return itemList.fold(0.0, (total, data) {
+        if (filter != null && !filter(data)) return total;
 
-            double compareAmount = double.parse((thisTaxAmount - taxItem.tax_amount!).toStringAsFixed(2));
-            if(compareAmount != 0) {
-              int loopCount = (compareAmount * 100).round().abs();
-              int x = 0;
-              if(compareAmount > 0) {
-                // tax too much need round down
-                while (x < loopCount) {
-                  for (var item in itemList) {
-                    if (x >= loopCount) break;
-                    for (var data in item.tax!.entries) {
-                      if(data.key == taxItem.name) {
-                        item.tax![data.key] = item.tax![data.key]! - 0.01;
-                        x++;
-                      }
-                    }
-                  }
-                }
-              } else if(compareAmount < 0) {
-                // tax too less need round up
-                while (x < loopCount) {
-                  for (var item in itemList) {
-                    if (x >= loopCount) break;
-                    for (var data in item.tax!.entries) {
-                      if(data.key == taxItem.name!) {
-                        item.tax![data.key] = item.tax![data.key]! + 0.01;
-                        x++;
-                      }
-                    }
-                  }
-                }
-              }
+        double singleItemDiscount = _calculateSingleItemDiscount(data);
+
+        return total + (double.parse(data.price!) * data.quantity!) - singleItemDiscount;
+      });
+    }
+
+    _adjustPromoAmount(dynamic promotion) {
+      double appliedPromoAmount = itemList.fold(0.0, (total, data) {
+        return total + data.promo!.entries.where((item) => item.key == promotion.name && !item.value.isNaN).fold(0.0, (sum, item) => sum + item.value);
+      });
+
+      double compareAmount = double.parse(
+          (appliedPromoAmount - promotion.promoAmount!).toStringAsFixed(2)
+      );
+
+      if (compareAmount == 0) return;
+
+      int loopCount = (compareAmount * 100).round().abs();
+      int x = 0;
+      bool isRoundingUp = compareAmount < 0;
+
+      while (x < loopCount) {
+        for (var data in itemList) {
+          if (x >= loopCount) break;
+
+          for (var item in data.promo!.entries) {
+            if (item.key == promotion.name) {
+              data.promo![item.key] = data.promo![item.key]! + (isRoundingUp ? 0.01 : -0.01);
+              data.promo![item.key] = double.parse(data.promo![item.key]!.toStringAsFixed(2));
+              x++;
             }
           }
         }
       }
     }
-    // {
-    //   for(int i = 0; i<itemList.length; i++)
-    //     print("itemListTax: ${jsonEncode(itemList[i].product_name)}, ${jsonEncode(itemList[i].tax ?? '0')}");
-    // }
-    double b = 0;
-    for(var data in itemList)
-      for (var item in data.tax!.entries) {
-        if(!item.value.isNaN) {
-          a += item.value;
+
+    _applyPromoToItems(dynamic promotion, double total, bool Function(dynamic) filter) {
+      for (var data in itemList) {
+        if (!filter(data)) continue;
+
+        double singleItemDiscount = _calculateSingleItemDiscount(data);
+
+        double promoAmountApplied = promotion.promoAmount! * (double.parse(data.price!) * data.quantity! - singleItemDiscount) /total;
+
+        data.promo![promotion.name!] = double.parse(promoAmountApplied.toStringAsFixed(2));
+      }
+
+      _adjustPromoAmount(promotion);
+    }
+
+    for (var promotion in appliedPromotionList) {
+      if ((promotion.auto_apply == '1' && promotion.specific_category != '0') ||
+          (promotion.auto_apply == '0' && promotion.specific_category != '0')) {
+
+        if (promotion.specific_category == '1') {
+          double categoryTotal = _calculateCategoryTotal(filter: (data) => data.category_id == promotion.category_id);
+
+          _applyPromoToItems(promotion, categoryTotal, (data) => data.category_id == promotion.category_id);
+        } else {
+          double categoryTotal = _calculateCategoryTotal(filter: (data) => promotion.multiple_category!.any((category) => category['category_id'].toString() == data.category_id));
+
+          _applyPromoToItems(promotion, categoryTotal, (data) => promotion.multiple_category!.any((category) => category['category_id'].toString() == data.category_id));
+        }
+      } else if ((promotion.auto_apply == '1' && promotion.specific_category == '0') ||
+          (promotion.auto_apply == '0' && promotion.specific_category == '0')) {
+        double total = _calculateCategoryTotal();
+
+        _applyPromoToItems(promotion, total, (_) => true);
+      }
+    }
+
+    double totalPromotions = itemList.fold(0.0, (total, item) {
+      return total + item.promo!.values.fold(0.0, (sum, promoValue) => sum + promoValue);
+    });
+    print("Total promotions: ${totalPromotions.toStringAsFixed(2)}");
+  }
+
+  calculateCharges(List<dynamic> taxList) {
+    adjustChargeRoundingDifference(List<dynamic> items, String chargeName, double compareAmount) {
+      int loopCount = (compareAmount * 100).round().abs();
+      int x = 0;
+      bool isRoundingUp = compareAmount < 0;
+
+      while (x < loopCount) {
+        for (var item in items) {
+          if (x >= loopCount) break;
+
+          if (item.charge!.containsKey(chargeName)) {
+            item.charge![chargeName] += isRoundingUp ? 0.01 : -0.01;
+            item.charge![chargeName] = double.parse(item.charge![chargeName].toStringAsFixed(2));
+            x++;
+          }
         }
       }
-    print("total tax: ${b.toStringAsFixed(2)}");
+    }
+
+    double calculateDiscountedPrice(dynamic item) {
+      double singleItemDiscount = item.promo!.entries.where((entry) => !entry.value.isNaN).map((entry) => entry.value).fold(0.0, (a, b) => a + b);
+      return (double.parse(item.price!) * item.quantity!) - singleItemDiscount;
+    }
+
+    distributeChargesAcrossItems(dynamic chargeItem, bool isSpecificCategory) {
+      double totalAmount = 0;
+      List<dynamic> eligibleItems = isSpecificCategory
+          ? itemList.where((item) => chargeItem.multiple_category!.any((category) => category['category_id'].toString() == item.category_id)).toList()
+          : itemList;
+
+      double subtotalAfterPromoTotal = eligibleItems.map(calculateDiscountedPrice).fold(0.0, (a, b) => a + b);
+
+      for (var item in eligibleItems) {
+        double singleItemDiscountedPrice = calculateDiscountedPrice(item);
+        double distributedCharge = chargeItem.tax_amount! * singleItemDiscountedPrice / subtotalAfterPromoTotal;
+
+        item.charge ??= {};
+        item.charge![chargeItem.name!] = double.parse(distributedCharge.toStringAsFixed(2));
+      }
+
+      double totalDistributedCharge = eligibleItems.expand((item) => item.charge!.entries).where((entry) => entry.key == chargeItem.name).map((entry) => entry.value).fold(0.0, (a, b) => a + b);
+
+      double compareAmount = double.parse((totalDistributedCharge - chargeItem.tax_amount!).toStringAsFixed(2));
+
+      if (compareAmount != 0) {
+        adjustChargeRoundingDifference(eligibleItems, chargeItem.name!, compareAmount);
+      }
+    }
+
+    for (var chargeItem in taxList.where((item) => item.type == 0)) {
+      bool isSpecificCategory = chargeItem.specific_category == 1;
+      distributeChargesAcrossItems(chargeItem, isSpecificCategory);
+    }
+
+    double totalCharges = itemList.expand((item) => item.charge!.values).fold(0.0, (a, b) => a + b);
+    print("Total charges: ${totalCharges.toStringAsFixed(2)}");
+  }
+
+  calculateTaxes(List<dynamic> taxList) {
+    adjustTaxRoundingDifference(List<dynamic> items, String taxName, double compareAmount) {
+      int loopCount = (compareAmount * 100).round().abs();
+      int x = 0;
+      bool isRoundingUp = compareAmount < 0;
+
+      while (x < loopCount) {
+        for (var item in items) {
+          if (x >= loopCount) break;
+
+          if (item.tax!.containsKey(taxName)) {
+            item.tax![taxName] += isRoundingUp ? 0.01 : -0.01;
+            item.tax![taxName] = double.parse(item.tax![taxName].toStringAsFixed(2));
+            x++;
+          }
+        }
+      }
+    }
+
+    double calculateDiscountedPrice(dynamic item) {
+      double singleItemDiscount = item.promo!.entries.where((entry) => !entry.value.isNaN).map((entry) => entry.value).fold(0.0, (a, b) => a + b);
+      return (double.parse(item.price!) * item.quantity!) - singleItemDiscount;
+    }
+
+    distributeTaxesAcrossItems(dynamic taxItem, bool isSpecificCategory) {
+      List<dynamic> eligibleItems = isSpecificCategory
+          ? itemList.where((item) => taxItem.multiple_category!.any((category) => category['category_id'].toString() == item.category_id)).toList()
+          : itemList;
+
+      double subtotalAfterPromoTotal = eligibleItems.map(calculateDiscountedPrice).fold(0.0, (a, b) => a + b);
+
+      for (var item in eligibleItems) {
+        double singleItemDiscountedPrice = calculateDiscountedPrice(item);
+        double distributedTax = taxItem.tax_amount! * singleItemDiscountedPrice / subtotalAfterPromoTotal;
+
+        item.tax ??= {};
+        item.tax![taxItem.name!] = double.parse(distributedTax.toStringAsFixed(2));
+      }
+
+      double totalDistributedTax = eligibleItems.expand((item) => item.tax!.entries).where((entry) => entry.key == taxItem.name).map((entry) => entry.value).fold(0.0, (a, b) => a + b);
+      double compareAmount = double.parse((totalDistributedTax - taxItem.tax_amount!).toStringAsFixed(2));
+
+      if (compareAmount != 0) {
+        adjustTaxRoundingDifference(eligibleItems, taxItem.name!, compareAmount);
+      }
+    }
+
+    for (var taxItem in taxList.where((item) => item.type == 1)) {
+      bool isSpecificCategory = taxItem.specific_category == 1;
+      distributeTaxesAcrossItems(taxItem, isSpecificCategory);
+    }
+
+    double totalTaxes = itemList.expand((item) => item.tax!.values).fold(0.0, (a, b) => a + b);
+    print("Total taxes: ${totalTaxes.toStringAsFixed(2)}");
   }
 
   calculateCategoryPriceBeforePromo(CartModel cart){

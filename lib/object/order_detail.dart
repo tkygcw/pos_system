@@ -307,7 +307,7 @@ class OrderDetail{
           ? Map<String, double>.from((json['promo'] as Map).map(
               (key, value) => MapEntry(key as String, (value as num).toDouble())))
           : {},
-        charge: json['charge'] == null
+      charge: json['charge'] == null
           ? {}
           : (json['charge'] is String)
           ? (json['charge'].toString().trim().isNotEmpty
@@ -318,7 +318,7 @@ class OrderDetail{
           ? Map<String, double>.from((json['charge'] as Map).map(
               (key, value) => MapEntry(key as String, (value as num).toDouble())))
           : {},
-        tax: json['tax'] == null
+      tax: json['tax'] == null
           ? {}
           : (json['tax'] is String)
           ? (json['tax'].toString().trim().isNotEmpty

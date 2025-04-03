@@ -1,4 +1,6 @@
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/modifier_group.dart';
@@ -140,9 +142,39 @@ class cartProductItem{
          ticket_count: json['ticket_count'] as int?,
          ticket_exp: json['ticket_exp'] as String?,
          product_sku: json['product_sku'] as String?,
-         promo: json['promo'] as Map<String, double>?,
-         charge: json['charge'] as Map<String, double>?,
-         tax: json['tax'] as Map<String, double>?,
+         promo: json['promo'] == null
+             ? {}
+             : (json['promo'] is String)
+             ? (json['promo'].toString().trim().isNotEmpty
+             ? Map<String, double>.from(jsonDecode(json['promo'] as String).map(
+                 (key, value) => MapEntry(key as String, (value as num).toDouble())))
+             : {})
+             : (json['promo'] is Map)
+             ? Map<String, double>.from((json['promo'] as Map).map(
+                 (key, value) => MapEntry(key as String, (value as num).toDouble())))
+             : {},
+         charge: json['charge'] == null
+             ? {"a": 1}
+             : (json['charge'] is String)
+             ? (json['charge'].toString().trim().isNotEmpty
+             ? Map<String, double>.from(jsonDecode(json['charge'] as String).map(
+                 (key, value) => MapEntry(key as String, (value as num).toDouble())))
+             : {"a": 2})
+             : (json['charge'] is Map)
+             ? Map<String, double>.from((json['charge'] as Map).map(
+                 (key, value) => MapEntry(key as String, (value as num).toDouble())))
+             : {"a": 3},
+         tax: json['tax'] == null
+             ? {}
+             : (json['tax'] is String)
+             ? (json['tax'].toString().trim().isNotEmpty
+             ? Map<String, double>.from(jsonDecode(json['tax'] as String).map(
+                 (key, value) => MapEntry(key as String, (value as num).toDouble())))
+             : {})
+             : (json['tax'] is Map)
+             ? Map<String, double>.from((json['tax'] as Map).map(
+                 (key, value) => MapEntry(key as String, (value as num).toDouble())))
+             : {},
      );
    }
 

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:collection/collection.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:provider/provider.dart';
@@ -114,6 +116,9 @@ class TableFunction {
           //Get all order detail based on order cache id
           List<OrderDetail> detailData = await _posDatabase.readTableOrderDetail(data[i].order_cache_key!);
           //add all order detail from db
+          for(var item in detailData){
+            print("detailData: ${jsonEncode(detailData)}");
+          }
           if (!_orderDetailList.contains(detailData)) {
             _orderDetailList..addAll(detailData);
           }

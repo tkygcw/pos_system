@@ -407,6 +407,7 @@ class ServerAction {
         break;
         case '17': {
           //get company payment method
+          print("payment call case 17");
           try{
             var function = PaymentFunction();
             List<PaymentLinkCompany> paymentMethod = await function.getCompanyPaymentMethod();
@@ -450,6 +451,7 @@ class ServerAction {
             int? close_by_user_id =  decodeParam['user_id'];
             String? ipay_result_code = decodeParam['ipayResultCode'];
             Order orderData = Order.fromJson(decodeParam['orderData']);
+            CartModel cartData = CartModel.fromJson(decodeParam['cart']);
             var promoJson = decodeParam['promotion'] as List;
             var taxJson = decodeParam['tax'] as List;
             var orderCacheJson = decodeParam['orderCacheList'] as List;
@@ -459,6 +461,7 @@ class ServerAction {
             List<OrderCache>? orderCacheList = orderCacheJson.isNotEmpty ? orderCacheJson.map((tagJson) => OrderCache.fromJson(tagJson)).toList() : [];
             List<PosTable>? tableList = posTableJson.isNotEmpty ? posTableJson.map((tagJson) => PosTable.fromJson(tagJson)).toList() : [];
             PaymentFunction function = PaymentFunction(
+              cart: cartData,
               order: orderData,
               promotion: promotionList,
               taxLinkDining: taxList,
