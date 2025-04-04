@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
@@ -28,7 +29,6 @@ class PreviewLayout extends ReceiptLayout {
       generator = value;
     }
     await getAllPaymentSplit(orderKey);
-
     List<int> bytes = [];
     try {
       bytes += generator.reset();
@@ -65,21 +65,20 @@ class PreviewLayout extends ReceiptLayout {
       ]);
       bytes += generator.hr();
       //merge same item
-      checkMergeCartItems(cartModel);
+      List<cartProductItem> mergedItems = mergeCartItems(cartModel);
       //order product
-      for(int i = 0; i < cartModel.cartNotifierItem.length; i++){
-        bool productUnitPriceSplit = productNameDisplayCart(cartModel.cartNotifierItem, i, 80);
+      for(int i = 0; i < mergedItems.length; i++){
+        bool productUnitPriceSplit = productNameDisplayCart(mergedItems, i, 80);
         bytes += generator.row([
-          PosColumn(text: '${cartModel.cartNotifierItem[i].quantity}', width: 2),
+          PosColumn(text: '${mergedItems[i].quantity}', width: 2),
           PosColumn(
-            // text: '${cartModel.cartNotifierItem[i].product_name} (${cartModel.cartNotifierItem[i].price}/${cartModel.cartNotifierItem[i].per_quantity_unit}${cartModel.cartNotifierItem[i].unit})',
-              text: productUnitPriceSplit  ? getPreviewReceiptProductName(cartModel.cartNotifierItem[i])
-                  : '${getPreviewReceiptProductName(cartModel.cartNotifierItem[i])} (${cartModel.cartNotifierItem[i].price}/${cartModel.cartNotifierItem[i].per_quantity_unit}${cartModel.cartNotifierItem[i].unit != 'each' && cartModel.cartNotifierItem[i].unit != 'each_c' ? cartModel.cartNotifierItem[i].unit : 'each'})',
+              text: productUnitPriceSplit  ? getPreviewReceiptProductName(mergedItems[i])
+                  : '${getPreviewReceiptProductName(mergedItems[i])} (${mergedItems[i].price}/${mergedItems[i].per_quantity_unit}${mergedItems[i].unit != 'each' && mergedItems[i].unit != 'each_c' ? mergedItems[i].unit : 'each'})',
               width: 7,
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, bold: true)),
           PosColumn(
-              text: '${(double.parse(cartModel.cartNotifierItem[i].price!)*cartModel.cartNotifierItem[i].quantity!).toStringAsFixed(2)}',
+              text: '${(double.parse(mergedItems[i].price!)*mergedItems[i].quantity!).toStringAsFixed(2)}',
               width: 3,
               styles: PosStyles(align: PosAlign.right)),
         ]);
@@ -88,30 +87,23 @@ class PreviewLayout extends ReceiptLayout {
         if(productUnitPriceSplit){
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: '(${cartModel.cartNotifierItem[i].price}/${cartModel.cartNotifierItem[i].per_quantity_unit}${cartModel.cartNotifierItem[i].unit != 'each' && cartModel.cartNotifierItem[i].unit != 'each_c' ? cartModel.cartNotifierItem[i].unit : 'each'})', width: 7),
+            PosColumn(text: '(${mergedItems[i].price}/${mergedItems[i].per_quantity_unit}${mergedItems[i].unit != 'each' && mergedItems[i].unit != 'each_c' ? mergedItems[i].unit : 'each'})', width: 7),
             PosColumn(text: '', width: 3, styles: PosStyles(align: PosAlign.right)),
           ]);
         }
         bytes += generator.reset();
 
-        if(cartModel.cartNotifierItem[i].productVariantName != null && cartModel.cartNotifierItem[i].productVariantName != ''){
+        if(mergedItems[i].productVariantName != null && mergedItems[i].productVariantName != ''){
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: '(${cartModel.cartNotifierItem[i].productVariantName})', width: 7, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
+            PosColumn(text: '(${mergedItems[i].productVariantName})', width: 7, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
             PosColumn(text: '', width: 3, styles: PosStyles(align: PosAlign.right)),
           ]);
         }
-        // if(cartModel.cartNotifierItem[i].variant!.isNotEmpty){
-        //   bytes += generator.row([
-        //     PosColumn(text: '(${getVariant(cartModel.cartNotifierItem[i])})', width: 6, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
-        //     PosColumn(text: '', width: 2),
-        //     PosColumn(text: '', width: 4, styles: PosStyles(align: PosAlign.right)),
-        //   ]);
-        // }
         bytes += generator.reset();
         //product modifier
-        if(cartModel.cartNotifierItem[i].orderModifierDetail!.isNotEmpty){
-          cartProductItem cartItem = cartModel.cartNotifierItem[i];
+        if(mergedItems[i].orderModifierDetail!.isNotEmpty){
+          cartProductItem cartItem = mergedItems[i];
           for(int j = 0; j < cartItem.orderModifierDetail!.length; j++)
             bytes += generator.row([
               PosColumn(text: '', width: 2),
@@ -119,24 +111,12 @@ class PreviewLayout extends ReceiptLayout {
               PosColumn(text: '', width: 3, styles: PosStyles(align: PosAlign.right)),
             ]);
         }
-        // if(cartModel.cartNotifierItem[i].modifier!.isNotEmpty){
-        //   for (int j = 0; j < cartModel.cartNotifierItem[i].modifier!.length; j++) {
-        //     ModifierGroup group = cartModel.cartNotifierItem[i].modifier![j];
-        //     for (int k = 0; k < group.modifierChild!.length; k++) {
-        //       if (group.modifierChild![k].isChecked!) {
-        //         bytes += generator.row([
-        //           PosColumn(text: '+${group.modifierChild![k].name!}', width: 12, containsChinese: true, styles: PosStyles(align: PosAlign.left))
-        //         ]);
-        //       }
-        //     }
-        //   }
-        // }
         //product remark
         bytes += generator.reset();
-        if (cartModel.cartNotifierItem[i].remark != '') {
+        if (mergedItems[i].remark != '') {
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: '**${cartModel.cartNotifierItem[i].remark}', width: 7, containsChinese: true),
+            PosColumn(text: '**${mergedItems[i].remark}', width: 7, containsChinese: true),
             PosColumn(text: '', width: 3, styles: PosStyles(align: PosAlign.right)),
           ]);
         }
@@ -286,19 +266,22 @@ class PreviewLayout extends ReceiptLayout {
         PosColumn(text: 'Price', width: 4, styles: PosStyles(bold: true)),
       ]);
       bytes += generator.hr();
+      //merge same item
+      List<cartProductItem> mergedItems = mergeCartItems(cartModel);
+
       //order product
-      for(int i = 0; i < cartModel.cartNotifierItem.length; i++){
-        bool productUnitPriceSplit = productNameDisplayCart(cartModel.cartNotifierItem, i, 58);
+      for(int i = 0; i < mergedItems.length; i++){
+        bool productUnitPriceSplit = productNameDisplayCart(mergedItems, i, 58);
         bytes += generator.row([
-          PosColumn(text: '${cartModel.cartNotifierItem[i].quantity}', width: 2),
+          PosColumn(text: '${mergedItems[i].quantity}', width: 2),
           PosColumn(
-              text: productUnitPriceSplit  ? getPreviewReceiptProductName(cartModel.cartNotifierItem[i])
-                  : '${getPreviewReceiptProductName(cartModel.cartNotifierItem[i])} (${cartModel.cartNotifierItem[i].price}/${cartModel.cartNotifierItem[i].per_quantity_unit}${cartModel.cartNotifierItem[i].unit != 'each' && cartModel.cartNotifierItem[i].unit != 'each_c' ? cartModel.cartNotifierItem[i].unit : 'each'})',
+              text: productUnitPriceSplit  ? getPreviewReceiptProductName(mergedItems[i])
+                  : '${getPreviewReceiptProductName(mergedItems[i])} (${mergedItems[i].price}/${mergedItems[i].per_quantity_unit}${mergedItems[i].unit != 'each' && mergedItems[i].unit != 'each_c' ? mergedItems[i].unit : 'each'})',
               width: 6,
               containsChinese: true,
               styles: PosStyles(bold: true)),
-          PosColumn(//Utils.convertTo2Dec()
-            text: '${(double.parse(cartModel.cartNotifierItem[i].price!)*cartModel.cartNotifierItem[i].quantity!).toStringAsFixed(2)}',
+          PosColumn(
+            text: '${(double.parse(mergedItems[i].price!)*mergedItems[i].quantity!).toStringAsFixed(2)}',
             width: 4,
           ),
         ]);
@@ -307,20 +290,20 @@ class PreviewLayout extends ReceiptLayout {
         if(productUnitPriceSplit){
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: '(${cartModel.cartNotifierItem[i].price}/${cartModel.cartNotifierItem[i].per_quantity_unit}${cartModel.cartNotifierItem[i].unit != 'each' && cartModel.cartNotifierItem[i].unit != 'each_c' ? cartModel.cartNotifierItem[i].unit : 'each'})', width: 10),
+            PosColumn(text: '(${mergedItems[i].price}/${mergedItems[i].per_quantity_unit}${mergedItems[i].unit != 'each' && mergedItems[i].unit != 'each_c' ? mergedItems[i].unit : 'each'})', width: 10),
           ]);
         }
         bytes += generator.reset();
 
-        if(cartModel.cartNotifierItem[i].productVariantName != null && cartModel.cartNotifierItem[i].productVariantName != ''){
+        if(mergedItems[i].productVariantName != null && mergedItems[i].productVariantName != ''){
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: '(${cartModel.cartNotifierItem[i].productVariantName})', width: 10, containsChinese: true),
+            PosColumn(text: '(${mergedItems[i].productVariantName})', width: 10, containsChinese: true),
           ]);
         }
         //product modifier
-        if(cartModel.cartNotifierItem[i].orderModifierDetail!.isNotEmpty){
-          cartProductItem cartItem = cartModel.cartNotifierItem[i];
+        if(mergedItems[i].orderModifierDetail!.isNotEmpty){
+          cartProductItem cartItem = mergedItems[i];
           for(int j = 0; j < cartItem.orderModifierDetail!.length; j++){
             bytes += generator.row([
               PosColumn(text: '', width: 2),
@@ -330,10 +313,10 @@ class PreviewLayout extends ReceiptLayout {
         }
         //product remark
         bytes += generator.reset();
-        if (cartModel.cartNotifierItem[i].remark != '') {
+        if (mergedItems[i].remark != '') {
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: '**${cartModel.cartNotifierItem[i].remark}', width: 6, containsChinese: true),
+            PosColumn(text: '**${mergedItems[i].remark}', width: 6, containsChinese: true),
             PosColumn(text: '', width: 4),
           ]);
         }
@@ -452,23 +435,29 @@ class PreviewLayout extends ReceiptLayout {
     }
   }
 
-  void checkMergeCartItems(CartModel cartModel) {
-    for (int i = cartModel.cartNotifierItem.length - 1; i >= 0; i--) {
-      for (int j = i - 1; j >= 0; j--) {
-        var item1 = cartModel.cartNotifierItem[i], item2 = cartModel.cartNotifierItem[j];
+  List<cartProductItem> mergeCartItems(CartModel cartModel) {
+    List<cartProductItem> mergedItems = cartModel.cartNotifierItem.map((item) => item.clone()).toList();
+    Set<int> indicesToRemove = {};
 
+    for (int i = mergedItems.length - 1; i >= 0; i--) {
+      if (indicesToRemove.contains(i)) continue;
+
+      for (int j = i - 1; j >= 0; j--) {
+        if (indicesToRemove.contains(j)) continue;
+        var item1 = mergedItems[i], item2 = mergedItems[j];
         if (item1.branch_link_product_sqlite_id == item2.branch_link_product_sqlite_id &&
-            item1.product_name == item2.product_name &&
+          item1.product_name == item2.product_name &&
             item1.price == item2.price &&
             item1.productVariantName == item2.productVariantName &&
+            item1.remark == item2.remark &&
             haveSameModifiers(item1.orderModifierDetail ?? [], item2.orderModifierDetail ?? [])) {
-
           item2.quantity = (item2.quantity ?? 0) + (item1.quantity ?? 0);
-          cartModel.cartNotifierItem.removeAt(i);
+          indicesToRemove.add(i);
           break;
         }
       }
     }
+    return mergedItems.whereIndexed((index, _) => !indicesToRemove.contains(index)).toList();
   }
 
   bool haveSameModifiers(List<OrderModifierDetail> modList1, List<OrderModifierDetail> modList2) {

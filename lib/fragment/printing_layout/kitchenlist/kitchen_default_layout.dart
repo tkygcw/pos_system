@@ -21,10 +21,11 @@ class DefaultKitchenListLayout extends ReceiptLayout {
     if(kitchenListLayout == null){
       kitchenListLayout = kitchenListDefaultLayout;
     }
-    PosFontType productFontType = kitchenListLayout.product_name_font_size == 2 ? PosFontType.fontB : PosFontType.fontA;
-    PosFontType otherFontType = kitchenListLayout.other_font_size == 2 ? PosFontType.fontB : PosFontType.fontA;
-    PosTextSize productFontSize = kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2;
-    PosTextSize otherFontSize = kitchenListLayout.other_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2;
+    // font_size 0 = big, 1 = small, 2 = medium
+    PosTextSize productFontWidth = kitchenListLayout.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1;
+    PosTextSize productFontHeight = kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2;
+    PosTextSize otherFontWidth = kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1;
+    PosTextSize otherFontHeight = kitchenListLayout.other_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2;
 
     await readOrderCache(localId);
     cartProductItem cartItem = cartProductItem(
@@ -81,9 +82,9 @@ class DefaultKitchenListLayout extends ReceiptLayout {
             styles: PosStyles(
                 align: PosAlign.left,
                 bold: true,
-                fontType: productFontType,
-                height: productFontSize,
-                width: productFontSize)),
+                fontType: PosFontType.fontA,
+                height: productFontHeight,
+                width: productFontWidth)),
         PosColumn(
             text: '${getCartProductSKU(cartItem, layout: kitchenListLayout)}${cartItem.product_name}${kitchenListLayout.kitchen_list_show_price == 1 ?
             '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
@@ -91,9 +92,9 @@ class DefaultKitchenListLayout extends ReceiptLayout {
             containsChinese: true,
             styles: PosStyles(
                 align: PosAlign.left,
-                fontType: productFontType,
-                height: productFontSize,
-                width: productFontSize))
+                fontType: PosFontType.fontA,
+                height: productFontHeight,
+                width: productFontWidth))
       ]);
       bytes += generator.reset();
       //product variant
@@ -104,18 +105,18 @@ class DefaultKitchenListLayout extends ReceiptLayout {
               width: 2,
               styles: PosStyles(
                   align: PosAlign.left,
-                  fontType: otherFontType,
-                  height: otherFontSize,
-                  width: otherFontSize)),
+                  fontType: PosFontType.fontA,
+                  height: otherFontHeight,
+                  width: otherFontWidth)),
           PosColumn(
               text: '(${cartItem.productVariantName})',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
                   align: PosAlign.left,
-                  fontType: otherFontType,
-                  height: otherFontSize,
-                  width: otherFontSize)),
+                  fontType: PosFontType.fontA,
+                  height: otherFontHeight,
+                  width: otherFontWidth)),
         ]);
       }
       bytes += generator.reset();
@@ -128,17 +129,17 @@ class DefaultKitchenListLayout extends ReceiptLayout {
                 text: '',
                 width: 2,
                 styles: PosStyles(
-                    fontType: otherFontType,
-                    height: otherFontSize,
-                    width: otherFontSize)),
+                    fontType: PosFontType.fontA,
+                    height: otherFontHeight,
+                    width: otherFontWidth)),
             PosColumn(text: '+${cartItem.orderModifierDetail![j].mod_name}',
                 containsChinese: true,
                 width: 10,
                 styles: PosStyles(
                     align: PosAlign.left,
-                    fontType: otherFontType,
-                    height: otherFontSize,
-                    width: otherFontSize)),
+                    fontType: PosFontType.fontA,
+                    height: otherFontHeight,
+                    width: otherFontWidth)),
           ]);
         }
       }
@@ -155,9 +156,9 @@ class DefaultKitchenListLayout extends ReceiptLayout {
               containsChinese: true,
               styles: PosStyles(
                   align: PosAlign.left,
-                  fontType: otherFontType,
-                  height: otherFontSize,
-                  width: otherFontSize)),
+                  fontType: PosFontType.fontA,
+                  height: otherFontHeight,
+                  width: otherFontWidth)),
           PosColumn(text: '', width: 2),
         ]);
       }
@@ -186,10 +187,11 @@ class DefaultKitchenListLayout extends ReceiptLayout {
     if(kitchenListLayout == null){
       kitchenListLayout = kitchenListDefaultLayout;
     }
-    PosFontType productFontType = kitchenListLayout.product_name_font_size == 2 ? PosFontType.fontB : PosFontType.fontA;
-    PosFontType otherFontType = kitchenListLayout.other_font_size == 2 ? PosFontType.fontB : PosFontType.fontA;
-    PosTextSize productFontSize = kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2;
-    PosTextSize otherFontSize = kitchenListLayout.other_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2;
+    // font_size 0 = big, 1 = small, 2 = medium
+    PosTextSize productFontWidth = kitchenListLayout.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1;
+    PosTextSize productFontHeight = kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2;
+    PosTextSize otherFontWidth = kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1;
+    PosTextSize otherFontHeight = kitchenListLayout.other_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2;
 
     await readOrderCache(localId);
     cartProductItem cartItem = cartProductItem(
@@ -245,9 +247,9 @@ class DefaultKitchenListLayout extends ReceiptLayout {
             width: 3,
             styles: PosStyles(
                 bold: true,
-                fontType: productFontType,
-                height: productFontSize,
-                width: productFontSize)),
+                fontType: PosFontType.fontA,
+                height: productFontHeight,
+                width: productFontWidth)),
         PosColumn(
             text: '${getCartProductSKU(cartItem, layout: kitchenListLayout)}${cartItem.product_name}${kitchenListLayout.kitchen_list_show_price == 1 ?
             '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
@@ -256,9 +258,9 @@ class DefaultKitchenListLayout extends ReceiptLayout {
             styles: PosStyles(
                 bold: true,
                 align: PosAlign.left,
-                fontType: productFontType,
-                height: productFontSize,
-                width: productFontSize))
+                fontType: PosFontType.fontA,
+                height: productFontHeight,
+                width: productFontWidth))
       ]);
       bytes += generator.reset();
       //product variant
@@ -268,17 +270,17 @@ class DefaultKitchenListLayout extends ReceiptLayout {
               text: '',
               width: 3,
               styles: PosStyles(
-                  fontType: otherFontType,
-                  height: otherFontSize,
-                  width: otherFontSize)),
+                  fontType: PosFontType.fontA,
+                  height: otherFontHeight,
+                  width: otherFontWidth)),
           PosColumn(
               text: '(${cartItem.productVariantName})',
               width: 9,
               containsChinese: true,
               styles: PosStyles(
-                  fontType: otherFontType,
-                  height: otherFontSize,
-                  width: otherFontSize))
+                  fontType: PosFontType.fontA,
+                  height: otherFontHeight,
+                  width: otherFontWidth))
         ]);
       }
       bytes += generator.reset();
@@ -292,9 +294,9 @@ class DefaultKitchenListLayout extends ReceiptLayout {
                 width: 9,
                 containsChinese: true,
                 styles: PosStyles(
-                    fontType: otherFontType,
-                    height: otherFontSize,
-                    width: otherFontSize))
+                    fontType: PosFontType.fontA,
+                    height: otherFontHeight,
+                    width: otherFontWidth))
           ]);
         }
       }
@@ -310,9 +312,9 @@ class DefaultKitchenListLayout extends ReceiptLayout {
               width: 9,
               containsChinese: true,
               styles: PosStyles(
-                  fontType: otherFontType,
-                  height: otherFontSize,
-                  width: otherFontSize)),
+                  fontType: PosFontType.fontA,
+                  height: otherFontHeight,
+                  width: otherFontWidth)),
         ]);
       }
 
