@@ -75,6 +75,7 @@ class DefaultKitchenListLayout extends ReceiptLayout {
     *
     * */
       //order product
+      String productFormatName = '${getCartProductSKU(cartItem, layout: kitchenListLayout)}${cartItem.product_name}${getKitchenListShowPrice(cartItem, layout: kitchenListLayout)}';
       bytes += generator.row([
         PosColumn(text: cartItem.unit != 'each' && cartItem.unit != 'each_c' ? '${(cartItem.quantity!*int.parse(cartItem.per_quantity_unit!)).toStringAsFixed(2)}${cartItem.unit}'
             : '${cartItem.quantity}',
@@ -86,8 +87,8 @@ class DefaultKitchenListLayout extends ReceiptLayout {
                 height: productFontHeight,
                 width: productFontWidth)),
         PosColumn(
-            text: '${getCartProductSKU(cartItem, layout: kitchenListLayout)}${cartItem.product_name}${kitchenListLayout.kitchen_list_show_price == 1 ?
-            '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
+            // text: '${kitchenListFormatProductName(productFormatName, 80, kitchenListLayout.product_name_font_size!)}',
+            text: '${getCartProductSKU(cartItem, layout: kitchenListLayout)}${cartItem.product_name} ${getKitchenListShowPrice(cartItem, layout: kitchenListLayout)}',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -251,8 +252,7 @@ class DefaultKitchenListLayout extends ReceiptLayout {
                 height: productFontHeight,
                 width: productFontWidth)),
         PosColumn(
-            text: '${getCartProductSKU(cartItem, layout: kitchenListLayout)}${cartItem.product_name}${kitchenListLayout.kitchen_list_show_price == 1 ?
-            '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
+            text: '${getCartProductSKU(cartItem, layout: kitchenListLayout)}${cartItem.product_name} ${getKitchenListShowPrice(cartItem, layout: kitchenListLayout)}',
             width: 9,
             containsChinese: true,
             styles: PosStyles(
@@ -330,5 +330,26 @@ class DefaultKitchenListLayout extends ReceiptLayout {
       );
       return null;
     }
+  }
+
+  bool productNameBreakLine(List<OrderDetail> orderDetailList, int i, int paperSize) {
+    int productNameWidth = 0;
+    String productUnitPrice = '';
+    if(orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c')
+      productUnitPrice = ' (${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})';
+    else
+      productUnitPrice = ' (${orderDetailList[i].price}/each)';
+
+    int productNameSpaceConsumed = calculateSpaceConsumed(getReceiptProductName(orderDetailList[i]));
+
+    if(paperSize == 80)
+      productNameWidth = 26;
+    else
+      productNameWidth = 14;
+
+    if(productNameSpaceConsumed + productUnitPrice.length > productNameWidth)
+      return true;
+    else
+      return false;
   }
 }
