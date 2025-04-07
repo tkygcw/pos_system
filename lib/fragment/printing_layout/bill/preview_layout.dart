@@ -201,7 +201,7 @@ class PreviewLayout extends ReceiptLayout {
       //total
       bytes += generator.hr();
       bytes += generator.row([
-        PosColumn(text: 'Final Amount', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2)),
+        PosColumn(text: 'Final Amount($currency_code)', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2)),
         PosColumn(
             text: '${cartModel.cartNotifierPayment[0].finalAmount}',
             width: 4,
@@ -404,7 +404,7 @@ class PreviewLayout extends ReceiptLayout {
       //total
       bytes += generator.hr();
       bytes += generator.row([
-        PosColumn(text: 'Final Amount', width: 8),
+        PosColumn(text: 'Final Amount($currency_code)', width: 8),
         PosColumn(
             text: '${cartModel.cartNotifierPayment[0].finalAmount}',
             width: 4,
