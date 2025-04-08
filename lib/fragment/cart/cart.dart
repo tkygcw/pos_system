@@ -1202,10 +1202,18 @@ class CartPageState extends State<CartPage> {
     }
   }
 
-  updateCartItem(CartModel cart) {
+  updateCartItem(CartModel cart) async {
     for (int i = 0; i < cart.cartNotifierItem.length; i++) {
       if (cart.cartNotifierItem[i].order_cache_sqlite_id == null) {
         cart.cartNotifierItem[i].order_cache_sqlite_id = orderCacheId;
+
+        List<OrderDetail> detailData = await PosDatabase.instance.readAllOrderDetailByOrderCache(int.parse(orderCacheId));
+        for(var detailItem in detailData){
+          if(cart.cartNotifierItem[i].order_cache_sqlite_id == detailItem.order_cache_sqlite_id
+              && cart.cartNotifierItem[i].product_name == detailItem.productName) {
+            cart.cartNotifierItem[i].order_detail_sqlite_id = detailItem.order_cache_sqlite_id;
+          }
+        }
       }
       cart.cartNotifierItem[i].order_cache_key = orderCacheKey;
       cart.cartNotifierItem[i].order_queue = orderNumber;
@@ -3989,6 +3997,7 @@ class CartPageState extends State<CartPage> {
   }
 
   insertOrderDetailKey(OrderDetail orderDetail, String dateTime) async {
+    print("insertOrderDetailKey called");
     OrderDetail? detailData;
     try {
       orderDetailKey = await generateOrderDetailKey(orderDetail);

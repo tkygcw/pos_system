@@ -4633,7 +4633,9 @@ class _MakePaymentState extends State<MakePayment> {
 
   updateOrderDetail(String dateTime) async {
     print("itemList get: ${itemList.length}");
+    print("itemEncode: ${jsonEncode(itemList)}");
     for(var item in itemList){
+      print("item.order_detail_sqlite_id: ${item.order_detail_sqlite_id}");
       OrderDetail thisOrderDetail = await PosDatabase.instance.readSpecificOrderDetailByLocalIdNoJoin(item.order_detail_sqlite_id!);
       OrderDetail orderDetailObject = OrderDetail(
           promo: item.promo,

@@ -72,6 +72,7 @@ class PosDatabaseUtils {
   static final textType = 'TEXT NOT NULL';
   static final integerType = 'INTEGER NOT NULL';
   static final jsonType = 'JSON DEFAULT "[]"';
+  static final jsonType2 = 'JSON DEFAULT "{}"';
 
   static void onUpgrade (Database db, int oldVersion, int newVersion) async {
     //get pref
