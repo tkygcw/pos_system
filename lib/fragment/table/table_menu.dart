@@ -264,27 +264,25 @@ class _TableMenuState extends State<TableMenu> {
                                       }
                                     }
                                   },
-                                  onTap: onTapDisable ? null : () {
+                                  onTap: onTapDisable ? null : () async {
                                     setState(() {
                                       tapCount++;
                                       onTapDisable = true;
                                     });
                                     if(tapCount == 1){
-                                      asyncQ.addJob((_) async {
-                                        try{
-                                          await onSelect(index, cart);
-                                        }catch(e) {
-                                          setState(() {
-                                            tapCount = 0;
-                                            onTapDisable = false;
-                                          });
-                                          FLog.error(
-                                            className: "table menu",
-                                            text: "on select queue error",
-                                            exception: e,
-                                          );
-                                        }
-                                      });
+                                      try{
+                                        await onSelect(index, cart);
+                                      }catch(e) {
+                                        setState(() {
+                                          tapCount = 0;
+                                          onTapDisable = false;
+                                        });
+                                        FLog.error(
+                                          className: "table menu",
+                                          text: "on select queue error",
+                                          exception: e,
+                                        );
+                                      }
                                     }
                                   },
                                   child: Container(
@@ -407,27 +405,25 @@ class _TableMenuState extends State<TableMenu> {
                   }
                 }
               },
-              onTap: onTapDisable ? null : () {
+              onTap: onTapDisable ? null : () async {
                 setState(() {
                   tapCount++;
                   onTapDisable = true;
                 });
                 if(tapCount == 1){
-                  asyncQ.addJob((_) async {
-                    try{
-                      await onSelect(index, cart);
-                    }catch(e) {
-                      setState(() {
-                        tapCount = 0;
-                        onTapDisable = false;
-                      });
-                      FLog.error(
-                        className: "table menu",
-                        text: "on select queue error",
-                        exception: e,
-                      );
-                    }
-                  });
+                  try{
+                    await onSelect(index, cart);
+                  }catch(e) {
+                    setState(() {
+                      tapCount = 0;
+                      onTapDisable = false;
+                    });
+                    FLog.error(
+                      className: "table menu",
+                      text: "on select queue error",
+                      exception: e,
+                    );
+                  }
                 }
               },
               child: Container(
@@ -1344,21 +1340,19 @@ class _TableMenuState extends State<TableMenu> {
                       onTapDisable = true;
                     });
                     if(tapCount == 1){
-                      asyncQ.addJob((_) async {
-                        try{
-                          await onSelect(i, cart);
-                        }catch(e) {
-                          setState(() {
-                            tapCount = 0;
-                            onTapDisable = false;
-                          });
-                          FLog.error(
-                            className: "table menu",
-                            text: "advance on select queue error",
-                            exception: e,
-                          );
-                        }
-                      });
+                      try{
+                        await onSelect(i, cart);
+                      }catch(e) {
+                        setState(() {
+                          tapCount = 0;
+                          onTapDisable = false;
+                        });
+                        FLog.error(
+                          className: "table menu",
+                          text: "advance on select queue error",
+                          exception: e,
+                        );
+                      }
                     }
                   }
                   else if (action == 'on_double_tap') {
