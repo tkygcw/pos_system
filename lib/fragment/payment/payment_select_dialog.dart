@@ -66,12 +66,15 @@ class _PaymentSelectState extends State<PaymentSelect> {
     return Consumer<CartModel>(builder: (context, CartModel cart, child) {
       return LayoutBuilder(builder: (context,  constraints) {
         if(constraints.maxWidth > 900 && constraints.maxHeight > 500){
-          return WillPopScope(
-            onWillPop: () async {
-              if(widget.callBack != null){
-                widget.callBack!('');
+          return PopScope(
+            canPop: true,
+            onPopInvokedWithResult: (bool didPop, Object? result) {
+              if (didPop) {
+                cart.clearCurrentOrderCache();
+                if(widget.callBack != null){
+                  widget.callBack!('');
+                }
               }
-              return willPop;
             },
             child: AlertDialog(
               title: Text(AppLocalizations.of(context)!.translate('select_payment_method')),

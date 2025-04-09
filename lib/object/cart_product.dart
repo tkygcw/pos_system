@@ -173,4 +173,53 @@ class cartProductItem{
      'product_sku': product_sku,
    };
 
+   cartProductItem clone() {
+     cartProductItem cloned = cartProductItem(
+       branch_link_product_id: this.branch_link_product_id,
+       branch_link_product_sqlite_id: this.branch_link_product_sqlite_id,
+       product_name: this.product_name,
+       category_id: this.category_id,
+       category_name: this.category_name,
+       price: this.price,
+       quantity: this.quantity,
+       checkedModifierLength: this.checkedModifierLength,
+       checkedModifierItem: this.checkedModifierItem,
+       modifier: this.modifier,
+       variant: this.variant,
+       productVariantName: this.productVariantName,
+       remark: this.remark,
+       status: this.status,
+       order_cache_sqlite_id: this.order_cache_sqlite_id,
+       order_cache_key: this.order_cache_key,
+       category_sqlite_id: this.category_sqlite_id,
+       order_detail_sqlite_id: this.order_detail_sqlite_id,
+       sequence: this.sequence,
+       isRefund: this.isRefund,
+       base_price: this.base_price,
+       first_cache_created_date_time: this.first_cache_created_date_time,
+       first_cache_other_order_key: this.first_cache_other_order_key,
+       subtotal: this.subtotal,
+       first_cache_batch: this.first_cache_batch,
+       first_cache_order_by: this.first_cache_order_by,
+       refColor: this.refColor,
+       order_key: this.order_key,
+       orderModifierDetail: this.orderModifierDetail,
+       unit: this.unit,
+       per_quantity_unit: this.per_quantity_unit,
+       order_queue: this.order_queue,
+       allow_ticket: this.allow_ticket,
+       ticket_count: this.ticket_count,
+       ticket_exp: this.ticket_exp,
+       product_sku: this.product_sku,
+     );
+
+     // Deep copy lists like orderModifierDetail
+     if (this.orderModifierDetail != null) {
+       cloned.orderModifierDetail = this.orderModifierDetail!.map((mod) => mod.clone()).toList();
+     } else {
+       cloned.orderModifierDetail = [];
+     }
+
+     return cloned;
+   }
 }
