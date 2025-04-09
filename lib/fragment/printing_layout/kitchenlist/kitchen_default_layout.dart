@@ -77,7 +77,7 @@ class DefaultKitchenListLayout extends ReceiptLayout {
       //order product
       String productFormatName = '${getCartProductSKU(cartItem, layout: kitchenListLayout)}${cartItem.product_name}${getKitchenListShowPrice(cartItem, layout: kitchenListLayout)}';
       bytes += generator.row([
-        PosColumn(text: cartItem.unit != 'each' && cartItem.unit != 'each_c' ? '${(cartItem.quantity!*int.parse(cartItem.per_quantity_unit!)).toStringAsFixed(2)}${cartItem.unit}'
+        PosColumn(text: cartItem.unit != 'each' && cartItem.unit != 'each_c' ? '${(cartItem.quantity!*double.parse(cartItem.per_quantity_unit!)).toStringAsFixed(2)}${cartItem.unit}'
             : '${cartItem.quantity}',
             width: 2,
             styles: PosStyles(
@@ -243,7 +243,7 @@ class DefaultKitchenListLayout extends ReceiptLayout {
     * */
       //order product
       bytes += generator.row([
-        PosColumn(text: cartItem.unit != 'each' && cartItem.unit != 'each_c' ? '${(cartItem.quantity!*int.parse(cartItem.per_quantity_unit!)).toStringAsFixed(2)}${cartItem.unit}'
+        PosColumn(text: cartItem.unit != 'each' && cartItem.unit != 'each_c' ? '${(cartItem.quantity!*double.parse(cartItem.per_quantity_unit!)).toStringAsFixed(2)}${cartItem.unit}'
             : '${cartItem.quantity}',
             width: 3,
             styles: PosStyles(
