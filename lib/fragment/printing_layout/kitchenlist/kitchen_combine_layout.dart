@@ -92,7 +92,7 @@ class CombineKitchenListLayout extends ReceiptLayout {
         }
         bytes += generator.row([
           PosColumn(
-              text: cartItemList[i].unit != 'each' && cartItemList[i].unit != 'each_c' ? '${(cartItemList[i].quantity! * int.parse(cartItemList[i].per_quantity_unit!)).toStringAsFixed(2)}${cartItemList[i].unit}' : '${cartItemList[i].quantity}',
+              text: cartItemList[i].unit != 'each' && cartItemList[i].unit != 'each_c' ? '${(cartItemList[i].quantity! * double.parse(cartItemList[i].per_quantity_unit!)).toStringAsFixed(2)}${cartItemList[i].unit}' : '${cartItemList[i].quantity}',
               width: 2,
               styles: PosStyles(
                   align: PosAlign.left,
@@ -266,7 +266,7 @@ class CombineKitchenListLayout extends ReceiptLayout {
         }
         bytes += generator.row([
           PosColumn(
-              text: cartItemList[i].unit != 'each' && cartItemList[i].unit != 'each_c' ? '${(cartItemList[i].quantity! * int.parse(cartItemList[i].per_quantity_unit!)).toStringAsFixed(2)}${cartItemList[i].unit}' : '${cartItemList[i].quantity}',
+              text: cartItemList[i].unit != 'each' && cartItemList[i].unit != 'each_c' ? '${(cartItemList[i].quantity! * double.parse(cartItemList[i].per_quantity_unit!)).toStringAsFixed(2)}${cartItemList[i].unit}' : '${cartItemList[i].quantity}',
               width: 2,
               styles: PosStyles(
                   align: PosAlign.left,
