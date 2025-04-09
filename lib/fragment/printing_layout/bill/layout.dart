@@ -165,7 +165,7 @@ class BillLayout extends ReceiptLayout{
       ]);
       bytes += generator.hr();
       //merge same item
-      checkMergeOrderDetail(orderDetailList);
+      await checkMergeOrderDetail(orderDetailList);
       //order product
       for(int i = 0; i < orderDetailList.length; i++){
         bool productUnitPriceSplit = productNameDisplayOrder(orderDetailList, i, 80);
@@ -235,7 +235,7 @@ class BillLayout extends ReceiptLayout{
       //item count
       int receiptItemCount = 0;
       for(int i = 0; i < orderDetailList.length; i++){
-        receiptItemCount += orderDetailList[i].quantity!.contains('.') ? 1 : int.parse(orderDetailList[i].quantity!);
+        receiptItemCount += orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ? 1 : int.parse(orderDetailList[i].quantity!);
       }
       bytes += generator.text('Item count: ${receiptItemCount}');
       bytes += generator.hr();
@@ -509,7 +509,7 @@ class BillLayout extends ReceiptLayout{
       ]);
       bytes += generator.hr();
       //merge same item
-      checkMergeOrderDetail(orderDetailList);
+      await checkMergeOrderDetail(orderDetailList);
       //order product
       for(int i = 0; i < orderDetailList.length; i++){
         bool productUnitPriceSplit = productNameDisplayOrder(orderDetailList, i, 58);
@@ -572,7 +572,7 @@ class BillLayout extends ReceiptLayout{
       //item count
       int receiptItemCount = 0;
       for(int i = 0; i < orderDetailList.length; i++){
-        receiptItemCount += orderDetailList[i].quantity!.contains('.') ? 1 : int.parse(orderDetailList[i].quantity!);
+        receiptItemCount += orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ? 1 : int.parse(orderDetailList[i].quantity!);
       }
       bytes += generator.text('Item count: ${receiptItemCount}');
       bytes += generator.hr();
@@ -736,8 +736,10 @@ class BillLayout extends ReceiptLayout{
     }
   }
 
-  checkMergeOrderDetail(List<OrderDetail> orderDetailList) {
+  checkMergeOrderDetail(List<OrderDetail> orderDetailList) async {
     for (int i = orderDetailList.length - 1; i >= 0; i--) {
+      await getPaidOrderModifierDetail(orderDetailList[i]);
+      orderDetailList[i].orderModifierDetail = orderModifierDetailList;
       for (int j = i - 1; j >= 0; j--) {
         var item1 = orderDetailList[i], item2 = orderDetailList[j];
 
@@ -745,9 +747,12 @@ class BillLayout extends ReceiptLayout{
             item1.productName == item2.productName &&
             item1.price == item2.price &&
             item1.product_variant_name == item2.product_variant_name &&
+            item1.remark == item2.remark &&
+            (item1.unit == 'each' || item1.unit == 'each_c') &&
+            (item2.unit == 'each' || item2.unit == 'each_c') &&
             haveSameModifiers(item1.orderModifierDetail, item2.orderModifierDetail)) {
 
-          item2.quantity = (double.parse(item2.quantity!) + double.parse(item1.quantity!)).toString();
+          item2.quantity = (int.parse(item2.quantity!) + int.parse(item1.quantity!)).toString();
           orderDetailList.removeAt(i);
           break;
         }

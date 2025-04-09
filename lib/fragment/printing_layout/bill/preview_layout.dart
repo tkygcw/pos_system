@@ -450,7 +450,9 @@ class PreviewLayout extends ReceiptLayout {
             item1.price == item2.price &&
             item1.productVariantName == item2.productVariantName &&
             item1.remark == item2.remark &&
-            haveSameModifiers(item1.orderModifierDetail ?? [], item2.orderModifierDetail ?? [])) {
+            (item1.unit == 'each' || item1.unit == 'each_c') &&
+            (item2.unit == 'each' || item2.unit == 'each_c') &&
+        haveSameModifiers(item1.orderModifierDetail ?? [], item2.orderModifierDetail ?? [])) {
           item2.quantity = (item2.quantity ?? 0) + (item1.quantity ?? 0);
           indicesToRemove.add(i);
           break;
