@@ -173,7 +173,7 @@ class ReceiptLayout{
 
   String getKitchenListShowPrice(cartProductItem cartItem, {layout}){
     if(layout.kitchen_list_show_price == 1) {
-      return '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})';
+      return '($currency_symbol${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})';
     } else {
       return '';
     }
