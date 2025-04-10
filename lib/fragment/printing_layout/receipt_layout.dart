@@ -173,6 +173,14 @@ class ReceiptLayout{
     }
   }
 
+  String getKitchenListShowPrice(cartProductItem cartItem, {layout}){
+    if(layout.kitchen_list_show_price == 1) {
+      return '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})';
+    } else {
+      return '';
+    }
+  }
+
   Future<Map<String?, List<Order>>> groupStaffSales(String settlement_key) async {
     List<Order> orderList = await PosDatabase.instance.readAllSettlementOrderBySettlementKeyJoinPayment(settlement_key);
     var groupedOrders = groupBy(orderList, (Order order) => order.close_by);
@@ -3173,6 +3181,74 @@ class ReceiptLayout{
     return result;
   }
 
+  String kitchenListFormatProductName(String productName, int paperSize, int fontSize) {
+    int maxWidth;
+
+    if (fontSize == 0) {
+      maxWidth = paperSize == 80 ? 18 : 10;
+    } else {
+      maxWidth = paperSize == 80 ? 38 : 22;
+    }
+
+    if (calculateSpaceConsumed(productName) <= maxWidth) {
+      return productName;
+    }
+
+    List<String> result = [];
+    List<String> words = productName.split(' ');
+    String currentLine = "";
+    int currentLineWidth = 0;
+
+    for (int i = 0; i < words.length; i++) {
+      String currentWord = words[i];
+      String wordWithSpace = currentLine.isEmpty ? currentWord : ' ' + currentWord;
+      int wordWidth = calculateSpaceConsumed(wordWithSpace);
+
+      if (currentLine.isEmpty && calculateSpaceConsumed(currentWord) > maxWidth) {
+        String longWordLine = "";
+        int longWordLineWidth = 0;
+
+        for (int j = 0; j < currentWord.length; j++) {
+          String currentChar = currentWord[j];
+          int charWidth = isChineseCharacter(currentChar) || isSpecialSymbol(currentChar) ? 2 : 1;
+
+          if (longWordLineWidth + charWidth <= maxWidth) {
+            longWordLine += currentChar;
+            longWordLineWidth += charWidth;
+          } else {
+            result.add(longWordLine);
+            longWordLine = currentChar;
+            longWordLineWidth = charWidth;
+          }
+        }
+
+        if (longWordLine.isNotEmpty) {
+          result.add(longWordLine);
+        }
+
+        currentLine = "";
+        currentLineWidth = 0;
+        continue;
+      }
+
+      if (currentLineWidth + wordWidth <= maxWidth) {
+        currentLine += wordWithSpace;
+        currentLineWidth += wordWidth;
+      } else {
+        if (currentLine.isNotEmpty) {
+          result.add(currentLine);
+        }
+        currentLine = currentWord;
+        currentLineWidth = calculateSpaceConsumed(currentWord);
+      }
+    }
+
+    if (currentLine.isNotEmpty) {
+      result.add(currentLine);
+    }
+
+    return result.join('\n');
+  }
 
   bool productNameDisplayOrder(List<OrderDetail> orderDetailList, int i, int paperSize) {
     print("productNameDisplayOrder called");
