@@ -44,7 +44,7 @@ class _CashDialogState extends State<CashDialog> {
   String amount = '';
   bool _isLoad = false;
   bool _submitted = false;
-  bool isButtonDisabled = false, isLogOut = false;
+  bool isButtonDisabled = true, isLogOut = false;
   final List<String> paymentLists = [];
   int? selectedPayment = 0;
   String selectedPaymentTypeId = '';
@@ -253,6 +253,16 @@ class _CashDialogState extends State<CashDialog> {
                                         ),
                                         labelText: AppLocalizations.of(context)!.translate('amount'),
                                       ),
+                                      onChanged: (value) {
+                                        if(value != '')
+                                          setState(() {
+                                            isButtonDisabled = false;
+                                          });
+                                        else
+                                          setState(() {
+                                            isButtonDisabled = true;
+                                          });
+                                      },
                                     ),
                                   ),
                                 );
@@ -272,6 +282,9 @@ class _CashDialogState extends State<CashDialog> {
                                       child: Text('${AppLocalizations.of(context)?.translate('add')}'),
                                       onPressed: () {
                                         amountController.text = amount;
+                                        setState(() {
+                                          isButtonDisabled = false;
+                                        });
                                       },
                                       style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                                     ))
@@ -469,6 +482,16 @@ class _CashDialogState extends State<CashDialog> {
                                         ),
                                         labelText: AppLocalizations.of(context)!.translate('amount'),
                                       ),
+                                      onChanged: (value) {
+                                        if(value != '')
+                                          setState(() {
+                                            isButtonDisabled = false;
+                                          });
+                                        else
+                                          setState(() {
+                                            isButtonDisabled = true;
+                                          });
+                                      },
                                     ),
                                   );
                                 }),
@@ -488,6 +511,9 @@ class _CashDialogState extends State<CashDialog> {
                                       elevation: 5,
                                       onSelected: (chipSelected) {
                                         amountController.text = amount;
+                                        setState(() {
+                                          isButtonDisabled = false;
+                                        });
                                       },
                                     ),
                                   ],
