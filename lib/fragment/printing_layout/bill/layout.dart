@@ -9,6 +9,8 @@ import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/branch.dart';
+import 'package:pos_system/object/order_detail.dart';
+import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/order_payment_split.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
@@ -177,6 +179,8 @@ class BillLayout extends ReceiptLayout{
         PosColumn(text: 'Price($currency_code)', width: 3, styles: PosStyles(bold: true, align: PosAlign.right)),
       ]);
       bytes += generator.hr();
+      //merge same item
+      await checkMergeOrderDetail(orderDetailList);
       //order product
       for(int i = 0; i < orderDetailList.length; i++){
         bool productUnitPriceSplit = productNameDisplayOrder(orderDetailList, i, 80);
@@ -246,7 +250,7 @@ class BillLayout extends ReceiptLayout{
       //item count
       int receiptItemCount = 0;
       for(int i = 0; i < orderDetailList.length; i++){
-        receiptItemCount += orderDetailList[i].quantity!.contains('.') ? 1 : int.parse(orderDetailList[i].quantity!);
+        receiptItemCount += orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ? 1 : int.parse(orderDetailList[i].quantity!);
       }
       bytes += generator.text('Item count: ${receiptItemCount}');
       bytes += generator.hr();
@@ -519,6 +523,8 @@ class BillLayout extends ReceiptLayout{
         PosColumn(text: 'Price($currency_code)', width: 4, styles: PosStyles(bold: true)),
       ]);
       bytes += generator.hr();
+      //merge same item
+      await checkMergeOrderDetail(orderDetailList);
       //order product
       for(int i = 0; i < orderDetailList.length; i++){
         bool productUnitPriceSplit = productNameDisplayOrder(orderDetailList, i, 58);
@@ -581,7 +587,7 @@ class BillLayout extends ReceiptLayout{
       //item count
       int receiptItemCount = 0;
       for(int i = 0; i < orderDetailList.length; i++){
-        receiptItemCount += orderDetailList[i].quantity!.contains('.') ? 1 : int.parse(orderDetailList[i].quantity!);
+        receiptItemCount += orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ? 1 : int.parse(orderDetailList[i].quantity!);
       }
       bytes += generator.text('Item count: ${receiptItemCount}');
       bytes += generator.hr();
@@ -743,6 +749,35 @@ class BillLayout extends ReceiptLayout{
     } catch(e) {
       print("Total payment split: $e");
     }
+  }
+
+  checkMergeOrderDetail(List<OrderDetail> orderDetailList) async {
+    for (int i = orderDetailList.length - 1; i >= 0; i--) {
+      await getPaidOrderModifierDetail(orderDetailList[i]);
+      orderDetailList[i].orderModifierDetail = orderModifierDetailList;
+      for (int j = i - 1; j >= 0; j--) {
+        var item1 = orderDetailList[i], item2 = orderDetailList[j];
+
+        if (item1.branch_link_product_sqlite_id == item2.branch_link_product_sqlite_id &&
+            item1.productName == item2.productName &&
+            item1.price == item2.price &&
+            item1.product_variant_name == item2.product_variant_name &&
+            item1.remark == item2.remark &&
+            (item1.unit == 'each' || item1.unit == 'each_c') &&
+            (item2.unit == 'each' || item2.unit == 'each_c') &&
+            haveSameModifiers(item1.orderModifierDetail, item2.orderModifierDetail)) {
+
+          item2.quantity = (int.parse(item2.quantity!) + int.parse(item1.quantity!)).toString();
+          orderDetailList.removeAt(i);
+          break;
+        }
+      }
+    }
+  }
+
+  bool haveSameModifiers(List<OrderModifierDetail> modList1, List<OrderModifierDetail> modList2) {
+    return modList1.length == modList2.length && modList1.map((mod) => int.parse(mod.mod_item_id!)).toSet()
+        .containsAll(modList2.map((mod) => int.parse(mod.mod_item_id!)).toSet());
   }
 }
 

@@ -84,7 +84,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     simpleIntInput = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? 0 : 1;
     newPrice = widget.productDetail!.price!;
     quantityController = TextEditingController(text: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? '' : '${simpleIntInput}');
-    priceController = TextEditingController(text:  widget.productDetail!.price);
+    priceController = TextEditingController(text:  widget.productDetail!.price == '0' ? '' : widget.productDetail!.price);
     nameController = TextEditingController(text:  widget.productDetail!.name);
     initProductName = widget.productDetail!.name;
     //getProductPrice(widget.productDetail?.product_id);
