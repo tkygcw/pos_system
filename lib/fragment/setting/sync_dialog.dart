@@ -283,16 +283,6 @@ class _SyncDialogState extends State<SyncDialog> {
           }
           Future.delayed(const Duration(seconds: 2), () {
             if(status == 0){
-              // if(prefs.getInt('new_sync') == 1) {
-                print("sync take time: ${DateTime.now().difference(startSync).inSeconds} seconds");
-                FLog.info(
-                  className: "sync_dialog",
-                  text: "New Sync(Beta) | $unsyncedData |  ${DateTime.now().difference(startSync).inSeconds} seconds",
-                  exception: "Sync Start: ${dateFormat.format(startSync)}\n"
-                      "Sync End: ${dateFormat.format(DateTime.now())}\n"
-                      "Sync take time: ${DateTime.now().difference(startSync).inSeconds} seconds",
-                );
-
               controller.sink.add("refresh");
             } else {
               controller.sink.addError(Exception("Sync failed"));
