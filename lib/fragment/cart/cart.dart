@@ -1563,8 +1563,8 @@ class CartPageState extends State<CartPage> {
         cart.selectedPromotion!.promoAmount = selectedPromo;
       }
       double remainingPromo = selectedPromo;
-      for (var item in cart.categoryTotalPriceMap.entries) {
-        if(promotion.specific_category == '1') {
+      if(promotion.specific_category == '1') {
+        for (var item in cart.categoryTotalPriceMap.entries) {
           if(promotion.category_id == item.key) {
             if (item.value >= remainingPromo) {
               cart.categoryTotalPriceMap[item.key] = item.value - remainingPromo;
@@ -1574,19 +1574,34 @@ class CartPageState extends State<CartPage> {
               cart.categoryTotalPriceMap[item.key] = 0;
             }
           }
-        } else if(promotion.specific_category == '2'){
-          if (promotion.multiple_category!.any((category) => category['category_id'].toString() == item.key)) {
-            if (item.value >= remainingPromo) {
-              cart.categoryTotalPriceMap[item.key] = item.value - remainingPromo;
-              remainingPromo = 0;
-            } else {
-              remainingPromo -= item.value;
-              cart.categoryTotalPriceMap[item.key] = 0;
-            }
-          }
         }
+      } else if(promotion.specific_category == '2'){
+        double totalEligibleValue = 0;
+        Map<String, double> eligibleCategories = {};
+
+        cart.categoryTotalPriceMap.forEach((key, value) {
+          if (promotion.multiple_category!.any((category) => category['category_id'].toString() == key)) {
+            eligibleCategories[key] = value;
+            totalEligibleValue += value;
+          }
+        });
+
+        if (totalEligibleValue <= 0 || remainingPromo <= 0) {
+          return;
+        }
+
+        if (remainingPromo > totalEligibleValue) {
+          remainingPromo = totalEligibleValue;
+        }
+
+        eligibleCategories.forEach((key, value) {
+          double discountForCategory = (value / totalEligibleValue) * remainingPromo;
+          double newValue = value - discountForCategory;
+          newValue = newValue < 0 ? 0 : newValue;
+          cart.categoryTotalPriceMap[key] = newValue;
+        });
       }
-      promoAmount += selectedPromo;
+      promoAmount += double.parse(selectedPromo.toStringAsFixed(2));
     } catch (e) {
       print('Specific category offer amount error: $e');
       selectedPromo = 0.0;
@@ -1623,17 +1638,32 @@ class CartPageState extends State<CartPage> {
 
       //update new value to category total price map
       double remainingPromo = selectedPromo;
+      double totalValue = 0;
       cart.categoryTotalPriceMap.forEach((key, value) {
-        if (value >= remainingPromo) {
-          cart.categoryTotalPriceMap[key] = value - remainingPromo;
-          remainingPromo = 0;
-        } else {
-          remainingPromo -= value;
-          cart.categoryTotalPriceMap[key] = 0;
-        }
+        totalValue += value;
       });
-      promoAmount += selectedPromo;
-      cart.selectedPromotion!.promoAmount = selectedPromo;
+
+      if (totalValue <= 0 || remainingPromo <= 0) {
+        return;
+      }
+
+      if (remainingPromo > totalValue) {
+        remainingPromo = totalValue;
+      }
+
+      Map<String, double> newCategoryTotalPriceMap = {};
+      cart.categoryTotalPriceMap.forEach((key, value) {
+        double discountForCategory = (value / totalValue) * remainingPromo;
+
+        double newValue = value - discountForCategory;
+        newValue = newValue < 0 ? 0 : newValue;
+
+        newCategoryTotalPriceMap[key] = newValue;
+      });
+
+      cart.categoryTotalPriceMap = newCategoryTotalPriceMap;
+      promoAmount += double.parse(selectedPromo.toStringAsFixed(2));
+      cart.selectedPromotion!.promoAmount = double.parse(selectedPromo.toStringAsFixed(2));;
     } catch (error) {
       print('check promotion type error: $error');
       selectedPromo = 0.0;
@@ -1965,17 +1995,33 @@ class CartPageState extends State<CartPage> {
       }
       //update new value to category total price map
       double remainingPromo = promo;
+
+      double totalValue = 0;
       cart.categoryTotalPriceMap.forEach((key, value) {
-        if (value >= remainingPromo) {
-          cart.categoryTotalPriceMap[key] = value - remainingPromo;
-          remainingPromo = 0;
-        } else {
-          remainingPromo -= value;
-          cart.categoryTotalPriceMap[key] = 0;
-        }
+        totalValue += value;
       });
 
-      promoAmount += promo;
+      if (totalValue <= 0 || remainingPromo <= 0) {
+        return;
+      }
+
+      if (remainingPromo > totalValue) {
+        remainingPromo = totalValue;
+      }
+
+      Map<String, double> newCategoryTotalPriceMap = {};
+      cart.categoryTotalPriceMap.forEach((key, value) {
+        double discountForCategory = (value / totalValue) * remainingPromo;
+
+        double newValue = value - discountForCategory;
+        newValue = newValue < 0 ? 0 : newValue;
+
+        newCategoryTotalPriceMap[key] = newValue;
+      });
+
+      cart.categoryTotalPriceMap = newCategoryTotalPriceMap;
+
+      promoAmount += double.parse(promo.toStringAsFixed(2));
     } catch (e) {
       print("calc auto apply non specific error: $e");
       promoRate = '';
@@ -2026,8 +2072,8 @@ class CartPageState extends State<CartPage> {
       }
 
       double remainingPromo = promo;
-      for (var item in cart.categoryTotalPriceMap.entries) {
-        if(promotion.specific_category == '1') {
+      if(promotion.specific_category == '1') {
+        for (var item in cart.categoryTotalPriceMap.entries) {
           if(promotion.category_id == item.key) {
             if (item.value >= remainingPromo) {
               cart.categoryTotalPriceMap[item.key] = item.value - remainingPromo;
@@ -2037,20 +2083,35 @@ class CartPageState extends State<CartPage> {
               cart.categoryTotalPriceMap[item.key] = 0;
             }
           }
-        } else if(promotion.specific_category == '2') {
-          if(promotion.multiple_category!.any((category) => category['category_id'].toString() == item.key)) {
-            if (item.value >= remainingPromo) {
-              cart.categoryTotalPriceMap[item.key] = item.value - remainingPromo;
-              remainingPromo = 0;
-            } else {
-              remainingPromo -= item.value;
-              cart.categoryTotalPriceMap[item.key] = 0;
-            }
-          }
         }
+      } else if(promotion.specific_category == '2') {
+        double totalEligibleValue = 0;
+        Map<String, double> eligibleCategories = {};
+
+        cart.categoryTotalPriceMap.forEach((key, value) {
+          if (promotion.multiple_category!.any((category) => category['category_id'].toString() == key)) {
+            eligibleCategories[key] = value;
+            totalEligibleValue += value;
+          }
+        });
+
+        if (totalEligibleValue <= 0 || remainingPromo <= 0) {
+          return;
+        }
+
+        if (remainingPromo > totalEligibleValue) {
+          remainingPromo = totalEligibleValue;
+        }
+
+        eligibleCategories.forEach((key, value) {
+          double discountForCategory = (value / totalEligibleValue) * remainingPromo;
+          double newValue = value - discountForCategory;
+          newValue = newValue < 0 ? 0 : newValue;
+          cart.categoryTotalPriceMap[key] = newValue;
+        });
       }
 
-      promoAmount += promo;
+      promoAmount += double.parse(promo.toStringAsFixed(2));
     } catch (e) {
       print("calc auto apply specific category error: $e");
       promoRate = '';
