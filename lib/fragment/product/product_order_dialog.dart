@@ -84,7 +84,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     simpleIntInput = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? 0 : 1;
     newPrice = widget.productDetail!.price!;
     quantityController = TextEditingController(text: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? '' : '${simpleIntInput}');
-    priceController = TextEditingController(text:  double.tryParse(widget.productDetail!.price!) == 0 && widget.productDetail!.unit == 'each_c' ? '' : widget.productDetail!.price);
+    priceController = TextEditingController(text:  int.tryParse(widget.productDetail!.price!) == 0 && widget.productDetail!.unit == 'each_c' ? '' : widget.productDetail!.price);
     // priceController = TextEditingController(text:  widget.productDetail!.price);
     nameController = TextEditingController(text:  widget.productDetail!.name);
     initProductName = widget.productDetail!.name;
@@ -1315,13 +1315,19 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       if (data[0].has_variant == '0') {
         if(selectedProduct.unit == 'each_c') {
           // take new price input
-          BranchLinkProduct? branchLinkProduct = await PosDatabase.instance.checkProductVariant(await getProductVariant(), productLocalId);
-          if(branchLinkProduct != null){
-            priceController = TextEditingController(text: double.tryParse(branchLinkProduct.price!) != 0 ? branchLinkProduct.price! : '');
-            basePrice = priceController.text != '' ? priceController.text : '0';
+          if(priceController.text == '') {
+            BranchLinkProduct? branchLinkProduct = await PosDatabase.instance.checkProductVariant(await getProductVariant(), productLocalId);
+            if(branchLinkProduct != null){
+              priceController = TextEditingController(text: int.tryParse(branchLinkProduct.price!) != 0 ? branchLinkProduct.price! : '');
+              basePrice = priceController.text != '' ? priceController.text : '0';
+            } else {
+              priceController = TextEditingController(text: int.tryParse(data[0].price!) != 0 ? data[0].price! : '');
+              basePrice = priceController.text != '' ? priceController.text : '0';
+            }
           } else {
             basePrice = priceController.text;
           }
+
           // if(priceController.text == '') {
           //   basePrice = '0';
           // } else {
@@ -1351,7 +1357,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
           if(priceController.text == '') {
             BranchLinkProduct? branchLinkProduct = await PosDatabase.instance.checkProductVariant(await getProductVariant(), productLocalId);
             if(branchLinkProduct != null){
-              priceController = TextEditingController(text: double.tryParse(branchLinkProduct.price!) != 0 ? branchLinkProduct.price! : '');
+              priceController = TextEditingController(text: int.tryParse(branchLinkProduct.price!) != 0 ? branchLinkProduct.price! : '');
               basePrice = priceController.text != '' ? priceController.text : '0';
             } else {
               basePrice = priceController.text;
