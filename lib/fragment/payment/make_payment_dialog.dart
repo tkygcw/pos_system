@@ -4682,7 +4682,7 @@ class _MakePaymentState extends State<MakePayment> {
               case 'tb_order':
                 {
                   await PosDatabase.instance.updateOrderSyncStatusFromCloud(
-                      responseJson[i]['order_key']);
+                      responseJson[i]['order_key'], responseJson[i]['updated_at']);
                 }
                 break;
               case 'tb_order_promotion_detail':

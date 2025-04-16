@@ -1102,7 +1102,7 @@ class _SettlementPageState extends State<SettlementPage> {
         Map data = await Domain().syncLocalUpdateToCloud(device_id: device_id.toString(), value: login_value.toString(), cash_record_value: value);
         if (data['status'] == '1') {
           List responseJson = data['data'];
-          await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
+          await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key'], responseJson[0]['updated_at']);
           mainSyncToCloud.resetCount();
         } else if (data['status'] == '7') {
           mainSyncToCloud.resetCount();

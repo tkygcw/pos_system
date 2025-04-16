@@ -7326,9 +7326,9 @@ class PosDatabase {
 /*
   update order(from cloud)
 */
-  Future<int> updateOrderSyncStatusFromCloud(String order_key, {String? settlement_key}) async {
+  Future<int> updateOrderSyncStatusFromCloud(String order_key, String updated_at, {String? settlement_key}) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableOrder SET sync_status = ? WHERE order_key = ? AND settlement_key = ?', [1, order_key, settlement_key]);
+    return await db.rawUpdate('UPDATE $tableOrder SET sync_status = ? WHERE order_key = ? AND settlement_key = ? AND updated_at = ?', [1, order_key, settlement_key, updated_at]);
   }
 
 /*
@@ -7350,15 +7350,15 @@ class PosDatabase {
 /*
   update order cache (from cloud)
 */
-  Future<int> updateOrderCacheSyncStatusFromCloud(String order_cache_key) async {
+  Future<int> updateOrderCacheSyncStatusFromCloud(String order_cache_key, String updated_at) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableOrderCache SET sync_status = ? WHERE order_cache_key = ?', [1, order_cache_key]);
+    return await db.rawUpdate('UPDATE $tableOrderCache SET sync_status = ? WHERE order_cache_key = ? AND updated_at = ?', [1, order_cache_key, updated_at]);
   }
 
 /*
   update order detail (from cloud)
 */
-  Future<int> updateOrderDetailSyncStatusFromCloud(String order_detail_key) async {
+  Future<int> updateOrderDetailSyncStatusFromCloud(String order_detail_key, String updated_at) async {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableOrderDetail SET sync_status = ? WHERE order_detail_key = ?', [1, order_detail_key]);
   }
@@ -7398,9 +7398,9 @@ class PosDatabase {
 /*
   update cash record (from cloud)
 */
-  Future<int> updateCashRecordSyncStatusFromCloud(String cash_record_key) async {
+  Future<int> updateCashRecordSyncStatusFromCloud(String cash_record_key, String updated_at) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableCashRecord SET sync_status = ? WHERE cash_record_key = ?', [1, cash_record_key]);
+    return await db.rawUpdate('UPDATE $tableCashRecord SET sync_status = ? WHERE cash_record_key = ? AND updated_at = ?', [1, cash_record_key, updated_at]);
   }
 
   Future<int> resetAllDataToUnsynced() async {
@@ -7456,9 +7456,9 @@ class PosDatabase {
 /*
   update branch link product (from cloud)
 */
-  Future<int> updateBranchLinkProductSyncStatusFromCloud(int branch_link_product_id) async {
+  Future<int> updateBranchLinkProductSyncStatusFromCloud(int branch_link_product_id, String updated_at) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableBranchLinkProduct SET sync_status = ? WHERE branch_link_product_id = ?', [1, branch_link_product_id]);
+    return await db.rawUpdate('UPDATE $tableBranchLinkProduct SET sync_status = ? WHERE branch_link_product_id = ? AND updated_at = ?', [1, branch_link_product_id, updated_at]);
   }
 
 /*
@@ -7472,25 +7472,25 @@ class PosDatabase {
 /*
   update settlement (from cloud)
 */
-  Future<int> updateSettlementSyncStatusFromCloud(String settlement_key) async {
+  Future<int> updateSettlementSyncStatusFromCloud(String settlement_key, String updated_at) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableSettlement SET sync_status = ? WHERE settlement_key = ?', [1, settlement_key]);
+    return await db.rawUpdate('UPDATE $tableSettlement SET sync_status = ? WHERE settlement_key = ? AND updated_at = ?', [1, settlement_key, updated_at]);
   }
 
 /*
   update settlement link payment (from cloud)
 */
-  Future<int> updateSettlementLinkPaymentSyncStatusFromCloud(String settlement_link_payment_key) async {
+  Future<int> updateSettlementLinkPaymentSyncStatusFromCloud(String settlement_link_payment_key, String updated_at) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableSettlementLinkPayment SET sync_status = ? WHERE settlement_link_payment_key = ?', [1, settlement_link_payment_key]);
+    return await db.rawUpdate('UPDATE $tableSettlementLinkPayment SET sync_status = ? WHERE settlement_link_payment_key = ? AND updated_at = ?', [1, settlement_link_payment_key, updated_at]);
   }
 
 /*
   update order detail cancel (from cloud)
 */
-  Future<int> updateOrderDetailCancelSyncStatusFromCloud(String order_detail_cancel_key) async {
+  Future<int> updateOrderDetailCancelSyncStatusFromCloud(String order_detail_cancel_key, String updated_at) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableOrderDetailCancel SET sync_status = ? WHERE order_detail_cancel_key = ?', [1, order_detail_cancel_key]);
+    return await db.rawUpdate('UPDATE $tableOrderDetailCancel SET sync_status = ? WHERE order_detail_cancel_key = ? AND updated_at = ?', [1, order_detail_cancel_key, updated_at]);
   }
 
 /*

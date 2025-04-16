@@ -1001,34 +1001,34 @@ class _SettlementDialogState extends State<SettlementDialog> {
                 {
                   await PosDatabase.instance
                       .updateSettlementSyncStatusFromCloud(
-                          responseJson[i]['settlement_key']);
+                          responseJson[i]['settlement_key'], responseJson[i]['updated_at']);
                 }
                 break;
               case 'tb_settlement_link_payment':
                 {
                   await PosDatabase.instance
                       .updateSettlementLinkPaymentSyncStatusFromCloud(
-                          responseJson[i]['settlement_link_payment_key']);
+                          responseJson[i]['settlement_link_payment_key'], responseJson[i]['updated_at']);
                 }
                 break;
               case 'tb_order':
                 {
                   await PosDatabase.instance.updateOrderSyncStatusFromCloud(
-                      responseJson[i]['order_key']);
+                      responseJson[i]['order_key'], responseJson[i]['updated_at']);
                 }
                 break;
               case 'tb_order_detail_cancel':
                 {
                   await PosDatabase.instance
                       .updateOrderDetailCancelSyncStatusFromCloud(
-                          responseJson[i]['order_detail_cancel_key']);
+                          responseJson[i]['order_detail_cancel_key'], responseJson[i]['updated_at']);
                 }
                 break;
               case 'tb_cash_record':
                 {
                   await PosDatabase.instance
                       .updateCashRecordSyncStatusFromCloud(
-                          responseJson[i]['cash_record_key']);
+                          responseJson[i]['cash_record_key'], responseJson[i]['updated_at']);
                 }
                 break;
               default:

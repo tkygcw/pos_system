@@ -999,28 +999,28 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                   {
                     await posDatabase
                         .updateOrderDetailCancelSyncStatusFromCloud(
-                        responseJson[i]['order_detail_cancel_key']);
+                        responseJson[i]['order_detail_cancel_key'], responseJson[i]['updated_at']);
                   }
                   break;
                 case 'tb_branch_link_product':
                   {
                     await posDatabase
                         .updateBranchLinkProductSyncStatusFromCloud(
-                        responseJson[i]['branch_link_product_id']);
+                        responseJson[i]['branch_link_product_id'], responseJson[i]['updated_at']);
                   }
                   break;
                 case 'tb_order_detail':
                   {
                     await posDatabase
                         .updateOrderDetailSyncStatusFromCloud(
-                        responseJson[i]['order_detail_key']);
+                        responseJson[i]['order_detail_key'], responseJson[i]['updated_at']);
                   }
                   break;
                 case 'tb_order_cache':
                   {
                     await posDatabase
                         .updateOrderCacheSyncStatusFromCloud(
-                        responseJson[i]['order_cache_key']);
+                        responseJson[i]['order_cache_key'], responseJson[i]['updated_at']);
                   }
                   break;
                 case 'tb_table':
