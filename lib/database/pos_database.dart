@@ -3780,9 +3780,10 @@ class PosDatabase {
     try{
       final db = await instance.database;
       final result = await db.rawQuery(
-        'SELECT * FROM $tableSalesPerDay '
-            'WHERE soft_delete = ? AND date >= ? AND date < ? ',
-        ['', startDate, endDate]
+          'WITH DailySales AS (SELECT DISTINCT date, sales_per_day_sqlite_id FROM $tableSalesPerDay ORDER BY created_at DESC ) '
+              'SELECT * FROM $tableSalesPerDay AS a JOIN DailySales AS b ON a.sales_per_day_sqlite_id = b.sales_per_day_sqlite_id '
+              'WHERE a.soft_delete = ? AND a.date >= ? AND a.date < ? GROUP BY a.date',
+          ['', startDate, endDate]
       );
       return result.map((json) => SalesPerDay.fromJson(json)).toList();
     }catch(e, s){

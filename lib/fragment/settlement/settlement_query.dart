@@ -10,7 +10,6 @@ import 'package:pos_system/object/sales_per_day/category_sales_per_day.dart';
 import 'package:pos_system/object/sales_per_day/modifier_sales_per_day.dart';
 import 'package:pos_system/object/sales_per_day/sales_per_day.dart';
 import 'package:pos_system/utils/Utils.dart';
-import 'package:sqflite/sqflite.dart';
 
 import '../../object/order.dart';
 import '../../object/order_cache.dart';
