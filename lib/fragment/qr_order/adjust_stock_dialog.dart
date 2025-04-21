@@ -198,7 +198,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                               text: "${widget.orderDetailList[index].productName}" + "\n",
                                               style: TextStyle(fontSize: 14, color: Colors.black)),
                                           TextSpan(
-                                              text: "RM ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 13, color: Colors.black)),
+                                              text: "$currency_symbol ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 13, color: Colors.black)),
                                         ],
                                       ),
                                     ),
@@ -521,7 +521,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                             text: "${widget.orderDetailList[index].productName}" + "\n",
                                             style: TextStyle(fontSize: 13, color: Colors.black)),
                                         TextSpan(
-                                            text: "RM ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 12, color: Colors.black)),
+                                            text: "$currency_symbol ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 12, color: Colors.black)),
                                       ],
                                     ),
                                   ),

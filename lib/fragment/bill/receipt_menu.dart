@@ -238,7 +238,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                             child: ListTile(
                               contentPadding: EdgeInsets.all(10),
                               title: Text(
-                                'RM${paidOrderList[index].final_amount}' + getPaymentSplitStatus(paidOrderList[index].payment_status!, paidOrderList[index].payment_split!),
+                                '$currency_symbol${paidOrderList[index].final_amount}' + getPaymentSplitStatus(paidOrderList[index].payment_status!, paidOrderList[index].payment_split!),
                                 style: TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold),
                               ),
                               leading: CircleAvatar(
@@ -609,7 +609,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                               margin: EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
                               child: ListTile(
                                 isThreeLine: true,
-                                title: Text('RM${paidOrderList[index].final_amount}', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),),
+                                title: Text('$currency_symbol${paidOrderList[index].final_amount}', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),),
                                 leading: CircleAvatar(
                                     backgroundColor: Colors.grey.shade200,
                                     child: Icon(

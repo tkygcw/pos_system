@@ -4,6 +4,7 @@ import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/object/order_payment_split.dart';
 
 import '../../../notifier/cart_notifier.dart';
@@ -61,7 +62,7 @@ class PreviewLayout extends ReceiptLayout {
       bytes += generator.row([
         PosColumn(text: 'Qty ', width: 2, styles: PosStyles(bold: true)),
         PosColumn(text: 'Item', width: 7, styles: PosStyles(bold: true, align: PosAlign.left)),
-        PosColumn(text: 'Price', width: 3, styles: PosStyles(bold: true, align: PosAlign.right)),
+        PosColumn(text: 'Price($currency_code)', width: 3, styles: PosStyles(bold: true, align: PosAlign.right)),
       ]);
       bytes += generator.hr();
       //merge same item
@@ -183,7 +184,7 @@ class PreviewLayout extends ReceiptLayout {
       //total
       bytes += generator.hr();
       bytes += generator.row([
-        PosColumn(text: 'Final Amount', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2)),
+        PosColumn(text: 'Final Amount($currency_code)', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2)),
         PosColumn(
             text: '${cartModel.cartNotifierPayment[0].finalAmount}',
             width: 4,
@@ -263,7 +264,7 @@ class PreviewLayout extends ReceiptLayout {
       bytes += generator.row([
         PosColumn(text: 'Qty ', width: 2, styles: PosStyles(bold: true)),
         PosColumn(text: 'Item', width: 6, styles: PosStyles(bold: true)),
-        PosColumn(text: 'Price', width: 4, styles: PosStyles(bold: true)),
+        PosColumn(text: 'Price($currency_code)', width: 4, styles: PosStyles(bold: true)),
       ]);
       bytes += generator.hr();
       //merge same item
@@ -389,7 +390,7 @@ class PreviewLayout extends ReceiptLayout {
       //total
       bytes += generator.hr();
       bytes += generator.row([
-        PosColumn(text: 'Final Amount', width: 8),
+        PosColumn(text: 'Final Amount($currency_code)', width: 8),
         PosColumn(
             text: '${cartModel.cartNotifierPayment[0].finalAmount}',
             width: 4,

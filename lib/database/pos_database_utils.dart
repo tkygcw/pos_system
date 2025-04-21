@@ -273,6 +273,10 @@ class PosDatabaseUtils {
           case 36: {
             await db.execute("ALTER TABLE $tableUser ADD ${UserFields.sub_pos_payment} $integerType DEFAULT 0");
           }break;
+          case 37: {
+            await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.currency_code} $textType DEFAULT 'MYR'");
+            await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.currency_symbol} $textType DEFAULT 'RM'");
+          }break;
         }
       }
     }
@@ -676,6 +680,8 @@ class PosDatabaseUtils {
            ${BranchFields.address} $textType,
            ${BranchFields.phone} $textType,
            ${BranchFields.email} $textType,
+           ${BranchFields.currency_code} $textType,
+           ${BranchFields.currency_symbol} $textType,
            ${BranchFields.ipay_merchant_code} $textType,
            ${BranchFields.ipay_merchant_key} $textType,
            ${BranchFields.notification_token} $textType,

@@ -173,7 +173,7 @@ class ReceiptLayout{
 
   String getKitchenListShowPrice(cartProductItem cartItem, {layout}){
     if(layout.kitchen_list_show_price == 1) {
-      return '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})';
+      return '($currency_symbol${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})';
     } else {
       return '';
     }
@@ -762,7 +762,7 @@ class ReceiptLayout{
                 height: productFontSize,
                 width: productFontSize)),
         PosColumn(
-            text: '${getTestPrintProductSKU(1, layout: kitchen_list)}Product 1${kitchen_list.kitchen_list_show_price == 1 ? '(RM6.90)' : '' }',
+            text: '${getTestPrintProductSKU(1, layout: kitchen_list)}Product 1${kitchen_list.kitchen_list_show_price == 1 ? '(${currency_symbol}6.90)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -798,7 +798,7 @@ class ReceiptLayout{
                   height: productFontSize,
                   width: productFontSize)),
           PosColumn(
-              text: '${getTestPrintProductSKU(2, layout: kitchen_list)}Product 2${kitchen_list.kitchen_list_show_price == 1 ? '(RM8.80)' : '' }',
+              text: '${getTestPrintProductSKU(2, layout: kitchen_list)}Product 2${kitchen_list.kitchen_list_show_price == 1 ? '(${currency_symbol}8.80)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -833,7 +833,7 @@ class ReceiptLayout{
                   height: productFontSize,
                   width: productFontSize)),
           PosColumn(
-              text: '${getTestPrintProductSKU(3, layout: kitchen_list)}Product 3${kitchen_list.kitchen_list_show_price == 1 ? '(RM15.90)' : '' }',
+              text: '${getTestPrintProductSKU(3, layout: kitchen_list)}Product 3${kitchen_list.kitchen_list_show_price == 1 ? '(${currency_symbol}15.90)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -857,7 +857,7 @@ class ReceiptLayout{
       if(kitchen_list.kitchen_list_show_total_amount == 1) {
         bytes += generator.reset();
         bytes += generator.emptyLines(1);
-        bytes += generator.text('Total: RM 31.60',
+        bytes += generator.text('Total: ${currency_symbol} 31.60',
             styles: PosStyles(
                 align: PosAlign.right,
                 fontType: productFontType,
@@ -923,7 +923,7 @@ class ReceiptLayout{
                 width: productFontSize)
         ),
         PosColumn(
-            text: '${getTestPrintProductSKU(1, layout: kitchen_list)}Product 1${kitchen_list.kitchen_list_show_price == 1 ? '(RM6.90)' : '' }',
+            text: '${getTestPrintProductSKU(1, layout: kitchen_list)}Product 1${kitchen_list.kitchen_list_show_price == 1 ? '(${currency_symbol}6.90)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -962,7 +962,7 @@ class ReceiptLayout{
                   width: productFontSize)
           ),
           PosColumn(
-              text: '${getTestPrintProductSKU(2, layout: kitchen_list)}Product 2${kitchen_list.kitchen_list_show_price == 1 ? '(RM9.90)' : '' }',
+              text: '${getTestPrintProductSKU(2, layout: kitchen_list)}Product 2${kitchen_list.kitchen_list_show_price == 1 ? '(${currency_symbol}9.90)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -1000,7 +1000,7 @@ class ReceiptLayout{
                   width: productFontSize)
           ),
           PosColumn(
-              text: '${getTestPrintProductSKU(3, layout: kitchen_list)}Product 3${kitchen_list.kitchen_list_show_price == 1 ? '(RM15.90)' : '' }',
+              text: '${getTestPrintProductSKU(3, layout: kitchen_list)}Product 3${kitchen_list.kitchen_list_show_price == 1 ? '(${currency_symbol}15.90)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -1025,7 +1025,7 @@ class ReceiptLayout{
       if(kitchen_list.kitchen_list_show_total_amount == 1) {
         bytes += generator.reset();
         bytes += generator.emptyLines(1);
-        bytes += generator.text('Total: RM 31.60',
+        bytes += generator.text('Total: ${currency_symbol} 31.60',
             styles: PosStyles(
                 align: PosAlign.right,
                 fontType: productFontType,
@@ -1198,7 +1198,7 @@ class ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: 'Qty ', width: 2, styles: PosStyles(bold: true)),
         PosColumn(text: 'Item', width: 7, styles: PosStyles(bold: true)),
-        PosColumn(text: 'Price(MYR)', width: 3, styles: PosStyles(bold: true, align: PosAlign.right)),
+        PosColumn(text: 'Price($currency_code)', width: 3, styles: PosStyles(bold: true, align: PosAlign.right)),
       ]);
       bytes += generator.hr();
       //order product
@@ -1275,7 +1275,7 @@ class ReceiptLayout{
       //total
       bytes += generator.hr();
       bytes += generator.row([
-        PosColumn(text: 'Final Amount(MYR)', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2)),
+        PosColumn(text: 'Final Amount($currency_code)', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2)),
         PosColumn(
             text: '3.40',
             width: 4,
@@ -1434,7 +1434,7 @@ class ReceiptLayout{
         bytes += generator.row([
           PosColumn(text: 'Qty ', width: 2, styles: PosStyles(bold: true)),
           PosColumn(text: 'Item', width: 6, styles: PosStyles(bold: true)),
-          PosColumn(text: 'Price(MYR)', width: 4, styles: PosStyles(bold: true)),
+          PosColumn(text: 'Price($currency_code)', width: 4, styles: PosStyles(bold: true)),
         ]);
         bytes += generator.hr();
         //order product
@@ -1513,7 +1513,7 @@ class ReceiptLayout{
         //total
         bytes += generator.hr();
         bytes += generator.row([
-          PosColumn(text: 'Final Amount(MYR)', width: 8),
+          PosColumn(text: 'Final Amount($currency_code)', width: 8),
           PosColumn(
               text: '3.40',
               width: 4,

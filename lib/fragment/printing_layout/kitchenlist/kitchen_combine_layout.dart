@@ -1,5 +1,6 @@
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
+import 'package:pos_system/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../database/pos_database.dart';
@@ -101,7 +102,7 @@ class CombineKitchenListLayout extends ReceiptLayout {
                   height: productFontHeight,
                   width: productFontWidth)),
           PosColumn(
-              text: '${getCartProductSKU(cartItemList[i], layout: kitchenListLayout)}${cartItemList[i].product_name}${kitchenListLayout.kitchen_list_show_price == 1 ? '(RM${(double.parse(cartItemList[i].price!) * cartItemList[i].quantity!).toStringAsFixed(2)})' : '' }',
+              text: '${getCartProductSKU(cartItemList[i], layout: kitchenListLayout)}${cartItemList[i].product_name}${kitchenListLayout.kitchen_list_show_price == 1 ? '($currency_symbol${(double.parse(cartItemList[i].price!) * cartItemList[i].quantity!).toStringAsFixed(2)})' : '' }',
               width: 10, containsChinese: true,
               styles: PosStyles(
                   align: PosAlign.left,
@@ -164,7 +165,7 @@ class CombineKitchenListLayout extends ReceiptLayout {
       if(combineListTotal != null && kitchenListLayout.kitchen_list_show_total_amount == 1) {
         bytes += generator.reset();
         bytes += generator.emptyLines(1);
-        bytes += generator.text('Total: RM ${combineListTotal.toStringAsFixed(2)}',
+        bytes += generator.text('Total: $currency_symbol ${combineListTotal.toStringAsFixed(2)}',
             styles: PosStyles(
                 align: PosAlign.right,
                 fontType: PosFontType.fontA,
@@ -275,7 +276,7 @@ class CombineKitchenListLayout extends ReceiptLayout {
                   height: productFontHeight,
                   width: productFontWidth)),
           PosColumn(
-              text: '${getCartProductSKU(cartItemList[i], layout: kitchenListLayout)}${cartItemList[i].product_name}${kitchenListLayout.kitchen_list_show_price == 1 ? '(RM${(double.parse(cartItemList[i].price!) * cartItemList[i].quantity!).toStringAsFixed(2)})' : '' }',
+              text: '${getCartProductSKU(cartItemList[i], layout: kitchenListLayout)}${cartItemList[i].product_name}${kitchenListLayout.kitchen_list_show_price == 1 ? '($currency_symbol${(double.parse(cartItemList[i].price!) * cartItemList[i].quantity!).toStringAsFixed(2)})' : '' }',
               width: 10, containsChinese: true,
               styles: PosStyles(
                   align: PosAlign.left,
@@ -338,7 +339,7 @@ class CombineKitchenListLayout extends ReceiptLayout {
       if(combineListTotal != null && kitchenListLayout.kitchen_list_show_total_amount == 1) {
         bytes += generator.reset();
         bytes += generator.emptyLines(1);
-        bytes += generator.text('Total: RM ${combineListTotal.toStringAsFixed(2)}',
+        bytes += generator.text('Total: $currency_symbol ${combineListTotal.toStringAsFixed(2)}',
             styles: PosStyles(
                 align: PosAlign.right,
                 fontType: PosFontType.fontA,
