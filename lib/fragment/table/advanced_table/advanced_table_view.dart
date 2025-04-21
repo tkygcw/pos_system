@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/cancel_receipt.dart';
 import 'package:pos_system/page/progress_bar.dart';

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/controller/controllerObject.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/branch_link_modifier.dart';

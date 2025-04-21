@@ -1,5 +1,6 @@
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/object/cancel_receipt.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:pos_system/object/order_detail.dart';
