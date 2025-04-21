@@ -3017,6 +3017,7 @@ class CartPageState extends State<CartPage> {
       }
     } else {
       cart.removeAllCartItem();
+      cart.clearCurrentOrderCache();
       cart.selectedTable.clear();
     }
   }

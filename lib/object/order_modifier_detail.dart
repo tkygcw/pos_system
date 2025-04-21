@@ -142,4 +142,22 @@ class OrderModifierDetail{
     OrderModifierDetailFields.soft_delete: soft_delete,
   };
 
+  OrderModifierDetail clone() {
+    return OrderModifierDetail(
+      order_modifier_detail_sqlite_id: this.order_modifier_detail_sqlite_id,
+      order_modifier_detail_id: this.order_modifier_detail_id,
+      order_modifier_detail_key: this.order_modifier_detail_key,
+      order_detail_sqlite_id: this.order_detail_sqlite_id,
+      order_detail_id: this.order_detail_id,
+      order_detail_key: this.order_detail_key,
+      mod_item_id: this.mod_item_id,
+      mod_name: this.mod_name,
+      mod_price: this.mod_price,
+      mod_group_id: this.mod_group_id,
+      sync_status: this.sync_status,
+      created_at: this.created_at,
+      updated_at: this.updated_at,
+      soft_delete: this.soft_delete,
+    );
+  }
 }

@@ -48,7 +48,7 @@ AppLanguage appLanguage = AppLanguage();
 final snackBarKey = GlobalKey<ScaffoldMessengerState>();
 bool isCartExpanded = false;
 bool isPaused = false;
-String appVersionCode = '', patch = '';
+String appVersionCode = '', patch = '2';
 ValueNotifier<int> unsyncedDataNotifier = ValueNotifier<int>(0);
 final ValueNotifier<bool> isSyncisSyncingingNotifier = ValueNotifier<bool>(false);
 
