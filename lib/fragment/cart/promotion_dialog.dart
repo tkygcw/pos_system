@@ -207,7 +207,7 @@ class _PromotionDialogState extends State<PromotionDialog> {
                                   border: OutlineInputBorder(),
                                   focusedBorder: OutlineInputBorder(),
                                   labelText: "Discount",
-                                    prefixText: 'RM '
+                                    prefixText: '$currency_symbol '
                                 ),
                               ),
                             );

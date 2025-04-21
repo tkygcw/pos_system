@@ -126,7 +126,7 @@ class _AdvancedTableViewState extends State<AdvancedTableView> {
                   bottom: 5,
                   child: Container(
                     child: Text(
-                      "RM ${widget.table.total_amount ?? '0.00'} ",
+                      "$currency_symbol ${widget.table.total_amount ?? '0.00'} ",
                       style: TextStyle(fontSize: 16),
                     ),
                   ),

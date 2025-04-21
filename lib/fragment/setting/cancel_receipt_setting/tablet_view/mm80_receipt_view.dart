@@ -112,7 +112,7 @@ class _mm80ReceiptViewState extends State<mm80ReceiptView> {
                               Row(
                                 children: [
                                   Visibility(visible: showSKU, child: Text("SKU001 ", style: TextStyle(fontSize: fontSize))),
-                                  Text("Product 1${cancelShowPrice ? "(RM6.90)" : ''}",
+                                  Text("Product 1${cancelShowPrice ? "(${currency_symbol}6.90)" : ''}",
                                       style: TextStyle(fontSize: fontSize)),
                                 ],
                               ),

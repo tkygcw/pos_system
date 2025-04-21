@@ -233,7 +233,7 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
                           inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                           textAlign: TextAlign.center,
                           decoration: InputDecoration(
-                            errorText: priceController.text.isEmpty ? '${AppLocalizations.of(context)?.translate('adjust_price_error')} 0' : null,
+                            errorText: priceController.text.isEmpty ? '${AppLocalizations.of(context)?.translate('adjust_price_error') } $currency_symbol 0' : null,
                             focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: color.backgroundColor),
                             ),

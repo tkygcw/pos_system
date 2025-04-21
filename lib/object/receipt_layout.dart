@@ -657,7 +657,7 @@ class ReceiptLayout{
                 height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                 width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
         PosColumn(
-            text: 'Product 1${kitchen_list.kitchen_list_show_price == 1 ? '(RM6.90)' : '' }',
+            text: 'Product 1${kitchen_list.kitchen_list_show_price == 1 ? '(${currency_symbol}6.90)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -690,7 +690,7 @@ class ReceiptLayout{
                   height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                   width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
           PosColumn(
-              text: 'Product 2${kitchen_list.kitchen_list_show_price == 1 ? '(RM8.80)' : '' }',
+              text: 'Product 2${kitchen_list.kitchen_list_show_price == 1 ? '(${currency_symbol}8.80)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -722,7 +722,7 @@ class ReceiptLayout{
                   height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                   width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
           PosColumn(
-              text: 'Product 3${kitchen_list.kitchen_list_show_price == 1 ? '(RM15.90)' : '' }',
+              text: 'Product 3${kitchen_list.kitchen_list_show_price == 1 ? '(${currency_symbol}15.90)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -790,7 +790,7 @@ class ReceiptLayout{
                 width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
         ),
         PosColumn(
-            text: 'Product 1${kitchen_list.kitchen_list_show_price == 1 ? '(RM6.90)' : '' }',
+            text: 'Product 1${kitchen_list.kitchen_list_show_price == 1 ? '(${currency_symbol}6.90)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -826,7 +826,7 @@ class ReceiptLayout{
                   width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
           ),
           PosColumn(
-              text: 'Product 2${kitchen_list.kitchen_list_show_price == 1 ? '(RM9.90)' : '' }',
+              text: 'Product 2${kitchen_list.kitchen_list_show_price == 1 ? '(${currency_symbol}9.90)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -861,7 +861,7 @@ class ReceiptLayout{
                   width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
           ),
           PosColumn(
-              text: 'Product 3${kitchen_list.kitchen_list_show_price == 1 ? '(RM15.90)' : '' }',
+              text: 'Product 3${kitchen_list.kitchen_list_show_price == 1 ? '(${currency_symbol}15.90)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -2863,7 +2863,7 @@ class ReceiptLayout{
                   height: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
                   width: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
           PosColumn(
-              text: '${cartItem.product_name}${kitchenListLayout != null && kitchenListLayout.kitchen_list_show_price == 1 ? '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
+              text: '${cartItem.product_name}${kitchenListLayout != null && kitchenListLayout.kitchen_list_show_price == 1 ? '(${currency_symbol}${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -3013,7 +3013,7 @@ class ReceiptLayout{
                   height: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
                   width: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
           PosColumn(
-              text: '${cartItem.product_name}${kitchenListLayout != null && kitchenListLayout.kitchen_list_show_price == 1 ? '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
+              text: '${cartItem.product_name}${kitchenListLayout != null && kitchenListLayout.kitchen_list_show_price == 1 ? '(${currency_symbol}${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
               width: 9,
               containsChinese: true,
               styles: PosStyles(
@@ -3169,7 +3169,7 @@ class ReceiptLayout{
                     height: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
                     width: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
             PosColumn(
-                text: '${cartItemList[i].product_name}${kitchenListLayout != null && kitchenListLayout.kitchen_list_show_price == 1 ? '(RM${(double.parse(cartItemList[i].price!) * cartItemList[i].quantity!).toStringAsFixed(2)})' : '' }',
+                text: '${cartItemList[i].product_name}${kitchenListLayout != null && kitchenListLayout.kitchen_list_show_price == 1 ? '(${currency_symbol}${(double.parse(cartItemList[i].price!) * cartItemList[i].quantity!).toStringAsFixed(2)})' : '' }',
                 width: 10, containsChinese: true,
                 styles: PosStyles(
                     align: PosAlign.left,
@@ -3315,7 +3315,7 @@ class ReceiptLayout{
                     height: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
                     width: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
             PosColumn(
-                text: '${cartItemList[i].product_name}${kitchenListLayout != null && kitchenListLayout.kitchen_list_show_price == 1 ? '(RM${(double.parse(cartItemList[i].price!) * cartItemList[i].quantity!).toStringAsFixed(2)})' : '' }',
+                text: '${cartItemList[i].product_name}${kitchenListLayout != null && kitchenListLayout.kitchen_list_show_price == 1 ? '(${currency_symbol}${(double.parse(cartItemList[i].price!) * cartItemList[i].quantity!).toStringAsFixed(2)})' : '' }',
                 width: 9,
                 containsChinese: true,
                 styles: PosStyles(
@@ -3435,7 +3435,7 @@ class ReceiptLayout{
                   height: checklistLayout != null && checklistLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
                   width: checklistLayout != null && checklistLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
           PosColumn(
-              text: '${cartItem.product_name}${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
+              text: '${cartItem.product_name}${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(${currency_symbol}${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -3602,7 +3602,7 @@ class ReceiptLayout{
                   height: checklistLayout != null && checklistLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
                   width: checklistLayout != null && checklistLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
           PosColumn(
-              text: '${cartItem.product_name}${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
+              text: '${cartItem.product_name}${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(${currency_symbol}${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(

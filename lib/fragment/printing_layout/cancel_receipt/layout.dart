@@ -310,7 +310,7 @@ class CancelReceiptLayout extends ReceiptLayout {
         unit: 'each',
         productName: 'Product 1',
         product_sku: 'SKU001',
-        price: 'RM6.90'
+        price: '${currency_symbol}6.90'
     );
     PosFontType productFontType = cancelReceipt.product_name_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
     PosFontType otherFontType = cancelReceipt.other_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
@@ -441,7 +441,7 @@ class CancelReceiptLayout extends ReceiptLayout {
         unit: 'each',
         productName: 'Product 1',
         product_sku: 'SKU001',
-        price: 'RM6.90'
+        price: '${currency_symbol}6.90'
     );
     PosFontType productFontType = cancelReceipt.product_name_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
     PosFontType otherFontType = cancelReceipt.other_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
