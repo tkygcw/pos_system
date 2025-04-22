@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/report_notifier.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
 import 'package:pos_system/object/order.dart';
@@ -108,7 +109,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                   color: color.iconColor,
                                   elevation: 5,
                                   child: ListTile(
-                                    title: Text(AppLocalizations.of(context)!.translate('total_sales')+' (MYR)'),
+                                    title: Text(AppLocalizations.of(context)!.translate('total_sales')+' ($currency_code)'),
                                     subtitle: Text('${totalSales.toStringAsFixed(2)}',
                                         style: TextStyle(color: Colors.black, fontSize: 24)),
                                     trailing: Icon(Icons.monetization_on),
@@ -325,7 +326,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                   color: color.iconColor,
                                   elevation: 5,
                                   child: ListTile(
-                                    title: Text(AppLocalizations.of(context)!.translate('total_sales')+' (MYR)'),
+                                    title: Text(AppLocalizations.of(context)!.translate('total_sales')+' ($currency_code)'),
                                     subtitle: Text('${totalSales.toStringAsFixed(2)}',
                                         style: TextStyle(color: Colors.black, fontSize: 24)),
                                   ),
@@ -521,7 +522,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                           color: color.iconColor,
                                           elevation: 5,
                                           child: ListTile(
-                                            title: Text(AppLocalizations.of(context)!.translate('total_sales') + ' (MYR)',
+                                            title: Text(AppLocalizations.of(context)!.translate('total_sales') + ' ($currency_code)',
                                                 style: TextStyle(fontWeight: FontWeight.w500)),
                                             subtitle: Text('${totalSales.toStringAsFixed(2)}',
                                                 style: TextStyle(color: Colors.black, fontSize: 20)),

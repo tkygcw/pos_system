@@ -1,5 +1,6 @@
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/object/cancel_receipt.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:pos_system/object/order_detail.dart';
@@ -310,7 +311,7 @@ class CancelReceiptLayout extends ReceiptLayout {
         unit: 'each',
         productName: 'Product 1',
         product_sku: 'SKU001',
-        price: 'RM6.90'
+        price: '${currency_symbol}6.90'
     );
     PosFontType productFontType = cancelReceipt.product_name_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
     PosFontType otherFontType = cancelReceipt.other_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
@@ -441,7 +442,7 @@ class CancelReceiptLayout extends ReceiptLayout {
         unit: 'each',
         productName: 'Product 1',
         product_sku: 'SKU001',
-        price: 'RM6.90'
+        price: '${currency_symbol}6.90'
     );
     PosFontType productFontType = cancelReceipt.product_name_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;
     PosFontType otherFontType = cancelReceipt.other_font_size == 1 ? PosFontType.fontB : PosFontType.fontA;

@@ -461,7 +461,7 @@ class CartPageState extends State<CartPage> {
                                                     TextSpan(
                                                       // text: "RM" + cart.cartNotifierItem[index].price! + " (" +  ,
                                                         text:
-                                                        "RM ${cart.cartNotifierItem[index].price!} (${cart.cartNotifierItem[index].unit! != 'each' && cart.cartNotifierItem[index].unit! != 'each_c' ? cart.cartNotifierItem[index].per_quantity_unit! + cart.cartNotifierItem[index].unit! : 'each'})",
+                                                        "$currency_symbol ${cart.cartNotifierItem[index].price!} (${cart.cartNotifierItem[index].unit! != 'each' && cart.cartNotifierItem[index].unit! != 'each_c' ? cart.cartNotifierItem[index].per_quantity_unit! + cart.cartNotifierItem[index].unit! : 'each'})",
                                                         style: TextStyle(
                                                           fontSize: 13,
                                                           color: cart.cartNotifierItem[index].status == 1 ? font : cart.cartNotifierItem[index].refColor,
@@ -907,9 +907,9 @@ class CartPageState extends State<CartPage> {
                                                       ? widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
                                                   ? cart.cartNotifierItem.isEmpty && (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 1 || cart.selectedOption != 'Dine in')
                                                       ? Text(AppLocalizations.of(context)!.translate('select_order'))
-                                                      : Text(AppLocalizations.of(context)!.translate('place_order') + '\n (RM ${this.finalAmount})')
+                                                      : Text(AppLocalizations.of(context)!.translate('place_order') + '\n ($currency_symbol ${this.finalAmount})')
                                                       : widget.currentPage == 'table' || widget.currentPage == 'other_order'
-                                                      ? Text(AppLocalizations.of(context)!.translate('pay') + ' (RM ${this.finalAmount})')
+                                                      ? Text(AppLocalizations.of(context)!.translate('pay') + ' ($currency_symbol ${this.finalAmount})')
                                                       : Text(AppLocalizations.of(context)!.translate('print_receipt'))
                                                   // mobile
                                                       : widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
@@ -919,11 +919,11 @@ class CartPageState extends State<CartPage> {
                                                       : Text(AppLocalizations.of(context)!.translate('place_order'))
                                                       : cart.cartNotifierItem.isEmpty && (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 1 || cart.selectedOption != 'Dine in')
                                                       ? Text(AppLocalizations.of(context)!.translate('select_order'))
-                                                      : Text(AppLocalizations.of(context)!.translate('place_order') + '\n (RM ${this.finalAmount})')
+                                                      : Text(AppLocalizations.of(context)!.translate('place_order') + '\n ($currency_symbol ${this.finalAmount})')
                                                       : widget.currentPage == 'table' || widget.currentPage == 'other_order'
                                                       ? MediaQuery.of(context).orientation == Orientation.landscape
                                                       ? Text(AppLocalizations.of(context)!.translate('pay'))
-                                                      : Text(AppLocalizations.of(context)!.translate('pay') + ' (RM ${this.finalAmount})')
+                                                      : Text(AppLocalizations.of(context)!.translate('pay') + ' ($currency_symbol ${this.finalAmount})')
                                                       : Text(AppLocalizations.of(context)!.translate('print_receipt')))),
                                         ),
                                         Visibility(
@@ -1910,7 +1910,7 @@ class CartPageState extends State<CartPage> {
 
         // promo += (double.parse(promotion.amount!) * cart.cartNotifierItem[i].quantity!);
         promotion.promoAmount = promo;
-        promoRate = 'RM' + promotion.amount!;
+        promoRate = currency_symbol + promotion.amount!;
         promotion.promoRate = promoRate;
       } else {
         if(totalAmount <= 0) {
@@ -1976,7 +1976,7 @@ class CartPageState extends State<CartPage> {
         }
 
         promotion.promoAmount = promo;
-        promoRate = 'RM' + promotion.amount!;
+        promoRate = currency_symbol + promotion.amount!;
         promotion.promoRate = promoRate;
       } else {
         promo = categoryTotalPrice * (double.parse(promotion.amount!) / 100);

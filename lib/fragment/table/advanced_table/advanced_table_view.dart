@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
@@ -126,7 +127,7 @@ class _AdvancedTableViewState extends State<AdvancedTableView> {
                   bottom: 5,
                   child: Container(
                     child: Text(
-                      "RM ${widget.table.total_amount ?? '0.00'} ",
+                      "$currency_symbol ${widget.table.total_amount ?? '0.00'} ",
                       style: TextStyle(fontSize: 16),
                     ),
                   ),

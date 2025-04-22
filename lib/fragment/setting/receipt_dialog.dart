@@ -709,7 +709,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       ),
                       Expanded(
                         flex: 0,
-                        child: Text('Price', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: Text('Price(${currency_code})', style: TextStyle(fontWeight: FontWeight.bold)),
                       )
                     ],
                   ),
@@ -1553,7 +1553,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     ),
                     Expanded(
                       flex: 2,
-                      child: Text('Price', style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: Text('Price(${currency_code})', style: TextStyle(fontWeight: FontWeight.bold)),
                     )
                   ],
                 ),
