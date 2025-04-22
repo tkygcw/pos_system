@@ -515,6 +515,9 @@ class SyncRecord {
       int data = await PosDatabase.instance.updateBranch(branchData);
       Branch? branch = await PosDatabase.instance.readSpecificBranch(branchData.branch_id!);
       await prefs.setString('branch', json.encode(branch!));
+      currency_code = branch.currency_code ?? 'MYR';
+      currency_symbol = branch.currency_symbol ?? 'RM';
+
       if(branch.allow_firestore == 1){
         pos_firestore.setFirestoreStatus = FirestoreStatus.online;
         pos_firestore.insertBranch(branchData);

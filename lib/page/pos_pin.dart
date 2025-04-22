@@ -75,6 +75,7 @@ class _PosPinPageState extends State<PosPinPage> {
     bindSocket();
     checkVersion();
     checkSubscription();
+    getCurrency();
   }
 
   @override
@@ -330,6 +331,14 @@ class _PosPinPageState extends State<PosPinPage> {
     } catch(e) {
       print("current version insert error: $e");
     }
+  }
+
+  getCurrency() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branchId = prefs.getInt('branch_id');
+    Branch? branch = await PosDatabase.instance.readSpecificBranch(branchId!);
+    currency_code = branch!.currency_code ?? 'MYR';
+    currency_symbol = branch.currency_symbol ?? 'RM';
   }
 
   checkSubscription() async {

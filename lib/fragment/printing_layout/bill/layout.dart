@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
@@ -161,7 +162,7 @@ class BillLayout extends ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: 'Qty ', width: 2, styles: PosStyles(bold: true)),
         PosColumn(text: 'Item', width: 7, styles: PosStyles(bold: true)),
-        PosColumn(text: 'Price(MYR)', width: 3, styles: PosStyles(bold: true, align: PosAlign.right)),
+        PosColumn(text: 'Price($currency_code)', width: 3, styles: PosStyles(bold: true, align: PosAlign.right)),
       ]);
       bytes += generator.hr();
       //merge same item
@@ -279,7 +280,7 @@ class BillLayout extends ReceiptLayout{
       //total
       bytes += generator.hr();
       bytes += generator.row([
-        PosColumn(text: 'Final Amount(MYR)', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2)),
+        PosColumn(text: 'Final Amount($currency_code)', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2)),
         PosColumn(
             text: '${this.paidOrder!.final_amount}',
             width: 4,
@@ -504,7 +505,7 @@ class BillLayout extends ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: 'Qty ', width: 2, styles: PosStyles(bold: true)),
         PosColumn(text: 'Item', width: 6, styles: PosStyles(bold: true)),
-        PosColumn(text: 'Price(MYR)', width: 4, styles: PosStyles(bold: true)),
+        PosColumn(text: 'Price($currency_code)', width: 4, styles: PosStyles(bold: true)),
       ]);
       bytes += generator.hr();
       //merge same item
@@ -607,7 +608,7 @@ class BillLayout extends ReceiptLayout{
       //total
       bytes += generator.hr();
       bytes += generator.row([
-        PosColumn(text: 'Final Amount(MYR)', width: 8),
+        PosColumn(text: 'Final Amount($currency_code)', width: 8),
         PosColumn(
             text: '${this.paidOrder!.final_amount}',
             width: 4,

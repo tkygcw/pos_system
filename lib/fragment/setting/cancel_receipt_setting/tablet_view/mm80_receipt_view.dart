@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/cancel_receipt.dart';
 import 'package:pos_system/page/progress_bar.dart';
@@ -112,7 +113,7 @@ class _mm80ReceiptViewState extends State<mm80ReceiptView> {
                               Row(
                                 children: [
                                   Visibility(visible: showSKU, child: Text("SKU001 ", style: TextStyle(fontSize: fontSize))),
-                                  Text("Product 1${cancelShowPrice ? "(RM6.90)" : ''}",
+                                  Text("Product 1${cancelShowPrice ? "(${currency_symbol}6.90)" : ''}",
                                       style: TextStyle(fontSize: fontSize)),
                                 ],
                               ),

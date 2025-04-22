@@ -120,9 +120,9 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
         return Consumer<FailPrintModel>(builder: (context, FailPrintModel failPrintModel, child) {
           _failPrintModel = failPrintModel;
           return LayoutBuilder(builder: (context, constraints) {
-            if (constraints.maxWidth > 800) {
-              return WillPopScope(
-                onWillPop: () async => willPop,
+            if (constraints.maxWidth > 900 && constraints.maxHeight > 500) {
+              return PopScope(
+                canPop: willPop,
                 child: AlertDialog(
                   title: Row(
                     children: [
@@ -198,7 +198,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                               text: "${widget.orderDetailList[index].productName}" + "\n",
                                               style: TextStyle(fontSize: 14, color: Colors.black)),
                                           TextSpan(
-                                              text: "RM ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 13, color: Colors.black)),
+                                              text: "$currency_symbol ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 13, color: Colors.black)),
                                         ],
                                       ),
                                     ),
@@ -305,14 +305,14 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                         child: Text(AppLocalizations.of(context)!.translate('close'),
                           style: TextStyle(color: Colors.white),
                         ),
-                        onPressed: isCancelButtonDisabled
+                        onPressed: isButtonDisabled
                             ? null
                             : () {
                           // Disable the button after it has been pressed
                           setState(() {
-                            isCancelButtonDisabled = true;
+                            isButtonDisabled = true;
                           });
-                          enableCancelButton();
+                          //enableCancelButton();
                           Navigator.of(context).pop();
                         },
                       ),
@@ -336,7 +336,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                             willPop = false;
                           });
                           await callRejectOrder();
-                          syncToCloudFunction();
+                          //syncToCloudFunction();
                         },
                       ),
                     ),
@@ -360,61 +360,79 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                             willPop = false;
                           });
                           asyncQ.addJob((_) async {
-                            await checkTablePaymentSplit();
-                            await checkOrderDetailStock();
-                            print('available check: ${hasNotAvailableProduct}');
-                            if (paymentNotComplete) {
-                              CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('table_is_in_payment'));
-                              setState(() {
-                                isButtonDisabled = false;
-                                willPop = true;
-                              });
-                            } else if (hasNoStockProduct) {
-                              CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
-                              setState(() {
-                                isButtonDisabled = false;
-                                willPop = true;
-                              });
-                            } else if(hasNotAvailableProduct){
-                              CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('contain_not_available_product'));
-                              setState(() {
-                                isButtonDisabled = false;
-                                willPop = true;
-                              });
-                            } else {
-                              if (removeDetailList.isNotEmpty) {
-                                await removeOrderDetail();
-                              }
-                              if (widget.tableLocalId != '') {
-                                await checkTable();
-                                if (tableInUsed == true) {
-                                  //check is table selected by sub pos
-                                  bool isTableSelectedBySubPos = await _cartModel.isTableSelectedBySubPos(tableUseKey: tableUseKey);
-                                  if(!isTableSelectedBySubPos){
-                                    await updateOrderDetail();
-                                    await updateOrderCache();
-                                    await updateProductStock();
+                            print("called!!!");
+                            try{
+                              await checkTablePaymentSplit();
+                              await checkOrderDetailStock();
+                              print('available check: ${hasNotAvailableProduct}');
+                              if (paymentNotComplete) {
+                                CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('table_is_in_payment'));
+                                setState(() {
+                                  isButtonDisabled = false;
+                                  willPop = true;
+                                });
+                              } else if (hasNoStockProduct) {
+                                CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
+                                setState(() {
+                                  isButtonDisabled = false;
+                                  willPop = true;
+                                });
+                              } else if(hasNotAvailableProduct){
+                                CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('contain_not_available_product'));
+                                setState(() {
+                                  isButtonDisabled = false;
+                                  willPop = true;
+                                });
+                              } else {
+                                if (removeDetailList.isNotEmpty) {
+                                  await removeOrderDetail();
+                                }
+                                if (widget.tableLocalId != '') {
+                                  await checkTable();
+                                  if (tableInUsed == true) {
+                                    //check is table selected by sub pos
+                                    bool isTableSelectedBySubPos = await _cartModel.isTableSelectedBySubPos(tableUseKey: tableUseKey);
+                                    if(!isTableSelectedBySubPos){
+                                      await updateOrderDetail();
+                                      await updateOrderCache();
+                                      await updateProductStock();
+                                    } else {
+                                      CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('table_is_in_payment'));
+                                      Navigator.of(context).pop();
+                                      return;
+                                    }
                                   } else {
-                                    CustomFailedToast.showToast(title: AppLocalizations.of(context)!.translate('table_is_in_payment'));
-                                    Navigator.of(context).pop();
-                                    return;
+                                    await callNewOrder();
+                                    await updateProductStock();
                                   }
                                 } else {
-                                  await callNewOrder();
-                                  await updateProductStock();
+                                  await callOtherOrder();
                                 }
-                              } else {
-                                await callOtherOrder();
+                                Server.instance.sendMessageToClient("2");
+                                if(_appSettingModel.autoPrintChecklist == true){
+                                  await printCheckList();
+                                }
+                                printProductTicket(widget.orderCacheLocalId);
+                                // syncToCloudFunction();
+                                widget.callBack();
+                                if(mounted){
+                                  Navigator.of(context).pop();
+                                }
+                                await callPrinter();
                               }
-                              Server.instance.sendMessageToClient("2");
-                              if(_appSettingModel.autoPrintChecklist == true){
-                                await printCheckList();
+                            }catch(e, s){
+                              CustomFailedToast.showToast(title: e.toString());
+                              if(mounted){
+                                setState(() {
+                                  isButtonDisabled = false;
+                                  willPop = true;
+                                });
                               }
-                              printProductTicket(widget.orderCacheLocalId);
-                              // syncToCloudFunction();
-                              widget.callBack();
-                              Navigator.of(context).pop();
-                              await callPrinter();
+                              FLog.error(
+                                className: "adjust_stock(QR)",
+                                text: "accept qr failed",
+                                exception: "Error: $e, stacktrace: $s",
+                              );
                             }
                           });
                         }
@@ -503,7 +521,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                             text: "${widget.orderDetailList[index].productName}" + "\n",
                                             style: TextStyle(fontSize: 13, color: Colors.black)),
                                         TextSpan(
-                                            text: "RM ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 12, color: Colors.black)),
+                                            text: "$currency_symbol ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 12, color: Colors.black)),
                                       ],
                                     ),
                                   ),
@@ -609,14 +627,14 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                               backgroundColor: color.backgroundColor,
                             ),
                             child: Text(AppLocalizations.of(context)!.translate('close')),
-                            onPressed: isCancelButtonDisabled
+                            onPressed: isButtonDisabled
                                 ? null
                                 : () {
                               // Disable the button after it has been pressed
                               setState(() {
-                                isCancelButtonDisabled = true;
+                                isButtonDisabled = true;
                               });
-                              enableCancelButton();
+                              //enableCancelButton();
                               Navigator.of(context).pop();
                             },
                           ),
@@ -657,40 +675,53 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                               child: Text(AppLocalizations.of(context)!.translate('add')),
                               onPressed: isButtonDisabled || widget.orderDetailList.isEmpty ? null : () async {
                                 asyncQ.addJob((_) async {
-                                  await checkOrderDetailStock();
-                                  if (hasNoStockProduct) {
-                                    Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
-                                  } else if (hasNotAvailableProduct){
-                                    Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
-                                  } else {
-                                    // Disable the button after it has been pressed
-                                    setState(() {
-                                      isButtonDisabled = true;
-                                    });
-                                    if (removeDetailList.isNotEmpty) {
-                                      await removeOrderDetail();
-                                    }
-                                    if (widget.tableLocalId != '') {
-                                      await checkTable();
-                                      if (tableInUsed == true) {
-                                        await updateOrderDetail();
-                                        await updateOrderCache();
-                                        await updateProductStock();
-                                      } else {
-                                        await callNewOrder();
-                                        await updateProductStock();
-                                      }
+                                  try{
+                                    await checkOrderDetailStock();
+                                    if (hasNoStockProduct) {
+                                      Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
+                                    } else if (hasNotAvailableProduct){
+                                      Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
                                     } else {
-                                      await callOtherOrder();
+                                      // Disable the button after it has been pressed
+                                      setState(() {
+                                        isButtonDisabled = true;
+                                      });
+                                      if (removeDetailList.isNotEmpty) {
+                                        await removeOrderDetail();
+                                      }
+                                      if (widget.tableLocalId != '') {
+                                        await checkTable();
+                                        if (tableInUsed == true) {
+                                          await updateOrderDetail();
+                                          await updateOrderCache();
+                                          await updateProductStock();
+                                        } else {
+                                          await callNewOrder();
+                                          await updateProductStock();
+                                        }
+                                      } else {
+                                        await callOtherOrder();
+                                      }
+                                      if(_appSettingModel.autoPrintChecklist == true){
+                                        await printCheckList();
+                                      }
+                                      printProductTicket(widget.orderCacheLocalId);
+                                      // syncToCloudFunction();
+                                      widget.callBack();
+                                      Navigator.of(context).pop();
+                                      await callPrinter();
                                     }
-                                    if(_appSettingModel.autoPrintChecklist == true){
-                                      await printCheckList();
-                                    }
-                                    printProductTicket(widget.orderCacheLocalId);
-                                    // syncToCloudFunction();
-                                    widget.callBack();
-                                    Navigator.of(context).pop();
-                                    await callPrinter();
+                                  }catch(e, s){
+                                    CustomFailedToast.showToast(title: e.toString());
+                                    setState(() {
+                                      isButtonDisabled = false;
+                                      willPop = true;
+                                    });
+                                    FLog.error(
+                                      className: "adjust_stock(QR)",
+                                      text: "accept qr error",
+                                      exception: "Error: $e, stacktrace: $s",
+                                    );
                                   }
                                 });
                               }

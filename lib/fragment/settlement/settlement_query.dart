@@ -376,6 +376,7 @@ class SettlementQuery {
         updated_at: '',
         soft_delete: '',
       );
+      await _transaction.delete(tableSalesPerDay, where: 'date = ?', whereArgs: [data.date!]);
       final id = await _transaction.insert(tableSalesPerDay, data.toJson());
       return data.copy(sales_per_day_sqlite_id: id);
     }catch(e, s){

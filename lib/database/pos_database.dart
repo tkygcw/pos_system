@@ -96,7 +96,7 @@ class PosDatabase {
     }
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 37, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade, singleInstance: Platform.isWindows ? false : true);
+    return await openDatabase(path, version: 38, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade, singleInstance: Platform.isWindows ? false : true);
   }
 
 /*
@@ -3785,9 +3785,10 @@ class PosDatabase {
     try{
       final db = await instance.database;
       final result = await db.rawQuery(
-        'SELECT * FROM $tableSalesPerDay '
-            'WHERE soft_delete = ? AND date >= ? AND date < ? ',
-        ['', startDate, endDate]
+          'WITH DailySales AS (SELECT DISTINCT date, sales_per_day_sqlite_id FROM $tableSalesPerDay ORDER BY created_at DESC ) '
+              'SELECT * FROM $tableSalesPerDay AS a JOIN DailySales AS b ON a.sales_per_day_sqlite_id = b.sales_per_day_sqlite_id '
+              'WHERE a.soft_delete = ? AND a.date >= ? AND a.date < ? GROUP BY a.date',
+          ['', startDate, endDate]
       );
       return result.map((json) => SalesPerDay.fromJson(json)).toList();
     }catch(e, s){
@@ -5638,7 +5639,7 @@ class PosDatabase {
     return await db.rawUpdate('UPDATE $tableBranch SET name = ?, logo = ?,  address = ?, phone = ?, email = ?, '
         'qr_order_status = ?, sub_pos_status = ?, attendance_status = ?, register_no = ?, allow_firestore = ?, '
         'allow_livedata = ?, qr_show_sku = ?, qr_product_sequence = ?, show_qr_history = ?, generate_sales = ?, '
-        'allow_einvoice = ?, einvoice_status = ? '
+        'allow_einvoice = ?, einvoice_status = ?, currency_code = ?, currency_symbol = ? '
         'WHERE branch_id = ? ',
         [
           data.name,
@@ -5658,6 +5659,8 @@ class PosDatabase {
           data.generate_sales,
           data.allow_einvoice,
           data.einvoice_status,
+          data.currency_code,
+          data.currency_symbol,
           data.branch_id,
         ]);
   }
