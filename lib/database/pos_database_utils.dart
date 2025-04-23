@@ -277,6 +277,8 @@ class PosDatabaseUtils {
           case 37: {
             await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.currency_code} $textType DEFAULT 'MYR'");
             await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.currency_symbol} $textType DEFAULT 'RM'");
+          }break;
+          case 38: {
             await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.specific_category} $integerType DEFAULT 0");
             await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.multiple_category} $jsonType");
             await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.custom_table_number} $textType DEFAULT ''");

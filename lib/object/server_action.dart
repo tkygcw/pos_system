@@ -112,6 +112,7 @@ class ServerAction {
           var data10 = await getBranchPromotionData();
           var data11 = appLanguage.appLocal.languageCode;
           var data12 = await PosDatabase.instance.readAllSubscription();
+          var data13 = [currency_code, currency_symbol];
 
           print("data9: ${json.encode(data9)}");
           print("data2 length: ${data2.length}");
@@ -127,7 +128,8 @@ class ServerAction {
              'taxLinkDiningList': data9,
              'branchPromotionList': data10,
              'app_language_code': data11,
-             'subscription_data': data12
+             'subscription_data': data12,
+             'currency': data13,
           };
           result = {'status': '1', 'action': '1', 'data': objectData};
         }
