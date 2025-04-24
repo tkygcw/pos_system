@@ -258,7 +258,8 @@ class _TableMenuState extends State<TableMenu> {
                                         if(!isTableSelected){
                                           openChangeTableDialog(tableList[index], cart);
                                         } else {
-                                          CustomFailedToast.showToast(title: 'Table is in payment');                                        }
+                                          CustomFailedToast.showToast(title: 'Table is in payment');
+                                        }
                                       } else {
                                         Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
                                       }

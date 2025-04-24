@@ -10,6 +10,7 @@ import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_firestore.dart';
+import 'package:pos_system/firebase_sync/qr_order_sync.dart';
 import 'package:pos_system/fragment/cart/adjust_price.dart';
 import 'package:pos_system/fragment/cart/cart_dialog.dart';
 import 'package:pos_system/fragment/cart/other_order_add_to_cart.dart';
@@ -19,6 +20,7 @@ import 'package:pos_system/fragment/cart/reprint_dialog.dart';
 import 'package:pos_system/fragment/cart/reprint_kitchen_list_dialog.dart';
 import 'package:pos_system/fragment/custom_toastification.dart';
 import 'package:pos_system/fragment/product_cancel/adjust_quantity.dart';
+import 'package:pos_system/fragment/product_cancel/cancel_query.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/fail_print_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
@@ -39,6 +41,7 @@ import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/object/table_use_detail.dart';
+import 'package:pos_system/object/user.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/page/loading_dialog.dart';
 import 'package:pos_system/page/progress_bar.dart';
@@ -78,11 +81,16 @@ class CartPage extends StatefulWidget {
 }
 
 class CartPageState extends State<CartPage> {
+  PrintReceipt _printReceipt = PrintReceipt();
+  PosFirestore _posFirestore = PosFirestore.instance;
+  FirestoreQROrderSync _firestoreQROrderSync = FirestoreQROrderSync.instance;
+  BuildContext globalContext = MyApp.navigatorKey.currentContext!;
   final PosFirestore posFirestore = PosFirestore.instance;
   final ScrollController _scrollController = ScrollController();
   late StreamController controller;
   late AppSettingModel _appSettingModel;
   late FailPrintModel _failPrintModel;
+  late OrderDetail cartOrderDetail;
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   PrintReceipt printReceipt = PrintReceipt();
   Server server = Server.instance;
@@ -97,7 +105,9 @@ class CartPageState extends State<CartPage> {
   List<OrderTaxDetail> orderTaxList = [];
   List<OrderPromotionDetail> orderPromotionList = [];
   List<Order> orderList = [];
-  List<OrderCache> orderCacheList = [];
+  List<OrderCache> orderCacheList = [], cartTableCacheList = [], cartCacheList = [];
+  List<OrderDetail> cartOrderDetailList = [];
+  List<TableUseDetail> cartTableUseDetail = [];
   int diningOptionID = 0, simpleIntInput = 0;
   double total = 0.0,
       newOrderSubtotal = 0.0,
@@ -148,6 +158,8 @@ class CartPageState extends State<CartPage> {
   String orderKey = '';
   String cacheOtherOrderKey = '';
   bool doubleCheckFinalAmount = false;
+  bool isCancelButtonDisable = false;
+  PosDatabase posDatabase = PosDatabase.instance;
 
   void _scrollDown() {
     _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
@@ -320,18 +332,32 @@ class CartPageState extends State<CartPage> {
                           ),
                         ),
                         Visibility(
-                          visible: (widget.currentPage == 'menu' && cart.selectedOption == 'Dine in' && appSettingModel.table_order != 0) ||
-                              (widget.currentPage == 'menu' && cart.selectedOption != 'Dine in' && appSettingModel.directPaymentStatus == false) ||
-                              widget.currentPage == 'qr_order' || widget.currentPage == 'bill' || ((widget.currentPage == 'table' || widget.currentPage == 'other_order') && orderKey != '')
-                              ? false
-                              : true,
+                          visible: (widget.currentPage == 'menu' && cart.selectedOption == 'Dine in' && appSettingModel.table_order == 0) ||
+                              (widget.currentPage == 'menu' && cart.selectedOption != 'Dine in' && appSettingModel.directPaymentStatus == true)
+                              ? true
+                              : false,
                           child: IconButton(
                             tooltip: 'promotion',
                             icon: Icon(Icons.discount),
                             color: color.backgroundColor,
                             onPressed: () {
-                              print("app setting: ${appSettingModel.directPaymentStatus}");
-                              openPromotionDialog();
+                              openPromotionDialog(widget.currentPage);
+                            },
+                          ),
+                        ),
+                        Visibility(
+                          visible: (widget.currentPage == 'menu') || widget.currentPage == 'qr_order' ||
+                              widget.currentPage == 'bill' || ((widget.currentPage == 'table' || widget.currentPage == 'other_order') && orderKey != '')
+                              ? false
+                              : true,
+                          child: IconButton(
+                            tooltip: 'Options',
+                            icon: Icon(Icons.more_vert),
+                            color: color.backgroundColor,
+                            onPressed: () {
+                              // openPromotionDialog();
+                              isCancelButtonDisable = false;
+                              showMoreOptionDialog(context, color, cart, appSettingModel);
                             },
                           ),
                         ),
@@ -2376,7 +2402,294 @@ class CartPageState extends State<CartPage> {
         });
   }
 
-  Future<Future<Object?>> openPromotionDialog() async {
+  Future showMoreOptionDialog(BuildContext context, ThemeColor color, CartModel cart, AppSettingModel appSettingModel) async {
+    return showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(AppLocalizations.of(context)!.translate('option')),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Visibility(
+                    visible: (widget.currentPage == 'menu' && cart.selectedOption == 'Dine in' && appSettingModel.table_order != 0) ||
+                        (widget.currentPage == 'menu' && cart.selectedOption != 'Dine in' && appSettingModel.directPaymentStatus == false) ||
+                        widget.currentPage == 'qr_order' || widget.currentPage == 'bill' || ((widget.currentPage == 'table' || widget.currentPage == 'other_order') && orderKey != '')
+                        ? false
+                        : true,
+                    child: Card(
+                      elevation: 5,
+                      child: ListTile(
+                        title: Text(AppLocalizations.of(context)!.translate('promotion')),
+                        onTap: () {
+                          openPromotionDialog(widget.currentPage);
+                        },
+                        trailing: Icon(Icons.discount),
+                      ),
+                    ),
+                  ),
+                  Card(
+                    elevation: 5,
+                    child: ListTile(
+                      title: Text(AppLocalizations.of(context)!.translate('void_order')),
+                      onTap: () async {
+                        try {
+                          final prefs = await SharedPreferences.getInstance();
+                          bool confirmToProceed = await showRestockDialog(context);
+                          if(confirmToProceed) {
+                            bool restockItems = prefs.getBool('should_restock') ?? true;
+                            List<cartProductItem> tempCartNotifierItems = List.from(cart.cartNotifierItem);
+                            openLoadingDialogBox();
+                            await _printReceipt.readAllPrinters();
+                            for(int i = 0; i < tempCartNotifierItems.length; i++) {
+                              List<OrderCache> cacheData = await posDatabase.readSpecificOrderCache(tempCartNotifierItems[i].order_cache_sqlite_id!);
+                              cartCacheList = List.from(cacheData);
+                              if (widget.currentPage != 'other order') {
+                                List<OrderCache> tableCacheData = await posDatabase.readTableOrderCache(cacheData[0].table_use_key!);
+                                cartTableCacheList = List.from(tableCacheData);
+
+                                List<TableUseDetail> tableDetailData = await posDatabase.readAllTableUseDetail(cacheData[0].table_use_sqlite_id!);
+                                cartTableUseDetail = List.from(tableDetailData);
+                              }
+                              List<OrderDetail> orderDetailData = await posDatabase.readTableOrderDetail(tempCartNotifierItems[i].order_cache_key!);
+                              cartOrderDetailList = List.from(orderDetailData);
+
+                              OrderDetail cartItemOrderDetail = await posDatabase.readSpecificOrderDetailByLocalId(int.parse(tempCartNotifierItems[i].order_detail_sqlite_id!));
+                              cartOrderDetail = cartItemOrderDetail;
+
+                              await callUpdateCart(cart, tempCartNotifierItems[i], restockItems);
+                            }
+                            TableModel.instance.changeContent(true);
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                          }
+                        } catch(e, stackTrace) {
+                          print("void order e: $e, s: $stackTrace");
+                        }
+
+                      },
+                      trailing: Icon(Icons.kitchen),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: isCancelButtonDisable ? null : () {
+                  setState(() {
+                    isCancelButtonDisable = true;
+                  });
+                  Navigator.of(context).pop();
+                },
+                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+              )
+            ],
+          );
+        }
+    );
+  }
+
+  Future<bool> showRestockDialog(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    bool restockItems = prefs.getBool('should_restock') ?? true;
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                title: Text(AppLocalizations.of(context)!.translate('void_order')),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(AppLocalizations.of(context)!.translate('are_you_sure_you_want_to_void_this_order')),
+                    SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: restockItems,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              restockItems = value ?? false;
+                            });
+                          },
+                        ),
+                        Text(AppLocalizations.of(context)!.translate('restock_voided_items')),
+                      ],
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                    },
+                    child: Text(AppLocalizations.of(context)!.translate('close')),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      await prefs.setBool('should_restock', restockItems);
+                      Navigator.of(context).pop(true);
+                    },
+                    child: Text(AppLocalizations.of(context)!.translate('yes')),
+                  ),
+                ],
+              );
+            }
+        );
+      },
+    );
+
+    return result ?? false;
+  }
+
+  callUpdateCart(CartModel cart, cartProductItem cartItem, bool willRestock) async {
+    print("callUpdateCart called");
+    var db = await posDatabase.database;
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    final prefs = await SharedPreferences.getInstance();
+    final String? pos_user = prefs.getString('pos_pin_user');
+    Map<String, dynamic> userMap = json.decode(pos_user!);
+    User userData = User.fromJson(userMap);
+    int updateStatus = await db.transaction((txn) async {
+      try {
+        final cancelQuery = CancelQuery(
+            transaction: txn,
+            user: userData,
+            orderDetail: this.cartOrderDetail,
+            simpleIntInput: cartItem.quantity!,
+            widgetCartItem: cartItem,
+            reason: '',
+            restock: willRestock
+        );
+        if (cartTableCacheList.length <= 1 && cartOrderDetailList.length > 1) {
+          await cancelQuery.callDeleteOrderDetail();
+          // await callDeleteOrderDetail(userData, dateTime, cancelQuery);
+
+        } else if (cartTableCacheList.length > 1 && cartOrderDetailList.length <= 1) {
+          await cancelQuery.callDeleteOrderDetail(deleteOrderCache: true, cartOrderCache: cartCacheList.first);
+          // await callDeletePartialOrder(userData, dateTime, cancelQuery);
+
+        } else if (cartTableCacheList.length > 1 && cartOrderDetailList.length > 1) {
+          await cancelQuery.callDeleteOrderDetail();
+          // await callDeleteOrderDetail(userData, dateTime, cancelQuery);
+
+        } else if (widget.currentPage == 'other order' && cartOrderDetailList.length > 1) {
+          await cancelQuery.callDeleteOrderDetail();
+          // await callDeleteOrderDetail(userData, dateTime, cancelQuery);
+
+        } else {
+          print("remove all table!!");
+          await cancelQuery.callDeleteAllOrder(
+              currentTableUseId: cartCacheList.first.table_use_sqlite_id!,
+              currentPage: widget.currentPage,
+              orderCache: cartCacheList.first,
+              cartTableUseDetail: cartTableUseDetail
+          );
+          cart.removeAllTable(notify: false);
+        }
+        cart.removeItem(cartItem);
+        return 1;
+      } catch(e, stackTrace) {
+        FLog.error(
+          className: "cart",
+          text: "callUpdateCart error",
+          exception: "Error: $e, StackTrace: $stackTrace",
+        );
+        Navigator.of(context).pop();
+        rethrow;
+      }
+    });
+    print("update status: ${updateStatus}");
+    try{
+      if(updateStatus == 1){
+        syncToFirestore(this.cartOrderDetail, willRestock);
+        await callPrinter(dateTime, cart, cartItem);
+        Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(globalContext)!.translate('delete_successful'));
+        if(mounted){
+          // Navigator.of(context).pop();
+        }
+      }
+    }catch(e, stackTrace){
+      FLog.error(
+        className: "adjust_qty_dialog",
+        text: "callUpdateCart error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+    }
+  }
+
+  syncToFirestore(OrderDetail orderDetail, bool restock) async {
+    try{
+      OrderDetail orderDetailData = await posDatabase.readSpecificOrderDetailByLocalId(orderDetail.order_detail_sqlite_id!);
+      OrderCache? orderCacheData = await posDatabase.readSpecificOrderCacheByKey(orderDetail.order_cache_key!);
+      BranchLinkProduct? branchLinkProductData = await posDatabase.readSpecificBranchLinkProduct2(orderDetail.branch_link_product_sqlite_id!.toString());
+      if(restock && branchLinkProductData!.stock_type != 3){
+        _posFirestore.insertBranchLinkProduct(branchLinkProductData);
+      }
+      if(orderCacheData!.qr_order == 1){
+        _firestoreQROrderSync.updateOrderDetailAndOrderCache(orderDetailData, orderCacheData);
+      }
+    }catch(e, stackTrace){
+      FLog.error(
+        className: "adjust_qty_dialog",
+        text: "syncToFirestore error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  callPrinter(String dateTime, CartModel cart, cartProductItem cartItem) async {
+    try{
+      if(AppSettingModel.instance.autoPrintCancelReceipt!){
+        int printStatus = await _printReceipt.printCancelReceipt(cartItem.order_cache_sqlite_id!, dateTime);
+        if (printStatus == 1) {
+          Fluttertoast.showToast(
+              backgroundColor: Colors.red,
+              msg:
+              "${AppLocalizations.of(globalContext)?.translate('printer_not_connected')}");
+        } else if (printStatus == 2) {
+          Fluttertoast.showToast(
+              backgroundColor: Colors.orangeAccent,
+              msg:
+              "${AppLocalizations.of(globalContext)?.translate('printer_connection_timeout')}");
+        }
+        int kitchenPrintStatus = await _printReceipt.printKitchenDeleteList(
+          cartItem.order_cache_sqlite_id!,
+          cartItem.category_sqlite_id!,
+          dateTime,
+          cart,
+        );
+        if (kitchenPrintStatus == 1) {
+          Fluttertoast.showToast(
+              backgroundColor: Colors.red,
+              msg:
+              "${AppLocalizations.of(globalContext)?.translate('printer_not_connected')}");
+        } else if (kitchenPrintStatus == 2) {
+          Fluttertoast.showToast(
+              backgroundColor: Colors.orangeAccent,
+              msg:
+              "${AppLocalizations.of(globalContext)?.translate('printer_connection_timeout')}");
+        }
+      }
+    }catch(e, stackTrace){
+      FLog.error(
+        className: "adjust_qty_dialog",
+        text: "callPrinter error",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  Future<Future<Object?>> openPromotionDialog(String currentPage) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -2388,6 +2701,7 @@ class CartPageState extends State<CartPage> {
               child: PromotionDialog(
                 cartFinalAmount: finalAmount,
                 subtotal: newOrderSubtotal.toString(),
+                currentPage: currentPage,
               ),
             ),
           );

@@ -15,7 +15,8 @@ import '../../translation/AppLocalizations.dart';
 class PromotionDialog extends StatefulWidget {
   final String cartFinalAmount;
   final String subtotal;
-  const PromotionDialog({Key? key, required this.cartFinalAmount, required this.subtotal}) : super(key: key);
+  final String currentPage;
+  const PromotionDialog({Key? key, required this.cartFinalAmount, required this.subtotal, required this.currentPage}) : super(key: key);
 
   @override
   State<PromotionDialog> createState() => _PromotionDialogState();
@@ -106,6 +107,9 @@ class _PromotionDialogState extends State<PromotionDialog> {
                                         await openPromotionDialog(context, cart, index);
                                       } else {
                                         cart.addPromotion(promotionList[index]);
+                                        if(widget.currentPage != 'menu') {
+                                          Navigator.of(context).pop();
+                                        }
                                       }
                                     }
                                   }
