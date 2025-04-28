@@ -4665,6 +4665,7 @@ class _MakePaymentState extends State<MakePayment> {
 
   updateOrderDetail(String dateTime) async {
     try {
+      print("itemList lengthhh: ${itemList.length}");
       for(var item in itemList){
         OrderDetail thisOrderDetail = await PosDatabase.instance.readSpecificOrderDetailByLocalIdNoJoin(item.order_detail_sqlite_id!);
         OrderDetail orderDetailObject = OrderDetail(

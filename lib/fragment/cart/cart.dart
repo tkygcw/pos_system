@@ -1203,20 +1203,27 @@ class CartPageState extends State<CartPage> {
   }
 
   updateCartItem(CartModel cart) async {
+    for(int i = 0; i < cart.cartNotifierItem.length; i++) {
+      print("before cart item $i: ${cart.cartNotifierItem[i].order_detail_sqlite_id}");
+    }
     for (int i = 0; i < cart.cartNotifierItem.length; i++) {
       if (cart.cartNotifierItem[i].order_cache_sqlite_id == null) {
         cart.cartNotifierItem[i].order_cache_sqlite_id = orderCacheId;
 
         List<OrderDetail> detailData = await PosDatabase.instance.readAllOrderDetailByOrderCache(int.parse(orderCacheId));
         for(var detailItem in detailData){
-          if(cart.cartNotifierItem[i].order_cache_sqlite_id == detailItem.order_cache_sqlite_id
-              && cart.cartNotifierItem[i].product_name == detailItem.productName) {
-            cart.cartNotifierItem[i].order_detail_sqlite_id = detailItem.order_cache_sqlite_id;
+          print("product name compare: ${cart.cartNotifierItem[i].product_name}, ${detailItem.productName}");
+          if(cart.cartNotifierItem[i].product_name == detailItem.productName) {
+            print("match");
+            cart.cartNotifierItem[i].order_detail_sqlite_id = detailItem.order_detail_sqlite_id.toString();
           }
         }
       }
       cart.cartNotifierItem[i].order_cache_key = orderCacheKey;
       cart.cartNotifierItem[i].order_queue = orderNumber;
+    }
+    for(int i = 0; i < cart.cartNotifierItem.length; i++) {
+      print("after cart item $i: ${cart.cartNotifierItem[i].order_detail_sqlite_id}");
     }
   }
 
@@ -2316,7 +2323,7 @@ class CartPageState extends State<CartPage> {
           if(taxRateList[i].specific_category == 0){
             double total = cart.categoryTotalPriceMap.values.fold(0.0, (sum, value) => sum + value);
             priceIncTaxes = total * (double.parse(taxRateList[i].tax_rate!) / 100);
-            taxRateList[i].tax_amount = priceIncTaxes;
+            taxRateList[i].tax_amount = double.parse(priceIncTaxes.toStringAsFixed(2));
           } else {
             double taxCategoryAmount = 0;
             for (var item in cart.categoryTotalPriceMap.entries) {
@@ -2325,6 +2332,7 @@ class CartPageState extends State<CartPage> {
               }
             }
             taxRateList[i].tax_amount = taxCategoryAmount * (double.parse(taxRateList[i].tax_rate!) / 100);
+            taxRateList[i].tax_amount = double.parse(taxRateList[i].tax_amount!.toStringAsFixed(2));
           }
         }
       }

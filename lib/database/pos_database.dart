@@ -91,7 +91,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 38, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
+    return await openDatabase(path, version: 39, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
   }
 
 /*
@@ -6492,15 +6492,21 @@ class PosDatabase {
   update order detail promo, charge, tax json
 */
   Future<int> updateOrderDetailJson(OrderDetail data) async {
-    final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableOrderDetail SET promo = ?, charge = ?, tax = ?, sync_status = ?, updated_at = ? WHERE order_detail_sqlite_id = ?', [
-      jsonEncode(data.promo),
-      jsonEncode(data.charge),
-      jsonEncode(data.tax),
-      data.sync_status,
-      data.updated_at,
-      data.order_detail_sqlite_id,
-    ]);
+    try {
+      final db = await instance.database;
+      return await db.rawUpdate('UPDATE $tableOrderDetail SET promo = ?, charge = ?, tax = ?, sync_status = ?, updated_at = ? WHERE order_detail_sqlite_id = ?', [
+        jsonEncode(data.promo),
+        jsonEncode(data.charge),
+        jsonEncode(data.tax),
+        data.sync_status,
+        data.updated_at,
+        data.order_detail_sqlite_id,
+      ]);
+    } catch(e) {
+      print("updateOrderDetailJson error: ${e}");
+      return 0;
+    }
+
   }
 
 /*

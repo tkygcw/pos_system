@@ -10,6 +10,8 @@ import 'package:pos_system/custom_pin_dialog.dart';
 import 'package:pos_system/fragment/settlement/settlement_query.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/branch.dart';
+import 'package:pos_system/object/order_cache.dart';
+import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
@@ -67,6 +69,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
       totalRounding = 0.0,
       totalTax = 0.0;
   int totalBill = 0, totalRefundBill = 0, totalCancelItem = 0;
+  Map<String, double> allTaxes = {}, allPromos = {}, allCharges = {};
   List<Order> dateOrderList = [], dateRefundList = [], orderList = [];
   List<OrderPromotionDetail> datePromotionDetail = [];
   List<OrderDetailCancel> dateOrderDetailCancel = [];
@@ -578,11 +581,14 @@ class _SettlementDialogState extends State<SettlementDialog> {
         total_refund_amount: this.totalRefundAmount.toStringAsFixed(2),
         //totalRefundAmount.toStringAsFixed(2),
         total_discount: this.totalPromotionAmount.toStringAsFixed(2),
+        promo: allPromos,
         //totalPromotionAmount.toStringAsFixed(2),
         total_cancellation: this.totalCancelItem.toString(),
         //dateOrderDetailCancel[0].total_item != null ? dateOrderDetailCancel[0].total_item.toString() : '0',
         total_charge: this.totalCharge.toStringAsFixed(2),
+        charge: allCharges,
         total_tax: this.totalTax.toStringAsFixed(2),
+        tax: allTaxes,
         total_rounding: totalRounding.toStringAsFixed(2),
         settlement_by_user_id: userObject['user_id'].toString(),
         settlement_by: userObject['name'].toString(),
@@ -869,6 +875,9 @@ class _SettlementDialogState extends State<SettlementDialog> {
   }
 
   getAllTodaySalesOverview() async {
+    allTaxes = {};
+    allPromos = {};
+    allCharges = {};
     List<Order> orderData =
         await PosDatabase.instance.readAllNotSettlementPaidOrder();
     List<Order> refundData =
@@ -885,6 +894,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
     if (orderData.isNotEmpty) {
       this.orderList = orderData;
       this.totalBill = orderData.length;
+      await processOrdersFinancials(orderData);
       this.totalSales = orderData[0].gross_sales ?? 0;
       totalRounding = orderData.first.total_rounding ?? this.totalRounding;
     }
@@ -894,18 +904,77 @@ class _SettlementDialogState extends State<SettlementDialog> {
     }
     if (orderCharge.isNotEmpty) {
       this.totalCharge = orderCharge[0].total_charge_amount!;
+      print("this.totalCharge: ${this.totalCharge}");
     }
     if (orderTax.isNotEmpty) {
       this.totalTax = orderTax[0].total_tax_amount!;
+      print("this.totalTax: ${this.totalTax}");
     }
     if (orderPromotion.isNotEmpty) {
       this.totalPromotionAmount = orderPromotion[0].total_promotion_amount!;
+      print("this.totalPromotionAmount: ${this.totalPromotionAmount}");
     }
     if (cancelItemQty!.total_item != null) {
       this.totalCancelItem = int.parse(cancelItemQty.total_item.toString());
     }
     print('order promo: ${this.totalPromotionAmount}');
   }
+
+  processOrdersFinancials(List<Order> orderData) async {
+    for (var order in orderData) {
+      List<OrderCache> cacheData = await PosDatabase.instance.readSpecificOrderCacheByOrderID(order.order_sqlite_id.toString());
+
+      for (var orderCache in cacheData) {
+        List<OrderDetail> detailData = await PosDatabase.instance.readSpecificOrderDetailByOrderCacheId(
+            orderCache.order_cache_sqlite_id.toString());
+
+        for (var orderDetail in detailData) {
+          // Process taxes
+          if (orderDetail.tax != null && orderDetail.tax is Map && orderDetail.tax!.isNotEmpty) {
+            Map<String, double> taxData = orderDetail.tax!;
+            taxData.forEach((taxName, taxValue) {
+              double taxAmount = 0.0;
+              if (taxValue is num) {
+                taxAmount = taxValue.toDouble();
+              } else if (taxValue is String) {
+                taxAmount = double.tryParse(taxValue.toString()) ?? 0.0;
+              }
+              allTaxes[taxName] = double.parse(((allTaxes[taxName] ?? 0.0) + taxAmount).toStringAsFixed(2));
+            });
+          }
+
+          // Process promos
+          if (orderDetail.promo != null && orderDetail.promo is Map && orderDetail.promo!.isNotEmpty) {
+            Map<String, double> promoData = orderDetail.promo!;
+            promoData.forEach((promoName, promoValue) {
+              double promoAmount = 0.0;
+              if (promoValue is num) {
+                promoAmount = promoValue.toDouble();
+              } else if (promoValue is String) {
+                promoAmount = double.tryParse(promoValue.toString()) ?? 0.0;
+              }
+              allPromos[promoName] = double.parse(((allPromos[promoName] ?? 0.0) + promoAmount).toStringAsFixed(2));
+            });
+          }
+
+          // Process charges
+          if (orderDetail.charge != null && orderDetail.charge is Map && orderDetail.charge!.isNotEmpty) {
+            Map<String, double> chargeData = orderDetail.charge!;
+            chargeData.forEach((chargeName, chargeValue) {
+              double chargeAmount = 0.0;
+              if (chargeValue is num) {
+                chargeAmount = chargeValue.toDouble();
+              } else if (chargeValue is String) {
+                chargeAmount = double.tryParse(chargeValue.toString()) ?? 0.0;
+              }
+              allCharges[chargeName] = double.parse(((allCharges[chargeName] ?? 0.0) + chargeAmount).toStringAsFixed(2));
+            });
+          }
+        }
+      }
+    }
+  }
+
 
   readPaymentLinkCompany() async {
     final prefs = await SharedPreferences.getInstance();

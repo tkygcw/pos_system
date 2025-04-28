@@ -276,10 +276,12 @@ class BillLayout extends ReceiptLayout{
       }
       //tax
       for(int t = 0; t < orderTaxList.length; t++){
-        bytes += generator.row([
-          PosColumn(text: '${orderTaxList[t].tax_name}(${orderTaxList[t].rate}%)', width: 8, styles: PosStyles(align: PosAlign.right)),
-          PosColumn(text: '${orderTaxList[t].tax_amount}', width: 4, styles: PosStyles(align: PosAlign.right)),
-        ]);
+        if(orderTaxList[t].tax_amount != '0.00') {
+          bytes += generator.row([
+            PosColumn(text: '${orderTaxList[t].tax_name}(${orderTaxList[t].rate}%)', width: 8, styles: PosStyles(align: PosAlign.right)),
+            PosColumn(text: '${orderTaxList[t].tax_amount}', width: 4, styles: PosStyles(align: PosAlign.right)),
+          ]);
+        }
       }
       //Amount
       bytes += generator.row([
@@ -604,10 +606,13 @@ class BillLayout extends ReceiptLayout{
       ]);
       //tax
       for(int t = 0; t < orderTaxList.length; t++){
-        bytes += generator.row([
-          PosColumn(text: '${orderTaxList[t].tax_name}(${orderTaxList[t].rate}%)', width: 8),
-          PosColumn(text: '${orderTaxList[t].tax_amount}', width: 4),
-        ]);
+        if(orderTaxList[t].tax_amount != '0.00') {
+          bytes += generator.row([
+            PosColumn(text: '${orderTaxList[t].tax_name}(${orderTaxList[t].rate}%)', width: 8),
+            PosColumn(text: '${orderTaxList[t].tax_amount}', width: 4),
+          ]);
+        }
+
       }
 
       //Amount
