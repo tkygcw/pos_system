@@ -8,6 +8,7 @@ import 'package:pos_system/fragment/Attendance/attendance_dialog.dart';
 import 'package:pos_system/fragment/setting/features_setting.dart';
 import 'package:pos_system/fragment/setting/hardware_setting.dart';
 import 'package:pos_system/fragment/setting/logout_dialog.dart';
+import 'package:pos_system/fragment/setting/nfc_payment.dart';
 import 'package:pos_system/fragment/setting/order_setting.dart';
 import 'package:pos_system/fragment/setting/printer_setting.dart';
 import 'package:pos_system/fragment/setting/receipt_setting.dart';
@@ -68,6 +69,9 @@ class _SettingMenuState extends State<SettingMenu> {
     ),
     Container(
       child: DeviceSetting(),
+    ),
+    Container(
+      child: NfcPaymentPage(),
     ),
     // Container(
     //   child: TestCategorySync(),
@@ -464,6 +468,18 @@ class _SettingMenuState extends State<SettingMenu> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => views.elementAt(7),
+                          ),
+                        );
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.nfc),
+                      title: Text("NFC payment"),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => views.elementAt(8),
                           ),
                         );
                       },

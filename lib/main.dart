@@ -15,6 +15,7 @@ import 'package:pos_system/notifier/fail_print_notifier.dart';
 import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/notifier/report_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
+import 'package:pos_system/object/nfc_payment/nfc_payment.dart';
 import 'package:pos_system/object/notification.dart';
 import 'package:pos_system/object/qr_order.dart';
 import 'package:pos_system/object/sync_record.dart';
@@ -63,6 +64,9 @@ Future<void> main() async {
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   setupNotificationChannel();
   configFirestore();
+
+  //init nfc payment gateway
+  await NFCPayment.initPayment();
 
   //check second screen
   getSecondScreen();

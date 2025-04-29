@@ -14,9 +14,12 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-feature android:name="android.hardware.nfc" android:required="false" />
 
    <application
         android:label="Optimy Pos"
+        tools:replace="android:label"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

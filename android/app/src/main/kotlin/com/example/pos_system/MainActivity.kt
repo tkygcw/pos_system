@@ -1,6 +1,7 @@
 package com.example.pos_system
 
 import android.graphics.*
+import com.example.pos_system.channels.NfcPaymentHandler
 import com.imin.image.ILcdManager
 import com.imin.library.IminSDKManager
 import io.flutter.embedding.android.FlutterActivity
@@ -13,6 +14,8 @@ class MainActivity: FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+
+        NfcPaymentHandler(this, flutterEngine)
 
         channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, LCD_CHANNEL)
 

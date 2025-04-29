@@ -1,0 +1,648 @@
+package com.example.pos_system.channels
+
+import android.app.Activity
+import android.content.Context
+import android.media.AudioManager
+import android.media.ToneGenerator
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.util.Log
+import com.example.pos_system.BuildConfig
+import com.example.pos_system.channels.NfcPaymentUtils.isNfcEnabled
+import com.example.pos_system.channels.NfcPaymentUtils.mapStatusCode
+import com.google.gson.Gson
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.EventChannel
+import io.flutter.plugin.common.MethodChannel
+import io.flutter.plugins.firebase.messaging.ContextHolder.getApplicationContext
+import my.com.softspace.SSMobileAndroidUtilEngine.common.SharedHandler.runOnUiThread
+import my.com.softspace.ssmpossdk.Environment
+import my.com.softspace.ssmpossdk.SSMPOSSDK
+import my.com.softspace.ssmpossdk.SSMPOSSDKConfiguration
+import my.com.softspace.ssmpossdk.transaction.MPOSTransaction
+import my.com.softspace.ssmpossdk.transaction.MPOSTransactionOutcome
+import my.com.softspace.ssmpossdk.transaction.MPOSTransactionParams
+import org.json.JSONObject
+
+data class PaymentData(
+    val amount: String? = null,
+    val ref_no: String? = null,
+    val transaction_id: String? = null
+)
+
+
+class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngine) {
+    private val CHANNEL_NAME = "optimy.com.my/nfcPayment"
+    private var channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL_NAME)
+    private val PAYMENT_EVENT_CHANNEL = "optimy.com.my/paymentEvent"
+    private var paymentEventChannel = EventChannel(flutterEngine.dartExecutor.binaryMessenger, PAYMENT_EVENT_CHANNEL)
+    private var eventSink: EventChannel.EventSink? = null
+    private val activity = context as Activity
+    private var _transactionOutcome: MPOSTransactionOutcome? = null
+
+    @Volatile
+    private var isTrxRunning = false
+
+    init {
+        paymentEventChannel.setStreamHandler(
+            object : EventChannel.StreamHandler {
+                override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                    if(events == null) return
+                    eventSink = events
+                }
+
+                override fun onCancel(arguments: Any?) {
+                    eventSink = null
+                }
+            }
+        )
+
+        channel.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "initPayment" -> {
+                    initFasstapMPOSSDK()
+                    result.success(true)
+                }
+                "refreshToken" -> {
+                    refreshToken()
+                    result.success(true)
+                }
+                "startTrx" -> {
+                    val value = call.arguments.toString()
+                    val paymentData = Gson().fromJson(value, PaymentData::class.java)
+                    if(paymentData.amount != null && paymentData.ref_no != null){
+                        startTrx(paymentData.amount, paymentData.ref_no)
+                    }
+                    result.success(true)
+                }
+                "voidTrx" -> {
+                    val value = call.arguments.toString()
+                    val paymentData = Gson().fromJson(value, PaymentData::class.java)
+                    if(paymentData.transaction_id != null){
+                        voidTransaction(paymentData.transaction_id)
+                    }
+                    result.success(true)
+                }
+                "trxStatus" -> {
+                    val value = call.arguments.toString()
+                    val paymentData = Gson().fromJson(value, PaymentData::class.java)
+                    if(paymentData.transaction_id != null || paymentData.ref_no != null){
+                        getTransactionStatus(paymentData.transaction_id, paymentData.ref_no)
+                    }
+                    result.success(true)
+                }
+                "settlement" -> {
+                    performSettlement()
+                    result.success(true)
+                }
+                else -> result.notImplemented()
+            }
+        }
+    }
+
+    private fun performSettlement() {
+//        writeLog("performSettlement()")
+        Log.i("performSettlement", "performSettlement start")
+        try {
+            val transactionalParams = MPOSTransactionParams.Builder.create().build()
+
+            SSMPOSSDK.getInstance().transaction.performSettlement(
+                activity,
+                transactionalParams,
+                object : MPOSTransaction.TransactionEvents {
+                    override fun onTransactionResult(
+                        result: Int,
+                        transactionOutcome: MPOSTransactionOutcome?
+                    ) {
+                        runOnUiThread {
+//                            writeLog("onTransactionResult :: $result")
+                            Log.i("performSettlement", "onTransactionResult :: $result")
+                            if (result != MPOSTransaction.TransactionEvents.TransactionResult.TransactionSuccessful && transactionOutcome != null) {
+                                sendEventSink(response(result, transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage))
+//                                writeLog(transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage)
+                            } else {
+                                sendEventSink(response(result))
+                            }
+                        }
+                    }
+
+                    override fun onTransactionUIEvent(event: Int) {
+                        runOnUiThread {
+//                            writeLog("onTransactionUIEvent :: $event")
+                            sendEventSink(response(event, "onTransactionUIEvent :: $event"))
+                        }
+                    }
+                })
+        } catch (e: Exception) {
+            eventSink?.error("performSettlement failed", e.message, e)
+        }
+    }
+
+    private fun getTransactionStatus(transactionID: String?, referenceNo: String?) {
+//        writeLog("getTransactionStatus()")
+        Log.i("getTransactionStatus", "transactionID: ${transactionID}")
+        try {
+            var transactionalParams = MPOSTransactionParams.Builder.create().build()
+
+            if (!transactionID.isNullOrEmpty()) {
+                transactionalParams = MPOSTransactionParams.Builder.create()
+                    .setMPOSTransactionID(transactionID)
+                    .build()
+            } else if (!referenceNo.isNullOrEmpty()) {
+                transactionalParams = MPOSTransactionParams.Builder.create()
+                    .setReferenceNumber(referenceNo)
+                    .build()
+            }
+
+            SSMPOSSDK.getInstance().transaction.getTransactionStatus(
+                activity,
+                transactionalParams, object : MPOSTransaction.TransactionEvents {
+                    override fun onTransactionResult(
+                        result: Int,
+                        transactionOutcome: MPOSTransactionOutcome?
+                    ) {
+                        runOnUiThread {
+                            Log.i("getTransactionStatus", "onTransactionResult :: $result")
+                            if (result == MPOSTransaction.TransactionEvents.TransactionResult.TransactionSuccessful) {
+                                //Pending used
+//                                if (transactionOutcome.statusCode == MainActivity.TRX_STATUS_APPROVED) {
+//                                    btnVoidTrx.setEnabled(true)
+//                                } else if (transactionOutcome.statusCode == MainActivity.TRX_STATUS_SETTLED) {
+//                                    btnRefundTrx.setEnabled(true)
+//                                }
+                                if(transactionOutcome != null){
+                                    var outcome =
+                                        "Status :: " + transactionOutcome.statusCode + " - " + (if (mapStatusCode(
+                                                transactionOutcome.statusCode
+                                            ).isNotEmpty()
+                                        ) mapStatusCode(transactionOutcome.statusCode) else transactionOutcome.statusMessage) + "\n"
+                                    outcome += "Reference no :: " + transactionOutcome.referenceNo + "\n"
+                                    outcome += "Amount auth :: " + transactionOutcome.amountAuthorized + "\n"
+                                    outcome += "Transaction ID :: " + transactionOutcome.transactionID + "\n"
+                                    outcome += "Transaction date :: " + transactionOutcome.transactionDate + "\n"
+                                    outcome += "Batch no :: " + transactionOutcome.batchNo + "\n"
+                                    outcome += "Approval code :: " + transactionOutcome.approvalCode + "\n"
+                                    outcome += "Invoice no :: " + transactionOutcome.invoiceNo + "\n"
+                                    outcome += "AID :: " + transactionOutcome.aid + "\n"
+                                    outcome += "Card type :: " + transactionOutcome.cardType + "\n"
+                                    outcome += "Application label :: " + transactionOutcome.applicationLabel + "\n"
+                                    outcome += "Card number :: " + transactionOutcome.cardNo + "\n"
+                                    outcome += "Cardholder name :: " + transactionOutcome.cardHolderName + "\n"
+                                    outcome += "Trace no :: " + transactionOutcome.traceNo + "\n"
+                                    outcome += "RRN :: " + transactionOutcome.rrefNo + "\n"
+                                    outcome += "Transaction Date Time UTC :: " + transactionOutcome.transactionDateTime
+
+                                    val jsonData = JSONObject().apply {
+                                        put("trx_status_code", transactionOutcome.statusCode + " - " + (if (mapStatusCode(
+                                                transactionOutcome.statusCode
+                                            ).isNotEmpty()
+                                        ) mapStatusCode(transactionOutcome.statusCode) else transactionOutcome.statusMessage))
+                                        if (transactionOutcome.transactionID != null && transactionOutcome.transactionID.isNotEmpty()) {
+                                            put("ref_no", transactionOutcome.referenceNo)
+                                            put("amount_auth", transactionOutcome.amountAuthorized)
+                                            put("transaction_id", transactionOutcome.transactionID)
+                                            put("transaction_date", transactionOutcome.transactionDate)
+                                            put("batch_no", transactionOutcome.batchNo)
+                                            put("approval_code", transactionOutcome.approvalCode)
+                                            put("invoice_no", transactionOutcome.invoiceNo)
+                                            put("aid", transactionOutcome.aid)
+                                            put("card_type", transactionOutcome.cardType)
+                                            put("application_label", transactionOutcome.applicationLabel)
+                                            put("card_number", transactionOutcome.cardNo)
+                                            put("card_holder_name", transactionOutcome.cardHolderName)
+                                            put("trace_no", transactionOutcome.traceNo)
+                                            put("rrn", transactionOutcome.rrefNo)
+                                            put("transaction_datetime", transactionOutcome.transactionDateTime)
+                                        }
+                                    }.toString()
+                                    sendEventSink(response(result, jsonData))
+
+//                                    writeLog(outcome)
+                                    Log.i("getTransactionStatus", outcome)
+
+                                }
+                            } else {
+                                if (transactionOutcome != null) {
+//                                    writeLog(transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage)
+                                    Log.i("getTransactionStatus failed", transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage)
+                                } else {
+//                                    writeLog("Error ::$result")
+                                    Log.i("getTransactionStatus failed", "transactionOutcome null: $result")
+                                }
+                            }
+                        }
+                    }
+
+                    override fun onTransactionUIEvent(event: Int) {
+                        runOnUiThread {
+                            Log.i("getTransactionStatus", "onTransactionUIEvent :: $event")
+//                            writeLog("onTransactionUIEvent :: $event")
+                        }
+                    }
+                })
+        } catch (e: Exception) {
+//            Log.e(MainActivity.TAG, e.message, e)
+            Log.e("getTransactionStatus", e.message, e)
+        }
+    }
+
+    private fun voidTransaction(transactionID: String) {
+//        writeLog("voidTransaction()")
+        Log.i("voidTransaction", "transactionID: ${transactionID}")
+        try {
+            val transactionalParams = MPOSTransactionParams.Builder.create()
+                .setMPOSTransactionID(transactionID)
+                .build()
+
+            SSMPOSSDK.getInstance().transaction.voidTransaction(
+                activity,
+                transactionalParams,
+                object : MPOSTransaction.TransactionEvents {
+                    override fun onTransactionResult(
+                        result: Int,
+                        transactionOutcome: MPOSTransactionOutcome?
+                    ) {
+                        runOnUiThread {
+//                            writeLog("onTransactionResult :: $result")
+                            Log.i("voidTransaction", "onTransactionResult :: $result")
+                            Log.i("voidTransaction", "transactionOutcome :: ${transactionOutcome?.transactionID}")
+                            if (result == MPOSTransaction.TransactionEvents.TransactionResult.TransactionSuccessful) {
+//                                btnVoidTrx.setEnabled(false)
+                                if (transactionOutcome?.transactionID != null && transactionOutcome.transactionID.isNotEmpty()) {
+                                    var outcome =
+                                        "Status :: " + transactionOutcome.statusCode + " - " + (if (mapStatusCode(
+                                                transactionOutcome.statusCode
+                                            ).isNotEmpty()
+                                        ) mapStatusCode(transactionOutcome.statusCode) else transactionOutcome.statusMessage) + "\n"
+                                    outcome += "Transaction ID :: " + transactionOutcome.transactionID + "\n"
+                                    outcome += "Reference no :: " + transactionOutcome.referenceNo + "\n"
+                                    outcome += "Approval code :: " + transactionOutcome.approvalCode + "\n"
+                                    outcome += "Invoice no :: " + transactionOutcome.invoiceNo + "\n"
+                                    outcome += "AID :: " + transactionOutcome.aid + "\n"
+                                    outcome += "Card type :: " + transactionOutcome.cardType + "\n"
+                                    outcome += "Application label :: " + transactionOutcome.applicationLabel + "\n"
+                                    outcome += "Card number :: " + transactionOutcome.cardNo + "\n"
+                                    outcome += "Cardholder name :: " + transactionOutcome.cardHolderName + "\n"
+                                    outcome += "RRN :: " + transactionOutcome.rrefNo + "\n"
+                                    outcome += "Trace No :: " + transactionOutcome.traceNo + "\n"
+                                    outcome += "Transaction Date Time UTC :: " + transactionOutcome.transactionDateTime
+//                                    writeLog(outcome)
+                                }
+                            } else {
+                                if (transactionOutcome != null) {
+//                                    writeLog(transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage)
+                                    Log.i("voidTransaction", transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage)
+                                }
+                            }
+                        }
+                    }
+
+                    override fun onTransactionUIEvent(event: Int) {
+                        runOnUiThread {
+//                            writeLog("onTransactionUIEvent :: $event")
+                            Log.i("voidTransaction", "onTransactionUIEvent :: $event")
+                        }
+                    }
+                })
+        } catch (e: Exception) {
+//            Log.e(MainActivity.TAG, e.message, e)
+            Log.e("voidTransaction", e.message, e)
+        }
+    }
+
+
+    private fun startTrx(amount: String, referenceNo: String) {
+        if(isTrxRunning){
+            cancelTrx()
+            return
+        }
+
+        if (!isNfcEnabled(context)) {
+            return
+        }
+        Log.i("startTrx", "nfc enable: " + isNfcEnabled(context))
+
+        //toggle transaction running
+        toggleTransactionRunning(true)
+
+        if (SSMPOSSDK.requestPermissionIfRequired(activity, 10009)) {
+            object : Thread() {
+                override fun run() {
+                    startEMVProcessing(amount, referenceNo)
+                }
+            }.start()
+        } else {
+            //toggle transaction not running
+            toggleTransactionRunning(false)
+        }
+    }
+
+    private fun cancelTrx() {
+        toggleTransactionRunning(false)
+        SSMPOSSDK.getInstance().transaction.abortTransaction()
+        // clearLogs();
+//        writeLog("transaction successfully cancelled")
+        Log.i("startTrx", "transaction successfully cancelled")
+    }
+
+    private fun toggleTransactionRunning(isRunning: Boolean) {
+        isTrxRunning = isRunning
+    }
+
+    private fun startEMVProcessing(amount: String, referenceNo: String) {
+        // run aync task as blocking.
+//        runOnUiThread {
+////            clearLogs()
+////            writeLog("Amount, Authorised: " + edtAmtAuth.getText().toString())
+//            Log.i("startEMVProcessing", "Amount, Authorised: " + amount)
+//        }
+        try {
+            _transactionOutcome = null
+
+            val transactionalParams = MPOSTransactionParams.Builder.create()
+                .setReferenceNumber(referenceNo)
+                .setAmount(amount)
+                .build()
+
+            SSMPOSSDK.getInstance().transaction.startTransaction(
+                activity,
+                transactionalParams,
+                object : MPOSTransaction.TransactionEvents {
+                    override fun onTransactionResult(
+                        result: Int,
+                        transactionOutcome: MPOSTransactionOutcome?
+                    ) {
+                        _transactionOutcome = transactionOutcome
+                        runOnUiThread {
+                            Log.i("startEMVProcessing", "Ref no:: " + referenceNo)
+                            Log.i("startEMVProcessing", "onTransactionResult :: $result")
+                            if (result == MPOSTransaction.TransactionEvents.TransactionResult.TransactionSuccessful) {
+                                if (transactionOutcome != null) {
+                                    var outcome =
+                                        "Transaction ID :: " + transactionOutcome.transactionID + "\n"
+                                    outcome += "Reference No :: " + transactionOutcome.referenceNo + "\n"
+                                    outcome += "Approval code :: " + transactionOutcome.approvalCode + "\n"
+                                    outcome += "Card number :: " + transactionOutcome.cardNo + "\n"
+                                    outcome += "Cardholder name :: " + transactionOutcome.cardHolderName + "\n"
+                                    outcome += "Acquirer ID :: " + transactionOutcome.acquirerID + "\n"
+                                    outcome += "Contactless CVM Type :: " + transactionOutcome.contactlessCVMType + "\n"
+                                    outcome += "RRN :: " + transactionOutcome.rrefNo + "\n"
+                                    outcome += "Trace No :: " + transactionOutcome.traceNo + "\n"
+                                    outcome += "Transaction Date Time UTC :: " + transactionOutcome.transactionDateTime
+                                    Log.i("startEMVProcessing", outcome)
+                                    val jsonData = JSONObject().apply {
+                                        put("transaction_id", transactionOutcome.transactionID)
+                                        put("ref_no", transactionOutcome.referenceNo)
+                                        put("approval_code", transactionOutcome.approvalCode)
+                                        put("card_number", transactionOutcome.cardNo)
+                                        put("card_holder_name", transactionOutcome.cardHolderName)
+                                        put("acquirer_id", transactionOutcome.acquirerID)
+                                        put("contactless_CVM_type", transactionOutcome.contactlessCVMType)
+                                        put("rrn", transactionOutcome.rrefNo)
+                                        put("transaction_datetime", transactionOutcome.transactionDateTime)
+                                        put("trace_no", transactionOutcome.traceNo)
+                                    }.toString()
+                                    sendEventSink(response(result, jsonData))
+
+//                                    if (MainActivity.CARD_TYPE_VISA == transactionOutcome.cardType) {
+//                                        animateVisaSensoryBranding()
+//                                    } else if (MainActivity.CARD_TYPE_MASTERCARD == transactionOutcome.cardType) {
+//                                        animateMastercardSensoryTransaction()
+//                                    } else if (MainActivity.CARD_TYPE_AMEX == transactionOutcome.cardType) {
+//                                        animateAmexSensoryTransaction()
+//                                    } else if (MainActivity.CARD_TYPE_JCB == transactionOutcome.cardType) {
+//                                        animateJCBSensoryTransaction()
+//                                    } else if (MainActivity.CARD_TYPE_DISCOVER == transactionOutcome.cardType) {
+//                                        animateDiscoverSensoryTransaction()
+//                                    }
+                                }
+                            } else if (result == MPOSTransaction.TransactionEvents.TransactionResult.TransactionFailed) {
+                                if (transactionOutcome != null) {
+                                    var outcome = transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage
+                                    if (transactionOutcome.transactionID != null && transactionOutcome.transactionID.isNotEmpty()) {
+                                        outcome += """
+
+                                    Transaction ID :: ${transactionOutcome.transactionID}
+
+                                    """.trimIndent()
+                                        outcome += "Reference No :: " + transactionOutcome.referenceNo + "\n"
+                                        outcome += "Approval code :: " + transactionOutcome.approvalCode + "\n"
+                                        outcome += "Card number :: " + transactionOutcome.cardNo + "\n"
+                                        outcome += "Cardholder name :: " + transactionOutcome.cardHolderName + "\n"
+                                        outcome += "Acquirer ID :: " + transactionOutcome.acquirerID + "\n"
+                                        outcome += "RRN :: " + transactionOutcome.rrefNo + "\n"
+                                        outcome += "Trace No :: " + transactionOutcome.traceNo + "\n"
+                                        outcome += "Transaction Date Time UTC :: " + transactionOutcome.transactionDateTime
+                                    }
+                                    val jsonData = JSONObject().apply {
+                                        put("trx_status_code", transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage)
+                                        if (transactionOutcome.transactionID != null && transactionOutcome.transactionID.isNotEmpty()) {
+                                            put("transaction_id", transactionOutcome.transactionID)
+                                            put("ref_no", transactionOutcome.referenceNo)
+                                            put("approval_code", transactionOutcome.approvalCode)
+                                            put("card_number", transactionOutcome.cardNo)
+                                            put("card_holder_name", transactionOutcome.cardHolderName)
+                                            put("acquirer_id", transactionOutcome.acquirerID)
+                                            put("contactless_CVM_type", transactionOutcome.contactlessCVMType)
+                                            put("rrn", transactionOutcome.rrefNo)
+                                            put("transaction_datetime", transactionOutcome.transactionDateTime)
+                                            put("trace_no", transactionOutcome.traceNo)
+                                        }
+                                    }.toString()
+                                    sendEventSink(response(result, jsonData))
+                                    Log.e("startEMVProcessing failed", outcome)
+//                                    writeLog(outcome)
+                                } else {
+//                                    writeLog("Error ::$result")
+                                    Log.e("startEMVProcessing failed", "Error ::$result")
+
+                                }
+                            }
+                            toggleTransactionRunning(false)
+                        }
+                    }
+
+                    override fun onTransactionUIEvent(event: Int) {
+//                        writeLog("Event here $event")
+                        Log.i("onTransactionUIEvent", "Event here $event")
+
+                        runOnUiThread(object : Runnable {
+                            override fun run() {
+                                if (event == MPOSTransaction.TransactionEvents.TransactionUIEvent.CardReadOk) {
+                                    // you may customize card reads OK sound & vibration, below is some example
+                                    val toneGenerator = ToneGenerator(
+                                        AudioManager.STREAM_MUSIC,
+                                        ToneGenerator.MAX_VOLUME
+                                    )
+                                    toneGenerator.startTone(ToneGenerator.TONE_DTMF_P, 500)
+
+                                    val v =
+                                        context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                                    if (v.hasVibrator()) {
+                                        v.vibrate(
+                                            VibrationEffect.createOneShot(
+                                                200,
+                                                VibrationEffect.DEFAULT_AMPLITUDE
+                                            )
+                                        )
+                                    }
+
+//                                    writeLog("Card read completed")
+                                    sendEventSink(response(event, "Card read completed"))
+                                    Log.i("onTransactionUIEvent", "Card read completed")
+                                } else if (event == MPOSTransaction.TransactionEvents.TransactionUIEvent.RequestSignature) {
+//                                    writeLog("Signature is required")
+                                    sendEventSink(response(event, "Signature is required"))
+                                    Log.i("onTransactionUIEvent", "Signature is required")
+//                                    btnUploadSignature.setEnabled(true)
+                                } else {
+                                    when (event) {
+                                        MPOSTransaction.TransactionEvents.TransactionUIEvent.PresentCard -> {
+//                                            writeLog("Present your card")
+                                            sendEventSink(response(event, "Present your card"))
+                                            Log.i("onTransactionUIEvent", "Present your card")
+                                        }
+
+                                        MPOSTransaction.TransactionEvents.TransactionUIEvent.Authorising -> {
+//                                            writeLog("Authorising...")
+                                            sendEventSink(response(event, "Authorising"))
+                                            Log.i("onTransactionUIEvent", "Authorising...")
+
+                                        }
+
+                                        MPOSTransaction.TransactionEvents.TransactionUIEvent.CardPresented -> {
+//                                            writeLog("Card detected")
+                                            sendEventSink(response(event, "Card detected"))
+                                            Log.i("onTransactionUIEvent", "Card detected")
+                                        }
+
+                                        MPOSTransaction.TransactionEvents.TransactionUIEvent.CardReadError -> {
+                                            run {
+//                                                writeLog("Card read failed")
+                                                sendEventSink(response(event, "Card read failed"))
+                                                Log.i("onTransactionUIEvent", "Card read failed")
+                                            }
+                                            run {
+//                                                writeLog("Card read retry")
+                                                sendEventSink(response(event, "Card read retry"))
+                                                Log.i("onTransactionUIEvent", "Card read retry")
+                                            }
+                                        }
+
+                                        MPOSTransaction.TransactionEvents.TransactionUIEvent.CardReadRetry -> {
+//                                            writeLog("Card read retry")
+                                           sendEventSink(response(event, "Card read retry"))
+                                            Log.i("onTransactionUIEvent", "Card read retry")
+                                        }
+
+                                        else -> {
+//                                            writeLog("onTransactionUIEvent :: $event")
+                                            sendEventSink(response(event, "onTransactionUIEvent"))
+                                            Log.i("onTransactionUIEvent", "onTransactionUIEvent :: $event")
+                                        }
+                                    }
+                                }
+                            }
+                        })
+                    }
+                })
+        } catch (e: Exception) {
+//            Log.e(MainActivity.TAG, e.message, e)
+            eventSink?.error("transactionError", e.message, e)
+            Log.e("startTrx", e.message.toString())
+        }
+    }
+
+    fun sendEventSink(response: String){
+        eventSink?.success(response)
+    }
+
+    fun response(statusCode: Int, message: String? = null): String {
+        val jsonData =  JSONObject().apply {
+            put("status", statusCode)
+            if(message != null){
+                put("data", message)
+            }
+        }.toString()
+        return jsonData
+    }
+
+    private fun refreshToken() {
+        try{
+            Log.i("refreshToken", "Start refresh token")
+            SSMPOSSDK.getInstance().ssmpossdkConfiguration.uniqueID = "nI2qo2vAmRoPbdgE2tfJ"
+            SSMPOSSDK.getInstance().ssmpossdkConfiguration.developerID = "ZCh9mzZXqHzezf4"
+            SSMPOSSDK.getInstance().transaction.refreshToken(
+                activity,
+                object : MPOSTransaction.TransactionEvents {
+                    override fun onTransactionResult(
+                        result: Int,
+                        transactionOutcome: MPOSTransactionOutcome?
+                    ) {
+                        Log.i("refreshToken", "onTransactionResult :: $result")
+                        //writeLog("onTransactionResult :: $result")
+
+                        if (result == MPOSTransaction.TransactionEvents.TransactionResult.TransactionSuccessful) {
+                            sendEventSink(response(result))
+//                        btnStartTrx.setEnabled(true)
+//                        btnVoidTrx.setEnabled(false)
+//                        btnGetTransactionStatus.setEnabled(false)
+//                        btnSettlement.setEnabled(true)
+                        } else {
+                            if (transactionOutcome != null) {
+                                Log.i("refreshToken", transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage)
+                                sendEventSink(response(1, transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage))
+                                //writeLog(transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage)
+                            }
+                        }
+                    }
+
+                    override fun onTransactionUIEvent(event: Int) {
+                        //writeLog("onTransactionUIEvent :: $event")
+                    }
+                })
+        }catch (e: Exception){
+            eventSink?.error("refreshToken error", e.message.toString(), e)
+        }
+    }
+
+    private fun initFasstapMPOSSDK() {
+        try {
+            Log.i("init", "Init...")
+
+            val config = SSMPOSSDKConfiguration.Builder.create()
+                .setAttestationHost(BuildConfig.ATTESTATION_HOST)
+                .setAttestationHostCertPinning(BuildConfig.ATTESTATION_CERT_PINNING)
+                .setAttestationHostReadTimeout(10000L)
+                .setAttestationRefreshInterval(300000L)
+                .setAttestationStrictHttp(true)
+                .setAttestationConnectionTimeout(30000L)
+                .setLibGooglePlayProjNum("837940125447") // use own google play project number
+                .setLibAccessKey(BuildConfig.ACCESS_KEY)
+                .setLibSecretKey(BuildConfig.SECRET_KEY)
+                .setUniqueID("") // please set the userID shared by Soft Space
+                .setDeveloperID("")
+                .setEnvironment(if (BuildConfig.FLAVOR_environment == "uat") Environment.UAT else Environment.PROD)
+                .build()
+
+            // SDK initialization require activity context
+            SSMPOSSDK.init(context, config)
+
+//        writeLog("SDK Version: " + SSMPOSSDK.getInstance().sdkVersion)
+//        writeLog("COTS ID: " + SSMPOSSDK.getInstance().cotsId)
+            Log.i("init", "SDK Version: " + SSMPOSSDK.getInstance().sdkVersion)
+            Log.i("init", "COTS ID: " + SSMPOSSDK.getInstance().cotsId)
+
+            Log.i("init", "has permission: " + SSMPOSSDK.hasRequiredPermission(getApplicationContext()))
+
+            if (!SSMPOSSDK.hasRequiredPermission(getApplicationContext())) {
+                SSMPOSSDK.requestPermissionIfRequired(activity, 1000)
+            }
+        } catch (e: Exception){
+            eventSink?.error("initFasstapMPOSSDK error", e.message.toString(), e)
+        }
+    }
+
+
+
+}
