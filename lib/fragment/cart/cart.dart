@@ -2029,6 +2029,7 @@ class CartPageState extends State<CartPage> {
       cart.categoryTotalPriceMap = newCategoryTotalPriceMap;
 
       promoAmount += double.parse(promo.toStringAsFixed(2));
+      promotion.promoAmount = double.parse(promoAmount.toStringAsFixed(2));
     } catch (e) {
       print("calc auto apply non specific error: $e");
       promoRate = '';
@@ -2119,6 +2120,7 @@ class CartPageState extends State<CartPage> {
       }
 
       promoAmount += double.parse(promo.toStringAsFixed(2));
+      promotion.promoAmount = double.parse(promotion.promoAmount!.toStringAsFixed(2));
     } catch (e) {
       print("calc auto apply specific category error: $e");
       promoRate = '';

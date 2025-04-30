@@ -204,39 +204,39 @@ class Settlement{
     total_charge: json[SettlementFields.total_charge] as String?,
     total_tax: json[SettlementFields.total_tax] as String?,
     total_rounding: json[SettlementFields.total_rounding] as String?,
-      promo: json['promo'] == null
-          ? {}
-          : (json['promo'] is String)
-          ? (json['promo'].toString().trim().isNotEmpty
-          ? Map<String, double>.from(jsonDecode(json['promo'] as String).map(
-              (key, value) => MapEntry(key as String, (value as num).toDouble())))
-          : {})
-          : (json['promo'] is Map)
-          ? Map<String, double>.from((json['promo'] as Map).map(
-              (key, value) => MapEntry(key as String, (value as num).toDouble())))
-          : {},
-      charge: json['charge'] == null
-          ? {}
-          : (json['charge'] is String)
-          ? (json['charge'].toString().trim().isNotEmpty
-          ? Map<String, double>.from(jsonDecode(json['charge'] as String).map(
-              (key, value) => MapEntry(key as String, (value as num).toDouble())))
-          : {})
-          : (json['charge'] is Map)
-          ? Map<String, double>.from((json['charge'] as Map).map(
-              (key, value) => MapEntry(key as String, (value as num).toDouble())))
-          : {},
-      tax: json['tax'] == null
-          ? {}
-          : (json['tax'] is String)
-          ? (json['tax'].toString().trim().isNotEmpty
-          ? Map<String, double>.from(jsonDecode(json['tax'] as String).map(
-              (key, value) => MapEntry(key as String, (value as num).toDouble())))
-          : {})
-          : (json['tax'] is Map)
-          ? Map<String, double>.from((json['tax'] as Map).map(
-              (key, value) => MapEntry(key as String, (value as num).toDouble())))
-          : {},
+    promo: json['promo'] == null
+        ? {}
+        : (json['promo'] is String)
+        ? (json['promo'].toString().trim().isNotEmpty
+        ? Map<String, double>.from(jsonDecode(json['promo'] as String).map(
+            (key, value) => MapEntry(key as String, (value as num).toDouble())))
+        : {})
+        : (json['promo'] is Map)
+        ? Map<String, double>.from((json['promo'] as Map).map(
+            (key, value) => MapEntry(key as String, (value as num).toDouble())))
+        : {},
+    charge: json['charge'] == null
+        ? {}
+        : (json['charge'] is String)
+        ? (json['charge'].toString().trim().isNotEmpty
+        ? Map<String, double>.from(jsonDecode(json['charge'] as String).map(
+            (key, value) => MapEntry(key as String, (value as num).toDouble())))
+        : {})
+        : (json['charge'] is Map)
+        ? Map<String, double>.from((json['charge'] as Map).map(
+            (key, value) => MapEntry(key as String, (value as num).toDouble())))
+        : {},
+    tax: json['tax'] == null
+        ? {}
+        : (json['tax'] is String)
+        ? (json['tax'].toString().trim().isNotEmpty
+        ? Map<String, double>.from(jsonDecode(json['tax'] as String).map(
+            (key, value) => MapEntry(key as String, (value as num).toDouble())))
+        : {})
+        : (json['tax'] is Map)
+        ? Map<String, double>.from((json['tax'] as Map).map(
+            (key, value) => MapEntry(key as String, (value as num).toDouble())))
+        : {},
     settlement_by_user_id: json[SettlementFields.settlement_by_user_id] as String?,
     settlement_by: json[SettlementFields.settlement_by] as String?,
     status: json[SettlementFields.status] as int?,
@@ -272,9 +272,9 @@ class Settlement{
     SettlementFields.total_charge: total_charge,
     SettlementFields.total_tax: total_tax,
     SettlementFields.total_rounding: total_rounding,
-    SettlementFields.promo: jsonEncode(promo),
-    SettlementFields.charge: jsonEncode(charge),
-    SettlementFields.tax: jsonEncode(tax),
+    SettlementFields.promo: promo != null ? jsonEncode(promo) : "{}",
+    SettlementFields.charge: charge != null ? jsonEncode(charge) : "{}",
+    SettlementFields.tax: tax != null ? jsonEncode(tax) : "{}",
     SettlementFields.settlement_by_user_id: settlement_by_user_id,
     SettlementFields.settlement_by: settlement_by,
     SettlementFields.status: status,

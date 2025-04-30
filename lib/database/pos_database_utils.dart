@@ -289,6 +289,9 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.promo} $jsonType2");
             await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.charge} $jsonType2");
             await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.tax} $jsonType2");
+            await db.execute("ALTER TABLE $tableSalesPerDay ADD ${SalesPerDayFields.tax_detail} $jsonType2");
+            await db.execute("ALTER TABLE $tableSalesPerDay ADD ${SalesPerDayFields.charge_detail} $jsonType2");
+            await db.execute("ALTER TABLE $tableSalesPerDay ADD ${SalesPerDayFields.promotion_detail} $jsonType2");
           }break;
         }
       }
@@ -1176,8 +1179,11 @@ class PosDatabaseUtils {
           ${SalesPerDayFields.branch_id} $textType,
           ${SalesPerDayFields.total_amount} $textType,
           ${SalesPerDayFields.tax} $textType,
+          ${SalesPerDayFields.tax_detail} $jsonType2,
           ${SalesPerDayFields.charge} $textType,
+          ${SalesPerDayFields.charge_detail} $jsonType2,
           ${SalesPerDayFields.promotion} $textType,
+          ${SalesPerDayFields.promotion_detail} $jsonType2,
           ${SalesPerDayFields.rounding} $textType,
           ${SalesPerDayFields.date} $textType,
           ${SalesPerDayFields.payment_method} $textType,

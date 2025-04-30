@@ -4019,6 +4019,18 @@ class _MakePaymentState extends State<MakePayment> {
     }
   }
 
+  double roundToTwoDecimalPlaces(double value) {
+    final rounded = (value * 100).round() / 100;
+
+    if (rounded == rounded.truncateToDouble()) {
+      return double.parse('${rounded.toInt()}.00');
+    } else if ((rounded * 10) == (rounded * 10).truncateToDouble()) {
+      return double.parse('${rounded}0');
+    } else {
+      return rounded;
+    }
+  }
+
   calculateCharges(List<dynamic> taxList) {
     try {
       adjustChargeRoundingDifference(List<dynamic> items, String chargeName, double compareAmount) {

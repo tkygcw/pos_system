@@ -875,9 +875,6 @@ class _SettlementDialogState extends State<SettlementDialog> {
   }
 
   getAllTodaySalesOverview() async {
-    allTaxes = {};
-    allPromos = {};
-    allCharges = {};
     List<Order> orderData =
         await PosDatabase.instance.readAllNotSettlementPaidOrder();
     List<Order> refundData =
