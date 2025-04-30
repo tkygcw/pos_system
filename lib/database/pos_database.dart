@@ -4729,7 +4729,7 @@ class PosDatabase {
             'CASE WHEN a.payment_split = ? THEN a.payment_link_company_id ELSE b.payment_link_company_id END AS used_payment_method '
             'FROM $tableOrder AS a LEFT JOIN $tableOrderPaymentSplit AS b ON a.order_key = b.order_key '
             'JOIN $tablePaymentLinkCompany AS c ON c.payment_link_company_id = used_payment_method '
-            'WHERE a.soft_delete = ? AND a.payment_status = ? AND a.settlement_key = ? GROUP BY used_payment_method ',
+            'WHERE a.soft_delete = ? AND a.payment_status = ? AND a.settlement_key = ? GROUP BY a.close_by, used_payment_method ',
         [0, '', 1, settlement_key]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
