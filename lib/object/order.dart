@@ -31,6 +31,8 @@ class OrderFields {
     settlement_sqlite_id,
     settlement_key,
     ipay_trans_id,
+    fiuu_ref_no,
+    fiuu_trans_id,
     sync_status,
     created_at,
     updated_at,
@@ -64,6 +66,8 @@ class OrderFields {
   static String settlement_sqlite_id = 'settlement_sqlite_id';
   static String settlement_key = 'settlement_key';
   static String ipay_trans_id = 'ipay_trans_id';
+  static String fiuu_ref_no = 'fiuu_ref_no';
+  static String fiuu_trans_id = 'fiuu_trans_id';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -99,6 +103,8 @@ class Order {
   String? settlement_sqlite_id;
   String? settlement_key;
   String? ipay_trans_id;
+  String? fiuu_ref_no;
+  String? fiuu_trans_id;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -157,6 +163,8 @@ class Order {
         this.settlement_sqlite_id,
         this.settlement_key,
         this.ipay_trans_id,
+        this.fiuu_ref_no,
+        this.fiuu_trans_id,
         this.sync_status,
         this.created_at,
         this.updated_at,
@@ -208,6 +216,8 @@ class Order {
     String? settlement_sqlite_id,
     String? settlement_key,
     String? ipay_trans_id,
+    String? fiuu_ref_no,
+    String? fiuu_trans_id,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -242,6 +252,8 @@ class Order {
           settlement_sqlite_id: settlement_sqlite_id ?? this.settlement_sqlite_id,
           settlement_key: settlement_key ?? this.settlement_key,
           ipay_trans_id: ipay_trans_id ?? this.ipay_trans_id,
+          fiuu_ref_no: fiuu_ref_no ?? this.fiuu_ref_no,
+          fiuu_trans_id: fiuu_trans_id ?? this.fiuu_trans_id,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -276,6 +288,8 @@ class Order {
       settlement_sqlite_id: json[OrderFields.settlement_sqlite_id] as String?,
       settlement_key: json[OrderFields.settlement_key] as String?,
       ipay_trans_id: json[OrderFields.ipay_trans_id] as String?,
+      fiuu_ref_no: json[OrderFields.fiuu_ref_no] as String?,
+      fiuu_trans_id: json[OrderFields.fiuu_trans_id] as String?,
       sync_status: json[OrderFields.sync_status] as int?,
       created_at: json[OrderFields.created_at] as String?,
       updated_at: json[OrderFields.updated_at] as String?,
@@ -327,6 +341,8 @@ class Order {
     OrderFields.settlement_sqlite_id: settlement_sqlite_id,
     OrderFields.settlement_key: settlement_key,
     OrderFields.ipay_trans_id: ipay_trans_id,
+    OrderFields.fiuu_ref_no: fiuu_ref_no,
+    OrderFields.fiuu_trans_id: fiuu_trans_id,
     OrderFields.sync_status: sync_status,
     OrderFields.created_at: created_at,
     OrderFields.updated_at: updated_at,
@@ -362,6 +378,8 @@ class Order {
     OrderFields.settlement_sqlite_id: settlement_sqlite_id,
     OrderFields.settlement_key: settlement_key,
     OrderFields.ipay_trans_id: ipay_trans_id,
+    OrderFields.fiuu_ref_no: fiuu_ref_no,
+    OrderFields.fiuu_trans_id: fiuu_trans_id,
     OrderFields.sync_status: sync_status,
     OrderFields.created_at: created_at,
     OrderFields.updated_at: updated_at,

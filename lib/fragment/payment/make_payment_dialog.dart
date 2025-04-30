@@ -10,6 +10,7 @@ import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/payment/ipay_api.dart';
+import 'package:pos_system/fragment/payment/nfc_payment_view.dart';
 import 'package:pos_system/fragment/payment/payment_success_dialog.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
@@ -2493,6 +2494,7 @@ class _MakePaymentState extends State<MakePayment> {
                               child: SingleChildScrollView(
                                 child: Column(
                                   children: [
+                                    //Dining part
                                     Container(
                                       alignment: Alignment.center,
                                       child: Text(
@@ -2505,6 +2507,7 @@ class _MakePaymentState extends State<MakePayment> {
                                         ),
                                       ),
                                     ),
+                                    //Cart product part
                                     Container(
                                       child: Card(
                                         elevation: 5,
@@ -3478,6 +3481,13 @@ class _MakePaymentState extends State<MakePayment> {
                                           ],
                                         ),
                                       )
+                                      ///NFC scan
+                                          : _type == 3
+                                          ? Container(
+                                        height: split_payment ? 420 : 320,
+                                        padding: EdgeInsets.only(bottom: 10),
+                                        child: NfcPaymentView(finalAmount: finalAmount, callBack: nfcCallBack)
+                                      )
                                           : Container(),
                                     )
                                   ],
@@ -3495,6 +3505,33 @@ class _MakePaymentState extends State<MakePayment> {
         });
         });
       });
+    });
+  }
+
+  nfcCallBack(String transactionID, String referenceNo) async {
+    asyncQ.addJob((_) async {
+      try{
+        await callCreateOrder(finalAmount, fiuuRefNo: referenceNo, fiuuTransId: transactionID);
+        if (this.isLogOut == true) {
+          openLogOutDialog();
+          return;
+        }
+        await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
+        Branch? data = await PosDatabase.instance.readLocalBranch();
+        if(data != null && data.allow_livedata == 1){
+          if(!isSyncisSyncingingNotifier.value){
+            isSyncisSyncingingNotifier.value = true;
+            do{
+              await syncToCloud.syncAllToCloud(isManualSync: true);
+            }while(syncToCloud.emptyResponse == false);
+            if(syncToCloud.emptyResponse == true){
+              isSyncisSyncingingNotifier.value = false;
+            }
+          }
+        }
+      }catch(e){
+        print("error: $e");
+      }
     });
   }
 
@@ -3917,10 +3954,10 @@ class _MakePaymentState extends State<MakePayment> {
     streamController.add('refresh');
   }
 
-  callCreateOrder(String? paymentReceived, {orderChange, String? ipayTransId}) async {
+  callCreateOrder(String? paymentReceived, {orderChange, String? ipayTransId, String? fiuuRefNo, String? fiuuTransId}) async {
     OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(int.parse(orderCacheSqliteId));
     if(orderCacheData.order_key == null || orderCacheData.order_key == '') {
-      await createOrder(double.parse(paymentReceived!), orderChange, ipayTransId: ipayTransId);
+      await createOrder(double.parse(paymentReceived!), orderChange, ipayTransId: ipayTransId, fiuuRefNo: fiuuRefNo, fiuuTransId: fiuuTransId);
       await crateOrderTaxDetail();
       await createOrderPromotionDetail();
       //await syncAllToCloud();
@@ -4019,7 +4056,7 @@ class _MakePaymentState extends State<MakePayment> {
     return -1;
   }
 
-  createOrder(double? paymentReceived, String? orderChange, {String? ipayTransId}) async {
+  createOrder(double? paymentReceived, String? orderChange, {String? ipayTransId, String? fiuuRefNo, String? fiuuTransId}) async {
     print('create order called');
     List<String> _value = [];
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
@@ -4063,6 +4100,8 @@ class _MakePaymentState extends State<MakePayment> {
             settlement_sqlite_id: '',
             settlement_key: '',
             ipay_trans_id: split_payment ? '' : ipayTransId ?? '',
+            fiuu_ref_no: split_payment ? '' : fiuuRefNo ?? '',
+            fiuu_trans_id: split_payment ? '' : fiuuTransId ?? '',
             sync_status: 0,
             created_at: dateTime,
             updated_at: '',

@@ -66,7 +66,7 @@ class _NfcPaymentPageState extends State<NfcPaymentPage> {
             ),
             ElevatedButton(
               onPressed: () async {
-                await payment.refreshToken();
+                // await payment.refreshToken();
                 print("refresh token done");
               },
               child: Text("Refresh token"),

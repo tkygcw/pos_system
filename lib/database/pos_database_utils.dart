@@ -277,6 +277,10 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.currency_code} $textType DEFAULT 'MYR'");
             await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.currency_symbol} $textType DEFAULT 'RM'");
           }break;
+          case 38: {
+            await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.fiuu_ref_no} $textType DEFAULT '' ");
+            await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.fiuu_trans_id} $textType DEFAULT '' ");
+          }break;
         }
       }
     }

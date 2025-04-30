@@ -6,6 +6,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/object/cash_record.dart';
+import 'package:pos_system/object/nfc_payment/nfc_payment.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -212,6 +213,9 @@ class _PaymentSelectState extends State<PaymentSelect> {
                                 onTap: () async  {
                                   if(widget.isUpdate == null){
                                     if(cart.cartNotifierItem.isNotEmpty){
+                                      if(PaymentLists[index].type == 3){
+                                        await NFCPayment.refreshToken();
+                                      }
                                       openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!, widget.dining_name, widget.order_key);
                                     } else {
                                       Fluttertoast.showToast(

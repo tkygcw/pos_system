@@ -91,7 +91,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 38, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
+    return await openDatabase(path, version: 39, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
   }
 
 /*
@@ -595,8 +595,9 @@ class PosDatabase {
           'INSERT INTO $tableOrder(order_id, order_number, order_queue, company_id, customer_id, dining_id, dining_name, '
               'branch_link_promotion_id, payment_link_company_id, branch_id, branch_link_tax_id, '
               'subtotal, amount, rounding, final_amount, close_by, payment_status, payment_split, payment_received, payment_change, order_key, '
-              'refund_sqlite_id, refund_key, settlement_sqlite_id, settlement_key, ipay_trans_id, sync_status, created_at, updated_at, soft_delete) '
-              'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+              'refund_sqlite_id, refund_key, settlement_sqlite_id, settlement_key, ipay_trans_id, '
+              'fiuu_ref_no, fiuu_trans_id, sync_status, created_at, updated_at, soft_delete) '
+              'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
           [
             data.order_id,
             data.order_number,
@@ -624,6 +625,8 @@ class PosDatabase {
             data.settlement_sqlite_id,
             data.settlement_key,
             data.ipay_trans_id,
+            data.fiuu_ref_no,
+            data.fiuu_trans_id,
             data.sync_status,
             data.created_at,
             data.updated_at,

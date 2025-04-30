@@ -583,7 +583,7 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                         //writeLog("onTransactionResult :: $result")
 
                         if (result == MPOSTransaction.TransactionEvents.TransactionResult.TransactionSuccessful) {
-                            sendEventSink(response(result))
+//                            sendEventSink(response(result))
 //                        btnStartTrx.setEnabled(true)
 //                        btnVoidTrx.setEnabled(false)
 //                        btnGetTransactionStatus.setEnabled(false)

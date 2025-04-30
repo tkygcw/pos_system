@@ -105,7 +105,7 @@ class NFCPayment {
     await _paymentChannel.invokeMethod(_INIT_PAYMENT);
   }
 
-  refreshToken() async {
+  static refreshToken() async {
     await _paymentChannel.invokeMethod("refreshToken");
   }
 
