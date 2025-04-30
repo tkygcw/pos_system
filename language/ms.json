@@ -140,6 +140,7 @@
   "confirm_do_settlement": "Sahkan penyelesaian?",
   "confirm_logout": "Keluar log masuk",
   "confirm_logout_desc": "Semua peranti yang sebelumnya log masuk akan dipaksa keluar, data pada peranti yang sebelumnya log masuk akan dipadamkan (disimpan ke pangkalan data awan). Masukkan YA untuk meneruskan",
+  "confirm_logout_warning": "Amaran: Sila rujuk nasihat ejen jualan anda!",
   "confirm_merge_bill": "Sahkan pembayaran gabungan bil?",
   "confirm_merge_table": "Sahkan penggabungan meja?",
   "confirm_pos_pin": "Sahkan pemindahan hak milik?",

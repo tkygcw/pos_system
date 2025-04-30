@@ -140,6 +140,7 @@
   "confirm_do_settlement": "确认进行结算",
   "confirm_logout": "退出登录",
   "confirm_logout_desc": "您之前登录的所有设备将被强制退出登录，之前登录设备中的所有数据将被清除（将备份到云数据库），输入YES继续",
+  "confirm_logout_warning": "警告：请咨询您的销售代理的建议！",
   "confirm_merge_bill": "确认合并账单支付？",
   "confirm_merge_table": "确认合并桌子",
   "confirm_pos_pin": "确认转让所有权？",
