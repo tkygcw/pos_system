@@ -921,32 +921,56 @@ class _MakePaymentState extends State<MakePayment> {
                                                       willPop = false;
                                                       isButtonDisable = true;
                                                     });
-                                                    asyncQ.addJob((_) async {
-                                                      try{
-                                                        await callCreateOrder(finalAmount);
-                                                        // await callCreateOrder(finalAmount);
+                                                    try{
+                                                      await callCreateOrder(finalAmount);
+                                                      // await callCreateOrder(finalAmount);
 
-                                                        if (this.isLogOut == true) {
-                                                          openLogOutDialog();
-                                                          return;
-                                                        }
-                                                        await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
-                                                        Branch? data = await PosDatabase.instance.readLocalBranch();
-                                                        if(data != null && data.allow_livedata == 1){
-                                                          if(!isSyncisSyncingingNotifier.value){
-                                                            isSyncisSyncingingNotifier.value = true;
-                                                            do{
-                                                              await syncToCloud.syncAllToCloud(isManualSync: true);
-                                                            }while(syncToCloud.emptyResponse == false);
-                                                            if(syncToCloud.emptyResponse == true){
-                                                              isSyncisSyncingingNotifier.value = false;
-                                                            }
+                                                      if (this.isLogOut == true) {
+                                                        openLogOutDialog();
+                                                        return;
+                                                      }
+                                                      await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
+                                                      Branch? data = await PosDatabase.instance.readLocalBranch();
+                                                      if(data != null && data.allow_livedata == 1){
+                                                        if(!isSyncisSyncingingNotifier.value){
+                                                          isSyncisSyncingingNotifier.value = true;
+                                                          do{
+                                                            await syncToCloud.syncAllToCloud(isManualSync: true);
+                                                          }while(syncToCloud.emptyResponse == false);
+                                                          if(syncToCloud.emptyResponse == true){
+                                                            isSyncisSyncingingNotifier.value = false;
                                                           }
                                                         }
-                                                      }catch(e){
-                                                        print("error: $e");
                                                       }
-                                                    });
+                                                    }catch(e){
+                                                      print("error: $e");
+                                                    }
+                                                    // asyncQ.addJob((_) async {
+                                                    //   try{
+                                                    //     await callCreateOrder(finalAmount);
+                                                    //     // await callCreateOrder(finalAmount);
+                                                    //
+                                                    //     if (this.isLogOut == true) {
+                                                    //       openLogOutDialog();
+                                                    //       return;
+                                                    //     }
+                                                    //     await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
+                                                    //     Branch? data = await PosDatabase.instance.readLocalBranch();
+                                                    //     if(data != null && data.allow_livedata == 1){
+                                                    //       if(!isSyncisSyncingingNotifier.value){
+                                                    //         isSyncisSyncingingNotifier.value = true;
+                                                    //         do{
+                                                    //           await syncToCloud.syncAllToCloud(isManualSync: true);
+                                                    //         }while(syncToCloud.emptyResponse == false);
+                                                    //         if(syncToCloud.emptyResponse == true){
+                                                    //           isSyncisSyncingingNotifier.value = false;
+                                                    //         }
+                                                    //       }
+                                                    //     }
+                                                    //   }catch(e){
+                                                    //     print("error: $e");
+                                                    //   }
+                                                    // });
                                                   },
                                                   icon: Icon(Icons.call_received),
                                                   label: Text(
@@ -1976,35 +2000,62 @@ class _MakePaymentState extends State<MakePayment> {
                                                   // willPop = false;
                                                   isButtonDisable = true;
                                                 });
-                                                asyncQ.addJob((_) async {
-                                                  try{
-                                                    await callCreateOrder(finalAmount);
-                                                    // await callCreateOrder(finalAmount);
-                                                    if (this.isLogOut == true) {
-                                                      openLogOutDialog();
-                                                      return;
-                                                    }
-                                                    await openPaymentSuccessDialog(
-                                                        widget.dining_id,
-                                                        split_payment,
-                                                        isCashMethod: false,
-                                                        diningName: widget.dining_name);
-                                                    Branch? data = await PosDatabase.instance.readLocalBranch();
-                                                    if(data != null && data.allow_livedata == 1){
-                                                      if(!isSyncisSyncingingNotifier.value){
-                                                        isSyncisSyncingingNotifier.value = true;
-                                                        do{
-                                                          await syncToCloud.syncAllToCloud(isManualSync: true);
-                                                        }while(syncToCloud.emptyResponse == false);
-                                                        if(syncToCloud.emptyResponse == true){
-                                                          isSyncisSyncingingNotifier.value = false;
-                                                        }
+                                                try{
+                                                  await callCreateOrder(finalAmount);
+                                                  // await callCreateOrder(finalAmount);
+                                                  if (this.isLogOut == true) {
+                                                    openLogOutDialog();
+                                                    return;
+                                                  }
+                                                  await openPaymentSuccessDialog(
+                                                      widget.dining_id,
+                                                      split_payment,
+                                                      isCashMethod: false,
+                                                      diningName: widget.dining_name);
+                                                  Branch? data = await PosDatabase.instance.readLocalBranch();
+                                                  if(data != null && data.allow_livedata == 1){
+                                                    if(!isSyncisSyncingingNotifier.value){
+                                                      isSyncisSyncingingNotifier.value = true;
+                                                      do{
+                                                        await syncToCloud.syncAllToCloud(isManualSync: true);
+                                                      }while(syncToCloud.emptyResponse == false);
+                                                      if(syncToCloud.emptyResponse == true){
+                                                        isSyncisSyncingingNotifier.value = false;
                                                       }
                                                     }
-                                                  }catch(e){
-                                                    print("error: $e");
                                                   }
-                                                });
+                                                }catch(e){
+                                                  print("error: $e");
+                                                }
+                                                // asyncQ.addJob((_) async {
+                                                //   try{
+                                                //     await callCreateOrder(finalAmount);
+                                                //     // await callCreateOrder(finalAmount);
+                                                //     if (this.isLogOut == true) {
+                                                //       openLogOutDialog();
+                                                //       return;
+                                                //     }
+                                                //     await openPaymentSuccessDialog(
+                                                //         widget.dining_id,
+                                                //         split_payment,
+                                                //         isCashMethod: false,
+                                                //         diningName: widget.dining_name);
+                                                //     Branch? data = await PosDatabase.instance.readLocalBranch();
+                                                //     if(data != null && data.allow_livedata == 1){
+                                                //       if(!isSyncisSyncingingNotifier.value){
+                                                //         isSyncisSyncingingNotifier.value = true;
+                                                //         do{
+                                                //           await syncToCloud.syncAllToCloud(isManualSync: true);
+                                                //         }while(syncToCloud.emptyResponse == false);
+                                                //         if(syncToCloud.emptyResponse == true){
+                                                //           isSyncisSyncingingNotifier.value = false;
+                                                //         }
+                                                //       }
+                                                //     }
+                                                //   }catch(e){
+                                                //     print("error: $e");
+                                                //   }
+                                                // });
                                               },
                                               icon: Icon(Icons.call_received, size: 20),
                                               label: Text(
@@ -2996,31 +3047,54 @@ class _MakePaymentState extends State<MakePayment> {
                                                   setState(() {
                                                     isButtonDisable = true;
                                                   });
-                                                  asyncQ.addJob((_) async {
-                                                    try{
-                                                      await callCreateOrder(finalAmount);
-                                                      // await callCreateOrder(finalAmount);
-                                                      if (this.isLogOut == true) {
-                                                        openLogOutDialog();
-                                                        return;
-                                                      }
-                                                      await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
-                                                      Branch? data = await PosDatabase.instance.readLocalBranch();
-                                                      if(data != null && data.allow_livedata == 1){
-                                                        if(!isSyncisSyncingingNotifier.value){
-                                                          isSyncisSyncingingNotifier.value = true;
-                                                          do{
-                                                            await syncToCloud.syncAllToCloud(isManualSync: true);
-                                                          }while(syncToCloud.emptyResponse == false);
-                                                          if(syncToCloud.emptyResponse == true){
-                                                            isSyncisSyncingingNotifier.value = false;
-                                                          }
+                                                  try{
+                                                    await callCreateOrder(finalAmount);
+                                                    // await callCreateOrder(finalAmount);
+                                                    if (this.isLogOut == true) {
+                                                      openLogOutDialog();
+                                                      return;
+                                                    }
+                                                    await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
+                                                    Branch? data = await PosDatabase.instance.readLocalBranch();
+                                                    if(data != null && data.allow_livedata == 1){
+                                                      if(!isSyncisSyncingingNotifier.value){
+                                                        isSyncisSyncingingNotifier.value = true;
+                                                        do{
+                                                          await syncToCloud.syncAllToCloud(isManualSync: true);
+                                                        }while(syncToCloud.emptyResponse == false);
+                                                        if(syncToCloud.emptyResponse == true){
+                                                          isSyncisSyncingingNotifier.value = false;
                                                         }
                                                       }
-                                                    }catch(e){
-                                                      print("error: $e");
                                                     }
-                                                  });
+                                                  }catch(e){
+                                                    print("error: $e");
+                                                  }
+                                                  // asyncQ.addJob((_) async {
+                                                  //   try{
+                                                  //     await callCreateOrder(finalAmount);
+                                                  //     // await callCreateOrder(finalAmount);
+                                                  //     if (this.isLogOut == true) {
+                                                  //       openLogOutDialog();
+                                                  //       return;
+                                                  //     }
+                                                  //     await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
+                                                  //     Branch? data = await PosDatabase.instance.readLocalBranch();
+                                                  //     if(data != null && data.allow_livedata == 1){
+                                                  //       if(!isSyncisSyncingingNotifier.value){
+                                                  //         isSyncisSyncingingNotifier.value = true;
+                                                  //         do{
+                                                  //           await syncToCloud.syncAllToCloud(isManualSync: true);
+                                                  //         }while(syncToCloud.emptyResponse == false);
+                                                  //         if(syncToCloud.emptyResponse == true){
+                                                  //           isSyncisSyncingingNotifier.value = false;
+                                                  //         }
+                                                  //       }
+                                                  //     }
+                                                  //   }catch(e){
+                                                  //     print("error: $e");
+                                                  //   }
+                                                  // });
                                                 },
                                                 icon: Icon(Icons.call_received, size: 20),
                                                 label: Text(AppLocalizations.of(context)!.translate('payment_received'), style: TextStyle(fontSize: 16)),
@@ -3576,30 +3650,52 @@ class _MakePaymentState extends State<MakePayment> {
         );
         Map<String, dynamic> apiRes = await paymentApi();
         if (apiRes['status'] == '1') {
-          asyncQ.addJob((_) async {
-            try{
-              await callCreateOrder(finalAmount, ipayTransId: apiRes['data']);
-              assetsAudioPlayer.open(
-                Audio("audio/payment_success.mp3"),
-              );
-              //pass trans id from api res to payment success dialog
-              await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name, ipayTransId: apiRes['data']);
-              Branch? data = await PosDatabase.instance.readLocalBranch();
-              if(data != null && data.allow_livedata == 1){
-                if(!isSyncisSyncingingNotifier.value){
-                  isSyncisSyncingingNotifier.value = true;
-                  do{
-                    await syncToCloud.syncAllToCloud(isManualSync: true);
-                  }while(syncToCloud.emptyResponse == false);
-                  if(syncToCloud.emptyResponse == true){
-                    isSyncisSyncingingNotifier.value = false;
-                  }
+          try{
+            await callCreateOrder(finalAmount, ipayTransId: apiRes['data']);
+            assetsAudioPlayer.open(
+              Audio("audio/payment_success.mp3"),
+            );
+            //pass trans id from api res to payment success dialog
+            await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name, ipayTransId: apiRes['data']);
+            Branch? data = await PosDatabase.instance.readLocalBranch();
+            if(data != null && data.allow_livedata == 1){
+              if(!isSyncisSyncingingNotifier.value){
+                isSyncisSyncingingNotifier.value = true;
+                do{
+                  await syncToCloud.syncAllToCloud(isManualSync: true);
+                }while(syncToCloud.emptyResponse == false);
+                if(syncToCloud.emptyResponse == true){
+                  isSyncisSyncingingNotifier.value = false;
                 }
               }
-            }catch(e){
-              print("error: $e");
             }
-          });
+          }catch(e){
+            print("error: $e");
+          }
+          // asyncQ.addJob((_) async {
+          //   try{
+          //     await callCreateOrder(finalAmount, ipayTransId: apiRes['data']);
+          //     assetsAudioPlayer.open(
+          //       Audio("audio/payment_success.mp3"),
+          //     );
+          //     //pass trans id from api res to payment success dialog
+          //     await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name, ipayTransId: apiRes['data']);
+          //     Branch? data = await PosDatabase.instance.readLocalBranch();
+          //     if(data != null && data.allow_livedata == 1){
+          //       if(!isSyncisSyncingingNotifier.value){
+          //         isSyncisSyncingingNotifier.value = true;
+          //         do{
+          //           await syncToCloud.syncAllToCloud(isManualSync: true);
+          //         }while(syncToCloud.emptyResponse == false);
+          //         if(syncToCloud.emptyResponse == true){
+          //           isSyncisSyncingingNotifier.value = false;
+          //         }
+          //       }
+          //     }
+          //   }catch(e){
+          //     print("error: $e");
+          //   }
+          // });
         } else {
           assetsAudioPlayer.open(
             Audio("audio/error_sound.mp3"),
@@ -4522,31 +4618,54 @@ class _MakePaymentState extends State<MakePayment> {
         willPop = false;
         isButtonDisable = true;
       });
-      asyncQ.addJob((_) async {
-        try{
-          await callCreateOrder(inputController.text, orderChange: change);
-          // await callCreateOrder(inputController.text, orderChange: change);
-          if (this.isLogOut == true) {
-            openLogOutDialog();
-            return;
-          }
-          await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: true, diningName: widget.dining_name);
-          Branch? data = await PosDatabase.instance.readLocalBranch();
-          if(data != null && data.allow_livedata == 1){
-            if(!isSyncisSyncingingNotifier.value){
-              isSyncisSyncingingNotifier.value = true;
-              do{
-                await syncToCloud.syncAllToCloud(isManualSync: true);
-              }while(syncToCloud.emptyResponse == false);
-              if(syncToCloud.emptyResponse == true){
-                isSyncisSyncingingNotifier.value = false;
-              }
+      try{
+        await callCreateOrder(inputController.text, orderChange: change);
+        // await callCreateOrder(inputController.text, orderChange: change);
+        if (this.isLogOut == true) {
+          openLogOutDialog();
+          return;
+        }
+        await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: true, diningName: widget.dining_name);
+        Branch? data = await PosDatabase.instance.readLocalBranch();
+        if(data != null && data.allow_livedata == 1){
+          if(!isSyncisSyncingingNotifier.value){
+            isSyncisSyncingingNotifier.value = true;
+            do{
+              await syncToCloud.syncAllToCloud(isManualSync: true);
+            }while(syncToCloud.emptyResponse == false);
+            if(syncToCloud.emptyResponse == true){
+              isSyncisSyncingingNotifier.value = false;
             }
           }
-        }catch(e){
-          print("error: $e");
         }
-      });
+      }catch(e){
+        print("error: $e");
+      }
+      // asyncQ.addJob((_) async {
+      //   try{
+      //     await callCreateOrder(inputController.text, orderChange: change);
+      //     // await callCreateOrder(inputController.text, orderChange: change);
+      //     if (this.isLogOut == true) {
+      //       openLogOutDialog();
+      //       return;
+      //     }
+      //     await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: true, diningName: widget.dining_name);
+      //     Branch? data = await PosDatabase.instance.readLocalBranch();
+      //     if(data != null && data.allow_livedata == 1){
+      //       if(!isSyncisSyncingingNotifier.value){
+      //         isSyncisSyncingingNotifier.value = true;
+      //         do{
+      //           await syncToCloud.syncAllToCloud(isManualSync: true);
+      //         }while(syncToCloud.emptyResponse == false);
+      //         if(syncToCloud.emptyResponse == true){
+      //           isSyncisSyncingingNotifier.value = false;
+      //         }
+      //       }
+      //     }
+      //   }catch(e){
+      //     print("error: $e");
+      //   }
+      // });
     } else if (inputController.text.isEmpty) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
