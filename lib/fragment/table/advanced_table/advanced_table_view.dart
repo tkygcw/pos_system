@@ -106,8 +106,7 @@ class _AdvancedTableViewState extends State<AdvancedTableView> {
                       color: widget.table.group != null && MediaQuery.of(context).size.height > 500 ? toColor(widget.table.card_color!) : Colors.white,
                       borderRadius: BorderRadius.circular(5.0),
                     ),
-                    child: Text(
-                      AppLocalizations.of(context)!.translate('group') + ": ${widget.table.group}",
+                    child: Text("ID: ${widget.table.group}",
                       style: TextStyle(
                         fontSize: 18,
                         color: fontColor(posTable: widget.table),
@@ -116,6 +115,10 @@ class _AdvancedTableViewState extends State<AdvancedTableView> {
                   ),
                 ),
               ),
+              Container(
+                  width: sizeCard,
+                  height: sizeCard,
+                  alignment: Alignment.center, child: Image.asset("drawable/two-seat.jpg")),
               Container(
                 width: sizeCard,
                 height: sizeCard,
