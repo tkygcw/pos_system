@@ -400,6 +400,8 @@ class PosDatabaseUtils {
            ${OrderFields.settlement_sqlite_id} $textType,
            ${OrderFields.settlement_key} $textType,
            ${OrderFields.ipay_trans_id} $textType,
+           ${OrderFields.fiuu_ref_no} $textType, 
+           ${OrderFields.fiuu_trans_id} $textType, 
            ${OrderFields.sync_status} $integerType,
            ${OrderFields.created_at} $textType, 
            ${OrderFields.updated_at} $textType, 

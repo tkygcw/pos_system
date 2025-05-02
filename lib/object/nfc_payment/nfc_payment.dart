@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 
 class NFCPaymentFields {
   static String trx_status_code = 'trx_status_code';
+  static String trx_status_msg = 'trx_status_msg';
   static String transaction_id = 'transaction_id';
   static String reference_no = 'ref_no';
   static String approval_code = 'approval_code';
@@ -34,7 +35,8 @@ class NFCPayment {
   static const _VOID_TRX = 'voidTrx';
   static const _TRX_STATUS = 'trxStatus';
   static const _SETTLEMENT = 'settlement';
-  String? trxStatusCode ;
+  String? trxStatusCode;
+  String? trxStatusMsg;
   String? transaction_id;
   String? reference_no ;
   String? approval_code;
@@ -56,6 +58,7 @@ class NFCPayment {
 
   NFCPayment({
     this.trxStatusCode,
+    this.trxStatusMsg,
     this.transaction_id,
     this.reference_no,
     this.approval_code,
@@ -78,6 +81,7 @@ class NFCPayment {
 
   static NFCPayment fromJson(Map<String, Object?> json) => NFCPayment(
     trxStatusCode: json[NFCPaymentFields.trx_status_code] as String?,
+    trxStatusMsg: json[NFCPaymentFields.trx_status_msg] as String?,
     transaction_id: json[NFCPaymentFields.transaction_id] as String?,
     reference_no: json[NFCPaymentFields.reference_no] as String?,
     approval_code: json[NFCPaymentFields.approval_code] as String?,

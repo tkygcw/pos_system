@@ -355,21 +355,23 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
     }
 
     private fun cancelTrx() {
-        toggleTransactionRunning(false)
+        toggleTransactionRunning(false, sendEvent = false)
         SSMPOSSDK.getInstance().transaction.abortTransaction()
         // clearLogs();
 //        writeLog("transaction successfully cancelled")
         Log.i("startTrx", "transaction successfully cancelled")
     }
 
-    private fun toggleTransactionRunning(isRunning: Boolean) {
+    private fun toggleTransactionRunning(isRunning: Boolean, sendEvent: Boolean? = true) {
         isTrxRunning = isRunning
-        if(isTrxRunning){
-            //send cancel trx event code
-            sendTrxUIEventSink(response(1, "Cancel"))
-        } else {
-            //send payment event code
-            sendTrxUIEventSink(response(0, "Start scan"))
+        if(sendEvent == true){
+            if(isTrxRunning){
+                //send cancel trx event code
+                sendTrxUIEventSink(response(1, "Cancel"))
+            } else {
+                //send payment event code
+                sendTrxUIEventSink(response(0, "Start scan"))
+            }
         }
 
     }
@@ -460,7 +462,8 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                                         outcome += "Transaction Date Time UTC :: " + transactionOutcome.transactionDateTime
                                     }
                                     val jsonData = JSONObject().apply {
-                                        put("trx_status_code", transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage)
+                                        put("trx_status_code", transactionOutcome.statusCode)
+                                        put("trx_status_msg", transactionOutcome.statusMessage)
                                         if (transactionOutcome.transactionID != null && transactionOutcome.transactionID.isNotEmpty()) {
                                             put("transaction_id", transactionOutcome.transactionID)
                                             put("ref_no", transactionOutcome.referenceNo)
