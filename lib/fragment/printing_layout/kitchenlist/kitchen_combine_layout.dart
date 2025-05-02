@@ -59,7 +59,9 @@ class CombineKitchenListLayout extends ReceiptLayout {
     List<int> bytes = [];
     try {
       bytes += generator.reset();
-      bytes += generator.text(isReprint != null ? '** Reprint List **' : kitchenListLayout.use_printer_label_as_title == 0 ? '** kitchen list **' : '** $printerLabel **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
+      bytes += generator.text(isReprint != null ? '** Reprint List **' : kitchenListLayout.use_printer_label_as_title == 0 ? '** kitchen list **' : '** $printerLabel **',
+          containsChinese: true,
+          styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       //other order detail
@@ -234,7 +236,9 @@ class CombineKitchenListLayout extends ReceiptLayout {
     List<int> bytes = [];
     try {
       bytes += generator.reset();
-      bytes += generator.text(isReprint != null ? '** Reprint List **' : kitchenListLayout.use_printer_label_as_title == 0 ? '** kitchen list **' : '** $printerLabel **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
+      bytes += generator.text(isReprint != null ? '** Reprint List **' : kitchenListLayout.use_printer_label_as_title == 0 ? '** kitchen list **' : '** $printerLabel **',
+          containsChinese: true,
+          styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       //other order detail

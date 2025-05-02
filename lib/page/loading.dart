@@ -523,6 +523,7 @@ class _LoadingPageState extends State<LoadingPage> {
           }
         }
       } else if (response['status'] == '2') {
+        print("receipt layout not exists, creating new layout");
         await createReceiptLayout80();
         await createReceiptLayout58();
       }
@@ -572,7 +573,7 @@ class _LoadingPageState extends State<LoadingPage> {
           status: 1,
           show_product_sku: 0,
           show_branch_tel: 1,
-          show_register_no: 0,
+          show_register_no: 1,
           sync_status: 0,
           created_at: dateTime,
           updated_at: '',
@@ -667,7 +668,7 @@ class _LoadingPageState extends State<LoadingPage> {
           status: 1,
           show_product_sku: 0,
           show_branch_tel: 1,
-          show_register_no: 0,
+          show_register_no: 1,
           sync_status: 0,
           created_at: dateTime,
           updated_at: '',
