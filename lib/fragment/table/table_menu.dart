@@ -467,13 +467,7 @@ class _TableMenuState extends State<TableMenu> {
                                   ),
                                 )),
                           ),
-                          tableList[index].seats == '2'
-                              ? Container(alignment: Alignment.center, child: Image.asset("drawable/two-seat.jpg"))
-                              : tableList[index].seats == '4'
-                              ? Container(alignment: Alignment.center, child: Image.asset("drawable/four-seat.jpg"))
-                              : tableList[index].seats == '6'
-                              ? Container(alignment: Alignment.center, child: Image.asset("drawable/six-seat.jpg"))
-                              : Container(),
+                          Container(alignment: Alignment.center, child: Image.asset("drawable/four-seat.jpg")),
                           // Ink.image(
                           //   image: tableList[index].seats == '2'
                           //       ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/two-seat.jpg'))
