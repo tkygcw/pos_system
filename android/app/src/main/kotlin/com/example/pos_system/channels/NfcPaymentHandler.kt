@@ -33,10 +33,14 @@ data class PaymentData(
 
 class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngine) {
     private val CHANNEL_NAME = "optimy.com.my/nfcPayment"
+    private val TRANSACTION_UI_EVENT_CHANNEL = "optimy.com.my/transactionUIEvent"
+    private val TRANSACTION_EVENT_CHANNEL = "optimy.com.my/transactionEvent"
+
     private var channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL_NAME)
-    private val PAYMENT_EVENT_CHANNEL = "optimy.com.my/paymentEvent"
-    private var paymentEventChannel = EventChannel(flutterEngine.dartExecutor.binaryMessenger, PAYMENT_EVENT_CHANNEL)
-    private var eventSink: EventChannel.EventSink? = null
+    private var transactionUIEventChannel = EventChannel(flutterEngine.dartExecutor.binaryMessenger, TRANSACTION_UI_EVENT_CHANNEL)
+    private var transactionEventChannel = EventChannel(flutterEngine.dartExecutor.binaryMessenger, TRANSACTION_EVENT_CHANNEL)
+    private var trxUIEventSink: EventChannel.EventSink? = null
+    private var trxEventSink: EventChannel.EventSink? = null
     private val activity = context as Activity
     private var _transactionOutcome: MPOSTransactionOutcome? = null
 
@@ -44,15 +48,28 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
     private var isTrxRunning = false
 
     init {
-        paymentEventChannel.setStreamHandler(
+        transactionEventChannel.setStreamHandler(
             object : EventChannel.StreamHandler {
                 override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
                     if(events == null) return
-                    eventSink = events
+                    trxEventSink = events
                 }
 
                 override fun onCancel(arguments: Any?) {
-                    eventSink = null
+                    trxEventSink = null
+                }
+            }
+        )
+
+        transactionUIEventChannel.setStreamHandler(
+            object : EventChannel.StreamHandler {
+                override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                    if(events == null) return
+                    trxUIEventSink = events
+                }
+
+                override fun onCancel(arguments: Any?) {
+                    trxUIEventSink = null
                 }
             }
         )
@@ -118,10 +135,10 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
 //                            writeLog("onTransactionResult :: $result")
                             Log.i("performSettlement", "onTransactionResult :: $result")
                             if (result != MPOSTransaction.TransactionEvents.TransactionResult.TransactionSuccessful && transactionOutcome != null) {
-                                sendEventSink(response(result, transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage))
+                                sendTrxEventSink(response(result, transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage))
 //                                writeLog(transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage)
                             } else {
-                                sendEventSink(response(result))
+                                sendTrxEventSink(response(result))
                             }
                         }
                     }
@@ -129,12 +146,12 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                     override fun onTransactionUIEvent(event: Int) {
                         runOnUiThread {
 //                            writeLog("onTransactionUIEvent :: $event")
-                            sendEventSink(response(event, "onTransactionUIEvent :: $event"))
+                            sendTrxUIEventSink(response(event, "onTransactionUIEvent :: $event"))
                         }
                     }
                 })
         } catch (e: Exception) {
-            eventSink?.error("performSettlement failed", e.message, e)
+            trxEventSink?.error("performSettlement failed", e.message, e)
         }
     }
 
@@ -215,7 +232,7 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                                             put("transaction_datetime", transactionOutcome.transactionDateTime)
                                         }
                                     }.toString()
-                                    sendEventSink(response(result, jsonData))
+                                    sendTrxEventSink(response(result, jsonData))
 
 //                                    writeLog(outcome)
                                     Log.i("getTransactionStatus", outcome)
@@ -347,6 +364,14 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
 
     private fun toggleTransactionRunning(isRunning: Boolean) {
         isTrxRunning = isRunning
+        if(isTrxRunning){
+            //send cancel trx event code
+            sendTrxUIEventSink(response(1, "Cancel"))
+        } else {
+            //send payment event code
+            sendTrxUIEventSink(response(0, "Start scan"))
+        }
+
     }
 
     private fun startEMVProcessing(amount: String, referenceNo: String) {
@@ -402,7 +427,7 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                                         put("transaction_datetime", transactionOutcome.transactionDateTime)
                                         put("trace_no", transactionOutcome.traceNo)
                                     }.toString()
-                                    sendEventSink(response(result, jsonData))
+                                    sendTrxEventSink(response(result, jsonData))
 
 //                                    if (MainActivity.CARD_TYPE_VISA == transactionOutcome.cardType) {
 //                                        animateVisaSensoryBranding()
@@ -449,7 +474,7 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                                             put("trace_no", transactionOutcome.traceNo)
                                         }
                                     }.toString()
-                                    sendEventSink(response(result, jsonData))
+                                    sendTrxEventSink(response(result, jsonData))
                                     Log.e("startEMVProcessing failed", outcome)
 //                                    writeLog(outcome)
                                 } else {
@@ -488,56 +513,56 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                                     }
 
 //                                    writeLog("Card read completed")
-                                    sendEventSink(response(event, "Card read completed"))
+                                    sendTrxUIEventSink(response(event, "Card read completed"))
                                     Log.i("onTransactionUIEvent", "Card read completed")
                                 } else if (event == MPOSTransaction.TransactionEvents.TransactionUIEvent.RequestSignature) {
 //                                    writeLog("Signature is required")
-                                    sendEventSink(response(event, "Signature is required"))
+                                    sendTrxUIEventSink(response(event, "Signature is required"))
                                     Log.i("onTransactionUIEvent", "Signature is required")
 //                                    btnUploadSignature.setEnabled(true)
                                 } else {
                                     when (event) {
                                         MPOSTransaction.TransactionEvents.TransactionUIEvent.PresentCard -> {
 //                                            writeLog("Present your card")
-                                            sendEventSink(response(event, "Present your card"))
+                                            sendTrxUIEventSink(response(event, "Present your card"))
                                             Log.i("onTransactionUIEvent", "Present your card")
                                         }
 
                                         MPOSTransaction.TransactionEvents.TransactionUIEvent.Authorising -> {
 //                                            writeLog("Authorising...")
-                                            sendEventSink(response(event, "Authorising"))
+                                            sendTrxUIEventSink(response(event, "Authorising"))
                                             Log.i("onTransactionUIEvent", "Authorising...")
 
                                         }
 
                                         MPOSTransaction.TransactionEvents.TransactionUIEvent.CardPresented -> {
 //                                            writeLog("Card detected")
-                                            sendEventSink(response(event, "Card detected"))
+                                            sendTrxUIEventSink(response(event, "Card detected"))
                                             Log.i("onTransactionUIEvent", "Card detected")
                                         }
 
                                         MPOSTransaction.TransactionEvents.TransactionUIEvent.CardReadError -> {
                                             run {
 //                                                writeLog("Card read failed")
-                                                sendEventSink(response(event, "Card read failed"))
+                                                sendTrxUIEventSink(response(event, "Card read failed"))
                                                 Log.i("onTransactionUIEvent", "Card read failed")
                                             }
                                             run {
 //                                                writeLog("Card read retry")
-                                                sendEventSink(response(event, "Card read retry"))
+                                                sendTrxUIEventSink(response(event, "Card read retry"))
                                                 Log.i("onTransactionUIEvent", "Card read retry")
                                             }
                                         }
 
                                         MPOSTransaction.TransactionEvents.TransactionUIEvent.CardReadRetry -> {
 //                                            writeLog("Card read retry")
-                                           sendEventSink(response(event, "Card read retry"))
+                                            sendTrxUIEventSink(response(event, "Card read retry"))
                                             Log.i("onTransactionUIEvent", "Card read retry")
                                         }
 
                                         else -> {
 //                                            writeLog("onTransactionUIEvent :: $event")
-                                            sendEventSink(response(event, "onTransactionUIEvent"))
+                                            sendTrxUIEventSink(response(event, "onTransactionUIEvent"))
                                             Log.i("onTransactionUIEvent", "onTransactionUIEvent :: $event")
                                         }
                                     }
@@ -548,13 +573,17 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                 })
         } catch (e: Exception) {
 //            Log.e(MainActivity.TAG, e.message, e)
-            eventSink?.error("transactionError", e.message, e)
+            trxEventSink?.error("transactionError", e.message, e)
             Log.e("startTrx", e.message.toString())
         }
     }
 
-    fun sendEventSink(response: String){
-        eventSink?.success(response)
+    fun sendTrxEventSink(response: String){
+        trxEventSink?.success(response)
+    }
+
+    fun sendTrxUIEventSink(response: String){
+        trxUIEventSink?.success(response)
     }
 
     fun response(statusCode: Int, message: String? = null): String {
@@ -591,7 +620,7 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                         } else {
                             if (transactionOutcome != null) {
                                 Log.i("refreshToken", transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage)
-                                sendEventSink(response(1, transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage))
+                                sendTrxEventSink(response(1, transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage))
                                 //writeLog(transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage)
                             }
                         }
@@ -602,7 +631,7 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                     }
                 })
         }catch (e: Exception){
-            eventSink?.error("refreshToken error", e.message.toString(), e)
+            trxEventSink?.error("refreshToken error", e.message.toString(), e)
         }
     }
 
@@ -639,7 +668,7 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                 SSMPOSSDK.requestPermissionIfRequired(activity, 1000)
             }
         } catch (e: Exception){
-            eventSink?.error("initFasstapMPOSSDK error", e.message.toString(), e)
+            trxEventSink?.error("initFasstapMPOSSDK error", e.message, e)
         }
     }
 

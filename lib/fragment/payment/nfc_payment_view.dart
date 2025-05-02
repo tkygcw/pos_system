@@ -25,7 +25,9 @@ enum PaymentUIEvent {
   PinEntered, //= 69,
   Authorising, //= 73,
   RequestSignature, //= 70,
-  RequiredCDCVM //= 80,
+  RequiredCDCVM, //= 80,
+  Cancel, //1
+  StartScan //0
 }
 
 class NfcPaymentView extends StatelessWidget {
@@ -64,105 +66,43 @@ class _ScanButton extends StatefulWidget {
 }
 
 class _ScanButtonState extends State<_ScanButton> {
-  StreamController<String> btnTextController = StreamController<String>();
+  StreamController<String> btnStreamController = StreamController<String>();
+  StreamController<String> btnTextStreamController = StreamController<String>();
   NFCPayment payment = NFCPayment();
   bool isButtonDisable = false;
   List<cartProductItem> itemList = [];
+  late Stream<String> btnStream;
   late Stream<String> btnTextStream;
-  late StreamSubscription _streamSubscription;
+  late StreamSubscription _trxUIStreamSub;
+  late StreamSubscription _trxStreamSub;
 
   @override
   void initState() {
-    btnTextStream = btnTextController.stream;
-    _streamSubscription = payment.transactionEvents.listen((event) {
-      print("event: $event");
-      var jsonResponse = jsonDecode(event);
-      if(jsonResponse[NFCPaymentFields.status] == 0){
-        if(jsonResponse['data'] != null){
-          var jsonData = jsonDecode(jsonResponse['data']);
-          var trxDetail = NFCPayment.fromJson(jsonData);
-          //we will extract the success here
-          widget.callBack(trxDetail.transaction_id!, trxDetail.reference_no!);
-          print("trans id: ${jsonData[NFCPaymentFields.transaction_id]}");
-          print("ref no: ${jsonData[NFCPaymentFields.reference_no]}");
-        }
-      } else {
-        switch(jsonResponse[NFCPaymentFields.status]) {
-          case 23 : {
-            btnTextController.sink.add(PaymentUIEvent.CardReadOk.name);
-          }break;
-          case 24 : {
-            btnTextController.sink.add(PaymentUIEvent.CardReadError.name);
-          }break;
-          case 25 : {
-            btnTextController.sink.add(PaymentUIEvent.CardReadRetry.name);
-          }break;
-          case 65 : {
-            btnTextController.sink.add(PaymentUIEvent.EnterPin.name);
-          }break;
-          case 66 : {
-            btnTextController.sink.add(PaymentUIEvent.CancelPin.name);
-          }break;
-          case 67 : {
-            btnTextController.sink.add(PaymentUIEvent.PinBypass.name);
-          }break;
-          case 68 : {
-            btnTextController.sink.add(PaymentUIEvent.PinEnterTimeout.name);
-          }break;
-          case 69 : {
-            btnTextController.sink.add(PaymentUIEvent.PinEntered.name);
-          }break;
-          case 70 : {
-            btnTextController.sink.add(PaymentUIEvent.RequestSignature.name);
-          }break;
-          case 71 : {
-            btnTextController.sink.add(PaymentUIEvent.PresentCard.name);
-          }break;
-          case 72 : {
-            btnTextController.sink.add(PaymentUIEvent.CardPresented.name);
-          }break;
-          case 73: {
-            btnTextController.sink.add(PaymentUIEvent.Authorising.name);
-          }break;
-          case 74: {
-            btnTextController.sink.add(PaymentUIEvent.PresentCardTimeout.name);
-          }break;
-          case 80: {
-            btnTextController.sink.add(PaymentUIEvent.RequiredCDCVM.name);
-          }break;
-          default: {
-            btnTextController.sink.add(PaymentUIEvent.Unknown.name);
-          }
-        }
-      }
-    }, onError: (error) {
-      print("onError: ${error.toString()}");
-    });
+    btnStream = btnStreamController.stream;
+    btnTextStream = btnTextStreamController.stream;
+    initTrxStreamSub();
+    initTrxUIStreamSub();
     super.initState();
   }
 
   @override
   void dispose() {
-    _streamSubscription.cancel();
+    _trxUIStreamSub.cancel();
+    _trxStreamSub.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<String>(
-        stream: btnTextStream,
+        stream: btnStream,
         builder: (context, snapshot) {
           return ElevatedButton.icon(
               style: ButtonStyle(
                 backgroundColor: WidgetStateProperty.all(Colors.green),
                 padding: WidgetStateProperty.all(EdgeInsets.all(10)),
               ),
-              onPressed: isButtonDisable
-                  ? null
-                  : () async {
-                setState(() {
-                  isButtonDisable = true;
-                });
+              onPressed: isButtonDisable ? null : () async {
                 asyncQ.addJob((_) async {
                   try{
                     String? referenceNo = await generateRefNo();
@@ -178,10 +118,58 @@ class _ScanButtonState extends State<_ScanButton> {
                 });
               },
               icon: Icon(Icons.call_received, size: 20),
-              label: Text(snapshot.hasData ? snapshot.data! : AppLocalizations.of(context)!.translate('payment_received'), style: TextStyle(fontSize: 16))
+              label: buildBtnText()
           );
       }
     );
+  }
+
+  Widget buildBtnText() {
+   return StreamBuilder<String>(
+       stream: btnTextStream,
+       builder: (context, snapshot) {
+         return Text(
+             snapshot.hasData ? snapshot.data! : "Start scan",
+             style: TextStyle(fontSize: 16),
+         );
+       },
+   );
+  }
+
+  void initTrxStreamSub(){
+    _trxStreamSub = payment.transactionEvents.listen((event) {
+      var jsonResponse = jsonDecode(event);
+      print("trx status: ${jsonResponse[NFCPaymentFields.status]}");
+      if(jsonResponse[NFCPaymentFields.status] == 0){
+        if(jsonResponse['data'] != null){
+          var jsonData = jsonDecode(jsonResponse['data']);
+          var trxDetail = NFCPayment.fromJson(jsonData);
+          //we will extract the success here
+          widget.callBack(trxDetail.transaction_id!, trxDetail.reference_no!);
+          print("trans id: ${jsonData[NFCPaymentFields.transaction_id]}");
+          print("ref no: ${jsonData[NFCPaymentFields.reference_no]}");
+        }
+      }
+    }, onError: (error) {
+      print("onError: ${error.toString()}");
+    });
+  }
+
+  void initTrxUIStreamSub(){
+    String UIMessage = "Start scan";
+    _trxUIStreamSub = payment.transactionUIEvents.listen((event) {
+      print("event: $event");
+      var jsonResponse = jsonDecode(event);
+      if(jsonResponse['data'] != null){
+        UIMessage = jsonResponse['data'];
+      }
+      if(jsonResponse[NFCPaymentFields.status] == 0 || jsonResponse[NFCPaymentFields.status] == 1){
+        btnTextStreamController.sink.add(UIMessage);
+      }
+      // btnStreamController.sink.add(UIMessage);
+    }, onError: (error) {
+      print("onError: ${error.toString()}");
+    });
   }
 
   Future<String?> generateRefNo() async {

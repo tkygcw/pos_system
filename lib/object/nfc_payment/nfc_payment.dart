@@ -27,7 +27,8 @@ class NFCPaymentFields {
 
 class NFCPayment {
   static const  MethodChannel _paymentChannel = MethodChannel('optimy.com.my/nfcPayment');
-  final EventChannel _paymentEventChannel = EventChannel('optimy.com.my/paymentEvent');
+  final EventChannel _transactionUIEvents = EventChannel('optimy.com.my/transactionUIEvent');
+  final EventChannel _transactionEvents = EventChannel('optimy.com.my/transactionEvent');
   static const _INIT_PAYMENT = 'initPayment';
   static const _START_TRX = 'startTrx';
   static const _VOID_TRX = 'voidTrx';
@@ -97,8 +98,12 @@ class NFCPayment {
     card_type: json[NFCPaymentFields.card_type] as String?
   );
 
+  Stream<String> get transactionUIEvents {
+    return _transactionUIEvents.receiveBroadcastStream().map((event) => event.toString());
+  }
+
   Stream<String> get transactionEvents {
-    return _paymentEventChannel.receiveBroadcastStream().map((event) => event.toString());
+    return _transactionEvents.receiveBroadcastStream().map((event) => event.toString());
   }
 
   static initPayment() async {
@@ -115,7 +120,7 @@ class NFCPayment {
       NFCPaymentFields.reference_no: ref_no
     };
     var result = await _paymentChannel.invokeMethod(_START_TRX, jsonEncode(value));
-    print("startPayment result: ${result}");
+    print("startPayment result in nfc payment: ${result}");
   }
 
   voidTransaction({required transactionID}) async {
