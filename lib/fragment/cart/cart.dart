@@ -775,12 +775,14 @@ class CartPageState extends State<CartPage> {
                                                             //_startTimer();
                                                             print('has new item ${hasNewItem}');
                                                             if (cart.cartNotifierItem[0].status == 1 && hasNewItem == true) {
-                                                              asyncQ.addJob((_) async => await callAddOrderCache(cart));
+                                                              // asyncQ.addJob((_) async => await callAddOrderCache(cart));
+                                                              await callAddOrderCache(cart);
                                                             } else if (cart.cartNotifierItem[0].status == 0) {
-                                                              asyncQ.addJob((_) async {
-                                                                await callCreateNewOrder(cart, appSettingModel);
-                                                                print("local: cart add new order done");
-                                                              });
+                                                              // asyncQ.addJob((_) async {
+                                                              //   await callCreateNewOrder(cart, appSettingModel);
+                                                              //   print("local: cart add new order done");
+                                                              // });
+                                                              await callCreateNewOrder(cart, appSettingModel);
                                                             } else {
                                                               Fluttertoast.showToast(
                                                                   backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('cannot_replace_same_order'));
@@ -804,12 +806,13 @@ class CartPageState extends State<CartPage> {
                                                           if (cart.cartNotifierItem.isNotEmpty) {
                                                             if(cart.cartNotifierItem[0].status == 1 && hasNewItem) {
                                                               // add on product in existing order
-                                                              asyncQ.addJob((_) async => await callAddNotDineInOrderCache(cart, appSettingModel));
+                                                              // asyncQ.addJob((_) async => await callAddNotDineInOrderCache(cart, appSettingModel));
+                                                              await callAddNotDineInOrderCache(cart, appSettingModel);
                                                             } else if(cart.cartNotifierItem[0].status == 0) {
                                                               // create a new order
                                                               openLoadingDialogBox();
-                                                              asyncQ.addJob((_) async => await callCreateNewNotDineOrder(cart, appSettingModel));
-                                                              print("local: cart add new order done");
+                                                              // asyncQ.addJob((_) async => await callCreateNewNotDineOrder(cart, appSettingModel));
+                                                              await callCreateNewNotDineOrder(cart, appSettingModel);
                                                             } else {
                                                               Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('cannot_replace_same_order'));
                                                             }
