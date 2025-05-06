@@ -5,10 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/fragment/setting/adjust_hour_dialog.dart';
 import 'package:pos_system/fragment/setting/kitchenlist_dialog.dart';
 import 'package:pos_system/fragment/setting/receipt_dialog.dart';
+import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:pos_system/page/progress_bar.dart';
@@ -45,7 +48,7 @@ class _OrderSettingState extends State<OrderSetting> {
   final List<String> tableModeOption = [
     'table_mode_no_table',
     'table_mode_full_table',
-    'table_mode_no_table_special'
+    'table_mode_custom_note',
   ];
   int? tableMode = 0;
 
@@ -426,10 +429,6 @@ class _OrderSettingState extends State<OrderSetting> {
                                           Fluttertoast.showToast(
                                               msg: AppLocalizations.of(context)!.translate('please_settle_the_bill_for_all_tables'));
                                         }
-                                        // else if (appSettingModel.enable_numbering == false) {
-                                        //   Fluttertoast.showToast(
-                                        //       msg: AppLocalizations.of(context)!.translate('please_enable_order_number'));
-                                        // }
                                         else if (appSettingModel.directPaymentStatus == false) {
                                           Fluttertoast.showToast(
                                               msg: AppLocalizations.of(context)!.translate('please_enable_direct_payment'));
@@ -470,6 +469,12 @@ class _OrderSettingState extends State<OrderSetting> {
                                           appSettingModel.setTableOrderStatus(tableMode!);
                                         }
                                       }
+                                      Branch branchObject = (await PosDatabase.instance.readLocalBranch())!;
+                                      Branch data = Branch(
+                                          close_qr_order: newValue == 1 ? 0 : 1,
+                                          branch_id: branchObject.branch_id
+                                      );
+                                      updateCloseQrOrderStatusFunction(data);
                                       actionController.sink.add("switch");
                                     }
                                   },
@@ -651,6 +656,12 @@ class _OrderSettingState extends State<OrderSetting> {
         );
       });
     });
+  }
+
+  void updateCloseQrOrderStatusFunction(Branch data){
+    PosFirestore.instance.updateBranchCloseQROrderStatus(data);
+    PosDatabase.instance.updateBranchCloseQrStatus(data);
+    Domain().updateBranchCloseQrOrder(data);
   }
 
   Future<Future<Object?>> openAdjustHourDialog(AppSettingModel appSettingModel) async {

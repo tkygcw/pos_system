@@ -165,10 +165,12 @@ class PreviewLayout extends ReceiptLayout {
       //tax
       if(cartModel.cartNotifierPayment[0].taxList!.isNotEmpty){
         for(int t = 0; t < cartModel.cartNotifierPayment[0].taxList!.length; t++){
-          bytes += generator.row([
-            PosColumn(text: '${cartModel.cartNotifierPayment[0].taxList![t].name}(${cartModel.cartNotifierPayment[0].taxList![t].tax_rate}%)', width: 8, styles: PosStyles(align: PosAlign.right)),
-            PosColumn(text: '${cartModel.cartNotifierPayment[0].taxList![t].tax_amount!.toStringAsFixed(2)}', width: 4, styles: PosStyles(align: PosAlign.right)),
-          ]);
+          if(cartModel.cartNotifierPayment[0].taxList![t].tax_amount != 0.00) {
+            bytes += generator.row([
+              PosColumn(text: '${cartModel.cartNotifierPayment[0].taxList![t].name}(${cartModel.cartNotifierPayment[0].taxList![t].tax_rate}%)', width: 8, styles: PosStyles(align: PosAlign.right)),
+              PosColumn(text: '${cartModel.cartNotifierPayment[0].taxList![t].tax_amount!.toStringAsFixed(2)}', width: 4, styles: PosStyles(align: PosAlign.right)),
+            ]);
+          }
         }
       }
       //Amount
@@ -369,12 +371,14 @@ class PreviewLayout extends ReceiptLayout {
       //tax
       if(cartModel.cartNotifierPayment[0].taxList!.isNotEmpty){
         for(int t = 0; t < cartModel.cartNotifierPayment[0].taxList!.length; t++){
-          bytes += generator.row([
-            PosColumn(text: '${cartModel.cartNotifierPayment[0].taxList![t].name}(${cartModel.cartNotifierPayment[0].taxList![t].tax_rate}%)',
-              width: 8,
-            ),
-            PosColumn(text: '${cartModel.cartNotifierPayment[0].taxList![t].tax_amount!.toStringAsFixed(2)}', width: 4),
-          ]);
+          if(cartModel.cartNotifierPayment[0].taxList![t].tax_amount != 0.00) {
+            bytes += generator.row([
+              PosColumn(text: '${cartModel.cartNotifierPayment[0].taxList![t].name}(${cartModel.cartNotifierPayment[0].taxList![t].tax_rate}%)',
+                width: 8,
+              ),
+              PosColumn(text: '${cartModel.cartNotifierPayment[0].taxList![t].tax_amount!.toStringAsFixed(2)}', width: 4),
+            ]);
+          }
         }
       }
       //Amount

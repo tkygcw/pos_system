@@ -11,6 +11,7 @@ class OrderCacheFields {
     company_id,
     branch_id,
     order_detail_id,
+    custom_table_number,
     table_use_sqlite_id,
     table_use_key,
     other_order_key,
@@ -42,6 +43,7 @@ class OrderCacheFields {
   static String company_id = 'company_id';
   static String branch_id = 'branch_id';
   static String order_detail_id = 'order_detail_id';
+  static String custom_table_number = 'custom_table_number';
   static String table_use_sqlite_id = 'table_use_sqlite_id';
   static String table_use_key = 'table_use_key';
   static String other_order_key = 'other_order_key';
@@ -75,6 +77,7 @@ class OrderCache{
   String? company_id;
   String? branch_id;
   String? order_detail_id;
+  String? custom_table_number;
   String? table_use_sqlite_id;
   String? table_use_key;
   String? other_order_key;
@@ -110,6 +113,7 @@ class OrderCache{
         this.company_id,
         this.branch_id,
         this.order_detail_id,
+        this.custom_table_number,
         this.table_use_sqlite_id,
         this.table_use_key,
         this.other_order_key,
@@ -145,6 +149,7 @@ class OrderCache{
     String? company_id,
     String? branch_id,
     String? order_detail_id,
+    String? custom_table_number,
     String? table_use_sqlite_id,
     String? table_use_key,
     String? other_order_key,
@@ -176,6 +181,7 @@ class OrderCache{
           company_id: company_id ?? this.company_id,
           branch_id: branch_id ?? this.branch_id,
           order_detail_id: order_detail_id ?? this.order_detail_id,
+          custom_table_number: custom_table_number ?? this.custom_table_number,
           table_use_sqlite_id: table_use_sqlite_id ?? this.table_use_sqlite_id,
           table_use_key: table_use_key ?? this.table_use_key,
           other_order_key: other_order_key ?? this.other_order_key,
@@ -207,6 +213,7 @@ class OrderCache{
       company_id: json[OrderCacheFields.company_id] as String?,
       branch_id: json[OrderCacheFields.branch_id] as String?,
       order_detail_id: json[OrderCacheFields.order_detail_id] as String?,
+      custom_table_number: json[OrderCacheFields.custom_table_number] as String?,
       table_use_sqlite_id: json[OrderCacheFields.table_use_sqlite_id] as String?,
       table_use_key: json[OrderCacheFields.table_use_key] as String?,
       other_order_key: json[OrderCacheFields.other_order_key] as String?,
@@ -242,6 +249,7 @@ class OrderCache{
     OrderCacheFields.company_id: company_id,
     OrderCacheFields.branch_id: branch_id,
     OrderCacheFields.order_detail_id: order_detail_id,
+    OrderCacheFields.custom_table_number: custom_table_number,
     OrderCacheFields.table_use_sqlite_id: table_use_sqlite_id,
     OrderCacheFields.table_use_key: table_use_key,
     OrderCacheFields.other_order_key: other_order_key,
@@ -275,6 +283,7 @@ class OrderCache{
     OrderCacheFields.company_id: company_id,
     OrderCacheFields.branch_id: branch_id,
     OrderCacheFields.order_detail_id: order_detail_id,
+    OrderCacheFields.custom_table_number: custom_table_number,
     OrderCacheFields.table_use_sqlite_id: table_use_sqlite_id,
     OrderCacheFields.table_use_key: table_use_key,
     OrderCacheFields.other_order_key: other_order_key,

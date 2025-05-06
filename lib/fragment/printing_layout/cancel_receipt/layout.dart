@@ -568,18 +568,18 @@ class CancelReceiptLayout extends ReceiptLayout {
       if(cancelReceipt.show_product_price == 1 && cancelReceipt.show_product_sku == 1){
         if(orderDetail.unit != 'each' && orderDetail.unit != 'each_c'){
           var price = double.parse(orderDetail.price!) * double.parse(orderDetail.quantity_before_cancel!);
-          return '${orderDetail.product_sku} ${orderDetail.productName}(RM$price)';
+          return '${orderDetail.product_sku} ${orderDetail.productName}($price)';
         } else {
-          return '${orderDetail.product_sku} ${orderDetail.productName}(RM${orderDetail.price})';
+          return '${orderDetail.product_sku} ${orderDetail.productName}(${orderDetail.price})';
         }
       } else if (cancelReceipt.show_product_sku == 1) {
         return '${orderDetail.product_sku}${orderDetail.productName}';
       } else {
         if(orderDetail.unit != 'each' && orderDetail.unit != 'each_c'){
           var price = double.parse(orderDetail.price!) * double.parse(orderDetail.quantity_before_cancel!);
-          return '${orderDetail.product_sku} ${orderDetail.productName}(RM$price)';
+          return '${orderDetail.product_sku} ${orderDetail.productName}($price)';
         } else {
-          return '${orderDetail.productName}(RM${orderDetail.price})';
+          return '${orderDetail.productName}(${orderDetail.price})';
         }
       }
     }

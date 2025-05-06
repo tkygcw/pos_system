@@ -904,7 +904,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
               case 'tb_order':
                 {
                   await PosDatabase.instance.updateOrderSyncStatusFromCloud(
-                      responseJson[i]['order_key']);
+                      responseJson[i]['order_key'], responseJson[i]['updated_at']);
                 }
                 break;
               case 'tb_table_use':
@@ -924,7 +924,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                 {
                   await PosDatabase.instance
                       .updateOrderCacheSyncStatusFromCloud(
-                          responseJson[i]['order_cache_key']);
+                          responseJson[i]['order_cache_key'], responseJson[i]['updated_at']);
                 }
                 break;
               case 'tb_table':
@@ -937,7 +937,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                 {
                   await PosDatabase.instance
                       .updateCashRecordSyncStatusFromCloud(
-                          responseJson[i]['cash_record_key']);
+                          responseJson[i]['cash_record_key'], responseJson[i]['updated_at']);
                 }
                 break;
               default:

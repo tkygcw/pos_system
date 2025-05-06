@@ -251,6 +251,7 @@ class SyncRecord {
               }
               break;
             case '21':
+              print("promo sync from cloud: ${responseJson[i]['data']}");
               bool status = await callPromotionQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
               if(status == true){
                 syncRecordIdList.add(responseJson[i]['id']);

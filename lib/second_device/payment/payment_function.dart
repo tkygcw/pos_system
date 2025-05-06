@@ -4,20 +4,23 @@ import 'package:f_logs/model/flog/flog.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
+import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/object/branch.dart';
+import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/order.dart';
+import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use.dart';
+import 'package:pos_system/object/tax.dart';
 import 'package:pos_system/object/tax_link_dining.dart';
 import 'package:pos_system/second_device/table_function.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 import 'package:sqflite/sqflite.dart';
 
-import '../../firebase_sync/qr_order_sync.dart';
 import '../../fragment/payment/ipay_api.dart';
 import '../../fragment/printing_layout/print_receipt.dart';
 import '../../object/app_setting.dart';
@@ -37,6 +40,7 @@ class PaymentFunction {
   final PosDatabase _posDatabase = PosDatabase.instance;
   final PrintReceipt _printReceipt = PrintReceipt();
   Order _order = Order();
+  CartModel? _cart;
   TableFunction _tableFunction = TableFunction();
   List<Promotion> _promotionList = [];
   List<TaxLinkDining> _taxLinkDiningList = [];
@@ -45,10 +49,14 @@ class PaymentFunction {
   String? _ipayResultCode;
   int? _user_id;
   late final String _currentDateTime;
+  List<cartProductItem> itemList = [];
+  List<Tax> taxList = [];
 
+  CartModel? get cart => _cart;
   String? get ipayResultCode => _ipayResultCode;
 
   PaymentFunction({
+    CartModel? cart,
     Order? order,
     List<Promotion>? promotion,
     List<TaxLinkDining>? taxLinkDining,
@@ -57,6 +65,7 @@ class PaymentFunction {
     String? ipayResultCode,
     int? user_id
   }) {
+    _cart = cart;
     _order = order ?? _order;
     _promotionList = promotion ?? _promotionList;
     _taxLinkDiningList = taxLinkDining ?? _taxLinkDiningList;
@@ -163,10 +172,6 @@ class PaymentFunction {
       //   text: "paymentApi error",
       //   exception: "$e",
       // );
-      return {
-        'status': '0',
-        'data': e
-      };
     }
   }
 
@@ -192,6 +197,7 @@ class PaymentFunction {
         await _createOrder(txn, ipayTransId: ipayTransId);
         await _createOrderPromotionDetail(txn);
         await _crateOrderTaxDetail(txn);
+        await _updateOrderDetail(txn);
         await _updateOrderCache(txn);
         await _createCashRecord(txn);
         if (_selectedTableList.isNotEmpty) {
@@ -222,7 +228,6 @@ class PaymentFunction {
 
   _updatePosTableStatus(Transaction txn) async {
     try{
-      List<String> _value = [];
       if (_selectedTableList.isNotEmpty) {
         print("selected table length: ${_selectedTableList.length}");
         for (var posTable in _selectedTableList) {
@@ -253,7 +258,6 @@ class PaymentFunction {
   }
 
   _updateTableUseDetailAndTableUse(Transaction txn, List<String> uniqueTableUseSqliteId) async {
-    List<String> _value = [];
     try {
       for (var tableUseSqliteId in uniqueTableUseSqliteId) {
         List<TableUseDetail> tableUseDetail = await _readAllInUsedTableUseDetail(txn, tableUseSqliteId);
@@ -264,7 +268,7 @@ class PaymentFunction {
               status: 1,
               table_use_sqlite_id: tableUseSqliteId
            );
-          int status = await _updateTableUseDetailStatus(txn, data);
+          await _updateTableUseDetailStatus(txn, data);
         }
        await _updateCurrentTableUseStatus(txn, tableUseSqliteId);
       }
@@ -283,7 +287,6 @@ class PaymentFunction {
   }
 
   _updateCurrentTableUseStatus(Transaction txn, String tableUseSqliteId) async {
-    List<String> _value = [];
     try {
       TableUse? tableUseData = await _readSpecificTableUse(txn, tableUseSqliteId);
       if(tableUseData != null){
@@ -326,9 +329,7 @@ class PaymentFunction {
       List<String> _value = [];
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
-      final String? pos_user = prefs.getString('pos_pin_user');
       final String? login_user = prefs.getString('user');
-      Map userObject = json.decode(pos_user!);
       Map logInUser = json.decode(login_user!);
       // normal payment
       // List<Order> orderData = await PosDatabase.instance.readSpecificPaidOrder(widget.orderId);
@@ -392,9 +393,307 @@ class PaymentFunction {
     }
   }
 
+  _updateOrderDetail(Transaction txn) async {
+    try {
+      await calculatePromoChargeTax();
+      for(var item in itemList){
+        OrderDetail thisOrderDetail = await PosDatabase.instance.readSpecificOrderDetailByLocalIdNoJoinWithTxn(txn, item.order_detail_sqlite_id!);
+        OrderDetail orderDetailObject = OrderDetail(
+            promo: item.promo,
+            charge: item.charge,
+            tax: item.tax,
+            sync_status: thisOrderDetail.sync_status == 0 ? 0 : 2,
+            updated_at: _currentDateTime,
+            order_detail_sqlite_id: int.parse(item.order_detail_sqlite_id!)
+        );
+        await PosDatabase.instance.updateOrderDetailJsonWithTxn(txn, orderDetailObject);
+      }
+    } catch(e) {
+      print("_updateOrderDetail error: $e");
+    }
+
+  }
+
+  calculatePromoChargeTax() async {
+    if (cart != null) {
+      print("_taxLinkDiningList.length: ${_taxLinkDiningList.length}");
+      // for(var paymentItem in taxLinkDining) {
+      //   if(taxList.isEmpty && paymentItem.taxList!.isNotEmpty){
+      //     this.taxList.addAll(paymentItem.taxList!);
+      //   }
+      // }
+      for(var taxListItem in taxList) {
+        print("taxItem ${taxListItem}");
+      }
+
+      if(cart!.cartNotifierItem.isNotEmpty && itemList.isEmpty){
+        itemList.addAll((cart!.cartNotifierItem));
+      }
+
+      for(int k = 0; k < itemList.length; k++) {
+        itemList[k].promo = {};
+        itemList[k].charge = {};
+        itemList[k].tax = {};
+      }
+
+      calculateCategoryPriceBeforePromo(cart!);
+
+      // get order promo detail
+      print("calculatePromotion");
+      calculatePromotion(_promotionList);
+
+      // get order charge detail
+      print("calculateCharges");
+      calculateCharges();
+
+      // get order tax detail
+      print("calculateTaxes");
+      calculateTaxes();
+
+      for(int i = 0; i<itemList.length; i++)
+        print("itemListPromo: ${jsonEncode(itemList[i].product_name)}, ${jsonEncode(itemList[i].promo)}");
+      for(int i = 0; i<itemList.length; i++)
+        print("itemListCharge: ${jsonEncode(itemList[i].product_name)}, ${jsonEncode(itemList[i].charge!)}");
+      for(int i = 0; i<itemList.length; i++)
+        print("itemListTax: ${jsonEncode(itemList[i].product_name)}, ${jsonEncode(itemList[i].tax ?? '0')}");
+    }
+  }
+
+  calculateCategoryPriceBeforePromo(CartModel cart){
+    try {
+      cart.clearCategoryTotalPriceMapBeforePromo();
+      for (int i = 0; i < cart.cartNotifierItem.length; i++) {
+        double thisProductTotalPrice = double.parse(cart.cartNotifierItem[i].price!) * cart.cartNotifierItem[i].quantity!;
+        if (!cart.categoryTotalPriceMapBeforePromo.containsKey(cart.cartNotifierItem[i].category_id)) {
+          // category not exist in map
+          cart.addCategoryTotalPriceBeforePromo(cart.cartNotifierItem[i].category_id!, thisProductTotalPrice);
+        } else {
+          // category exist in map
+          double currentCategoryPrice = cart.categoryTotalPriceMapBeforePromo[cart.cartNotifierItem[i].category_id]!;
+          cart.categoryTotalPriceMapBeforePromo[cart.cartNotifierItem[i].category_id!] = currentCategoryPrice + thisProductTotalPrice;
+        }
+      }
+    } catch(e){
+      FLog.error(
+        className: "cart",
+        text: "calculateCategoryPriceBeforePromo error",
+        exception: e,
+      );
+    }
+  }
+
+  calculatePromotion(List appliedPromotionList) {
+    if (appliedPromotionList.isEmpty) return;
+
+    double _calculateSingleItemDiscount(dynamic data) {
+      return data.promo!.entries.where((item) => !item.value.isNaN).fold(0.0, (sum, item) => sum + item.value);
+    }
+
+    double _calculateCategoryTotal({String? categoryId, bool Function(dynamic)? filter,}) {
+      return itemList.fold(0.0, (total, data) {
+        if (filter != null && !filter(data)) return total;
+
+        double singleItemDiscount = _calculateSingleItemDiscount(data);
+
+        return total + (double.parse(data.price!) * data.quantity!) - singleItemDiscount;
+      });
+    }
+
+    _adjustPromoAmount(dynamic promotion) {
+      double appliedPromoAmount = itemList.fold(0.0, (total, data) {
+        return total + data.promo!.entries.where((item) => item.key == promotion.name && !item.value.isNaN).fold(0.0, (sum, item) => sum + item.value);
+      });
+
+      double compareAmount = double.parse(
+          (appliedPromoAmount - promotion.promoAmount!).toStringAsFixed(2)
+      );
+
+      if (compareAmount == 0) return;
+
+      int loopCount = (compareAmount * 100).round().abs();
+      int x = 0;
+      bool isRoundingUp = compareAmount < 0;
+
+      while (x < loopCount) {
+        for (var data in itemList) {
+          if (x >= loopCount) break;
+
+          for (var item in data.promo!.entries) {
+            if (item.key == promotion.name) {
+              data.promo![item.key] = data.promo![item.key]! + (isRoundingUp ? 0.01 : -0.01);
+              data.promo![item.key] = double.parse(data.promo![item.key]!.toStringAsFixed(2));
+              x++;
+            }
+          }
+        }
+      }
+    }
+
+    _applyPromoToItems(dynamic promotion, double total, bool Function(dynamic) filter) {
+      for (var data in itemList) {
+        if (!filter(data)) continue;
+
+        double singleItemDiscount = _calculateSingleItemDiscount(data);
+
+        double promoAmountApplied = promotion.promoAmount! * (double.parse(data.price!) * data.quantity! - singleItemDiscount) /total;
+
+        data.promo![promotion.name!] = double.parse(promoAmountApplied.toStringAsFixed(2));
+      }
+
+      _adjustPromoAmount(promotion);
+    }
+
+    for (var promotion in appliedPromotionList) {
+      if ((promotion.auto_apply == '1' && promotion.specific_category != '0') ||
+          (promotion.auto_apply == '0' && promotion.specific_category != '0')) {
+
+        if (promotion.specific_category == '1') {
+          double categoryTotal = _calculateCategoryTotal(filter: (data) => data.category_id == promotion.category_id);
+
+          _applyPromoToItems(promotion, categoryTotal, (data) => data.category_id == promotion.category_id);
+        } else {
+          double categoryTotal = _calculateCategoryTotal(filter: (data) => promotion.multiple_category!.any((category) => category['category_id'].toString() == data.category_id));
+
+          _applyPromoToItems(promotion, categoryTotal, (data) => promotion.multiple_category!.any((category) => category['category_id'].toString() == data.category_id));
+        }
+      } else if ((promotion.auto_apply == '1' && promotion.specific_category == '0') ||
+          (promotion.auto_apply == '0' && promotion.specific_category == '0')) {
+        double total = _calculateCategoryTotal();
+
+        _applyPromoToItems(promotion, total, (_) => true);
+      }
+    }
+
+    double totalPromotions = itemList.fold(0.0, (total, item) {
+      return total + item.promo!.values.fold(0.0, (sum, promoValue) => sum + promoValue);
+    });
+    print("Total promotions: ${totalPromotions.toStringAsFixed(2)}");
+  }
+
+  calculateCharges() {
+    try {
+      adjustChargeRoundingDifference(List<dynamic> items, String chargeName, double compareAmount) {
+        int loopCount = (compareAmount * 100).round().abs();
+        int x = 0;
+        bool isRoundingUp = compareAmount < 0;
+
+        while (x < loopCount) {
+          for (var item in items) {
+            if (x >= loopCount) break;
+
+            if (item.charge!.containsKey(chargeName)) {
+              item.charge![chargeName] += isRoundingUp ? 0.01 : -0.01;
+              item.charge![chargeName] = double.parse(item.charge![chargeName].toStringAsFixed(2));
+              x++;
+            }
+          }
+        }
+      }
+
+      double calculateDiscountedPrice(dynamic item) {
+        double singleItemDiscount = item.promo!.entries.where((entry) => !entry.value.isNaN).map((entry) => entry.value).fold(0.0, (a, b) => a + b);
+
+        return (double.parse(item.price!) * item.quantity!) - singleItemDiscount;
+      }
+
+      distributeChargesAcrossItems(dynamic chargeItem, bool isSpecificCategory) {
+        double totalAmount = 0;
+        List<dynamic> eligibleItems = isSpecificCategory
+            ? itemList.where((item) => chargeItem.multiple_category!.any((category) => category['category_id'].toString() == item.category_id)).toList()
+            : itemList;
+
+        double subtotalAfterPromoTotal = eligibleItems.map(calculateDiscountedPrice).fold(0.0, (a, b) => a + b);
+
+        print("eligibleItems length: ${eligibleItems.length}");
+        for (var item in eligibleItems) {
+          double singleItemDiscountedPrice = calculateDiscountedPrice(item);
+          double distributedCharge = double.parse(chargeItem.tax_amount) * singleItemDiscountedPrice / subtotalAfterPromoTotal;
+
+          item.charge ??= {};
+          item.charge![chargeItem.tax_name!] = double.parse(distributedCharge.toStringAsFixed(2));
+        }
+
+        double totalDistributedCharge = eligibleItems.expand((item) => item.charge!.entries).where((entry) => entry.key == chargeItem.tax_name).map((entry) => entry.value).fold(0.0, (a, b) => a + b);
+
+        double compareAmount = double.parse((totalDistributedCharge - double.parse(chargeItem.tax_amount)).toStringAsFixed(2));
+
+        if (compareAmount != 0) {
+          adjustChargeRoundingDifference(eligibleItems, chargeItem.tax_name!, compareAmount);
+        }
+      }
+
+      print("_taxLinkDiningList length: ${_taxLinkDiningList.length}");
+      for (var chargeItem in _taxLinkDiningList.where((item) => item.tax_type == 0)) {
+        bool isSpecificCategory = chargeItem.specific_category == 1;
+        distributeChargesAcrossItems(chargeItem, isSpecificCategory);
+      }
+
+      double totalCharges = itemList.expand((item) => item.charge!.values).fold(0.0, (a, b) => a + b);
+      print("Total charges: ${totalCharges.toStringAsFixed(2)}");
+    } catch(e){
+      print("calculateCharges: $e");
+    }
+
+  }
+
+  calculateTaxes() {
+    adjustTaxRoundingDifference(List<dynamic> items, String taxName, double compareAmount) {
+      int loopCount = (compareAmount * 100).round().abs();
+      int x = 0;
+      bool isRoundingUp = compareAmount < 0;
+
+      while (x < loopCount) {
+        for (var item in items) {
+          if (x >= loopCount) break;
+
+          if (item.tax!.containsKey(taxName)) {
+            item.tax![taxName] += isRoundingUp ? 0.01 : -0.01;
+            item.tax![taxName] = double.parse(item.tax![taxName].toStringAsFixed(2));
+            x++;
+          }
+        }
+      }
+    }
+
+    double calculateDiscountedPrice(dynamic item) {
+      double singleItemDiscount = item.promo!.entries.where((entry) => !entry.value.isNaN).map((entry) => entry.value).fold(0.0, (a, b) => a + b);
+      return (double.parse(item.price!) * item.quantity!) - singleItemDiscount;
+    }
+
+    distributeTaxesAcrossItems(dynamic taxItem, bool isSpecificCategory) {
+      List<dynamic> eligibleItems = isSpecificCategory
+          ? itemList.where((item) => taxItem.multiple_category!.any((category) => category['category_id'].toString() == item.category_id)).toList()
+          : itemList;
+
+      double subtotalAfterPromoTotal = eligibleItems.map(calculateDiscountedPrice).fold(0.0, (a, b) => a + b);
+
+      for (var item in eligibleItems) {
+        double singleItemDiscountedPrice = calculateDiscountedPrice(item);
+        double distributedTax = double.parse(taxItem.tax_amount) * singleItemDiscountedPrice / subtotalAfterPromoTotal;
+
+        item.tax ??= {};
+        item.tax![taxItem.tax_name!] = double.parse(distributedTax.toStringAsFixed(2));
+      }
+
+      double totalDistributedTax = eligibleItems.expand((item) => item.tax!.entries).where((entry) => entry.key == taxItem.tax_name).map((entry) => entry.value).fold(0.0, (a, b) => a + b);
+      double compareAmount = double.parse((totalDistributedTax - double.parse(taxItem.tax_amount)).toStringAsFixed(2));
+
+      if (compareAmount != 0) {
+        adjustTaxRoundingDifference(eligibleItems, taxItem.tax_name!, compareAmount);
+      }
+    }
+
+    for (var taxItem in _taxLinkDiningList.where((item) => item.tax_type == 1)) {
+      bool isSpecificCategory = taxItem.specific_category == 1;
+      distributeTaxesAcrossItems(taxItem, isSpecificCategory);
+    }
+
+    double totalTaxes = itemList.expand((item) => item.tax!.values).fold(0.0, (a, b) => a + b);
+    print("Total taxes: ${totalTaxes.toStringAsFixed(2)}");
+  }
+
   _updateOrderCache(Transaction txn) async {
     print("server action updateOrderCache");
-    List<String> _value = [];
     try{
       final inPaymentOrderCache = TableModel.instance.inPaymentOrderCache;
       if (_orderCacheList.isNotEmpty) {
@@ -437,6 +736,7 @@ class PaymentFunction {
   _crateOrderTaxDetail(Transaction txn) async {
     List<String> _value = [];
     for (var tax in _taxLinkDiningList) {
+      print("_taxLinkDiningList: ${_taxLinkDiningList}");
       List<BranchLinkTax> branchTaxData = await _readSpecificBranchLinkTax(txn, tax.tax_id!);
       if (branchTaxData.isNotEmpty) {
         var orderTaxDetail = OrderTaxDetail(
@@ -498,7 +798,6 @@ class PaymentFunction {
 
   _createOrder(Transaction txn, {String? ipayTransId}) async {
     print('create order called');
-    List<String> _value = [];
     final prefs = await SharedPreferences.getInstance();
     final String? login_user = prefs.getString('user');
     final int? branch_id = prefs.getInt('branch_id');
@@ -629,7 +928,6 @@ class PaymentFunction {
   }
 
   _insertOrderKey(Transaction txn, Order order) async {
-    List<String> _value = [];
     Order? _updatedOrder;
     try{
       var orderKey = await _generateOrderKey(order);

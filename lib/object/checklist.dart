@@ -10,6 +10,7 @@ class ChecklistFields {
     other_font_size,
     paper_size,
     show_product_sku,
+    show_total_amount,
     sync_status,
     created_at,
     updated_at,
@@ -25,6 +26,7 @@ class ChecklistFields {
   static String check_list_show_price = 'check_list_show_price';
   static String check_list_show_separator = 'check_list_show_separator';
   static String show_product_sku = 'show_product_sku';
+  static String show_total_amount = 'show_total_amount';
   static String paper_size = 'paper_size';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
@@ -44,6 +46,7 @@ class Checklist {
   int? check_list_show_separator;
   String? paper_size;
   int? show_product_sku;
+  int? show_total_amount;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -60,6 +63,7 @@ class Checklist {
         this.check_list_show_separator,
         this.paper_size,
         this.show_product_sku,
+        this.show_total_amount,
         this.sync_status,
         this.created_at,
         this.updated_at,
@@ -76,6 +80,7 @@ class Checklist {
     int? check_list_show_separator,
     String? paper_size,
     int? show_product_sku,
+    int? show_total_amount,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -92,6 +97,7 @@ class Checklist {
           check_list_show_separator: check_list_show_separator ?? this.check_list_show_separator,
           paper_size: paper_size ?? this.paper_size,
           show_product_sku: show_product_sku ?? this.show_product_sku,
+          show_total_amount: show_total_amount ?? this.show_total_amount,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -108,6 +114,7 @@ class Checklist {
     check_list_show_separator: json[ChecklistFields.check_list_show_separator] as int?,
     paper_size: json[ChecklistFields.paper_size] as String?,
     show_product_sku: json[ChecklistFields.show_product_sku] as int?,
+    show_total_amount: json[ChecklistFields.show_total_amount] as int?,
     sync_status: json[ChecklistFields.sync_status] as int?,
     created_at: json[ChecklistFields.created_at] as String?,
     updated_at: json[ChecklistFields.updated_at] as String?,
@@ -125,6 +132,7 @@ class Checklist {
     ChecklistFields.check_list_show_separator: check_list_show_separator,
     ChecklistFields.paper_size: paper_size,
     ChecklistFields.show_product_sku: show_product_sku,
+    ChecklistFields.show_total_amount: show_total_amount,
     ChecklistFields.sync_status: sync_status,
     ChecklistFields.created_at: created_at,
     ChecklistFields.updated_at: updated_at,

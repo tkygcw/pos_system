@@ -24,6 +24,7 @@ class SettlementQuery {
   late final String _currentDateTime, _branch_id;
   late final _transaction;
   String _currentSalesDate = '';
+  Map<String, double> allTaxes = {}, allPromos = {}, allCharges = {};
 
   SettlementQuery({required String branch_id}){
     _branch_id = branch_id;
@@ -36,7 +37,9 @@ class SettlementQuery {
       _transaction = txn;
       List<Order> orderData = await _readOrder();
       for(var order in orderData){
+        List<Order> sameDayOrder = await _readSameDayOrder(order.created_at!);
         List<Order> data = await _readSales(order.created_at!);
+        await processOrdersFinancials(sameDayOrder);
         if(data.isNotEmpty){
           for(var sales in data){
             _currentSalesDate = sales.created_at!;
@@ -45,10 +48,71 @@ class SettlementQuery {
             await _generateProductSales();
             await _generateModSales();
             await _generateDiningSales();
+
           }
         }
       }
     });
+  }
+
+  processOrdersFinancials(List<Order> orderData) async {
+    try {
+      for (var order in orderData) {
+        List<OrderCache> cacheData = await _readSpecificOrderCacheByOrderID(order.order_sqlite_id.toString());
+
+        for (var orderCache in cacheData) {
+          List<OrderDetail> detailData = await _readSpecificOrderDetailByOrderCacheId(
+              orderCache.order_cache_sqlite_id.toString());
+
+          for (var orderDetail in detailData) {
+            // Process taxes
+            if (orderDetail.tax != null && orderDetail.tax is Map && orderDetail.tax!.isNotEmpty) {
+              Map<String, double> taxData = orderDetail.tax!;
+              taxData.forEach((taxName, taxValue) {
+                double taxAmount = 0.0;
+                if (taxValue is num) {
+                  taxAmount = taxValue.toDouble();
+                } else if (taxValue is String) {
+                  taxAmount = double.tryParse(taxValue.toString()) ?? 0.0;
+                }
+                allTaxes[taxName] = double.parse(((allTaxes[taxName] ?? 0.0) + taxAmount).toStringAsFixed(2));
+              });
+            }
+
+            // Process promos
+            if (orderDetail.promo != null && orderDetail.promo is Map && orderDetail.promo!.isNotEmpty) {
+              Map<String, double> promoData = orderDetail.promo!;
+              promoData.forEach((promoName, promoValue) {
+                double promoAmount = 0.0;
+                if (promoValue is num) {
+                  promoAmount = promoValue.toDouble();
+                } else if (promoValue is String) {
+                  promoAmount = double.tryParse(promoValue.toString()) ?? 0.0;
+                }
+                allPromos[promoName] = double.parse(((allPromos[promoName] ?? 0.0) + promoAmount).toStringAsFixed(2));
+              });
+            }
+
+            // Process charges
+            if (orderDetail.charge != null && orderDetail.charge is Map && orderDetail.charge!.isNotEmpty) {
+              Map<String, double> chargeData = orderDetail.charge!;
+              chargeData.forEach((chargeName, chargeValue) {
+                double chargeAmount = 0.0;
+                if (chargeValue is num) {
+                  chargeAmount = chargeValue.toDouble();
+                } else if (chargeValue is String) {
+                  chargeAmount = double.tryParse(chargeValue.toString()) ?? 0.0;
+                }
+                allCharges[chargeName] = double.parse(((allCharges[chargeName] ?? 0.0) + chargeAmount).toStringAsFixed(2));
+              });
+            }
+          }
+        }
+      }
+    } catch(e) {
+      print("processOrdersFinancials error: $e");
+    }
+
   }
 
   _generateDiningSales() async {
@@ -364,8 +428,11 @@ class SettlementQuery {
         branch_id: _branch_id,
         total_amount: sales.total_sales!.toStringAsFixed(2),
         tax: sales.total_tax_amount!.toStringAsFixed(2),
+        tax_detail: allTaxes,
         charge: sales.total_charge_amount!.toStringAsFixed(2),
+        charge_detail: allCharges,
         promotion: sales.total_promo_amount!.toStringAsFixed(2),
+        promotion_detail: allPromos,
         rounding: sales.total_rounding!.toStringAsFixed(2),
         date: _currentSalesDate.substring(0, 10),
         payment_method_sales: '',
@@ -428,7 +495,7 @@ class SettlementQuery {
   Future<List<Order>> _readOrder() async {
     try{
       final result = await _transaction.rawQuery(
-          'SELECT created_at FROM $tableOrder '
+          'SELECT * FROM $tableOrder '
               'WHERE settlement_key = ? '
               'GROUP BY SUBSTR(created_at, 1, 10) ',
           ['']) as List<Map<String, Object?>>;
@@ -443,4 +510,52 @@ class SettlementQuery {
     }
   }
 
+  Future<List<Order>> _readSameDayOrder(String orderDate) async {
+    try{
+      String currentDate = orderDate.substring(0, 10);
+      String endDate = DateFormat("yyyy-MM-dd").format(DateTime.parse(orderDate).add(Duration(days: 1)));
+      final result = await _transaction.rawQuery(
+          'SELECT * FROM $tableOrder WHERE SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ? AND refund_key = ?',
+          [currentDate, endDate, '']) as List<Map<String, Object?>>;
+      return result.map((json) => Order.fromJson(json)).toList();
+    }catch(e, s){
+      FLog.error(
+        className: "settlement query",
+        text: "_readSales error",
+        exception: 'Error: $e, Stacktrace: $s',
+      );
+      rethrow;
+    }
+  }
+
+  Future<List<OrderCache>> _readSpecificOrderCacheByOrderID(String order_sqlite_id) async {
+    try{
+      final result = await _transaction.rawQuery('SELECT * FROM $tableOrderCache WHERE order_sqlite_id = ?',
+          [order_sqlite_id]) as List<Map<String, Object?>>;
+      return result.map((json) => OrderCache.fromJson(json)).toList();
+    }catch(e, s){
+      FLog.error(
+        className: "settlement query",
+        text: "_readSpecificOrderCacheByOrderID error",
+        exception: 'Error: $e, Stacktrace: $s',
+      );
+      rethrow;
+    }
+  }
+
+  Future<List<OrderDetail>> _readSpecificOrderDetailByOrderCacheId(String order_cache_sqlite_id) async {
+    try{
+      final result = await _transaction.rawQuery('SELECT * FROM $tableOrderDetail WHERE soft_delete = ? AND status = ? AND order_cache_sqlite_id = ?',
+          ['', 0, order_cache_sqlite_id]) as List<Map<String, Object?>>;
+
+      return result.map((json) => OrderDetail.fromJson(json)).toList();
+    }catch(e, s){
+      FLog.error(
+        className: "settlement query",
+        text: "_readSpecificOrderDetailByOrderCacheId error",
+        exception: 'Error: $e, Stacktrace: $s',
+      );
+      rethrow;
+    }
+  }
 }

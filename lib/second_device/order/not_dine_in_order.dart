@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/second_device/order/place_order.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -11,6 +12,9 @@ import '../../object/cart_product.dart';
 import '../../object/order_cache.dart';
 
 class PlaceNotDineInOrder extends PlaceOrder {
+  String customTable;
+
+  PlaceNotDineInOrder({required this.customTable});
 
   @override
   Future<void> createOrderCache(CartModel cart, String orderBy, String orderByUserId) async {
@@ -50,6 +54,7 @@ class PlaceNotDineInOrder extends PlaceOrder {
             company_id: loginUserObject['company_id'].toString(),
             branch_id: branch_id.toString(),
             order_detail_id: '',
+            custom_table_number: customTable,
             table_use_sqlite_id: '',
             table_use_key: '',
             other_order_key: '',
@@ -86,13 +91,12 @@ class PlaceNotDineInOrder extends PlaceOrder {
         //cart.addOrder(data);
       }
     } catch (e) {
-      print('createOrderCache error: ${e}');
+      print('not_dine_in_order, createOrderCache error: ${e}');
     }
   }
 
   @override
   Future<Map<String, dynamic>> placeOrder(CartModel cart, String address, String orderBy, String orderByUserId) async {
-    print("callCreateNewNotDineOrder");
     Map<String, dynamic> objectData;
     Map<String, dynamic>? stockResponse = await checkOrderStock(cart);
     await initData();

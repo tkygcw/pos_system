@@ -195,6 +195,7 @@ class FirestoreQROrderSync {
           company_id: data['company_id'].toString(),
           branch_id: data['branch_id'].toString(),
           order_detail_id: '',
+          custom_table_number: '',
           table_use_sqlite_id: '',
           table_use_key: '',
           batch_id: data['batch_id'].toString(),

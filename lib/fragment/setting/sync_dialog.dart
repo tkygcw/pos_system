@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/firebase_sync/sync_to_firebase.dart';
 import 'package:pos_system/object/sync_to_cloud.dart';
-import 'package:pos_system/page/progress_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../main.dart';
@@ -284,16 +283,6 @@ class _SyncDialogState extends State<SyncDialog> {
           }
           Future.delayed(const Duration(seconds: 2), () {
             if(status == 0){
-              // if(prefs.getInt('new_sync') == 1) {
-                print("sync take time: ${DateTime.now().difference(startSync).inSeconds} seconds");
-                FLog.info(
-                  className: "sync_dialog",
-                  text: "New Sync(Beta) | $unsyncedData |  ${DateTime.now().difference(startSync).inSeconds} seconds",
-                  exception: "Sync Start: ${dateFormat.format(startSync)}\n"
-                      "Sync End: ${dateFormat.format(DateTime.now())}\n"
-                      "Sync take time: ${DateTime.now().difference(startSync).inSeconds} seconds",
-                );
-
               controller.sink.add("refresh");
             } else {
               controller.sink.addError(Exception("Sync failed"));

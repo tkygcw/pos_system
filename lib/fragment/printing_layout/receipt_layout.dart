@@ -552,7 +552,7 @@ class ReceiptLayout{
       bytes += generator.cut(mode: PosCutMode.partial);
       return bytes;
     } catch (e) {
-      print('layout error: $e');
+      print('printTestCheckList80mm layout error: $e');
       return null;
     }
   }
@@ -717,7 +717,7 @@ class ReceiptLayout{
       bytes += generator.cut(mode: PosCutMode.partial);
       return bytes;
     } catch (e) {
-      print('layout error: $e');
+      print('printTestCheckList58mm layout error: $e');
       return null;
     }
   }
@@ -872,7 +872,7 @@ class ReceiptLayout{
       bytes += generator.cut(mode: PosCutMode.partial);
       return bytes;
     } catch (e) {
-      print('layout error: $e');
+      print('printTestKitchenList80mm layout error: $e');
       return null;
     }
   }
@@ -1039,7 +1039,7 @@ class ReceiptLayout{
       bytes += generator.cut(mode: PosCutMode.partial);
       return bytes;
     } catch (e) {
-      print('layout error: $e');
+      print('printTestKitchenList58mm layout error: $e');
       return null;
     }
   }
@@ -1152,7 +1152,7 @@ class ReceiptLayout{
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       //register no
-      if(receipt!.show_register_no == 1){
+      if(receipt!.show_register_no == 1 && branchObject[BranchFields.register_no] != ''){
         bytes += generator.text(branchObject[BranchFields.register_no],
           containsChinese: true,
           styles: PosStyles(align: PosAlign.center, ),
@@ -1316,7 +1316,7 @@ class ReceiptLayout{
       bytes += generator.cut(mode: PosCutMode.partial);
       return bytes;
     } catch (e) {
-      print('layout error: ${e}');
+      print('printTestReceipt80mm layout error: ${e}');
       return null;
     }
   }
@@ -1387,7 +1387,7 @@ class ReceiptLayout{
 
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
-        if(receipt!.show_register_no == 1){
+        if(receipt!.show_register_no == 1 && branchObject[BranchFields.register_no] != ''){
           bytes += generator.text(branchObject[BranchFields.register_no],
             containsChinese: true,
             styles: PosStyles(align: PosAlign.center),
@@ -1547,7 +1547,7 @@ class ReceiptLayout{
         bytes += generator.cut(mode: PosCutMode.partial);
         return bytes;
       } catch (e) {
-        print('test print receipt error: $e');
+        print('printTestReceipt58mm error: $e');
         return null;
       }
     }
@@ -1715,7 +1715,7 @@ class ReceiptLayout{
         bytes += generator.cut(mode: PosCutMode.partial);
         return bytes;
       } catch (e) {
-        print('layout error: $e');
+        print('printDeleteItemList80mm layout error: $e');
         return null;
       }
     }
@@ -1813,7 +1813,7 @@ class ReceiptLayout{
         bytes += generator.cut(mode: PosCutMode.partial);
         return bytes;
       } catch (e) {
-        print('layout error: $e');
+        print('printDeleteItemList58mm layout error: $e');
         return null;
       }
     }
@@ -1877,7 +1877,7 @@ class ReceiptLayout{
       bytes += generator.cut(mode: PosCutMode.partial);
       return bytes;
     } catch (e) {
-      print('layout error: $e');
+      print('printCashBalanceList80mm layout error: $e');
       return null;
     }
 
@@ -1938,7 +1938,7 @@ class ReceiptLayout{
       bytes += generator.cut(mode: PosCutMode.partial);
       return bytes;
     } catch (e) {
-      print('layout error: $e');
+      print('printCashBalanceList58mm layout error: $e');
       return null;
     }
 
@@ -2327,7 +2327,7 @@ class ReceiptLayout{
         bytes += generator.cut(mode: PosCutMode.partial);
         return bytes;
       } catch (e) {
-        print('settlement print error: $e');
+        print('printSettlementList80mm print error: $e');
         return null;
       }
     }
@@ -2593,7 +2593,7 @@ class ReceiptLayout{
         bytes += generator.cut(mode: PosCutMode.partial);
         return bytes;
       } catch (e) {
-        print('settlement print error: $e');
+        print('printSettlementList58mm  error: $e');
         return null;
       }
     }
@@ -2635,7 +2635,7 @@ class ReceiptLayout{
       bytes += generator.cut(mode: PosCutMode.partial);
       return bytes;
     } catch (e) {
-      print('layout error: $e');
+      print('printAddTableList80mm layout error: $e');
       return null;
     }
 
@@ -2647,7 +2647,7 @@ class ReceiptLayout{
       result = tableList.toString().replaceAll('[', '').replaceAll(']', '');
       return result;
     }catch(e){
-      print("format table error");
+      print("formatTableList error");
       return result;
     }
   }
@@ -2688,7 +2688,7 @@ class ReceiptLayout{
       bytes += generator.cut(mode: PosCutMode.partial);
       return bytes;
     } catch (e) {
-      print('layout error: $e');
+      print('printChangeTableList80mm layout error: $e');
       return null;
     }
 
@@ -2731,7 +2731,7 @@ class ReceiptLayout{
       bytes += generator.cut(mode: PosCutMode.partial);
       return bytes;
     } catch (e) {
-      print('layout error: $e');
+      print('printChangeTableList58mm layout error: $e');
       return null;
     }
 

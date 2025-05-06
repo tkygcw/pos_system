@@ -25,17 +25,11 @@ import '../../notifier/table_notifier.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/branch_link_product.dart';
 import '../../object/cart_product.dart';
-import '../../object/categories.dart';
-import '../../object/dining_option.dart';
 import '../../object/order_cache.dart';
 import '../../object/order_detail.dart';
 import '../../object/order_modifier_detail.dart';
-import '../../object/product.dart';
 import '../custom_toastification.dart';
 import '../printing_layout/print_receipt.dart';
-import '../../object/printer.dart';
-import '../../object/table.dart';
-import '../../object/table_use.dart';
 import '../../object/table_use_detail.dart';
 import '../../object/user.dart';
 import '../../translation/AppLocalizations.dart';
@@ -1005,28 +999,28 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                   {
                     await posDatabase
                         .updateOrderDetailCancelSyncStatusFromCloud(
-                        responseJson[i]['order_detail_cancel_key']);
+                        responseJson[i]['order_detail_cancel_key'], responseJson[i]['updated_at']);
                   }
                   break;
                 case 'tb_branch_link_product':
                   {
                     await posDatabase
                         .updateBranchLinkProductSyncStatusFromCloud(
-                        responseJson[i]['branch_link_product_id']);
+                        responseJson[i]['branch_link_product_id'], responseJson[i]['updated_at']);
                   }
                   break;
                 case 'tb_order_detail':
                   {
                     await posDatabase
                         .updateOrderDetailSyncStatusFromCloud(
-                        responseJson[i]['order_detail_key']);
+                        responseJson[i]['order_detail_key'], responseJson[i]['updated_at']);
                   }
                   break;
                 case 'tb_order_cache':
                   {
                     await posDatabase
                         .updateOrderCacheSyncStatusFromCloud(
-                        responseJson[i]['order_cache_key']);
+                        responseJson[i]['order_cache_key'], responseJson[i]['updated_at']);
                   }
                   break;
                 case 'tb_table':
