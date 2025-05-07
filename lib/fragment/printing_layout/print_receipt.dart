@@ -1191,11 +1191,13 @@ class PrintReceipt{
                 //check printer category
                 if (reprintList[k].category_sqlite_id == data[j].category_sqlite_id && reprintList[k].status == 0) {
                   var printerDetail = jsonDecode(printerList[i].value!);
-                  List<OrderModifierDetail> modDetail = await PosDatabase.instance.readOrderModifierDetail(reprintList[k].order_detail_sqlite_id.toString());
-                  if(modDetail.isNotEmpty){
-                    reprintList[k].orderModifierDetail = modDetail;
-                  } else {
-                    reprintList[k].orderModifierDetail = [];
+                  for(int m = 0; m < reprintList.length; m++) {
+                    List<OrderModifierDetail> modDetail = await PosDatabase.instance.readOrderModifierDetail(reprintList[m].order_detail_sqlite_id.toString());
+                    if(modDetail.isNotEmpty){
+                      reprintList[m].orderModifierDetail = modDetail;
+                    } else {
+                      reprintList[m].orderModifierDetail = [];
+                    }
                   }
                   //check printer type
                   if (printerList[i].type == 1) {

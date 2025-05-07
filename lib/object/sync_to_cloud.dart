@@ -142,12 +142,10 @@ class SyncToCloud {
           sales_modifier_per_day_value: this.sales_modifier_per_day_value,
           sales_dining_per_day_value: this.sales_dining_per_day_value
       );
-      print("Step 2: order modifier detail length: ${order_modifier_detail_value!.length} local finished sync to cloud at ${DateTime.now()}, take ${DateTime.now().difference(syncStart).inSeconds} seconds");
       if (data['status'] == '1') {
         List responseJson = data['data'];
         if(responseJson.isNotEmpty){
           emptyResponse = false;
-          DateTime updateSyncStatusStart = DateTime.now();
           for(int i = 0; i < responseJson.length; i++){
             switch(responseJson[i]['table_name']){
               case 'tb_table_use': {
@@ -159,15 +157,15 @@ class SyncToCloud {
               }
               break;
               case 'tb_order_cache': {
-                await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+                await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key'], responseJson[i]['updated_at']);
               }
               break;
               case 'tb_order_detail': {
-                await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+                await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key'], responseJson[i]['updated_at']);
               }
               break;
               case 'tb_order_detail_cancel': {
-                await PosDatabase.instance.updateOrderDetailCancelSyncStatusFromCloud(responseJson[i]['order_detail_cancel_key']);
+                await PosDatabase.instance.updateOrderDetailCancelSyncStatusFromCloud(responseJson[i]['order_detail_cancel_key'], responseJson[i]['updated_at']);
               }
               break;
               case 'tb_order_modifier_detail': {
@@ -175,7 +173,7 @@ class SyncToCloud {
               }
               break;
               case 'tb_order': {
-                await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key'], settlement_key: responseJson[i]['settlement_key']);
+                await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key'], responseJson[i]['updated_at'], settlement_key: responseJson[i]['settlement_key']);
               }
               break;
               case 'tb_order_promotion_detail': {
@@ -195,15 +193,15 @@ class SyncToCloud {
               }
               break;
               case 'tb_settlement': {
-                await PosDatabase.instance.updateSettlementSyncStatusFromCloud(responseJson[i]['settlement_key']);
+                await PosDatabase.instance.updateSettlementSyncStatusFromCloud(responseJson[i]['settlement_key'], responseJson[i]['updated_at']);
               }
               break;
               case 'tb_settlement_link_payment': {
-                await PosDatabase.instance.updateSettlementLinkPaymentSyncStatusFromCloud(responseJson[i]['settlement_link_payment_key']);
+                await PosDatabase.instance.updateSettlementLinkPaymentSyncStatusFromCloud(responseJson[i]['settlement_link_payment_key'], responseJson[i]['updated_at']);
               }
               break;
               case 'tb_cash_record': {
-                await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
+                await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key'], responseJson[i]['updated_at']);
               }
               break;
               case 'tb_app_setting': {
@@ -211,7 +209,7 @@ class SyncToCloud {
               }
               break;
               case 'tb_branch_link_product': {
-                await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
+                await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id'], responseJson[i]['updated_at']);
               }
               break;
               case 'tb_table': {
@@ -278,7 +276,6 @@ class SyncToCloud {
               break;
             }
           }
-          print("Step 3: update sync status finished at ${DateTime.now()}, take ${DateTime.now().difference(updateSyncStatusStart).inSeconds} seconds");
         } else {
           emptyResponse = true;
         }
@@ -1032,7 +1029,7 @@ class SyncToCloud {
       if (data['status'] == '1') {
         List responseJson = data['data'];
         for (var i = 0; i < responseJson.length; i++) {
-          int orderPromoData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
+          int orderPromoData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key'], responseJson[i]['updated_at']);
         }
       }
     }
@@ -1050,7 +1047,7 @@ class SyncToCloud {
       if (data['status'] == '1') {
         List responseJson = data['data'];
         for (var i = 0; i < responseJson.length; i++) {
-          int orderPromoData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
+          int orderPromoData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key'], responseJson[i]['updated_at']);
         }
       }
     }
@@ -1578,7 +1575,7 @@ class SyncToCloud {
       if (data['status'] == '1') {
         List responseJson = data['data'];
         for (var i = 0; i < responseJson.length; i++) {
-          int orderDetailData = await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+          int orderDetailData = await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key'], responseJson[i]['updated_at']);
         }
       }
     }
@@ -1598,7 +1595,7 @@ class SyncToCloud {
       if (data['status'] == '1') {
         List responseJson = data['data'];
         for (var i = 0; i < responseJson.length; i++) {
-          int orderDetailData = await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+          int orderDetailData = await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key'], responseJson[i]['updated_at']);
         }
       }
     }
@@ -1647,7 +1644,7 @@ class SyncToCloud {
       if(data['status'] == '1'){
         List responseJson = data['data'];
         for(int i = 0 ; i <responseJson.length; i++){
-          int orderCacheData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+          int orderCacheData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key'], responseJson[i]['updated_at']);
         }
       }
     }
@@ -1709,7 +1706,7 @@ class SyncToCloud {
       if (data['status'] == '1') {
         List responseJson = data['data'];
         for (var i = 0; i < responseJson.length; i++) {
-          int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+          int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key'], responseJson[i]['updated_at']);
         }
       }
     }

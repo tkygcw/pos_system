@@ -1,10 +1,8 @@
-
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/fragment/cart/reprint_kitchen_dialog.dart';
-import 'package:pos_system/main.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
 import 'package:pos_system/object/table.dart';

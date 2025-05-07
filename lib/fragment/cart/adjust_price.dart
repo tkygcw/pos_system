@@ -534,12 +534,12 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
               switch (responseJson[i]['table_name']) {
                 case 'tb_order_detail':
                   {
-                    await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+                    await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key'], responseJson[i]['updated_at']);
                   }
                   break;
                 case 'tb_order_cache':
                   {
-                    await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+                    await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key'], responseJson[i]['updated_at']);
                   }
                   break;
                 default:

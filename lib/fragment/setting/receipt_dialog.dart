@@ -174,8 +174,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     secondFontSize = receipt.second_header_font_size == 0 ? 16.0 : receipt.second_header_font_size == 1 ? 22.0 : 30.0;
     receipt.show_product_sku == 0 ? showSKU = false : showSKU = true;
     receipt.show_branch_tel == 0 ? showBranchTel = false : showBranchTel = true;
-    receipt.show_register_no == 1 && branchObject![BranchFields.register_no] != '' ?
-    showBranchRegisterNo = true : showBranchRegisterNo = false;
+    receipt.show_register_no == 1 ? showBranchRegisterNo = true : showBranchRegisterNo = false;
   }
 
   getSharePreferences() async {
@@ -653,9 +652,10 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     )
                 ),
                 Visibility(
-                  visible: showBranchRegisterNo && branchObject![BranchFields.register_no] != '',
+                  visible: showBranchRegisterNo,
                   child: Center(
-                    child: Text(branchObject![BranchFields.register_no]),
+                    child: Text(branchObject![BranchFields.register_no] != '' ? branchObject![BranchFields.register_no] :
+                    '(${AppLocalizations.of(context)!.translate('show_register_no_error')})'),
                   ),
                 ),
                 Center(
@@ -1219,12 +1219,10 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 Switch(
                     value: showBranchRegisterNo,
                     activeColor: color.backgroundColor,
-                    onChanged: branchObject![BranchFields.register_no] != '' ? (bool value){
+                    onChanged: (bool value){
                       setState(() {
                         showBranchRegisterNo = value;
                       });
-                    } : (bool value){
-                      Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('show_register_no_error'));
                     }
                 )
               ],
@@ -1498,6 +1496,13 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     child: Center(
                       child: Text('${secondHeaderText}', style: TextStyle(fontSize: secondFontSize, fontWeight: FontWeight.bold)),
                     )
+                ),
+                Visibility(
+                  visible: showBranchRegisterNo,
+                  child: Center(
+                    child: Text(branchObject![BranchFields.register_no] != '' ? branchObject![BranchFields.register_no] :
+                    '(${AppLocalizations.of(context)!.translate('show_register_no_error')})'),
+                  ),
                 ),
                 Center(
                   child: Column(
@@ -2059,12 +2064,10 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 Switch(
                     value: showBranchRegisterNo,
                     activeColor: color.backgroundColor,
-                    onChanged: branchObject![BranchFields.register_no] != '' ? (bool value){
+                    onChanged: (bool value){
                       setState(() {
                         showBranchRegisterNo = value;
                       });
-                    } : (bool value){
-                      Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('show_register_no_error'));
                     }
                 )
               ],
@@ -2563,13 +2566,10 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
           Switch(
               value: showBranchRegisterNo,
               activeColor: color.backgroundColor,
-              onChanged: branchObject![BranchFields.register_no] != '' ? (bool value){
+              onChanged: (bool value){
                 setState(() {
                   showBranchRegisterNo = value;
                 });
-              } :
-                  (bool value){
-                Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('show_register_no_error'));
               }
           )
         ],
@@ -3083,13 +3083,10 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
           Switch(
               value: showBranchRegisterNo,
               activeColor: color.backgroundColor,
-              onChanged: branchObject![BranchFields.register_no] != '' ? (bool value){
+              onChanged: (bool value){
                 setState(() {
                   showBranchRegisterNo = value;
                 });
-              } :
-                  (bool value){
-                Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('show_register_no_error'));
               }
           )
         ],

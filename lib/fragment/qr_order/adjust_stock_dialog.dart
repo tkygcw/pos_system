@@ -1497,12 +1497,12 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                 break;
               case 'tb_order_cache':
                 {
-                  await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+                  await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key'], responseJson[i]['updated_at']);
                 }
                 break;
               case 'tb_order_detail':
                 {
-                  await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+                  await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key'], responseJson[i]['updated_at']);
                 }
                 break;
               case 'tb_order_modifier_detail':
@@ -1512,7 +1512,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                 break;
               case 'tb_branch_link_product':
                 {
-                  await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
+                  await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id'], responseJson[i]['updated_at']);
                 }
                 break;
               case 'tb_table':

@@ -441,10 +441,8 @@ class _AttendanceDialogState extends State<AttendanceDialog> {
   }
 
   readAdminData(String pin, int user_id, String clockInTime) async {
-    List<String> _posTableValue = [];
     try {
       final prefs = await SharedPreferences.getInstance();
-      final String? pos_user = prefs.getString('pos_pin_user');
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
       final int? branch_id = prefs.getInt('branch_id');
@@ -479,7 +477,7 @@ class _AttendanceDialogState extends State<AttendanceDialog> {
             );
             Attendance data = await PosDatabase.instance.insertSqliteAttendance(attendance);
 
-            Attendance? returnData = await insertAttendanceKey(data, dateTime);
+            await insertAttendanceKey(data, dateTime);
             Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: "${AppLocalizations.of(context)?.translate('clocked_in_successful')}");
           } else {
             try {
@@ -493,7 +491,7 @@ class _AttendanceDialogState extends State<AttendanceDialog> {
                   updated_at: dateTime,
                   user_id: user_id.toString()
               );
-              int status = await PosDatabase.instance.updateAttendance(attendance);
+              await PosDatabase.instance.updateAttendance(attendance);
               Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: "${AppLocalizations.of(context)?.translate('clocked_out_successful')}");
             } catch(e){
               Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Clock out: Something went wrong");
@@ -535,7 +533,7 @@ class _AttendanceDialogState extends State<AttendanceDialog> {
         attendance_key: key,
         attendance_sqlite_id: attendance.attendance_sqlite_id
     );
-    int status =  await PosDatabase.instance.updateAttendanceUniqueKey(data);
+    await PosDatabase.instance.updateAttendanceUniqueKey(data);
     // if(status == 1){
     //   Attendance? checkData = await PosDatabase.instance.readSpecificKitchenListByKey(data.kitchen_list_key!);
     //   if(checkData != null){
@@ -558,7 +556,7 @@ class _AttendanceDialogState extends State<AttendanceDialog> {
     for(int i =0; i < users.length; i++) {
       var data = await PosDatabase.instance.readAttendance(users[i].user_id!);
       if(data != null) {
-        users[i].clock_in_at = data!.clock_in_at;
+        users[i].clock_in_at = data.clock_in_at;
         users[i].attendance_sqlite_id = data.attendance_sqlite_id;
       }
     }
