@@ -768,11 +768,11 @@ class PosDatabase {
   Future<OrderCache> insertOrderCache(OrderCache data) async {
     final db = await instance.database;
     final id = db.rawInsert(
-        'INSERT INTO $tableOrderCache(order_cache_id, order_cache_key, order_queue, company_id, branch_id, order_detail_id, '
+        'INSERT INTO $tableOrderCache(order_cache_id, order_cache_key, order_queue, company_id, branch_id, order_detail_id, custom_table_number, '
         'table_use_sqlite_id, table_use_key, other_order_key, batch_id, dining_id, order_sqlite_id, order_key, order_by, order_by_user_id, '
         'cancel_by, cancel_by_user_id, customer_id, total_amount, qr_order, qr_order_table_sqlite_id, qr_order_table_id, accepted, '
             'payment_status, sync_status, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ',
+        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ',
         [
           data.order_cache_id,
           data.order_cache_key,
@@ -780,6 +780,7 @@ class PosDatabase {
           data.company_id,
           data.branch_id,
           data.order_detail_id,
+          data.custom_table_number,
           data.table_use_sqlite_id,
           data.table_use_key,
           data.other_order_key,
@@ -822,9 +823,9 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableOrderDetail(order_detail_id, order_detail_key, order_cache_sqlite_id, order_cache_key, '
-        'branch_link_product_sqlite_id, category_sqlite_id, category_name, product_name, has_variant, product_variant_name, price, original_price, quantity, '
+        'branch_link_product_sqlite_id, category_sqlite_id, category_name, product_name, has_variant, product_variant_name, price, original_price, quantity, promo, charge, tax, '
         'remark, account, edited_by, edited_by_user_id, cancel_by, cancel_by_user_id, status, sync_status, unit, per_quantity_unit, product_sku, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ',
+        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ',
         [
           data.order_detail_id,
           data.order_detail_key,
@@ -839,6 +840,9 @@ class PosDatabase {
           data.price,
           data.original_price,
           data.quantity,
+          jsonEncode(data.promo),
+          jsonEncode(data.charge),
+          jsonEncode(data.tax),
           data.remark,
           data.account,
           data.edited_by,
@@ -1271,9 +1275,9 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableSettlement(settlement_id, settlement_key, company_id, branch_id, total_bill, '
-        'total_sales, total_refund_bill, total_refund_amount, total_discount, total_cancellation, total_charge, total_tax, total_rounding, '
-        'settlement_by_user_id, settlement_by, status, sync_status, opened_at, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?, ?, ?, ?, ?, ?)',
+        'total_sales, total_refund_bill, total_refund_amount, total_discount, promo, total_cancellation, total_charge, charge, total_tax, '
+        'tax, total_rounding, settlement_by_user_id, settlement_by, status, sync_status, opened_at, created_at, updated_at, soft_delete) '
+        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.settlement_id,
           data.settlement_key,
@@ -1284,9 +1288,12 @@ class PosDatabase {
           data.total_refund_bill,
           data.total_refund_amount,
           data.total_discount,
+          jsonEncode(data.promo),
           data.total_cancellation,
           data.total_charge,
+          jsonEncode(data.charge),
           data.total_tax,
+          jsonEncode(data.tax),
           data.total_rounding,
           data.settlement_by_user_id,
           data.settlement_by,
@@ -1382,14 +1389,15 @@ class PosDatabase {
   Future<Checklist> insertChecklist(Checklist data) async {
     final db = await instance.database;
     final id = db.rawInsert(
-        'INSERT INTO $tableChecklist(soft_delete, updated_at, created_at, sync_status, show_product_sku, paper_size, check_list_show_separator, '
+        'INSERT INTO $tableChecklist(soft_delete, updated_at, created_at, sync_status, show_total_amount, show_product_sku, paper_size, check_list_show_separator, '
             'check_list_show_price, other_font_size, product_name_font_size, branch_id, checklist_key, checklist_id) '
-            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           '',
           data.updated_at,
           data.created_at,
           data.sync_status,
+          data.show_total_amount,
           data.show_product_sku,//change later
           data.paper_size,
           data.check_list_show_separator,
@@ -1969,8 +1977,8 @@ class PosDatabase {
   Future<List<TaxLinkDining>> readAllTaxLinkDining() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.tax_rate, b.name AS tax_name, b.type AS tax_type, c.name AS dining_name '
-            'FROM $tableTaxLinkDining AS a JOIN $tableTax AS b ON a.tax_id = b.tax_id '
+        'SELECT a.*, b.tax_rate, b.name AS tax_name, b.type AS tax_type, b.specific_category AS specific_category, b.multiple_category AS multiple_category, '
+            'c.name AS dining_name FROM $tableTaxLinkDining AS a JOIN $tableTax AS b ON a.tax_id = b.tax_id '
             'JOIN $tableDiningOption AS c ON a.dining_id = c.dining_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ?',
         ['', '', '']);
 
@@ -2522,7 +2530,7 @@ class PosDatabase {
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.accepted, a.qr_order_table_id, a.qr_order_table_sqlite_id, a.qr_order, a.total_amount, '
         'a.customer_id, a.cancel_by_user_id, a.cancel_by, '
         'a.order_by_user_id, a.order_by, a.order_key, a.order_sqlite_id, a.dining_id, a.batch_id, a.other_order_key, a.table_use_key, a.table_use_sqlite_id, a.order_detail_id, a.branch_id, '
-        'a.company_id, a.order_queue, a.order_cache_key, a.order_cache_id, a.order_cache_sqlite_id, '
+        'a.company_id, a.order_queue, a.custom_table_number, a.order_cache_key, a.order_cache_id, a.order_cache_sqlite_id, '
         'b.name AS name FROM $tableOrderCache AS a JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id WHERE a.order_cache_sqlite_id = ? AND b.soft_delete = ?',
         [order_cache_sqlite_id, '']);
     return OrderCache.fromJson(result.first);
@@ -2596,14 +2604,14 @@ class PosDatabase {
          result = await db.rawQuery(
             'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
                 'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
-                'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a '
+                'a.created_at, a.updated_at, a.soft_delete, a.custom_table_number, b.name AS name FROM tb_order_cache as a '
                 'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
                 'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
                 'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.table_use_key = ? AND a.other_order_key = ? '
                 'UNION ALL '
                 'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
                 'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
-                'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a '
+                'a.created_at, a.updated_at, a.soft_delete, a.custom_table_number, b.name AS name FROM tb_order_cache as a '
                 'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
                 'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
                 'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.table_use_key = ? AND a.other_order_key != ? GROUP BY a.other_order_key ORDER BY a.created_at DESC  ',
@@ -2625,7 +2633,7 @@ class PosDatabase {
       final result = await db.rawQuery(
           'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
           'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
-          'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a '
+          'a.created_at, a.updated_at, a.soft_delete, a.custom_table_number, b.name AS name FROM tb_order_cache as a '
           'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
           'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.other_order_key = ? '
           'AND a.accepted = ? AND cancel_by = ?',
@@ -2666,14 +2674,14 @@ class PosDatabase {
         result = await db.rawQuery(
             'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
                 'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
-                'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM $tableOrderCache as a '
+                'a.created_at, a.updated_at, a.soft_delete, a.custom_table_number, b.name AS name FROM $tableOrderCache as a '
                 'JOIN $tableDiningOption as b ON a.dining_id = b.dining_id '
                 'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.payment_status != ? AND a.dining_id = ? AND '
                 'a.accepted = ? AND a.cancel_by = ? AND a.other_order_key = ? '
                 'UNION ALL '
                 'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
                 'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
-                'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM $tableOrderCache as a '
+                'a.created_at, a.updated_at, a.soft_delete, a.custom_table_number, b.name AS name FROM $tableOrderCache as a '
                 'JOIN $tableDiningOption as b ON a.dining_id = b.dining_id '
                 'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.payment_status != ? AND a.dining_id = ? AND '
                 'a.accepted = ? AND a.cancel_by = ? AND a.other_order_key != ? GROUP BY a.other_order_key ORDER BY a.created_at DESC ',
@@ -2712,14 +2720,14 @@ class PosDatabase {
         result = await db.rawQuery(
             'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
                 'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
-                'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a '
+                'a.created_at, a.updated_at, a.soft_delete, a.custom_table_number, b.name AS name FROM tb_order_cache as a '
                 'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
                 'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
                 'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.other_order_key = ? '
                 'UNION ALL '
                 'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
                 'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_key, a.order_by, a.total_amount, a.customer_id, a.payment_status, '
-                'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a '
+                'a.created_at, a.updated_at, a.soft_delete, a.custom_table_number, b.name AS name FROM tb_order_cache as a '
                 'JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
                 'WHERE a.payment_status != ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
                 'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.other_order_key != ? GROUP BY a.other_order_key ORDER BY a.created_at DESC ',
@@ -2760,12 +2768,12 @@ class PosDatabase {
         result = await db.rawQuery(
             'SELECT a.order_cache_sqlite_id, a.order_queue, a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
                 'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, a.payment_status,'
-                'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
+                'a.created_at, a.updated_at, a.soft_delete, a.custom_table_number, b.name AS name FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
                 'WHERE a.payment_status != ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND a.accepted = ? AND b.name = ? AND a.table_use_key = ? AND a.other_order_key = ? '
                 'UNION ALL '
                 'SELECT a.order_cache_sqlite_id, a.order_queue, a.order_detail_id, a.dining_id, a.table_use_sqlite_id, '
                 'a.table_use_key, a.other_order_key, a.batch_id, a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, a.payment_status,'
-                'a.created_at, a.updated_at, a.soft_delete, b.name AS name FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
+                'a.created_at, a.updated_at, a.soft_delete, a.custom_table_number, b.name AS name FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
                 'WHERE a.payment_status != ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND a.accepted = ? AND b.name = ? AND a.table_use_key = ? AND a.other_order_key != ? GROUP BY a.other_order_key ORDER BY a.created_at DESC ',
             ['1', '', '', '', 0, name, '', '', '1', '', '', '', 0, name, '', '']);
       }
@@ -2804,13 +2812,13 @@ class PosDatabase {
         result = await db.rawQuery(
             'SELECT a.order_cache_sqlite_id, a.order_queue, a.order_detail_id, a.dining_id, a.table_use_sqlite_id, a.table_use_key, '
                 'a.other_order_key, a.batch_id, a.dining_id, a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, a.payment_status, '
-                'a.created_at, a.updated_at, a.soft_delete, b.name AS name '
+                'a.created_at, a.updated_at, a.soft_delete, a.custom_table_number, b.name AS name '
                 'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
                 'WHERE a.payment_status != ? AND a.order_key = ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ? AND a.other_order_key = ? '
                 'UNION ALL '
                 'SELECT a.order_cache_sqlite_id, a.order_queue, a.order_detail_id, a.dining_id, a.table_use_sqlite_id, a.table_use_key, '
                 'a.other_order_key, a.batch_id, a.dining_id, a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, a.payment_status, '
-                'a.created_at, a.updated_at, a.soft_delete, b.name AS name '
+                'a.created_at, a.updated_at, a.soft_delete, a.custom_table_number, b.name AS name '
                 'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
                 'WHERE a.payment_status != ? AND a.order_key = ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ? AND a.other_order_key != ? '
                 'GROUP BY a.other_order_key ORDER BY a.created_at DESC ',
@@ -2876,6 +2884,17 @@ class PosDatabase {
   Future<OrderDetail> readSpecificOrderDetailByLocalIdNoJoin(String order_detail_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderDetail WHERE order_detail_sqlite_id = ? ',
+        [order_detail_sqlite_id]);
+
+    return OrderDetail.fromJson(result.first);
+  }
+
+/*
+  read specific order detail by local id no left join with tnx
+*/
+  Future<OrderDetail> readSpecificOrderDetailByLocalIdNoJoinWithTxn(Transaction txn, String order_detail_sqlite_id) async {
+    final result = await txn.rawQuery(
         'SELECT * FROM $tableOrderDetail WHERE order_detail_sqlite_id = ? ',
         [order_detail_sqlite_id]);
 
@@ -5550,8 +5569,10 @@ class PosDatabase {
 */
   Future<int> updateTax(Tax data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableTax SET company_id = ?, name = ?, type = ?, tax_rate = ?, updated_at = ?, soft_delete = ? WHERE tax_id = ?',
-        [data.company_id, data.name, data.type, data.tax_rate, data.updated_at, data.soft_delete, data.tax_id]);
+    return await db.rawUpdate('UPDATE $tableTax SET company_id = ?, name = ?, type = ?, tax_rate = ?, specific_category = ?, '
+        'multiple_category = ?, updated_at = ?, soft_delete = ? WHERE tax_id = ?',
+        [data.company_id, data.name, data.type, data.tax_rate, data.specific_category,
+          jsonEncode(data.multiple_category), data.updated_at, data.soft_delete, data.tax_id]);
   }
 
 /*
@@ -6154,9 +6175,9 @@ class PosDatabase {
 */
   Future<int> updateChecklist(Checklist data) async {
     final db = await instance.database;
-    return await db.rawUpdate("UPDATE $tableChecklist SET updated_at = ?, sync_status = ?, show_product_sku = ?, product_name_font_size = ?, other_font_size = ? , "
+    return await db.rawUpdate("UPDATE $tableChecklist SET updated_at = ?, sync_status = ?, show_total_amount = ?, show_product_sku = ?, product_name_font_size = ?, other_font_size = ? , "
         "check_list_show_price = ? , check_list_show_separator = ? WHERE checklist_sqlite_id = ?",
-        [data.updated_at, data.sync_status, data.show_product_sku, data.product_name_font_size, data.other_font_size, data.check_list_show_price, data.check_list_show_separator, data.checklist_sqlite_id]);
+        [data.updated_at, data.sync_status, data.show_total_amount, data.show_product_sku, data.product_name_font_size, data.other_font_size, data.check_list_show_price, data.check_list_show_separator, data.checklist_sqlite_id]);
   }
 
 /*
@@ -6471,6 +6492,41 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableOrderDetail SET order_detail_key = ?, sync_status = ?, updated_at = ? WHERE order_detail_sqlite_id = ?', [
       data.order_detail_key,
+      data.sync_status,
+      data.updated_at,
+      data.order_detail_sqlite_id,
+    ]);
+  }
+
+/*
+  update order detail promo, charge, tax json
+*/
+  Future<int> updateOrderDetailJson(OrderDetail data) async {
+    try {
+      final db = await instance.database;
+      return await db.rawUpdate('UPDATE $tableOrderDetail SET promo = ?, charge = ?, tax = ?, sync_status = ?, updated_at = ? WHERE order_detail_sqlite_id = ?', [
+        jsonEncode(data.promo),
+        jsonEncode(data.charge),
+        jsonEncode(data.tax),
+        data.sync_status,
+        data.updated_at,
+        data.order_detail_sqlite_id,
+      ]);
+    } catch(e) {
+      print("updateOrderDetailJson error: ${e}");
+      return 0;
+    }
+
+  }
+
+/*
+  update order detail promo, charge, tax json with txn
+*/
+  Future<int> updateOrderDetailJsonWithTxn(Transaction txn, OrderDetail data) async {
+    return await txn.rawUpdate('UPDATE $tableOrderDetail SET promo = ?, charge = ?, tax = ?, sync_status = ?, updated_at = ? WHERE order_detail_sqlite_id = ?', [
+      jsonEncode(data.promo),
+      jsonEncode(data.charge),
+      jsonEncode(data.tax),
       data.sync_status,
       data.updated_at,
       data.order_detail_sqlite_id,
@@ -7287,9 +7343,9 @@ class PosDatabase {
 /*
   update order(from cloud)
 */
-  Future<int> updateOrderSyncStatusFromCloud(String order_key, {String? settlement_key}) async {
+  Future<int> updateOrderSyncStatusFromCloud(String order_key, String updated_at, {String? settlement_key}) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableOrder SET sync_status = ? WHERE order_key = ? AND settlement_key = ?', [1, order_key, settlement_key]);
+    return await db.rawUpdate('UPDATE $tableOrder SET sync_status = ? WHERE order_key = ? AND settlement_key = ? AND updated_at = ?', [1, order_key, settlement_key, updated_at]);
   }
 
 /*
@@ -7311,15 +7367,15 @@ class PosDatabase {
 /*
   update order cache (from cloud)
 */
-  Future<int> updateOrderCacheSyncStatusFromCloud(String order_cache_key) async {
+  Future<int> updateOrderCacheSyncStatusFromCloud(String order_cache_key, String updated_at) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableOrderCache SET sync_status = ? WHERE order_cache_key = ?', [1, order_cache_key]);
+    return await db.rawUpdate('UPDATE $tableOrderCache SET sync_status = ? WHERE order_cache_key = ? AND updated_at = ?', [1, order_cache_key, updated_at]);
   }
 
 /*
   update order detail (from cloud)
 */
-  Future<int> updateOrderDetailSyncStatusFromCloud(String order_detail_key) async {
+  Future<int> updateOrderDetailSyncStatusFromCloud(String order_detail_key, String updated_at) async {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableOrderDetail SET sync_status = ? WHERE order_detail_key = ?', [1, order_detail_key]);
   }
@@ -7359,9 +7415,9 @@ class PosDatabase {
 /*
   update cash record (from cloud)
 */
-  Future<int> updateCashRecordSyncStatusFromCloud(String cash_record_key) async {
+  Future<int> updateCashRecordSyncStatusFromCloud(String cash_record_key, String updated_at) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableCashRecord SET sync_status = ? WHERE cash_record_key = ?', [1, cash_record_key]);
+    return await db.rawUpdate('UPDATE $tableCashRecord SET sync_status = ? WHERE cash_record_key = ? AND updated_at = ?', [1, cash_record_key, updated_at]);
   }
 
   Future<int> resetAllDataToUnsynced() async {
@@ -7417,9 +7473,9 @@ class PosDatabase {
 /*
   update branch link product (from cloud)
 */
-  Future<int> updateBranchLinkProductSyncStatusFromCloud(int branch_link_product_id) async {
+  Future<int> updateBranchLinkProductSyncStatusFromCloud(int branch_link_product_id, String updated_at) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableBranchLinkProduct SET sync_status = ? WHERE branch_link_product_id = ?', [1, branch_link_product_id]);
+    return await db.rawUpdate('UPDATE $tableBranchLinkProduct SET sync_status = ? WHERE branch_link_product_id = ? AND updated_at = ?', [1, branch_link_product_id, updated_at]);
   }
 
 /*
@@ -7433,25 +7489,25 @@ class PosDatabase {
 /*
   update settlement (from cloud)
 */
-  Future<int> updateSettlementSyncStatusFromCloud(String settlement_key) async {
+  Future<int> updateSettlementSyncStatusFromCloud(String settlement_key, String updated_at) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableSettlement SET sync_status = ? WHERE settlement_key = ?', [1, settlement_key]);
+    return await db.rawUpdate('UPDATE $tableSettlement SET sync_status = ? WHERE settlement_key = ? AND updated_at = ?', [1, settlement_key, updated_at]);
   }
 
 /*
   update settlement link payment (from cloud)
 */
-  Future<int> updateSettlementLinkPaymentSyncStatusFromCloud(String settlement_link_payment_key) async {
+  Future<int> updateSettlementLinkPaymentSyncStatusFromCloud(String settlement_link_payment_key, String updated_at) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableSettlementLinkPayment SET sync_status = ? WHERE settlement_link_payment_key = ?', [1, settlement_link_payment_key]);
+    return await db.rawUpdate('UPDATE $tableSettlementLinkPayment SET sync_status = ? WHERE settlement_link_payment_key = ? AND updated_at = ?', [1, settlement_link_payment_key, updated_at]);
   }
 
 /*
   update order detail cancel (from cloud)
 */
-  Future<int> updateOrderDetailCancelSyncStatusFromCloud(String order_detail_cancel_key) async {
+  Future<int> updateOrderDetailCancelSyncStatusFromCloud(String order_detail_cancel_key, String updated_at) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableOrderDetailCancel SET sync_status = ? WHERE order_detail_cancel_key = ?', [1, order_detail_cancel_key]);
+    return await db.rawUpdate('UPDATE $tableOrderDetailCancel SET sync_status = ? WHERE order_detail_cancel_key = ? AND updated_at = ?', [1, order_detail_cancel_key, updated_at]);
   }
 
 /*
@@ -7667,8 +7723,8 @@ FROM table_counts;
   Future<List<OrderDetail>> readAllNotSyncUpdatedOrderDetail() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.status, a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, a.account, a.remark, a.quantity, '
-        'a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.order_cache_key, a.order_detail_key, b.category_id, c.branch_link_product_id '
+        'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.status, a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, a.account, a.remark, a.promo, '
+        'a.quantity, a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.order_cache_key, a.order_detail_key, b.category_id, c.branch_link_product_id '
         'FROM $tableOrderDetail AS a JOIN $tableCategories as b ON a.category_sqlite_id = b.category_sqlite_id '
         'JOIN $tableBranchLinkProduct AS c ON a.branch_link_product_sqlite_id = c.branch_link_product_sqlite_id '
         'WHERE b.soft_delete = ? AND c.soft_delete = ? AND a.sync_status = ? ',
@@ -7985,14 +8041,14 @@ FROM table_counts;
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.product_sku, a.per_quantity_unit, a.unit, a.status, '
-        'a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, a.account, a.remark, a.quantity,'
+        'a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, a.account, a.remark, a.tax, a.charge, a.promo, a.quantity,'
         'a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.category_name, a.order_cache_key, a.order_detail_key, b.category_id, c.branch_link_product_id '
         'FROM $tableOrderDetail AS a JOIN $tableCategories as b ON a.category_sqlite_id = b.category_sqlite_id '
         'JOIN $tableBranchLinkProduct AS c ON a.branch_link_product_sqlite_id = c.branch_link_product_sqlite_id '
         'WHERE a.order_detail_key != ? AND a.sync_status != ? '
         'UNION ALL '
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.product_sku, a.per_quantity_unit, a.unit, a.status, '
-        'a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, a.account, a.remark, a.quantity, '
+        'a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, a.account, a.remark, a.tax, a.charge, a.promo, a.quantity, '
         'a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.category_name, a.order_cache_key, a.order_detail_key, 0 AS category_id, b.branch_link_product_id '
         'FROM $tableOrderDetail AS a '
         'JOIN $tableBranchLinkProduct AS b ON a.branch_link_product_sqlite_id = b.branch_link_product_sqlite_id '

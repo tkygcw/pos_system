@@ -114,6 +114,7 @@ class ServerAction {
           var data12 = await PosDatabase.instance.readAllSubscription();
           var data13 = [currency_code, currency_symbol];
 
+          print("data9: ${json.encode(data9)}");
           print("data2 length: ${data2.length}");
            objectData = {
              'tb_categories': data,
@@ -214,14 +215,15 @@ class ServerAction {
         }
         break;
         case '8': {
+          // create new order
           try{
             CartModel cart = CartModel();
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam['cart']);
-            if(cart.selectedOption == 'Dine in' && AppSettingModel.instance.table_order != 0){
+            if(cart.selectedOption == 'Dine in' && AppSettingModel.instance.table_order == 1){
               result = await placeOrderFunction(PlaceDineInOrder(), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
             } else {
-              result = await placeOrderFunction(PlaceNotDineInOrder(), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
+              result = await placeOrderFunction(PlaceNotDineInOrder(customTable: decodeParam['custom_table']), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
             }
           } catch(e){
             result = {'status': '4', 'exception': "New-order error: ${e.toString()}"};
@@ -234,11 +236,12 @@ class ServerAction {
         }
         break;
         case '9': {
+          // add-on order
           try{
             CartModel cart = CartModel();
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam['cart']);
-            if(decodeParam['order_cache'] == ''){
+            if(decodeParam['order_cache'] == '' && cart.selectedOption == 'Dine in' && AppSettingModel.instance.table_order == 1){
               result = await placeOrderFunction(PlaceAddOrder(), cart, address!, decodeParam['order_by'], decodeParam['order_by_user_id']);
             } else {
               OrderCache orderCache = OrderCache.fromJson(decodeParam['order_cache']);
@@ -406,6 +409,7 @@ class ServerAction {
         break;
         case '17': {
           //get company payment method
+          print("payment call case 17");
           try{
             var function = PaymentFunction();
             List<PaymentLinkCompany> paymentMethod = await function.getCompanyPaymentMethod();
@@ -449,6 +453,7 @@ class ServerAction {
             int? close_by_user_id =  decodeParam['user_id'];
             String? ipay_result_code = decodeParam['ipayResultCode'];
             Order orderData = Order.fromJson(decodeParam['orderData']);
+            CartModel cartData = CartModel.fromJson(decodeParam['cart']);
             var promoJson = decodeParam['promotion'] as List;
             var taxJson = decodeParam['tax'] as List;
             var orderCacheJson = decodeParam['orderCacheList'] as List;
@@ -458,6 +463,7 @@ class ServerAction {
             List<OrderCache>? orderCacheList = orderCacheJson.isNotEmpty ? orderCacheJson.map((tagJson) => OrderCache.fromJson(tagJson)).toList() : [];
             List<PosTable>? tableList = posTableJson.isNotEmpty ? posTableJson.map((tagJson) => PosTable.fromJson(tagJson)).toList() : [];
             PaymentFunction function = PaymentFunction(
+              cart: cartData,
               order: orderData,
               promotion: promotionList,
               taxLinkDining: taxList,
@@ -515,6 +521,12 @@ class ServerAction {
         break;
         case '24': {
           TableFunction().removeSpecificBatchSubPosOrderCache(param);
+          result = {'status': '1'};
+        }
+        break;
+        case '25': {
+          // remove all sub pos order cache
+          TableFunction().clearSubPosOrderCache();
           result = {'status': '1'};
         }
         break;

@@ -168,10 +168,9 @@ class _PaymentSelectState extends State<PaymentSelect> {
                         widget.callBack!('');
                       }
                       TableModel.instance.changeContent(true);
-                      cart.removeAllTable();
-                      cart.removeAllCartItem();
-                      cart.removeAllGroupList();
+                      cart.initialLoad();
                       cart.clearCurrentOrderCache();
+
                       if (canPop) {
                         Navigator.of(context).pop();
                         canPop = false;
@@ -299,9 +298,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                         widget.callBack!('');
                       }
                       TableModel.instance.changeContent(true);
-                      cart.removeAllTable();
-                      cart.removeAllCartItem();
-                      cart.removeAllGroupList();
+                      cart.initialLoad();
                       cart.clearCurrentOrderCache();
                       if (canPop) {
                         Navigator.of(context).pop();
@@ -485,11 +482,11 @@ class _PaymentSelectState extends State<PaymentSelect> {
           for(int i = 0; i < responseJson.length; i++){
             switch(responseJson[i]['table_name']){
               case 'tb_order': {
-                await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+                await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key'], responseJson[i]['updated_at']);
               }
               break;
               case 'tb_cash_record': {
-                await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
+                await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key'], responseJson[i]['updated_at']);
               }
               break;
             }

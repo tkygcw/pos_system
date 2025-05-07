@@ -627,11 +627,11 @@ class _RefundDialogState extends State<RefundDialog> {
               }
               break;
               case 'tb_order': {
-                await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+                await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key'], responseJson[i]['updated_at']);
               }
               break;
               case 'tb_cash_record': {
-                await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
+                await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key'], responseJson[i]['updated_at']);
               }
               break;
               default:

@@ -6,6 +6,7 @@ import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
@@ -305,8 +306,8 @@ class CartPageState extends State<CartPage> {
                             child: IconButton(
                               tooltip: 'table',
                               icon: Badge(
-                                isLabelVisible: cart.selectedTable.isEmpty ? false : true,
-                                label: Text("${cart.selectedTable.length}"),
+                                isLabelVisible: cart.selectedTable.isEmpty ? cart.selectedTableIndex != '' ? true : false : true,
+                                label: Text("${cart.selectedTable.isNotEmpty ? cart.selectedTable.length : 1}"),
                                 child: const Icon(
                                   Icons.table_restaurant,
                                 ),
@@ -314,7 +315,11 @@ class CartPageState extends State<CartPage> {
                               color: color.backgroundColor,
                               onPressed: () {
                                 //tableDialog(context);
-                                openChooseTableDialog(cart);
+                                if(appSettingModel.table_order == 2){
+                                  enterTableNumberDialog(cart, context, color);
+                                } else {
+                                  openChooseTableDialog(cart);
+                                }
                               },
                             ),
                           ),
@@ -330,7 +335,6 @@ class CartPageState extends State<CartPage> {
                             icon: Icon(Icons.discount),
                             color: color.backgroundColor,
                             onPressed: () {
-                              print("app setting: ${appSettingModel.directPaymentStatus}");
                               openPromotionDialog();
                             },
                           ),
@@ -348,6 +352,7 @@ class CartPageState extends State<CartPage> {
                                 // cart.initialLoad();
                                 cart.removeAllCartItem();
                                 // cart.removePartialCartItem();
+                                cart.removeSelectedTableIndex();
                                 cart.removeAllTable();
                               },
                             ),
@@ -764,7 +769,7 @@ class CartPageState extends State<CartPage> {
                                                         _isSettlement = false;
                                                       } else {
                                                         disableButton();
-                                                        if (cart.selectedOption == 'Dine in' && appSettingModel.table_order != 0) {
+                                                        if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == 1) {
                                                           if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
                                                             openLoadingDialogBox();
                                                             //_startTimer();
@@ -795,6 +800,7 @@ class CartPageState extends State<CartPage> {
                                                             //     msg: AppLocalizations.of(context)!.translate('make_sure_cart_is_not_empty_and_table_is_selected'));
                                                           }
                                                         } else {
+                                                          print("not dine in call");
                                                           // not dine in call
                                                           cart.removeAllTable();
                                                           if (cart.cartNotifierItem.isNotEmpty) {
@@ -1199,13 +1205,28 @@ class CartPageState extends State<CartPage> {
     }
   }
 
-  updateCartItem(CartModel cart) {
+  updateCartItem(CartModel cart) async {
+    for(int i = 0; i < cart.cartNotifierItem.length; i++) {
+      print("before cart item $i: ${cart.cartNotifierItem[i].order_detail_sqlite_id}");
+    }
     for (int i = 0; i < cart.cartNotifierItem.length; i++) {
       if (cart.cartNotifierItem[i].order_cache_sqlite_id == null) {
         cart.cartNotifierItem[i].order_cache_sqlite_id = orderCacheId;
+
+        List<OrderDetail> detailData = await PosDatabase.instance.readAllOrderDetailByOrderCache(int.parse(orderCacheId));
+        for(var detailItem in detailData){
+          print("product name compare: ${cart.cartNotifierItem[i].product_name}, ${detailItem.productName}");
+          if(cart.cartNotifierItem[i].product_name == detailItem.productName) {
+            print("match");
+            cart.cartNotifierItem[i].order_detail_sqlite_id = detailItem.order_detail_sqlite_id.toString();
+          }
+        }
       }
       cart.cartNotifierItem[i].order_cache_key = orderCacheKey;
       cart.cartNotifierItem[i].order_queue = orderNumber;
+    }
+    for(int i = 0; i < cart.cartNotifierItem.length; i++) {
+      print("after cart item $i: ${cart.cartNotifierItem[i].order_detail_sqlite_id}");
     }
   }
 
@@ -1324,12 +1345,24 @@ class CartPageState extends State<CartPage> {
 */
   getSelectedTable(CartModel cart, AppSettingModel appSettingModel) {
     List<String> result = [];
-    String? orderQueue = '';
+    List<String> orderQueue = [];
+    List<String> customTableNumber = [];
     for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-      if (cart.cartNotifierItem[i].order_queue != '') orderQueue = cart.cartNotifierItem[i].order_queue;
+      if (cart.cartNotifierItem[i].order_queue != '' && cart.cartNotifierItem[i].order_queue != null) {
+        if (!orderQueue.contains(cart.cartNotifierItem[i].order_queue)) {
+          orderQueue.add(cart.cartNotifierItem[i].order_queue!);
+        }
+      }
+      if (cart.cartNotifierItem[i].custom_table_number != null && cart.cartNotifierItem[i].custom_table_number != '') {
+        if (!customTableNumber.contains(cart.cartNotifierItem[i].custom_table_number)) {
+          customTableNumber.add(cart.cartNotifierItem[i].custom_table_number!);
+        }
+      }
     }
 
-    if (cart.selectedTable.isEmpty && cart.selectedOption == 'Dine in') {
+    if (customTableNumber.isNotEmpty && cart.selectedOption == 'Dine in') {
+      result = customTableNumber;
+    } else if (cart.selectedTable.isEmpty && cart.selectedOption == 'Dine in') {
       result.add('-');
     } else if (cart.selectedOption != 'Dine in') {
       result.add('-');
@@ -1344,9 +1377,9 @@ class CartPageState extends State<CartPage> {
     }
 
     if (result[0] == '-') {
-      if (orderQueue != '') {
-        result.clear();
-        result.add(AppLocalizations.of(context)!.translate('order') + ': ${orderQueue}');
+      if (orderQueue.isNotEmpty) {
+        result = orderQueue;
+        result[0] = AppLocalizations.of(context)!.translate('order') + ': ${result.toString().replaceAll('[', '').replaceAll(']', '')}';
         return result[0];
       }
     }
@@ -1358,7 +1391,6 @@ class CartPageState extends State<CartPage> {
   -----------------Calculation-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
   calPromotion(CartModel cart) async {
-    print("calPromotion");
     try {
       promoAmount = 0.0;
       cart.clearCategoryTotalPriceMap();
@@ -1421,16 +1453,16 @@ class CartPageState extends State<CartPage> {
   getManualApplyPromotion(CartModel cart) {
     allPromo = '';
     selectedPromoRate = '';
-    double rate = 0.0;
+    // double rate = 0.0;
     try {
       if (cart.selectedPromotion != null) {
         allPromo = cart.selectedPromotion!.name!;
         if (cart.selectedPromotion!.type == 0) {
           selectedPromoRate = cart.selectedPromotion!.amount.toString() + '%';
-          rate = double.parse(cart.selectedPromotion!.amount!) / 100;
+          // rate = double.parse(cart.selectedPromotion!.amount!) / 100;
         } else {
           selectedPromoRate = double.parse(cart.selectedPromotion!.amount!).toStringAsFixed(2);
-          rate = double.parse(cart.selectedPromotion!.amount!);
+          // rate = double.parse(cart.selectedPromotion!.amount!);
         }
         cart.selectedPromotion!.promoRate = selectedPromoRate;
 
@@ -1541,16 +1573,45 @@ class CartPageState extends State<CartPage> {
         cart.selectedPromotion!.promoAmount = selectedPromo;
       }
       double remainingPromo = selectedPromo;
-      for (var item in cart.categoryTotalPriceMap.entries) {
-        if (item.value >= remainingPromo) {
-          cart.categoryTotalPriceMap[item.key] = item.value - remainingPromo;
-          remainingPromo = 0;
-        } else {
-          remainingPromo -= item.value;
-          cart.categoryTotalPriceMap[item.key] = 0;
+      if(promotion.specific_category == '1') {
+        for (var item in cart.categoryTotalPriceMap.entries) {
+          if(promotion.category_id == item.key) {
+            if (item.value >= remainingPromo) {
+              cart.categoryTotalPriceMap[item.key] = item.value - remainingPromo;
+              remainingPromo = 0;
+            } else {
+              remainingPromo -= item.value;
+              cart.categoryTotalPriceMap[item.key] = 0;
+            }
+          }
         }
+      } else if(promotion.specific_category == '2'){
+        double totalEligibleValue = 0;
+        Map<String, double> eligibleCategories = {};
+
+        cart.categoryTotalPriceMap.forEach((key, value) {
+          if (promotion.multiple_category!.any((category) => category['category_id'].toString() == key)) {
+            eligibleCategories[key] = value;
+            totalEligibleValue += value;
+          }
+        });
+
+        if (totalEligibleValue <= 0 || remainingPromo <= 0) {
+          return;
+        }
+
+        if (remainingPromo > totalEligibleValue) {
+          remainingPromo = totalEligibleValue;
+        }
+
+        eligibleCategories.forEach((key, value) {
+          double discountForCategory = (value / totalEligibleValue) * remainingPromo;
+          double newValue = value - discountForCategory;
+          newValue = newValue < 0 ? 0 : newValue;
+          cart.categoryTotalPriceMap[key] = newValue;
+        });
       }
-      promoAmount += selectedPromo;
+      promoAmount += double.parse(selectedPromo.toStringAsFixed(2));
     } catch (e) {
       print('Specific category offer amount error: $e');
       selectedPromo = 0.0;
@@ -1586,18 +1647,33 @@ class CartPageState extends State<CartPage> {
       }
 
       //update new value to category total price map
-      double remainingPromo = promo;
+      double remainingPromo = selectedPromo;
+      double totalValue = 0;
       cart.categoryTotalPriceMap.forEach((key, value) {
-        if (value >= remainingPromo) {
-          cart.categoryTotalPriceMap[key] = value - remainingPromo;
-          remainingPromo = 0;
-        } else {
-          remainingPromo -= value;
-          cart.categoryTotalPriceMap[key] = 0;
-        }
+        totalValue += value;
       });
-      promoAmount += selectedPromo;
-      cart.selectedPromotion!.promoAmount = selectedPromo;
+
+      if (totalValue <= 0 || remainingPromo <= 0) {
+        return;
+      }
+
+      if (remainingPromo > totalValue) {
+        remainingPromo = totalValue;
+      }
+
+      Map<String, double> newCategoryTotalPriceMap = {};
+      cart.categoryTotalPriceMap.forEach((key, value) {
+        double discountForCategory = (value / totalValue) * remainingPromo;
+
+        double newValue = value - discountForCategory;
+        newValue = newValue < 0 ? 0 : newValue;
+
+        newCategoryTotalPriceMap[key] = newValue;
+      });
+
+      cart.categoryTotalPriceMap = newCategoryTotalPriceMap;
+      promoAmount += double.parse(selectedPromo.toStringAsFixed(2));
+      cart.selectedPromotion!.promoAmount = double.parse(selectedPromo.toStringAsFixed(2));;
     } catch (error) {
       print('check promotion type error: $error');
       selectedPromo = 0.0;
@@ -1851,7 +1927,6 @@ class CartPageState extends State<CartPage> {
   }
 
   getAutoApplyPromotionAllCategories(CartModel cart) {
-    print("getAutoApplyPromotion all category called");
     try {
       if (autoApplyPromotionList.isEmpty) {
         cart.autoPromotion = [];
@@ -1930,17 +2005,34 @@ class CartPageState extends State<CartPage> {
       }
       //update new value to category total price map
       double remainingPromo = promo;
+
+      double totalValue = 0;
       cart.categoryTotalPriceMap.forEach((key, value) {
-        if (value >= remainingPromo) {
-          cart.categoryTotalPriceMap[key] = value - remainingPromo;
-          remainingPromo = 0;
-        } else {
-          remainingPromo -= value;
-          cart.categoryTotalPriceMap[key] = 0;
-        }
+        totalValue += value;
       });
 
-      promoAmount += promo;
+      if (totalValue <= 0 || remainingPromo <= 0) {
+        return;
+      }
+
+      if (remainingPromo > totalValue) {
+        remainingPromo = totalValue;
+      }
+
+      Map<String, double> newCategoryTotalPriceMap = {};
+      cart.categoryTotalPriceMap.forEach((key, value) {
+        double discountForCategory = (value / totalValue) * remainingPromo;
+
+        double newValue = value - discountForCategory;
+        newValue = newValue < 0 ? 0 : newValue;
+
+        newCategoryTotalPriceMap[key] = newValue;
+      });
+
+      cart.categoryTotalPriceMap = newCategoryTotalPriceMap;
+
+      promoAmount += double.parse(promo.toStringAsFixed(2));
+      promotion.promoAmount = double.parse(promoAmount.toStringAsFixed(2));
     } catch (e) {
       print("calc auto apply non specific error: $e");
       promoRate = '';
@@ -1991,17 +2083,47 @@ class CartPageState extends State<CartPage> {
       }
 
       double remainingPromo = promo;
-      for (var item in cart.categoryTotalPriceMap.entries) {
-        if (item.value >= remainingPromo) {
-          cart.categoryTotalPriceMap[item.key] = item.value - remainingPromo;
-          remainingPromo = 0;
-        } else {
-          remainingPromo -= item.value;
-          cart.categoryTotalPriceMap[item.key] = 0;
+      if(promotion.specific_category == '1') {
+        for (var item in cart.categoryTotalPriceMap.entries) {
+          if(promotion.category_id == item.key) {
+            if (item.value >= remainingPromo) {
+              cart.categoryTotalPriceMap[item.key] = item.value - remainingPromo;
+              remainingPromo = 0;
+            } else {
+              remainingPromo -= item.value;
+              cart.categoryTotalPriceMap[item.key] = 0;
+            }
+          }
         }
+      } else if(promotion.specific_category == '2') {
+        double totalEligibleValue = 0;
+        Map<String, double> eligibleCategories = {};
+
+        cart.categoryTotalPriceMap.forEach((key, value) {
+          if (promotion.multiple_category!.any((category) => category['category_id'].toString() == key)) {
+            eligibleCategories[key] = value;
+            totalEligibleValue += value;
+          }
+        });
+
+        if (totalEligibleValue <= 0 || remainingPromo <= 0) {
+          return;
+        }
+
+        if (remainingPromo > totalEligibleValue) {
+          remainingPromo = totalEligibleValue;
+        }
+
+        eligibleCategories.forEach((key, value) {
+          double discountForCategory = (value / totalEligibleValue) * remainingPromo;
+          double newValue = value - discountForCategory;
+          newValue = newValue < 0 ? 0 : newValue;
+          cart.categoryTotalPriceMap[key] = newValue;
+        });
       }
 
-      promoAmount += promo;
+      promoAmount += double.parse(promo.toStringAsFixed(2));
+      promotion.promoAmount = double.parse(promotion.promoAmount!.toStringAsFixed(2));
     } catch (e) {
       print("calc auto apply specific category error: $e");
       promoRate = '';
@@ -2089,7 +2211,6 @@ class CartPageState extends State<CartPage> {
   Cart Ordering initial called
 */
   getSubTotal(CartModel cart) async {
-    print("getSubTotal");
     // await Future.delayed(Duration(milliseconds: 6000));
     try {
       // widget.currentPage == 'table' || widget.currentPage == 'qr_order'
@@ -2123,7 +2244,7 @@ class CartPageState extends State<CartPage> {
     }
     await getDiningTax(cart);
     await calPromotion(cart);
-    await getTaxAmount();
+    await getTaxAmount(cart);
     await getRounding();
     await getAllPaymentSplit(cart);
     await getAllTotal();
@@ -2164,7 +2285,6 @@ class CartPageState extends State<CartPage> {
       }
       if (!controller.isClosed) {
         controller.sink.add('refresh');
-        print("refresh called");
       }
     } catch(e){
       print("getSubTotal error: $e");
@@ -2198,13 +2318,27 @@ class CartPageState extends State<CartPage> {
     }
   }
 
-  getTaxAmount() {
+  getTaxAmount(CartModel cart) {
     try {
+      // cart.clearCategoryTotalPriceMap();
+      // calculateCategoryPrice(cart);
       discountPrice = total - promoAmount;
       if (taxRateList.length > 0) {
         for (int i = 0; i < taxRateList.length; i++) {
-          priceIncTaxes = discountPrice * (double.parse(taxRateList[i].tax_rate!) / 100);
-          taxRateList[i].tax_amount = priceIncTaxes;
+          if(taxRateList[i].specific_category == 0){
+            double total = cart.categoryTotalPriceMap.values.fold(0.0, (sum, value) => sum + value);
+            priceIncTaxes = total * (double.parse(taxRateList[i].tax_rate!) / 100);
+            taxRateList[i].tax_amount = double.parse(priceIncTaxes.toStringAsFixed(2));
+          } else {
+            double taxCategoryAmount = 0;
+            for (var item in cart.categoryTotalPriceMap.entries) {
+              if (taxRateList[i].multiple_category!.any((category) => category['category_id'].toString() == item.key)) {
+                taxCategoryAmount += item.value;
+              }
+            }
+            taxRateList[i].tax_amount = taxCategoryAmount * (double.parse(taxRateList[i].tax_rate!) / 100);
+            taxRateList[i].tax_amount = double.parse(taxRateList[i].tax_amount!.toStringAsFixed(2));
+          }
         }
       }
     } catch (e) {
@@ -2303,7 +2437,6 @@ class CartPageState extends State<CartPage> {
     try {
       paymentSplitList = [];
       paymentSplitAmount = 0.0;
-      print("Cart item: ${cart.cartNotifierItem.length}");
       if(cart.cartNotifierItem.length != 0) {
         if(orderKey != '') {
           List<OrderPaymentSplit> orderSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(orderKey);
@@ -2353,6 +2486,106 @@ class CartPageState extends State<CartPage> {
           // ignore: null_check_always_fails
           return null!;
         });
+  }
+
+  Future<void> enterTableNumberDialog(CartModel cart, BuildContext context, ThemeColor color) async {
+    TextEditingController tableController = TextEditingController();
+    bool isButtonDisabled = true;
+    if(cart.selectedTableIndex != ''){
+      tableController.text = cart.selectedTableIndex;
+      isButtonDisabled = false;
+    }
+
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(AppLocalizations.of(context)!.translate('table_mode_custom_note')),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      height: 75,
+                      width: 350,
+                      child: TextField(
+                        autofocus: true,
+                        controller: tableController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly
+                        ],
+                        textAlign: TextAlign.center,
+                        decoration: InputDecoration(
+                          errorText: tableController.text.isEmpty ? AppLocalizations.of(context)!.translate('enter_table_number') : null,
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: color.backgroundColor),
+                          ),
+                          hintText: AppLocalizations.of(context)!.translate('enter_table_number'),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            tableController.text = value.replaceFirst(RegExp(r'^0+'), '');
+                            tableController.selection = TextSelection.fromPosition(
+                              TextPosition(offset: tableController.text.length),
+                            );
+                            isButtonDisabled = tableController.text.isEmpty;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: <Widget>[
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: SizedBox(
+                        height: 50,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: color.backgroundColor,
+                          ),
+                          child: Text(AppLocalizations.of(context)!.translate('close'), style: TextStyle(color: Colors.white)),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    Expanded(
+                      flex: 1,
+                      child: SizedBox(
+                        height: 50,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: color.buttonColor,
+                          ),
+                          child: Text(AppLocalizations.of(context)!.translate('ok'), style: TextStyle(color: Colors.white)),
+                          onPressed: isButtonDisabled
+                              ? null
+                              : () {
+                            cart.selectedTableIndex = tableController.text;
+                            Navigator.of(context).pop(tableController.text);
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   Future<Future<Object?>> openChooseTableDialog(CartModel cartModel) async {
@@ -2712,14 +2945,11 @@ class CartPageState extends State<CartPage> {
           // printReceipt.printProductTicket(printerList, int.parse(this.orderCacheId), ticketProduct);
         }
 
-        if(appSettingModel.table_order == 2) {
-          Navigator.of(context).pop();
-          await checkDirectPayment(appSettingModel, cart);
-        } else {
-          cart.removeAllCartItem();
-          cart.removeAllTable();
-          Navigator.of(context).pop();
-        }
+
+        cart.removeAllCartItem();
+        cart.removeAllTable();
+        Navigator.of(context).pop();
+
         //syncAllToCloud();
         // print('finish sync');
         // if (this.isLogOut == true) {
@@ -2811,7 +3041,6 @@ class CartPageState extends State<CartPage> {
 */
   callAddNotDineInOrderCache(CartModel cart, AppSettingModel appSettingModel) async {
     try{
-      print("first_cache_other_order_key: ${cart.cartNotifierItem[0].first_cache_other_order_key}");
       resetValue();
       List<cartProductItem> outOfStockItem = await checkOrderStock(cart);
       if(outOfStockItem.isEmpty){
@@ -3359,7 +3588,7 @@ class CartPageState extends State<CartPage> {
           batch = await batchChecking();
         }
         //check selected table is in use or not
-        if (cart.selectedOption == 'Dine in' && localSetting.table_order != 0) {
+        if (cart.selectedOption == 'Dine in' && localSetting.table_order != 0 && localSetting.table_order != 2) {
           if(isAddOrder == true){
             inUsedTable = await checkCartTableStatus(cart.selectedTable);
           } else {
@@ -3383,6 +3612,7 @@ class CartPageState extends State<CartPage> {
 
           }
         }
+        print("cart.selectedTableIndex2222: ${cart.selectedTableIndex}");
         if (batch != '') {
           try {
             //create order cache
@@ -3393,8 +3623,9 @@ class CartPageState extends State<CartPage> {
                 company_id: loginUserObject['company_id'].toString(),
                 branch_id: branch_id.toString(),
                 order_detail_id: '',
-                table_use_sqlite_id: cart.selectedOption == 'Dine in' && localSetting.table_order != 0 ? _tableUse!.table_use_sqlite_id.toString() : '',
-                table_use_key: cart.selectedOption == 'Dine in' && localSetting.table_order != 0 ? _tableUse!.table_use_key : '',
+                custom_table_number: cart.selectedOption == 'Dine in' && localSetting.table_order == 2 ? cart.selectedTableIndex : '',
+                table_use_sqlite_id: cart.selectedOption == 'Dine in' && localSetting.table_order != 0 && localSetting.table_order != 2 ? _tableUse!.table_use_sqlite_id.toString() : '',
+                table_use_key: cart.selectedOption == 'Dine in' && localSetting.table_order != 0 && localSetting.table_order != 2 ? _tableUse!.table_use_key : '',
                 other_order_key: '',
                 batch_id: batch.toString().padLeft(6, '0'),
                 dining_id: this.diningOptionID.toString(),
@@ -3420,10 +3651,9 @@ class CartPageState extends State<CartPage> {
 
             try {
               if(isAddOrder){
-                if((localSetting.table_order == 1 && cart.selectedOption != 'Dine in') || cart.selectedOption != 'Dine in' && cart.cartNotifierItem[0].order_cache_key! != ''){
+                if(cart.selectedOption == 'Dine in' && localSetting.table_order != 1 || cart.selectedOption != 'Dine in' && cart.cartNotifierItem[0].order_cache_key! != ''){
                   OrderCache? cacheData = await PosDatabase.instance.readOrderCacheSqliteID(cart.cartNotifierItem[0].order_cache_key!);
                   if(cacheData!.other_order_key == ''){
-                    print("first cache other order key: ${cacheData.other_order_key}");
                     await insertOtherOrderCacheKey(cacheData, dateTime);
                   } else {
                     cacheOtherOrderKey = cacheData.other_order_key!;
@@ -3458,7 +3688,7 @@ class CartPageState extends State<CartPage> {
           }
         }
       } catch (e) {
-        print('createOrderCache error: ${e}');
+        print('cart, createOrderCache error: ${e}');
       }
     } catch(e) {
       FLog.error(
@@ -3510,7 +3740,6 @@ class CartPageState extends State<CartPage> {
   }
 
   Future<int> generateOrderQueue() async {
-    print("generateOrderQueue called");
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
@@ -3693,6 +3922,9 @@ class CartPageState extends State<CartPage> {
           price: newOrderDetailList[j].price,
           original_price: newOrderDetailList[j].base_price,
           quantity: newOrderDetailList[j].quantity.toString(),
+          promo: {},
+          charge: {},
+          tax: {},
           remark: newOrderDetailList[j].remark,
           account: '',
           edited_by: '',
@@ -3840,6 +4072,7 @@ class CartPageState extends State<CartPage> {
   }
 
   insertOrderDetailKey(OrderDetail orderDetail, String dateTime) async {
+    print("insertOrderDetailKey called");
     OrderDetail? detailData;
     try {
       orderDetailKey = await generateOrderDetailKey(orderDetail);
@@ -3957,12 +4190,12 @@ class CartPageState extends State<CartPage> {
                   break;
                 case 'tb_order_cache':
                   {
-                    await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+                    await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key'], responseJson[i]['updated_at']);
                   }
                   break;
                 case 'tb_order_detail':
                   {
-                    await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+                    await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key'], responseJson[i]['updated_at']);
                   }
                   break;
                 case 'tb_order_modifier_detail':
@@ -3972,7 +4205,7 @@ class CartPageState extends State<CartPage> {
                   break;
                 case 'tb_branch_link_product':
                   {
-                    await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
+                    await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id'], responseJson[i]['updated_at']);
                   }
                   break;
                 case 'tb_table':

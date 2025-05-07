@@ -604,7 +604,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
               }
               break;
               case 'tb_order_cache': {
-                await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+                await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key'], responseJson[i]['updated_at']);
               }
               break;
               case 'tb_table': {

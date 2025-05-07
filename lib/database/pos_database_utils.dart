@@ -72,6 +72,7 @@ class PosDatabaseUtils {
   static final textType = 'TEXT NOT NULL';
   static final integerType = 'INTEGER NOT NULL';
   static final jsonType = 'JSON DEFAULT "[]"';
+  static final jsonType2 = 'JSON DEFAULT "{}"';
 
   static void onUpgrade (Database db, int oldVersion, int newVersion) async {
     //get pref
@@ -278,6 +279,21 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.currency_symbol} $textType DEFAULT 'RM'");
           }break;
           case 38: {
+            await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.specific_category} $integerType DEFAULT 0");
+            await db.execute("ALTER TABLE $tableTax ADD ${TaxFields.multiple_category} $jsonType");
+            await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.custom_table_number} $textType DEFAULT ''");
+            await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.show_total_amount} $integerType DEFAULT 0");
+            await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.promo} $jsonType2");
+            await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.charge} $jsonType2");
+            await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.tax} $jsonType2");
+            await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.promo} $jsonType2");
+            await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.charge} $jsonType2");
+            await db.execute("ALTER TABLE $tableSettlement ADD ${SettlementFields.tax} $jsonType2");
+            await db.execute("ALTER TABLE $tableSalesPerDay ADD ${SalesPerDayFields.tax_detail} $jsonType2");
+            await db.execute("ALTER TABLE $tableSalesPerDay ADD ${SalesPerDayFields.charge_detail} $jsonType2");
+            await db.execute("ALTER TABLE $tableSalesPerDay ADD ${SalesPerDayFields.promotion_detail} $jsonType2");
+          }break;
+          case 39: {
             await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.fiuu_ref_no} $textType DEFAULT '' ");
             await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.fiuu_trans_id} $textType DEFAULT '' ");
           }break;
@@ -417,6 +433,7 @@ class PosDatabaseUtils {
           ${OrderCacheFields.company_id} $textType, 
           ${OrderCacheFields.branch_id} $textType, 
           ${OrderCacheFields.order_detail_id} $textType, 
+          ${OrderCacheFields.custom_table_number} $textType, 
           ${OrderCacheFields.table_use_sqlite_id} $textType, 
           ${OrderCacheFields.table_use_key} $textType,
           ${OrderCacheFields.other_order_key} $textType,
@@ -457,6 +474,9 @@ class PosDatabaseUtils {
         ${OrderDetailFields.price} $textType, 
         ${OrderDetailFields.original_price} $textType, 
         ${OrderDetailFields.quantity} $textType, 
+        ${OrderDetailFields.promo} $jsonType2,
+        ${OrderDetailFields.charge} $jsonType2,
+        ${OrderDetailFields.tax} $jsonType2,
         ${OrderDetailFields.remark} $textType, 
         ${OrderDetailFields.account} $textType,
         ${OrderDetailFields.edited_by} $textType,
@@ -609,8 +629,8 @@ class PosDatabaseUtils {
     create tax table
 */
     await db.execute('''CREATE TABLE $tableTax ( ${TaxFields.tax_id} $idType, ${TaxFields.company_id} $textType,${TaxFields.name} $textType,
-           ${TaxFields.type} $integerType, ${TaxFields.tax_rate} $textType,${TaxFields.created_at} $textType,${TaxFields.updated_at} $textType, 
-           ${TaxFields.soft_delete} $textType)''');
+           ${TaxFields.type} $integerType, ${TaxFields.tax_rate} $textType, ${TaxFields.specific_category} $integerType, ${TaxFields.multiple_category} $jsonType, 
+           ${TaxFields.created_at} $textType, ${TaxFields.updated_at} $textType, ${TaxFields.soft_delete} $textType)''');
 /*
     create tax link dining table
 */
@@ -973,9 +993,12 @@ class PosDatabaseUtils {
           ${SettlementFields.total_refund_bill} $textType,
           ${SettlementFields.total_refund_amount} $textType,
           ${SettlementFields.total_discount} $textType,
+          ${SettlementFields.promo} $jsonType2,
           ${SettlementFields.total_cancellation} $textType,
           ${SettlementFields.total_charge} $textType, 
+          ${SettlementFields.charge} $jsonType2,
           ${SettlementFields.total_tax} $textType, 
+          ${SettlementFields.tax} $jsonType2,
           ${SettlementFields.total_rounding} $textType, 
           ${SettlementFields.settlement_by_user_id} $textType,
           ${SettlementFields.settlement_by} $textType,
@@ -1042,6 +1065,7 @@ class PosDatabaseUtils {
           ${ChecklistFields.check_list_show_separator} $integerType,
           ${ChecklistFields.paper_size} $textType,
           ${ChecklistFields.show_product_sku} $integerType,
+          ${ChecklistFields.show_total_amount} $integerType,
           ${ChecklistFields.sync_status} $integerType,
           ${ChecklistFields.created_at} $textType,
           ${ChecklistFields.updated_at} $textType,
@@ -1161,8 +1185,11 @@ class PosDatabaseUtils {
           ${SalesPerDayFields.branch_id} $textType,
           ${SalesPerDayFields.total_amount} $textType,
           ${SalesPerDayFields.tax} $textType,
+          ${SalesPerDayFields.tax_detail} $jsonType2,
           ${SalesPerDayFields.charge} $textType,
+          ${SalesPerDayFields.charge_detail} $jsonType2,
           ${SalesPerDayFields.promotion} $textType,
+          ${SalesPerDayFields.promotion_detail} $jsonType2,
           ${SalesPerDayFields.rounding} $textType,
           ${SalesPerDayFields.date} $textType,
           ${SalesPerDayFields.payment_method} $textType,

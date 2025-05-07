@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/second_device/order/place_order.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -120,6 +121,7 @@ class PlaceAddOrder extends PlaceOrder {
             company_id: loginUserObject['company_id'].toString(),
             branch_id: branch_id.toString(),
             order_detail_id: '',
+            custom_table_number: '',
             table_use_sqlite_id: _tableUse.table_use_sqlite_id.toString(),
             table_use_key: _tableUse.table_use_key,
             other_order_key: orderCache.order_cache_key,
@@ -147,7 +149,7 @@ class PlaceAddOrder extends PlaceOrder {
         await insertOrderCacheKeyIntoTableUse(cart, data, dateTime);
       }
     } catch (e) {
-      print('createOrderCache error: ${e}');
+      print('add_on_order, createOrderCache error: ${e}');
     }
   }
 

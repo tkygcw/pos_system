@@ -838,6 +838,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
           unit: orderDetailList[i].unit,
           per_quantity_unit: orderDetailList[i].per_quantity_unit,
           order_queue: orderCacheList[0].order_queue,
+          custom_table_number: orderCacheList[0].custom_table_number,
           productVariantName: orderDetailList[i].product_variant_name,
           remark: orderDetailList[i].remark!,
           status: 0,

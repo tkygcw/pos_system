@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/second_device/order/place_order.dart';
@@ -64,6 +65,7 @@ class PlaceNotDineInAddOrder extends PlaceOrder {
           company_id: loginUserObject['company_id'].toString(),
           branch_id: branch_id.toString(),
           order_detail_id: '',
+          custom_table_number: addOnOrderCache.custom_table_number ?? '',
           table_use_sqlite_id: '',
           table_use_key: '',
           other_order_key: addOnOrderCache.other_order_key,
@@ -90,7 +92,7 @@ class PlaceNotDineInAddOrder extends PlaceOrder {
       orderCacheSqliteId = data.order_cache_sqlite_id.toString();
       await insertOrderCacheKey(data, dateTime);
     }catch(e, s){
-      print("createOrderCache error: $e, stacktrace: $s");
+      print("add_on_not_dine_in, createOrderCache error: $e, stacktrace: $s");
       rethrow;
     }
   }

@@ -76,6 +76,7 @@ class PlaceDineInOrder extends PlaceOrder {
             company_id: loginUserObject['company_id'].toString(),
             branch_id: branch_id.toString(),
             order_detail_id: '',
+            custom_table_number: '',
             table_use_sqlite_id: _tableUseId,
             table_use_key: _tableUse[0].table_use_key,
             other_order_key: '',
@@ -110,7 +111,7 @@ class PlaceDineInOrder extends PlaceOrder {
         //cart.addOrder(data);
       }
     } catch (e) {
-      print('createOrderCache error: ${e}');
+      print('dine_in_order, createOrderCache error: ${e}');
     }
   }
 
