@@ -218,7 +218,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                                       if(PaymentLists[index].type == 3){
                                         try{
                                           openLoading();
-                                          await NFCPayment.refreshToken();
+                                          await NFCPayment.refreshToken().timeout(Duration(seconds: 3));
                                         }catch(e) {
                                           Navigator.of(context).pop();
                                           CustomFailedToast.showToast(title: e.toString());

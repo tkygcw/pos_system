@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/fragment/custom_toastification.dart';
 import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/nfc_payment/nfc_payment.dart';
 import 'package:pos_system/object/order_payment_split.dart';
@@ -408,6 +409,14 @@ class _RefundDialogState extends State<RefundDialog> {
                   'MYR'
               ),
             );
+          } else if(checkData.fiuu_trans_id != ''){
+            print("fiuu trans id: ${checkData.fiuu_trans_id}");
+            await NFCPayment.refreshToken().timeout(Duration(seconds: 3));
+            var result = await NFCPayment.voidTransaction(transactionID: checkData.fiuu_trans_id);
+            if(result != null){
+              var data = jsonDecode(result);
+              response = data[NFCPaymentFields.status].toString();
+            }
           }
         });
       } else if(checkData.payment_split == 0) {
@@ -428,7 +437,7 @@ class _RefundDialogState extends State<RefundDialog> {
           );
         } else if(checkData.fiuu_trans_id != ''){
           print("fiuu trans id: ${checkData.fiuu_trans_id}");
-          await NFCPayment.refreshToken();
+          await NFCPayment.refreshToken().timeout(Duration(seconds: 3));
           var result = await NFCPayment.voidTransaction(transactionID: checkData.fiuu_trans_id);
           if(result != null){
             var data = jsonDecode(result);
@@ -456,11 +465,15 @@ class _RefundDialogState extends State<RefundDialog> {
       } else {
         FLog.error(
           className: "refund_dialog",
-          text: "ipay API error",
-          exception: "$response",
+          text: "Invalid refund api response",
+          exception: "Response code: $response",
         );
       }
     } catch(e){
+      CustomFailedToast.showToast(
+          title: "Refund error",
+          description: e.toString(),
+          duration: 8);
       FLog.error(
         className: "refund_dialog",
         text: "updateOrderPaymentStatus error",

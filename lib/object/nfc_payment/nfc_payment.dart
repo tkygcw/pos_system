@@ -102,6 +102,7 @@ class NFCPayment {
   static const _INIT_PAYMENT = 'initPayment';
   static const _START_TRX = 'startTrx';
   static const _VOID_TRX = 'voidTrx';
+  static const _CANCEL_TRX = 'cancelTrx';
   static const _TRX_STATUS = 'trxStatus';
   static const _SETTLEMENT = 'settlement';
 
@@ -117,17 +118,16 @@ class NFCPayment {
     await _paymentChannel.invokeMethod(_INIT_PAYMENT);
   }
 
-  static refreshToken() async {
+  static Future<void> refreshToken() async {
     await _paymentChannel.invokeMethod("refreshToken");
   }
 
-  static startPayment({required String amount, required String ref_no}) async {
+  static Future<void> startPayment({required String amount, required String ref_no}) async {
     Map<String, dynamic> value = {
       NFCPaymentFields.amount: amount,
       NFCPaymentFields.reference_no: ref_no
     };
-    var result = await _paymentChannel.invokeMethod(_START_TRX, jsonEncode(value));
-    print("startPayment result in nfc payment: ${result}");
+    await _paymentChannel.invokeMethod(_START_TRX, jsonEncode(value));
   }
 
   static Future<String?> voidTransaction({required transactionID}) async {
@@ -141,6 +141,10 @@ class NFCPayment {
       return result;
     }
     return null;
+  }
+
+  static Future<void> cancelTransaction() async {
+    await _paymentChannel.invokeMethod(_CANCEL_TRX);
   }
 
   getTransactionStatus({String? transactionID, String? referenceNo}) async {

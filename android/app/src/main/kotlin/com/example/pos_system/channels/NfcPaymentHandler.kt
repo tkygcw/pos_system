@@ -100,6 +100,10 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                     }
 //                    result.success(true)
                 }
+                "cancelTrx" -> {
+                    cancelTrx()
+                    result.success(true)
+                }
                 "trxStatus" -> {
                     val value = call.arguments.toString()
                     val paymentData = Gson().fromJson(value, PaymentData::class.java)
@@ -348,7 +352,7 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                     }
                 })
         } catch (e: Exception) {
-//            Log.e(MainActivity.TAG, e.message, e)
+            methodChannelResult.error("voidTransaction error", e.message, e)
             Log.e("voidTransaction", e.message, e)
         }
     }
@@ -404,12 +408,6 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
     }
 
     private fun startEMVProcessing(amount: String, referenceNo: String) {
-        // run aync task as blocking.
-//        runOnUiThread {
-////            clearLogs()
-////            writeLog("Amount, Authorised: " + edtAmtAuth.getText().toString())
-//            Log.i("startEMVProcessing", "Amount, Authorised: " + amount)
-//        }
         try {
             _transactionOutcome = null
 
@@ -417,8 +415,6 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                 .setReferenceNumber(referenceNo)
                 .setAmount(amount)
                 .build()
-
-            throw Exception("test error")
 
             SSMPOSSDK.getInstance().transaction.startTransaction(
                 activity,
@@ -605,8 +601,10 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                 })
         } catch (e: Exception) {
             toggleTransactionRunning(false)
-            trxEventSink?.error("transactionError", e.message, e)
             Log.e("startTrx", e.message.toString())
+            runOnUiThread {
+                trxEventSink?.error("transactionError", e.message, e)
+            }
         }
     }
 
@@ -630,11 +628,11 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
 
     private fun refreshToken(methodChannelResult: MethodChannel.Result) {
         try{
+            Log.i("refreshToken", "is trx running in refresh token: ${isTrxRunning}")
             if(isTrxRunning){
                 return
             }
             toggleTransactionRunning(true)
-            Log.i("refreshToken", "Start refresh token")
             SSMPOSSDK.getInstance().ssmpossdkConfiguration.uniqueID = "nI2qo2vAmRoPbdgE2tfJ"
             SSMPOSSDK.getInstance().ssmpossdkConfiguration.developerID = "ZCh9mzZXqHzezf4"
             SSMPOSSDK.getInstance().transaction.refreshToken(

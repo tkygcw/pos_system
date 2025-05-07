@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../main.dart';
 import '../../object/nfc_payment/nfc_payment.dart';
 import '../../translation/AppLocalizations.dart';
+import '../../utils/Utils.dart';
 
 enum PaymentUIEvent {
   Unknown, //= 255,
@@ -73,10 +74,12 @@ class _ScanButton extends StatefulWidget {
 
 class _ScanButtonState extends State<_ScanButton> {
   final String startScan = "Start scan";
+  StreamController<String?> eventStreamController = StreamController<String?>();
   StreamController<bool> btnStreamController = StreamController<bool>();
   StreamController<String> btnTextStreamController = StreamController<String>();
   bool isButtonDisable = false;
   List<cartProductItem> itemList = [];
+  late Stream<String?> eventStream;
   late Stream<bool> btnStream;
   late Stream<String> btnTextStream;
   late StreamSubscription _trxUIStreamSub;
@@ -84,6 +87,7 @@ class _ScanButtonState extends State<_ScanButton> {
 
   @override
   void initState() {
+    eventStream = eventStreamController.stream;
     btnStream = btnStreamController.stream;
     btnTextStream = btnTextStreamController.stream;
     initTrxStreamSub();
@@ -93,6 +97,7 @@ class _ScanButtonState extends State<_ScanButton> {
 
   @override
   void dispose() {
+    cancelTransaction();
     _trxUIStreamSub.cancel();
     _trxStreamSub.cancel();
     super.dispose();
@@ -100,36 +105,65 @@ class _ScanButtonState extends State<_ScanButton> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<bool>(
-        stream: btnStream,
-        initialData: false,
-        builder: (context, snapshot) {
-          return ElevatedButton.icon(
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all(Colors.green),
-                padding: WidgetStateProperty.all(EdgeInsets.all(10)),
-              ),
-              onPressed: snapshot.data == false ? () async {
-                asyncQ.addJob((_) async {
-                  try{
-                    String? referenceNo = await generateRefNo();
-                    if(referenceNo != null){
-                      //use actual amount in prod, remember remove decimal point
-                      print("NFC auth amount: ${widget.finalAmount}");
-                      await NFCPayment.startPayment(amount: "5800", ref_no: referenceNo);
-                    } else {
-                      throw Exception("Generate reference error");
-                    }
-                  }catch(e){
-                    print("error: $e");
-                  }
-                });
-              } : null,
-              icon: Icon(Icons.call_received, size: 20),
-              label: buildBtnText()
-          );
-      }
+    return Column(
+      children: [
+        buildButtonEvent(),
+        buildScanButton()
+      ],
     );
+  }
+
+  Widget buildButtonEvent() {
+    return StreamBuilder<String?>(
+          stream: eventStream,
+          builder: (context, snapshot) {
+            if(snapshot.hasData){
+              return Text(snapshot.data!);
+            } else {
+              return SizedBox.shrink();
+            }
+          }
+      );
+  }
+
+  Widget buildScanButton() {
+    return StreamBuilder<bool>(
+          stream: btnStream,
+          initialData: false,
+          builder: (context, snapshot) {
+            return ElevatedButton.icon(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(Colors.green),
+                  padding: WidgetStateProperty.all(EdgeInsets.all(10)),
+                ),
+                onPressed: snapshot.data == false ? () async {
+                  asyncQ.addJob((_) async {
+                    try{
+                      String? referenceNo = await generateRefNo();
+                      if(referenceNo != null){
+                        //use actual amount in prod, remember remove decimal point
+                        print("Actual NFC amount: ${widget.finalAmount.replaceAll(".", "")}");
+                        await NFCPayment.startPayment(amount: "5800", ref_no: referenceNo);
+                      } else {
+                        throw Exception("Generate reference error");
+                      }
+                    }catch(e){
+                      cancelTransaction();
+                      Navigator.of(context).pop();
+                      showErrorToast(title: "Start scan error", description: e.toString());
+                      FLog.error(
+                        className: "nfc_payment_view",
+                        text: "Payment button onPressed error",
+                        exception: e,
+                      );
+                    }
+                  });
+                } : null,
+                icon: Icon(Icons.call_received, size: 20),
+                label: buildBtnText()
+            );
+          }
+      );
   }
 
   Widget buildBtnText() {
@@ -145,7 +179,15 @@ class _ScanButtonState extends State<_ScanButton> {
    );
   }
 
-  openNFCSetting(){
+  void showErrorToast({required String title, String? description}){
+    CustomFailedToast.showToast(
+        title: title,
+        description: description,
+        duration: 8
+    );
+  }
+
+  void openNFCSetting(){
     showDialog(
         context: context,
         builder: (context) {
@@ -169,6 +211,10 @@ class _ScanButtonState extends State<_ScanButton> {
     );
   }
 
+  void cancelTransaction() async {
+    await NFCPayment.cancelTransaction();
+  }
+
   void initTrxStreamSub(){
     late NFCPaymentResponse response;
     _trxStreamSub = NFCPayment.transactionEvents.listen((event) {
@@ -186,14 +232,23 @@ class _ScanButtonState extends State<_ScanButton> {
         openNFCSetting();
       } else {
         Navigator.of(context).pop();
-        CustomFailedToast.showToast(
+        showErrorToast(
             title: "Transaction Failed: ${jsonResponse[NFCPaymentFields.status]}",
-            description: "${response.trxStatusCode}-${response.trxStatusMsg}",
-            duration: 8
+            description:"${response.trxStatusCode}-${response.trxStatusMsg}");
+        FLog.error(
+          className: "nfc_payment_view",
+          text: "Transaction outcome failed: ${jsonResponse[NFCPaymentFields.status]}",
+          exception: "${response.trxStatusCode}-${response.trxStatusMsg}",
         );
       }
     }, onError: (error) {
-      print("onError: ${error.toString()}");
+      showErrorToast(title: "Transaction Error", description: error.toString());
+      FLog.error(
+        className: "nfc_payment_view",
+        text: "listen Trx stream error",
+        exception: error,
+      );
+
     });
   }
 
@@ -201,22 +256,30 @@ class _ScanButtonState extends State<_ScanButton> {
     String UIMessage = startScan;
     _trxUIStreamSub = NFCPayment.transactionUIEvents.listen((event) {
       print("event: $event");
+
       var jsonResponse = jsonDecode(event);
+      int status = jsonResponse[NFCPaymentFields.status];
       if(jsonResponse['data'] != null){
         UIMessage = jsonResponse['data'];
       }
-      if(jsonResponse[NFCPaymentFields.status] == 71){
-        return;
-      } else if (jsonResponse[NFCPaymentFields.status] == 72)  {
-        btnStreamController.sink.add(true);
-      } else {
+      if(status == 0 || status == 1){
         btnTextStreamController.sink.add(UIMessage);
+        eventStreamController.sink.add(null);
+      } else {
+        eventStreamController.sink.add(UIMessage);
+        if(status == 71){
+          //Present card status
+          btnStreamController.sink.add(false);
+        } else if (status == 72){
+          //Card Presented status
+          btnStreamController.sink.add(true);
+        }
       }
     }, onError: (error) {
       print("onError: ${error.toString()}");
       btnTextStreamController.sink.add(startScan);
       btnStreamController.sink.add(false);
-      CustomFailedToast.showToast(title: "UI stream error");
+      showErrorToast(title: "Transaction UI stream Error", description: error.toString());
       FLog.error(
         className: "nfc_payment_view",
         text: "listen UI stream error",
