@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/object/branch.dart';
+import 'package:pos_system/object/nfc_payment/nfc_payment.dart';
 import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/fragment/payment/ipay_api.dart';
 import 'package:pos_system/object/refund.dart';
@@ -425,6 +426,14 @@ class _RefundDialogState extends State<RefundDialog> {
                 'MYR'
             ),
           );
+        } else if(checkData.fiuu_trans_id != ''){
+          print("fiuu trans id: ${checkData.fiuu_trans_id}");
+          await NFCPayment.refreshToken();
+          var result = await NFCPayment.voidTransaction(transactionID: checkData.fiuu_trans_id);
+          if(result != null){
+            var data = jsonDecode(result);
+            response = data[NFCPaymentFields.status].toString();
+          }
         }
       }
 

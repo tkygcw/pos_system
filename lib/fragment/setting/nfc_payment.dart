@@ -21,13 +21,13 @@ class _NfcPaymentPageState extends State<NfcPaymentPage> {
 
   @override
   void initState() {
-    _streamSubscription = payment.transactionEvents.listen((event) {
+    _streamSubscription = NFCPayment.transactionEvents.listen((event) {
       print("event: $event");
       var jsonResponse = jsonDecode(event);
       if(jsonResponse[NFCPaymentFields.status] == 0) {
         if(jsonResponse['data'] != null){
           var jsonData = jsonDecode(jsonResponse['data']);
-          var trxDetail = NFCPayment.fromJson(jsonData);
+          var trxDetail = NFCPaymentResponse.fromJson(jsonData);
           //we will extract the success here
           transactionID = trxDetail.transaction_id!;
           referenceNo = trxDetail.reference_no;
@@ -66,7 +66,7 @@ class _NfcPaymentPageState extends State<NfcPaymentPage> {
             ),
             ElevatedButton(
               onPressed: () async {
-                // await payment.refreshToken();
+                await NFCPayment.refreshToken();
                 print("refresh token done");
               },
               child: Text("Refresh token"),
@@ -75,14 +75,14 @@ class _NfcPaymentPageState extends State<NfcPaymentPage> {
               onPressed: () async {
                 DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
                 String dateTime = dateFormat.format(DateTime.now());
-                await payment.startPayment(amount: "5800", ref_no: "order${dateTime.replaceAll(' ', '').replaceAll('-', '').replaceAll(':', '')}");
+                await NFCPayment.startPayment(amount: "5800", ref_no: "order${dateTime.replaceAll(' ', '').replaceAll('-', '').replaceAll(':', '')}");
                 print("done");
               },
               child: Text("Start payment"),
             ),
             ElevatedButton(
               onPressed: () async {
-                await payment.voidTransaction(transactionID: transactionID);
+                await NFCPayment.voidTransaction(transactionID: "32624");
                 print("done");
               },
               child: Text("Void/Refund payment"),

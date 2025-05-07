@@ -26,15 +26,7 @@ class NFCPaymentFields {
   static String card_type = 'card_type';
 }
 
-class NFCPayment {
-  static const  MethodChannel _paymentChannel = MethodChannel('optimy.com.my/nfcPayment');
-  final EventChannel _transactionUIEvents = EventChannel('optimy.com.my/transactionUIEvent');
-  final EventChannel _transactionEvents = EventChannel('optimy.com.my/transactionEvent');
-  static const _INIT_PAYMENT = 'initPayment';
-  static const _START_TRX = 'startTrx';
-  static const _VOID_TRX = 'voidTrx';
-  static const _TRX_STATUS = 'trxStatus';
-  static const _SETTLEMENT = 'settlement';
+class NFCPaymentResponse {
   String? trxStatusCode;
   String? trxStatusMsg;
   String? transaction_id;
@@ -56,7 +48,7 @@ class NFCPayment {
   String? application_label;
   String? card_type;
 
-  NFCPayment({
+  NFCPaymentResponse({
     this.trxStatusCode,
     this.trxStatusMsg,
     this.transaction_id,
@@ -79,34 +71,45 @@ class NFCPayment {
     this.card_type
   });
 
-  static NFCPayment fromJson(Map<String, Object?> json) => NFCPayment(
-    trxStatusCode: json[NFCPaymentFields.trx_status_code] as String?,
-    trxStatusMsg: json[NFCPaymentFields.trx_status_msg] as String?,
-    transaction_id: json[NFCPaymentFields.transaction_id] as String?,
-    reference_no: json[NFCPaymentFields.reference_no] as String?,
-    approval_code: json[NFCPaymentFields.approval_code] as String?,
-    card_number: json[NFCPaymentFields.card_number] as String?,
-    card_holder_name: json[NFCPaymentFields.card_holder_name] as String?,
-    acquirer_id: json[NFCPaymentFields.acquirer_id] as String?,
-    contactless_CVM_type: json[NFCPaymentFields.contactless_CVM_type] as String?,
-    RRN: json[NFCPaymentFields.RRN] as String?,
-    trace_no: json[NFCPaymentFields.trace_no] as String?,
-    transaction_datetime: json[NFCPaymentFields.transaction_datetime] as String?,
-    transaction_date: json[NFCPaymentFields.transaction_date] as String?,
-    amount: json[NFCPaymentFields.amount] as String?,
-    amount_auth: json[NFCPaymentFields.amount_auth] as String?,
-    batch_no: json[NFCPaymentFields.batch_no] as String?,
-    invoice_no: json[NFCPaymentFields.invoice_no] as String?,
-    aid: json[NFCPaymentFields.aid] as String?,
-    application_label: json[NFCPaymentFields.application_label] as String?,
-    card_type: json[NFCPaymentFields.card_type] as String?
+  static NFCPaymentResponse fromJson(Map<String, Object?> json) => NFCPaymentResponse(
+      trxStatusCode: json[NFCPaymentFields.trx_status_code] as String?,
+      trxStatusMsg: json[NFCPaymentFields.trx_status_msg] as String?,
+      transaction_id: json[NFCPaymentFields.transaction_id] as String?,
+      reference_no: json[NFCPaymentFields.reference_no] as String?,
+      approval_code: json[NFCPaymentFields.approval_code] as String?,
+      card_number: json[NFCPaymentFields.card_number] as String?,
+      card_holder_name: json[NFCPaymentFields.card_holder_name] as String?,
+      acquirer_id: json[NFCPaymentFields.acquirer_id] as String?,
+      contactless_CVM_type: json[NFCPaymentFields.contactless_CVM_type] as String?,
+      RRN: json[NFCPaymentFields.RRN] as String?,
+      trace_no: json[NFCPaymentFields.trace_no] as String?,
+      transaction_datetime: json[NFCPaymentFields.transaction_datetime] as String?,
+      transaction_date: json[NFCPaymentFields.transaction_date] as String?,
+      amount: json[NFCPaymentFields.amount] as String?,
+      amount_auth: json[NFCPaymentFields.amount_auth] as String?,
+      batch_no: json[NFCPaymentFields.batch_no] as String?,
+      invoice_no: json[NFCPaymentFields.invoice_no] as String?,
+      aid: json[NFCPaymentFields.aid] as String?,
+      application_label: json[NFCPaymentFields.application_label] as String?,
+      card_type: json[NFCPaymentFields.card_type] as String?
   );
+}
 
-  Stream<String> get transactionUIEvents {
+class NFCPayment {
+  static const  MethodChannel _paymentChannel = MethodChannel('optimy.com.my/nfcPayment');
+  static const EventChannel _transactionUIEvents = EventChannel('optimy.com.my/transactionUIEvent');
+  static const EventChannel _transactionEvents = EventChannel('optimy.com.my/transactionEvent');
+  static const _INIT_PAYMENT = 'initPayment';
+  static const _START_TRX = 'startTrx';
+  static const _VOID_TRX = 'voidTrx';
+  static const _TRX_STATUS = 'trxStatus';
+  static const _SETTLEMENT = 'settlement';
+
+  static Stream<String> get transactionUIEvents {
     return _transactionUIEvents.receiveBroadcastStream().map((event) => event.toString());
   }
 
-  Stream<String> get transactionEvents {
+  static Stream<String> get transactionEvents {
     return _transactionEvents.receiveBroadcastStream().map((event) => event.toString());
   }
 
@@ -118,7 +121,7 @@ class NFCPayment {
     await _paymentChannel.invokeMethod("refreshToken");
   }
 
-  startPayment({required String amount, required String ref_no}) async {
+  static startPayment({required String amount, required String ref_no}) async {
     Map<String, dynamic> value = {
       NFCPaymentFields.amount: amount,
       NFCPaymentFields.reference_no: ref_no
@@ -127,12 +130,17 @@ class NFCPayment {
     print("startPayment result in nfc payment: ${result}");
   }
 
-  voidTransaction({required transactionID}) async {
+  static Future<String?> voidTransaction({required transactionID}) async {
     Map<String, dynamic> value = {
       NFCPaymentFields.transaction_id: transactionID
     };
     print(jsonEncode(value));
     var result = await _paymentChannel.invokeMethod(_VOID_TRX, jsonEncode(value));
+    print("refund result: $result");
+    if(result != null) {
+      return result;
+    }
+    return null;
   }
 
   getTransactionStatus({String? transactionID, String? referenceNo}) async {

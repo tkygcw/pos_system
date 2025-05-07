@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:app_settings/app_settings.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -29,7 +30,8 @@ enum PaymentUIEvent {
   RequestSignature, //= 70,
   RequiredCDCVM, //= 80,
   Cancel, //1
-  StartScan //0
+  StartScan, //0
+  NFCRequired //2
 }
 
 class NfcPaymentView extends StatelessWidget {
@@ -41,7 +43,7 @@ class NfcPaymentView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(finalAmount),
+        Text('Total: ${finalAmount}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         Container(
           height: 150,
           margin: EdgeInsets.only(bottom: 10, top: 10),
@@ -51,6 +53,7 @@ class NfcPaymentView extends StatelessWidget {
           ),
         ),
         _ScanButton(
+          finalAmount: finalAmount,
           callBack: callBack,
         )
 
@@ -60,8 +63,9 @@ class NfcPaymentView extends StatelessWidget {
 }
 
 class _ScanButton extends StatefulWidget {
+  final String finalAmount;
   final Function(String transactionID, String referenceNo) callBack;
-  const _ScanButton({Key? key, required this.callBack}) : super(key: key);
+  const _ScanButton({Key? key, required this.finalAmount, required this.callBack}) : super(key: key);
 
   @override
   State<_ScanButton> createState() => _ScanButtonState();
@@ -71,7 +75,6 @@ class _ScanButtonState extends State<_ScanButton> {
   final String startScan = "Start scan";
   StreamController<bool> btnStreamController = StreamController<bool>();
   StreamController<String> btnTextStreamController = StreamController<String>();
-  NFCPayment payment = NFCPayment();
   bool isButtonDisable = false;
   List<cartProductItem> itemList = [];
   late Stream<bool> btnStream;
@@ -111,8 +114,9 @@ class _ScanButtonState extends State<_ScanButton> {
                   try{
                     String? referenceNo = await generateRefNo();
                     if(referenceNo != null){
-                      //use actual amount in prod
-                      await payment.startPayment(amount: "58000", ref_no: referenceNo);
+                      //use actual amount in prod, remember remove decimal point
+                      print("NFC auth amount: ${widget.finalAmount}");
+                      await NFCPayment.startPayment(amount: "5800", ref_no: referenceNo);
                     } else {
                       throw Exception("Generate reference error");
                     }
@@ -141,23 +145,50 @@ class _ScanButtonState extends State<_ScanButton> {
    );
   }
 
+  openNFCSetting(){
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content: Text("NFC is not enabled. Please enable NFC in the settings screen."),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  AppSettings.openAppSettings(type: AppSettingsType.nfc);
+                },
+                child: Text("SETTINGS"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text("OK"),
+              )
+            ],
+          );
+        },
+    );
+  }
+
   void initTrxStreamSub(){
-    _trxStreamSub = payment.transactionEvents.listen((event) {
+    late NFCPaymentResponse response;
+    _trxStreamSub = NFCPayment.transactionEvents.listen((event) {
       var jsonResponse = jsonDecode(event);
       if(jsonResponse['data'] != null){
         var jsonData = jsonDecode(jsonResponse['data']);
-        payment = NFCPayment.fromJson(jsonData);
+        response = NFCPaymentResponse.fromJson(jsonData);
       }
       print("trx status: ${jsonResponse[NFCPaymentFields.status]}");
       if(jsonResponse[NFCPaymentFields.status] == 0){
-        widget.callBack(payment.transaction_id!, payment.reference_no!);
-        print("trans id: ${payment.transaction_id!}");
-        print("ref no: ${payment.reference_no}");
+        widget.callBack(response.transaction_id!, response.reference_no!);
+        print("trans id: ${response.transaction_id!}");
+        print("ref no: ${response.reference_no}");
+      } else if(jsonResponse[NFCPaymentFields.status] == 2) {
+        openNFCSetting();
       } else {
         Navigator.of(context).pop();
         CustomFailedToast.showToast(
             title: "Transaction Failed: ${jsonResponse[NFCPaymentFields.status]}",
-            description: "${payment.trxStatusCode}-${payment.trxStatusMsg}",
+            description: "${response.trxStatusCode}-${response.trxStatusMsg}",
             duration: 8
         );
       }
@@ -168,7 +199,7 @@ class _ScanButtonState extends State<_ScanButton> {
 
   void initTrxUIStreamSub(){
     String UIMessage = startScan;
-    _trxUIStreamSub = payment.transactionUIEvents.listen((event) {
+    _trxUIStreamSub = NFCPayment.transactionUIEvents.listen((event) {
       print("event: $event");
       var jsonResponse = jsonDecode(event);
       if(jsonResponse['data'] != null){

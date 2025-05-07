@@ -81,8 +81,8 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                     result.success(true)
                 }
                 "refreshToken" -> {
-                    refreshToken()
-                    result.success(true)
+                    refreshToken(result)
+
                 }
                 "startTrx" -> {
                     val value = call.arguments.toString()
@@ -96,9 +96,9 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                     val value = call.arguments.toString()
                     val paymentData = Gson().fromJson(value, PaymentData::class.java)
                     if(paymentData.transaction_id != null){
-                        voidTransaction(paymentData.transaction_id)
+                        voidTransaction(paymentData.transaction_id, result)
                     }
-                    result.success(true)
+//                    result.success(true)
                 }
                 "trxStatus" -> {
                     val value = call.arguments.toString()
@@ -263,10 +263,11 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
         }
     }
 
-    private fun voidTransaction(transactionID: String) {
+    private fun voidTransaction(transactionID: String, methodChannelResult: MethodChannel.Result) {
 //        writeLog("voidTransaction()")
         Log.i("voidTransaction", "transactionID: ${transactionID}")
         try {
+            var jsonData: String? = null
             val transactionalParams = MPOSTransactionParams.Builder.create()
                 .setMPOSTransactionID(transactionID)
                 .build()
@@ -304,13 +305,38 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                                     outcome += "Trace No :: " + transactionOutcome.traceNo + "\n"
                                     outcome += "Transaction Date Time UTC :: " + transactionOutcome.transactionDateTime
 //                                    writeLog(outcome)
+                                    jsonData = JSONObject().apply {
+                                        put("trx_status_code", transactionOutcome.statusCode)
+                                        if (mapStatusCode(transactionOutcome.statusCode).isNotEmpty()) {
+                                            put("trx_status_msg", mapStatusCode(transactionOutcome.statusCode))
+                                        } else {
+                                            put("trx_status_msg", transactionOutcome.statusMessage)
+                                        }
+                                        if (transactionOutcome.transactionID != null && transactionOutcome.transactionID.isNotEmpty()) {
+                                            put("transaction_id", transactionOutcome.transactionID)
+                                            put("ref_no", transactionOutcome.referenceNo)
+                                            put("approval_code", transactionOutcome.approvalCode)
+                                            put("card_number", transactionOutcome.cardNo)
+                                            put("card_holder_name", transactionOutcome.cardHolderName)
+                                            put("acquirer_id", transactionOutcome.acquirerID)
+                                            put("contactless_CVM_type", transactionOutcome.contactlessCVMType)
+                                            put("rrn", transactionOutcome.rrefNo)
+                                            put("transaction_datetime", transactionOutcome.transactionDateTime)
+                                            put("trace_no", transactionOutcome.traceNo)
+                                        }
+                                    }.toString()
                                 }
                             } else {
                                 if (transactionOutcome != null) {
 //                                    writeLog(transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage)
+                                    jsonData = JSONObject().apply {
+                                        put("trx_status_code", transactionOutcome.statusCode)
+                                        put("trx_status_msg", transactionOutcome.statusMessage)
+                                    }.toString()
                                     Log.i("voidTransaction", transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage)
                                 }
                             }
+                            methodChannelResult.success(response(result, jsonData))
                         }
                     }
 
@@ -335,6 +361,7 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
         }
 
         if (!isNfcEnabled(context)) {
+            sendTrxEventSink(response(2))
             return
         }
         Log.i("startTrx", "nfc enable: " + isNfcEnabled(context))
@@ -390,6 +417,8 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                 .setReferenceNumber(referenceNo)
                 .setAmount(amount)
                 .build()
+
+            throw Exception("test error")
 
             SSMPOSSDK.getInstance().transaction.startTransaction(
                 activity,
@@ -575,7 +604,7 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                     }
                 })
         } catch (e: Exception) {
-//            Log.e(MainActivity.TAG, e.message, e)
+            toggleTransactionRunning(false)
             trxEventSink?.error("transactionError", e.message, e)
             Log.e("startTrx", e.message.toString())
         }
@@ -599,8 +628,12 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
         return jsonData
     }
 
-    private fun refreshToken() {
+    private fun refreshToken(methodChannelResult: MethodChannel.Result) {
         try{
+            if(isTrxRunning){
+                return
+            }
+            toggleTransactionRunning(true)
             Log.i("refreshToken", "Start refresh token")
             SSMPOSSDK.getInstance().ssmpossdkConfiguration.uniqueID = "nI2qo2vAmRoPbdgE2tfJ"
             SSMPOSSDK.getInstance().ssmpossdkConfiguration.developerID = "ZCh9mzZXqHzezf4"
@@ -615,18 +648,16 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                         //writeLog("onTransactionResult :: $result")
 
                         if (result == MPOSTransaction.TransactionEvents.TransactionResult.TransactionSuccessful) {
-//                            sendEventSink(response(result))
-//                        btnStartTrx.setEnabled(true)
-//                        btnVoidTrx.setEnabled(false)
-//                        btnGetTransactionStatus.setEnabled(false)
-//                        btnSettlement.setEnabled(true)
+                            methodChannelResult.success(result)
                         } else {
                             if (transactionOutcome != null) {
-                                Log.i("refreshToken", transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage)
-                                sendTrxEventSink(response(1, transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage))
+                                val outcome = transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage
+                                //Log.i("refreshToken", transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage)
+                                methodChannelResult.error("Transaction result: $result", outcome, null)
                                 //writeLog(transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage)
                             }
                         }
+                        toggleTransactionRunning(false)
                     }
 
                     override fun onTransactionUIEvent(event: Int) {
@@ -634,7 +665,9 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                     }
                 })
         }catch (e: Exception){
+            toggleTransactionRunning(false)
             trxEventSink?.error("refreshToken error", e.message.toString(), e)
+            methodChannelResult.error("refreshToken error", e.message, e)
         }
     }
 

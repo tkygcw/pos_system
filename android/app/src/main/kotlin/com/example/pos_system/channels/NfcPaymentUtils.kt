@@ -4,7 +4,6 @@ import android.content.Context
 import android.nfc.NfcAdapter
 
 object NfcPaymentUtils {
-
     private const val TRX_STATUS_APPROVED: String = "100"
     private const val TRX_STATUS_REVERSED: String = "101"
     private const val TRX_STATUS_VOIDED: String = "102"
