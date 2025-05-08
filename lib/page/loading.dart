@@ -2436,6 +2436,8 @@ class _LoadingPageState extends State<LoadingPage> {
                   payment_change: responseJson[i]['payment_change'],
                   order_key: responseJson[i]['order_key'],
                   ipay_trans_id: responseJson[i]['ipay_trans_id'],
+                  fiuu_trans_id: responseJson[i][OrderPaymentSplitFields.fiuu_trans_id] ?? '',
+                  fiuu_ref_no: responseJson[i][OrderPaymentSplitFields.fiuu_ref_no] ?? '',
                   sync_status: 1,
                   created_at: responseJson[i]['created_at'],
                   updated_at: responseJson[i]['updated_at'],

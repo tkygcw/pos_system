@@ -1,15 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
-import 'package:pos_system/fragment/custom_toastification.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/object/cash_record.dart';
-import 'package:pos_system/object/nfc_payment/nfc_payment.dart';
-import 'package:pos_system/page/loading_dialog.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -186,8 +182,8 @@ class _PaymentSelectState extends State<PaymentSelect> {
           );
         } else {
           ///mobile layout
-          return WillPopScope(
-            onWillPop: () async => willPop,
+          return PopScope(
+            canPop: willPop,
             child: AlertDialog(
               title: Text(AppLocalizations.of(context)!.translate('select_payment_method')),
               titlePadding: EdgeInsets.fromLTRB(24, 12, 24, 0),
@@ -215,22 +211,6 @@ class _PaymentSelectState extends State<PaymentSelect> {
                                 onTap: () async  {
                                   if(widget.isUpdate == null){
                                     if(cart.cartNotifierItem.isNotEmpty){
-                                      if(PaymentLists[index].type == 3){
-                                        try{
-                                          openLoading();
-                                          await NFCPayment.refreshToken().timeout(Duration(seconds: 3));
-                                        }catch(e) {
-                                          Navigator.of(context).pop();
-                                          CustomFailedToast.showToast(title: e.toString());
-                                          FLog.error(
-                                            className: "payment select dialog",
-                                            text: "refreshToken error",
-                                            exception: e,
-                                          );
-                                          return;
-                                        }
-                                      }
-                                      Navigator.of(context).pop();
                                       openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!, widget.dining_name, widget.order_key);
                                     } else {
                                       Fluttertoast.showToast(
@@ -314,24 +294,6 @@ class _PaymentSelectState extends State<PaymentSelect> {
           );
         }
       });
-    });
-  }
-
-  openLoading(){
-    showDialog(context: context, builder: (context){
-      return PopScope(
-        canPop: false,
-        child: AlertDialog(
-          content: Row(
-            children: [
-              CircularProgressIndicator(),
-              Container(
-                  margin: EdgeInsets.only(left: 15),
-                  child: Text(AppLocalizations.of(context)!.translate('please_wait')))
-            ],
-          ),
-        ),
-      );
     });
   }
 

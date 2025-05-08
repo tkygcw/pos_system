@@ -628,11 +628,7 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
 
     private fun refreshToken(methodChannelResult: MethodChannel.Result) {
         try{
-            Log.i("refreshToken", "is trx running in refresh token: ${isTrxRunning}")
-            if(isTrxRunning){
-                return
-            }
-            toggleTransactionRunning(true)
+            Log.i("refreshToken", "start refresh token")
             SSMPOSSDK.getInstance().ssmpossdkConfiguration.uniqueID = "nI2qo2vAmRoPbdgE2tfJ"
             SSMPOSSDK.getInstance().ssmpossdkConfiguration.developerID = "ZCh9mzZXqHzezf4"
             SSMPOSSDK.getInstance().transaction.refreshToken(
@@ -651,11 +647,10 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                             if (transactionOutcome != null) {
                                 val outcome = transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage
                                 //Log.i("refreshToken", transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage)
-                                methodChannelResult.error("Transaction result: $result", outcome, null)
+                                methodChannelResult.error("Refresh token result: $result", outcome, null)
                                 //writeLog(transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage)
                             }
                         }
-                        toggleTransactionRunning(false)
                     }
 
                     override fun onTransactionUIEvent(event: Int) {
@@ -663,7 +658,6 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                     }
                 })
         }catch (e: Exception){
-            toggleTransactionRunning(false)
             trxEventSink?.error("refreshToken error", e.message.toString(), e)
             methodChannelResult.error("refreshToken error", e.message, e)
         }

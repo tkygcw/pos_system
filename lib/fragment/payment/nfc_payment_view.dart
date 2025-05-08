@@ -134,7 +134,7 @@ class _ScanButtonState extends State<_ScanButton> {
             return ElevatedButton.icon(
                 style: ButtonStyle(
                   backgroundColor: WidgetStateProperty.all(Colors.green),
-                  padding: WidgetStateProperty.all(EdgeInsets.all(10)),
+                  padding: WidgetStateProperty.all(EdgeInsets.all(getButtonPadding())),
                 ),
                 onPressed: snapshot.data == false ? () async {
                   asyncQ.addJob((_) async {
@@ -173,7 +173,7 @@ class _ScanButtonState extends State<_ScanButton> {
        builder: (context, snapshot) {
          return Text(
              snapshot.data!,
-             style: TextStyle(fontSize: 16),
+             style: TextStyle(fontSize: getButtonFontSize()),
          );
        },
    );
@@ -296,6 +296,32 @@ class _ScanButtonState extends State<_ScanButton> {
     String? refNo;
     refNo = 'Fiuu-${branch_id!.toString()}-${dateTime.replaceAll(' ', '').replaceAll('-', '').replaceAll(':', '')}';
     return refNo;
+  }
+
+  double getButtonPadding() {
+    final media = MediaQuery.of(context);
+    final isLargeScreen = media.size.width > 900 && media.size.height > 500;
+
+    return media.orientation == Orientation.landscape
+        ? isLargeScreen
+        ? 20.0
+        : 10.0
+        : isLargeScreen
+        ? 20.0
+        : 10.0;
+  }
+
+  double getButtonFontSize() {
+    final media = MediaQuery.of(context);
+    final isLargeScreen = media.size.width > 900 && media.size.height > 500;
+
+    return media.orientation == Orientation.landscape
+        ? isLargeScreen
+        ? 20.0
+        : 14.0
+        : isLargeScreen
+        ? 20.0
+        : 14.0;
   }
 }
 

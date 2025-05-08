@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
 
@@ -115,11 +116,15 @@ class NFCPayment {
   }
 
   static initPayment() async {
-    await _paymentChannel.invokeMethod(_INIT_PAYMENT);
+    if(Platform.isAndroid){
+      await _paymentChannel.invokeMethod(_INIT_PAYMENT);
+    }
   }
 
   static Future<void> refreshToken() async {
-    await _paymentChannel.invokeMethod("refreshToken");
+    if(Platform.isAndroid){
+      await _paymentChannel.invokeMethod("refreshToken");
+    }
   }
 
   static Future<void> startPayment({required String amount, required String ref_no}) async {
@@ -127,24 +132,29 @@ class NFCPayment {
       NFCPaymentFields.amount: amount,
       NFCPaymentFields.reference_no: ref_no
     };
-    await _paymentChannel.invokeMethod(_START_TRX, jsonEncode(value));
+    if(Platform.isAndroid){
+      await _paymentChannel.invokeMethod(_START_TRX, jsonEncode(value));
+    }
   }
 
   static Future<String?> voidTransaction({required transactionID}) async {
     Map<String, dynamic> value = {
       NFCPaymentFields.transaction_id: transactionID
     };
-    print(jsonEncode(value));
-    var result = await _paymentChannel.invokeMethod(_VOID_TRX, jsonEncode(value));
-    print("refund result: $result");
-    if(result != null) {
-      return result;
+    if(Platform.isAndroid){
+      var result = await _paymentChannel.invokeMethod(_VOID_TRX, jsonEncode(value));
+      print("refund result: $result");
+      if(result != null) {
+        return result;
+      }
     }
     return null;
   }
 
   static Future<void> cancelTransaction() async {
-    await _paymentChannel.invokeMethod(_CANCEL_TRX);
+    if(Platform.isAndroid){
+      await _paymentChannel.invokeMethod(_CANCEL_TRX);
+    }
   }
 
   getTransactionStatus({String? transactionID, String? referenceNo}) async {
@@ -157,7 +167,9 @@ class NFCPayment {
   }
 
   Future<void> performSettlement() async {
-    await _paymentChannel.invokeMethod(_SETTLEMENT);
+    if(Platform.isAndroid){
+      await _paymentChannel.invokeMethod(_SETTLEMENT);
+    }
   }
 
 }

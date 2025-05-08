@@ -296,6 +296,8 @@ class PosDatabaseUtils {
           case 39: {
             await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.fiuu_ref_no} $textType DEFAULT '' ");
             await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.fiuu_trans_id} $textType DEFAULT '' ");
+            await db.execute("ALTER TABLE $tableOrderPaymentSplit ADD ${OrderPaymentSplitFields.fiuu_trans_id} $textType DEFAULT '' ");
+            await db.execute("ALTER TABLE $tableOrderPaymentSplit ADD ${OrderPaymentSplitFields.fiuu_ref_no} $textType DEFAULT '' ");
           }break;
         }
       }
@@ -1137,6 +1139,8 @@ class PosDatabaseUtils {
           ${OrderPaymentSplitFields.payment_change} $textType,
           ${OrderPaymentSplitFields.order_key} $textType,
           ${OrderPaymentSplitFields.ipay_trans_id} $textType,
+          ${OrderPaymentSplitFields.fiuu_trans_id} $textType,
+          ${OrderPaymentSplitFields.fiuu_ref_no} $textType,
           ${OrderPaymentSplitFields.sync_status} $integerType,
           ${OrderPaymentSplitFields.created_at} $textType,
           ${OrderPaymentSplitFields.updated_at} $textType,

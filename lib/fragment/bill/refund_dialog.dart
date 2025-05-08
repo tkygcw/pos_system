@@ -213,7 +213,7 @@ class _RefundDialogState extends State<RefundDialog> {
             ),
             TextButton(
               child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-              onPressed: () async  {
+              onPressed: () async {
                 // await showSecondDialog(context, color);
                 final prefs = await SharedPreferences.getInstance();
                 final String? pos_user = prefs.getString('pos_pin_user');
@@ -393,7 +393,7 @@ class _RefundDialogState extends State<RefundDialog> {
       Order checkData = await PosDatabase.instance.readSpecificOrder(widget.order.order_sqlite_id!);
       if(checkData.payment_split == 1) {
         List<OrderPaymentSplit> orderSplit = await PosDatabase.instance.readSpecificOrderSplitByOrderKey(checkData.order_key!);
-        orderSplit.forEach((order) async {
+        for(var order in orderSplit) {
           if(order.ipay_trans_id != ''){
             String refundAmt = order.payment_received!;
             response = await Api().refundPayment(
@@ -409,16 +409,15 @@ class _RefundDialogState extends State<RefundDialog> {
                   'MYR'
               ),
             );
-          } else if(checkData.fiuu_trans_id != ''){
-            print("fiuu trans id: ${checkData.fiuu_trans_id}");
-            await NFCPayment.refreshToken().timeout(Duration(seconds: 3));
-            var result = await NFCPayment.voidTransaction(transactionID: checkData.fiuu_trans_id);
+          } else if(order.fiuu_trans_id != ''){
+            print("fiuu trans id: ${order.fiuu_trans_id}");
+            var result = await NFCPayment.voidTransaction(transactionID: order.fiuu_trans_id);
             if(result != null){
               var data = jsonDecode(result);
               response = data[NFCPaymentFields.status].toString();
             }
           }
-        });
+        }
       } else if(checkData.payment_split == 0) {
         if(checkData.ipay_trans_id != ''){
           String refundAmt = checkData.final_amount!;

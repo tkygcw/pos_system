@@ -18,6 +18,7 @@ import 'package:pos_system/fragment/subscription_expired.dart';
 import 'package:pos_system/fragment/update_dialog.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/current_version.dart';
+import 'package:pos_system/object/nfc_payment/nfc_payment.dart';
 import 'package:pos_system/object/subscription.dart';
 import 'package:pos_system/object/transfer_owner.dart';
 import 'package:pos_system/page/home.dart';
@@ -75,6 +76,7 @@ class _PosPinPageState extends State<PosPinPage> {
     checkVersion();
     checkSubscription();
     getCurrency();
+    refreshNFCToken();
   }
 
   @override
@@ -431,6 +433,15 @@ class _PosPinPageState extends State<PosPinPage> {
         );
       }
     }
+  }
+
+  refreshNFCToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map<String, dynamic> branchMap = json.decode(branch!);
+    Branch branchObject = Branch.fromJson(branchMap);
+    //need to pass userID/uniqueID for refresh token (will save in tb_branch)
+    await NFCPayment.refreshToken();
   }
 
   Future<void> openSyncDialog() async {
