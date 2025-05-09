@@ -66,7 +66,7 @@ Future<void> main() async {
   configFirestore();
 
   //init nfc payment gateway
-  await NFCPayment.initPayment();
+  await NFCPayment.initPaymentSDK();
 
   //check second screen
   getSecondScreen();

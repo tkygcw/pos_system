@@ -30,9 +30,10 @@ enum PaymentUIEvent {
   Authorising, //= 73,
   RequestSignature, //= 70,
   RequiredCDCVM, //= 80,
-  Cancel, //1
   StartScan, //0
-  NFCRequired //2
+  Cancel, //1
+  NFCRequired, //2
+  InvalidToken //3
 }
 
 class NfcPaymentView extends StatelessWidget {
@@ -143,7 +144,7 @@ class _ScanButtonState extends State<_ScanButton> {
                       if(referenceNo != null){
                         //use actual amount in prod, remember remove decimal point
                         print("Actual NFC amount: ${widget.finalAmount.replaceAll(".", "")}");
-                        await NFCPayment.startPayment(amount: "5800", ref_no: referenceNo);
+                        await NFCPayment.startPayment(amount: "58000", ref_no: referenceNo);
                       } else {
                         throw Exception("Generate reference error");
                       }
@@ -219,28 +220,54 @@ class _ScanButtonState extends State<_ScanButton> {
     late NFCPaymentResponse response;
     _trxStreamSub = NFCPayment.transactionEvents.listen((event) {
       var jsonResponse = jsonDecode(event);
+      var status = jsonResponse[NFCPaymentFields.status];
       if(jsonResponse['data'] != null){
         var jsonData = jsonDecode(jsonResponse['data']);
         response = NFCPaymentResponse.fromJson(jsonData);
       }
       print("trx status: ${jsonResponse[NFCPaymentFields.status]}");
-      if(jsonResponse[NFCPaymentFields.status] == 0){
-        widget.callBack(response.transaction_id!, response.reference_no!);
-        print("trans id: ${response.transaction_id!}");
-        print("ref no: ${response.reference_no}");
-      } else if(jsonResponse[NFCPaymentFields.status] == 2) {
-        openNFCSetting();
-      } else {
-        Navigator.of(context).pop();
-        showErrorToast(
-            title: "Transaction Failed: ${jsonResponse[NFCPaymentFields.status]}",
-            description:"${response.trxStatusCode}-${response.trxStatusMsg}");
-        FLog.error(
-          className: "nfc_payment_view",
-          text: "Transaction outcome failed: ${jsonResponse[NFCPaymentFields.status]}",
-          exception: "${response.trxStatusCode}-${response.trxStatusMsg}",
-        );
+      switch(status){
+        case 0 : {
+          widget.callBack(response.transaction_id!, response.reference_no!);
+          print("trans id: ${response.transaction_id!}");
+          print("ref no: ${response.reference_no}");
+        }break;
+        case 2: {
+          openNFCSetting();
+        }break;
+        case 3: {
+          Navigator.of(context).pop();
+          showErrorToast(title: "Invalid token");
+        }break;
+        default: {
+          Navigator.of(context).pop();
+          showErrorToast(
+              title: "Transaction Failed: ${jsonResponse[NFCPaymentFields.status]}",
+              description:"${response.trxStatusCode}-${response.trxStatusMsg}");
+          FLog.error(
+            className: "nfc_payment_view",
+            text: "Transaction outcome failed: ${jsonResponse[NFCPaymentFields.status]}",
+            exception: "${response.trxStatusCode}-${response.trxStatusMsg}",
+          );
+        }
       }
+      // if(jsonResponse[NFCPaymentFields.status] == 0){
+      //   widget.callBack(response.transaction_id!, response.reference_no!);
+      //   print("trans id: ${response.transaction_id!}");
+      //   print("ref no: ${response.reference_no}");
+      // } else if(jsonResponse[NFCPaymentFields.status] == 2) {
+      //   openNFCSetting();
+      // } else {
+      //   Navigator.of(context).pop();
+      //   showErrorToast(
+      //       title: "Transaction Failed: ${jsonResponse[NFCPaymentFields.status]}",
+      //       description:"${response.trxStatusCode}-${response.trxStatusMsg}");
+      //   FLog.error(
+      //     className: "nfc_payment_view",
+      //     text: "Transaction outcome failed: ${jsonResponse[NFCPaymentFields.status]}",
+      //     exception: "${response.trxStatusCode}-${response.trxStatusMsg}",
+      //   );
+      // }
     }, onError: (error) {
       showErrorToast(title: "Transaction Error", description: error.toString());
       FLog.error(

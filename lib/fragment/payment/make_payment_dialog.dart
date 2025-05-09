@@ -1456,7 +1456,7 @@ class _MakePaymentState extends State<MakePayment> {
                                     )
                                   ],
                                 ) :
-                                ( _type == 3 && Platform.isAndroid) ?
+                                _type == 3 ?
                                 Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -2754,7 +2754,7 @@ class _MakePaymentState extends State<MakePayment> {
                                       ),
                                     ),
                                   )
-                                  : ( _type == 3 && Platform.isAndroid)
+                                  : _type == 3
                                   ? SingleChildScrollView(
                                 child: Container(
                                   child: Column(
@@ -3988,7 +3988,7 @@ class _MakePaymentState extends State<MakePayment> {
                                         ),
                                       )
                                       ///NFC scan
-                                          :( _type == 3 && Platform.isAndroid)
+                                          :_type == 3
                                           ? Container(
                                         height: split_payment ? 420 : 320,
                                         padding: EdgeInsets.only(bottom: 10),

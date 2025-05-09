@@ -298,6 +298,8 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.fiuu_trans_id} $textType DEFAULT '' ");
             await db.execute("ALTER TABLE $tableOrderPaymentSplit ADD ${OrderPaymentSplitFields.fiuu_trans_id} $textType DEFAULT '' ");
             await db.execute("ALTER TABLE $tableOrderPaymentSplit ADD ${OrderPaymentSplitFields.fiuu_ref_no} $textType DEFAULT '' ");
+            await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.fiuu_unique_id} $textType DEFAULT '' ");
+            await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.allow_nfc_payment} $integerType DEFAULT 0");
           }break;
         }
       }
@@ -728,7 +730,9 @@ class PosDatabaseUtils {
            ${BranchFields.show_qr_history} $textType,
            ${BranchFields.generate_sales} $integerType,
            ${BranchFields.allow_einvoice} $integerType,
-           ${BranchFields.einvoice_status} $integerType
+           ${BranchFields.einvoice_status} $integerType,
+           ${BranchFields.allow_nfc_payment} $integerType,
+           ${BranchFields.fiuu_unique_id} $textType
            )''');
 
 /*

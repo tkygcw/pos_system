@@ -66,7 +66,7 @@ class _NfcPaymentPageState extends State<NfcPaymentPage> {
             ),
             ElevatedButton(
               onPressed: () async {
-                await NFCPayment.refreshToken();
+                await NFCPayment.refreshToken(uniqueID: "nI2qo2vAmRoPbdgE2tfJ");
                 print("refresh token done");
               },
               child: Text("Refresh token"),
@@ -96,7 +96,7 @@ class _NfcPaymentPageState extends State<NfcPaymentPage> {
             ),
             ElevatedButton(
               onPressed: () async {
-                await payment.performSettlement();
+                //await payment.performSettlement();
                 print("done");
               },
               child: Text("Perform settlement"),

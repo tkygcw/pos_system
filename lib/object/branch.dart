@@ -29,7 +29,9 @@ class BranchFields {
     show_qr_history,
     generate_sales,
     allow_einvoice,
-    einvoice_status
+    einvoice_status,
+    allow_nfc_payment,
+    fiuu_unique_id
   ];
 
   static String branch_id = 'branch_id';
@@ -61,6 +63,8 @@ class BranchFields {
   static String generate_sales = 'generate_sales';
   static String allow_einvoice = 'allow_einvoice';
   static String einvoice_status = 'einvoice_status';
+  static String allow_nfc_payment = 'allow_nfc_payment';
+  static String fiuu_unique_id = 'fiuu_unique_id';
 }
 
 class Branch {
@@ -93,6 +97,8 @@ class Branch {
   int? generate_sales;
   int? allow_einvoice;
   int? einvoice_status;
+  int? allow_nfc_payment;
+  String? fiuu_unique_id;
 
   Branch({
     this.branch_id,
@@ -123,7 +129,9 @@ class Branch {
     this.firestore_db_version,
     this.generate_sales,
     this.allow_einvoice,
-    this.einvoice_status
+    this.einvoice_status,
+    this.allow_nfc_payment,
+    this.fiuu_unique_id
   });
 
   Branch copy({
@@ -131,7 +139,9 @@ class Branch {
     String? name,
     int? generate_sales,
     int? allow_einvoice,
-    int? einvoice_status
+    int? einvoice_status,
+    int? allow_fiuu_payment,
+    String? fiuu_unique_id
   }) => Branch(
     branch_id: branch_id ?? this.branch_id,
     branch_url: branch_url ?? this.branch_url,
@@ -160,7 +170,9 @@ class Branch {
     show_qr_history: show_qr_history ?? this.show_qr_history,
     generate_sales: generate_sales ?? this.generate_sales,
     allow_einvoice: allow_einvoice ?? this.allow_einvoice,
-    einvoice_status: einvoice_status ?? this.einvoice_status
+    einvoice_status: einvoice_status ?? this.einvoice_status,
+    allow_nfc_payment: allow_fiuu_payment ?? this.allow_nfc_payment,
+    fiuu_unique_id: fiuu_unique_id ?? this.fiuu_unique_id
   );
 
   factory Branch.fromJson(Map<String, dynamic> json) {
@@ -193,7 +205,9 @@ class Branch {
       firestore_db_version: json[BranchFields.firestore_db_version] as int?,
       generate_sales: json[BranchFields.generate_sales] as int?,
       allow_einvoice: json[BranchFields.allow_einvoice] as int?,
-      einvoice_status: json[BranchFields.einvoice_status] as int?
+      einvoice_status: json[BranchFields.einvoice_status] as int?,
+      allow_nfc_payment: json[BranchFields.allow_nfc_payment] as int?,
+      fiuu_unique_id: json[BranchFields.fiuu_unique_id] as String?
     );
   }
 
@@ -225,7 +239,9 @@ class Branch {
     BranchFields.show_qr_history: show_qr_history,
     BranchFields.generate_sales: generate_sales,
     BranchFields.allow_einvoice: allow_einvoice,
-    BranchFields.einvoice_status: einvoice_status
+    BranchFields.einvoice_status: einvoice_status,
+    BranchFields.allow_nfc_payment: allow_nfc_payment,
+    BranchFields.fiuu_unique_id: fiuu_unique_id
   };
 
   Map<String, Object?> toFirestoreJson() => {

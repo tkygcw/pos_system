@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/services.dart';
 
 class NFCPaymentFields {
@@ -115,15 +116,28 @@ class NFCPayment {
     return _transactionEvents.receiveBroadcastStream().map((event) => event.toString());
   }
 
-  static initPayment() async {
-    if(Platform.isAndroid){
-      await _paymentChannel.invokeMethod(_INIT_PAYMENT);
+  static initPaymentSDK() async {
+    try{
+      if(Platform.isAndroid){
+        var result = await _paymentChannel.invokeMethod(_INIT_PAYMENT);
+        FLog.info(
+          className: "nfc_payment",
+          text: "initPaymentSDK",
+          exception: result,
+        );
+      }
+    }catch(e, s){
+      FLog.error(
+        className: "nfc_payment",
+        text: "initPaymentSDK",
+        exception: "Error: $e, Stacktrace: $s",
+      );
     }
   }
 
-  static Future<void> refreshToken() async {
+  static Future<void> refreshToken({required String uniqueID}) async {
     if(Platform.isAndroid){
-      await _paymentChannel.invokeMethod("refreshToken");
+      await _paymentChannel.invokeMethod("refreshToken", uniqueID);
     }
   }
 
@@ -166,7 +180,7 @@ class NFCPayment {
     var result = await _paymentChannel.invokeMethod(_TRX_STATUS, jsonEncode(value));
   }
 
-  Future<void> performSettlement() async {
+  static Future<void> performSettlement() async {
     if(Platform.isAndroid){
       await _paymentChannel.invokeMethod(_SETTLEMENT);
     }

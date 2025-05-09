@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/fragment/custom_toastification.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/page/progress_bar.dart';
@@ -14,6 +16,7 @@ import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../main.dart';
 import '../../notifier/cart_notifier.dart';
+import '../../object/branch.dart';
 import '../../object/order.dart';
 import '../../object/payment_link_company.dart';
 import '../../translation/AppLocalizations.dart';
@@ -211,6 +214,13 @@ class _PaymentSelectState extends State<PaymentSelect> {
                                 onTap: () async  {
                                   if(widget.isUpdate == null){
                                     if(cart.cartNotifierItem.isNotEmpty){
+                                      if(PaymentLists[index].type == 3){
+                                        bool allowNFCPayment = await isNFCPaymentAllow();
+                                        if(allowNFCPayment == false){
+                                          CustomFailedToast.showToast(title: "NFC payment not allowed");
+                                          return;
+                                        }
+                                      }
                                       openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!, widget.dining_name, widget.order_key);
                                     } else {
                                       Fluttertoast.showToast(
@@ -297,6 +307,14 @@ class _PaymentSelectState extends State<PaymentSelect> {
     });
   }
 
+  Future<bool> isNFCPaymentAllow() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? branchPrefs = prefs.getString('branch');
+    Map<String, dynamic> branchMap = json.decode(branchPrefs!);
+    final currentBranch = Branch.fromJson(branchMap);
+    return currentBranch.allow_nfc_payment == 1 ? true : false;
+  }
+
   updatePaymentMethod({required PaymentLinkCompany paymentLinkCompany}) async {
     await updateCashRecordPaymentType(selectedPaymentType: paymentLinkCompany.payment_type_id!);
     await updateOrderPaymentMethod(selectedPaymentLinkCompanyId: paymentLinkCompany.payment_link_company_id.toString());
@@ -351,9 +369,9 @@ class _PaymentSelectState extends State<PaymentSelect> {
     //read available payment method
     List<PaymentLinkCompany> data = await PosDatabase.instance.readPaymentMethods();
     if(widget.currentOrder == null){
-      PaymentLists = List.from(data);
+      PaymentLists = data.where((e) => !Platform.isIOS || e.type != 3).toList();
     } else {
-      PaymentLists = data.where((e) => e.type != 2).toList();
+      PaymentLists = data.where((e) => e.type != 2 && e.type != 3).toList();
     }
     setState(() {
       isload = true;

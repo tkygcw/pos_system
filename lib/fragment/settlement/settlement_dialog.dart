@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:confirm_dialog/confirm_dialog.dart';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -10,6 +11,7 @@ import 'package:pos_system/custom_pin_dialog.dart';
 import 'package:pos_system/fragment/settlement/settlement_query.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/branch.dart';
+import 'package:pos_system/object/nfc_payment/nfc_payment.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
@@ -483,6 +485,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
 
   callSettlement() async {
     //create settlement
+    await nfcPerformSettlement();
     await createSettlement();
     await createSettlementLinkPayment();
     //update all today cash record settlement date
@@ -491,6 +494,18 @@ class _SettlementDialogState extends State<SettlementDialog> {
     await updateTodaySettlementOrderDetailCancel();
     await updateAllCashRecordSettlement();
     await callPrinter();
+  }
+
+  Future<void> nfcPerformSettlement() async {
+    try{
+      await NFCPayment.performSettlement();
+    }catch(e, s){
+      FLog.error(
+        className: "settlement dialog",
+        text: "nfcPerformSettlement",
+        exception: "Error: $e, Stacktrace: $s",
+      );
+    }
   }
 
   Future<void> generateSales() async{

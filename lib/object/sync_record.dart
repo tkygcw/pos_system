@@ -2,12 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/firebase_sync/qr_order_sync.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/attendance.dart';
 import 'package:pos_system/object/branch_link_promotion.dart';
+import 'package:pos_system/object/nfc_payment/nfc_payment.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/printer_link_category.dart';
 import 'package:pos_system/object/product.dart';
@@ -504,28 +506,43 @@ class SyncRecord {
     Branch branchData = Branch.fromJson(data[0]);
     final prefs = await SharedPreferences.getInstance();
     try{
+      final String? branchPrefs = prefs.getString('branch');
+      Map<String, dynamic> branchMap = json.decode(branchPrefs!);
+      final currentBranch = Branch.fromJson(branchMap);
       if(branchData.logo != ''){
         await downloadBranchLogo(imageName: branchData.logo!);
       }
       int data = await PosDatabase.instance.updateBranch(branchData);
-      Branch? branch = await PosDatabase.instance.readSpecificBranch(branchData.branch_id!);
-      await prefs.setString('branch', json.encode(branch!));
-      currency_code = branch.currency_code ?? 'MYR';
-      currency_symbol = branch.currency_symbol ?? 'RM';
+      Branch? updatedBranch = await PosDatabase.instance.readSpecificBranch(branchData.branch_id!);
+      await prefs.setString('branch', json.encode(updatedBranch!));
+      currency_code = updatedBranch.currency_code ?? 'MYR';
+      currency_symbol = updatedBranch.currency_symbol ?? 'RM';
 
-      if(branch.allow_firestore == 1){
+      if(updatedBranch.allow_firestore == 1){
         pos_firestore.setFirestoreStatus = FirestoreStatus.online;
         pos_firestore.insertBranch(branchData);
-        firestoreQrOrderSync.realtimeQROrder(branch.branch_id!.toString());
+        firestoreQrOrderSync.realtimeQROrder(updatedBranch.branch_id!.toString());
       } else {
         pos_firestore.setFirestoreStatus = FirestoreStatus.offline;
         firestoreQrOrderSync.terminateQrOrder();
       }
+      //fiuu payment checking
+      if(updatedBranch.allow_nfc_payment == 1){
+        if(currentBranch.fiuu_unique_id != updatedBranch.fiuu_unique_id){
+          await NFCPayment.refreshToken(uniqueID: updatedBranch.fiuu_unique_id ?? '');
+        }
+      }
+
       if(data == 1){
         isComplete = true;
       }
-    } catch(e){
+    } catch(e, stackTrace){
       print("sync record branch error: ${e}");
+      FLog.error(
+        className: "sync_record",
+        text: "callBranchQuery failed",
+        exception: "Error: $e, StackTrace: $stackTrace",
+      );
       isComplete = true;
     }
     return isComplete;

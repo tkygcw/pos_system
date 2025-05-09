@@ -84,7 +84,7 @@ dependencies:
   flutter_local_notifications: ^17.2.2
   presentation_displays: ^0.2.3
   app_settings: ^5.1.1
-  location: ^4.4.0
+  location: ^5.0.0
   internet_connection_checker: ^1.0.0+1
   syncfusion_flutter_datepicker: ^22.2.12
   pdf: 3.11.0

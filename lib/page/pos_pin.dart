@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -436,12 +437,21 @@ class _PosPinPageState extends State<PosPinPage> {
   }
 
   refreshNFCToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? branch = prefs.getString('branch');
-    Map<String, dynamic> branchMap = json.decode(branch!);
-    Branch branchObject = Branch.fromJson(branchMap);
-    //need to pass userID/uniqueID for refresh token (will save in tb_branch)
-    await NFCPayment.refreshToken();
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final String? branch = prefs.getString('branch');
+      Map<String, dynamic> branchMap = json.decode(branch!);
+      Branch branchObject = Branch.fromJson(branchMap);
+      //need to pass userID/uniqueID for refresh token (will save in tb_branch)
+      //branchObject.fiuu_unique_id = "nI2qo2vAmRoPbdgE2tfJ";
+      await NFCPayment.refreshToken(uniqueID: branchObject.fiuu_unique_id ?? '');
+    }catch(e, s){
+      FLog.error(
+        className: "Pos pin",
+        text: "refresh nfc token failed",
+        exception: "Error: $e, StackTrace: $s",
+      );
+    }
   }
 
   Future<void> openSyncDialog() async {

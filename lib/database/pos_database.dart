@@ -5658,7 +5658,8 @@ class PosDatabase {
     return await db.rawUpdate('UPDATE $tableBranch SET name = ?, logo = ?,  address = ?, phone = ?, email = ?, '
         'qr_order_status = ?, sub_pos_status = ?, attendance_status = ?, register_no = ?, allow_firestore = ?, '
         'allow_livedata = ?, qr_show_sku = ?, qr_product_sequence = ?, show_qr_history = ?, generate_sales = ?, '
-        'allow_einvoice = ?, einvoice_status = ?, currency_code = ?, currency_symbol = ? '
+        'allow_einvoice = ?, einvoice_status = ?, currency_code = ?, currency_symbol = ?, allow_nfc_payment = ?, '
+        'fiuu_unique_id = ? '
         'WHERE branch_id = ? ',
         [
           data.name,
@@ -5680,6 +5681,8 @@ class PosDatabase {
           data.einvoice_status,
           data.currency_code,
           data.currency_symbol,
+          data.allow_nfc_payment,
+          data.fiuu_unique_id,
           data.branch_id,
         ]);
   }

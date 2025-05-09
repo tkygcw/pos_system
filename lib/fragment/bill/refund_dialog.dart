@@ -436,7 +436,6 @@ class _RefundDialogState extends State<RefundDialog> {
           );
         } else if(checkData.fiuu_trans_id != ''){
           print("fiuu trans id: ${checkData.fiuu_trans_id}");
-          await NFCPayment.refreshToken().timeout(Duration(seconds: 3));
           var result = await NFCPayment.voidTransaction(transactionID: checkData.fiuu_trans_id);
           if(result != null){
             var data = jsonDecode(result);
