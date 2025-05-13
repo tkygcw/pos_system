@@ -143,8 +143,10 @@ class _ScanButtonState extends State<_ScanButton> {
                       String? referenceNo = await generateRefNo();
                       if(referenceNo != null){
                         //use actual amount in prod, remember remove decimal point
+                        //for debug use 5800 or 58000 (trigger PIN)
                         print("Actual NFC amount: ${widget.finalAmount.replaceAll(".", "")}");
-                        await NFCPayment.startPayment(amount: "58000", ref_no: referenceNo);
+                        String formatAmount = widget.finalAmount.replaceAll(".", "");
+                        await NFCPayment.startPayment(amount: formatAmount, ref_no: referenceNo);
                       } else {
                         throw Exception("Generate reference error");
                       }

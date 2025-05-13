@@ -437,21 +437,28 @@ class _PosPinPageState extends State<PosPinPage> {
   }
 
   refreshNFCToken() async {
-    try{
-      final prefs = await SharedPreferences.getInstance();
-      final String? branch = prefs.getString('branch');
-      Map<String, dynamic> branchMap = json.decode(branch!);
-      Branch branchObject = Branch.fromJson(branchMap);
-      //need to pass userID/uniqueID for refresh token (will save in tb_branch)
-      //branchObject.fiuu_unique_id = "nI2qo2vAmRoPbdgE2tfJ";
-      await NFCPayment.refreshToken(uniqueID: branchObject.fiuu_unique_id ?? '');
-    }catch(e, s){
-      FLog.error(
-        className: "Pos pin",
-        text: "refresh nfc token failed",
-        exception: "Error: $e, StackTrace: $s",
-      );
-    }
+    int retry = 0, maxRetry = 2;
+    do{
+      try{
+        final prefs = await SharedPreferences.getInstance();
+        final String? branch = prefs.getString('branch');
+        Map<String, dynamic> branchMap = json.decode(branch!);
+        Branch branchObject = Branch.fromJson(branchMap);
+        //need to pass userID/uniqueID for refresh token (will save in tb_branch)
+        //branchObject.fiuu_unique_id = "nI2qo2vAmRoPbdgE2tfJ";
+        if(branchObject.allow_nfc_payment == 1){
+          await NFCPayment.refreshToken(uniqueID: branchObject.fiuu_unique_id ?? '');
+        }
+        retry = 2;
+      }catch(e, s){
+        FLog.error(
+          className: "Pos pin",
+          text: "refresh nfc token failed",
+          exception: "Error: $e, StackTrace: $s",
+        );
+        retry++;
+      }
+    }while(retry < maxRetry);
   }
 
   Future<void> openSyncDialog() async {

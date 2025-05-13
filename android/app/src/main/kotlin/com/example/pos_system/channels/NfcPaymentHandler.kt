@@ -635,7 +635,7 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
         try{
             Log.i("refreshToken", "start refresh token")
             SSMPOSSDK.getInstance().ssmpossdkConfiguration.uniqueID = uniqueID
-            SSMPOSSDK.getInstance().ssmpossdkConfiguration.developerID = "ZCh9mzZXqHzezf4"
+            SSMPOSSDK.getInstance().ssmpossdkConfiguration.developerID = BuildConfig.DEVELOPER_ID
             SSMPOSSDK.getInstance().transaction.refreshToken(
                 activity,
                 object : MPOSTransaction.TransactionEvents {

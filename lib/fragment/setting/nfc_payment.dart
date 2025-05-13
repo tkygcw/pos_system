@@ -1,110 +1,82 @@
-import 'dart:async';
 import 'dart:convert';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/nfc_payment/nfc_payment.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class NfcPaymentPage extends StatefulWidget {
-  const NfcPaymentPage({Key? key}) : super(key: key);
+import '../../object/branch.dart';
+import '../../translation/AppLocalizations.dart';
+import '../custom_toastification.dart';
 
-  @override
-  State<NfcPaymentPage> createState() => _NfcPaymentPageState();
-}
-
-class _NfcPaymentPageState extends State<NfcPaymentPage> {
-  NFCPayment payment = NFCPayment();
-  String onData = 'Listening...';
-  late StreamSubscription _streamSubscription;
-  late String transactionID;
-  String? referenceNo;
-
-  @override
-  void initState() {
-    _streamSubscription = NFCPayment.transactionEvents.listen((event) {
-      print("event: $event");
-      var jsonResponse = jsonDecode(event);
-      if(jsonResponse[NFCPaymentFields.status] == 0) {
-        if(jsonResponse['data'] != null){
-          var jsonData = jsonDecode(jsonResponse['data']);
-          var trxDetail = NFCPaymentResponse.fromJson(jsonData);
-          //we will extract the success here
-          transactionID = trxDetail.transaction_id!;
-          referenceNo = trxDetail.reference_no;
-          print("trans id: ${jsonData[NFCPaymentFields.transaction_id]}");
-          print("ref no: ${jsonData[NFCPaymentFields.reference_no]}");
-        }
-      }
-      setState(() {
-        onData = jsonResponse['data'];
-      });
-    }, onError: (error) {
-      print("onError: ${error.toString()}");
-    });
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _streamSubscription.cancel();
-    super.dispose();
-  }
+class PaymentSettingPage extends StatelessWidget {
+  const PaymentSettingPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    var orientation = MediaQuery.of(context).orientation;
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ElevatedButton(
-              onPressed: () async {
-                //await NFCPayment.initPayment();
-                print("init done");
-              },
-              child: Text("NFC payment init"),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                await NFCPayment.refreshToken(uniqueID: "nI2qo2vAmRoPbdgE2tfJ");
-                print("refresh token done");
-              },
-              child: Text("Refresh token"),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-                String dateTime = dateFormat.format(DateTime.now());
-                await NFCPayment.startPayment(amount: "5800", ref_no: "order${dateTime.replaceAll(' ', '').replaceAll('-', '').replaceAll(':', '')}");
-                print("done");
-              },
-              child: Text("Start payment"),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                await NFCPayment.voidTransaction(transactionID: "32624");
-                print("done");
-              },
-              child: Text("Void/Refund payment"),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                await payment.getTransactionStatus(transactionID: transactionID, referenceNo: referenceNo);
-                print("done");
-              },
-              child: Text("Get transaction status"),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                //await payment.performSettlement();
-                print("done");
-              },
-              child: Text("Perform settlement"),
-            ),
-            Text(onData),
-          ],
-        ),
+      appBar: orientation == Orientation.portrait ?  buildAppBar(context): null,
+      body: ListTile(
+        title: Text(AppLocalizations.of(context)!.translate('refresh_nfc_token')),
+        trailing: ElevatedButton(onPressed: refreshTokenOnPressed, child: Icon(Icons.nfc)),
       ),
     );
   }
+
+  AppBar buildAppBar(BuildContext context) {
+    var color = context.read<ThemeColor>();
+    return AppBar(
+      elevation: 1,
+      leading: IconButton(
+        icon: Icon(Icons.arrow_back_ios, color: color.buttonColor),
+        onPressed: () {
+          Navigator.of(context).pop();
+        },
+      ),
+      backgroundColor: Colors.white,
+      title: Text(AppLocalizations.of(context)!.translate('payment_setting'),
+          style: TextStyle(fontSize: 20, color: color.backgroundColor)),
+      centerTitle: false,
+    );
+  }
+
+  void refreshTokenOnPressed() async {
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final String? branch = prefs.getString('branch');
+      Map<String, dynamic> branchMap = json.decode(branch!);
+      Branch branchObject = Branch.fromJson(branchMap);
+      //need to pass userID/uniqueID for refresh token (will save in tb_branch)
+      //branchObject.fiuu_unique_id = "nI2qo2vAmRoPbdgE2tfJ";
+      if(branchObject.allow_nfc_payment == 1){
+        await NFCPayment.refreshToken(uniqueID: branchObject.fiuu_unique_id ?? '');
+        showToast(title: "Token refresh success");
+      } else {
+        showToast(title: "NFC payment not allowed", isError: true);
+      }
+    }catch(e, s){
+      FLog.error(
+        className: "Pos pin",
+        text: "refresh nfc token failed",
+        exception: "Error: $e, StackTrace: $s",
+      );
+      showToast(title: "Invalid token", isError: true);
+    }
+  }
+
+  void showToast({required String title, String? description, bool? isError = false}){
+    if(isError == true){
+      CustomFailedToast.showToast(
+          title: title,
+          description: description,
+          duration: 8
+      );
+    } else {
+      CustomSuccessToast.showToast(title: title);
+    }
+  }
 }
+

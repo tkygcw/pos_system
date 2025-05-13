@@ -71,7 +71,7 @@ class _SettingMenuState extends State<SettingMenu> {
       child: DeviceSetting(),
     ),
     Container(
-      child: NfcPaymentPage(),
+      child: PaymentSettingPage(),
     ),
     // Container(
     //   child: TestCategorySync(),
@@ -473,8 +473,8 @@ class _SettingMenuState extends State<SettingMenu> {
                       },
                     ),
                     ListTile(
-                      leading: Icon(Icons.nfc),
-                      title: Text("NFC payment"),
+                      leading: Icon(Icons.payment),
+                      title: Text(AppLocalizations.of(context)!.translate("payment_setting")),
                       onTap: () {
                         Navigator.push(
                           context,

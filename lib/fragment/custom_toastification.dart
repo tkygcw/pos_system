@@ -113,5 +113,16 @@ class CustomFailedToast {
       autoCloseDuration: duration
     );
   }
+}
 
+class CustomSuccessToast {
+  static showToast({required String title, String? description, int? duration}){
+    _CustomToastification.showToastificationAndSound(
+        title: title,
+        description: description != null ? Text(description) : null,
+        playSound: true,
+        playTimes: 2,
+        autoCloseDuration: duration
+    );
+  }
 }

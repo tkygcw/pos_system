@@ -147,6 +147,7 @@ class NFCPayment {
       NFCPaymentFields.reference_no: ref_no
     };
     if(Platform.isAndroid){
+      print("startPayment called!!!");
       await _paymentChannel.invokeMethod(_START_TRX, jsonEncode(value));
     }
   }
