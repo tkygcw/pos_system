@@ -1316,14 +1316,15 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         if(selectedProduct.unit == 'each_c') {
           // take new price input
           if(priceController.text == '') {
-            BranchLinkProduct? branchLinkProduct = await PosDatabase.instance.checkProductVariant(await getProductVariant(), productLocalId);
-            if(branchLinkProduct != null){
-              priceController = TextEditingController(text: int.tryParse(branchLinkProduct.price!) != 0 ? branchLinkProduct.price! : '');
-              basePrice = priceController.text != '' ? priceController.text : '0';
-            } else {
-              priceController = TextEditingController(text: int.tryParse(data[0].price!) != 0 ? data[0].price! : '');
-              basePrice = priceController.text != '' ? priceController.text : '0';
-            }
+            // BranchLinkProduct? branchLinkProduct = await PosDatabase.instance.checkProductVariant(await getProductVariant(), productLocalId);
+            // if(branchLinkProduct != null){
+            //   priceController = TextEditingController(text: int.tryParse(branchLinkProduct.price!) != 0 ? branchLinkProduct.price! : '');
+            //   basePrice = priceController.text != '' ? priceController.text : '0';
+            // } else {
+            //   priceController = TextEditingController(text: int.tryParse(data[0].price!) != 0 ? data[0].price! : '');
+            //   basePrice = priceController.text != '' ? priceController.text : '0';
+            // }
+            basePrice = "0.00";
           } else {
             basePrice = priceController.text;
           }
@@ -1355,13 +1356,14 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       } else {
         if(selectedProduct.unit == 'each_c') {
           if(priceController.text == '') {
-            BranchLinkProduct? branchLinkProduct = await PosDatabase.instance.checkProductVariant(await getProductVariant(), productLocalId);
-            if(branchLinkProduct != null){
-              priceController = TextEditingController(text: int.tryParse(branchLinkProduct.price!) != 0 ? branchLinkProduct.price! : '');
-              basePrice = priceController.text != '' ? priceController.text : '0';
-            } else {
-              basePrice = priceController.text;
-            }
+            // BranchLinkProduct? branchLinkProduct = await PosDatabase.instance.checkProductVariant(await getProductVariant(), productLocalId);
+            // if(branchLinkProduct != null){
+            //   priceController = TextEditingController(text: int.tryParse(branchLinkProduct.price!) != 0 ? branchLinkProduct.price! : '');
+            //   basePrice = priceController.text != '' ? priceController.text : '0';
+            // } else {
+            //   basePrice = priceController.text;
+            // }
+            basePrice = "0.00";
           } else {
             basePrice = priceController.text;
           }
