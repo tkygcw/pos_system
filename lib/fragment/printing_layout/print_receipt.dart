@@ -1073,8 +1073,22 @@ class PrintReceipt{
                       final printer = NetworkPrinter(PaperSize.mm80, profile);
                       final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                       if (res == PosPrintResult.success) {
-                        if(kitchenListLayout80mm == null || kitchenListLayout80mm.print_combine_kitchen_list == 0 || orderDetail.length == 1)
-                          await DefaultKitchenListLayout().printKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetail[k], isReprint: isReprint, printerLabel: printerList[i].printer_label);
+                        if(kitchenListLayout80mm == null || kitchenListLayout80mm.print_combine_kitchen_list == 0 || orderDetail.length == 1) {
+                          var printingResult;
+                          printingResult = await DefaultKitchenListLayout().printKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetail[k], isReprint: isReprint, printerLabel: printerList[i].printer_label);
+                          if(printingResult == null) {
+                            failedPrintOrderDetail.add(orderDetail[k]);
+                            try {
+                              FLog.error(
+                                className: "printKitchenList",
+                                text: "print kitchen list connection issue",
+                                exception: "No status return, order detail sqlite: ${orderDetail[k].order_detail_sqlite_id}",
+                              );
+                            } catch(e) {
+                              print("log fail print error: $e");
+                            }
+                          }
+                        }
                         else if(kitchenListLayout80mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                           List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetail, data);
                           await CombineKitchenListLayout().printCombinedKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails, isReprint: isReprint, combineListTotal: combineListTotal, printerLabel: printerList[i].printer_label);
@@ -1091,8 +1105,22 @@ class PrintReceipt{
                       final printer = NetworkPrinter(PaperSize.mm58, profile);
                       final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                       if (res == PosPrintResult.success) {
-                        if(kitchenListLayout58mm == null || kitchenListLayout58mm.print_combine_kitchen_list == 0 || orderDetail.length == 1)
-                          await DefaultKitchenListLayout().printKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetail[k], isReprint: isReprint, printerLabel: printerList[i].printer_label);
+                        if(kitchenListLayout58mm == null || kitchenListLayout58mm.print_combine_kitchen_list == 0 || orderDetail.length == 1) {
+                          var printingResult;
+                          printingResult = await DefaultKitchenListLayout().printKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetail[k], isReprint: isReprint, printerLabel: printerList[i].printer_label);
+                          if(printingResult == null) {
+                            failedPrintOrderDetail.add(orderDetail[k]);
+                            try {
+                              FLog.error(
+                                className: "printKitchenList",
+                                text: "print kitchen list connection issue",
+                                exception: "No status return, order detail sqlite: ${orderDetail[k].order_detail_sqlite_id}",
+                              );
+                            } catch(e) {
+                              print("log fail print error: $e");
+                            }
+                          }
+                        }
                         else if(kitchenListLayout58mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                           List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetail, data);
                           await CombineKitchenListLayout().printCombinedKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails, isReprint: isReprint, combineListTotal: combineListTotal, printerLabel: printerList[i].printer_label);
@@ -1668,8 +1696,22 @@ class PrintReceipt{
 
                     if (res == PosPrintResult.success) {
                       // await ReceiptLayout().printQrKitchenList80mm(false, orderDetailList[k], orderCacheLocalId, value: printer);
-                      if(kitchenListLayout80mm == null || kitchenListLayout80mm.print_combine_kitchen_list == 0 || orderDetailList.length == 1)
-                        await DefaultKitchenListLayout().printKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetailList[k], printerLabel: printerList[i].printer_label);
+                      if(kitchenListLayout80mm == null || kitchenListLayout80mm.print_combine_kitchen_list == 0 || orderDetailList.length == 1) {
+                        var printingResult;
+                        printingResult = await DefaultKitchenListLayout().printKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetailList[k], printerLabel: printerList[i].printer_label);
+                        if(printingResult == null) {
+                          failedPrintOrderDetail.add(orderDetail[k]);
+                          try {
+                            FLog.error(
+                              className: "printKitchenList",
+                              text: "print qr kitchen list connection issue",
+                              exception: "No status return, order detail sqlite: ${orderDetail[k].order_detail_sqlite_id}",
+                            );
+                          } catch(e) {
+                            print("log fail print error: $e");
+                          }
+                        }
+                      }
                       else if(kitchenListLayout80mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                         List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetailList, data);
                         await CombineKitchenListLayout().printCombinedKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails, combineListTotal: combineListTotal, printerLabel: printerList[i].printer_label);
@@ -1689,8 +1731,22 @@ class PrintReceipt{
 
                     if (res == PosPrintResult.success) {
                       // await ReceiptLayout().printQrKitchenList58mm(false, orderDetailList[k], orderCacheLocalId, value: printer);
-                      if(kitchenListLayout58mm == null || kitchenListLayout58mm.print_combine_kitchen_list == 0 || orderDetailList.length == 1)
-                        await DefaultKitchenListLayout().printKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetailList[k], printerLabel: printerList[i].printer_label);
+                      if(kitchenListLayout58mm == null || kitchenListLayout58mm.print_combine_kitchen_list == 0 || orderDetailList.length == 1) {
+                        var printingResult;
+                        printingResult = await DefaultKitchenListLayout().printKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetailList[k], printerLabel: printerList[i].printer_label);
+                        if(printingResult == null) {
+                          failedPrintOrderDetail.add(orderDetail[k]);
+                          try {
+                            FLog.error(
+                              className: "printKitchenList",
+                              text: "print qr kitchen list connection issue",
+                              exception: "No status return, order detail sqlite: ${orderDetail[k].order_detail_sqlite_id}",
+                            );
+                          } catch(e) {
+                            print("log fail print error: $e");
+                          }
+                        }
+                      }
                       else if(kitchenListLayout58mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                         List<OrderDetail> groupedOrderDetails = groupOrderDetailsByCategory(orderDetail, data);
                         await CombineKitchenListLayout().printCombinedKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails, combineListTotal: combineListTotal, printerLabel: printerList[i].printer_label);
