@@ -313,10 +313,13 @@ class CartPageState extends State<CartPage> {
                                 ),
                               ),
                               color: color.backgroundColor,
-                              onPressed: () {
+                              onPressed: () async {
                                 //tableDialog(context);
                                 if(appSettingModel.table_order == 2){
-                                  enterTableNumberDialog(cart, context, color);
+                                  await enterTableNumberDialog(cart, context, color);
+                                  setState(() {
+
+                                  });
                                 } else {
                                   openChooseTableDialog(cart);
                                 }
@@ -389,6 +392,7 @@ class CartPageState extends State<CartPage> {
                                               widget.currentPage == 'menu'
                                                   ? cart.cartNotifierItem.isEmpty
                                                   ? setState(() {
+                                                cart.removeSelectedTableIndex();
                                                 cart.removeAllTable();
                                                 cart.selectedOption = diningList[index].name!;
                                                 cart.selectedOptionId =
@@ -2515,9 +2519,15 @@ class CartPageState extends State<CartPage> {
                       child: TextField(
                         autofocus: true,
                         controller: tableController,
-                        keyboardType: TextInputType.number,
+                        keyboardType: TextInputType.text,
                         inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly
+                          FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+                          TextInputFormatter.withFunction((oldValue, newValue) {
+                            return newValue.copyWith(
+                              text: newValue.text.toUpperCase(),
+                              selection: newValue.selection,
+                            );
+                          }),
                         ],
                         textAlign: TextAlign.center,
                         decoration: InputDecoration(
