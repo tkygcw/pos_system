@@ -146,6 +146,11 @@ class _ScanButtonState extends State<_ScanButton> {
                         //for debug use 5800 or 58000 (trigger PIN)
                         print("Actual NFC amount: ${widget.finalAmount.replaceAll(".", "")}");
                         String formatAmount = widget.finalAmount.replaceAll(".", "");
+                        FLog.info(
+                          className: "nfc_payment_view",
+                          text: "Payment button onPressed",
+                          exception: "Ref no: $referenceNo, Auth amt: $formatAmount",
+                        );
                         await NFCPayment.startPayment(amount: formatAmount, ref_no: referenceNo);
                       } else {
                         throw Exception("Generate reference error");

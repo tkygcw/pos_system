@@ -15,6 +15,9 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugins.firebase.messaging.ContextHolder.getApplicationContext
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import my.com.softspace.SSMobileAndroidUtilEngine.common.SharedHandler.runOnUiThread
 import my.com.softspace.ssmpossdk.Environment
 import my.com.softspace.ssmpossdk.SSMPOSSDK
@@ -24,6 +27,7 @@ import my.com.softspace.ssmpossdk.transaction.MPOSTransactionOutcome
 import my.com.softspace.ssmpossdk.transaction.MPOSTransactionParams
 import org.json.JSONObject
 
+@Serializable
 data class PaymentData(
     val amount: String? = null,
     val ref_no: String? = null,
@@ -87,7 +91,7 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                 }
                 "startTrx" -> {
                     val value = call.arguments.toString()
-                    val paymentData = Gson().fromJson(value, PaymentData::class.java)
+                    val paymentData = Json.decodeFromString<PaymentData>(value)
                     if(paymentData.amount != null && paymentData.ref_no != null){
                         startTrx(paymentData.amount, paymentData.ref_no)
                     }
@@ -95,11 +99,10 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                 }
                 "voidTrx" -> {
                     val value = call.arguments.toString()
-                    val paymentData = Gson().fromJson(value, PaymentData::class.java)
+                    val paymentData = Json.decodeFromString<PaymentData>(value)
                     if(paymentData.transaction_id != null){
                         voidTransaction(paymentData.transaction_id, result)
                     }
-//                    result.success(true)
                 }
                 "cancelTrx" -> {
                     cancelTrx()
@@ -647,14 +650,16 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
 
                         if (result == MPOSTransaction.TransactionEvents.TransactionResult.TransactionSuccessful) {
                             isTokenValid = true
-                            methodChannelResult.success(result)
+                            val outcome = "Transaction result: $result, uniqueID: ${SSMPOSSDK.getInstance().ssmpossdkConfiguration.uniqueID}"
+                            methodChannelResult.success(outcome)
                         } else {
                             isTokenValid = false
                             if (transactionOutcome != null) {
                                 val outcome = transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage
                                 methodChannelResult.error(
                                     "Refresh token result: $result", outcome,
-                                    "uniqueID: ${SSMPOSSDK.getInstance().ssmpossdkConfiguration.uniqueID}")
+                                    "uniqueID: ${SSMPOSSDK.getInstance().ssmpossdkConfiguration.uniqueID} \n " +
+                                            "developerID: ${SSMPOSSDK.getInstance().ssmpossdkConfiguration.developerID}")
                             }
                         }
                     }

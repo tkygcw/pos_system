@@ -137,7 +137,12 @@ class NFCPayment {
 
   static Future<void> refreshToken({required String uniqueID}) async {
     if(Platform.isAndroid){
-      await _paymentChannel.invokeMethod("refreshToken", uniqueID);
+      var status = await _paymentChannel.invokeMethod("refreshToken", uniqueID);
+      FLog.info(
+        className: "nfc_payment",
+        text: "refreshToken",
+        exception: status
+      );
     }
   }
 
@@ -147,7 +152,6 @@ class NFCPayment {
       NFCPaymentFields.reference_no: ref_no
     };
     if(Platform.isAndroid){
-      print("startPayment called!!!");
       await _paymentChannel.invokeMethod(_START_TRX, jsonEncode(value));
     }
   }

@@ -529,7 +529,7 @@ class SyncRecord {
       //fiuu payment checking
       if(updatedBranch.allow_nfc_payment == 1){
         if(currentBranch.fiuu_unique_id != updatedBranch.fiuu_unique_id){
-          await NFCPayment.refreshToken(uniqueID: updatedBranch.fiuu_unique_id ?? '');
+          NFCPayment.refreshToken(uniqueID: updatedBranch.fiuu_unique_id ?? '');
         }
       }
 
