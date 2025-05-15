@@ -7612,50 +7612,75 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery('''
   WITH table_counts AS (
-    SELECT 'tb_cash_record' AS table_name, 
-           COUNT(*) AS count, 
-           COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) AS unsynced 
-    FROM tb_cash_record
+    SELECT 'tb_cash_record' AS table_name, COUNT(*) AS count, COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) AS unsynced FROM tb_cash_record WHERE soft_delete = ''
     UNION ALL
-    SELECT 'tb_order', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order
+    SELECT 'tb_checklist', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_checklist WHERE soft_delete = ''
     UNION ALL
-    SELECT 'tb_order_cache', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order_cache
+    SELECT 'tb_kitchen_list', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_kitchen_list WHERE soft_delete = ''
     UNION ALL
-    SELECT 'tb_order_detail', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order_detail
+    SELECT 'tb_receipt', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_receipt WHERE soft_delete = ''
     UNION ALL
-    SELECT 'tb_order_modifier_detail', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order_modifier_detail
+    SELECT 'tb_attendance', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_attendance WHERE soft_delete = ''
     UNION ALL
-    SELECT 'tb_order_tax_detail', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order_tax_detail
+    SELECT 'tb_branch_link_product', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_branch_link_product WHERE soft_delete = ''
     UNION ALL
-    SELECT 'tb_checklist', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_checklist
+    SELECT 'tb_app_setting', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_app_setting
     UNION ALL
-    SELECT 'tb_attendance', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_attendance
+    SELECT 'tb_order', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order WHERE soft_delete = ''
     UNION ALL
-    SELECT 'tb_modifier_link_product', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_modifier_link_product
+    SELECT 'tb_order_cache', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order_cache WHERE soft_delete = ''
     UNION ALL
-    SELECT 'tb_order_detail_cancel', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order_detail_cancel
+    SELECT 'tb_order_detail', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order_detail WHERE soft_delete = ''
     UNION ALL
-    SELECT 'tb_order_payment_split', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order_payment_split
+    SELECT 'tb_order_detail_cancel', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order_detail_cancel WHERE soft_delete = ''
     UNION ALL
-    SELECT 'tb_order_promotion_detail', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order_promotion_detail
+    SELECT 'tb_order_modifier_detail', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order_modifier_detail WHERE soft_delete = ''
     UNION ALL
-    SELECT 'tb_refund', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_refund
+    SELECT 'tb_order_payment_split', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order_payment_split WHERE soft_delete = ''
     UNION ALL
-    SELECT 'tb_settlement', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_settlement
+    SELECT 'tb_order_promotion_detail', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order_promotion_detail WHERE soft_delete = ''
     UNION ALL
-    SELECT 'tb_settlement_link_payment', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_settlement_link_payment
+    SELECT 'tb_order_tax_detail', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_order_tax_detail WHERE soft_delete = ''
     UNION ALL
-    SELECT 'tb_table_use', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_table_use
+    SELECT 'tb_printer', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_printer WHERE soft_delete = ''
     UNION ALL
-    SELECT 'tb_table_use_detail', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_table_use_detail
+    SELECT 'tb_printer_link_category', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_printer_link_category WHERE soft_delete = ''
     UNION ALL
-    SELECT 'tb_table', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_table
+    SELECT 'tb_refund', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_refund WHERE soft_delete = ''
     UNION ALL
-    SELECT 'tb_transfer_owner', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_transfer_owner
+    SELECT 'tb_settlement', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_settlement WHERE soft_delete = ''
     UNION ALL
-    SELECT 'tb_dynamic_qr', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_dynamic_qr
+    SELECT 'tb_settlement_link_payment', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_settlement_link_payment WHERE soft_delete = ''
+    UNION ALL
+    SELECT 'tb_table_use', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_table_use WHERE soft_delete = ''
+    UNION ALL
+    SELECT 'tb_table_use_detail', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_table_use_detail WHERE soft_delete = ''
+    UNION ALL
+    SELECT 'tb_table', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_table WHERE soft_delete = ''
+    UNION ALL
+    SELECT 'tb_transfer_owner', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_transfer_owner WHERE soft_delete = ''
+    UNION ALL
+    SELECT 'tb_dynamic_qr', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_dynamic_qr WHERE soft_delete = ''
+    UNION ALL
+    SELECT 'tb_product', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_product WHERE soft_delete = ''
+    UNION ALL
+    SELECT 'tb_cancel_receipt', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_cancel_receipt WHERE soft_delete = ''
+    UNION ALL
+    SELECT 'tb_sales_per_day', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_sales_per_day WHERE soft_delete = ''
+    UNION ALL
+    SELECT 'tb_sales_category_per_day', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_sales_category_per_day WHERE soft_delete = ''
+    UNION ALL
+    SELECT 'tb_sales_product_per_day', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_sales_product_per_day WHERE soft_delete = ''
+    UNION ALL
+    SELECT 'tb_sales_modifier_per_day', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_sales_modifier_per_day WHERE soft_delete = ''
+    UNION ALL
+    SELECT 'tb_sales_dining_per_day', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_sales_dining_per_day WHERE soft_delete = ''
 )
-SELECT SUM(unsynced) AS unsynced 
+SELECT * FROM table_counts
+UNION ALL
+SELECT 'Total' AS table_name,
+       SUM(count) AS count,
+       SUM(unsynced) AS unsynced
 FROM table_counts;
 ''');
     return result[0]['unsynced'].toString();
