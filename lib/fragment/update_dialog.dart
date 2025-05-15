@@ -59,7 +59,12 @@ class _UpdateDialogState extends State<UpdateDialog> {
               } else if(Platform.isAndroid) {
                 await GmsCheck().checkGmsAvailability();
                 if(GmsCheck().isGmsAvailable){
-                  _url = Uri.parse('${versionData[0]['app_url']}');
+                  // apk
+                  if(source == 'Other Source' || source == 'Local Source') {
+                    _url = Uri.parse('https://drive.google.com/drive/folders/1ULEb4QKmNrhRQkT_uja0J1fHK0css1Ur');
+                  } else {
+                    _url = Uri.parse('${versionData[0]['app_url']}');
+                  }
                 } else {
                   Fluttertoast.showToast(backgroundColor: Colors.red, msg: "GMS not availale");
                   _url = Uri.parse('https://drive.google.com/drive/folders/1ULEb4QKmNrhRQkT_uja0J1fHK0css1Ur');
