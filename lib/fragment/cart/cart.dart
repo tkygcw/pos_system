@@ -354,10 +354,9 @@ class CartPageState extends State<CartPage> {
                           ),
                         ),
                         Visibility(
-                          visible: (widget.currentPage == 'menu') || widget.currentPage == 'qr_order' ||
-                              widget.currentPage == 'bill' || ((widget.currentPage == 'table' || widget.currentPage == 'other_order') && orderKey != '')
-                              ? false
-                              : true,
+                          visible: ((widget.currentPage == 'table' && orderKey == '' && cart.cartNotifierItem.isNotEmpty) || (widget.currentPage == 'other_order' && cart.cartNotifierItem.isNotEmpty))
+                              ? true
+                              : false,
                           child: IconButton(
                             tooltip: 'Options',
                             icon: Icon(Icons.more_vert),
