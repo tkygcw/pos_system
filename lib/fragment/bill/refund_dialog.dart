@@ -469,7 +469,7 @@ class _RefundDialogState extends State<RefundDialog> {
       }
     } catch(e){
       CustomFailedToast.showToast(
-          title: "Refund error",
+          title: "${AppLocalizations.of(context)!.translate('refund_failed')}",
           description: e.toString(),
           duration: 8);
       FLog.error(

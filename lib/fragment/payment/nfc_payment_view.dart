@@ -249,7 +249,7 @@ class _ScanButtonState extends State<_ScanButton> {
         default: {
           Navigator.of(context).pop();
           showErrorToast(
-              title: "Transaction Failed: ${jsonResponse[NFCPaymentFields.status]}",
+              title: "${AppLocalizations.of(context)!.translate('transaction_failed')}: ${jsonResponse[NFCPaymentFields.status]}",
               description:"${response.trxStatusCode}-${response.trxStatusMsg}");
           FLog.error(
             className: "nfc_payment_view",
@@ -258,25 +258,8 @@ class _ScanButtonState extends State<_ScanButton> {
           );
         }
       }
-      // if(jsonResponse[NFCPaymentFields.status] == 0){
-      //   widget.callBack(response.transaction_id!, response.reference_no!);
-      //   print("trans id: ${response.transaction_id!}");
-      //   print("ref no: ${response.reference_no}");
-      // } else if(jsonResponse[NFCPaymentFields.status] == 2) {
-      //   openNFCSetting();
-      // } else {
-      //   Navigator.of(context).pop();
-      //   showErrorToast(
-      //       title: "Transaction Failed: ${jsonResponse[NFCPaymentFields.status]}",
-      //       description:"${response.trxStatusCode}-${response.trxStatusMsg}");
-      //   FLog.error(
-      //     className: "nfc_payment_view",
-      //     text: "Transaction outcome failed: ${jsonResponse[NFCPaymentFields.status]}",
-      //     exception: "${response.trxStatusCode}-${response.trxStatusMsg}",
-      //   );
-      // }
     }, onError: (error) {
-      showErrorToast(title: "Transaction Error", description: error.toString());
+      showErrorToast(title: "${AppLocalizations.of(context)!.translate('transaction_failed')}: ", description: error.toString());
       FLog.error(
         className: "nfc_payment_view",
         text: "listen Trx stream error",
@@ -290,7 +273,6 @@ class _ScanButtonState extends State<_ScanButton> {
     String UIMessage = startScan;
     _trxUIStreamSub = NFCPayment.transactionUIEvents.listen((event) {
       print("event: $event");
-
       var jsonResponse = jsonDecode(event);
       int status = jsonResponse[NFCPaymentFields.status];
       if(jsonResponse['data'] != null){

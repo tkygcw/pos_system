@@ -166,6 +166,8 @@ class NFCPayment {
       if(result != null) {
         return result;
       }
+    } else {
+      throw PlatformException(code: "Unsupported Platform", message: "Android-only support", details: "TransactionID: $transactionID");
     }
     return null;
   }
