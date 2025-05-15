@@ -55,17 +55,7 @@ android {
         targetSdkVersion 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-
-        //Debug use only
-//        buildConfigField 'String', 'FLAVOR_environment', '"uat"'
-//        buildConfigField 'String', 'ACCESS_KEY', '"gIQ8Kpl07IgyNEYXMUED2F4DDPyF4Bbii0O0Jrmg+s6fAg=="'
-//        buildConfigField 'String', 'SECRET_KEY', '"U7L7mwO1TJxqCRphvxO7b1WgHhBzgK2PK0m4DbYv2KQ="'
-//        buildConfigField 'String', 'ATTESTATION_HOST', '"https://mpos-uat.fasspay.com:9001"'
-//        buildConfigField 'String', 'ATTESTATION_CERT_PINNING', '"sha256/BJlJjxY7OHxhAz6yqy2gm58+qlP0AGwnBHDIG6zkhfU="'
-//        buildConfigField 'String', 'DEVELOPER_ID', '"ZCh9mzZXqHzezf4"'
-
-        //Prod use only
-        buildConfigField 'String', 'FLAVOR_environment', '"prod"'
+        buildConfigField 'String', 'PROJECT_NUM', '"837940125447"'
         buildConfigField 'String', 'ACCESS_KEY', '"gIQ8Kpl07IgyNEYXMUED2F4DDPyF4Bbii0O0Jrmg+s6fAg=="'
         buildConfigField 'String', 'SECRET_KEY', '"EtAt3w7DbujRne0lc42zfJffe9xW38o/HIoLtRjT6AU="'
         buildConfigField 'String', 'ATTESTATION_HOST', '"https://tamserver.fasspay.com:9441/fasspay/api"'
@@ -105,6 +95,24 @@ android {
             dirs 'libs'
         }
     }
+
+    flavorDimensions 'main'
+    productFlavors {
+        uat {
+            dimension 'main'
+            applicationId 'optimy.com.my'
+            versionCode flutterVersionCode.toInteger()
+            versionName flutterVersionName
+            targetSdk 34
+            minSdk 26
+            buildConfigField 'String', 'ACCESS_KEY', '"gIQ8Kpl07IgyNEYXMUED2F4DDPyF4Bbii0O0Jrmg+s6fAg=="'
+            buildConfigField 'String', 'SECRET_KEY', '"U7L7mwO1TJxqCRphvxO7b1WgHhBzgK2PK0m4DbYv2KQ="'
+            buildConfigField 'String', 'ATTESTATION_HOST', '"https://mpos-uat.fasspay.com:9001"'
+            buildConfigField 'String', 'ATTESTATION_CERT_PINNING', '"sha256/BJlJjxY7OHxhAz6yqy2gm58+qlP0AGwnBHDIG6zkhfU="'
+            buildConfigField 'String', 'DEVELOPER_ID', '"ZCh9mzZXqHzezf4"'
+            buildConfigField 'String', 'UNIQUE_ID', '"nI2qo2vAmRoPbdgE2tfJ"'
+        }
+    }
 }
 
 flutter {
@@ -142,7 +150,6 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:3.14.7'
     implementation 'androidx.room:room-runtime:2.2.5'
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
-    implementation 'com.jakewharton.timber:timber:4.7.0'
     implementation 'com.google.code.gson:gson:2.8.5'
 
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0'

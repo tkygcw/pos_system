@@ -4,9 +4,12 @@ import android.app.Activity
 import android.content.Context
 import android.media.AudioManager
 import android.media.ToneGenerator
+import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.os.VibratorManager
 import android.util.Log
+import androidx.core.content.ContextCompat.getSystemService
 import com.example.pos_system.BuildConfig
 import com.example.pos_system.channels.NfcPaymentUtils.isNfcEnabled
 import com.example.pos_system.channels.NfcPaymentUtils.mapStatusCode
@@ -537,8 +540,14 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                                     )
                                     toneGenerator.startTone(ToneGenerator.TONE_DTMF_P, 500)
 
-                                    val v =
+                                    val v = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                        val vibratorManager =
+                                            context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+                                        vibratorManager.defaultVibrator
+                                    } else {
+                                        @Suppress("DEPRECATION")
                                         context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                                    }
                                     if (v.hasVibrator()) {
                                         v.vibrate(
                                             VibrationEffect.createOneShot(
@@ -637,7 +646,7 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
     private fun refreshToken(uniqueID: String, methodChannelResult: MethodChannel.Result) {
         try{
             Log.i("refreshToken", "start refresh token")
-            SSMPOSSDK.getInstance().ssmpossdkConfiguration.uniqueID = uniqueID
+            SSMPOSSDK.getInstance().ssmpossdkConfiguration.uniqueID = if (BuildConfig.FLAVOR == "uat") BuildConfig.UNIQUE_ID else uniqueID
             SSMPOSSDK.getInstance().ssmpossdkConfiguration.developerID = BuildConfig.DEVELOPER_ID
             SSMPOSSDK.getInstance().transaction.refreshToken(
                 activity,
@@ -650,7 +659,9 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
 
                         if (result == MPOSTransaction.TransactionEvents.TransactionResult.TransactionSuccessful) {
                             isTokenValid = true
-                            val outcome = "Transaction result: $result, uniqueID: ${SSMPOSSDK.getInstance().ssmpossdkConfiguration.uniqueID}"
+                            var outcome = "Transaction result: $result\n"
+                            outcome += "uniqueID: " + SSMPOSSDK.getInstance().ssmpossdkConfiguration.uniqueID + "\n"
+                            outcome += "developerID: " + SSMPOSSDK.getInstance().ssmpossdkConfiguration.developerID + "\n"
                             methodChannelResult.success(outcome)
                         } else {
                             isTokenValid = false
@@ -658,7 +669,7 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                                 val outcome = transactionOutcome.statusCode + " - " + transactionOutcome.statusMessage
                                 methodChannelResult.error(
                                     "Refresh token result: $result", outcome,
-                                    "uniqueID: ${SSMPOSSDK.getInstance().ssmpossdkConfiguration.uniqueID} \n " +
+                                    "uniqueID: ${SSMPOSSDK.getInstance().ssmpossdkConfiguration.uniqueID}\n" +
                                             "developerID: ${SSMPOSSDK.getInstance().ssmpossdkConfiguration.developerID}")
                             }
                         }
@@ -685,12 +696,12 @@ class NfcPaymentHandler(private val context: Context, flutterEngine: FlutterEngi
                 .setAttestationRefreshInterval(300000L)
                 .setAttestationStrictHttp(true)
                 .setAttestationConnectionTimeout(30000L)
-                .setLibGooglePlayProjNum("837940125447") // use own google play project number
+                .setLibGooglePlayProjNum(BuildConfig.PROJECT_NUM) // use own google play project number
                 .setLibAccessKey(BuildConfig.ACCESS_KEY)
                 .setLibSecretKey(BuildConfig.SECRET_KEY)
                 .setUniqueID("") // please set the userID shared by Soft Space
                 .setDeveloperID("")
-                .setEnvironment(if (BuildConfig.FLAVOR_environment == "uat") Environment.UAT else Environment.PROD)
+                .setEnvironment(if (BuildConfig.FLAVOR == "uat") Environment.UAT else Environment.PROD)
                 .build()
 
             // SDK initialization require activity context
