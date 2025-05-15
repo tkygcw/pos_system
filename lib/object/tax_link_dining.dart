@@ -35,6 +35,8 @@ class TaxLinkDining{
   String? tax_rate;
   String? tax_name;
   String? dining_name;
+  int? specific_category;
+  String? multiple_category;
   String? tax_amount;
   int? tax_type;
 
@@ -48,6 +50,8 @@ class TaxLinkDining{
         this.tax_rate,
         this.tax_name,
         this.dining_name,
+        this.specific_category,
+        this.multiple_category,
         this.tax_amount,
         this.tax_type
       });
@@ -87,6 +91,8 @@ class TaxLinkDining{
     tax_rate: json[TaxLinkDiningFields.tax_rate] as String?,
     tax_name: json[TaxLinkDiningFields.tax_name] as String?,
     dining_name: json['dining_name'] as String?,
+    specific_category: json['specific_category'] as int?,
+    multiple_category: json['multiple_category'] as String?,
     tax_amount: json[TaxLinkDiningFields.tax_amount] as String?,
     tax_type: json[TaxLinkDiningFields.tax_type] as int?
   );
@@ -102,7 +108,9 @@ class TaxLinkDining{
     TaxLinkDiningFields.tax_name: tax_name,
     TaxLinkDiningFields.tax_amount: tax_amount,
     TaxLinkDiningFields.tax_type: tax_type,
-    'dining_name': dining_name
+    'dining_name': dining_name,
+    'specific_category': specific_category,
+    'multiple_category': multiple_category,
   };
 
   Map<String, Object?> toInsertJson() => {

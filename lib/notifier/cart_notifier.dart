@@ -14,11 +14,13 @@ import '../object/table.dart';
 
 class CartModel extends ChangeNotifier {
   Map<String, double> categoryTotalPriceMap = {};
+  Map<String, double> categoryTotalPriceMapBeforePromo = {};
   List<cartProductItem> cartNotifierItem = [];
   List<cartPaymentDetail> cartNotifierPayment = [];
   List<Promotion> autoPromotion = [];
   Promotion? selectedPromotion;
   List<PosTable> selectedTable = [];
+  String selectedTableIndex = '';
   List<OrderCache> selectedOrderQueue = [];
   String selectedOption = '';
   String selectedOptionId = '';
@@ -53,6 +55,7 @@ class CartModel extends ChangeNotifier {
     List<cartProductItem>? cartNotifierItem,
     List<cartPaymentDetail>? cartNotifierPayment,
     List<PosTable>? selectedTable,
+    String? selectedTableIndex,
     String? selectedOption,
     String? selectedOptionId,
     String? selectedOptionOrderKey,
@@ -60,6 +63,7 @@ class CartModel extends ChangeNotifier {
   }){
     this.groupList = groupList ?? [];
     this.selectedTable = selectedTable ?? [];
+    this.selectedTableIndex = selectedTableIndex ?? '';
     this.cartNotifierItem = cartNotifierItem ?? [];
     this.selectedOption = selectedOption ?? '';
     this.selectedOptionId = selectedOptionId ?? '';
@@ -98,6 +102,7 @@ class CartModel extends ChangeNotifier {
   }
 
   void initialLoad() {
+    removeSelectedTableIndex();
     removeAllTable();
     removeAllCartItem();
     removePromotion();
@@ -112,6 +117,7 @@ class CartModel extends ChangeNotifier {
   }
 
   void notDineInInitLoad() {
+    removeSelectedTableIndex();
     removeAllTable();
     removeAllCartItem();
     removeAutoPromotion();
@@ -155,6 +161,10 @@ class CartModel extends ChangeNotifier {
 
   void addCategoryTotalPrice(String category_id, double categoryTotalPrice) {
     categoryTotalPriceMap[category_id] = categoryTotalPrice;
+  }
+
+  void addCategoryTotalPriceBeforePromo(String category_id, double categoryTotalPrice) {
+    categoryTotalPriceMapBeforePromo[category_id] = categoryTotalPrice;
   }
 
   void addItem(cartProductItem object) {
@@ -267,6 +277,10 @@ class CartModel extends ChangeNotifier {
     }
   }
 
+  void removeSelectedTableIndex({bool? notify = true}) {
+    selectedTableIndex = '';
+  }
+
   void removeSpecificTable(PosTable posTable) {
     for (int i = 0; i < selectedTable.length; i++) {
       if (posTable.table_id == selectedTable[i].table_id) {
@@ -344,6 +358,10 @@ class CartModel extends ChangeNotifier {
 
   void clearCategoryTotalPriceMap(){
     categoryTotalPriceMap.clear();
+  }
+
+  void clearCategoryTotalPriceMapBeforePromo(){
+    categoryTotalPriceMapBeforePromo.clear();
   }
 
   void addSubPosOrderCache(OrderCache value){

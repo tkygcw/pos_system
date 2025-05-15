@@ -59,7 +59,9 @@ class CombineKitchenListLayout extends ReceiptLayout {
     List<int> bytes = [];
     try {
       bytes += generator.reset();
-      bytes += generator.text(isReprint != null ? '** Reprint List **' : kitchenListLayout.use_printer_label_as_title == 0 ? '** kitchen list **' : '** $printerLabel **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
+      bytes += generator.text(isReprint != null ? '** Reprint List **' : kitchenListLayout.use_printer_label_as_title == 0 ? '** kitchen list **' : '** $printerLabel **',
+          containsChinese: true,
+          styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       //other order detail
@@ -67,6 +69,8 @@ class CombineKitchenListLayout extends ReceiptLayout {
         for(int i = 0; i < tableList.length; i++){
           bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
         }
+      } else if(orderCache!.custom_table_number != ''){
+        bytes += generator.text('Table No: ${orderCache!.custom_table_number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
       } else {
         bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
       }
@@ -232,7 +236,9 @@ class CombineKitchenListLayout extends ReceiptLayout {
     List<int> bytes = [];
     try {
       bytes += generator.reset();
-      bytes += generator.text(isReprint != null ? '** Reprint List **' : kitchenListLayout.use_printer_label_as_title == 0 ? '** kitchen list **' : '** $printerLabel **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
+      bytes += generator.text(isReprint != null ? '** Reprint List **' : kitchenListLayout.use_printer_label_as_title == 0 ? '** kitchen list **' : '** $printerLabel **',
+          containsChinese: true,
+          styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       //other order detail
@@ -240,6 +246,8 @@ class CombineKitchenListLayout extends ReceiptLayout {
         for(int i = 0; i < tableList.length; i++){
           bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
         }
+      } else if(orderCache!.custom_table_number != ''){
+        bytes += generator.text('Table No: ${orderCache!.custom_table_number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
       } else {
         bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
       }

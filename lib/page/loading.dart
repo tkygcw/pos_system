@@ -523,6 +523,7 @@ class _LoadingPageState extends State<LoadingPage> {
           }
         }
       } else if (response['status'] == '2') {
+        print("receipt layout not exists, creating new layout");
         await createReceiptLayout80();
         await createReceiptLayout58();
       }
@@ -572,7 +573,7 @@ class _LoadingPageState extends State<LoadingPage> {
           status: 1,
           show_product_sku: 0,
           show_branch_tel: 1,
-          show_register_no: 0,
+          show_register_no: 1,
           sync_status: 0,
           created_at: dateTime,
           updated_at: '',
@@ -667,7 +668,7 @@ class _LoadingPageState extends State<LoadingPage> {
           status: 1,
           show_product_sku: 0,
           show_branch_tel: 1,
-          show_register_no: 0,
+          show_register_no: 1,
           sync_status: 0,
           created_at: dateTime,
           updated_at: '',
@@ -894,9 +895,12 @@ class _LoadingPageState extends State<LoadingPage> {
                 total_refund_bill: item.total_refund_bill,
                 total_refund_amount: item.total_refund_amount,
                 total_discount: item.total_discount,
+                promo: item.promo,
                 total_cancellation: item.total_cancellation,
                 total_charge: item.total_charge,
+                charge: item.charge,
                 total_tax: item.total_tax,
+                tax: item.tax,
                 total_rounding: item.total_rounding,
                 settlement_by_user_id: item.settlement_by_user_id,
                 settlement_by: item.settlement_by,
@@ -2504,6 +2508,7 @@ class _LoadingPageState extends State<LoadingPage> {
                 company_id: cloudData.company_id,
                 branch_id: cloudData.branch_id,
                 order_detail_id: '',
+                custom_table_number: cloudData.custom_table_number,
                 table_use_sqlite_id: tableUseLocalId,
                 table_use_key: cloudData.table_use_key != '' && cloudData.table_use_key != null ? cloudData.table_use_key : '',
                 other_order_key: cloudData.other_order_key,
@@ -2568,6 +2573,36 @@ class _LoadingPageState extends State<LoadingPage> {
             continue;
           }
           try {
+            Map<String, double> promoMap = {};
+            Map<String, double> chargeMap = {};
+            Map<String, double> taxMap = {};
+
+            if (responseJson[i]['promo'] != null && responseJson[i]['promo'].toString() != "{}") {
+              final promoJson = jsonDecode(responseJson[i]['promo']);
+              promoJson.forEach((key, value) {
+                if (value is num) {
+                  promoMap[key] = value.toDouble();
+                }
+              });
+            }
+
+            if (responseJson[i]['charge'] != null && responseJson[i]['charge'].toString() != "{}") {
+              final chargeJson = jsonDecode(responseJson[i]['charge']);
+              chargeJson.forEach((key, value) {
+                if (value is num) {
+                  chargeMap[key] = value.toDouble();
+                }
+              });
+            }
+
+            if (responseJson[i]['tax'] != null && responseJson[i]['tax'].toString() != "{}") {
+              final taxJson = jsonDecode(responseJson[i]['tax']);
+              taxJson.forEach((key, value) {
+                if (value is num) {
+                  taxMap[key] = value.toDouble();
+                }
+              });
+            }
             await PosDatabase.instance.insertOrderDetail(OrderDetail(
                 order_detail_id: responseJson[i]['order_detail_id'],
                 order_detail_key: responseJson[i]['order_detail_key'].toString(),
@@ -2582,6 +2617,9 @@ class _LoadingPageState extends State<LoadingPage> {
                 price: responseJson[i]['price'],
                 original_price: responseJson[i]['original_price'],
                 quantity: responseJson[i]['quantity'],
+                promo: promoMap,
+                charge: chargeMap,
+                tax: taxMap,
                 remark: responseJson[i]['remark'],
                 account: responseJson[i]['account'],
                 edited_by: responseJson[i]['edited_by'],

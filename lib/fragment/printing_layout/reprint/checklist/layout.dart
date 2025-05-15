@@ -13,6 +13,7 @@ class ReprintCheckListLayout extends ReceiptLayout{
   reprint check list layout 80mm
 */
   reprintCheckList80mm(bool isUSB, CartModel cartModel, {value, bool? isPayment}) async {
+    double subtotal = 0;
     Checklist? checklistLayout = await PosDatabase.instance.readSpecificChecklist('80');
     if(checklistLayout == null){
       checklistLayout = checklistDefaultLayout;
@@ -122,7 +123,21 @@ class ReprintCheckListLayout extends ReceiptLayout{
                     width: PosTextSize.size1)),
           ]);
         }
+        subtotal += double.parse(cartModel.cartNotifierItem[i].price!) * cartModel.cartNotifierItem[i].quantity!;
       }
+
+      if(subtotal != 0 && checklistLayout.show_total_amount == 1) {
+        bytes += generator.reset();
+        bytes += generator.emptyLines(1);
+        bytes += generator.text('Total: RM ${subtotal.toStringAsFixed(2)}',
+            styles: PosStyles(
+                align: PosAlign.right,
+                height: checklistLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1
+            )
+        );
+      }
+
       bytes += generator.feed(1);
       bytes += generator.cut(mode: PosCutMode.partial);
       return bytes;
@@ -136,6 +151,7 @@ class ReprintCheckListLayout extends ReceiptLayout{
   reprint check list layout 58mm
 */
   reprintCheckList58mm(bool isUSB, CartModel cartModel, {value, bool? isPayment}) async {
+    double subtotal = 0;
     Checklist? checklistLayout = await PosDatabase.instance.readSpecificChecklist('58');
     if(checklistLayout == null){
       checklistLayout = checklistDefaultLayout;
@@ -246,7 +262,21 @@ class ReprintCheckListLayout extends ReceiptLayout{
                     width: PosTextSize.size1)),
           ]);
         }
+        subtotal += double.parse(cartModel.cartNotifierItem[i].price!) * cartModel.cartNotifierItem[i].quantity!;
       }
+
+      if(subtotal != 0 && checklistLayout.show_total_amount == 1) {
+        bytes += generator.reset();
+        bytes += generator.emptyLines(1);
+        bytes += generator.text('Total: RM ${subtotal.toStringAsFixed(2)}',
+            styles: PosStyles(
+                align: PosAlign.right,
+                height: checklistLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1
+            )
+        );
+      }
+
       bytes += generator.feed(1);
       bytes += generator.cut(mode: PosCutMode.partial);
       return bytes;

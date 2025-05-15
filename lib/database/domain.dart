@@ -3,8 +3,6 @@ import 'dart:convert';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
-import 'package:pos_system/object/sales_per_day/category_sales_per_day.dart';
-import 'package:pos_system/object/sales_per_day/sales_per_day.dart';
 import 'package:pos_system/object/table.dart';
 
 import '../object/branch.dart';

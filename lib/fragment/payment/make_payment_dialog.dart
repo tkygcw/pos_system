@@ -20,6 +20,7 @@ import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
 import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
+import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_payment_split.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
@@ -329,7 +330,10 @@ class _MakePaymentState extends State<MakePayment> {
                                         Container(
                                           padding: EdgeInsets.all(20),
                                           alignment: Alignment.center,
-                                          child: Text(_appSettingModel.table_order == 0 ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
+                                          child: Text(_appSettingModel.table_order == 0
+                                              ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
+                                              : _appSettingModel.table_order == 2
+                                              ? AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedCustomTable(cart, appSettingModel)}'
                                               : AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
                                               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
                                         ),
@@ -921,32 +925,56 @@ class _MakePaymentState extends State<MakePayment> {
                                                       willPop = false;
                                                       isButtonDisable = true;
                                                     });
-                                                    asyncQ.addJob((_) async {
-                                                      try{
-                                                        await callCreateOrder(finalAmount);
-                                                        // await callCreateOrder(finalAmount);
+                                                    try{
+                                                      await callCreateOrder(finalAmount);
+                                                      // await callCreateOrder(finalAmount);
 
-                                                        if (this.isLogOut == true) {
-                                                          openLogOutDialog();
-                                                          return;
-                                                        }
-                                                        await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
-                                                        Branch? data = await PosDatabase.instance.readLocalBranch();
-                                                        if(data != null && data.allow_livedata == 1){
-                                                          if(!isSyncisSyncingingNotifier.value){
-                                                            isSyncisSyncingingNotifier.value = true;
-                                                            do{
-                                                              await syncToCloud.syncAllToCloud(isManualSync: true);
-                                                            }while(syncToCloud.emptyResponse == false);
-                                                            if(syncToCloud.emptyResponse == true){
-                                                              isSyncisSyncingingNotifier.value = false;
-                                                            }
+                                                      if (this.isLogOut == true) {
+                                                        openLogOutDialog();
+                                                        return;
+                                                      }
+                                                      await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
+                                                      Branch? data = await PosDatabase.instance.readLocalBranch();
+                                                      if(data != null && data.allow_livedata == 1){
+                                                        if(!isSyncisSyncingingNotifier.value){
+                                                          isSyncisSyncingingNotifier.value = true;
+                                                          do{
+                                                            await syncToCloud.syncAllToCloud(isManualSync: true);
+                                                          }while(syncToCloud.emptyResponse == false);
+                                                          if(syncToCloud.emptyResponse == true){
+                                                            isSyncisSyncingingNotifier.value = false;
                                                           }
                                                         }
-                                                      }catch(e){
-                                                        print("error: $e");
                                                       }
-                                                    });
+                                                    }catch(e){
+                                                      print("error: $e");
+                                                    }
+                                                    // asyncQ.addJob((_) async {
+                                                    //   try{
+                                                    //     await callCreateOrder(finalAmount);
+                                                    //     // await callCreateOrder(finalAmount);
+                                                    //
+                                                    //     if (this.isLogOut == true) {
+                                                    //       openLogOutDialog();
+                                                    //       return;
+                                                    //     }
+                                                    //     await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
+                                                    //     Branch? data = await PosDatabase.instance.readLocalBranch();
+                                                    //     if(data != null && data.allow_livedata == 1){
+                                                    //       if(!isSyncisSyncingingNotifier.value){
+                                                    //         isSyncisSyncingingNotifier.value = true;
+                                                    //         do{
+                                                    //           await syncToCloud.syncAllToCloud(isManualSync: true);
+                                                    //         }while(syncToCloud.emptyResponse == false);
+                                                    //         if(syncToCloud.emptyResponse == true){
+                                                    //           isSyncisSyncingingNotifier.value = false;
+                                                    //         }
+                                                    //       }
+                                                    //     }
+                                                    //   }catch(e){
+                                                    //     print("error: $e");
+                                                    //   }
+                                                    // });
                                                   },
                                                   icon: Icon(Icons.call_received),
                                                   label: Text(
@@ -1976,35 +2004,62 @@ class _MakePaymentState extends State<MakePayment> {
                                                   // willPop = false;
                                                   isButtonDisable = true;
                                                 });
-                                                asyncQ.addJob((_) async {
-                                                  try{
-                                                    await callCreateOrder(finalAmount);
-                                                    // await callCreateOrder(finalAmount);
-                                                    if (this.isLogOut == true) {
-                                                      openLogOutDialog();
-                                                      return;
-                                                    }
-                                                    await openPaymentSuccessDialog(
-                                                        widget.dining_id,
-                                                        split_payment,
-                                                        isCashMethod: false,
-                                                        diningName: widget.dining_name);
-                                                    Branch? data = await PosDatabase.instance.readLocalBranch();
-                                                    if(data != null && data.allow_livedata == 1){
-                                                      if(!isSyncisSyncingingNotifier.value){
-                                                        isSyncisSyncingingNotifier.value = true;
-                                                        do{
-                                                          await syncToCloud.syncAllToCloud(isManualSync: true);
-                                                        }while(syncToCloud.emptyResponse == false);
-                                                        if(syncToCloud.emptyResponse == true){
-                                                          isSyncisSyncingingNotifier.value = false;
-                                                        }
+                                                try{
+                                                  await callCreateOrder(finalAmount);
+                                                  // await callCreateOrder(finalAmount);
+                                                  if (this.isLogOut == true) {
+                                                    openLogOutDialog();
+                                                    return;
+                                                  }
+                                                  await openPaymentSuccessDialog(
+                                                      widget.dining_id,
+                                                      split_payment,
+                                                      isCashMethod: false,
+                                                      diningName: widget.dining_name);
+                                                  Branch? data = await PosDatabase.instance.readLocalBranch();
+                                                  if(data != null && data.allow_livedata == 1){
+                                                    if(!isSyncisSyncingingNotifier.value){
+                                                      isSyncisSyncingingNotifier.value = true;
+                                                      do{
+                                                        await syncToCloud.syncAllToCloud(isManualSync: true);
+                                                      }while(syncToCloud.emptyResponse == false);
+                                                      if(syncToCloud.emptyResponse == true){
+                                                        isSyncisSyncingingNotifier.value = false;
                                                       }
                                                     }
-                                                  }catch(e){
-                                                    print("error: $e");
                                                   }
-                                                });
+                                                }catch(e){
+                                                  print("error: $e");
+                                                }
+                                                // asyncQ.addJob((_) async {
+                                                //   try{
+                                                //     await callCreateOrder(finalAmount);
+                                                //     // await callCreateOrder(finalAmount);
+                                                //     if (this.isLogOut == true) {
+                                                //       openLogOutDialog();
+                                                //       return;
+                                                //     }
+                                                //     await openPaymentSuccessDialog(
+                                                //         widget.dining_id,
+                                                //         split_payment,
+                                                //         isCashMethod: false,
+                                                //         diningName: widget.dining_name);
+                                                //     Branch? data = await PosDatabase.instance.readLocalBranch();
+                                                //     if(data != null && data.allow_livedata == 1){
+                                                //       if(!isSyncisSyncingingNotifier.value){
+                                                //         isSyncisSyncingingNotifier.value = true;
+                                                //         do{
+                                                //           await syncToCloud.syncAllToCloud(isManualSync: true);
+                                                //         }while(syncToCloud.emptyResponse == false);
+                                                //         if(syncToCloud.emptyResponse == true){
+                                                //           isSyncisSyncingingNotifier.value = false;
+                                                //         }
+                                                //       }
+                                                //     }
+                                                //   }catch(e){
+                                                //     print("error: $e");
+                                                //   }
+                                                // });
                                               },
                                               icon: Icon(Icons.call_received, size: 20),
                                               label: Text(
@@ -2996,31 +3051,54 @@ class _MakePaymentState extends State<MakePayment> {
                                                   setState(() {
                                                     isButtonDisable = true;
                                                   });
-                                                  asyncQ.addJob((_) async {
-                                                    try{
-                                                      await callCreateOrder(finalAmount);
-                                                      // await callCreateOrder(finalAmount);
-                                                      if (this.isLogOut == true) {
-                                                        openLogOutDialog();
-                                                        return;
-                                                      }
-                                                      await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
-                                                      Branch? data = await PosDatabase.instance.readLocalBranch();
-                                                      if(data != null && data.allow_livedata == 1){
-                                                        if(!isSyncisSyncingingNotifier.value){
-                                                          isSyncisSyncingingNotifier.value = true;
-                                                          do{
-                                                            await syncToCloud.syncAllToCloud(isManualSync: true);
-                                                          }while(syncToCloud.emptyResponse == false);
-                                                          if(syncToCloud.emptyResponse == true){
-                                                            isSyncisSyncingingNotifier.value = false;
-                                                          }
+                                                  try{
+                                                    await callCreateOrder(finalAmount);
+                                                    // await callCreateOrder(finalAmount);
+                                                    if (this.isLogOut == true) {
+                                                      openLogOutDialog();
+                                                      return;
+                                                    }
+                                                    await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
+                                                    Branch? data = await PosDatabase.instance.readLocalBranch();
+                                                    if(data != null && data.allow_livedata == 1){
+                                                      if(!isSyncisSyncingingNotifier.value){
+                                                        isSyncisSyncingingNotifier.value = true;
+                                                        do{
+                                                          await syncToCloud.syncAllToCloud(isManualSync: true);
+                                                        }while(syncToCloud.emptyResponse == false);
+                                                        if(syncToCloud.emptyResponse == true){
+                                                          isSyncisSyncingingNotifier.value = false;
                                                         }
                                                       }
-                                                    }catch(e){
-                                                      print("error: $e");
                                                     }
-                                                  });
+                                                  }catch(e){
+                                                    print("error: $e");
+                                                  }
+                                                  // asyncQ.addJob((_) async {
+                                                  //   try{
+                                                  //     await callCreateOrder(finalAmount);
+                                                  //     // await callCreateOrder(finalAmount);
+                                                  //     if (this.isLogOut == true) {
+                                                  //       openLogOutDialog();
+                                                  //       return;
+                                                  //     }
+                                                  //     await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name);
+                                                  //     Branch? data = await PosDatabase.instance.readLocalBranch();
+                                                  //     if(data != null && data.allow_livedata == 1){
+                                                  //       if(!isSyncisSyncingingNotifier.value){
+                                                  //         isSyncisSyncingingNotifier.value = true;
+                                                  //         do{
+                                                  //           await syncToCloud.syncAllToCloud(isManualSync: true);
+                                                  //         }while(syncToCloud.emptyResponse == false);
+                                                  //         if(syncToCloud.emptyResponse == true){
+                                                  //           isSyncisSyncingingNotifier.value = false;
+                                                  //         }
+                                                  //       }
+                                                  //     }
+                                                  //   }catch(e){
+                                                  //     print("error: $e");
+                                                  //   }
+                                                  // });
                                                 },
                                                 icon: Icon(Icons.call_received, size: 20),
                                                 label: Text(AppLocalizations.of(context)!.translate('payment_received'), style: TextStyle(fontSize: 16)),
@@ -3576,30 +3654,52 @@ class _MakePaymentState extends State<MakePayment> {
         );
         Map<String, dynamic> apiRes = await paymentApi();
         if (apiRes['status'] == '1') {
-          asyncQ.addJob((_) async {
-            try{
-              await callCreateOrder(finalAmount, ipayTransId: apiRes['data']);
-              assetsAudioPlayer.open(
-                Audio("audio/payment_success.mp3"),
-              );
-              //pass trans id from api res to payment success dialog
-              await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name, ipayTransId: apiRes['data']);
-              Branch? data = await PosDatabase.instance.readLocalBranch();
-              if(data != null && data.allow_livedata == 1){
-                if(!isSyncisSyncingingNotifier.value){
-                  isSyncisSyncingingNotifier.value = true;
-                  do{
-                    await syncToCloud.syncAllToCloud(isManualSync: true);
-                  }while(syncToCloud.emptyResponse == false);
-                  if(syncToCloud.emptyResponse == true){
-                    isSyncisSyncingingNotifier.value = false;
-                  }
+          try{
+            await callCreateOrder(finalAmount, ipayTransId: apiRes['data']);
+            assetsAudioPlayer.open(
+              Audio("audio/payment_success.mp3"),
+            );
+            //pass trans id from api res to payment success dialog
+            await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name, ipayTransId: apiRes['data']);
+            Branch? data = await PosDatabase.instance.readLocalBranch();
+            if(data != null && data.allow_livedata == 1){
+              if(!isSyncisSyncingingNotifier.value){
+                isSyncisSyncingingNotifier.value = true;
+                do{
+                  await syncToCloud.syncAllToCloud(isManualSync: true);
+                }while(syncToCloud.emptyResponse == false);
+                if(syncToCloud.emptyResponse == true){
+                  isSyncisSyncingingNotifier.value = false;
                 }
               }
-            }catch(e){
-              print("error: $e");
             }
-          });
+          }catch(e){
+            print("error: $e");
+          }
+          // asyncQ.addJob((_) async {
+          //   try{
+          //     await callCreateOrder(finalAmount, ipayTransId: apiRes['data']);
+          //     assetsAudioPlayer.open(
+          //       Audio("audio/payment_success.mp3"),
+          //     );
+          //     //pass trans id from api res to payment success dialog
+          //     await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: false, diningName: widget.dining_name, ipayTransId: apiRes['data']);
+          //     Branch? data = await PosDatabase.instance.readLocalBranch();
+          //     if(data != null && data.allow_livedata == 1){
+          //       if(!isSyncisSyncingingNotifier.value){
+          //         isSyncisSyncingingNotifier.value = true;
+          //         do{
+          //           await syncToCloud.syncAllToCloud(isManualSync: true);
+          //         }while(syncToCloud.emptyResponse == false);
+          //         if(syncToCloud.emptyResponse == true){
+          //           isSyncisSyncingingNotifier.value = false;
+          //         }
+          //       }
+          //     }
+          //   }catch(e){
+          //     print("error: $e");
+          //   }
+          // });
         } else {
           assetsAudioPlayer.open(
             Audio("audio/error_sound.mp3"),
@@ -3725,6 +3825,35 @@ class _MakePaymentState extends State<MakePayment> {
   }
 
 /*
+  get selected custom table
+*/
+  getSelectedCustomTable(CartModel cart, AppSettingModel appSettingModel) {
+    String? customTable = '';
+    List<String> result = [];
+    if (widget.dining_name == 'Dine in' && appSettingModel.table_order == 2) {
+      if(cart.cartNotifierItem.isNotEmpty) {
+        for(int i = 0; i < cart.cartNotifierItem.length; i++) {
+          if(cart.cartNotifierItem[i].custom_table_number != '' && cart.cartNotifierItem[i].custom_table_number != null) {
+            customTable = cart.cartNotifierItem[i].custom_table_number;
+          }
+        }
+        if(customTable == ''){
+          if(cart.selectedTableIndex != '') {
+            customTable = cart.selectedTableIndex;
+          }
+        }
+        if(customTable != '')
+          return customTable;
+        else
+          return '-';
+      }
+      return result.toString().replaceAll('[', '').replaceAll(']', '');
+    } else {
+      return '-';
+    }
+  }
+
+/*
   Get Cart product modifier
 */
   getModifier(cartProductItem object) {
@@ -3807,38 +3936,347 @@ class _MakePaymentState extends State<MakePayment> {
 
 
   addAllPromotion(CartModel cartModel) {
-    if (autoApplyPromotionList.isNotEmpty) {
-      for (int i = 0; i < autoApplyPromotionList.length; i++) {
-        if (!appliedPromotionList.contains(autoApplyPromotionList[i])) {
-          appliedPromotionList.add(autoApplyPromotionList[i]);
-        }
-      }
+    List<Promotion> promotionsToApply = [];
+
+    // auto apply, specific_category != 0
+    promotionsToApply.addAll(autoApplyPromotionList
+        .where((promo) => promo.auto_apply == '1'));
+
+    // manual apply, specific_category != 0
+    if (cartModel.selectedPromotion != null &&
+        cartModel.selectedPromotion!.auto_apply == '0' &&
+        cartModel.selectedPromotion!.specific_category != '0') {
+      promotionsToApply.add(cartModel.selectedPromotion!);
     }
-    if (cartModel.selectedPromotion != null) {
-      if (!appliedPromotionList.contains(cartModel.selectedPromotion!)) {
-        appliedPromotionList.add(cartModel.selectedPromotion!);
+
+    // auto apply, specific_category == 0
+    promotionsToApply.addAll(autoApplyPromotionList
+        .where((promo) => promo.auto_apply == '1' && promo.specific_category == '0'));
+
+    // manual apply, specific_category == 0
+    if (cartModel.selectedPromotion != null &&
+        cartModel.selectedPromotion!.auto_apply == '0' &&
+        cartModel.selectedPromotion!.specific_category == '0') {
+      promotionsToApply.add(cartModel.selectedPromotion!);
+    }
+
+    for (var promo in promotionsToApply) {
+      if (!appliedPromotionList.contains(promo)) {
+        appliedPromotionList.add(promo);
       }
     }
   }
 
   getCartItemList(CartModel cart) {
-    if(orderCacheIdList.isEmpty){
+    print("getCartItemList called");
+    try {
+      if(orderCacheIdList.isEmpty){
+        for (int i = 0; i < cart.cartNotifierItem.length; i++) {
+          if (!orderCacheIdList.contains(cart.cartNotifierItem[i].order_cache_sqlite_id!)) {
+            orderCacheIdList.add(cart.cartNotifierItem[i].order_cache_sqlite_id!);
+            orderCacheSqliteId = cart.cartNotifierItem[i].order_cache_sqlite_id!;
+          }
+        }
+      }
+      if(cart.selectedTable.isNotEmpty && selectedTableList.isEmpty){
+        for (int j = 0; j < cart.selectedTable.length; j++) {
+          if (!selectedTableList.contains(cart.selectedTable[j].table_sqlite_id)) {
+            selectedTableList.add(cart.selectedTable[j]);
+          }
+        }
+      }
+      if(cart.cartNotifierItem.isNotEmpty && itemList.isEmpty){
+        itemList.addAll((cart.cartNotifierItem));
+      }
+      for(int k = 0; k < itemList.length; k++) {
+        itemList[k].promo = {};
+        itemList[k].charge = {};
+        itemList[k].tax = {};
+      }
+      calculateCategoryPriceBeforePromo(cart);
+
+      // get order promo detail
+      calculatePromotion(appliedPromotionList);
+
+      // get order charge detail
+      calculateCharges(taxList);
+
+      // get order tax detail
+      calculateTaxes(taxList);
+
+      for(int i = 0; i<itemList.length; i++)
+        print("itemListPromo: ${jsonEncode(itemList[i].product_name)}, ${jsonEncode(itemList[i].promo)}");
+      for(int i = 0; i<itemList.length; i++)
+        print("itemListCharge: ${jsonEncode(itemList[i].product_name)}, ${jsonEncode(itemList[i].charge!)}");
+      for(int i = 0; i<itemList.length; i++)
+        print("itemListTax: ${jsonEncode(itemList[i].product_name)}, ${jsonEncode(itemList[i].tax ?? '0')}");
+    } catch(e){
+      FLog.error(
+        className: "make_payment_dialog",
+        text: "getCartItemList error",
+        exception: "$e",
+      );
+    }
+  }
+
+  calculatePromotion(List appliedPromotionList) {
+    try {
+      if (appliedPromotionList.isEmpty) return;
+
+      double _calculateSingleItemDiscount(dynamic data) {
+        return data.promo!.entries.where((item) => !item.value.isNaN).fold(0.0, (sum, item) => sum + item.value);
+      }
+
+      double _calculateCategoryTotal({String? categoryId, bool Function(dynamic)? filter,}) {
+        return itemList.fold(0.0, (total, data) {
+          if (filter != null && !filter(data)) return total;
+
+          double singleItemDiscount = _calculateSingleItemDiscount(data);
+
+          return total + (double.parse(data.price!) * data.quantity!) - singleItemDiscount;
+        });
+      }
+
+      _adjustPromoAmount(dynamic promotion) {
+        double appliedPromoAmount = itemList.fold(0.0, (total, data) {
+          return total + data.promo!.entries.where((item) => item.key == promotion.name && !item.value.isNaN).fold(0.0, (sum, item) => sum + item.value);
+        });
+
+        double compareAmount = double.parse(
+            (appliedPromoAmount - promotion.promoAmount!).toStringAsFixed(2)
+        );
+
+        if (compareAmount == 0) return;
+
+        int loopCount = (compareAmount * 100).round().abs();
+        int x = 0;
+        bool isRoundingUp = compareAmount < 0;
+
+        while (x < loopCount) {
+          for (var data in itemList) {
+            if (x >= loopCount) break;
+
+            for (var item in data.promo!.entries) {
+              if (item.key == promotion.name) {
+                data.promo![item.key] = data.promo![item.key]! + (isRoundingUp ? 0.01 : -0.01);
+                data.promo![item.key] = double.parse(data.promo![item.key]!.toStringAsFixed(2));
+                x++;
+              }
+            }
+          }
+        }
+      }
+
+      _applyPromoToItems(dynamic promotion, double total, bool Function(dynamic) filter) {
+        for (var data in itemList) {
+          if (!filter(data)) continue;
+
+          double singleItemDiscount = _calculateSingleItemDiscount(data);
+
+          double promoAmountApplied = promotion.promoAmount! * (double.parse(data.price!) * data.quantity! - singleItemDiscount) /total;
+
+          data.promo![promotion.name!] = double.parse(promoAmountApplied.toStringAsFixed(2));
+        }
+
+        _adjustPromoAmount(promotion);
+      }
+
+      for (var promotion in appliedPromotionList) {
+        if ((promotion.auto_apply == '1' && promotion.specific_category != '0') ||
+            (promotion.auto_apply == '0' && promotion.specific_category != '0')) {
+
+          if (promotion.specific_category == '1') {
+            double categoryTotal = _calculateCategoryTotal(filter: (data) => data.category_id == promotion.category_id);
+
+            _applyPromoToItems(promotion, categoryTotal, (data) => data.category_id == promotion.category_id);
+          } else {
+            double categoryTotal = _calculateCategoryTotal(filter: (data) => promotion.multiple_category!.any((category) => category['category_id'].toString() == data.category_id));
+
+            _applyPromoToItems(promotion, categoryTotal, (data) => promotion.multiple_category!.any((category) => category['category_id'].toString() == data.category_id));
+          }
+        } else if ((promotion.auto_apply == '1' && promotion.specific_category == '0') ||
+            (promotion.auto_apply == '0' && promotion.specific_category == '0')) {
+          double total = _calculateCategoryTotal();
+
+          _applyPromoToItems(promotion, total, (_) => true);
+        }
+      }
+
+      double totalPromotions = itemList.fold(0.0, (total, item) {
+        return total + item.promo!.values.fold(0.0, (sum, promoValue) => sum + promoValue);
+      });
+      print("Total promotions: ${totalPromotions.toStringAsFixed(2)}");
+    } catch(e) {
+      FLog.error(
+        className: "make_payment_dialog",
+        text: "calculatePromotion error",
+        exception: "$e",
+      );
+    }
+  }
+
+  double roundToTwoDecimalPlaces(double value) {
+    final rounded = (value * 100).round() / 100;
+
+    if (rounded == rounded.truncateToDouble()) {
+      return double.parse('${rounded.toInt()}.00');
+    } else if ((rounded * 10) == (rounded * 10).truncateToDouble()) {
+      return double.parse('${rounded}0');
+    } else {
+      return rounded;
+    }
+  }
+
+  calculateCharges(List<dynamic> taxList) {
+    try {
+      adjustChargeRoundingDifference(List<dynamic> items, String chargeName, double compareAmount) {
+        int loopCount = (compareAmount * 100).round().abs();
+        int x = 0;
+        bool isRoundingUp = compareAmount < 0;
+
+        while (x < loopCount) {
+          for (var item in items) {
+            if (x >= loopCount) break;
+
+            if (item.charge!.containsKey(chargeName)) {
+              item.charge![chargeName] += isRoundingUp ? 0.01 : -0.01;
+              item.charge![chargeName] = double.parse(item.charge![chargeName].toStringAsFixed(2));
+              x++;
+            }
+          }
+        }
+      }
+
+      double calculateDiscountedPrice(dynamic item) {
+        double singleItemDiscount = item.promo!.entries.where((entry) => !entry.value.isNaN).map((entry) => entry.value).fold(0.0, (a, b) => a + b);
+        return (double.parse(item.price!) * item.quantity!) - singleItemDiscount;
+      }
+
+      distributeChargesAcrossItems(dynamic chargeItem, bool isSpecificCategory) {
+        double totalAmount = 0;
+        List<dynamic> eligibleItems = isSpecificCategory
+            ? itemList.where((item) => chargeItem.multiple_category!.any((category) => category['category_id'].toString() == item.category_id)).toList()
+            : itemList;
+
+        double subtotalAfterPromoTotal = eligibleItems.map(calculateDiscountedPrice).fold(0.0, (a, b) => a + b);
+
+        for (var item in eligibleItems) {
+          double singleItemDiscountedPrice = calculateDiscountedPrice(item);
+          double distributedCharge = chargeItem.tax_amount! * singleItemDiscountedPrice / subtotalAfterPromoTotal;
+
+          item.charge ??= {};
+          item.charge![chargeItem.name!] = double.parse(distributedCharge.toStringAsFixed(2));
+        }
+
+        double totalDistributedCharge = eligibleItems.expand((item) => item.charge!.entries).where((entry) => entry.key == chargeItem.name).map((entry) => entry.value).fold(0.0, (a, b) => a + b);
+
+        double compareAmount = double.parse((totalDistributedCharge - chargeItem.tax_amount!).toStringAsFixed(2));
+
+        if (compareAmount != 0) {
+          adjustChargeRoundingDifference(eligibleItems, chargeItem.name!, compareAmount);
+        }
+      }
+
+      for (var chargeItem in taxList.where((item) => item.type == 0)) {
+        bool isSpecificCategory = chargeItem.specific_category == 1;
+        distributeChargesAcrossItems(chargeItem, isSpecificCategory);
+      }
+
+      double totalCharges = itemList.expand((item) => item.charge!.values).fold(0.0, (a, b) => a + b);
+      print("Total charges: ${totalCharges.toStringAsFixed(2)}");
+    } catch(e) {
+      FLog.error(
+        className: "make_payment_dialog",
+        text: "calculateCharges error",
+        exception: "$e",
+      );
+    }
+  }
+
+  calculateTaxes(List<dynamic> taxList) {
+    try {
+      adjustTaxRoundingDifference(List<dynamic> items, String taxName, double compareAmount) {
+        int loopCount = (compareAmount * 100).round().abs();
+        int x = 0;
+        bool isRoundingUp = compareAmount < 0;
+
+        while (x < loopCount) {
+          for (var item in items) {
+            if (x >= loopCount) break;
+
+            if (item.tax!.containsKey(taxName)) {
+              item.tax![taxName] += isRoundingUp ? 0.01 : -0.01;
+              item.tax![taxName] = double.parse(item.tax![taxName].toStringAsFixed(2));
+              x++;
+            }
+          }
+        }
+      }
+
+      double calculateDiscountedPrice(dynamic item) {
+        double singleItemDiscount = item.promo!.entries.where((entry) => !entry.value.isNaN).map((entry) => entry.value).fold(0.0, (a, b) => a + b);
+        return (double.parse(item.price!) * item.quantity!) - singleItemDiscount;
+      }
+
+      distributeTaxesAcrossItems(dynamic taxItem, bool isSpecificCategory) {
+        List<dynamic> eligibleItems = isSpecificCategory
+            ? itemList.where((item) => taxItem.multiple_category!.any((category) => category['category_id'].toString() == item.category_id)).toList()
+            : itemList;
+
+        double subtotalAfterPromoTotal = eligibleItems.map(calculateDiscountedPrice).fold(0.0, (a, b) => a + b);
+
+        for (var item in eligibleItems) {
+          double singleItemDiscountedPrice = calculateDiscountedPrice(item);
+          double distributedTax = taxItem.tax_amount! * singleItemDiscountedPrice / subtotalAfterPromoTotal;
+
+          item.tax ??= {};
+          item.tax![taxItem.name!] = double.parse(distributedTax.toStringAsFixed(2));
+        }
+
+        double totalDistributedTax = eligibleItems.expand((item) => item.tax!.entries).where((entry) => entry.key == taxItem.name).map((entry) => entry.value).fold(0.0, (a, b) => a + b);
+        double compareAmount = double.parse((totalDistributedTax - taxItem.tax_amount!).toStringAsFixed(2));
+
+        if (compareAmount != 0) {
+          adjustTaxRoundingDifference(eligibleItems, taxItem.name!, compareAmount);
+        }
+      }
+
+      for (var taxItem in taxList.where((item) => item.type == 1)) {
+        bool isSpecificCategory = taxItem.specific_category == 1;
+        distributeTaxesAcrossItems(taxItem, isSpecificCategory);
+      }
+
+      double totalTaxes = itemList.expand((item) => item.tax!.values).fold(0.0, (a, b) => a + b);
+      print("Total taxes: ${totalTaxes.toStringAsFixed(2)}");
+    } catch(e) {
+      FLog.error(
+        className: "make_payment_dialog",
+        text: "calculateTaxes error",
+        exception: "$e",
+      );
+    }
+  }
+
+  calculateCategoryPriceBeforePromo(CartModel cart){
+    try {
+      cart.clearCategoryTotalPriceMapBeforePromo();
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-        if (!orderCacheIdList.contains(cart.cartNotifierItem[i].order_cache_sqlite_id!)) {
-          orderCacheIdList.add(cart.cartNotifierItem[i].order_cache_sqlite_id!);
-          orderCacheSqliteId = cart.cartNotifierItem[i].order_cache_sqlite_id!;
+        double thisProductTotalPrice = double.parse(cart.cartNotifierItem[i].price!) * cart.cartNotifierItem[i].quantity!;
+        if (!cart.categoryTotalPriceMapBeforePromo.containsKey(cart.cartNotifierItem[i].category_id)) {
+          // category not exist in map
+          cart.addCategoryTotalPriceBeforePromo(cart.cartNotifierItem[i].category_id!, thisProductTotalPrice);
+        } else {
+          // category exist in map
+          double currentCategoryPrice = cart.categoryTotalPriceMapBeforePromo[cart.cartNotifierItem[i].category_id]!;
+          cart.categoryTotalPriceMapBeforePromo[cart.cartNotifierItem[i].category_id!] = currentCategoryPrice + thisProductTotalPrice;
         }
       }
-    }
-    if(cart.selectedTable.isNotEmpty && selectedTableList.isEmpty){
-      for (int j = 0; j < cart.selectedTable.length; j++) {
-        if (!selectedTableList.contains(cart.selectedTable[j].table_sqlite_id)) {
-          selectedTableList.add(cart.selectedTable[j]);
-        }
-      }
-    }
-    if(cart.cartNotifierItem.isNotEmpty && itemList.isEmpty){
-      itemList.addAll((cart.cartNotifierItem));
+    } catch(e){
+      FLog.error(
+        className: "make_payment_dialog",
+        text: "calculateCategoryPriceBeforePromo error",
+        exception: e,
+      );
     }
   }
 
@@ -3918,11 +4356,14 @@ class _MakePaymentState extends State<MakePayment> {
   }
 
   callCreateOrder(String? paymentReceived, {orderChange, String? ipayTransId}) async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
     OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(int.parse(orderCacheSqliteId));
     if(orderCacheData.order_key == null || orderCacheData.order_key == '') {
       await createOrder(double.parse(paymentReceived!), orderChange, ipayTransId: ipayTransId);
       await crateOrderTaxDetail();
       await createOrderPromotionDetail();
+      await updateOrderDetail(dateTime);
       //await syncAllToCloud();
     }
 
@@ -4330,6 +4771,30 @@ class _MakePaymentState extends State<MakePayment> {
     order_tax_value = _value.toString();
   }
 
+  updateOrderDetail(String dateTime) async {
+    try {
+      print("itemList lengthhh: ${itemList.length}");
+      for(var item in itemList){
+        OrderDetail thisOrderDetail = await PosDatabase.instance.readSpecificOrderDetailByLocalIdNoJoin(item.order_detail_sqlite_id!);
+        OrderDetail orderDetailObject = OrderDetail(
+            promo: item.promo,
+            charge: item.charge,
+            tax: item.tax,
+            sync_status: thisOrderDetail.sync_status == 0 ? 0 : 2,
+            updated_at: dateTime,
+            order_detail_sqlite_id: int.parse(item.order_detail_sqlite_id!)
+        );
+        await PosDatabase.instance.updateOrderDetailJson(orderDetailObject);
+      }
+    } catch(e) {
+      FLog.error(
+        className: "make_payment_dialog",
+        text: "updateOrderDetail error",
+        exception: "$e",
+      );
+    }
+  }
+
   readSpecificPaymentMethod() async {
     List<PaymentLinkCompany> data = await PosDatabase.instance
         .readPaymentMethodByType(_type.toString());
@@ -4363,7 +4828,7 @@ class _MakePaymentState extends State<MakePayment> {
               case 'tb_order':
                 {
                   await PosDatabase.instance.updateOrderSyncStatusFromCloud(
-                      responseJson[i]['order_key']);
+                      responseJson[i]['order_key'], responseJson[i]['updated_at']);
                 }
                 break;
               case 'tb_order_promotion_detail':
@@ -4522,31 +4987,54 @@ class _MakePaymentState extends State<MakePayment> {
         willPop = false;
         isButtonDisable = true;
       });
-      asyncQ.addJob((_) async {
-        try{
-          await callCreateOrder(inputController.text, orderChange: change);
-          // await callCreateOrder(inputController.text, orderChange: change);
-          if (this.isLogOut == true) {
-            openLogOutDialog();
-            return;
-          }
-          await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: true, diningName: widget.dining_name);
-          Branch? data = await PosDatabase.instance.readLocalBranch();
-          if(data != null && data.allow_livedata == 1){
-            if(!isSyncisSyncingingNotifier.value){
-              isSyncisSyncingingNotifier.value = true;
-              do{
-                await syncToCloud.syncAllToCloud(isManualSync: true);
-              }while(syncToCloud.emptyResponse == false);
-              if(syncToCloud.emptyResponse == true){
-                isSyncisSyncingingNotifier.value = false;
-              }
+      try{
+        await callCreateOrder(inputController.text, orderChange: change);
+        // await callCreateOrder(inputController.text, orderChange: change);
+        if (this.isLogOut == true) {
+          openLogOutDialog();
+          return;
+        }
+        await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: true, diningName: widget.dining_name);
+        Branch? data = await PosDatabase.instance.readLocalBranch();
+        if(data != null && data.allow_livedata == 1){
+          if(!isSyncisSyncingingNotifier.value){
+            isSyncisSyncingingNotifier.value = true;
+            do{
+              await syncToCloud.syncAllToCloud(isManualSync: true);
+            }while(syncToCloud.emptyResponse == false);
+            if(syncToCloud.emptyResponse == true){
+              isSyncisSyncingingNotifier.value = false;
             }
           }
-        }catch(e){
-          print("error: $e");
         }
-      });
+      }catch(e){
+        print("error: $e");
+      }
+      // asyncQ.addJob((_) async {
+      //   try{
+      //     await callCreateOrder(inputController.text, orderChange: change);
+      //     // await callCreateOrder(inputController.text, orderChange: change);
+      //     if (this.isLogOut == true) {
+      //       openLogOutDialog();
+      //       return;
+      //     }
+      //     await openPaymentSuccessDialog(widget.dining_id, split_payment, isCashMethod: true, diningName: widget.dining_name);
+      //     Branch? data = await PosDatabase.instance.readLocalBranch();
+      //     if(data != null && data.allow_livedata == 1){
+      //       if(!isSyncisSyncingingNotifier.value){
+      //         isSyncisSyncingingNotifier.value = true;
+      //         do{
+      //           await syncToCloud.syncAllToCloud(isManualSync: true);
+      //         }while(syncToCloud.emptyResponse == false);
+      //         if(syncToCloud.emptyResponse == true){
+      //           isSyncisSyncingingNotifier.value = false;
+      //         }
+      //       }
+      //     }
+      //   }catch(e){
+      //     print("error: $e");
+      //   }
+      // });
     } else if (inputController.text.isEmpty) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),

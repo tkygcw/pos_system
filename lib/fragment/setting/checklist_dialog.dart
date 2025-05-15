@@ -42,7 +42,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
   String checklistView = "80";
   String? checklist_value;
   double? fontSize, otherFontSize;
-  bool isButtonDisabled = false, submitted = false, checkListShowPrice = false, checkListItemSeparator = false, showSKU = false ;
+  bool isButtonDisabled = false, submitted = false, checkListShowPrice = false, checkListItemSeparator = false, showSKU = false, showTotalAmount = false;
   List<Printer> cashierPrinter = [];
 
   @override
@@ -95,6 +95,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
         checkListShowPrice = data.check_list_show_price == 0 ? false : true;
         checkListItemSeparator = data.check_list_show_separator == 0 ? false : true;
         showSKU = data.show_product_sku == 0 ? false : true;
+        showTotalAmount = data.show_total_amount == 0 ? false : true;
       } else {
         checklist = null;
         productFontSize = ReceiptDialogEnum.big;
@@ -383,6 +384,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
           check_list_show_price: checkListShowPrice == true ? 1: 0,
           check_list_show_separator: checkListItemSeparator == true ? 1: 0,
           show_product_sku: showSKU ? 1 : 0,
+          show_total_amount: showTotalAmount ? 1 : 0,
           sync_status: checkData.sync_status == 0 ? 0 : 2,
           updated_at: dateTime,
           checklist_sqlite_id: checklist!.checklist_sqlite_id,
@@ -423,6 +425,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
         check_list_show_separator: checkListItemSeparator == true ? 1 : 0,
         paper_size: checklistView,
         show_product_sku: showSKU ? 1 : 0,
+        show_total_amount: showTotalAmount ? 1 : 0,
         sync_status: 0,
         created_at: dateTime,
         updated_at: '',
@@ -486,7 +489,8 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
       check_list_show_price: checkListShowPrice == true ? 1: 0,
       check_list_show_separator: checkListItemSeparator == true ? 1: 0,
       paper_size: checklistView,
-      show_product_sku: showSKU ? 1 : 0
+      show_product_sku: showSKU ? 1 : 0,
+      show_total_amount: showTotalAmount ? 1 : 0
     );
   }
 
@@ -798,6 +802,18 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                 },
               ),
             ),
+            ListTile(
+              title: Text(AppLocalizations.of(context)!.translate('check_list_show_total_amount')),
+              subtitle: Text(AppLocalizations.of(context)!.translate('check_list_show_total_amount_desc')),
+              trailing: Switch(
+                value: showTotalAmount,
+                activeColor: color.backgroundColor,
+                onChanged: (value) async {
+                  showTotalAmount = value;
+                  actionController.sink.add("switch");
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -1056,6 +1072,18 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                 },
               ),
             ),
+            ListTile(
+              title: Text(AppLocalizations.of(context)!.translate('check_list_show_total_amount')),
+              subtitle: Text(AppLocalizations.of(context)!.translate('check_list_show_total_amount_desc')),
+              trailing: Switch(
+                value: showTotalAmount,
+                activeColor: color.backgroundColor,
+                onChanged: (value) async {
+                  showTotalAmount = value;
+                  actionController.sink.add("switch");
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -1160,6 +1188,18 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
           },
         ),
       ),
+      ListTile(
+        title: Text(AppLocalizations.of(context)!.translate('check_list_show_total_amount')),
+        subtitle: Text(AppLocalizations.of(context)!.translate('check_list_show_total_amount_desc')),
+        trailing: Switch(
+          value: showTotalAmount,
+          activeColor: color.backgroundColor,
+          onChanged: (value) async {
+            showTotalAmount = value;
+            actionController.sink.add("switch");
+          },
+        ),
+      ),
     ],
   );
 
@@ -1257,6 +1297,18 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
           activeColor: color.backgroundColor,
           onChanged: (value) {
             showSKU = value;
+            actionController.sink.add("switch");
+          },
+        ),
+      ),
+      ListTile(
+        title: Text(AppLocalizations.of(context)!.translate('check_list_show_total_amount')),
+        subtitle: Text(AppLocalizations.of(context)!.translate('check_list_show_total_amount_desc')),
+        trailing: Switch(
+          value: showTotalAmount,
+          activeColor: color.backgroundColor,
+          onChanged: (value) async {
+            showTotalAmount = value;
             actionController.sink.add("switch");
           },
         ),

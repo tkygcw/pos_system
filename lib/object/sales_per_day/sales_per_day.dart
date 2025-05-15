@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 String tableSalesPerDay = 'tb_sales_per_day';
 
 class SalesPerDayFields {
@@ -9,6 +11,9 @@ class SalesPerDayFields {
     tax,
     charge,
     promotion,
+    tax_detail,
+    charge_detail,
+    promotion_detail,
     rounding,
     date,
     payment_method,
@@ -27,6 +32,9 @@ class SalesPerDayFields {
   static String tax = 'tax';
   static String charge = 'charge';
   static String promotion = 'promotion';
+  static String tax_detail = 'tax_detail';
+  static String charge_detail = 'charge_detail';
+  static String promotion_detail = 'promotion_detail';
   static String rounding = 'rounding';
   static String date = 'date';
   static String payment_method = 'payment_method';
@@ -46,6 +54,9 @@ class SalesPerDay{
   String? tax;
   String? charge;
   String? promotion;
+  Map<String, double>? tax_detail;
+  Map<String, double>? charge_detail;
+  Map<String, double>? promotion_detail;
   String? rounding;
   String? date;
   String? payment_method;
@@ -64,6 +75,9 @@ class SalesPerDay{
     this.tax,
     this.charge,
     this.promotion,
+    this.tax_detail,
+    this.charge_detail,
+    this.promotion_detail,
     this.rounding,
     this.date,
     this.payment_method,
@@ -83,6 +97,9 @@ class SalesPerDay{
     String? tax,
     String? charge,
     String? promotion,
+    Map<String, double>? tax_detail,
+    Map<String, double>? charge_detail,
+    Map<String, double>? promotion_detail,
     String? rounding,
     String? date,
     String? payment_method,
@@ -101,6 +118,9 @@ class SalesPerDay{
           tax: tax ?? this.tax,
           charge: charge ?? this.charge,
           promotion: promotion ?? this.promotion,
+          tax_detail: tax_detail ?? this.tax_detail,
+          charge_detail: charge_detail ?? this.charge_detail,
+          promotion_detail: promotion_detail ?? this.promotion_detail,
           rounding: rounding ?? this.rounding,
           date: date ?? this.date,
           payment_method: payment_method ?? this.payment_method,
@@ -120,6 +140,39 @@ class SalesPerDay{
     tax: json[SalesPerDayFields.tax] as String?,
     charge: json[SalesPerDayFields.charge] as String?,
     promotion: json[SalesPerDayFields.promotion] as String?,
+    tax_detail: json['tax_detail'] == null
+        ? {}
+        : (json['tax_detail'] is String)
+        ? (json['tax_detail'].toString().trim().isNotEmpty
+        ? Map<String, double>.from(jsonDecode(json['tax_detail'] as String).map(
+            (key, value) => MapEntry(key as String, (value as num).toDouble())))
+        : {})
+        : (json['tax_detail'] is Map)
+        ? Map<String, double>.from((json['tax_detail'] as Map).map(
+            (key, value) => MapEntry(key as String, (value as num).toDouble())))
+        : {},
+    charge_detail: json['charge_detail'] == null
+        ? {}
+        : (json['charge_detail'] is String)
+        ? (json['charge_detail'].toString().trim().isNotEmpty
+        ? Map<String, double>.from(jsonDecode(json['charge_detail'] as String).map(
+            (key, value) => MapEntry(key as String, (value as num).toDouble())))
+        : {})
+        : (json['charge_detail'] is Map)
+        ? Map<String, double>.from((json['charge_detail'] as Map).map(
+            (key, value) => MapEntry(key as String, (value as num).toDouble())))
+        : {},
+    promotion_detail: json['promotion_detail'] == null
+        ? {}
+        : (json['promotion_detail'] is String)
+        ? (json['promotion_detail'].toString().trim().isNotEmpty
+        ? Map<String, double>.from(jsonDecode(json['promotion_detail'] as String).map(
+            (key, value) => MapEntry(key as String, (value as num).toDouble())))
+        : {})
+        : (json['promotion_detail'] is Map)
+        ? Map<String, double>.from((json['promotion_detail'] as Map).map(
+            (key, value) => MapEntry(key as String, (value as num).toDouble())))
+        : {},
     rounding: json[SalesPerDayFields.rounding] as String?,
     date: json[SalesPerDayFields.date] as String?,
     payment_method: json[SalesPerDayFields.payment_method] as String?,
@@ -139,6 +192,9 @@ class SalesPerDay{
     SalesPerDayFields.tax: tax,
     SalesPerDayFields.charge: charge,
     SalesPerDayFields.promotion: promotion,
+    SalesPerDayFields.tax_detail: tax_detail != null ? jsonEncode(tax_detail) : "{}",
+    SalesPerDayFields.charge_detail: charge_detail != null ? jsonEncode(charge_detail) : "{}",
+    SalesPerDayFields.promotion_detail: promotion_detail != null ? jsonEncode(promotion_detail) : "{}",
     SalesPerDayFields.rounding: rounding,
     SalesPerDayFields.date: date,
     SalesPerDayFields.payment_method: payment_method,

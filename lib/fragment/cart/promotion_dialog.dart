@@ -40,7 +40,6 @@ class _PromotionDialogState extends State<PromotionDialog> {
   void initState() {
     super.initState();
     readAllPromotion();
-    print('final amount = ${widget.cartFinalAmount}');
   }
 
   @override

@@ -43,43 +43,138 @@ class _DeviceCheckDialogState extends State<DeviceCheckDialog> {
       return Center(
         child: SingleChildScrollView(
           child: AlertDialog(
-            title: Text(AppLocalizations.of(context)!.translate('multi_device_login')),
+            title: Row(
+              children: [
+                Icon(Icons.warning_rounded, color: Colors.red[700], size: 40),
+                SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    AppLocalizations.of(context)!.translate('multi_device_login'),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  ),
+                ),
+              ],
+            ),
             content: Container(
-              height: MediaQuery.of(context).size.height > 500 ? 225 : MediaQuery.of(context).size.height/2.5,
               width: 400,
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text("${AppLocalizations.of(context)?.translate('confirm_logout_desc')}"),
+                  Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      border: Border.all(color: Colors.red[300]!),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.security, color: Colors.red[700], size: 24),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            "${AppLocalizations.of(context)?.translate('confirm_logout_warning')}",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: Colors.red[900],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   SizedBox(height: 10),
+                  Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      border: Border.all(color: Colors.red[300]!),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.security, color: Colors.red[700], size: 24),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            "${AppLocalizations.of(context)?.translate('confirm_logout_desc')}",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: Colors.red[900],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 20),
                   ValueListenableBuilder(
-                    // Note: pass _controller to the animation argument
                       valueListenable: adminPosPinController,
                       builder: (context, TextEditingValue value, __) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
+                        return Container(
+                          decoration: BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 5,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           child: TextField(
-                            //inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.red[800],
+                            ),
                             onSubmitted: (input) {
                               _submit(context);
                             },
                             controller: adminPosPinController,
                             decoration: InputDecoration(
-                              labelText: AppLocalizations.of(context)!.translate('yes'),
+                              contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                              hintText: "YES",
+                              hintStyle: TextStyle(
+                                color: Colors.red[100],
+                                fontWeight: FontWeight.w500,
+                              ),
+                              labelStyle: TextStyle(
+                                color: Colors.red[700],
+                                fontWeight: FontWeight.w600,
+                              ),
                               errorText: _submitted
                                   ? errorPassword == null ? errorPassword : AppLocalizations.of(context)?.translate(errorPassword!)
                                   : null,
-                              border: OutlineInputBorder(
-                                borderSide:
-                                BorderSide(color: color.backgroundColor),
+                              filled: true,
+                              fillColor: Colors.white,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: Colors.red[400]!, width: 2),
                               ),
                               focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                BorderSide(color: color.backgroundColor),
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: Colors.red[700]!, width: 2),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: Colors.red[900]!, width: 2),
+                              ),
+                              prefixIcon: Icon(
+                                Icons.warning_amber_rounded,
+                                color: Colors.red[900],
                               ),
                             ),
                           ),
                         );
-                      }),
+                      }
+                  ),
                 ],
               ),
             ),
@@ -105,7 +200,10 @@ class _DeviceCheckDialogState extends State<DeviceCheckDialog> {
                 },
               ),
               TextButton(
-                child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                child: Text('${AppLocalizations.of(context)?.translate('yes')}',
+                    style: TextStyle(
+                        color: Colors.red[700]
+                    )),
                 onPressed: isButtonDisabled ? null : () async {
                   setState(() {
                     isButtonDisabled = true;
