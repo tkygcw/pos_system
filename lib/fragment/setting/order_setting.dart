@@ -43,7 +43,7 @@ class _OrderSettingState extends State<OrderSetting> {
   Receipt? receiptObject;
   bool printCheckList = false, enableNumbering = false, printReceipt = false, hasQrAccess = true, printCancelReceipt = true,
       directPayment = false, qrOrderAutoAccept = false, cashDrawer = false, secondDisplay = false, invalidAfterPayment = true,
-      settlementAfterAllOrderPaid = false, hideDiningMethodTableNo = false, requiredReason = false, qrOrderAlert = false;
+      hideDiningMethodTableNo = false, requiredReason = false, qrOrderAlert = false;
   int startingNumber = 0, compareStartingNumber = 0;
   final List<String> tableModeOption = [
     'table_mode_no_table',
@@ -51,6 +51,13 @@ class _OrderSettingState extends State<OrderSetting> {
     'table_mode_custom_note',
   ];
   int? tableMode = 0;
+  final List<String> clearToSettleOption = [
+    'disable',
+    'table_order_only',
+    'other_order_only',
+    'all_order',
+  ];
+  int? settlementAfterAllOrderPaid = 0;
 
   @override
   void initState() {
@@ -181,10 +188,10 @@ class _OrderSettingState extends State<OrderSetting> {
         invalidAfterPayment = false;
       }
 
-      if(appSetting.settlement_after_all_order_paid == 1){
-        this.settlementAfterAllOrderPaid = true;
+      if(appSetting.settlement_after_all_order_paid != null){
+        settlementAfterAllOrderPaid = appSetting.settlement_after_all_order_paid!;
       } else {
-        this.settlementAfterAllOrderPaid = false;
+        settlementAfterAllOrderPaid = 0;
       }
 
       if(appSetting.required_cancel_reason == 1) {
@@ -606,18 +613,71 @@ class _OrderSettingState extends State<OrderSetting> {
                             endIndent: 20,
                           ),
                           ListTile(
-                            title: Text(AppLocalizations.of(context)!.translate('hide_dining_method_table_no')),
-                            subtitle: Text(AppLocalizations.of(context)!.translate('hide_dining_method_table_no')),
-                            trailing: Switch(
-                              value: hideDiningMethodTableNo,
-                              activeColor: color.backgroundColor,
-                              onChanged: (value) {
-                                hideDiningMethodTableNo = value;
-                                appSettingModel.setSettlementAfterAllOrderPaidStatus(hideDiningMethodTableNo);
-                                actionController.sink.add("hide_dining_method_table_no");
-                              },
+                            title: Text(AppLocalizations.of(context)!.translate('clear_to_settle')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('clear_to_settle_desc')),
+                            trailing: SizedBox(
+                              width: MediaQuery.of(context).orientation == Orientation.landscape ? 200 : 150,
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton2(
+                                  isExpanded: true,
+                                  buttonStyleData: ButtonStyleData(
+                                    height: 55,
+                                    padding: const EdgeInsets.only(left: 14, right: 14),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: Border.all(
+                                        color: Colors.black26,
+                                      ),
+                                    ),
+                                  ),
+                                  dropdownStyleData: DropdownStyleData(
+                                    maxHeight: 200,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      color: Colors.grey.shade100,
+                                    ),
+                                    scrollbarTheme: ScrollbarThemeData(
+                                        thickness: WidgetStateProperty.all(5),
+                                        mainAxisMargin: 20,
+                                        crossAxisMargin: 5
+                                    ),
+                                  ),
+                                  items: clearToSettleOption.asMap().entries.map((clearOption) => DropdownMenuItem<int>(
+                                    value: clearOption.key,
+                                    child: Text(
+                                      AppLocalizations.of(context)!.translate(clearOption.value),
+                                      overflow: TextOverflow.visible,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  )).toList(),
+                                  value: settlementAfterAllOrderPaid,
+                                  onChanged: (int? newValue) async{
+                                    if (appSettingModel.settlement_after_all_order_paid != newValue) {
+                                      settlementAfterAllOrderPaid = newValue;
+                                      appSettingModel.setSettlementAfterAllOrderPaidStatus(settlementAfterAllOrderPaid!);
+                                      newValue = appSettingModel.settlement_after_all_order_paid;
+                                      actionController.sink.add("settlement_after_all_order_paid");
+                                    }
+                                  },
+                                ),
+                              ),
                             ),
                           ),
+                          // ListTile(
+                          //   title: Text(AppLocalizations.of(context)!.translate('hide_dining_method_table_no')),
+                          //   subtitle: Text(AppLocalizations.of(context)!.translate('hide_dining_method_table_no')),
+                          //   trailing: Switch(
+                          //     value: hideDiningMethodTableNo,
+                          //     activeColor: color.backgroundColor,
+                          //     onChanged: (value) {
+                          //       hideDiningMethodTableNo = value;
+                          //       appSettingModel.setSettlementAfterAllOrderPaidStatus(hideDiningMethodTableNo);
+                          //       actionController.sink.add("hide_dining_method_table_no");
+                          //     },
+                          //   ),
+                          // ),
                           ListTile(
                             title: Text(AppLocalizations.of(context)!.translate('cancel_require_reason')),
                             subtitle: Text(AppLocalizations.of(context)!.translate('cancel_require_reason_desc')),
@@ -631,19 +691,6 @@ class _OrderSettingState extends State<OrderSetting> {
                                 }
                             ),
                           ),
-                          // ListTile(
-                          //   title: Text(AppLocalizations.of(context)!.translate('settlement_after_all_order_paid')),
-                          //   subtitle: Text(AppLocalizations.of(context)!.translate('settlement_after_all_order_paid_desc')),
-                          //   trailing: Switch(
-                          //     value: settlementAfterAllOrderPaid,
-                          //     activeColor: color.backgroundColor,
-                          //     onChanged: (value) {
-                          //       settlementAfterAllOrderPaid = value;
-                          //       appSettingModel.setSettlementAfterAllOrderPaidStatus(settlementAfterAllOrderPaid);
-                          //       actionController.sink.add("settlement_after_all_order_paid");
-                          //     },
-                          //   ),
-                          // ),
                         ],
                       ),
                     );
@@ -765,7 +812,7 @@ class _OrderSettingState extends State<OrderSetting> {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     AppSetting object = AppSetting(
-        settlement_after_all_order_paid: this.settlementAfterAllOrderPaid == true ? 1 : 0,
+        settlement_after_all_order_paid: this.settlementAfterAllOrderPaid,
         app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
         updated_at: dateTime
     );

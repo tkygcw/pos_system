@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
+import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/second_device/order/place_order.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -39,7 +40,12 @@ class PlaceNotDineInAddOrder extends PlaceOrder {
       //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
       //   }
       // }
-      asyncQ.addJob((_) => printKitchenList(address));
+      AppSetting? data = await PosDatabase.instance.readAppSetting();
+      if(data != null){
+        if(data.print_kitchen_list == true) {
+          asyncQ.addJob((_) => printKitchenList(address));
+        }
+      }
       Map<String, dynamic>? objectData = {'tb_branch_link_product': branchLinkProductList};
       return {'status': '1', 'data': objectData};
     }catch(e, s){

@@ -133,13 +133,20 @@ class BillLayout extends ReceiptLayout{
           styles: PosStyles(align: PosAlign.center),
         );
       }
+      //sst number
+      if(branchObject[BranchFields.sst_number] != ''){
+        bytes += generator.text(branchObject[BranchFields.sst_number],
+          containsChinese: true,
+          styles: PosStyles(align: PosAlign.center, ),
+        );
+      }
       //Address
       if(receipt!.show_address == 1 && branchObject['address'].toString() != ''){
         bytes += generator.text('${branchObject['address']}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
       }
       //telephone
       if(receipt!.show_branch_tel == 1 && branchObject['phone'] != ''){
-        bytes += generator.text('Tel: ${branchObject['phone']}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1));
+        bytes += generator.text('${branchObject['phone']}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1));
       }
       if(receipt!.show_email == 1){
         bytes += generator.text('${receipt!.receipt_email}', styles: PosStyles(align: PosAlign.center));
@@ -466,13 +473,20 @@ class BillLayout extends ReceiptLayout{
           styles: PosStyles(align: PosAlign.center),
         );
       }
+      //sst number
+      if(branchObject[BranchFields.sst_number] != ''){
+        bytes += generator.text(branchObject[BranchFields.sst_number],
+          containsChinese: true,
+          styles: PosStyles(align: PosAlign.center, ),
+        );
+      }
       //Address
       if(receipt!.show_address == 1 && branchObject['address'].toString() != ''){
         bytes += generator.text('${branchObject['address'].toString().replaceAll(',', '\n')}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
       }
       //telephone
       if(receipt!.show_branch_tel == 1 && branchObject['phone'] != ''){
-        bytes += generator.text('Tel: ${branchObject['phone']}',
+        bytes += generator.text('${branchObject['phone']}',
             styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1));
       }
       if(receipt!.show_email == 1){

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/second_device/order/place_order.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -146,7 +147,12 @@ class PlaceDineInOrder extends PlaceOrder {
         //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
         //   }
         // }
-        asyncQ.addJob((_) => printKitchenList(address));
+        AppSetting? data = await PosDatabase.instance.readAppSetting();
+        if(data != null){
+          if(data.print_kitchen_list == true) {
+            asyncQ.addJob((_) => printKitchenList(address));
+          }
+        }
         objectData = {
           'tb_branch_link_product': branchLinkProductList,
         };

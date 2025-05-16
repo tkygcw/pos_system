@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/fragment/product/product_order_dialog.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/notification_notifier.dart';
+import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/page/progress_bar.dart';
@@ -99,10 +100,24 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                   child: Image.asset('drawable/logo.png'),
                 ),
               ),
-              title: Text(AppLocalizations.of(context)!.translate('menu'),
-                style: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
-                    ? TextStyle(fontSize: 25, color: Colors.black)
-                    : TextStyle(fontSize: 20, color: color.backgroundColor),
+              title: RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '${AppLocalizations.of(context)!.translate('menu')} ',
+                      style: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                          ? TextStyle(fontSize: 25, color: Colors.black)
+                          : TextStyle(fontSize: 20, color: color.backgroundColor),
+                    ),
+                    TextSpan(
+                      text: '${getSelectedTableNumber()}',
+                      style: (MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500
+                          ? TextStyle(fontSize: 25, color: Colors.black)
+                          : TextStyle(fontSize: 20, color: color.backgroundColor))
+                          .copyWith(backgroundColor: Colors.yellow), // Add background color here
+                    ),
+                  ],
+                ),
               ),
               centerTitle: false,
               actions: [
@@ -147,6 +162,20 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
         });
       });
     });
+  }
+
+  String getSelectedTableNumber() {
+    if (widget.cartModel.selectedTable.isNotEmpty) {
+      List<String> tableNumbers = widget.cartModel.selectedTable
+          .where((table) => table.number != null && table.number!.isNotEmpty)
+          .map((table) => table.number!)
+          .toList();
+
+      if (tableNumbers.isNotEmpty) {
+        return '(Table - ${tableNumbers.join(', ')})';
+      }
+    }
+    return '';
   }
 
   Future<Future<Object?>> openProductOrderDialog(Product product, CartModel cartModel) async {

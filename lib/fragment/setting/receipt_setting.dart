@@ -37,8 +37,8 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
   late Stream actionStream;
   // List<AppSetting> appSettingList = [];
   Receipt? receiptObject;
-  bool printCheckList = false, enableNumbering = false, printReceipt = false, hasQrAccess = true, printCancelReceipt = true,
-      roundingAbsorb = true;
+  bool printCheckList = false, printKitchenList = false, enableNumbering = false, printReceipt = false, hasQrAccess = true, printCancelReceipt = true,
+      roundingAbsorb = true, receiptGroupSameItem = false;
   int startingNumber = 0, compareStartingNumber = 0;
 
   @override
@@ -93,6 +93,18 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
         printCheckList = true;
       } else {
         printCheckList = false;
+      }
+
+      if(appSetting.receipt_group_same_item == 1){
+        receiptGroupSameItem = true;
+      } else {
+        receiptGroupSameItem = false;
+      }
+
+      if(appSetting.print_kitchen_list == 1){
+        printKitchenList = true;
+      } else {
+        printKitchenList = false;
       }
 
       if(appSetting.print_receipt == 1){
@@ -309,6 +321,19 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                             }: null
                           ),
                           ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('receipt_group_same_item')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('receipt_group_same_item_desc')),
+                            trailing: Switch(
+                              value: receiptGroupSameItem,
+                              activeColor: color.backgroundColor,
+                              onChanged: (value) async {
+                                receiptGroupSameItem = value;
+                                appSettingModel.setReceiptGroupSameItemStatus(receiptGroupSameItem);
+                                actionController.sink.add("switch");
+                              },
+                            ),
+                          ),
+                          ListTile(
                             title: Text(AppLocalizations.of(context)!.translate('auto_print_checklist')),
                             subtitle: Text(AppLocalizations.of(context)!.translate('auto_print_checklist_desc')),
                             trailing: Switch(
@@ -317,6 +342,19 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                               onChanged: (value) async {
                                 printCheckList = value;
                                 appSettingModel.setPrintChecklistStatus(printCheckList);
+                                actionController.sink.add("switch");
+                              },
+                            ),
+                          ),
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('auto_print_kitchen_list')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('auto_print_kitchen_list_desc')),
+                            trailing: Switch(
+                              value: printKitchenList,
+                              activeColor: color.backgroundColor,
+                              onChanged: (value) async {
+                                printKitchenList = value;
+                                appSettingModel.setPrintKitchenListStatus(printKitchenList);
                                 actionController.sink.add("switch");
                               },
                             ),
@@ -400,7 +438,9 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     AppSetting object = AppSetting(
+        receipt_group_same_item: receiptGroupSameItem == true ? 1 : 0,
         print_checklist: printCheckList == true ? 1 : 0,
+        print_kitchen_list: printKitchenList == true ? 1 : 0,
         print_receipt: printReceipt == true ? 1 : 0,
         enable_numbering: enableNumbering == true ? 1 : 0,
         starting_number: startingNumber != 0 ? startingNumber : 0,

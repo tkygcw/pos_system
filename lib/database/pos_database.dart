@@ -91,7 +91,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 39, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
+    return await openDatabase(path, version: 40, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
   }
 
 /*
@@ -2570,6 +2570,33 @@ class PosDatabase {
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {
       print(e);
+      return [];
+    }
+  }
+
+/*
+  get all not paid order cache with no table
+*/
+  Future<List<OrderCache>> readOrderCacheNoTable() async {
+    try {
+      List<Map<String, Object?>> result;
+      final db = await instance.database;
+      result = await db.rawQuery(
+          'SELECT a.*, b.name AS name '
+              'FROM $tableOrderCache AS a '
+              'JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id '
+              'WHERE a.payment_status != ? '
+              'AND a.soft_delete = ? '
+              'AND b.soft_delete = ? '
+              'AND a.accepted = ? '
+              'AND a.cancel_by = ? '
+              'AND a.table_use_key = ? '
+              'ORDER BY a.created_at DESC',
+          ['1', '', '', 0, '', '']
+      );
+      return result.map((json) => OrderCache.fromJson(json)).toList();
+    } catch (e, s) {
+      print('readOrderCacheNoTable Error: $e, $s');
       return [];
     }
   }
@@ -5655,7 +5682,7 @@ class PosDatabase {
     return await db.rawUpdate('UPDATE $tableBranch SET name = ?, logo = ?,  address = ?, phone = ?, email = ?, '
         'qr_order_status = ?, sub_pos_status = ?, attendance_status = ?, register_no = ?, allow_firestore = ?, '
         'allow_livedata = ?, qr_show_sku = ?, qr_product_sequence = ?, show_qr_history = ?, generate_sales = ?, '
-        'allow_einvoice = ?, einvoice_status = ?, currency_code = ?, currency_symbol = ? '
+        'allow_einvoice = ?, einvoice_status = ?, currency_code = ?, currency_symbol = ? , sst_number = ? '
         'WHERE branch_id = ? ',
         [
           data.name,
@@ -5677,6 +5704,7 @@ class PosDatabase {
           data.einvoice_status,
           data.currency_code,
           data.currency_symbol,
+          data.sst_number,
           data.branch_id,
         ]);
   }
@@ -5746,7 +5774,8 @@ class PosDatabase {
 */
   Future<int> updateAppSettings(AppSetting data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableAppSetting SET open_cash_drawer = ?, show_second_display = ?, table_order = ?, sync_status = ?, updated_at = ?',
+    return await db.rawUpdate('UPDATE $tableAppSetting SET open_cash_drawer = ?, show_second_display = ?, '
+        'table_order = ?, sync_status = ?, updated_at = ?',
         [data.open_cash_drawer, data.show_second_display, data.table_order, 2, data.updated_at]);
   }
 
@@ -5773,8 +5802,9 @@ class PosDatabase {
 */
   Future<int> updateReceiptSettings(AppSetting data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableAppSetting SET print_checklist = ?, print_receipt = ?, enable_numbering = ?, starting_number = ?, sync_status = ?, updated_at = ?',
-        [data.print_checklist, data.print_receipt, data.enable_numbering, data.starting_number, 2, data.updated_at]);
+    return await db.rawUpdate('UPDATE $tableAppSetting SET print_checklist = ?, print_receipt = ?, enable_numbering = ?, '
+        'starting_number = ?, receipt_group_same_item = ?, sync_status = ?, updated_at = ?',
+        [data.print_checklist, data.print_receipt, data.enable_numbering, data.starting_number, data.receipt_group_same_item, 2, data.updated_at]);
   }
 
 /*

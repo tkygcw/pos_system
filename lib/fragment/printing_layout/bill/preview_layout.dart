@@ -3,6 +3,7 @@ import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/printing_layout/receipt_layout.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:f_logs/model/flog/flog.dart';
+import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/order_payment_split.dart';
@@ -19,6 +20,7 @@ class PreviewLayout extends ReceiptLayout {
     String dateTime = dateFormat.format(DateTime.now());
     await readReceiptLayout('80');
     await readOrderCache(int.parse(cartModel.cartNotifierItem[0].order_cache_sqlite_id!));
+    AppSetting? appSetting = await PosDatabase.instance.readAppSetting();
     // final ByteData data = await rootBundle.load('drawable/logo2.png');
     // final Uint8List bytes = data.buffer.asUint8List();
     // final decodedImage = img.decodeImage(bytes);
@@ -66,7 +68,7 @@ class PreviewLayout extends ReceiptLayout {
       ]);
       bytes += generator.hr();
       //merge same item
-      List<cartProductItem> mergedItems = mergeCartItems(cartModel);
+      List<cartProductItem> mergedItems = mergeCartItems(cartModel, receipt_group_same_item: appSetting!.receipt_group_same_item);
       //order product
       for(int i = 0; i < mergedItems.length; i++){
         bool productUnitPriceSplit = productNameDisplayCart(mergedItems, i, 80);
@@ -229,6 +231,7 @@ class PreviewLayout extends ReceiptLayout {
     String dateTime = dateFormat.format(DateTime.now());
     await readReceiptLayout('58');
     await readOrderCache(int.parse(cartModel.cartNotifierItem[0].order_cache_sqlite_id!));
+    AppSetting? appSetting = await PosDatabase.instance.readAppSetting();
     var generator;
     if (isUSB) {
       final profile = await CapabilityProfile.load();
@@ -270,7 +273,7 @@ class PreviewLayout extends ReceiptLayout {
       ]);
       bytes += generator.hr();
       //merge same item
-      List<cartProductItem> mergedItems = mergeCartItems(cartModel);
+      List<cartProductItem> mergedItems = mergeCartItems(cartModel, receipt_group_same_item: appSetting!.receipt_group_same_item);
 
       //order product
       for(int i = 0; i < mergedItems.length; i++){
@@ -440,10 +443,13 @@ class PreviewLayout extends ReceiptLayout {
     }
   }
 
-  List<cartProductItem> mergeCartItems(CartModel cartModel) {
+  List<cartProductItem> mergeCartItems(CartModel cartModel, {receipt_group_same_item}) {
     List<cartProductItem> mergedItems = cartModel.cartNotifierItem.map((item) => item.clone()).toList();
     Set<int> indicesToRemove = {};
 
+    if(receipt_group_same_item == null || receipt_group_same_item == 0) {
+      return mergedItems;
+    }
     for (int i = mergedItems.length - 1; i >= 0; i--) {
       if (indicesToRemove.contains(i)) continue;
 

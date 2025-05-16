@@ -4,6 +4,7 @@ import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/custom_toastification.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/order_cache.dart';
+import 'package:pos_system/page/loading_dialog.dart';
 import 'package:provider/provider.dart';
 
 import '../../notifier/fail_print_notifier.dart';
@@ -229,6 +230,8 @@ class _ReprintKitchenDialogState extends State<ReprintKitchenDialog> {
                     child: ElevatedButton(
                         onPressed: isButtonDisable || orderDetail.isEmpty  ? null : () async {
                           disableButton();
+                          openLoadingDialogBox();
+                          await Future.delayed(Duration(milliseconds: 500));
                           asyncQ.addJob((_) async {
                             try{
                               await callPrinter();
@@ -236,6 +239,7 @@ class _ReprintKitchenDialogState extends State<ReprintKitchenDialog> {
                               print("Reprint Kitchen Error: ${e}");
                               ShowFailedPrintKitchenToast.showToast();
                             }
+                            Navigator.of(context).pop();
                           });
                           //await callPrinter();
                         },
@@ -249,6 +253,27 @@ class _ReprintKitchenDialogState extends State<ReprintKitchenDialog> {
         ),
       );
     });
+  }
+
+  Future<Future<Object?>> openLoadingDialogBox() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+                opacity: a1.value,
+                child: WillPopScope(child: LoadingDialog(isTableMenu: true), onWillPop: () async => false)),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   readAllOrderDetail() async {

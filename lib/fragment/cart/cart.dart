@@ -780,7 +780,7 @@ class CartPageState extends State<CartPage> {
                                                             print('has new item ${hasNewItem}');
                                                             if (cart.cartNotifierItem[0].status == 1 && hasNewItem == true) {
                                                               // asyncQ.addJob((_) async => await callAddOrderCache(cart));
-                                                              await callAddOrderCache(cart);
+                                                              await callAddOrderCache(cart, appSettingModel);
                                                             } else if (cart.cartNotifierItem[0].status == 0) {
                                                               // asyncQ.addJob((_) async {
                                                               //   await callCreateNewOrder(cart, appSettingModel);
@@ -2966,7 +2966,9 @@ class CartPageState extends State<CartPage> {
         //   openLogOutDialog();
         //   return;
         // }
-        asyncQ.addJob((_) => printKitchenList());
+        if(appSettingModel.autoPrintKitchenlist == true) {
+          asyncQ.addJob((_) => printKitchenList());
+        }
         isCartExpanded = !isCartExpanded;
       } else {
         // cart.removeAllCartItem();
@@ -2987,7 +2989,7 @@ class CartPageState extends State<CartPage> {
 /*
   add-on call (dine in)
 */
-  callAddOrderCache(CartModel cart) async {
+  callAddOrderCache(CartModel cart, AppSettingModel appSettingModel) async {
     try{
       resetValue();
       List<cartProductItem> outOfStockItem = await checkOrderStock(cart);
@@ -3021,7 +3023,9 @@ class CartPageState extends State<CartPage> {
             //   openLogOutDialog();
             //   return;
             // }
-            asyncQ.addJob((_) => printKitchenList());
+            if(appSettingModel.autoPrintKitchenlist == true) {
+              asyncQ.addJob((_) => printKitchenList());
+            }
             isCartExpanded = !isCartExpanded;
           } else {
             Navigator.of(context).pop();
@@ -3074,7 +3078,9 @@ class CartPageState extends State<CartPage> {
         // cart.removeAllCartItem();
         checkDirectPayment(appSettingModel, cart);
 
-        asyncQ.addJob((_) => printKitchenList());
+        if(appSettingModel.autoPrintKitchenlist == true) {
+          asyncQ.addJob((_) => printKitchenList());
+        }
         isCartExpanded = !isCartExpanded;
       } else {
         Navigator.of(context).pop();
@@ -3125,7 +3131,9 @@ class CartPageState extends State<CartPage> {
       //   openLogOutDialog();
       //   return;
       // }
-      asyncQ.addJob((_) => printKitchenList());
+      if(appSettingModel.autoPrintKitchenlist == true) {
+        asyncQ.addJob((_) => printKitchenList());
+      }
       isCartExpanded = !isCartExpanded;
       // printKitchenList();
     } catch(e) {

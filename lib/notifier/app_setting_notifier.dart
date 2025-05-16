@@ -6,10 +6,12 @@ class AppSettingModel extends ChangeNotifier {
   static final AppSettingModel instance = AppSettingModel();
   bool? directPaymentStatus;
   bool? autoPrintChecklist;
+  bool? receiptGroupSameItem;
+  bool? autoPrintKitchenlist;
   bool? autoPrintReceipt;
   bool? show_sku;
   bool? qr_order_auto_accept;
-  bool? settlement_after_all_order_paid;
+  int? settlement_after_all_order_paid;
   bool? enable_numbering;
   int? starting_number;
   int? table_order;
@@ -26,6 +28,8 @@ class AppSettingModel extends ChangeNotifier {
   AppSettingModel({
     this.directPaymentStatus,
     this.autoPrintChecklist,
+    this.receiptGroupSameItem,
+    this.autoPrintKitchenlist,
     this.autoPrintReceipt,
     this.show_sku,
     this.qr_order_auto_accept,
@@ -48,10 +52,12 @@ class AppSettingModel extends ChangeNotifier {
     if (data != null) {
       directPaymentStatus = data.direct_payment == 0 ? false : true;
       autoPrintChecklist = data.print_checklist == 0 ? false : true;
+      receiptGroupSameItem = data.receipt_group_same_item == 0 ? false : true;
+      autoPrintKitchenlist = data.print_kitchen_list == 0 ? false : true;
       autoPrintReceipt = data.print_receipt == 0 ? false : true;
       show_sku = data.show_sku == 0 ? false : true;
       qr_order_auto_accept = data.qr_order_auto_accept == 0 ? false : true;
-      settlement_after_all_order_paid = data.settlement_after_all_order_paid == 0 ? false : true;
+      settlement_after_all_order_paid = data.settlement_after_all_order_paid;
       enable_numbering = data.enable_numbering == null || data.enable_numbering == 0 ? false : true;
       starting_number = data.starting_number != null || data.starting_number != 0 ? data.starting_number : 0;
       table_order = data.table_order;
@@ -76,6 +82,16 @@ class AppSettingModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setReceiptGroupSameItemStatus(bool status) {
+    receiptGroupSameItem = status;
+    notifyListeners();
+  }
+
+  void setPrintKitchenListStatus(bool status) {
+    autoPrintKitchenlist = status;
+    notifyListeners();
+  }
+
   void setPrintReceiptStatus(bool status) {
     autoPrintReceipt = status;
     notifyListeners();
@@ -96,7 +112,7 @@ class AppSettingModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setSettlementAfterAllOrderPaidStatus(bool status) {
+  void setSettlementAfterAllOrderPaidStatus(int status) {
     settlement_after_all_order_paid = status;
     notifyListeners();
   }

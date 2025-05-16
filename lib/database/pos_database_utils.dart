@@ -293,6 +293,11 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableSalesPerDay ADD ${SalesPerDayFields.charge_detail} $jsonType2");
             await db.execute("ALTER TABLE $tableSalesPerDay ADD ${SalesPerDayFields.promotion_detail} $jsonType2");
           }break;
+          case 39: {
+            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_kitchen_list} $integerType DEFAULT 1");
+            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.receipt_group_same_item} $integerType DEFAULT 1");
+            await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.sst_number} $textType DEFAULT '' ");
+          }break;
         }
       }
     }
@@ -713,6 +718,7 @@ class PosDatabaseUtils {
            ${BranchFields.working_time} $textType,
            ${BranchFields.close_qr_order} $integerType,
            ${BranchFields.register_no} $textType,
+           ${BranchFields.sst_number} $textType,
            ${BranchFields.allow_firestore} $integerType,
            ${BranchFields.allow_livedata} $integerType,
            ${BranchFields.qr_show_sku} $integerType,
@@ -938,7 +944,9 @@ class PosDatabaseUtils {
           ${AppSettingFields.open_cash_drawer} $integerType,
           ${AppSettingFields.show_second_display} $integerType,
           ${AppSettingFields.direct_payment} $integerType,
+          ${AppSettingFields.receipt_group_same_item} $integerType,
           ${AppSettingFields.print_checklist} $integerType,
+          ${AppSettingFields.print_kitchen_list} $integerType,
           ${AppSettingFields.print_receipt} $integerType,
           ${AppSettingFields.show_sku} $integerType,
           ${AppSettingFields.qr_order_auto_accept} $integerType,

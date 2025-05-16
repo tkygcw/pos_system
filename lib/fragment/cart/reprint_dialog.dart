@@ -6,6 +6,7 @@ import 'package:pos_system/fragment/cart/reprint_kitchen_dialog.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/fragment/printing_layout/print_receipt.dart';
 import 'package:pos_system/object/table.dart';
+import 'package:pos_system/page/loading_dialog.dart';
 import '../../notifier/cart_notifier.dart';
 import '../../object/cart_product.dart';
 import '../../object/printer.dart';
@@ -64,6 +65,8 @@ class _ReprintDialogState extends State<ReprintDialog> {
   void reprintCheckList() async {
     BuildContext _context = widget.parentContext;
     bool? isPaymentPage;
+    openLoadingDialogBox();
+    await Future.delayed(Duration(milliseconds: 500));
     if(widget.currentPage == 'bill'){
       isPaymentPage = true;
     }
@@ -88,6 +91,28 @@ class _ReprintDialogState extends State<ReprintDialog> {
         Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(_context)!.translate('printing_error'));
       }break;
     }
+    Navigator.of(context).pop();
+  }
+
+  Future<Future<Object?>> openLoadingDialogBox() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+                opacity: a1.value,
+                child: WillPopScope(child: LoadingDialog(isTableMenu: true), onWillPop: () async => false)),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   void reprintProductTicket() async  {
@@ -163,8 +188,11 @@ class _ReprintDialogState extends State<ReprintDialog> {
 
   printReviewReceipt() async {
     print("order key in reprint: ${widget.orderKey}");
+    openLoadingDialogBox();
+    await Future.delayed(Duration(milliseconds: 500));
     int printStatus = await printReceipt.printReviewReceipt(widget.printerList, cartModel, widget.orderKey);
     checkPrinterStatus(printStatus);
+    Navigator.of(context).pop();
   }
 
   checkPrinterStatus(int printStatus) {

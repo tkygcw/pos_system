@@ -8,6 +8,7 @@ class AppSettingFields {
     show_second_display,
     direct_payment,
     print_checklist,
+    print_kitchen_list,
     print_receipt,
     show_sku,
     qr_order_auto_accept,
@@ -17,6 +18,7 @@ class AppSettingFields {
     settlement_after_all_order_paid,
     show_product_desc,
     print_cancel_receipt,
+    receipt_group_same_item,
     product_sort_by,
     dynamic_qr_default_exp_after_hour,
     variant_item_sort_by,
@@ -35,6 +37,7 @@ class AppSettingFields {
   static String show_second_display = 'show_second_display';
   static String direct_payment = 'direct_payment';
   static String print_checklist = 'print_checklist';
+  static String print_kitchen_list = 'print_kitchen_list';
   static String print_receipt = 'print_receipt';
   static String show_sku = 'show_sku';
   static String qr_order_auto_accept = 'qr_order_auto_accept';
@@ -44,6 +47,7 @@ class AppSettingFields {
   static String settlement_after_all_order_paid = 'settlement_after_all_order_paid';
   static String show_product_desc = 'show_product_desc';
   static String print_cancel_receipt = 'print_cancel_receipt';
+  static String receipt_group_same_item = 'receipt_group_same_item';
   static String product_sort_by = 'product_sort_by';
   static String dynamic_qr_default_exp_after_hour = 'dynamic_qr_default_exp_after_hour';
   static String variant_item_sort_by = 'variant_item_sort_by';
@@ -63,6 +67,7 @@ class AppSetting{
   int? show_second_display;
   int? direct_payment;
   int? print_checklist;
+  int? print_kitchen_list;
   int? print_receipt;
   int? show_sku;
   int? qr_order_auto_accept;
@@ -72,6 +77,7 @@ class AppSetting{
   int? settlement_after_all_order_paid;
   int? show_product_desc;
   int? print_cancel_receipt;
+  int? receipt_group_same_item;
   int? product_sort_by;
   int? dynamic_qr_default_exp_after_hour;
   int? variant_item_sort_by;
@@ -90,6 +96,7 @@ class AppSetting{
         this.show_second_display,
         this.direct_payment,
         this.print_checklist,
+        this.print_kitchen_list,
         this.print_receipt,
         this.show_sku,
         this.qr_order_auto_accept,
@@ -99,6 +106,7 @@ class AppSetting{
         this.settlement_after_all_order_paid,
         this.show_product_desc,
         this.print_cancel_receipt,
+        this.receipt_group_same_item,
         this.product_sort_by,
         this.dynamic_qr_default_exp_after_hour,
         this.variant_item_sort_by,
@@ -118,6 +126,7 @@ class AppSetting{
     int? show_second_display,
     int? direct_payment,
     int? print_checklist,
+    int? print_kitchen_list,
     int? print_receipt,
     int? show_sku,
     int? qr_order_auto_accept,
@@ -127,6 +136,7 @@ class AppSetting{
     int? settlement_after_all_order_paid,
     int? show_product_desc,
     int? print_cancel_receipt,
+    int? receipt_group_same_item,
     int? product_sort_by,
     int? dynamic_qr_default_exp_after_hour,
     int? variant_item_sort_by,
@@ -145,6 +155,7 @@ class AppSetting{
         show_second_display: show_second_display ?? this.show_second_display,
         direct_payment: direct_payment ?? this.direct_payment,
         print_checklist: print_checklist ?? this.print_checklist,
+        print_kitchen_list: print_kitchen_list ?? this.print_kitchen_list,
         print_receipt: print_receipt ?? this.print_receipt,
         show_sku: show_sku ?? this.show_sku,
         qr_order_auto_accept: qr_order_auto_accept ?? this.qr_order_auto_accept,
@@ -154,6 +165,7 @@ class AppSetting{
         settlement_after_all_order_paid: settlement_after_all_order_paid ?? this.settlement_after_all_order_paid,
         show_product_desc: show_product_desc ?? this.show_product_desc,
         print_cancel_receipt: print_cancel_receipt ?? this.print_cancel_receipt,
+        receipt_group_same_item: receipt_group_same_item ?? this.receipt_group_same_item,
         product_sort_by: product_sort_by ?? this.product_sort_by,
         dynamic_qr_default_exp_after_hour: dynamic_qr_default_exp_after_hour ?? this.dynamic_qr_default_exp_after_hour,
         variant_item_sort_by: variant_item_sort_by ?? this.variant_item_sort_by,
@@ -173,6 +185,7 @@ class AppSetting{
     show_second_display: json[AppSettingFields.show_second_display] as int?,
     direct_payment: json[AppSettingFields.direct_payment] as int?,
     print_checklist: json[AppSettingFields.print_checklist] as int?,
+    print_kitchen_list: json[AppSettingFields.print_kitchen_list] as int?,
     print_receipt: json[AppSettingFields.print_receipt] as int?,
     show_sku: json[AppSettingFields.show_sku] as int?,
     qr_order_auto_accept: json[AppSettingFields.qr_order_auto_accept] as int?,
@@ -182,6 +195,7 @@ class AppSetting{
     settlement_after_all_order_paid: json[AppSettingFields.settlement_after_all_order_paid] as int?,
     show_product_desc: json[AppSettingFields.show_product_desc] as int?,
     print_cancel_receipt: json[AppSettingFields.print_cancel_receipt] as int?,
+    receipt_group_same_item: json[AppSettingFields.receipt_group_same_item] as int?,
     product_sort_by: json[AppSettingFields.product_sort_by] as int?,
     dynamic_qr_default_exp_after_hour: json[AppSettingFields.dynamic_qr_default_exp_after_hour] as int?,
     variant_item_sort_by: json[AppSettingFields.variant_item_sort_by] as int?,
@@ -201,6 +215,7 @@ class AppSetting{
     AppSettingFields.show_second_display: show_second_display,
     AppSettingFields.direct_payment: direct_payment,
     AppSettingFields.print_checklist: print_checklist,
+    AppSettingFields.print_kitchen_list: print_kitchen_list,
     AppSettingFields.print_receipt: print_receipt,
     AppSettingFields.show_sku: show_sku,
     AppSettingFields.qr_order_auto_accept: qr_order_auto_accept,
@@ -210,6 +225,7 @@ class AppSetting{
     AppSettingFields.settlement_after_all_order_paid: settlement_after_all_order_paid,
     AppSettingFields.show_product_desc: show_product_desc,
     AppSettingFields.print_cancel_receipt: print_cancel_receipt,
+    AppSettingFields.receipt_group_same_item: receipt_group_same_item,
     AppSettingFields.product_sort_by: product_sort_by,
     AppSettingFields.dynamic_qr_default_exp_after_hour: dynamic_qr_default_exp_after_hour,
     AppSettingFields.variant_item_sort_by: variant_item_sort_by,

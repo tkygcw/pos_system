@@ -203,24 +203,44 @@ class _SettlementPageState extends State<SettlementPage> {
                                 final int? branch_id = prefs.getInt('branch_id');
                                 AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
 
-                                if(await checkSplitNotComplete()) {
-                                  Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('please_make_sure_all_payment_split_is_complete'));
-                                } else {
-                                  if (cashRecordList.isNotEmpty) {
-                                    openSettlementDialog(cashRecordList);
-                                  } else {
-                                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
-                                  }
+                                if(localSetting!.settlement_after_all_order_paid == 0) {
+                                  // disable
+                                  proceedWithSettlementCheck();
                                 }
-                                // if(dataPaymentNotComplete.isEmpty){
-                                //   if (cashRecordList.isNotEmpty) {
-                                //     openSettlementDialog(cashRecordList);
-                                //   } else {
-                                //     Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
-                                //   }
-                                // } else {
-                                //   Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('please_make_sure_all_payment_split_is_complete'));
-                                // }
+                                if(localSetting.settlement_after_all_order_paid == 1) {
+                                  // table order only
+                                  if(await anyTableUse()) {
+                                    Fluttertoast.showToast(
+                                        msg: AppLocalizations.of(context)!.translate('please_settle_the_bill_for_all_tables'));
+                                    return;
+                                  }
+                                  proceedWithSettlementCheck();
+                                } if(localSetting.settlement_after_all_order_paid == 2) {
+                                  // other order only
+                                  List<OrderCache> orderCache = [];
+                                  orderCache = await PosDatabase.instance.readOrderCacheNoTable();
+                                  if(orderCache.length != 0) {
+                                    Fluttertoast.showToast(
+                                        msg: AppLocalizations.of(context)!.translate('please_settle_the_bill_for_all_other_orders'));
+                                    return;
+                                  }
+                                  proceedWithSettlementCheck();
+                                } else {
+                                  // all orders
+                                  if(await anyTableUse()) {
+                                    Fluttertoast.showToast(
+                                        msg: AppLocalizations.of(context)!.translate('please_settle_the_bill_for_all_tables'));
+                                    return;
+                                  }
+                                  List<OrderCache> orderCache = [];
+                                  orderCache = await PosDatabase.instance.readOrderCacheNoTable();
+                                  if(orderCache.length != 0) {
+                                    Fluttertoast.showToast(
+                                        msg: AppLocalizations.of(context)!.translate('please_settle_the_bill_for_all_other_orders'));
+                                    return;
+                                  }
+                                  proceedWithSettlementCheck();
+                                }
                               },
                               style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                             ),
@@ -579,14 +599,43 @@ class _SettlementPageState extends State<SettlementPage> {
                                         final int? branch_id = prefs.getInt('branch_id');
                                         AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
 
-                                        if(await checkSplitNotComplete()) {
-                                          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('please_make_sure_all_payment_split_is_complete'));
-                                        } else {
-                                          if (cashRecordList.isNotEmpty) {
-                                            openSettlementDialog(cashRecordList);
-                                          } else {
-                                            Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
+                                        if(localSetting!.settlement_after_all_order_paid == 0) {
+                                          // disable
+                                          proceedWithSettlementCheck();
+                                        }
+                                        if(localSetting.settlement_after_all_order_paid == 1) {
+                                          // table order only
+                                          if(await anyTableUse()) {
+                                            Fluttertoast.showToast(
+                                                msg: AppLocalizations.of(context)!.translate('please_settle_the_bill_for_all_tables'));
+                                            return;
                                           }
+                                          proceedWithSettlementCheck();
+                                        } if(localSetting.settlement_after_all_order_paid == 2) {
+                                          // other order only
+                                          List<OrderCache> orderCache = [];
+                                          orderCache = await PosDatabase.instance.readOrderCacheNoTable();
+                                          if(orderCache.length != 0) {
+                                            Fluttertoast.showToast(
+                                                msg: AppLocalizations.of(context)!.translate('please_settle_the_bill_for_all_other_orders'));
+                                            return;
+                                          }
+                                          proceedWithSettlementCheck();
+                                        } else {
+                                          // all orders
+                                          if(await anyTableUse()) {
+                                            Fluttertoast.showToast(
+                                                msg: AppLocalizations.of(context)!.translate('please_settle_the_bill_for_all_tables'));
+                                            return;
+                                          }
+                                          List<OrderCache> orderCache = [];
+                                          orderCache = await PosDatabase.instance.readOrderCacheNoTable();
+                                          if(orderCache.length != 0) {
+                                            Fluttertoast.showToast(
+                                                msg: AppLocalizations.of(context)!.translate('please_settle_the_bill_for_all_other_orders'));
+                                            return;
+                                          }
+                                          proceedWithSettlementCheck();
                                         }
                                       },
                                       style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
@@ -1309,6 +1358,18 @@ class _SettlementPageState extends State<SettlementPage> {
     }
   }
 
+  void proceedWithSettlementCheck() async {
+    if(await checkSplitNotComplete()) {
+      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('please_make_sure_all_payment_split_is_complete'));
+    } else {
+      if (cashRecordList.isNotEmpty) {
+        openSettlementDialog(cashRecordList);
+      } else {
+        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
+      }
+    }
+  }
+
   Future<bool> checkSplitNotComplete() async {
     bool splitNotComplete = false;
     List<PosTable>tableList = await PosDatabase.instance.readAllTable();
@@ -1326,5 +1387,14 @@ class _SettlementPageState extends State<SettlementPage> {
       }
     }
     return splitNotComplete;
+  }
+
+  Future<bool> anyTableUse() async {
+    List<PosTable> tableList = await PosDatabase.instance.readAllTable();
+    for (int i = 0; i < tableList.length; i++) {
+      if(tableList[i].status == 1)
+        return true;
+    }
+    return false;
   }
 }
