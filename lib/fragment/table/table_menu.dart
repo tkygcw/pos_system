@@ -1245,10 +1245,11 @@ class _TableMenuState extends State<TableMenu> {
         );
         cartItemList.add(value);
       }
-      var cacheLength = orderCacheList.length;
-      for (int j = 0; j < cacheLength; j++) {
+      //Filter out duplicated table use sqlite id in order cache list
+      List<String?> orderCacheSqliteIdList = orderCacheList.map((e) => e.table_use_sqlite_id).toSet().toList();
+      for (int j = 0; j < orderCacheSqliteIdList.length; j++) {
         //Get specific table use detail
-        List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readAllTableUseDetail(orderCacheList[j].table_use_sqlite_id!);
+        List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readAllTableUseDetail(orderCacheSqliteIdList[j]!);
         tableUseDetailList = List.from(tableUseDetailData);
       }
       var length = tableUseDetailList.length;

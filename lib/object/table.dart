@@ -36,6 +36,9 @@ class PosTableFields {
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
+  static String start = 'soft_delete';
+  static String start_table_num = 'start_table_num';
+  static String destination_table_num = 'destination_table_num';
 }
 
 class PosTable{

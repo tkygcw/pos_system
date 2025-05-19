@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/modifier_item.dart';
+import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/product_variant.dart';
 import 'package:pos_system/object/variant_item.dart';
@@ -145,6 +146,7 @@ class OrderDetail{
   String? ticket_exp;
   String? quantity_before_cancel;
   int? product_id;
+  String? table_use_key;
 
   OrderDetail(
       {this.order_detail_sqlite_id,
@@ -202,6 +204,7 @@ class OrderDetail{
         this.ticket_exp,
         this.quantity_before_cancel,
         this.product_id,
+        this.table_use_key,
         List<String>? tableNumber,
         bool? isSelected
       }) {
@@ -366,7 +369,8 @@ class OrderDetail{
       ticket_count: json['ticket_count'] as int?,
       ticket_exp: json['ticket_exp'] as String?,
       quantity_before_cancel: json['quantity_before_cancel'] as String?,
-      product_id: json['product_id'] as int?
+      product_id: json['product_id'] as int?,
+      table_use_key: json[OrderCacheFields.table_use_key] as String?
     );
   }
 

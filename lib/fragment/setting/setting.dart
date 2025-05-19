@@ -150,30 +150,7 @@ class _SettingMenuState extends State<SettingMenu> {
                           children: [
                             Text("${userEmail}"),
                             buildAttendanceBtn(color, context),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: color.backgroundColor,
-                              ),
-                              onPressed: () async {
-                                bool _hasInternetAccess = await Domain().isHostReachable();
-                                if(this.cashRecordList.isEmpty){
-                                  if(_hasInternetAccess){
-                                    //notificationModel.setTimer(true);
-                                    toPosPinPage();
-                                  } else {
-                                    Fluttertoast.showToast(
-                                        backgroundColor: Colors.red,
-                                        msg: "${AppLocalizations.of(context)?.translate('check_internet_connection')}");
-                                  }
-                                } else {
-                                  Fluttertoast.showToast(
-                                      backgroundColor: Colors.red,
-                                      msg: "${AppLocalizations.of(context)?.translate('log_out_settlement')}");
-                                }
-
-                              },
-                              child: Text(AppLocalizations.of(context)!.translate('close_counter')),
-                            ),
+                            buildBackToPinBtn(color, context),
                           ],
                         )),
                     theme: SideNavigationBarTheme(
@@ -261,30 +238,7 @@ class _SettingMenuState extends State<SettingMenu> {
                             children: [
                               Text("${userEmail}"),
                               buildAttendanceBtn(color, context),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: color.backgroundColor,
-                                ),
-                                onPressed: () async {
-                                  bool _hasInternetAccess = await Domain().isHostReachable();
-                                  if(this.cashRecordList.isEmpty){
-                                    if(_hasInternetAccess){
-                                      notificationModel.setTimer(true);
-                                      toPosPinPage();
-                                    } else {
-                                      Fluttertoast.showToast(
-                                          backgroundColor: Colors.red,
-                                          msg: "${AppLocalizations.of(context)?.translate('check_internet_connection')}");
-                                    }
-                                  } else {
-                                    Fluttertoast.showToast(
-                                        backgroundColor: Colors.red,
-                                        msg: "${AppLocalizations.of(context)?.translate('log_out_settlement')}");
-                                  }
-
-                                },
-                                child: Text(AppLocalizations.of(context)!.translate('close_counter')),
-                              ),
+                              buildBackToPinBtn(color, context),
                             ],
                           )),
                       theme: SideNavigationBarTheme(
@@ -476,31 +430,7 @@ class _SettingMenuState extends State<SettingMenu> {
                   children: <Widget>[
                     Text(userEmail),
                     buildAttendanceBtn(color, context),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: color.backgroundColor,
-                      ),
-                      onPressed: () async {
-                        bool _hasInternetAccess = await Domain().isHostReachable();
-                        if (cashRecordList.isEmpty) {
-                          if (_hasInternetAccess) {
-                            notificationModel.setTimer(true);
-                            toPosPinPage();
-                          } else {
-                            Fluttertoast.showToast(
-                              backgroundColor: Colors.red,
-                              msg: "${AppLocalizations.of(context)?.translate('check_internet_connection')}",
-                            );
-                          }
-                        } else {
-                          Fluttertoast.showToast(
-                            backgroundColor: Colors.red,
-                            msg: "${AppLocalizations.of(context)?.translate('log_out_settlement')}",
-                          );
-                        }
-                      },
-                      child: Text(AppLocalizations.of(context)!.translate('close_counter')),
-                    ),
+                    buildBackToPinBtn(color, context),
                   ],
                 ),
               )
@@ -509,6 +439,16 @@ class _SettingMenuState extends State<SettingMenu> {
         }
       });
     });
+  }
+
+  Widget buildBackToPinBtn(ThemeColor color, BuildContext context) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color.backgroundColor,
+      ),
+      onPressed: () => toPosPinPage(),
+      child: Text(AppLocalizations.of(context)!.translate('back_to_pin')),
+    );
   }
 
   Widget buildAttendanceBtn(ThemeColor color, BuildContext context) {

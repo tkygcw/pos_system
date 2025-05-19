@@ -530,6 +530,22 @@ class ServerAction {
           result = {'status': '1'};
         }
         break;
+        case '26': {
+          var decodeParam = jsonDecode(param);
+          String startTableNum = decodeParam[PosTableFields.start_table_num];
+          String destinationTableNum = decodeParam[PosTableFields.destination_table_num];
+          // change table function
+          await TableFunction().changeTable(startTableNum: startTableNum, destinationTableNum: destinationTableNum);
+          result = {'status': '1'};
+        }
+        break;
+        case '27': {
+          var decodeParam = jsonDecode(param);
+          // change table function
+          await TableFunction().changeTable(startTableNum: startTableNum, destinationTableNum: destinationTableNum);
+          result = {'status': '1'};
+        }
+        break;
       }
       return result;
     } catch(e, s){
