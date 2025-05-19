@@ -91,7 +91,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 39, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
+    return await openDatabase(path, version: 40, onCreate: PosDatabaseUtils.createDB, onUpgrade: PosDatabaseUtils.onUpgrade);
   }
 
 /*
@@ -5655,7 +5655,7 @@ class PosDatabase {
     return await db.rawUpdate('UPDATE $tableBranch SET name = ?, logo = ?,  address = ?, phone = ?, email = ?, '
         'qr_order_status = ?, sub_pos_status = ?, attendance_status = ?, register_no = ?, allow_firestore = ?, '
         'allow_livedata = ?, qr_show_sku = ?, qr_product_sequence = ?, show_qr_history = ?, generate_sales = ?, '
-        'allow_einvoice = ?, einvoice_status = ?, currency_code = ?, currency_symbol = ? '
+        'allow_einvoice = ?, einvoice_status = ?, currency_code = ?, currency_symbol = ? , sst_number = ? '
         'WHERE branch_id = ? ',
         [
           data.name,
@@ -5677,6 +5677,7 @@ class PosDatabase {
           data.einvoice_status,
           data.currency_code,
           data.currency_symbol,
+          data.sst_number,
           data.branch_id,
         ]);
   }
@@ -5777,6 +5778,15 @@ class PosDatabase {
         [data.print_checklist, data.print_receipt, data.enable_numbering, data.starting_number, 2, data.updated_at]);
   }
 
+  /*
+  update App Setting order number
+*/
+  Future<int> updateOrderNumber(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET order_number = ?, sync_status = ?, updated_at = ?',
+        [data.order_number, 2, data.updated_at]);
+  }
+
 /*
   update direct payment Setting
 */
@@ -5847,6 +5857,15 @@ class PosDatabase {
   Future<int> updateRequiredCancelReasonSettings(AppSetting data) async {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableAppSetting SET required_cancel_reason = ?, sync_status = ?, updated_at = ?', [data.required_cancel_reason, 2, data.updated_at]);
+  }
+
+/*
+  update app setting order number
+*/
+  Future<int> updateAppSettingOrderNumber(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET order_number = ?, sync_status = ?, updated_at = ?',
+        [data.order_number, 2, data.updated_at]);
   }
 
 /*
@@ -7606,7 +7625,10 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery('''
   WITH table_counts AS (
-    SELECT 'tb_cash_record' AS table_name, COUNT(*) AS count, COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) AS unsynced FROM tb_cash_record WHERE soft_delete = ''
+    SELECT 'tb_cash_record' AS table_name, 
+           COUNT(*) AS count, 
+           COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) AS unsynced 
+    FROM tb_cash_record WHERE soft_delete = ''
     UNION ALL
     SELECT 'tb_checklist', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_checklist WHERE soft_delete = ''
     UNION ALL
@@ -7670,11 +7692,7 @@ class PosDatabase {
     UNION ALL
     SELECT 'tb_sales_dining_per_day', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_sales_dining_per_day WHERE soft_delete = ''
 )
-SELECT * FROM table_counts
-UNION ALL
-SELECT 'Total' AS table_name,
-       SUM(count) AS count,
-       SUM(unsynced) AS unsynced
+SELECT SUM(unsynced) AS unsynced 
 FROM table_counts;
 ''');
     return result[0]['unsynced'].toString();
