@@ -14,6 +14,7 @@ class AppSettingFields {
     qr_order_auto_accept,
     enable_numbering,
     starting_number,
+    order_number,
     table_order,
     settlement_after_all_order_paid,
     show_product_desc,
@@ -43,6 +44,7 @@ class AppSettingFields {
   static String qr_order_auto_accept = 'qr_order_auto_accept';
   static String enable_numbering = 'enable_numbering';
   static String starting_number = 'starting_number';
+  static String order_number = 'order_number';
   static String table_order = 'table_order';
   static String settlement_after_all_order_paid = 'settlement_after_all_order_paid';
   static String show_product_desc = 'show_product_desc';
@@ -73,6 +75,7 @@ class AppSetting{
   int? qr_order_auto_accept;
   int? enable_numbering;
   int? starting_number;
+  String? order_number;
   int? table_order;
   int? settlement_after_all_order_paid;
   int? show_product_desc;
@@ -102,6 +105,7 @@ class AppSetting{
         this.qr_order_auto_accept,
         this.enable_numbering,
         this.starting_number,
+        this.order_number,
         this.table_order,
         this.settlement_after_all_order_paid,
         this.show_product_desc,
@@ -132,6 +136,7 @@ class AppSetting{
     int? qr_order_auto_accept,
     int? enable_numbering,
     int? starting_number,
+    String? order_number,
     int? table_order,
     int? settlement_after_all_order_paid,
     int? show_product_desc,
@@ -161,6 +166,7 @@ class AppSetting{
         qr_order_auto_accept: qr_order_auto_accept ?? this.qr_order_auto_accept,
         enable_numbering: enable_numbering ?? this.enable_numbering,
         starting_number: starting_number ?? this.starting_number,
+        order_number: order_number ?? this.order_number,
         table_order: table_order ?? this.table_order,
         settlement_after_all_order_paid: settlement_after_all_order_paid ?? this.settlement_after_all_order_paid,
         show_product_desc: show_product_desc ?? this.show_product_desc,
@@ -191,6 +197,7 @@ class AppSetting{
     qr_order_auto_accept: json[AppSettingFields.qr_order_auto_accept] as int?,
     enable_numbering: json[AppSettingFields.enable_numbering] as int?,
     starting_number: json[AppSettingFields.starting_number] as int?,
+    order_number: json[AppSettingFields.order_number] as String?,
     table_order: json[AppSettingFields.table_order] as int?,
     settlement_after_all_order_paid: json[AppSettingFields.settlement_after_all_order_paid] as int?,
     show_product_desc: json[AppSettingFields.show_product_desc] as int?,
@@ -221,6 +228,7 @@ class AppSetting{
     AppSettingFields.qr_order_auto_accept: qr_order_auto_accept,
     AppSettingFields.enable_numbering: enable_numbering,
     AppSettingFields.starting_number: starting_number,
+    AppSettingFields.order_number: order_number,
     AppSettingFields.table_order: table_order,
     AppSettingFields.settlement_after_all_order_paid: settlement_after_all_order_paid,
     AppSettingFields.show_product_desc: show_product_desc,

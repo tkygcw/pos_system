@@ -294,9 +294,10 @@ class PosDatabaseUtils {
             await db.execute("ALTER TABLE $tableSalesPerDay ADD ${SalesPerDayFields.promotion_detail} $jsonType2");
           }break;
           case 39: {
+            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.order_number} $textType DEFAULT ''");
+            await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.sst_number} $textType DEFAULT '' ");
             await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_kitchen_list} $integerType DEFAULT 1");
             await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.receipt_group_same_item} $integerType DEFAULT 1");
-            await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.sst_number} $textType DEFAULT '' ");
           }break;
         }
       }
@@ -952,6 +953,7 @@ class PosDatabaseUtils {
           ${AppSettingFields.qr_order_auto_accept} $integerType,
           ${AppSettingFields.enable_numbering} $integerType,
           ${AppSettingFields.starting_number} $integerType,
+          ${AppSettingFields.order_number} $textType,
           ${AppSettingFields.table_order} $integerType,
           ${AppSettingFields.settlement_after_all_order_paid} $integerType,
           ${AppSettingFields.show_product_desc} $integerType,

@@ -134,7 +134,7 @@ class BillLayout extends ReceiptLayout{
         );
       }
       //sst number
-      if(branchObject[BranchFields.sst_number] != ''){
+      if(branchObject[BranchFields.sst_number] != null && branchObject[BranchFields.sst_number] != ''){
         bytes += generator.text(branchObject[BranchFields.sst_number],
           containsChinese: true,
           styles: PosStyles(align: PosAlign.center, ),
@@ -142,6 +142,7 @@ class BillLayout extends ReceiptLayout{
       }
       //Address
       if(receipt!.show_address == 1 && branchObject['address'].toString() != ''){
+        // bytes += generator.text('${branchObject['address'].toString().replaceAll(',', '\n')}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('${branchObject['address']}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
       }
       //telephone
@@ -474,7 +475,7 @@ class BillLayout extends ReceiptLayout{
         );
       }
       //sst number
-      if(branchObject[BranchFields.sst_number] != ''){
+      if(branchObject[BranchFields.sst_number] != null && branchObject[BranchFields.sst_number] != ''){
         bytes += generator.text(branchObject[BranchFields.sst_number],
           containsChinese: true,
           styles: PosStyles(align: PosAlign.center, ),
@@ -482,7 +483,9 @@ class BillLayout extends ReceiptLayout{
       }
       //Address
       if(receipt!.show_address == 1 && branchObject['address'].toString() != ''){
-        bytes += generator.text('${branchObject['address'].toString().replaceAll(',', '\n')}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
+        // bytes += generator.text('${branchObject['address'].toString().replaceAll(',', '\n')}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('${branchObject['address']}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
+
       }
       //telephone
       if(receipt!.show_branch_tel == 1 && branchObject['phone'] != ''){

@@ -1408,6 +1408,13 @@ class ReceiptLayout{
             styles: PosStyles(align: PosAlign.center, ),
           );
         }
+        //sst number
+        if(branchObject[BranchFields.sst_number] != ''){
+          bytes += generator.text(branchObject[BranchFields.sst_number],
+            containsChinese: true,
+            styles: PosStyles(align: PosAlign.center, ),
+          );
+        }
         if(receipt!.show_address == 1 && branchObject['address'].toString() != ''){
           //Address
           bytes += generator.text('${branchObject['address'].toString()}', containsChinese: true, styles: PosStyles(align: PosAlign.center));

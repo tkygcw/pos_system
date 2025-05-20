@@ -39,6 +39,7 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
   Receipt? receiptObject;
   bool printCheckList = false, printKitchenList = false, enableNumbering = false, printReceipt = false, hasQrAccess = true, printCancelReceipt = true,
       roundingAbsorb = true, receiptGroupSameItem = false;
+  String orderNumber = '';
   int startingNumber = 0, compareStartingNumber = 0;
 
   @override
@@ -117,6 +118,13 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
         enableNumbering = true;
       } else {
         enableNumbering = false;
+      }
+
+      if(appSetting.order_number != ''){
+        orderNumber = (int.parse(appSetting.order_number!)+1).toString().padLeft(5, '0');
+        orderNumberController.text = orderNumber.toString();
+      } else {
+        orderNumber = '1';
       }
 
       if(appSetting.starting_number != 0){
@@ -281,6 +289,14 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                       child: Column(
                         children: [
                           ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('receipt_order_number')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('receipt_order_number_desc')),
+                            trailing: Text(orderNumber.toString()+'    ', style: TextStyle(fontWeight: FontWeight.w500)),
+                            onTap: (){
+                              openOrderNumberDialog();
+                            },
+                          ),
+                          ListTile(
                             title: Text(AppLocalizations.of(context)!.translate('receipt_setting')),
                             subtitle: Text(AppLocalizations.of(context)!.translate('customize_your_receipt_look')),
                             trailing: Icon(Icons.navigate_next),
@@ -412,6 +428,90 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
     });
   }
 
+  Future<Future<Object?>> openOrderNumberDialog() async {
+    orderNumberController.text = orderNumber.toString();
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          return Center(
+            child: SingleChildScrollView(
+              child: AlertDialog(
+                title: Text(
+                    AppLocalizations.of(context)!.translate('set_receipt_order_number')),
+                content: Column(
+                  children: [
+                    SizedBox(height: 20),
+                    Container(
+                      // Customize your Container's properties here
+                      child: Center(
+                        child: Text(
+                            AppLocalizations.of(context)!.translate('next_receipt_order_number') + " : "
+                                "${orderNumber.padLeft(5, '0')}"),
+                      ),
+                    ),
+                    SizedBox(height: 40),
+                    Container(
+                      width: 400,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 273,
+                            child: TextField(
+                                autofocus: true,
+                                controller: orderNumberController,
+                                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+                                textAlign: TextAlign.center,
+                                decoration: InputDecoration(
+                                  hintText: 'Example: 00100',
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.black.withOpacity(0.5)),
+                                  ),
+                                ),
+                                onSubmitted: (value) async {
+                                  orderNumber = orderNumberController.text == '' ? '0' : orderNumberController.text;
+                                  await updateOrderNumber();
+                                  Navigator.of(context).pop();
+                                }
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text(
+                        '${AppLocalizations.of(context)?.translate('close')}'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  TextButton(
+                    child: Text(
+                        '${AppLocalizations.of(context)?.translate('yes')}'),
+                    onPressed: () async {
+                      orderNumber = orderNumberController.text == '' ? '0' : orderNumberController.text;
+                      await updateOrderNumber();
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
   updatePrintCancelReceiptAppSetting() async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
@@ -449,16 +549,19 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
     );
     int data = await PosDatabase.instance.updateReceiptSettings(object);
     getAllAppSetting();
-    if(compareStartingNumber != startingNumber){
-      if(data == 1){
-        Fluttertoast.showToast(
-            backgroundColor: Color(0xFF24EF10),
-            msg: AppLocalizations.of(context)!.translate('update_success'));
-      } else{
-        Fluttertoast.showToast(
-            backgroundColor: Color(0xFFFF0000),
-            msg: AppLocalizations.of(context)!.translate('fail_update'));
-      }
-    }
+  }
+
+  updateOrderNumber() async {
+    print("int.parse(orderNumber): ${int.parse(orderNumber)}");
+    String orderNum = int.parse(orderNumber) >= 1 ? (int.parse(orderNumber)-1).toString() : '0';
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    AppSetting object = AppSetting(
+        order_number: orderNum.toString().padLeft(5, '0'),
+        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
+        updated_at: dateTime
+    );
+    await PosDatabase.instance.updateOrderNumber(object);
+    getAllAppSetting();
   }
 }

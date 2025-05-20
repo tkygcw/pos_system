@@ -2,6 +2,10 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/object/order_cache.dart';
+import 'package:pos_system/object/order_detail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../database/domain.dart';
@@ -23,12 +27,24 @@ class _ChooseQrTypeDialogState extends State<ChooseQrTypeDialog> {
   PrintDynamicQr printDynamicQr = PrintDynamicQr();
   int tapCount = 0;
   late Map branchObject;
+  List<OrderCache> orderCacheList = [];
+  List<OrderDetail> orderDetailList = [];
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     printDynamicQr.readCashierPrinter();
+  }
+
+  bool checkTableStatus() {
+    if (widget.posTableList.isEmpty) {
+      return true;
+    }
+
+    return !widget.posTableList.any((table) =>
+    table.status != 1 || (table.status == 1 && table.order_key != null)
+    );
   }
 
   @override
@@ -80,6 +96,55 @@ class _ChooseQrTypeDialogState extends State<ChooseQrTypeDialog> {
                   }
                 },
                 trailing: Icon(Icons.navigate_next),
+              ),
+            ),
+            Visibility(
+              visible: checkTableStatus(),
+              child: Card(
+                elevation: 10,
+                child: ListTile(
+                  leading: CircleAvatar(
+                      backgroundColor: Colors.grey.shade200,
+                      child: Icon(
+                        Icons.delete,
+                        color: Colors.grey,
+                      )),
+                  title: Text(AppLocalizations.of(context)!.translate('void')),
+                  onTap: () async {
+                    tapCount++;
+                    if(tapCount == 1){
+                      await getPref();
+                      for(int i = 0; i < widget.posTableList.length; i++){
+                        // if table active
+                        if (widget.posTableList[i].status == 1) {
+                          if(widget.posTableList[i].order_key == null) {
+                            print("table user key: ${widget.posTableList[i].table_use_key}");
+                            // isTableSelectedBySubPos
+                            List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(widget.posTableList[i].table_use_key!);
+                            for (int i = 0; i < data.length; i++) {
+                              if (!orderCacheList.contains(data)) {
+                                orderCacheList = List.from(data);
+                              }
+                              List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(data[i].order_cache_key!);
+                              if (!orderDetailList.contains(detailData)) {
+                                orderDetailList..addAll(detailData);
+                              }
+
+                            }
+
+                          } else {
+                            Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('payment_not_complete'));
+                          }
+                        }
+                      }
+                      if(widget.callback != null){
+                        widget.callback!();
+                      }
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  trailing: Icon(Icons.navigate_next),
+                ),
               ),
             ),
           ],

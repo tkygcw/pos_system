@@ -3318,7 +3318,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id '
-        'WHERE a.soft_delete = ? AND a.settlement_key = ? AND b.soft_delete = ? ORDER BY a.created_at DESC',
+        'WHERE a.soft_delete = ? AND a.settlement_key = ? AND b.soft_delete = ? GROUP BY cash_record_key ORDER BY a.created_at DESC',
         ['', '', '']);
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }
@@ -3911,7 +3911,7 @@ class PosDatabase {
     String query = 'SELECT a.created_at, a.type, a.user_id, a.amount, a.remark, a.payment_name, b.name AS name, c.name AS payment_method  FROM $tableCashRecord AS a JOIN $tableUser AS b on a.user_id = b.user_id '
         'LEFT JOIN $tablePaymentLinkCompany AS c on a.payment_type_id = c.payment_type_id '
         'WHERE a.soft_delete = ? AND b.soft_delete = ? AND '
-        '(c.soft_delete = ? OR c.soft_delete IS NULL) AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ?';
+        '(c.soft_delete = ? OR c.soft_delete IS NULL) AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY cash_record_key ORDER BY a.created_at';
     List<dynamic> args = ['', '', '', date1, date2];
     if (selectedPayment != 0) {
       query += ' AND c.payment_link_company_id = ?';
@@ -3929,7 +3929,7 @@ class PosDatabase {
     String query ='SELECT a.created_at, a.type, a.user_id, a.amount, a.remark, a.payment_name, b.name AS name, c.name AS payment_method FROM $tableCashRecord AS a JOIN $tableUser AS b on a.user_id = b.user_id '
         'LEFT JOIN $tablePaymentLinkCompany AS c on a.payment_type_id = c.payment_type_id '
         'WHERE a.soft_delete = ? AND b.soft_delete = ? AND (c.soft_delete = ? OR c.soft_delete IS NULL) AND a.settlement_key IN (SELECT settlement_key FROM $tableCashRecord WHERE remark = ? AND '
-        'soft_delete = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ?)';
+        'soft_delete = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ?) GROUP BY cash_record_key ORDER BY a.created_at';
     List<dynamic> args = ['', '', '', 'Opening Balance', '', date1, date2];
     if (selectedPayment != 0) {
       query += ' AND c.payment_link_company_id = ?';
@@ -5807,6 +5807,15 @@ class PosDatabase {
         [data.print_checklist, data.print_receipt, data.enable_numbering, data.starting_number, data.receipt_group_same_item, 2, data.updated_at]);
   }
 
+  /*
+  update App Setting order number
+*/
+  Future<int> updateOrderNumber(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET order_number = ?, sync_status = ?, updated_at = ?',
+        [data.order_number, 2, data.updated_at]);
+  }
+
 /*
   update direct payment Setting
 */
@@ -5877,6 +5886,15 @@ class PosDatabase {
   Future<int> updateRequiredCancelReasonSettings(AppSetting data) async {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableAppSetting SET required_cancel_reason = ?, sync_status = ?, updated_at = ?', [data.required_cancel_reason, 2, data.updated_at]);
+  }
+
+/*
+  update app setting order number
+*/
+  Future<int> updateAppSettingOrderNumber(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET order_number = ?, sync_status = ?, updated_at = ?',
+        [data.order_number, 2, data.updated_at]);
   }
 
 /*
@@ -7636,7 +7654,10 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery('''
   WITH table_counts AS (
-    SELECT 'tb_cash_record' AS table_name, COUNT(*) AS count, COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) AS unsynced FROM tb_cash_record WHERE soft_delete = ''
+    SELECT 'tb_cash_record' AS table_name, 
+           COUNT(*) AS count, 
+           COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) AS unsynced 
+    FROM tb_cash_record WHERE soft_delete = ''
     UNION ALL
     SELECT 'tb_checklist', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_checklist WHERE soft_delete = ''
     UNION ALL
@@ -7700,11 +7721,7 @@ class PosDatabase {
     UNION ALL
     SELECT 'tb_sales_dining_per_day', COUNT(*), COALESCE(SUM(CASE WHEN sync_status != 1 THEN 1 ELSE 0 END), 0) FROM tb_sales_dining_per_day WHERE soft_delete = ''
 )
-SELECT * FROM table_counts
-UNION ALL
-SELECT 'Total' AS table_name,
-       SUM(count) AS count,
-       SUM(unsynced) AS unsynced
+SELECT SUM(unsynced) AS unsynced 
 FROM table_counts;
 ''');
     return result[0]['unsynced'].toString();

@@ -156,6 +156,7 @@ class Branch {
     working_day: working_day ?? this.working_day,
     working_time: working_time ?? this.working_time,
     close_qr_order: close_qr_order ?? this.close_qr_order,
+    sst_number: sst_number ?? this.sst_number,
     register_no: register_no ?? this.register_no,
     sst_number: sst_number ?? this.sst_number,
     allow_firestore: allow_firestore ?? this.allow_firestore,
