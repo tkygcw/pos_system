@@ -3884,7 +3884,7 @@ class PosDatabase {
     String query = 'SELECT a.created_at, a.type, a.user_id, a.amount, a.remark, a.payment_name, b.name AS name, c.name AS payment_method  FROM $tableCashRecord AS a JOIN $tableUser AS b on a.user_id = b.user_id '
         'LEFT JOIN $tablePaymentLinkCompany AS c on a.payment_type_id = c.payment_type_id '
         'WHERE a.soft_delete = ? AND b.soft_delete = ? AND '
-        '(c.soft_delete = ? OR c.soft_delete IS NULL) AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY cash_record_key';
+        '(c.soft_delete = ? OR c.soft_delete IS NULL) AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY cash_record_key ORDER BY a.created_at';
     List<dynamic> args = ['', '', '', date1, date2];
     if (selectedPayment != 0) {
       query += ' AND c.payment_link_company_id = ?';
@@ -3902,7 +3902,7 @@ class PosDatabase {
     String query ='SELECT a.created_at, a.type, a.user_id, a.amount, a.remark, a.payment_name, b.name AS name, c.name AS payment_method FROM $tableCashRecord AS a JOIN $tableUser AS b on a.user_id = b.user_id '
         'LEFT JOIN $tablePaymentLinkCompany AS c on a.payment_type_id = c.payment_type_id '
         'WHERE a.soft_delete = ? AND b.soft_delete = ? AND (c.soft_delete = ? OR c.soft_delete IS NULL) AND a.settlement_key IN (SELECT settlement_key FROM $tableCashRecord WHERE remark = ? AND '
-        'soft_delete = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ?) GROUP BY cash_record_key';
+        'soft_delete = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ?) GROUP BY cash_record_key ORDER BY a.created_at';
     List<dynamic> args = ['', '', '', 'Opening Balance', '', date1, date2];
     if (selectedPayment != 0) {
       query += ' AND c.payment_link_company_id = ?';

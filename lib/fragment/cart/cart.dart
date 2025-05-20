@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/custom_pin_dialog.dart';
 import 'package:pos_system/database/pos_firestore.dart';
 import 'package:pos_system/firebase_sync/qr_order_sync.dart';
 import 'package:pos_system/fragment/cart/adjust_price.dart';
@@ -161,6 +162,7 @@ class CartPageState extends State<CartPage> {
   bool doubleCheckFinalAmount = false;
   bool isCancelButtonDisable = false;
   PosDatabase posDatabase = PosDatabase.instance;
+  bool isVoidButtonDisabled = false;
 
   void _scrollDown() {
     _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
@@ -2780,8 +2782,13 @@ class CartPageState extends State<CartPage> {
                   ),
                   TextButton(
                     onPressed: () async {
-                      await prefs.setBool('should_restock', restockItems);
-                      Navigator.of(context).pop(true);
+                      if(!isVoidButtonDisabled) {
+                        await cancelOnPressed(restockItems);
+
+                      }
+                      // onPressed: isVoidButtonDisabled ? null : cancelOnPressed,
+                      // await prefs.setBool('should_restock', restockItems);
+
                     },
                     child: Text(AppLocalizations.of(context)!.translate('yes')),
                   ),
@@ -2793,6 +2800,42 @@ class CartPageState extends State<CartPage> {
     );
 
     return result ?? false;
+  }
+
+  cancelOnPressed(bool restockItems) async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? pos_user = prefs.getString('pos_pin_user');
+    Map<String, dynamic> userMap = json.decode(pos_user!);
+    User userData = User.fromJson(userMap);
+    setState(() {
+      isButtonDisabled = true;
+    });
+
+    // if no permission prompt dialog
+    if(userData.edit_price_without_pin != 1) {
+      print("no permission");
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => CustomPinDialog(
+          permission: Permission.editPrice,
+          callback: () async {
+            await prefs.setBool('should_restock', restockItems);
+            Navigator.of(context).pop(true);
+          }
+        ),
+      );
+    } else {
+      await prefs.setBool('should_restock', restockItems);
+      Navigator.of(context).pop(true);
+    }
+    // showDialog(
+    //   context: context,
+    //   builder: (context) => CustomPinDialog(
+    //     permission: Permission.editPrice,
+    //     callback: () async => await prefs.setBool('should_restock', restockItems),
+    //   ),
+    // );
   }
 
   callUpdateCart(CartModel cart, cartProductItem cartItem, bool willRestock) async {
