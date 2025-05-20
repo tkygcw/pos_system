@@ -16,6 +16,8 @@ import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/tax_link_dining.dart';
+import 'package:pos_system/second_device/cancel_item/cancel_item_data.dart';
+import 'package:pos_system/second_device/cancel_item/cancel_item_function.dart';
 import 'package:pos_system/second_device/cart_dialog_function.dart';
 import 'package:pos_system/second_device/order/add_on_not_dine_in.dart';
 import 'package:pos_system/second_device/order/dine_in_order.dart';
@@ -541,8 +543,9 @@ class ServerAction {
         break;
         case '27': {
           var decodeParam = jsonDecode(param);
-          // change table function
-          await TableFunction().changeTable(startTableNum: startTableNum, destinationTableNum: destinationTableNum);
+          //initialize data from sub pos
+          CancelItemData.initializeDataFromJson(decodeParam);
+          await CancelItemFunction().cancelOrderDetail();
           result = {'status': '1'};
         }
         break;

@@ -147,6 +147,7 @@ class OrderDetail{
   String? quantity_before_cancel;
   int? product_id;
   String? table_use_key;
+  String? table_use_sqlite_id;
 
   OrderDetail(
       {this.order_detail_sqlite_id,
@@ -205,6 +206,7 @@ class OrderDetail{
         this.quantity_before_cancel,
         this.product_id,
         this.table_use_key,
+        this.table_use_sqlite_id,
         List<String>? tableNumber,
         bool? isSelected
       }) {
@@ -370,7 +372,8 @@ class OrderDetail{
       ticket_exp: json['ticket_exp'] as String?,
       quantity_before_cancel: json['quantity_before_cancel'] as String?,
       product_id: json['product_id'] as int?,
-      table_use_key: json[OrderCacheFields.table_use_key] as String?
+      table_use_key: json[OrderCacheFields.table_use_key] as String?,
+      table_use_sqlite_id: json[OrderCacheFields.table_use_sqlite_id] as String?,
     );
   }
 
