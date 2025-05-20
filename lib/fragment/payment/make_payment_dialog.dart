@@ -4437,14 +4437,34 @@ class _MakePaymentState extends State<MakePayment> {
     return Utils.shortHashString(hashCode: md5Hash);
   }
 
-  generateOrderNumber() {
+  generateOrderNumber() async {
     int orderNum = 0;
-    if (orderList.isNotEmpty) {
-      orderNum = int.parse(orderList[0].order_number!) + 1;
+    AppSetting? appSetting = await PosDatabase.instance.readAppSetting();
+    if(appSetting != null && appSetting.order_number != '') {
+      orderNum = int.parse(appSetting.order_number!) + 1;
     } else {
-      orderNum = 1;
+      if (orderList.isNotEmpty) {
+        orderNum = int.parse(orderList[0].order_number!) + 1;
+      } else {
+        orderNum = 1;
+      }
+    }
+
+    if(appSetting != null) {
+      await updateOrderNumber(appSetting, orderNum);
     }
     return orderNum;
+  }
+
+  updateOrderNumber(AppSetting appSetting, int orderNumber) async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    AppSetting object = AppSetting(
+        order_number: orderNumber.toString().padLeft(5, '0'),
+        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
+        updated_at: dateTime
+    );
+    await PosDatabase.instance.updateAppSettingOrderNumber(object);
   }
 
   Future<int> readQueueFromOrderCache() async {
@@ -4472,7 +4492,7 @@ class _MakePaymentState extends State<MakePayment> {
     AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
     Map logInUser = json.decode(login_user!);
     Map userObject = json.decode(pos_user!);
-    int orderNum = generateOrderNumber();
+    int orderNum = await generateOrderNumber();
     int orderQueue = localSetting!.enable_numbering == 1 ? await readQueueFromOrderCache() : 0;
     try {
       if (orderNum != 0) {
@@ -4541,7 +4561,7 @@ class _MakePaymentState extends State<MakePayment> {
     AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
     Map logInUser = json.decode(login_user!);
     Map userObject = json.decode(pos_user!);
-    int orderNum = generateOrderNumber();
+    int orderNum = await generateOrderNumber();
     int orderQueue = localSetting!.enable_numbering == 1 ? await readQueueFromOrderCache() : 0;
     try {
       if (orderNum != 0) {

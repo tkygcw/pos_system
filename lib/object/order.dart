@@ -125,7 +125,7 @@ class Order {
 
   generateOrderNumber(){
     String orderNum = '';
-    orderNum = '#${order_number}-${branch_id?.padLeft(3,'0')}-${created_at.toString().replaceAll(' ', '').replaceAll('-', '').replaceAll(':', '')}';
+    orderNum = '#${order_number}';
     return orderNum;
   }
 

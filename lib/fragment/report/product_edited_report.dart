@@ -285,7 +285,7 @@ class _ProductEditedReportState extends State<ProductEditedReport> {
           DataRow(
             cells: <DataCell>[
               // DataCell(Text('Receipt No')),
-              DataCell(Text('#${categoryOrderDetailList[i].order_number}-${categoryOrderDetailList[i].branch_id?.padLeft(3,'0')}-${categoryOrderDetailList[i].created_at.toString().replaceAll(' ', '').replaceAll('-', '').replaceAll(':', '')}')),
+              DataCell(Text('#${categoryOrderDetailList[i].order_number}')),
               DataCell(Text('${categoryOrderDetailList[i].productName}')),
               DataCell(Text('${categoryOrderDetailList[i].original_price}')),
               DataCell(Text('${categoryOrderDetailList[i].price}')),

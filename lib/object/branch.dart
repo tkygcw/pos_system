@@ -22,6 +22,7 @@ class BranchFields {
     working_time,
     close_qr_order,
     register_no,
+    sst_number,
     allow_firestore,
     allow_livedata,
     qr_show_sku,
@@ -52,6 +53,7 @@ class BranchFields {
   static String working_time = 'working_time';
   static String close_qr_order = 'close_qr_order';
   static String register_no = 'register_no';
+  static String sst_number = 'sst_number';
   static String allow_firestore = 'allow_firestore';
   static String allow_livedata = 'allow_livedata';
   static String qr_show_sku = 'qr_show_sku';
@@ -84,6 +86,7 @@ class Branch {
   String? working_time;
   int? close_qr_order;
   String? register_no;
+  String? sst_number;
   int? allow_firestore;
   int? allow_livedata;
   int? qr_show_sku;
@@ -115,6 +118,7 @@ class Branch {
     this.working_time,
     this.close_qr_order,
     this.register_no,
+    this.sst_number,
     this.allow_firestore,
     this.allow_livedata,
     this.qr_show_sku,
@@ -152,6 +156,7 @@ class Branch {
     working_day: working_day ?? this.working_day,
     working_time: working_time ?? this.working_time,
     close_qr_order: close_qr_order ?? this.close_qr_order,
+    sst_number: sst_number ?? this.sst_number,
     register_no: register_no ?? this.register_no,
     allow_firestore: allow_firestore ?? this.allow_firestore,
     allow_livedata: allow_livedata ?? this.allow_livedata,
@@ -185,6 +190,7 @@ class Branch {
       working_time: json[BranchFields.working_time] as String?,
       close_qr_order: json[BranchFields.close_qr_order] as int?,
       register_no: json[BranchFields.register_no] as String?,
+      sst_number: json[BranchFields.sst_number] as String?,
       allow_firestore: json[BranchFields.allow_firestore] as int?,
       allow_livedata: json[BranchFields.allow_livedata] as int?,
       qr_show_sku: json[BranchFields.qr_show_sku] as int?,
@@ -218,6 +224,7 @@ class Branch {
     BranchFields.working_time: working_time,
     BranchFields.close_qr_order: close_qr_order,
     BranchFields.register_no: register_no,
+    BranchFields.sst_number: sst_number,
     BranchFields.allow_firestore: allow_firestore,
     BranchFields.allow_livedata: allow_livedata,
     BranchFields.qr_show_sku: qr_show_sku,
@@ -248,6 +255,7 @@ class Branch {
     BranchFields.working_time: working_time,
     BranchFields.close_qr_order: close_qr_order,
     BranchFields.register_no: register_no,
+    BranchFields.sst_number: sst_number,
     BranchFields.allow_firestore: allow_firestore,
     BranchFields.allow_livedata: allow_livedata,
     BranchFields.qr_show_sku: qr_show_sku,

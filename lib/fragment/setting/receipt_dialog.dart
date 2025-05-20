@@ -659,6 +659,10 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                   ),
                 ),
                 Center(
+                  child: Text(branchObject![BranchFields.sst_number] != '' ? branchObject![BranchFields.sst_number] :
+                  '(${AppLocalizations.of(context)!.translate('show_sst_number_error')})'),
+                ),
+                Center(
                   child: Column(
                     children: [
                       Visibility(
@@ -1503,6 +1507,10 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     child: Text(branchObject![BranchFields.register_no] != '' ? branchObject![BranchFields.register_no] :
                     '(${AppLocalizations.of(context)!.translate('show_register_no_error')})'),
                   ),
+                ),
+                Center(
+                  child: Text(branchObject![BranchFields.sst_number] != '' ? branchObject![BranchFields.sst_number] :
+                  '(${AppLocalizations.of(context)!.translate('show_sst_number_error')})'),
                 ),
                 Center(
                   child: Column(
