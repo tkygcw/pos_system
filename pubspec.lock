@@ -389,7 +389,7 @@ packages:
     source: git
     version: "4.1.0"
   esc_pos_utils:
-    dependency: transitive
+    dependency: "direct main"
     description:
       path: "."
       ref: HEAD
@@ -397,14 +397,6 @@ packages:
       url: "https://github.com/tkygcw/esc_pos_utils.git"
     source: git
     version: "1.1.0"
-  esc_pos_utils_plus:
-    dependency: "direct main"
-    description:
-      name: esc_pos_utils_plus
-      sha256: "2a22d281cb6f04600ba3ebd607ad8df03a4b2446d814007d22525bab4d50c2ff"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.4"
   f_logs:
     dependency: "direct main"
     description:

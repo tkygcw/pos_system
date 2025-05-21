@@ -95,7 +95,9 @@ dependencies:
   barcode_scan2: ^4.2.4
   rxdart: ^0.27.7
   dotted_line: ^3.2.0
-  esc_pos_utils_plus: ^2.0.2
+  esc_pos_utils:
+    git:
+      url: https://github.com/tkygcw/esc_pos_utils.git
   carousel_slider: ^5.0.0
   another_flushbar: ^1.12.30
   flash: ^3.0.5

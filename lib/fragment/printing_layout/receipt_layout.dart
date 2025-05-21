@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:image/image.dart' as img;
 import 'package:esc_pos_utils/esc_pos_utils.dart';
-import 'package:esc_pos_utils_plus/gbk_codec/gbk_codec.dart';
+import 'package:esc_pos_utils/gbk_codec/gbk_codec.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';

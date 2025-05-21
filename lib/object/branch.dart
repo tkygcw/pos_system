@@ -158,7 +158,6 @@ class Branch {
     close_qr_order: close_qr_order ?? this.close_qr_order,
     sst_number: sst_number ?? this.sst_number,
     register_no: register_no ?? this.register_no,
-    sst_number: sst_number ?? this.sst_number,
     allow_firestore: allow_firestore ?? this.allow_firestore,
     allow_livedata: allow_livedata ?? this.allow_livedata,
     qr_show_sku: qr_show_sku ?? this.qr_show_sku,
