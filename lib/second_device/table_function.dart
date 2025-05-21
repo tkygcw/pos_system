@@ -1,12 +1,14 @@
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/table_use.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../database/pos_database.dart';
+import '../firebase_sync/qr_order_sync.dart';
 import '../main.dart';
 import '../notifier/table_notifier.dart';
 import '../object/branch_link_product.dart';
@@ -282,6 +284,7 @@ class TableFunction {
   }
 
   _updateTableStatus(PosTable startTable, PosTable destinationTable, ChangeTableQuery query, String dateTime) async {
+    //reset start table status
     List<PosTable> startPosTableList = await query.readAllPosTableByTableUseKey(startTable.table_use_key!);
     for(var posTable in startPosTableList){
       var data = posTable.copy(
@@ -302,6 +305,23 @@ class TableFunction {
         sync_status: destinationTable.sync_status == 0 ? 0 : 2
     );
     await query.updatePosTableStatus(data);
+    syncToFirestore(query, startTable, destinationTable);
+  }
+
+  Future<void> syncToFirestore(ChangeTableQuery query, PosTable startTable, PosTable destinationTable) async {
+    try{
+      var startTableOrderCache = await query.readAllOrderCacheByTableUseKey(startTable.table_use_key!);
+      List<OrderCache> qrOrderCache = startTableOrderCache.where((e) => e.qr_order == 1).toList();
+      for(var orderCache in qrOrderCache){
+        await FirestoreQROrderSync.instance.updateOrderCacheTableId(destinationTable.table_id!.toString(), orderCache.order_cache_key!);
+      }
+    }catch(e, s){
+      FLog.error(
+        className: "sub pos table function",
+        text: "syncToFirestore failed",
+        exception: "Error: $e, StackTrace: $s",
+      );
+    }
   }
 }
 

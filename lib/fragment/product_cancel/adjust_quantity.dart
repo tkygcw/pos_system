@@ -411,7 +411,6 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
             widget.cartItem.order_cache_sqlite_id!,
             widget.cartItem.category_sqlite_id!,
             dateTime,
-            cart,
         );
         if (kitchenPrintStatus == 1) {
           Fluttertoast.showToast(

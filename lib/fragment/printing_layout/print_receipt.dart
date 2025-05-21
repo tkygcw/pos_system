@@ -2133,7 +2133,7 @@ class PrintReceipt{
     }
   }
 
-  Future<int> printKitchenDeleteList(String orderCacheId, String category_id, String dateTime, CartModel cart) async {
+  Future<int> printKitchenDeleteList(String orderCacheId, String category_id, String dateTime) async {
     try {
       List<Printer> printerList = this.activePrinterList;
       int printStatus = 0;

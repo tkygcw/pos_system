@@ -1,6 +1,6 @@
 class CancelItemData {
   late int _userId;
-  late String _orderDetailSqliteId;
+  late int _orderDetailSqliteId;
   late bool _restock;
   late num _cancelQty;
   String? reason;
@@ -8,7 +8,7 @@ class CancelItemData {
   // Private constructor
   CancelItemData._internal({
     required int userId,
-    required String orderDetailSqliteId,
+    required int orderDetailSqliteId,
     required bool restock,
     required num cancelQty,
     this.reason,
@@ -37,17 +37,18 @@ class CancelItemData {
 
   // Getters for private fields
   int get userId => _userId;
-  String get orderDetailSqliteId => _orderDetailSqliteId;
+  int get orderDetailSqliteId => _orderDetailSqliteId;
   bool get restock => _restock;
   num get cancelQty => _cancelQty;
 
   factory CancelItemData.initializeDataFromJson(Map<String, Object?> json) {
-    return _instance ??= CancelItemData._internal(
+    _instance = CancelItemData._internal(
         userId: json['userId'] as int,
-        orderDetailSqliteId: json['orderDetailSqliteId'] as String,
+        orderDetailSqliteId: json['orderDetailSqliteId'] as int,
         restock: json['restock'] as bool,
         cancelQty: json['cancelQty'] as num,
         reason: json['reason'] as String?
     );
+    return _instance!;
   }
 }
