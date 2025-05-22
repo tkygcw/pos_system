@@ -34,6 +34,7 @@ import '../database/pos_database.dart';
 import '../main.dart';
 import '../second_device/order/add_on_order.dart';
 import '../second_device/order/not_dine_in_order.dart';
+import '../second_device/server.dart';
 import 'branch_link_promotion.dart';
 import 'order.dart';
 
@@ -533,20 +534,60 @@ class ServerAction {
         }
         break;
         case '26': {
-          var decodeParam = jsonDecode(param);
-          String startTableNum = decodeParam[PosTableFields.start_table_num];
-          String destinationTableNum = decodeParam[PosTableFields.destination_table_num];
-          // change table function
-          await TableFunction().changeTable(startTableNum: startTableNum, destinationTableNum: destinationTableNum);
-          result = {'status': '1'};
+          try{
+            var decodeParam = jsonDecode(param);
+            String startTableNum = decodeParam[PosTableFields.start_table_num];
+            String destinationTableNum = decodeParam[PosTableFields.destination_table_num];
+            List<PosTable> startTable = await PosDatabase.instance.readSpecificTableByTableNo(startTableNum);
+            List<PosTable> destinationTable = await PosDatabase.instance.readSpecificTableByTableNo(destinationTableNum);
+            if(startTable.isNotEmpty && destinationTable.isNotEmpty){
+              bool isStartTableSelected = await TableFunction().IsTableSelected(startTable.first);
+              bool isDestinationTableSelected = await TableFunction().IsTableSelected(destinationTable.first);
+              if(!isStartTableSelected && !isDestinationTableSelected){
+                // change table function
+                await TableFunction().changeTable(startTableNum: startTableNum, destinationTableNum: destinationTableNum);
+                result = {'status': '1'};
+                Server.instance.sendMessageToClient("2");
+              } else {
+                result = {'status': '2'};
+              }
+            } else {
+              throw Exception('Table not exist');
+            }
+          }catch(e, s){
+            result = {'status': '4'};
+            FLog.error(
+              className: "checkAction",
+              text: "Server action 26 error",
+              exception: "Error: $e, StackTrace: $s",
+            );
+          }
         }
         break;
         case '27': {
-          var decodeParam = jsonDecode(param);
-          //initialize data from sub pos
-          CancelItemData.initializeDataFromJson(decodeParam);
-          await CancelItemFunction().cancelOrderDetail();
-          result = {'status': '1'};
+          try{
+            var decodeParam = jsonDecode(param);
+            //initialize data from sub pos
+            List decodedTable = decodeParam['selectedTable'];
+            List<PosTable> selectedTable = decodedTable.map((e) => PosTable.fromJson(e)).toList();
+            for(var posTable in selectedTable){
+              bool isStartTableSelected = await TableFunction().IsTableSelected(posTable);
+              if(isStartTableSelected){
+                return result = {'status': '2'};
+              }
+            }
+            CancelItemData.initializeDataFromJson(decodeParam);
+            await CancelItemFunction().cancelOrderDetail();
+            result = {'status': '1'};
+            Server.instance.sendMessageToClient("4");
+          }catch(e, s){
+            result = {'status': '4'};
+            FLog.error(
+              className: "checkAction",
+              text: "Server action 26 error",
+              exception: "Error: $e, StackTrace: $s",
+            );
+          }
         }
         break;
       }

@@ -2954,8 +2954,7 @@ class CartPageState extends State<CartPage> {
         int kitchenPrintStatus = await _printReceipt.printKitchenDeleteList(
           cartItem.order_cache_sqlite_id!,
           cartItem.category_sqlite_id!,
-          dateTime,
-          cart,
+          dateTime
         );
         if (kitchenPrintStatus == 1) {
           Fluttertoast.showToast(

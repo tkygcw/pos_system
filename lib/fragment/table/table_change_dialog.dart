@@ -18,6 +18,7 @@ import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../firebase_sync/qr_order_sync.dart';
 import '../../main.dart';
+import '../../second_device/server.dart';
 import '../printing_layout/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../translation/AppLocalizations.dart';
@@ -315,6 +316,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
       // }
       widget.callBack();
       Navigator.of(context).pop();
+      Server.instance.sendMessageToClient("2");
       Future.delayed(Duration(seconds: 2), () {
         if(mounted) Navigator.of(context).pop();
       });

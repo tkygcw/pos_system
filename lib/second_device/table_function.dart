@@ -297,22 +297,27 @@ class TableFunction {
       await query.updatePosTableStatus(data);
     }
     //update destination pos table status
-    var data = destinationTable.copy(
+    PosTable updatedDestinationTable = destinationTable.copy(
         updated_at: dateTime,
         table_use_key: destinationTable.status == 0 ? startTable.table_use_key : destinationTable.table_use_key,
         table_use_detail_key: destinationTable.status == 0 ? startTable.table_use_detail_key : destinationTable.table_use_detail_key,
         status: 1,
         sync_status: destinationTable.sync_status == 0 ? 0 : 2
     );
-    await query.updatePosTableStatus(data);
-    syncToFirestore(query, startTable, destinationTable);
+    await query.updatePosTableStatus(updatedDestinationTable);
+    await syncToFirestore(query, updatedDestinationTable);
   }
 
-  Future<void> syncToFirestore(ChangeTableQuery query, PosTable startTable, PosTable destinationTable) async {
+  Future<void> syncToFirestore(ChangeTableQuery query, PosTable destinationTable) async {
     try{
-      var startTableOrderCache = await query.readAllOrderCacheByTableUseKey(startTable.table_use_key!);
+      var startTableOrderCache = await query.readAllOrderCacheByTableUseKey(destinationTable.table_use_key!);
       List<OrderCache> qrOrderCache = startTableOrderCache.where((e) => e.qr_order == 1).toList();
       for(var orderCache in qrOrderCache){
+        OrderCache updateData = orderCache.copy(
+          sync_status: orderCache.sync_status == 0 ? 0 : 2,
+          qr_order_table_id: destinationTable.table_id!.toString(),
+        );
+        await query.updateOrderCacheQrTableId(updateData);
         await FirestoreQROrderSync.instance.updateOrderCacheTableId(destinationTable.table_id!.toString(), orderCache.order_cache_key!);
       }
     }catch(e, s){
@@ -329,6 +334,11 @@ class ChangeTableQuery {
   Transaction _transaction;
 
   ChangeTableQuery(this._transaction);
+
+  Future<int> updateOrderCacheQrTableId(OrderCache data) async {
+    return await _transaction.rawUpdate('UPDATE $tableOrderCache SET sync_status = ?, qr_order_table_id = ? WHERE order_cache_sqlite_id = ?',
+        [data.sync_status, data.qr_order_table_id, data.order_cache_sqlite_id]);
+  }
 
   Future<int> deleteTableUse(TableUse data) async {
     return await _transaction.rawUpdate('UPDATE $tableTableUse SET soft_delete = ?, sync_status = ?, status = ? WHERE table_use_sqlite_id = ?',
