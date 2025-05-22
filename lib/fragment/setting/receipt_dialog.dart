@@ -640,10 +640,21 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     )
                 ),
                 Visibility(
-                    visible: logoText ? true : false,
-                    child: Center(
-                      child: Text('${headerText}', style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold)),
-                    )
+                  visible: logoText,
+                  child: Center(
+                    child: Container(
+                      width: double.infinity,
+                      alignment: Alignment.center,
+                      child: Text(
+                        headerText,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: fontSize,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
                 Visibility(
                     visible: secondLogoText ? true : false,
@@ -1034,11 +1045,13 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               visible: logoText ? true : false,
               child: Container(
                 child: ValueListenableBuilder(
-                  // Note: pass _controller to the animation argument
                     valueListenable: headerTextController,
                     builder: (context, TextEditingValue value, __) {
-                      return SizedBox(
-                        height: 80,
+                      return Container(
+                        constraints: BoxConstraints(
+                          minHeight: 60,
+                          maxHeight: 160,
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: TextField(
@@ -1048,6 +1061,10 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                               });
                             },
                             controller: headerTextController,
+                            maxLines: 5,
+                            minLines: 1,
+                            keyboardType: TextInputType.multiline,
+                            textAlignVertical: TextAlignVertical.top,
                             decoration: InputDecoration(
                               errorText: _submitted
                                   ? errorHeaderText == null
@@ -1064,6 +1081,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                                     color: color.backgroundColor),
                               ),
                               labelText: AppLocalizations.of(context)!.translate('logo_text_here'),
+                              alignLabelWithHint: true,
                             ),
                           ),
                         ),
@@ -1490,10 +1508,21 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     )
                 ),
                 Visibility(
-                    visible: logoText ? true : false,
-                    child: Center(
-                      child: Text('${headerText}', style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold)),
-                    )
+                  visible: logoText,
+                  child: Center(
+                    child: Container(
+                      width: double.infinity,
+                      alignment: Alignment.center,
+                      child: Text(
+                        headerText,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: fontSize,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
                 Visibility(
                     visible: secondLogoText ? true : false,
@@ -1887,8 +1916,11 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 // Note: pass _controller to the animation argument
                   valueListenable: headerTextController,
                   builder: (context, TextEditingValue value, __) {
-                    return SizedBox(
-                      height: 80,
+                    return Container(
+                      constraints: BoxConstraints(
+                        minHeight: 60,
+                        maxHeight: 160,
+                      ),
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: TextField(
@@ -1898,6 +1930,10 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                             });
                           },
                           controller: headerTextController,
+                          maxLines: 5,
+                          minLines: 1,
+                          keyboardType: TextInputType.multiline,
+                          textAlignVertical: TextAlignVertical.top,
                           decoration: InputDecoration(
                             errorText: _submitted
                                 ? errorHeaderText == null
@@ -1914,6 +1950,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                                   color: color.backgroundColor),
                             ),
                             labelText: AppLocalizations.of(context)!.translate('logo_text_here'),
+                            alignLabelWithHint: true,
                           ),
                         ),
                       ),
@@ -2393,12 +2430,19 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
           // Note: pass _controller to the animation argument
             valueListenable: headerTextController,
             builder: (context, TextEditingValue value, __) {
-              return SizedBox(
-                height: 80,
+              return Container(
+                constraints: BoxConstraints(
+                  minHeight: 60,
+                  maxHeight: 160,
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextField(
                     controller: headerTextController,
+                    maxLines: 5,
+                    minLines: 1,
+                    keyboardType: TextInputType.multiline,
+                    textAlignVertical: TextAlignVertical.top,
                     decoration: InputDecoration(
                       errorText: _submitted
                           ? errorHeaderText == null
@@ -2415,6 +2459,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                             color: color.backgroundColor),
                       ),
                       labelText: AppLocalizations.of(context)!.translate('logo_text_here'),
+                      alignLabelWithHint: true,
                     ),
                   ),
                 ),
@@ -2910,12 +2955,19 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
           // Note: pass _controller to the animation argument
             valueListenable: headerTextController,
             builder: (context, TextEditingValue value, __) {
-              return SizedBox(
-                height: 80,
+              return Container(
+                constraints: BoxConstraints(
+                  minHeight: 60,
+                  maxHeight: 160,
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextField(
                     controller: headerTextController,
+                    maxLines: 5,
+                    minLines: 1,
+                    keyboardType: TextInputType.multiline,
+                    textAlignVertical: TextAlignVertical.top,
                     decoration: InputDecoration(
                       errorText: _submitted
                           ? errorHeaderText == null
@@ -2932,6 +2984,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                             color: color.backgroundColor),
                       ),
                       labelText: AppLocalizations.of(context)!.translate('logo_text_here'),
+                      alignLabelWithHint: true,
                     ),
                   ),
                 ),
