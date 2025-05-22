@@ -1158,6 +1158,13 @@ class ReceiptLayout{
           styles: PosStyles(align: PosAlign.center, ),
         );
       }
+      //sst number
+      if(branchObject[BranchFields.sst_number] != ''){
+        bytes += generator.text(branchObject[BranchFields.sst_number],
+          containsChinese: true,
+          styles: PosStyles(align: PosAlign.center, ),
+        );
+      }
       //Address
       if(receipt!.show_address == 1 && branchObject['address'].toString() != ''){
         bytes += generator.text('${branchObject['address']}', containsChinese: true, styles: PosStyles(align: PosAlign.center, ));
@@ -1387,10 +1394,18 @@ class ReceiptLayout{
 
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
+        //register no
         if(receipt!.show_register_no == 1 && branchObject[BranchFields.register_no] != ''){
           bytes += generator.text(branchObject[BranchFields.register_no],
             containsChinese: true,
             styles: PosStyles(align: PosAlign.center),
+          );
+        }
+        //sst number
+        if(branchObject[BranchFields.sst_number] != ''){
+          bytes += generator.text(branchObject[BranchFields.sst_number],
+            containsChinese: true,
+            styles: PosStyles(align: PosAlign.center, ),
           );
         }
         if(receipt!.show_address == 1 && branchObject['address'].toString() != ''){

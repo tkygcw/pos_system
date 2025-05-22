@@ -21,7 +21,9 @@ class PrintReportPage extends StatefulWidget {
   final int? currentPage;
   final List<PosTable>? tableList;
   final Function? callBack;
-  const PrintReportPage({Key? key, this.currentPage, this.tableList, this.callBack}) : super(key: key);
+  final String? startDate;
+  final String? endDate;
+  const PrintReportPage({Key? key, this.currentPage, this.tableList, this.callBack, this.startDate, this.endDate}) : super(key: key);
 
   @override
   State<PrintReportPage> createState() => _PrintReportPageState();
@@ -73,7 +75,7 @@ class _PrintReportPageState extends State<PrintReportPage> {
                     return reportFormat.generateCategoryReportPdf(format, 'Category Report', reportModel);
                   case 5:
                     //generate modifier report
-                    return reportFormat.generateModifierReportPdf(format, 'Modifier Report', reportModel);
+                    return reportFormat.generateModifierReportPdf(format, 'Product Modifier Report', reportModel);
                   case 6:
                     //generate edit report
                     return reportFormat.generatePriceEditReportPdf(format, 'Price Edit Report', reportModel);
@@ -110,8 +112,10 @@ class _PrintReportPageState extends State<PrintReportPage> {
                 }
               },
               canDebug: false,
-              previewPageMargin: EdgeInsets.all(10),
-              pdfFileName: generateFileName(),
+              allowPrinting: true,
+              allowSharing: true,
+              previewPageMargin: EdgeInsets.all(30),
+              pdfFileName: generateFileName(widget.currentPage!),
               maxPageWidth: MediaQuery.of(context).orientation == Orientation.landscape ? MediaQuery.of(context).size.width/2 : MediaQuery.of(context).size.width,
               initialPageFormat: PdfPageFormat.a4,
               onPrintError: (context, error) {
@@ -155,10 +159,64 @@ class _PrintReportPageState extends State<PrintReportPage> {
     }
   }
 
-  generateFileName(){
+  generateFileName(int currentPage){
     String name = '';
+    String report = '';
+    switch(currentPage){
+      case -1 :
+        report = 'qr_pdf';
+        break;
+      case 0:
+        report = 'Overview Report';
+        break;
+      case 1:
+        report = 'Sales Summary Report';
+        break;
+      case 3:
+        report = 'Product Sales Report';
+        break;
+      case 4:
+        report = 'Category Sales Report';
+        break;
+      case 5:
+        report = 'Modifier Sales Report';
+        break;
+      case 6:
+        report = 'Price Edit Report';
+        break;
+      case 7:
+        report = 'Cancellation Report';
+        break;
+      case 8:
+        report = 'Cancel Record Report';
+        break;
+      case 9:
+        report = 'Cancel Modifier Report';
+        break;
+      case 10:
+        report = 'Dining Report';
+        break;
+      case 11:
+        report = 'Payment Report';
+        break;
+      case 12:
+        report = 'Refund Report';
+        break;
+      case 13:
+        report = 'Cash Record Report';
+        break;
+      case 14:
+        report = 'Staff Sales Report';
+        break;
+      case 15:
+        report = 'Attendance Report';
+        break;
+      default:
+        report = 'Report';
+        break;
+    }
     String dateTime = dateFormat.format(DateTime.now());
-    name = '${dateTime}.pdf';
+    name = '$report ${dateTime}.pdf';
     return name;
   }
 

@@ -48,7 +48,7 @@ AppLanguage appLanguage = AppLanguage();
 final snackBarKey = GlobalKey<ScaffoldMessengerState>();
 bool isCartExpanded = false;
 bool isPaused = false;
-String appVersionCode = '', patch = '5';
+String appVersionCode = '', patch = '';
 ValueNotifier<int> unsyncedDataNotifier = ValueNotifier<int>(0);
 final ValueNotifier<bool> isSyncisSyncingingNotifier = ValueNotifier<bool>(false);
 String currency_code = 'MYR';
