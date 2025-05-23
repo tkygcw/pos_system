@@ -148,6 +148,7 @@ class OrderDetail{
   int? product_id;
   String? table_use_key;
   String? table_use_sqlite_id;
+  String? other_order_key;
 
   OrderDetail(
       {this.order_detail_sqlite_id,
@@ -207,6 +208,7 @@ class OrderDetail{
         this.product_id,
         this.table_use_key,
         this.table_use_sqlite_id,
+        this.other_order_key,
         List<String>? tableNumber,
         bool? isSelected
       }) {
@@ -374,6 +376,7 @@ class OrderDetail{
       product_id: json['product_id'] as int?,
       table_use_key: json[OrderCacheFields.table_use_key] as String?,
       table_use_sqlite_id: json[OrderCacheFields.table_use_sqlite_id] as String?,
+      other_order_key: json[OrderCacheFields.other_order_key] as String?
     );
   }
 

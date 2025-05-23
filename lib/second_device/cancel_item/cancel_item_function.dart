@@ -77,6 +77,47 @@ class CancelItemFunction {
     }
   }
 
+  cancelNotDineInOrder() async{
+    var db = await _posDatabase.database;
+    int cancelStatus = await db.transaction((txn) async {
+      try {
+        final cancelQuery = CancelQuery(txn, Utils.dbCurrentDateTimeFormat());
+        var cancelUser = await cancelQuery.readSpecificUserById(_cancelItemData.userId);
+        _orderDetail = (await cancelQuery.readSpecificOrderDetailJoinOrderCache(_cancelItemData.orderDetailSqliteId))!;
+        if (_cancelItemData.cancelQty == num.parse(_orderDetail.quantity!) || (_orderDetail.unit != 'each' && _orderDetail.unit != 'each_c')) {
+          await cancelQuery.callDeleteOrderDetail(cancelOrderDetail: _orderDetail, cancelUser: cancelUser!);
+          List<OrderDetail> orderDetail = await _readOrderCacheOrderDetail(cancelQuery);
+          if(orderDetail.isEmpty){
+            await cancelQuery.cancelCurrentOrderCache();
+          }
+        } else {
+          await cancelQuery.callUpdateOrderDetail(cancelOrderDetail: _orderDetail, cancelUser: cancelUser!);
+        }
+        return 1;
+      }catch(e, stackTrace){
+        FLog.error(
+          className: "cancel item function",
+          text: "transaction error",
+          exception: "Error: $e, StackTrace: $stackTrace",
+        );
+        rethrow;
+      }
+    });
+    if(cancelStatus == 1){
+      try{
+        callPrinter(Utils.formatDate(DateTime.now().toString()), _orderDetail.order_cache_sqlite_id!, _orderDetail.category_sqlite_id!);
+        //refresh table ui
+        TableModel.instance.changeContent(true);
+      }catch(e, s){
+        FLog.error(
+          className: "cancel item function",
+          text: "outside transaction error",
+          exception: "Error: $e, StackTrace: $s",
+        );
+      }
+    }
+  }
+
   callPrinter(String dateTime, String orderCacheSqliteId, String categorySqliteId) async {
     try{
       PrintReceipt _printReceipt = PrintReceipt();

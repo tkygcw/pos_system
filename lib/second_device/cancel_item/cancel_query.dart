@@ -601,7 +601,6 @@ class CancelQuery {
     }
   }
 
-
   Future<List<OrderCache>> readOrderCacheByTableUseKey(String table_use_key) async {
     try{
       var result = await _transaction.rawQuery("SELECT * FROM $tableOrderCache WHERE table_use_key = ? AND soft_delete = ? AND cancel_by = ? ",
@@ -619,7 +618,8 @@ class CancelQuery {
 
   Future<OrderDetail?> readSpecificOrderDetailJoinOrderCache(int orderDetailSqliteId) async {
     try{
-      var result = await _transaction.rawQuery("SELECT a.*, b.table_use_key, b.table_use_sqlite_id FROM $tableOrderDetail AS a "
+      var result = await _transaction.rawQuery("SELECT a.*, b.table_use_key, b.table_use_sqlite_id, b.other_order_key "
+          "FROM $tableOrderDetail AS a "
           "JOIN $tableOrderCache AS b ON a.order_cache_sqlite_id = b.order_cache_sqlite_id "
           "WHERE a.order_detail_sqlite_id = ? AND a.soft_delete = ? AND a.status = ? ",
           [orderDetailSqliteId, '', 0]);

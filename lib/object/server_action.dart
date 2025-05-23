@@ -576,7 +576,25 @@ class ServerAction {
             result = {'status': '4'};
             FLog.error(
               className: "checkAction",
-              text: "Server action 26 error",
+              text: "Server action 27 error",
+              exception: "Error: $e, StackTrace: $s",
+            );
+          }
+        }
+        break;
+        case '28': {
+          try{
+            var decodeParam = jsonDecode(param);
+            //initialize data from sub pos
+            CancelItemData.initializeDataFromJson(decodeParam);
+            await CancelItemFunction().cancelNotDineInOrder();
+            result = {'status': '1'};
+            Server.instance.sendMessageToClient("5");
+          }catch(e, s){
+            result = {'status': '4'};
+            FLog.error(
+              className: "checkAction",
+              text: "Server action 28 error",
               exception: "Error: $e, StackTrace: $s",
             );
           }
