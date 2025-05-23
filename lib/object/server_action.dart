@@ -71,7 +71,7 @@ class ServerAction {
   Future<Map<String, dynamic>?> checkAction({required String action, param, String? address}) async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    String minVersion = '1.0.22';
+    String minVersion = '1.0.31';
     Map<String, dynamic>? result;
     Map<String, dynamic>? objectData;
     try{
@@ -568,14 +568,6 @@ class ServerAction {
           try{
             var decodeParam = jsonDecode(param);
             //initialize data from sub pos
-            List decodedTable = decodeParam['selectedTable'];
-            List<PosTable> selectedTable = decodedTable.map((e) => PosTable.fromJson(e)).toList();
-            for(var posTable in selectedTable){
-              bool isStartTableSelected = await TableFunction().IsTableSelected(posTable);
-              if(isStartTableSelected){
-                return result = {'status': '2'};
-              }
-            }
             CancelItemData.initializeDataFromJson(decodeParam);
             await CancelItemFunction().cancelOrderDetail();
             result = {'status': '1'};
